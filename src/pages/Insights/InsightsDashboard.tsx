@@ -65,7 +65,10 @@ type InsightsDashboardContentProps = {
     state: InsightsDashboardState;
     aiInsights: AIInsight[] | undefined;
     insightsScope: InsightsScope;
-    isLoadingAIInsights: boolean;
+
+    /** Whether the last request for the dashboard failed */
+    hasFailedToLoad: boolean;
+
     headlineChart: InsightsDashboardChart;
 
     /** Last day the charts count expenses through, as the backend resolved today */
@@ -101,7 +104,7 @@ function InsightsDashboardContent({
     state,
     aiInsights,
     insightsScope,
-    isLoadingAIInsights,
+    hasFailedToLoad,
     headlineChart,
     asOfDate,
     futureExpenses,
@@ -129,6 +132,7 @@ function InsightsDashboardContent({
         fillsVisibleArea: shouldShowStandInView,
     });
 
+    const {countDimension, supportsDrillIn} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
     if (didRequestFail) {
@@ -245,7 +249,7 @@ function InsightsDashboardContent({
                         <InsightsAICardRow
                             insights={aiInsights}
                             insightsScope={insightsScope}
-                            isLoading={isLoadingAIInsights}
+                            hasFailedToLoad={hasFailedToLoad}
                         />
                     )}
                     <InsightsChartWidget
@@ -259,6 +263,8 @@ function InsightsDashboardContent({
                         isDashboardLoaded={headlineChart.isDashboardLoaded}
                         filters={filters}
                         insightsScope={insightsScope}
+                        countDimension={countDimension}
+                        supportsDrillIn={supportsDrillIn}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
                     >
@@ -290,6 +296,8 @@ function InsightsDashboardContent({
                                         isDashboardLoaded={isDashboardLoaded}
                                         filters={filters}
                                         insightsScope={insightsScope}
+                                        countDimension={countDimension}
+                                        supportsDrillIn={supportsDrillIn}
                                         onRetry={onRetry}
                                     />
                                 ))}
@@ -331,7 +339,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         }
         setFilters(update);
     };
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible, queryType} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
     const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login, isDashboardPolicyEligible);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
@@ -347,7 +355,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         if (!query || hash === undefined || isOffline) {
             return;
         }
-        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes);
+        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes, queryType);
     };
 
     const onRequestConditionsChanged = useEffectEvent(() => {
@@ -429,7 +437,16 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             ) : (
                 (!!tabSelector || !!pageControls) && (
                     <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
-                        <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                        <View
+                            style={[
+                                styles.centeredContentWidthLimiter,
+                                styles.flexRow,
+                                styles.flexWrap,
+                                styles.alignItemsCenter,
+                                tabSelector ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                styles.gap2,
+                            ]}
+                        >
                             {tabSelector}
                             {pageControls}
                         </View>
@@ -465,8 +482,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                                 date: filters.date,
                                 groupCurrency: filters.groupCurrency,
                             }}
-                            // Offline no response is coming, so the row hides instead of loading forever
-                            isLoadingAIInsights={!hasDashboardResponse(dashboard) && !isOffline}
+                            hasFailedToLoad={!!dashboard?.errors}
                             headlineChart={headlineChart}
                             asOfDate={dashboard?.asOfDate}
                             futureExpenses={dashboard?.futureExpenses}

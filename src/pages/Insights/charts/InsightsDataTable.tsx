@@ -4,7 +4,12 @@ import {formatChangePercentage} from '@components/Charts/utils/formatTooltipComp
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
-import type {TransactionApproverGroupListItemType, TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {
+    TransactionApproverGroupListItemType,
+    TransactionCardGroupListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionPaidByGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
 import Text from '@components/Text';
 
@@ -42,8 +47,15 @@ type InsightsDataTableProps = {
 };
 
 /** Narrows a group to the member-based variants, the ones carrying the person's avatar and account ID. */
-function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionCardGroupListItemType {
-    return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
+function isMemberGroup(
+    item: GroupedItem,
+): item is TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionPaidByGroupListItemType | TransactionCardGroupListItemType {
+    return (
+        item.groupedBy === CONST.SEARCH.GROUP_BY.FROM ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.CARD
+    );
 }
 
 function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsDataTableProps) {

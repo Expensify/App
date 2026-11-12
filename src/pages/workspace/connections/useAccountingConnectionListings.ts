@@ -61,14 +61,10 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     }
 
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
-    const canUseZohoBooksIntegration = isBetaEnabled(CONST.BETAS.ZOHO_BOOKS) || !!policy?.connections?.zohoBooks;
     const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
-        }
-        if (name === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
-            return canUseZohoBooksIntegration;
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
             return canUseDigitsIntegration;
@@ -153,6 +149,10 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                     : undefined,
             onConnect: () => connect(name, isIntuitEnterpriseSuite),
             onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID)),
+            // A connect flow that fails after leaving the app (e.g. Zoho Books OAuth) reports back through the policy.
+            // Once another accounting integration is connected the old failure no longer matters, so it's hidden.
+            // Intuit Enterprise Suite is a QBO alias, so only the QBO card shows a QBO error.
+            connectError: connectedIntegration || isIntuitEnterpriseSuite ? undefined : policy?.connectErrors?.[name],
             registerConnectButton: (button) => {
                 const anchorRef = popoverAnchorRefs?.current?.[key];
                 if (!anchorRef) {

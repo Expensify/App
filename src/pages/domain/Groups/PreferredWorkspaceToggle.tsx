@@ -120,6 +120,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                     errorRowStyles={[styles.mh5]}
                 >
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.PREFERRED_WORKSPACE}
                         name={translate('domain.groups.preferredWorkspace')}
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
                         isDisabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}

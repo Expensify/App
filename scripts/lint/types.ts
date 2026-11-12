@@ -42,6 +42,8 @@ type LinterResult = {
 type ProcessorContext = {
     projectRoot: string;
     lintedFiles: string[];
+    /** Unsaved editor text by file path, so the language server wrapper never reads stale content from disk. */
+    sources?: ReadonlyMap<string, string>;
 };
 
 type FormatterResult = {
