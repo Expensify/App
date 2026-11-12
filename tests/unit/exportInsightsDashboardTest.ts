@@ -5,6 +5,7 @@ import type ExportInsightsDashboard from '@pages/Insights/exportInsightsDashboar
 import type {InsightsCaptureRef} from '@pages/Insights/exportInsightsDashboard/types';
 
 import type {Options} from 'modern-screenshot';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import {Skia} from '@shopify/react-native-skia';
@@ -203,7 +204,7 @@ describe('exportInsightsDashboard on web', () => {
 
 describe('exportInsightsDashboard on native', () => {
     function makeRef(height: number, x = 0, width = 400): InsightsCaptureRef {
-        return {current: createMock<View>({measureInWindow: (callback) => callback(x, 0, width, height)})};
+        return {current: createMock<ComponentRef<typeof View>>({measureInWindow: (callback) => callback(x, 0, width, height)})};
     }
 
     beforeEach(() => {

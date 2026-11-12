@@ -6,7 +6,7 @@ import Text from '@components/Text';
 
 import CONST from '@src/CONST';
 
-import type {ReactNode} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -36,7 +36,7 @@ function renderPopoverAt(vertical: number, verticalAlignment: ValueOf<typeof CON
         <PopoverWithMeasuredContentBase
             isVisible
             onClose={() => {}}
-            anchorRef={createRef<View>()}
+            anchorRef={createRef<ComponentRef<typeof View>>()}
             anchorPosition={{horizontal: 0, vertical}}
             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: verticalAlignment}}
             popoverDimensions={{height: POPOVER_HEIGHT, width: POPOVER_WIDTH}}

@@ -22,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type {Card, Policy} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 
+import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {emailSelector} from '@selectors/Session';
@@ -108,7 +109,7 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const {popoverHeight: contentHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
     const resolvedHeight = popoverHeight ?? contentHeight;
 
