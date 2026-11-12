@@ -6,6 +6,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
+import BulkArchiveWorkspacesFlow from '@components/Tables/WorkspaceListTable/BulkArchiveWorkspacesFlow';
 import BulkLeaveWorkspacesFlow from '@components/Tables/WorkspaceListTable/BulkLeaveWorkspacesFlow';
 import LeaveWorkspaceFlow from '@components/Tables/WorkspaceListTable/LeaveWorkspaceFlow';
 import TransferOwnershipFlow from '@components/Tables/WorkspaceListTable/TransferOwnershipFlow';
@@ -32,7 +33,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {close} from '@libs/actions/Modal';
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import {checkBulkTransferPolicyBillingOwner, queueBulkExportPolicyMembers, queueBulkTransferPolicyBillingOwner} from '@libs/actions/Policy/Member';
-import {queueBulkArchivePolicy, clearDuplicateWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
+import {clearDuplicateWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import {callIfAuthenticated} from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -45,7 +46,7 @@ import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicyByType} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {getWorkspacesBulkActions} from '@libs/WorkspacesSettingsUtils';
+import {getBulkActionSkippedNotice, getWorkspacesBulkActions} from '@libs/WorkspacesSettingsUtils';
 import type {WorkspacesBulkAction} from '@libs/WorkspacesSettingsUtils';
 
 import {setNameValuePair} from '@userActions/User';
@@ -126,6 +127,7 @@ function WorkspacesListPage() {
     const [policyIDToArchive, setPolicyIDToArchive] = useState<string>();
     const [activeFlow, setActiveFlow] = useState<ActiveWorkspaceFlow>();
     const [policyIDsToLeave, setPolicyIDsToLeave] = useState<string[]>();
+    const [policyIDsToArchive, setPolicyIDsToArchive] = useState<string[]>();
     const [isCheckingTransfer, setIsCheckingTransfer] = useState(false);
     const [selectedPolicyIDs, setSelectedPolicyIDs] = useState<string[]>([]);
     const clearSelection = () => setSelectedPolicyIDs([]);
@@ -292,10 +294,7 @@ function WorkspacesListPage() {
         buttonVariant: ValueOf<typeof CONST.BUTTON_VARIANT> = CONST.BUTTON_VARIANT.DANGER,
     ) => {
         const skippedWorkspaceNames = selectedRows.filter((row) => !policyIDs.includes(row.policyID)).map((row) => row.title);
-        const prompt =
-            skippedWorkspaceNames.length > 0
-                ? `${translate('workspace.common.bulkActionAppliesTo', policyIDs.length, selectedRows.length)} ${translate('workspace.common.bulkActionSkippedWorkspaces', skippedWorkspaceNames.join(', '))}`
-                : undefined;
+        const prompt = getBulkActionSkippedNotice(policyIDs.length, selectedRows.length, skippedWorkspaceNames, translate) || undefined;
 
         showConfirmModal({
             title,
@@ -421,9 +420,7 @@ function WorkspacesListPage() {
                             setPolicyIDToArchive(firstPolicyID);
                             return;
                         }
-                        confirmBulkAction(policyIDs, translate('workspace.common.archiveWorkspacesTitle', {count: policyIDs.length}), translate('common.archive'), () =>
-                            queueBulkArchivePolicy(policyIDs),
-                        );
+                        setPolicyIDsToArchive(policyIDs);
                     },
                 };
             case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DELETE:
@@ -575,6 +572,14 @@ function WorkspacesListPage() {
                             setPolicyIDToArchive(undefined);
                             clearSelection();
                         }}
+                    />
+                )}
+                {!!policyIDsToArchive && (
+                    <BulkArchiveWorkspacesFlow
+                        selectedRows={selectedRows}
+                        policyIDs={policyIDsToArchive}
+                        onConfirm={clearSelection}
+                        onDismiss={() => setPolicyIDsToArchive(undefined)}
                     />
                 )}
                 {activeFlow?.type === CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE && (

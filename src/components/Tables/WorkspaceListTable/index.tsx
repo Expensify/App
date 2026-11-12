@@ -66,7 +66,7 @@ type WorkspaceListTableProps = {
     /** IDs of the selected workspaces */
     selectedKeys: string[];
 
-    /** Called when the selection changes */
+    /** Receives the full list of selected IDs, not only the row that changed */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 
     /** The actions offered in the floating bar for the selected workspaces */

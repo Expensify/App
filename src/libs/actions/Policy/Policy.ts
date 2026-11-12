@@ -1960,7 +1960,6 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
 
 function queueBulkLeavePolicy(currentUserEmail: string, policies: Array<Pick<Policy, 'id' | 'pendingAction'>>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
 
     for (const policy of policies) {
@@ -1977,11 +1976,6 @@ function queueBulkLeavePolicy(currentUserEmail: string, policies: Array<Pick<Pol
                 },
             },
         });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key,
-            value: null,
-        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key,
@@ -1997,7 +1991,9 @@ function queueBulkLeavePolicy(currentUserEmail: string, policies: Array<Pick<Pol
     }
 
     const params: QueueBulkLeavePolicyParams = {policyIDList: policies.map((policy) => policy.id).join(',')};
-    API.write(WRITE_COMMANDS.QUEUE_BULK_LEAVE_POLICY, params, {optimisticData, successData, failureData});
+
+    // No successData, because the backend removes the workspaces that were left once the queued job runs.
+    API.write(WRITE_COMMANDS.QUEUE_BULK_LEAVE_POLICY, params, {optimisticData, failureData});
 }
 
 function addBillingCardAndRequestPolicyOwnerChange(

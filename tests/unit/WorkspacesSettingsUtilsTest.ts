@@ -1,6 +1,7 @@
 import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
 import {
     getBrickRoadForPolicy,
+    getBulkArchiveWorkspacesConfirmationPrompt,
     getBulkLeaveWorkspacesConfirmationPrompt,
     getChatTabBrickRoad,
     getChatTabBrickRoadReportID,
@@ -350,6 +351,42 @@ describe('WorkspacesSettingsUtils', () => {
 
             // Then the payer warning comes after the warnings for the workspaces being left
             expect(prompt).toBe(`common.leaveWorkspaceConfirmation\n${CONST.DOT_SEPARATOR} Member 1\n\ncommon.leaveWorkspaceReimburser\n${CONST.DOT_SEPARATOR} Payer 1`);
+        });
+    });
+
+    describe('getBulkArchiveWorkspacesConfirmationPrompt', () => {
+        const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => [path, ...parameters].join(':');
+
+        it('lists each workspace under the card warning that applies to it', () => {
+            // Given two workspaces with Expensify Cards, one with other cards and one without any cards
+            const workspaces = [
+                {name: 'Expensify 1', hasExpensifyCards: true, hasCards: true},
+                {name: 'Company 1', hasExpensifyCards: false, hasCards: true},
+                {name: 'No cards', hasExpensifyCards: false, hasCards: false},
+                {name: 'Expensify 2', hasExpensifyCards: true, hasCards: true},
+            ];
+
+            // When the bulk archive prompt is built
+            const prompt = getBulkArchiveWorkspacesConfirmationPrompt(workspaces, translate);
+
+            // Then a workspace with Expensify Cards only gets that warning, like the single archive confirmation, and the workspace without cards isn't listed
+            expect(prompt).toBe(
+                `workspace.common.archiveWorkspacesWithExpensifyCardsConfirmation\n${CONST.DOT_SEPARATOR} Expensify 1\n${CONST.DOT_SEPARATOR} Expensify 2\n\nworkspace.common.archiveWithThirdPartyCardsConfirmation\n${CONST.DOT_SEPARATOR} Company 1`,
+            );
+        });
+
+        it('returns an empty prompt when none of the workspaces have cards', () => {
+            // Given workspaces without any cards
+            const workspaces = [
+                {name: 'No cards 1', hasExpensifyCards: false, hasCards: false},
+                {name: 'No cards 2', hasExpensifyCards: false, hasCards: false},
+            ];
+
+            // When the bulk archive prompt is built
+            const prompt = getBulkArchiveWorkspacesConfirmationPrompt(workspaces, translate);
+
+            // Then there is no card warning to show
+            expect(prompt).toBe('');
         });
     });
 

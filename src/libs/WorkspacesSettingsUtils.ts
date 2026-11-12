@@ -200,6 +200,49 @@ function getBulkLeaveWorkspacesConfirmationPrompt(workspaces: BulkLeaveWorkspace
         .join('\n\n');
 }
 
+/**
+ * Tells the user which selected workspaces a bulk action leaves out. Returns an empty string when it applies to all of them.
+ */
+function getBulkActionSkippedNotice(appliedCount: number, selectedCount: number, skippedWorkspaceNames: string[], translate: LocaleContextProps['translate']): string {
+    if (skippedWorkspaceNames.length === 0) {
+        return '';
+    }
+    return `${translate('workspace.common.bulkActionAppliesTo', appliedCount, selectedCount)} ${translate('workspace.common.bulkActionSkippedWorkspaces', skippedWorkspaceNames.join(', '))}`;
+}
+
+type BulkArchiveWorkspace = {
+    name: string;
+
+    /** Archiving sets the limits of the workspace's own Expensify Cards to $0 */
+    hasExpensifyCards: boolean;
+
+    /** Archiving unassigns the workspace's cards */
+    hasCards: boolean;
+};
+
+/**
+ * Lists the selected workspaces under the card warning that applies to each, using the same precedence as the single
+ * workspace archive confirmation. Returns an empty string when none of them have cards.
+ */
+function getBulkArchiveWorkspacesConfirmationPrompt(workspaces: BulkArchiveWorkspace[], translate: LocaleContextProps['translate']): string {
+    const expensifyCardNames = workspaces.filter((workspace) => workspace.hasExpensifyCards).map((workspace) => workspace.name);
+    const cardNames = workspaces.filter((workspace) => !workspace.hasExpensifyCards && workspace.hasCards).map((workspace) => workspace.name);
+    const formatGroup = (warning: string, names: string[]) => [warning, ...names.map((name) => `${CONST.DOT_SEPARATOR} ${name}`)].join('\n');
+
+    const groups: string[] = [];
+    if (expensifyCardNames.length > 0) {
+        const warning = translate(
+            expensifyCardNames.length > 1 ? 'workspace.common.archiveWorkspacesWithExpensifyCardsConfirmation' : 'workspace.common.archiveWithExpensifyCardsConfirmation',
+        );
+        groups.push(formatGroup(warning, expensifyCardNames));
+    }
+    if (cardNames.length > 0) {
+        const warning = translate(cardNames.length > 1 ? 'workspace.common.archiveWorkspacesWithThirdPartyCardsConfirmation' : 'workspace.common.archiveWithThirdPartyCardsConfirmation');
+        groups.push(formatGroup(warning, cardNames));
+    }
+    return groups.join('\n\n');
+}
+
 type WorkspacesBulkActionRow = {
     policyID: string;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
@@ -306,6 +349,8 @@ export {
     getOwnershipChecksDisplayText,
     getLeaveWorkspaceConfirmationPrompt,
     getBulkLeaveWorkspacesConfirmationPrompt,
+    getBulkArchiveWorkspacesConfirmationPrompt,
+    getBulkActionSkippedNotice,
     getWorkspacesBulkActions,
 };
 export type {BrickRoad, WorkspacesBulkAction, WorkspacesBulkActionContext, WorkspacesBulkActionRow};

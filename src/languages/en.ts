@@ -5546,9 +5546,13 @@ const translations = {
             archive: 'Archive workspace',
             archiveConfirmation: 'Are you sure you want to archive this workspace?',
             archiveWithThirdPartyCardsConfirmation:
-                'Are you sure you want to archive this workspace? This will unassign all credit cards from users and permanently delete any unsubmitted card expenses.',
+                'Are you sure you want to archive this workspace? This will unassign all credit cards from members and permanently delete any unsubmitted card expenses.',
             archiveWithExpensifyCardsConfirmation:
                 'Are you sure you want to archive this workspace? This will set all Expensify Card limits to $0 and automatically decline any new purchase attempts.',
+            archiveWorkspacesWithThirdPartyCardsConfirmation:
+                'Are you sure you want to archive these workspaces? This will unassign all credit cards from members and permanently delete any unsubmitted card expenses.',
+            archiveWorkspacesWithExpensifyCardsConfirmation:
+                'Are you sure you want to archive these workspaces? This will set all Expensify Card limits to $0 and automatically decline any new purchase attempts.',
             unarchive: 'Unarchive',
             unarchiveWorkspace: 'Unarchive workspace',
             unarchiveConfirmation: 'Are you sure you want to unarchive this workspace?',

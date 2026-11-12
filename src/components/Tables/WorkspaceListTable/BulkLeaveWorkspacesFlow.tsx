@@ -9,11 +9,10 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import {close} from '@libs/actions/Modal';
 import {queueBulkLeavePolicy} from '@libs/actions/Policy/Policy';
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
-import {getBulkLeaveWorkspacesConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
+import {getBulkActionSkippedNotice, getBulkLeaveWorkspacesConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useEffect, useRef} from 'react';
 
@@ -40,15 +39,13 @@ function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
-    const isLoadingData = isLoadingOnyxValue(policiesResult);
-
     const hasStartedRef = useRef(false);
     useEffect(() => {
-        if (hasStartedRef.current || isLoadingData) {
+        if (hasStartedRef.current) {
             return;
         }
         hasStartedRef.current = true;
@@ -74,10 +71,7 @@ function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}
                 userLogin,
                 translate,
             );
-            const skippedNotice =
-                skippedWorkspaceNames.length > 0
-                    ? `${translate('workspace.common.bulkActionAppliesTo', policyIDs.length, selectedRows.length)} ${translate('workspace.common.bulkActionSkippedWorkspaces', skippedWorkspaceNames.join(', '))}`
-                    : '';
+            const skippedNotice = getBulkActionSkippedNotice(policyIDs.length, selectedRows.length, skippedWorkspaceNames, translate);
 
             showConfirmModal({
                 title: translate('workspace.common.leaveWorkspacesTitle', {count: policyIDs.length}),
