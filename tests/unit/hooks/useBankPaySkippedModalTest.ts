@@ -4,10 +4,11 @@ import useBankPaySkippedModal from '@hooks/useBankPaySkippedModal';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {BankAccount, Policy} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockShowConfirmModal = jest.fn();
@@ -19,16 +20,27 @@ jest.mock('@hooks/useConfirmModal', () => ({
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
-        translate: (key: string, ...params: unknown[]) => {
-            const definedParams = params.filter((param) => param !== undefined);
-            return definedParams.length ? `${key}(${definedParams.join(',')})` : key;
-        },
+        translate: (key: string, lastFour?: string) => (lastFour ? `${key}(${lastFour})` : key),
     }),
 }));
 
 const PICKED_BANK_ACCOUNT_ID = 111;
 const WORKSPACE_BANK_ACCOUNT_ID = 222;
-const policy = {id: 'policy1', achAccount: {bankAccountID: WORKSPACE_BANK_ACCOUNT_ID}} as Policy;
+const policy: Policy = {
+    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+    achAccount: {
+        bankAccountID: WORKSPACE_BANK_ACCOUNT_ID,
+        accountNumber: 'XXXXXX5678',
+        routingNumber: '123456789',
+        addressName: 'Workspace account',
+        bankName: 'Workspace bank',
+        reimburser: 'payer@test.com',
+    },
+};
+
+function createBankAccount(accountNumber: string): BankAccount {
+    return {bankCurrency: CONST.CURRENCY.USD, bankCountry: 'US', accountData: {accountNumber}};
+}
 
 describe('useBankPaySkippedModal', () => {
     beforeAll(() => {
@@ -38,8 +50,8 @@ describe('useBankPaySkippedModal', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
-            [PICKED_BANK_ACCOUNT_ID]: {accountData: {accountNumber: 'XXXXXX1234'}},
-            [WORKSPACE_BANK_ACCOUNT_ID]: {accountData: {accountNumber: 'XXXXXX5678'}},
+            [PICKED_BANK_ACCOUNT_ID]: createBankAccount('XXXXXX1234'),
+            [WORKSPACE_BANK_ACCOUNT_ID]: createBankAccount('XXXXXX5678'),
         });
         await waitForBatchedUpdatesWithAct();
     });

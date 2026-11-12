@@ -876,8 +876,8 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
 
         // Then the modal explains that none of the reports can be paid through the bank account, without listing them
         await waitFor(() => expect(mockShowBankPaySkippedModal).toHaveBeenCalledTimes(1));
-        expect(mockShowBankPaySkippedModal.mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID}));
-        expect(mockShowBankPaySkippedModal.mock.calls.at(0)?.at(0)?.skippedReports).toBeUndefined();
+        expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID}));
+        expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(expect.not.objectContaining({skippedReports: expect.anything()}));
 
         // And nothing is paid while the selection stays, so the user can mark the reports as paid right away
         expect(payMoneyRequest).not.toHaveBeenCalled();
