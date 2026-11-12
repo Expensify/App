@@ -617,6 +617,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 requiredDepositCurrency: 'string',
                 requiresGlobalReimbursement: 'boolean',
                 depositCurrency: 'string',
+                autoExport: 'object',
             });
         case 'tripData':
             return validateObject<ObjectElement<ReportNameValuePairs, 'tripData'>>(value, {

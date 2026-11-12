@@ -2,13 +2,16 @@
 
 ### [react-native+0.88.0+001+fixMVCPAndroid.patch](react-native+0.88.0+001+fixMVCPAndroid.patch)
 
-- Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch makes two key improvements:
+- Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch:
   1. Changes when the first visible view is calculated - now happens on scroll events instead of during Fabric's willMountItems lifecycle, which was causing incorrect updates
   2. Improves first visible view selection logic to handle Fabric's z-index-based view reordering by finding the view with the smallest position that's still greater than the scroll position
+  3. Preserves a positioned, zero-sized first child as a scroll anchor. LegendList moves this anchor to compensate for item measurements. Selecting its surrounding container or rejecting its empty frame prevents native scroll compensation and makes the chat jump as estimated rows shrink. LegendList 3.7 places the anchor at its adjustment offset plus 10,000,000 pixels, beyond the viewport. The strict visibility check also prevents a fixed, zero-sized spacer at or above the scroll offset in another scroll view from taking over its visible-content anchor.
+- Scope: This changes Android `MaintainVisibleContentPosition` for every React Native scroll view that enables it, not only the report-action list. Keep this in mind when updating React Native or investigating anchoring in other scroll views.
 - Upstream PR/issue: https://github.com/react/react-native/pull/57959 merged on 2026-10-28 as [9bc1a28a9623419d62eb350acd0c172644e2c022](https://github.com/react/react-native/commit/9bc1a28a9623419d62eb350acd0c172644e2c022). It ports the original Android MVCP proposal and includes z-index anchor selection and support for LegendList's positioned, zero-sized anchor.
 - Expected release: React Native 0.89.0, [currently scheduled for 2026-12-07](https://reactnative.dev/releases/overview), unless cherry-picked into an earlier release. The fix landed after the 0.88 branch cut and before the scheduled 0.89 branch cut on 2026-11-03.
+- Reproducer: https://github.com/react/react-native/pull/59360 adds the RNTester reproduction, without a runtime fix. The standalone reproduction and proposed anchor patch are in https://github.com/margelo/react-native-mvcp-reproducer.
 - Earlier proposal: https://github.com/react/react-native/pull/46247 closed without merging.
-- Removal: Expected to be removable when the adopted React Native release contains `9bc1a28`. Before removing it, verify Android scroll-position preservation during bidirectional pagination and row-height changes with the patch disabled. Keep it on React Native 0.88 unless the upstream fix is backported.
+- Removal: Expected to be removable when the adopted React Native release contains `9bc1a28`. Before removing it, verify bidirectional pagination, changing row heights, and LegendList's positioned-anchor corrections with the patch disabled. Keep it on React Native 0.88 unless the upstream fix is backported.
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/46315 (introduced), https://github.com/Expensify/App/pull/45289 (refactored)
 
@@ -159,13 +162,6 @@
 - Upstream PR/issue: This should ideally be the default behavior upstream, but no PR has been filed yet.
 - E/App issue: [#83000](https://github.com/Expensify/App/issues/83000)
 - PR introducing patch: [#83256](https://github.com/Expensify/App/pull/83256)
-
-### [react-native+0.88.0+021+fix-hermes-sampling-profiler-pthread-kill-crash.patch](react-native+0.88.0+021+fix-hermes-sampling-profiler-pthread-kill-crash.patch)
-
-- Reason: On Android (Bionic libc), `pthread_kill` with an invalid `pthread_t` (e.g., thread has exited) calls `abort()` instead of returning `ESRCH` like glibc. The Hermes sampling profiler's timer thread sends `SIGPROF` via `pthread_kill` to registered runtime threads at ~100Hz. If a runtime's thread exits while profiling is active (e.g., during HybridApp transitions or background/foreground), the stale `pthread_t` triggers `SIGABRT: invalid pthread_t passed to pthread_kill`. This patch adds a `doLast` hook to the `unzipHermes` Gradle task that modifies `SamplingProfilerPosix.cpp` after Hermes source extraction, replacing `pthread_kill` with the `tgkill` syscall on Android, which safely returns `ESRCH` for dead threads. A kernel thread ID (`currentTid_`) is stored alongside the `pthread_t` and kept in sync via `setRuntimeThread()`. The Gradle hook approach is necessary because `unzipHermes` downloads fresh Hermes source, overwriting any direct source patches.
-- Upstream PR/issue: 🛑
-- E/App issue: [#77171](https://github.com/Expensify/App/issues/77171)
-- PR introducing patch: [#84708](https://github.com/Expensify/App/pull/84708)
 
 ### [react-native+0.88.0+022+fix-display-contents-dirty-flag.patch](react-native+0.88.0+022+fix-display-contents-dirty-flag.patch)
 
@@ -322,7 +318,7 @@
 
 ### [react-native+0.88.0+037+fix-hermes-tarball-root-after-repo-move.patch](react-native+0.88.0+037+fix-hermes-tarball-root-after-repo-move.patch)
 
-- Reason: Fixes Android builds that compile React Native from source (the artifacts publish workflow, any build that misses the prebuilt artifacts, `BUILD_RN_FROM_SOURCE=1`) failing at `hermes-engine:configureBuildForHermes` with `The source directory ".../sdks/hermes" does not appear to contain CMakeLists.txt`. On 2026-10-28 `facebook/hermes` moved to `meta/hermes`. The old tarball URL still redirects, but GitHub names the archive's top-level folder `<owner>-<repo>-<sha>`, so it is now `meta-hermes-<sha>/` and `unzipHermes` only flattened `facebook-hermes-*`, leaving the sources one level too deep. The patch is the upstream fix: download from `meta/hermes` and strip the single top-level folder whatever its name (`includeEmptyDirs = false` keeps the empty wrapper folder from being recreated), the same way `ReactAndroid/build.gradle.kts` extracts folly, fmt and fast_float. It leaves the `doLast` step from `+021` untouched, which depends on `sdks/hermes` being flattened correctly.
+- Reason: Fixes Android builds that compile React Native from source (the artifacts publish workflow, any build that misses the prebuilt artifacts, `BUILD_RN_FROM_SOURCE=1`) failing at `hermes-engine:configureBuildForHermes` with `The source directory ".../sdks/hermes" does not appear to contain CMakeLists.txt`. On 2026-10-28 `facebook/hermes` moved to `meta/hermes`. The old tarball URL still redirects, but GitHub names the archive's top-level folder `<owner>-<repo>-<sha>`, so it is now `meta-hermes-<sha>/` and `unzipHermes` only flattened `facebook-hermes-*`, leaving the sources one level too deep. The patch is the upstream fix: download from `meta/hermes` and strip the single top-level folder whatever its name (`includeEmptyDirs = false` keeps the empty wrapper folder from being recreated), the same way `ReactAndroid/build.gradle.kts` extracts folly, fmt and fast_float.
 - Upstream PR/issue: [react-native#59587](https://github.com/react/react-native/issues/59587) / [react-native#59589](https://github.com/react/react-native/pull/59589) ([react-native@f6a5042](https://github.com/react/react-native/commit/f6a5042c8)), merged to `main` on 2026-10-28. It is not in 0.88.0, which still downloads from `facebook/hermes` and only flattens `facebook-hermes-*`.
 - E/App issue: https://github.com/Expensify/App/issues/105383
 - PR introducing patch: https://github.com/Expensify/App/pull/105381

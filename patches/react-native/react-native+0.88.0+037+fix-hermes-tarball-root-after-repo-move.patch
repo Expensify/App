@@ -26,4 +26,4 @@ index c20e183..76482f1 100644
 +        includeEmptyDirs = false
        }
        into(hermesDir)
-       doLast {
+     }

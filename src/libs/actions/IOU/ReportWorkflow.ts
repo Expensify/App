@@ -62,7 +62,6 @@ import Onyx from 'react-native-onyx';
 
 import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
 
-import {getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import mergeAdditionalPayOnyxData from './mergeAdditionalPayOnyxData';
 
@@ -86,6 +85,7 @@ type ApproveMoneyRequestFunctionParams = {
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
@@ -157,6 +157,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
         getCurrencyDecimals,
+        allTransactionViolations,
         personalDetailsByLogins,
     } = params;
     if (!expenseReport) {
@@ -284,9 +285,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                     updatedExpenseReport,
                     currentUserEmailParam,
                     currentUserAccountIDParam,
-                    // TODO: https://github.com/Expensify/App/issues/66512
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    getAllTransactionViolations(),
+                    allTransactionViolations,
                     undefined,
                 ),
             },
@@ -439,7 +438,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     let optimisticHoldReportExpenseActionIDs;
     let optimisticReportActionCopyIDs;
     let optimisticCreatedReportForUnapprovedTransactionsActionID;
-    if (!full && !!chatReport && !!expenseReport) {
+    if (!full && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport,
@@ -454,7 +453,12 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             rules,
         });
 
-        const parentChatKeys = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
+        // A vacation delegate can approve before the policy chat is ever loaded, so chatReport is missing.
+        // Hold skips parent-chat updates in that case; fall back to the id on the expense report so the filter still matches when the chat is loaded.
+        const parentChatReportID = chatReport?.reportID ?? expenseReport.chatReportID;
+        const parentChatKeys = new Set<string>(
+            parentChatReportID ? [`${ONYXKEYS.COLLECTION.REPORT}${parentChatReportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`] : [],
+        );
         const shouldSkipParentChatUpdates = expenseReport.hasParentAccess === false;
         const filterParentChatUpdates = <TUpdate extends {key: string}>(updates: TUpdate[]) =>
             shouldSkipParentChatUpdates ? updates.filter((update) => !parentChatKeys.has(update.key)) : updates;
@@ -478,17 +482,13 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             expenseReport,
             ownerLogin,
             expenseReportPolicy,
-            // TODO: https://github.com/Expensify/App/issues/66512
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            getAllTransactionViolations()?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
+            allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`],
         ),
     );
     if (duplicatedTransactions.length) {
         const filteredTransactions = !full ? duplicatedTransactions.filter((transaction) => !isOnHold(transaction)) : duplicatedTransactions;
         for (const transaction of filteredTransactions) {
-            // TODO: https://github.com/Expensify/App/issues/66512
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const transactionViolations = getAllTransactionViolations()?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
             const newTransactionViolations = transactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
