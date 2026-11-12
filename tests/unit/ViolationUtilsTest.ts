@@ -965,6 +965,28 @@ describe('getViolationsOnyxData', () => {
                 expect(getFutureDateResult().value).not.toContainEqual(futureDateViolation);
             });
 
+            it('should add futureDate violation for a time later than the +14 hour window on the current UTC date', () => {
+                // Given SmartScan saved the current UTC date with a time later than now + 14 hours
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
+                transaction.modifiedCreated = '2026-08-29 18:00:00';
+
+                // When the violations are calculated
+                // Then the violation is added, because the date alone is within the window and only the time is beyond it
+                expect(getFutureDateResult().value).toContainEqual(futureDateViolation);
+            });
+
+            it('should not add futureDate violation for a time within the +14 hour window on the current UTC date', () => {
+                // Given SmartScan saved the current UTC date with a time earlier than now + 14 hours
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
+                transaction.modifiedCreated = '2026-08-29 15:00:00';
+
+                // When the violations are calculated
+                // Then the violation isn't added
+                expect(getFutureDateResult().value).not.toContainEqual(futureDateViolation);
+            });
+
             it('should add futureDate violation from created when modifiedCreated is an empty string', () => {
                 jest.useFakeTimers();
                 jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
