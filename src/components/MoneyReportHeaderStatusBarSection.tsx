@@ -5,7 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isProcessingReport} from '@libs/ReportUtils';
+import {isGroupPolicyExpenseReport, isProcessingReport} from '@libs/ReportUtils';
 import {getUnsuppressibleBrokenConnectionTransactionID} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -20,6 +20,7 @@ import React from 'react';
 
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Icon from './Icon';
+import MoneyReportHeaderHistoryButton from './MoneyReportHeaderHistoryButton';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 
 type MoneyReportHeaderStatusBarSectionProps = {
@@ -54,49 +55,46 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
         />
     );
 
-    if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.MARK_AS_RESOLVED) {
-        return (
+    const canOpenReportHistory = isGroupPolicyExpenseReport(moneyRequestReport, policy?.type);
+    const getStatusBar = (icon: React.ReactNode, description: string) => {
+        const statusBar = (
             <MoneyRequestHeaderStatusBar
-                icon={getStatusIcon(expensifyIcons.Hourglass)}
-                description={translate('iou.reject.rejectedStatus')}
+                icon={icon}
+                description={description}
+                shouldShowCaret={canOpenReportHistory}
             />
         );
+        if (!canOpenReportHistory) {
+            return statusBar;
+        }
+        return (
+            <MoneyReportHeaderHistoryButton
+                message={description}
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_STATUS_BAR}
+            >
+                {statusBar}
+            </MoneyReportHeaderHistoryButton>
+        );
+    };
+
+    if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.MARK_AS_RESOLVED) {
+        return getStatusBar(getStatusIcon(expensifyIcons.Hourglass), translate('iou.reject.rejectedStatus'));
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.BOOKING_PENDING) {
-        return (
-            <MoneyRequestHeaderStatusBar
-                icon={getStatusIcon(expensifyIcons.Hourglass)}
-                description={translate('iou.bookingPendingDescription')}
-            />
-        );
+        return getStatusBar(getStatusIcon(expensifyIcons.Hourglass), translate('iou.bookingPendingDescription'));
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.BOOKING_ARCHIVED) {
-        return (
-            <MoneyRequestHeaderStatusBar
-                icon={getStatusIcon(expensifyIcons.Box)}
-                description={translate('iou.bookingArchivedDescription')}
-            />
-        );
+        return getStatusBar(getStatusIcon(expensifyIcons.Box), translate('iou.bookingArchivedDescription'));
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.ON_HOLD) {
-        return (
-            <MoneyRequestHeaderStatusBar
-                icon={getStatusIcon(expensifyIcons.Stopwatch)}
-                description={translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold')}
-            />
-        );
+        return getStatusBar(getStatusIcon(expensifyIcons.Stopwatch), translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold'));
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.DUPLICATES) {
-        return (
-            <MoneyRequestHeaderStatusBar
-                icon={getStatusIcon(expensifyIcons.Flag)}
-                description={translate('iou.duplicateTransaction', isProcessingReport(moneyRequestReport))}
-            />
-        );
+        return getStatusBar(getStatusIcon(expensifyIcons.Flag), translate('iou.duplicateTransaction', isProcessingReport(moneyRequestReport)));
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.BROKEN_CONNECTION) {
@@ -120,31 +118,16 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.PENDING_RTER) {
-        return (
-            <MoneyRequestHeaderStatusBar
-                icon={getStatusIcon(expensifyIcons.Hourglass)}
-                description={translate('iou.pendingMatchWithCreditCardDescription')}
-            />
-        );
+        return getStatusBar(getStatusIcon(expensifyIcons.Hourglass), translate('iou.pendingMatchWithCreditCardDescription'));
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.PENDING_TRANSACTIONS) {
         const pendingDescription = transactions.length <= 1 ? translate('iou.transactionPendingDescription') : translate('iou.allTransactionsPendingNextStep');
-        return (
-            <MoneyRequestHeaderStatusBar
-                icon={getStatusIcon(expensifyIcons.CreditCardHourglass)}
-                description={pendingDescription}
-            />
-        );
+        return getStatusBar(getStatusIcon(expensifyIcons.CreditCardHourglass), pendingDescription);
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.SCANNING_RECEIPT) {
-        return (
-            <MoneyRequestHeaderStatusBar
-                icon={getStatusIcon(expensifyIcons.ReceiptScan)}
-                description={translate('iou.receiptScanInProgressDescription')}
-            />
-        );
+        return getStatusBar(getStatusIcon(expensifyIcons.ReceiptScan), translate('iou.receiptScanInProgressDescription'));
     }
 
     return null;

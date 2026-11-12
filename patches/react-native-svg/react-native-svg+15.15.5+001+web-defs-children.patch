@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-svg/lib/typescript/elements.web.d.ts b/node_modules/react-native-svg/lib/typescript/elements.web.d.ts
+index cf4083f..3de5794 100644
+--- a/node_modules/react-native-svg/lib/typescript/elements.web.d.ts
++++ b/node_modules/react-native-svg/lib/typescript/elements.web.d.ts
+@@ -52,7 +52,9 @@ export declare class Circle extends WebShape<BaseProps & CircleProps> {
+ export declare class ClipPath extends WebShape<BaseProps & ClipPathProps> {
+     tag: "clipPath";
+ }
+-export declare class Defs extends WebShape {
++export declare class Defs extends WebShape<BaseProps & {
++    children?: import("react").ReactNode;
++}> {
+     tag: "defs";
+ }
+ export declare class Ellipse extends WebShape<BaseProps & EllipseProps> {

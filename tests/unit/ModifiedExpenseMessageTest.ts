@@ -1,7 +1,6 @@
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {escapeTagName, isPolicyAdmin} from '@libs/PolicyUtils';
-// eslint-disable-next-line no-restricted-imports -- this is required to allow mocking
 import * as ReportNameUtils from '@libs/ReportNameUtils';
 
 import CONST from '@src/CONST';

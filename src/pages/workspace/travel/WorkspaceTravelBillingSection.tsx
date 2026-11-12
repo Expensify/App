@@ -56,7 +56,7 @@ import {getSearchParamFromPath} from '@libs/Url';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -393,6 +393,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                         onRetry={() => retryTravelCardsProvisioning(policyID, travelBillingFundID, travelProvisioningErrors ?? {})}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         shouldAlignButtonToMessage
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.RETRY_CARDS_PROVISIONING}
                     />
                 </View>
             )}
@@ -421,6 +422,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 </View>
                 <View style={[styles.dFlex, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_VIEW_ON_SPEND}
                         onPress={handleViewOnSpend}
                         style={shouldStackButtons ? styles.flex1 : undefined}
                     >
@@ -428,6 +430,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                     </Button>
                     {shouldShowPayButton && canWriteMoreFeatures && (
                         <ButtonDisabledWhenOffline
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_PAY_BALANCE}
                             onPress={handlePayBalance}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={shouldStackButtons ? styles.flex1 : undefined}
@@ -451,11 +454,8 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
-                    onPress={
-                        canWriteMoreFeatures
-                            ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)), false, session)
-                            : undefined
-                    }
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_SETTLEMENT_ACCOUNT}
+                    onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)), session) : undefined}
                 >
                     <MenuItem.Row>
                         <MenuItem.Content>
@@ -479,11 +479,8 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
-                    onPress={
-                        canWriteMoreFeatures
-                            ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID)), false, session)
-                            : undefined
-                    }
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_SETTLEMENT_FREQUENCY}
+                    onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID)), session) : undefined}
                 >
                     <MenuItemField.Row
                         name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.settlementFrequencyLabel')}
@@ -502,11 +499,8 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
-                    onPress={
-                        canWriteMoreFeatures
-                            ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID)), false, session)
-                            : undefined
-                    }
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_MONTHLY_LIMIT}
+                    onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID)), session) : undefined}
                 >
                     <MenuItemField.Row
                         name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitLabel')}
@@ -527,6 +521,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle]}
                 subtitle={getTravelBillingSubtitle()}
                 switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subtitle')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.TRAVEL_BILLING_SWITCH}
                 onToggle={handleToggle}
                 isActive={isTravelBillingEnabled}
                 disabled={!canWriteMoreFeatures || isOnWaitlist}

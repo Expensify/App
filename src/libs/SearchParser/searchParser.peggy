@@ -41,6 +41,8 @@
     year: "groupyear",
     quarter: "groupquarter",
     approver: "groupApprover",
+    violation: null,
+    "paid-by": null,
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -222,6 +224,10 @@ defaultFilter
       if (op === "contains") {
         return buildFilter("eq", "keyword", text().trim());
       }
+      // Ignore unsupported groupings before they override a valid grouping or affect sort and view defaults.
+      if (key === "groupBy" && !Object.hasOwn(GROUP_BY_DEFAULT_SORT, value)) {
+        return null;
+      }
       updateDefaultValues(key, value);
       return {...buildFilter(op, key, value), isDefault: true};
     }
@@ -316,6 +322,7 @@ key "key"
       / exported
       / posted
       / withdrawn
+      / workflowStage
       / feed
       / title
       / submitterUserID

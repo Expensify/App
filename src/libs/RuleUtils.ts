@@ -1,13 +1,20 @@
 /**
  * Helpers for the `rules_` collection, which holds every kind of rule (approval workflows, expense defaults, ...)
  * under one shape. Anything reading the collection has to narrow to the kind it handles first, so those predicates
- * live here rather than in the per-kind util files, which would otherwise import each other.
+ * live here rather than in the per-kind util files, which would otherwise import each other. The policy-scoped
+ * approval workflow readers live here too, so modules that cannot import `WorkflowUtils` (it reaches the connection
+ * actions through `merge/HRUtils`) can still use them.
  */
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowAction, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ExpenseDefaultAction, ExpenseDefaultRule} from '@src/types/onyx/ExpenseDefaultRules';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
 
 /**
  * The index-keyed object shape the rules API uses for lists (`['a', 'b']` becomes `{'1': 'a', '2': 'b'}`). The
@@ -44,11 +51,14 @@ function isApprovalWorkflowRule(rule: Rule): rule is Rule & ApprovalWorkflowRule
 }
 
 /**
- * An expense default rule fires on transaction creation, matches on at least one condition, and sets at least one field.
+ * An expense default rule fires on transaction creation, matches on a merchant, and sets at least one field.
  *
  * This mirrors the rules engine's own definition. It is a heuristic over triggers, filters and action names rather
  * than a full check of every action's shape, so callers that go on to read the values still validate them field by
  * field.
+ *
+ * The merchant condition is what keeps category rules out. They are moving into the same collection, and a client
+ * that has no way to edit them must not list them either.
  */
 function isExpenseDefaultRule(rule: Rule | undefined): rule is Rule & ExpenseDefaultRule {
     if (!rule) {
@@ -60,9 +70,9 @@ function isExpenseDefaultRule(rule: Rule | undefined): rule is Rule & ExpenseDef
     const actions = fromIndexMap(actionsByIndex);
     const hasCreateTransactionTrigger = getRuleTriggers(rule).some((trigger) => trigger === CONST.RULES.TRIGGERS.CREATE_TRANSACTION);
     const hasSetAction = actions.some((action) => action?.name === CONST.RULES.ACTIONS.SET);
-    const hasCondition = getRuleFilterLeaves(rule.filters).length > 0;
+    const hasMerchantFilter = getRuleFilterLeaves(rule.filters).some((leaf) => leaf.left === CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT);
 
-    return hasCreateTransactionTrigger && hasCondition && hasSetAction;
+    return hasCreateTransactionTrigger && hasMerchantFilter && hasSetAction;
 }
 
 /** Whether an unknown value read off a rule is shaped like a node of its filter tree. */
@@ -92,4 +102,58 @@ function getRuleFilterLeaves(filters: RuleFilterNode | undefined): RuleFilterCom
     return [...getRuleFilterLeaves(filters.left), ...getRuleFilterLeaves(filters.right)];
 }
 
-export {fromIndexMap, getRuleFilterLeaves, isApprovalWorkflowRule, isExpenseDefaultRule, isRuleFilterComparison, isRuleFilterNode, toIndexMap};
+/**
+ * Keep only the rules belonging to `policyID`, preserving the collection shape so the result can still be
+ * handed to anything that takes the whole rules collection.
+ */
+function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: string | undefined): NonNullable<OnyxCollection<Rule>> {
+    const result: NonNullable<OnyxCollection<Rule>> = {};
+    if (!rulesCollection || !policyID) {
+        return result;
+    }
+
+    for (const [onyxKey, rule] of Object.entries(rulesCollection)) {
+        if (rule?.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
+            continue;
+        }
+        result[onyxKey] = rule;
+    }
+
+    return result;
+}
+
+/**
+ * Convert the `ONYXKEYS.COLLECTION.RULE` collection into the `ruleID -> rule body` map used by the
+ * builder, reconcilers and converters, keeping only non-deleted rules scoped to `policyID`.
+ */
+function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): Record<string, ApprovalWorkflowRule> {
+    const result: Record<string, ApprovalWorkflowRule> = {};
+
+    for (const [onyxKey, rule] of Object.entries(filterRulesForPolicy(rulesCollection, policyID))) {
+        if (!rule || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isApprovalWorkflowRule(rule)) {
+            continue;
+        }
+        const ruleID = onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length);
+        result[ruleID] = {
+            triggers: toIndexMap(fromIndexMap(rule.triggers)),
+            filters: rule.filters,
+            actions: toIndexMap(fromIndexMap(rule.actions)),
+            ...(rule.isDefaultApprovalWorkflow ? {isDefaultApprovalWorkflow: true} : {}),
+        };
+    }
+
+    return result;
+}
+
+export {
+    filterRulesForPolicy,
+    fromIndexMap,
+    getApprovalWorkflowRulesForPolicy,
+    getRuleFilterLeaves,
+    isApprovalWorkflowRule,
+    isExpenseDefaultRule,
+    isRuleFilterComparison,
+    isRuleFilterNode,
+    toIndexMap,
+};
+export type {ApprovalWorkflowRulesDiff};

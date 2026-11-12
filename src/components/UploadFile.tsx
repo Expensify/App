@@ -130,6 +130,7 @@ function UploadFile({
             >
                 {({openPicker}) => (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.UPLOAD_BUTTON}
                         accessibilityLabel={accessibilityLabel ?? buttonText}
                         onPress={() => {
                             openPicker({

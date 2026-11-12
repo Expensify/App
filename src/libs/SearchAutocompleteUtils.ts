@@ -1,15 +1,16 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import type {Filter, SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 
 import CONST from '@src/CONST';
-import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyKey, getUserFriendlyValue} from './SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isGroupBySupportedBySearch, resolvePolicyIDFromName} from './SearchQueryUtils';
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
@@ -22,7 +23,7 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ];
 
-type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length'> & {key: string};
+type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length' | 'negated'> & {key: string};
 type AutocompleteParserResult = {autocomplete: AutocompleteParserRange | null; ranges: AutocompleteParserRange[]};
 type KnownFilterValues = {
     userLogins: ReadonlySet<string>;
@@ -92,6 +93,47 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
         }
     }
     return Array.from(uniqueTagNames);
+}
+
+/** Resolves each typed workspace clause while retaining all selected IDs for autocomplete exclusion. */
+function getAutocompletePolicyData(
+    query: string,
+    ranges: AutocompleteParserRange[],
+    policies: OnyxCollection<Policy>,
+    substitutions?: SubstitutionMap,
+): {policyFilter: Filter; selectedPolicyIDs: string[]} {
+    const policyIdRanges = ranges.filter((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+    const keyValueCount = new Map<string, number>();
+    const selectedPolicyIDs: string[] = [];
+    const positiveClauses: string[][] = [];
+    const excludedPolicyIDs = new Set<string>();
+    let previousRange: AutocompleteParserRange | undefined;
+    for (const range of policyIdRanges) {
+        const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
+        const index = keyValueCount.get(baseKey) ?? 0;
+        keyValueCount.set(baseKey, index + 1);
+        const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
+        const policyID = substitutions?.[fullKey] ?? resolvePolicyIDFromName(range.value, policies);
+        selectedPolicyIDs.push(policyID);
+
+        if (range.negated) {
+            excludedPolicyIDs.add(policyID);
+        } else if (previousRange && !previousRange.negated && query.slice(previousRange.start + previousRange.length, range.start) === ',') {
+            positiveClauses.at(-1)?.push(policyID);
+        } else {
+            positiveClauses.push([policyID]);
+        }
+        previousRange = range;
+    }
+
+    if (positiveClauses.length > 0) {
+        // Comma-separated values are alternatives; separate workspace clauses must all match.
+        const policyIDs = [...new Set(positiveClauses.at(0))].filter((id) => !excludedPolicyIDs.has(id) && positiveClauses.every((clause) => clause.includes(id)));
+        return {policyFilter: {value: policyIDs, isNegated: false}, selectedPolicyIDs};
+    }
+
+    // An explicit unscoped filter prevents falling back to the submitted workspace after it is removed from the input.
+    return {policyFilter: {value: excludedPolicyIDs.size > 0 ? [...excludedPolicyIDs] : undefined, isNegated: excludedPolicyIDs.size > 0}, selectedPolicyIDs};
 }
 
 /**
@@ -183,12 +225,16 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyReceiptTypeList = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyTransactionStatusList = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
-const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+// Insights-only group-bys aren't highlighted because Search can't group by them
+const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY)
+    .filter(isGroupBySupportedBySearch)
+    .map((value) => getUserFriendlyValue(value));
 const userFriendlyViewList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const userFriendlyStatusList = Object.values({
     ...CONST.SEARCH.STATUS.EXPENSE,
     ...CONST.SEARCH.STATUS.INVOICE,
     ...CONST.SEARCH.STATUS.TRIP,
+    ...CONST.SEARCH.TRIP_STATUS,
     ...CONST.SEARCH.STATUS.TASK,
 }).map((value) => getUserFriendlyValue(value));
 
@@ -202,7 +248,14 @@ const userFriendlyColumnList = new Set(
  * @private
  * Determines if a specific value in the search syntax can/should be highlighted as valid or not
  */
-function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substitutionMap: SubstitutionMap, knownValues: KnownFilterValues, currentType: string, hasExplicitType: boolean) {
+function filterOutRangesWithCorrectValue(
+    range: AutocompleteParserRange,
+    substitutionMap: SubstitutionMap,
+    knownValues: KnownFilterValues,
+    currentType: string,
+    hasExplicitType: boolean,
+    shouldReturnTripRooms: boolean,
+) {
     'worklet';
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
@@ -285,6 +338,9 @@ function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substit
             if (currentType !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentType !== CONST.SEARCH.DATA_TYPES.INVOICE && currentType !== CONST.SEARCH.DATA_TYPES.TRIP) {
                 return false;
             }
+            if (shouldReturnTripRooms) {
+                return false;
+            }
             return groupByList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:
             return viewList.includes(range.value);
@@ -338,7 +394,7 @@ function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substit
  * Parses input string using the autocomplete parser and returns array of markdown ranges that can be used by RNMarkdownTextInput.
  * It is a simpler version of search parser that can be run on UI thread.
  */
-function parseForLiveMarkdown(input: string, currentUserName: string, map: SubstitutionMap, knownValues: KnownFilterValues): MarkdownRange[] {
+function parseForLiveMarkdown(input: string, currentUserName: string, map: SubstitutionMap, knownValues: KnownFilterValues, isTravelApprovalBetaEnabled = false): MarkdownRange[] {
     'worklet';
 
     const parsedAutocomplete: unknown = parse(input);
@@ -350,9 +406,10 @@ function parseForLiveMarkdown(input: string, currentUserName: string, map: Subst
     // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
     const typeRange = ranges.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const shouldReturnTripRooms = currentType === CONST.SEARCH.DATA_TYPES.TRIP && isTravelApprovalBetaEnabled;
 
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, knownValues, currentType, !!typeRange))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, knownValues, currentType, !!typeRange, shouldReturnTripRooms))
         .map((range) => {
             const isCurrentUserMention = knownValues.userLogins.has(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
@@ -406,6 +463,7 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
 export {
     CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
+    getAutocompletePolicyData,
     getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,

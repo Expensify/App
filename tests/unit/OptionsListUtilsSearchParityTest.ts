@@ -11,6 +11,7 @@ import {
     hydrateContactOption,
 } from '@libs/OptionsListUtils';
 import type {OptionsResult} from '@libs/OptionsListUtils/types';
+import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -23,11 +24,21 @@ import type {Report, Rule} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 
+import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 
 import type {SearchFixture} from '../utils/searchParity/generateSearchFixture';
 
-import {ACCOUNT_IDS, CURRENT_USER_EMAIL, generateSearchFixture, POLICY_IDS, SEARCH_QUERIES, writeSearchFixtureToOnyx} from '../utils/searchParity/generateSearchFixture';
+import {
+    ACCOUNT_IDS,
+    CURRENT_USER_EMAIL,
+    generateSearchFixture,
+    POLICY_IDS,
+    SEARCH_FIXTURE_UPDATES,
+    SEARCH_QUERIES,
+    writeSearchFixtureToOnyx,
+    writeSearchFixtureUpdateToOnyx,
+} from '../utils/searchParity/generateSearchFixture';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -58,8 +69,12 @@ function clearSearchCaches() {
  * [nav: ...] is the row's navigation target (reportID, else login, else none), emitted only when it differs from keyForList: report rows navigate by reportID, which equals keyForList today, so only a divergence shows.
  * The userToInvite login target is not emitted, because it is already visible as the text or the trailing invited login.
  * participantsList, icons and ownerAccountID are left out because the SearchRouter only renders them or never reads them. policyID and item are read for contextual search and FullStory masking, but only the canonical builders set them, so they are left out too.
+ * When includeWorkspaceIcon is true (used by autocompleteIn), [wsIcon] is emitted if the option carries a workspace avatar (first icon type is CONST.ICON_TYPE_WORKSPACE), matching what useAutocompleteSuggestions surfaces.
  */
-function serializeOption(option: SearchOptionData | null | undefined, {isUserToInvite = false}: {isUserToInvite?: boolean} = {}): string | null {
+function serializeOption(
+    option: SearchOptionData | null | undefined,
+    {isUserToInvite = false, includeWorkspaceIcon = false}: {isUserToInvite?: boolean; includeWorkspaceIcon?: boolean} = {},
+): string | null {
     if (!option) {
         return null;
     }
@@ -74,22 +89,38 @@ function serializeOption(option: SearchOptionData | null | undefined, {isUserToI
     const invitedLogin = isUserToInvite && option.login !== option.text ? ` ${option.login ?? ''}` : '';
     const altText = option.alternateText ? ` [alt: ${option.alternateText}]` : '';
     const subtitle = (option.isChatRoom || option.isPolicyExpenseChat) && option.subtitle ? ` [sub: ${option.subtitle}]` : '';
+    const workspaceIcon = includeWorkspaceIcon && option.icons?.at(0)?.type === CONST.ICON_TYPE_WORKSPACE ? ' [wsIcon]' : '';
     const accountID = option.accountID ? ` [accID: ${option.accountID}]` : '';
     const navigationTarget = option.reportID || option.login;
     const isLoginShownAlready = isUserToInvite && !option.reportID;
     const navigation = !isLoginShownAlready && String(navigationTarget ?? '') !== (option.keyForList ?? '') ? ` [nav: ${navigationTarget || 'none'}]` : '';
-    return `${option.keyForList ?? ''} ${option.text ?? ''}${flags}${altText}${subtitle}${accountID}${navigation}${invitedLogin}`;
+    return `${option.keyForList ?? ''} ${option.text ?? ''}${flags}${altText}${subtitle}${workspaceIcon}${accountID}${navigation}${invitedLogin}`;
 }
 
 /** What the screen shows: one flat list of rows, in order. */
 type DisplayedResult = {displayedRows: SearchOptionData[]; hasMore?: boolean};
 
-function serializeResult(result: OptionsResult | DisplayedResult) {
+/** The only section useAutocompleteSuggestions reads from a result, so it is the only one recorded: personalDetails for the participant filters, recentReports for in:. */
+type SectionResult = {personalDetails: SearchOptionData[]} | {recentReports: SearchOptionData[]};
+
+function serializeResult(result: OptionsResult | DisplayedResult | SectionResult) {
     if ('displayedRows' in result) {
         return {
             displayedRows: result.displayedRows.map((option) => serializeOption(option)),
             hasMore: !!result.hasMore,
         };
+    }
+    if (!('options' in result)) {
+        return Object.fromEntries(
+            Object.entries(result).map(([section, options]) => [
+                section,
+                options.map((option) =>
+                    serializeOption(option, {
+                        includeWorkspaceIcon: section === 'recentReports',
+                    }),
+                ),
+            ]),
+        );
     }
     const {options, hasMore} = result;
     return {
@@ -178,9 +209,9 @@ function buildSearchRouterIdleOptionList(sourceFixture: SearchFixture, maxRecent
 // Passed to combineOrderingOfReportsAndPersonalDetails. Only affects workspace chat ordering, which displayed passes do not show.
 const ACTIVE_POLICY_ID = POLICY_IDS.OWN;
 
-type SearchCallSite = (options: OptionList, query: string) => OptionsResult | DisplayedResult;
+type SearchCallSite = (options: OptionList, query: string) => OptionsResult | DisplayedResult | SectionResult;
 
-const CALL_SITE_NAMES = ['searchRouterLocal', 'searchRouterDisplayed'] as const;
+const CALL_SITE_NAMES = ['searchRouterLocal', 'searchRouterDisplayed', 'autocompleteParticipants', 'autocompleteIn'] as const;
 
 type SearchCallSiteName = TupleToUnion<typeof CALL_SITE_NAMES>;
 
@@ -207,6 +238,13 @@ function createCallSites(sourceFixture: SearchFixture) {
     const getReportByID = getOrCreateReportByID(sourceFixture.reports);
     const {sortedActions, lastActions, transactionThreadIDs} = sourceFixture.derived.sortedReportActions;
     const visibleReportActionsData = sourceFixture.derived.visibleReportActions;
+
+    // Adds a matching contact to team exclusions to verify that excluded contacts are filtered out
+    const excludedFromSuggestions = {
+        ...getExpensifyTeamExclusions(sourceFixture.personalDetails, sourceFixture.policies, CURRENT_USER_EMAIL),
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- a login is not a camelCase identifier
+        'alex.smith2@example.com': true,
+    };
 
     // Configuration every getSearchOptions screen passes
     const baseSearchConfig = {
@@ -292,9 +330,69 @@ function createCallSites(sourceFixture: SearchFixture) {
                 hasMore: result.hasMore,
             };
         },
+
+        // The to: and from: participant filters of useAutocompleteSuggestions (src/hooks/useAutocompleteSuggestions.ts), which only read personalDetails.
+        // The config is copied from that hook, so keep the two in sync. Sharing it would mean changing production code, which the golden master PR leaves out.
+        // isDefaultRoomsBetaEnabled is true as in the SearchRouter call sites above, whereas the hook receives the account's beta flag from SearchAutocompleteList.
+        // excludedFromSuggestions is what the hook builds with getExpensifyTeamExclusions (as memberExclusions), plus one extra login so a matching contact is excluded.
+        // maxResults is the literal 10 the hook uses, because no shared constant exists.
+        // The hook also drops rows without text or already typed for the same filter. That filter reads the typed query rather than the search, and every recorded row has text, so it is not replicated.
+        autocompleteParticipants: (options, query) => ({
+            personalDetails: getSearchOptions({
+                ...commonSearchConfig,
+                options,
+                isDefaultRoomsBetaEnabled: true,
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: query,
+                maxResults: 10,
+                includeUserToInvite: false,
+                includeRecentReports: false,
+                includeCurrentUser: true,
+                shouldShowGBR: true,
+                excludeFromSuggestionsOnly: excludedFromSuggestions,
+            }).options.personalDetails,
+        }),
+
+        // The in: room filter of useAutocompleteSuggestions (src/hooks/useAutocompleteSuggestions.ts), which only reads recentReports.
+        // The config is copied from that hook, so keep the two in sync. As above, isDefaultRoomsBetaEnabled is fixed to true, maxResults is the hook's literal 10, and the hook's filter of rows without text or already typed is not replicated.
+        // serializeResult captures [wsIcon] for this call site because the hook reads chat.icons.at(0) to disambiguate identically named rooms across workspaces.
+        autocompleteIn: (options, query) => ({
+            recentReports: getSearchOptions({
+                ...commonSearchConfig,
+                options,
+                isDefaultRoomsBetaEnabled: true,
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: query,
+                maxResults: 10,
+                includeUserToInvite: false,
+                includeRecentReports: true,
+                includeCurrentUser: false,
+                shouldShowGBR: true,
+            }).options.recentReports,
+        }),
     } satisfies Record<SearchCallSiteName, SearchCallSite>;
 
     return {searchCallSites, serverPassConfig};
+}
+
+type SearchRouterCallSite = 'searchRouterLocal' | 'searchRouterDisplayed';
+
+type OptionListKind = 'searching' | 'searchRouterIdle';
+
+const BLANK_QUERY_OPTION_LIST: Record<SearchCallSiteName, OptionListKind> = {
+    searchRouterLocal: 'searchRouterIdle',
+    searchRouterDisplayed: 'searchRouterIdle',
+    autocompleteParticipants: 'searching',
+    autocompleteIn: 'searching',
+};
+
+function getOptionListKind(callSite: SearchCallSiteName, query: string): OptionListKind {
+    if (query.trim()) {
+        return 'searching';
+    }
+    return BLANK_QUERY_OPTION_LIST[callSite];
 }
 
 // Reports returned by the SearchAutocompleteList server pass in Auth ranking order, including a self-DM that the pass drops and reports the canonical filter rejects.
@@ -345,6 +443,69 @@ function withFocusedReport<T>(reportID: string, run: () => T): T {
     }
 }
 
+/** Replaces everything in Onyx with the given account and returns what Onyx derived from it. */
+async function resetOnyxTo(sourceFixture: SearchFixture) {
+    await Onyx.clear();
+    return writeSearchFixtureToOnyx(sourceFixture);
+}
+
+/** Builds the option list each call site searches, so a call site can run any query. */
+function buildOptionListsByKind(sourceFixture: SearchFixture): Record<OptionListKind, OptionList> {
+    return {
+        searching: buildOptionList(sourceFixture, {isSearching: true}),
+        searchRouterIdle: buildSearchRouterIdleOptionList(sourceFixture, SEARCH_ROUTER_OPTIONS_CONFIG.maxRecentReports),
+    };
+}
+
+/** Runs every call site over every query, each against the list it searches, and serializes the results. */
+function runCallSites(sourceFixture: SearchFixture, queries: string[]) {
+    const optionListsByKind = buildOptionListsByKind(sourceFixture);
+    const {searchCallSites} = createCallSites(sourceFixture);
+    return Object.fromEntries(
+        CALL_SITE_NAMES.map((callSite) => [
+            callSite,
+            Object.fromEntries(queries.map((query) => [query, serializeResult(searchCallSites[callSite](optionListsByKind[getOptionListKind(callSite, query)], query))])),
+        ]),
+    );
+}
+
+/** Queries that reach what SEARCH_FIXTURE_UPDATES change, before or after the change, plus the idle lists. */
+const UPDATE_QUERIES = ['', 'town', 'announce', 'admins', 'vit', 'atlas', 'workspace', 'nora', 'robert', 'bob', 'cyd', 'ismail', 'sleeping', 'empty', 'rene'];
+
+type CallSiteResults = ReturnType<typeof runCallSites>;
+
+const SEARCH_ROUTER_CALL_SITES: ReadonlySet<string> = new Set<SearchRouterCallSite>(['searchRouterLocal', 'searchRouterDisplayed']);
+
+/** Keeps only the SearchRouter call sites' results, the ones whose results the option index replaces and the update snapshot records. */
+function getSearchRouterResults(results: CallSiteResults): CallSiteResults {
+    return Object.fromEntries(Object.entries(results).filter(([callSite]) => SEARCH_ROUTER_CALL_SITES.has(callSite)));
+}
+
+/** What the update test records, for the SearchRouter call sites only: the results the golden master lacks before any update, then what each update changed. */
+type UpdatesRecord = {
+    beforeUpdates: CallSiteResults;
+    updates: Array<{afterUpdate: string; changedResults: CallSiteResults}>;
+};
+
+/** Keeps the call site results that differ from the previous ones, so an update records only what it changed. */
+function getChangedResults(previousResults: CallSiteResults, results: CallSiteResults): CallSiteResults {
+    const changedResults: CallSiteResults = {};
+    for (const [callSite, resultsByQuery] of Object.entries(results)) {
+        const changedResultsByQuery = Object.fromEntries(Object.entries(resultsByQuery).filter(([query, result]) => !deepEqual(result, previousResults[callSite]?.[query])));
+        if (Object.keys(changedResultsByQuery).length > 0) {
+            changedResults[callSite] = changedResultsByQuery;
+        }
+    }
+    return changedResults;
+}
+
+/** Keeps the call site results for queries the golden master does not already record for the fixture account. */
+function getResultsOutsideGoldenMaster(results: CallSiteResults): CallSiteResults {
+    return Object.fromEntries(
+        Object.entries(results).map(([callSite, resultsByQuery]) => [callSite, Object.fromEntries(Object.entries(resultsByQuery).filter(([query]) => !SEARCH_QUERIES.includes(query)))]),
+    );
+}
+
 /** Computes every recorded pass over the fixture, starting from cold caches. */
 function computeGoldenMaster(sourceFixture: SearchFixture) {
     const {searchCallSites, serverPassConfig} = createCallSites(sourceFixture);
@@ -365,11 +526,11 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
     };
 
     // The SearchRouter starts at the production cap, and its loadAll effect expands a list that has fewer than 20 rows, so a blank query never searches the small idle list
-    const getCallSiteOptionList = (query: string) => (query.trim() ? searching : searchRouterIdleAtProductionCap);
+    const getCallSiteOptionList = (callSite: SearchCallSiteName, query: string) => (getOptionListKind(callSite, query) === 'searching' ? searching : searchRouterIdleAtProductionCap);
     const callSites = Object.fromEntries(
         CALL_SITE_NAMES.map((callSite) => [
             callSite,
-            Object.fromEntries(SEARCH_QUERIES.map((query) => [query, serializeResult(searchCallSites[callSite](getCallSiteOptionList(query), query))])),
+            Object.fromEntries(SEARCH_QUERIES.map((query) => [query, serializeResult(searchCallSites[callSite](getCallSiteOptionList(callSite, query), query))])),
         ]),
     );
 
@@ -453,5 +614,61 @@ describe('OptionsListUtils search parity (golden master)', () => {
         // When they run through their production configs, the focused ones for a query matching the focused report, and for a blank query only where the report lands within the displayed rows
         // Then all match the recorded golden master, with the focused report shown only while it is focused
         expect(goldenMaster.passes).toMatchSnapshot();
+    });
+
+    it('follows every Onyx update as a cold build of the updated account does', async () => {
+        // Given search, warmed by searching the fixture account once, so the caches hold results that each update must invalidate
+        // Two caches survive between runs. createFilteredOptionList keeps only the idle list, which the SearchRouter reads for a blank query, because it skips the cache while searching.
+        // The searching list that other queries read is rebuilt every run, but chat previews are cached per report in alternateTextCache for both lists until one of its inputs changes identity.
+        // A stale entry in either cache would make the warm results differ from the cold ones below
+        let account = fixture;
+        account.derived = await resetOnyxTo(account);
+        clearSearchCaches();
+        let previousResults = runCallSites(account, UPDATE_QUERIES);
+
+        // The golden master already records the other queries for the fixture account, and every update records only what it
+        // changed, so the snapshot still pins every SearchRouter result after every update without repeating the unchanged ones.
+        // The autocomplete call sites are not recorded, to keep the snapshot small, but every assertion below still compares all call sites
+        const record: UpdatesRecord = {
+            beforeUpdates: getSearchRouterResults(getResultsOutsideGoldenMaster(previousResults)),
+            updates: [],
+        };
+
+        try {
+            for (const update of SEARCH_FIXTURE_UPDATES) {
+                // When an update lands in Onyx and the call sites search again, keeping their caches
+                const previousAccount = account;
+                account = update.apply(previousAccount);
+                account.derived = await writeSearchFixtureUpdateToOnyx(previousAccount, account);
+                const warmResults = runCallSites(account, UPDATE_QUERIES);
+                clearSearchCaches();
+                const results = runCallSites(account, UPDATE_QUERIES);
+
+                // Then they find what a search built from scratch over the updated account finds
+                expect({update: update.description, results: warmResults}).toEqual({
+                    update: update.description,
+                    results,
+                });
+
+                // And the update changes something the queries reach, so the step does not compare an unchanged search with itself
+                const changedResults = getChangedResults(previousResults, results);
+                expect({update: update.description, hasChangedResults: Object.keys(changedResults).length > 0}).toEqual({
+                    update: update.description,
+                    hasChangedResults: true,
+                });
+                record.updates.push({afterUpdate: update.description, changedResults: getSearchRouterResults(changedResults)});
+                previousResults = results;
+            }
+
+            // And after all updates, a completely cold reset of Onyx and caches reproduces the accumulated warm state
+            account.derived = await resetOnyxTo(account);
+            clearSearchCaches();
+            expect(runCallSites(account, UPDATE_QUERIES)).toEqual(previousResults);
+        } finally {
+            fixture.derived = await resetOnyxTo(fixture);
+        }
+
+        // And what each update changed is recorded in the golden master
+        expect(record).toMatchSnapshot();
     });
 });

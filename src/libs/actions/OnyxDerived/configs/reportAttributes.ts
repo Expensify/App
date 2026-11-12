@@ -3,6 +3,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import computeReportName from '@libs/computeReportName';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate as translateForLocale} from '@libs/Localize';
@@ -11,7 +12,6 @@ import {format, formatToParts} from '@libs/NumberFormatUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
 import {getLinkedTransactionID, isActionableCardFraudAlert, isDeletedAction} from '@libs/ReportActionsUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
 import {
     generateIsEmptyReport,
     generateReportAttributes,
@@ -262,7 +262,8 @@ export default createOnyxDerivedValueConfig({
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
-        // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
+        // Read the in-memory offline state directly. NETWORK is a dependency, but a NETWORK-only change finds no report updates and hits the
+        // "No updates to process" early return below, so existing attributes (e.g. oneTransactionThreadReportID) keep the isOffline from their last recompute.
         const isOffline = getIsOffline();
         const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
@@ -666,10 +667,19 @@ export default createOnyxDerivedValueConfig({
                     cardList,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin: session?.email ?? '',
+                    isOffline,
+                    reportsTransactions,
                 });
 
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, session?.accountID, rules, reportNameValuePair);
+                const hasFieldViolations = hasVisibleReportFieldViolations(
+                    report,
+                    policy,
+                    session?.accountID,
+                    rules,
+                    getLoginByAccountID(report.ownerAccountID, personalDetails),
+                    reportNameValuePair,
+                );
 
                 let brickRoadStatus;
                 let actionBadge;

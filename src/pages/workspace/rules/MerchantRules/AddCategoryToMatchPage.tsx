@@ -7,16 +7,20 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCategories';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
+import {categoryHasTaxRule} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,39 +33,32 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import useMerchantRuleRoute from './useMerchantRuleRoute';
-import useRuleConditionSelection from './useRuleConditionSelection';
-
-type AddCategoryToMatchPageProps = PlatformStackScreenProps<
-    SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_CATEGORY_TO_MATCH
->;
+type AddCategoryToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH>;
 
 type CategoryListItem = ListItem & {
     value: string;
 };
 
 function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
-    const {policyID, ruleID} = route.params;
-    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_CATEGORY_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
+    const {policyID, categoryName: editingCategoryName} = route.params;
+    // Editing a category tax default edits one rule, so its category is swapped, not added to.
+    const isEditingCategoryTaxRule = !!editingCategoryName;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+    const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
-    const {
-        selectedValues: selectedCategories,
-        initialSelectedValues: initialSelectedCategories,
-        toggleValue: toggleCategoryValue,
-        toggleAll,
-    } = useRuleConditionSelection(form?.categoriesToMatch ?? []);
+    const draftCategories = form?.categoriesToMatch ?? [];
+    const [selectedCategories, setSelectedCategories] = useState<string[]>(draftCategories);
+    const initialSelectedCategories = useInitialSelection(draftCategories, {resetOnFocus: true});
 
     const {
         categories,
@@ -69,8 +66,10 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         isLoading: arePolicyCategoriesLoading,
     } = usePolicyCategoryPickerCategories({
         policyID,
-        // A rule only matches on the category, so every category is eligible.
-        isEligible: () => true,
+        // Keep current selections so they stay removable; don't offer a category that already has a tax default.
+        // The rule being edited stays listed even once the selection moves off it, since its own category still has a
+        // tax rule and would otherwise drop out of the list with no way to switch back.
+        isEligible: (category) => selectedCategories.includes(category.name) || category.name === editingCategoryName || !categoryHasTaxRule(policy?.rules?.expenseRules, category.name),
     });
 
     const categoryItems: CategoryListItem[] = categories.map((category) => ({
@@ -79,16 +78,6 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         value: category.name,
         isSelected: selectedCategories.includes(category.name),
     }));
-
-    // A rule keeps matching on a category the workspace has since deleted. Listing it is the only way to see what the
-    // rule matches on and the only way to take it off, so it is added back rather than left out of the picker.
-    const listedCategoryNames = new Set(categories.map((category) => category.name));
-    for (const categoryName of selectedCategories) {
-        if (listedCategoryNames.has(categoryName)) {
-            continue;
-        }
-        categoryItems.push({keyForList: categoryName, text: getDecodedCategoryName(categoryName), value: categoryName, isSelected: true});
-    }
 
     // Tokenized like the main category picker, so the words can be typed in any order and a nested name is still found
     // by any part of it.
@@ -103,9 +92,31 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
 
     const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(sortedCategoryItems, filterCategory);
 
-    const toggleCategory = (item: CategoryListItem) => toggleCategoryValue(item.value);
-    const toggleSelectAll = () => toggleAll(filteredCategoryItems.map((item) => item.value));
+    const toggleCategory = (item: CategoryListItem) => {
+        // One rule holds one category. Saving several would write a rule each and orphan the edited one.
+        if (isEditingCategoryTaxRule) {
+            setSelectedCategories([item.value]);
+            return;
+        }
+        setSelectedCategories((prev) => (prev.includes(item.value) ? prev.filter((categoryName) => categoryName !== item.value) : [...prev, item.value]));
+    };
 
+    const toggleSelectAll = () => {
+        const visibleValues = filteredCategoryItems.map((item) => item.value);
+        const allVisibleSelected = visibleValues.length > 0 && visibleValues.every((value) => selectedCategories.includes(value));
+
+        if (allVisibleSelected) {
+            const visibleSet = new Set(visibleValues);
+            setSelectedCategories((prev) => prev.filter((value) => !visibleSet.has(value)));
+            return;
+        }
+
+        setSelectedCategories((prev) => Array.from(new Set([...prev, ...visibleValues])));
+    };
+
+    // Passed explicitly like every sibling picker, so a deep link has somewhere to pop to. A category tax default is
+    // addressed by category rather than ruleID.
+    const backToRoute = editingCategoryName ? ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, editingCategoryName) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
     const goBackToRule = () => Navigation.goBack(backToRoute);
     const goBackAfterSave = () => Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
 
@@ -148,15 +159,17 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
                 </View>
             ) : (
                 <SelectionList
-                    canSelectMultiple
+                    canSelectMultiple={!isEditingCategoryTaxRule}
                     shouldUpdateFocusedIndex
-                    ListItem={MultiSelectListItem}
+                    // One rule holds one category, so editing swaps the selection. Radios say that; checkboxes imply
+                    // several can be ticked.
+                    ListItem={isEditingCategoryTaxRule ? SingleSelectListItem : MultiSelectListItem}
                     data={filteredCategoryItems}
                     selectedItems={selectedCategories}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onSelectRow={toggleCategory}
                     onSelectionButtonPress={toggleCategory}
-                    onSelectAll={filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
+                    onSelectAll={!isEditingCategoryTaxRule && filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
                     textInputOptions={{
                         value: inputValue,
                         label: translate('common.search'),
@@ -178,6 +191,7 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
                     }
                     footerContent={
                         <FormAlertWithSubmitButton
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_CATEGORY_TO_MATCH_SAVE}
                             buttonText={translate('common.save')}
                             isAlertVisible={false}
                             onSubmit={handleSave}

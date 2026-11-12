@@ -29,6 +29,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {moveFullContextMenuFocusWithArrowKey} from '@libs/moveContextMenuFocusWithArrowKey';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {
     getLinkedTransactionID,
     getOneTransactionThreadReportAction,
@@ -236,6 +237,8 @@ function BaseReportActionContextMenu({
     const iouTransactionID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU | undefined)?.IOUTransactionID;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [iouTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(iouTransaction?.reportID)}`);
+    const [moneyRequestActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestAction?.childReportID)}`);
     const iouReportID = (moneyRequestAction ?? reportAction)?.reportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
@@ -305,6 +308,7 @@ function BaseReportActionContextMenu({
                 moneyRequestReport,
                 moneyRequestAction,
                 moneyRequestPolicy,
+                moneyRequestReportOwnerLogin: getLoginByAccountID(moneyRequestReport?.ownerAccountID, personalDetails),
                 areHoldRequirementsMet,
                 isDebugModeEnabled,
                 iouTransaction,
@@ -449,6 +453,8 @@ function BaseReportActionContextMenu({
                                 encryptedAuthToken,
                                 iouTransaction,
                                 iouTransactionViolations,
+                                iouTransactionReport,
+                                moneyRequestActionChildReport,
                                 bankAccountList,
                                 isOffline,
                                 conciergeReportID,

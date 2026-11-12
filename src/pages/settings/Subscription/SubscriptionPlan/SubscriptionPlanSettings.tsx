@@ -39,10 +39,11 @@ import Navigation from '@navigation/Navigation';
 import {formatSubscriptionEndDate, getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
+import {menuItemHorizontalPadding} from '@styles/layoutSpacing';
 import variables from '@styles/variables';
 
 import {navigateToConciergeChat} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 import {clearUpdateSubscriptionSizeError, requestTaxExempt, updateSubscriptionAddNewUsersAutomatically, updateSubscriptionAutoRenew} from '@userActions/Subscription';
 
 import CONST from '@src/CONST';
@@ -67,6 +68,8 @@ type SubscriptionPlanSettingsProps = {
     planIcon: IconAsset;
     subscriptionPlan: PersonalPolicyTypeExcludedProps | null;
 };
+
+const settingsRowHorizontalPadding = {paddingHorizontal: menuItemHorizontalPadding};
 
 const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -149,7 +152,7 @@ function AnnualSavingsTooltip() {
 
 function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: SubscriptionPlanSettingsProps) {
     const styles = useThemeStyles();
-    const {cardPadding, cardPaddingHorizontal} = useLayoutSpacing();
+    const {values} = useLayoutSpacing();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Tag', 'Coins']);
@@ -278,7 +281,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
 
     return (
         <View testID="SubscriptionPlanSettings">
-            <View style={[cardPadding, styles.pb2]}>
+            <View style={[{paddingTop: values.cardPadding, paddingHorizontal: menuItemHorizontalPadding}, styles.pb2]}>
                 <View>
                     <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.plan')}</Text>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -325,7 +328,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
             </View>
             <OfflineWithFeedback pendingAction={privateSubscription.pendingFields?.type}>
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(navigateToSubscriptionDetails, false, session)}
+                    onPress={callIfAuthenticated(navigateToSubscriptionDetails, session)}
                     testID="SubscriptionPlanSettings-subscriptionType"
                     accessibilityLabel={`${translate('subscription.subscriptionSettings.subscriptionType')}, ${subscriptionTypeValue}`}
                 >
@@ -361,7 +364,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         />
                     </OfflineWithFeedback>
                     {cardView.showSizeNotSetHelper && (
-                        <View style={[styles.renderHTML, cardPaddingHorizontal, styles.mb3]}>
+                        <View style={[styles.renderHTML, settingsRowHorizontalPadding, styles.mb3]}>
                             <RenderHTML
                                 html={translate('subscription.subscriptionSettings.sizeNotSet')}
                                 onLinkPress={(_event, href) => {
@@ -374,7 +377,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         </View>
                     )}
                     <View
-                        style={cardPaddingHorizontal}
+                        style={settingsRowHorizontalPadding}
                         testID="SubscriptionPlanSettings-autoRenew"
                     >
                         <ToggleSettingOptionRow
@@ -389,7 +392,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         />
                     </View>
                     <View
-                        style={[cardPaddingHorizontal, styles.mt3, styles.mb3]}
+                        style={[settingsRowHorizontalPadding, styles.mt3, {marginBottom: values.cardPadding}]}
                         testID="SubscriptionPlanSettings-autoIncrease"
                     >
                         <ToggleSettingOptionRow

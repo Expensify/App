@@ -13,6 +13,7 @@ import {ICON_SLOT_SIZE, useWidgetSkeletonRowGeometry, WidgetSkeletonRowIcon} fro
 import variables from '@styles/variables';
 
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -42,7 +43,7 @@ function getSkeletonTitleWidth(index: number) {
     }
 }
 
-type SpendSummaryRowProps = {
+type SpendSummaryRowProps = WithRequiredSentryLabel & {
     state: ReturnType<typeof useYourSpendData>['approvalRowState'];
     testIDPrefix: string;
     description: string;
@@ -56,7 +57,7 @@ type SpendSummaryRowProps = {
     isStale?: boolean;
 };
 
-function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onPress, wrapperStyle, skeletonRowIndex, isStale = false}: SpendSummaryRowProps) {
+function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onPress, wrapperStyle, skeletonRowIndex, isStale = false, sentryLabel}: SpendSummaryRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -96,6 +97,7 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
     return (
         <View testID={`${testIDPrefix}-row`}>
             <MenuItemWithTopDescription
+                sentryLabel={sentryLabel}
                 description={description}
                 title={totals.total !== undefined ? convertToDisplayString(totals.total, totals.currency) : undefined}
                 titleStyle={[styles.textBold, isStale && styles.offlineFeedbackPending]}

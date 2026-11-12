@@ -218,7 +218,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
                 key: ONYXKEYS.APPROVAL_WORKFLOW,
                 callback: (state) => {
                     resolve(state?.members ?? []);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });
@@ -235,7 +235,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
                 key: ONYXKEYS.APPROVAL_WORKFLOW,
                 callback: (state) => {
                     resolve(state?.availableMembers ?? []);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });
@@ -340,6 +340,28 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
 
             expect(updateApprovalWorkflowRules).toHaveBeenCalledTimes(1);
             expect(updateApprovalWorkflow).not.toHaveBeenCalled();
+        });
+
+        it('keeps writing to employeeList under MULTIPLE_APPROVERS while a policy without rules has an over-limit approver', async () => {
+            // Given the beta is on, and the policy has no rules while Alice sends reports over her limit to Carol
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[ALICE_EMAIL]: {approvalLimit: 10000, overLimitForwardsTo: CAROL_EMAIL}}});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderEditPage();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin saves Alice's workflow
+            fireEvent.press(screen.getByText(translateLocal('common.save')));
+            await waitForBatchedUpdatesWithAct();
+            const [, options] = jest.mocked(Navigation.goBack).mock.calls.at(-1) ?? [];
+            options?.afterTransition?.();
+
+            // Then the save goes to employeeList rather than writing rules, which would change where reports over Alice's limit go
+            expect(updateApprovalWorkflow).toHaveBeenCalledTimes(1);
+            expect(updateApprovalWorkflowRules).not.toHaveBeenCalled();
         });
     });
 

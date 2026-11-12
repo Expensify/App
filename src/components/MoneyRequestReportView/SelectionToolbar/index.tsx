@@ -259,6 +259,9 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     searchData={undefined}
                     onHandlerReady={setDuplicateHandler}
                     onAfterDuplicate={() => clearSelectedTransactions(true)}
+                    sourceReport={report}
+                    sourceChatReport={chatReport}
+                    sourcePolicy={policy}
                 />
             )}
             {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (

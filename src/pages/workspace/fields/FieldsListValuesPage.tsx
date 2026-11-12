@@ -307,6 +307,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
 
             return (
                 <ButtonWithDropdownMenu
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.LIST_VALUES_BULK_ACTIONS_DROPDOWN}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
@@ -323,6 +324,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
         if (canWrite && !isImportedReportField) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.LIST_VALUES_ADD_VALUE}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(getAddValueRoute(isInvoicePage, policyID, reportFieldID))}

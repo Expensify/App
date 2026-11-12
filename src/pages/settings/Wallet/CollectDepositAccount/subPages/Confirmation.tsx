@@ -75,12 +75,14 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
             <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.DEPOSIT_ACCOUNT_COUNTRY}
                 name={translate('common.country')}
                 value={formValues[INPUT_IDS.BANK_COUNTRY]}
                 onPress={editCountry}
             />
             {!!formValues[INPUT_IDS.BANK_CURRENCY] && (
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.DEPOSIT_ACCOUNT_CURRENCY}
                     name={translate('common.currency')}
                     value={formValues[INPUT_IDS.BANK_CURRENCY]}
                     onPress={editDetails}
@@ -88,6 +90,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
             )}
             {Object.entries(fieldsMap).map(([fieldName, field]) => (
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.DEPOSIT_ACCOUNT_FIELD}
                     key={fieldName}
                     name={field.label}
                     value={formValues[fieldName]}

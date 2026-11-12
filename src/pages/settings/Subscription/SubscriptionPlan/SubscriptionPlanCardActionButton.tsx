@@ -86,7 +86,10 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
                 return currentPlanLabel;
             }
             return (
-                <Button onPress={() => handlePlanPress(CONST.POLICY.TYPE.TEAM)}>
+                <Button
+                    onPress={() => handlePlanPress(CONST.POLICY.TYPE.TEAM)}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PLAN_DOWNGRADE}
+                >
                     <Button.Text>{translate('subscription.yourPlan.downgrade')}</Button.Text>
                 </Button>
             );
@@ -100,6 +103,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             }
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PLAN_UPGRADE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => handlePlanPress(CONST.POLICY.TYPE.CORPORATE)}
                 >

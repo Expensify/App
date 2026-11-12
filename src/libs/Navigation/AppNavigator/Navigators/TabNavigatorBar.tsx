@@ -1,4 +1,7 @@
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
+import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
+import {getNavigationBarWidth} from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
+import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
@@ -13,6 +16,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry/cancelTabNavigationSpans';
 
+import variables from '@styles/variables';
+
 import SCREENS from '@src/SCREENS';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
@@ -26,11 +31,13 @@ import {View} from 'react-native';
  * Wrapped in overflow:'visible' so floating buttons (FAB, GPS, Camera) aren't clipped.
  */
 function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
+    const navigationBarWidth = getNavigationBarWidth(shouldUseFlatNavigationBar);
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const isAtRoot = isTabRouteAtRoot(activeRoute);
@@ -75,7 +82,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
         return (
             <View
-                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom), isHidden && styles.opacity0]}
+                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom, isInLandscapeMode), isHidden && styles.opacity0]}
                 pointerEvents={isHidden ? 'none' : 'auto'}
             >
                 <NavigationTabBar
@@ -87,12 +94,14 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     }
 
     // When the screen is not blocking the view, we need to raise the tab bar above the screen content so the DebugTabView is visible.
+    // The container also spans the sidebar next to the bar, so floating content such as the debug view is not clipped.
+    // tabNavigatorBarContainer's negative margin gives that width back, leaving only the bar's width as layout space.
     return (
         <View
-            style={[styles.tabNavigatorBarContainer, !isBlockingViewVisible && {zIndex: 1}]}
+            style={[styles.tabNavigatorBarContainer, StyleUtils.getWidthStyle(navigationBarWidth + variables.sideBarWithLHBWidth), !isBlockingViewVisible && styles.zIndex1]}
             pointerEvents="box-none"
         >
-            <NavigationTabBar selectedTab={selectedTab} />
+            {shouldUseFlatNavigationBar ? <FlatNavigationBar selectedTab={selectedTab} /> : <NavigationTabBar selectedTab={selectedTab} />}
         </View>
     );
 }

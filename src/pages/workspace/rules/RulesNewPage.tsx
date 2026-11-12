@@ -4,11 +4,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearDraftMerchantRule} from '@libs/actions/User';
+import {categoryHasTaxRule, hasSelectableCategoryTaxRate, hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,6 +24,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -38,7 +41,7 @@ type NewRuleOption = {
     title: string;
     description: string;
     onPress: () => void;
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
     /** When true, option is only shown from the workspace Rules Create flow (not category RHP). */
     isWorkspaceOnly?: boolean;
 };
@@ -50,15 +53,24 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt']);
     const isCategorySettingsFlow = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW;
     const isCategoryScopedCreate = isCategorySettingsFlow || !!categoryName;
+    const policy = usePolicy(policyID);
+    const {showConfirmModal} = useConfirmModal();
 
-    // From category settings the rule is pre-scoped to the category, so it opens the editor directly.
-    const openCategoryScopedRule = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_NEW.path));
-
-    // The draft outlives a closed tab, and this is the one entry point that opens the editor without seeding one,
-    // so a rule abandoned earlier would otherwise come back filled in.
-    const openExpenseDefaultRule = () => {
-        clearDraftMerchantRule();
-        Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+    // From category settings the only expense default is the category's tax rate, so the type chooser is skipped. It
+    // can't be set without a rate to pick, so that case gets the chooser's explainer instead of an empty picker.
+    const openCategoryTaxRule = () => {
+        const hasCategoryTaxRule = !!categoryName && categoryHasTaxRule(policy?.rules?.expenseRules, categoryName);
+        if (!hasCategoryTaxRule && !hasSelectableCategoryTaxRate(policy)) {
+            const areTaxesEnabled = hasUsableTaxRates(policy);
+            showConfirmModal({
+                title: translate(areTaxesEnabled ? 'workspace.rules.merchantRules.addTaxRateFirstTitle' : 'workspace.rules.merchantRules.turnOnTaxesFirstTitle'),
+                prompt: translate(areTaxesEnabled ? 'workspace.rules.merchantRules.addTaxRateFirstPrompt' : 'workspace.rules.merchantRules.turnOnTaxesFirstPrompt'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_NEW.path));
     };
 
     const newRuleOptions: NewRuleOption[] = [
@@ -102,7 +114,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
             icon: illustrations.ReportReceipt,
             title: translate('workspace.rules.newRule.applyExpenseDefaults'),
             description: translate('workspace.rules.newRule.applyExpenseDefaultsDescription'),
-            onPress: () => (isCategorySettingsFlow ? openCategoryScopedRule() : openExpenseDefaultRule()),
+            onPress: () => (isCategorySettingsFlow ? openCategoryTaxRule() : Navigation.navigate(ROUTES.RULES_EXPENSE_DEFAULT_TYPE.getRoute(policyID))),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS,
             // Only category settings can scope the editor to its category, so a category passed any other way drops it.
             isWorkspaceOnly: !isCategorySettingsFlow,

@@ -1,3 +1,4 @@
+// cspell:ignore Zote Čeněk Øresund øresund
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook} from '@testing-library/react-native';
 
@@ -19,6 +20,7 @@ import {
     getReportPreviewMessage,
 } from '@libs/ReportUtils';
 import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
+import StringUtils from '@libs/StringUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -54,6 +56,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
     // aren't on it yet. Spread them from their own modules, which load fully.
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
     getConnectedIntegration: jest.fn(() => true),
     isPolicyAdmin: jest.fn(() => true),
 }));
@@ -1363,6 +1366,82 @@ describe('SidebarUtils', () => {
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        describe('bill reports', () => {
+            const billReport = {
+                ...createRandomReport(1, undefined),
+                reportName: 'Bill',
+                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                errorFields: undefined,
+            } as Report;
+
+            const getBillDisplayResult = (isBillPayBetaEnabled: boolean) =>
+                SidebarUtils.shouldDisplayReportInLHN({
+                    policy: undefined,
+                    report: billReport,
+                    reports: {[`${ONYXKEYS.COLLECTION.REPORT}${billReport.reportID}`]: billReport},
+                    currentReportId: undefined,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    isBillPayBetaEnabled,
+                    transactionViolations: {},
+                    // A draft makes the report show in any mode, so only the bill check can hide it.
+                    draftComment: 'Draft',
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+
+            it('hides a bill from users without the newDotBillPay beta', () => {
+                // Given a bill with a draft and a user without the newDotBillPay beta
+                // When the LHN decides whether to show the bill
+                const result = getBillDisplayResult(false);
+
+                // Then the bill stays hidden, because NewDot only shows bills behind the beta
+                expect(result).toStrictEqual({shouldDisplay: false});
+            });
+
+            it('shows a bill to users with the newDotBillPay beta', () => {
+                // Given a bill with a draft and a user with the newDotBillPay beta
+                // When the LHN decides whether to show the bill
+                const result = getBillDisplayResult(true);
+
+                // Then the bill shows like any other report with a draft
+                expect(result).toStrictEqual({shouldDisplay: true});
+            });
+
+            it('still hides a paycheck from users with the newDotBillPay beta', () => {
+                // Given a paycheck and a user with the newDotBillPay beta
+                const paycheckReport = {...billReport, type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK} as Report;
+
+                // When the LHN decides whether to show the paycheck
+                const result = SidebarUtils.shouldDisplayReportInLHN({
+                    policy: undefined,
+                    report: paycheckReport,
+                    reports: {[`${ONYXKEYS.COLLECTION.REPORT}${paycheckReport.reportID}`]: paycheckReport},
+                    currentReportId: undefined,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    isBillPayBetaEnabled: true,
+                    transactionViolations: {},
+                    draftComment: 'Draft',
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+
+                // Then the paycheck stays hidden, because the beta only covers bills
+                expect(result).toStrictEqual({shouldDisplay: false});
+            });
         });
 
         it('accepts isOffline=true without error', () => {
@@ -3560,7 +3639,7 @@ describe('SidebarUtils', () => {
                     conciergeReportID: '',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
-                    lastAction: undefined,
+                    lastAction: lastReportPreviewAction,
                     translate: translateLocal,
                     convertToDisplayString,
                     convertToDisplayStringWithoutCurrency,
@@ -4661,6 +4740,27 @@ describe('SidebarUtils', () => {
         describe('sortCategorizedReports', () => {
             const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
+            it('should sort folded accented names with the fast sort key', () => {
+                // Given reports whose accented names are folded before their sort keys are compared
+                const categories = {
+                    pinnedAndGBRReports: [
+                        {reportID: '1', displayName: 'Nuevo Budget', sortKey: _buildSortKey('Nuevo Budget')},
+                        {reportID: '2', displayName: 'Ñu Safari', sortKey: _buildSortKey('Ñu Safari')},
+                        {reportID: '3', displayName: 'Zote Report', sortKey: _buildSortKey('Zote Report')},
+                    ],
+                    errorReports: [],
+                    draftReports: [],
+                    nonArchivedReports: [],
+                    archivedReports: [],
+                };
+
+                // When the pinned reports are sorted
+                const result = _sortCategorizedReports(categories, true, mockLocaleCompare);
+
+                // Then the folded key order is used instead of placing Ñ after Z by code point
+                expect(result.pinnedAndGBRReports.map((report) => report.displayName)).toEqual(['Ñu Safari', 'Nuevo Budget', 'Zote Report']);
+            });
+
             it('should sort reports correctly in default mode', () => {
                 // Given the reports are created
                 const categories = {
@@ -4802,13 +4902,48 @@ describe('SidebarUtils', () => {
         });
 
         describe('buildSortKey', () => {
-            it('should sort accented characters by Unicode code point, not locale-aware order', () => {
-                // Given names with accented characters
+            it('should fold accents so accented and plain names share a sort key', () => {
+                // Given names that differ only by an accent
                 const cafeAccented = _buildSortKey('Café');
                 const cafePlain = _buildSortKey('Cafe');
 
-                // Then accented "é" sorts after plain "e" by code point
-                expect(cafeAccented > cafePlain).toBe(true);
+                // Then the accent-folded keys are equal and the comparator can use its locale fallback
+                expect(cafeAccented).toBe(cafePlain);
+            });
+
+            it('should create the same key for composed and decomposed accents', () => {
+                // Given equivalent composed and decomposed Unicode display names
+                const composedName = 'Café';
+                const decomposedName = 'Cafe\u0301';
+
+                // When sort keys are created for both forms
+                const composedKey = _buildSortKey(composedName);
+                const decomposedKey = _buildSortKey(decomposedName);
+
+                // Then the canonical forms produce the same key
+                expect(composedKey).toBe(decomposedKey);
+            });
+
+            it('should use StringUtils accent folding when building the sort key', () => {
+                // Given a display name containing accents
+                const displayName = 'Čeněk';
+
+                // When its sort key is created
+                const sortKey = _buildSortKey(displayName);
+
+                // Then the key uses the shared accent normalization result
+                expect(sortKey).toBe(StringUtils.normalizeAccents(displayName.toLowerCase()));
+            });
+
+            it('should leave unmapped characters unchanged', () => {
+                // Given a display name with a character that does not decompose into a base letter and mark
+                const displayName = 'Øresund';
+
+                // When its sort key is created
+                const sortKey = _buildSortKey(displayName);
+
+                // Then the unmapped character remains in the key
+                expect(sortKey).toBe('øresund');
             });
 
             it('should be case-insensitive', () => {
@@ -5512,6 +5647,47 @@ describe('SidebarUtils', () => {
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
             });
 
+            it.each([
+                {isBillPayBetaEnabled: false, shouldShowBill: false},
+                {isBillPayBetaEnabled: true, shouldShowBill: true},
+            ])('shows a bill only when isBillPayBetaEnabled is true (isBillPayBetaEnabled: $isBillPayBetaEnabled)', ({isBillPayBetaEnabled, shouldShowBill}) => {
+                // Given a bill with a draft, so the draft alone would make it show
+                const report = {
+                    ...createRandomReport(1, undefined),
+                    reportID: '1',
+                    reportName: 'Bill',
+                    type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                    errorFields: undefined,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
+                };
+
+                // When the LHN builds its list for a user with or without the newDotBillPay beta
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: undefined,
+                    policies: {},
+                    reports,
+                    isDefaultRoomsBetaEnabled: false,
+                    isBillPayBetaEnabled,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'Draft'},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+
+                // Then only users with the beta see the bill
+                expect(!!result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBe(shouldShowBill);
+            });
+
             it('should use the correct draft comment per report', () => {
                 const report1 = {
                     ...createRandomReport(1, undefined),
@@ -5910,15 +6086,31 @@ describe('SidebarUtils', () => {
 
         type InboxTabReport = Pick<
             ReportsToDisplayInLHN[string],
-            'reportID' | 'isUnreadReport' | 'requiresAttention' | 'hasErrorsOtherThanFailedReceipt' | 'lastVisibleActionCreated' | 'lastVisibleActionCreatedForInboxTab'
+            | 'reportID'
+            | 'isUnreadReport'
+            | 'requiresAttention'
+            | 'hasErrorsOtherThanFailedReceipt'
+            | 'lastVisibleActionCreated'
+            | 'lastVisibleActionCreatedForInboxTab'
+            | 'lastReadTime'
+            | 'participants'
         >;
 
+        /** Unless a test overrides it, every report has the current user as a participant who is notified about it. */
+        const currentUserAsParticipant = {[CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
+        const fourMonthsAgo = () => DateUtils.getDBTime(subMonths(new Date(), 4).valueOf());
+
         function buildReportsToDisplay(reports: InboxTabReport[]): ReportsToDisplayInLHN {
-            return Object.fromEntries(reports.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {...createRandomReport(Number(report.reportID)), ...report}]));
+            return Object.fromEntries(
+                reports.map((report) => [
+                    `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                    {...createRandomReport(Number(report.reportID)), participants: currentUserAsParticipant, ...report},
+                ]),
+            );
         }
 
         it('returns zero counts and no stale report for an empty list', () => {
-            expect(SidebarUtils.getInboxTabSummary([], {})).toEqual({
+            expect(SidebarUtils.getInboxTabSummary([], {}, CURRENT_USER_ACCOUNT_ID)).toEqual({
                 counts: {[CONST.INBOX_TAB.TODO]: 0, [CONST.INBOX_TAB.UNREAD]: 0},
                 hasStaleUnreadReport: false,
             });
@@ -5934,7 +6126,7 @@ describe('SidebarUtils', () => {
                 {reportID: '5'},
             ]);
 
-            expect(SidebarUtils.getInboxTabSummary(['1', '2', '3', '4', '5'], reportsToDisplay).counts).toEqual({
+            expect(SidebarUtils.getInboxTabSummary(['1', '2', '3', '4', '5'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID).counts).toEqual({
                 [CONST.INBOX_TAB.TODO]: 3,
                 [CONST.INBOX_TAB.UNREAD]: 2,
             });
@@ -5943,19 +6135,19 @@ describe('SidebarUtils', () => {
         it('skips report IDs with no matching report', () => {
             const reportsToDisplay = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime()}]);
 
-            expect(SidebarUtils.getInboxTabSummary(['1', '404'], reportsToDisplay).counts[CONST.INBOX_TAB.UNREAD]).toBe(1);
+            expect(SidebarUtils.getInboxTabSummary(['1', '404'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID).counts[CONST.INBOX_TAB.UNREAD]).toBe(1);
         });
 
         it('flags a stale unread report when its newest message predates the cutoff', () => {
             const reportsToDisplay = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 4).valueOf())}]);
 
-            expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay).hasStaleUnreadReport).toBe(true);
+            expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID).hasStaleUnreadReport).toBe(true);
         });
 
         it('does not flag an unread report whose newest message is recent', () => {
             const reportsToDisplay = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 1).valueOf())}]);
 
-            expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay).hasStaleUnreadReport).toBe(false);
+            expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID).hasStaleUnreadReport).toBe(false);
         });
 
         it('does not flag a single-expense report whose old expense report has a recent comment on its transaction thread', () => {
@@ -5970,7 +6162,7 @@ describe('SidebarUtils', () => {
             ]);
 
             // When the Inbox tab row is summarized
-            const {hasStaleUnreadReport} = SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay);
+            const {hasStaleUnreadReport} = SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID);
 
             // Then the report is not stale, because the unread message is the new thread comment
             expect(hasStaleUnreadReport).toBe(false);
@@ -5979,7 +6171,7 @@ describe('SidebarUtils', () => {
         it('ignores the age of reports that are not unread', () => {
             const reportsToDisplay = buildReportsToDisplay([{reportID: '1', lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 4).valueOf())}]);
 
-            expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay)).toEqual({
+            expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID)).toEqual({
                 counts: {[CONST.INBOX_TAB.TODO]: 0, [CONST.INBOX_TAB.UNREAD]: 0},
                 hasStaleUnreadReport: false,
             });
@@ -5991,15 +6183,96 @@ describe('SidebarUtils', () => {
                 {reportID: '2', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 4).valueOf())},
             ]);
 
-            expect(SidebarUtils.getInboxTabSummary(['1', '2'], reportsToDisplay).hasStaleUnreadReport).toBe(true);
+            expect(SidebarUtils.getInboxTabSummary(['1', '2'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID).hasStaleUnreadReport).toBe(true);
         });
 
         it('treats a message just before the cutoff as stale and one just after it as fresh', () => {
             const stale = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(subMinutes(staleCutoff(), 1).valueOf())}]);
             const fresh = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(addMinutes(staleCutoff(), 1).valueOf())}]);
 
-            expect(SidebarUtils.getInboxTabSummary(['1'], stale).hasStaleUnreadReport).toBe(true);
-            expect(SidebarUtils.getInboxTabSummary(['1'], fresh).hasStaleUnreadReport).toBe(false);
+            expect(SidebarUtils.getInboxTabSummary(['1'], stale, CURRENT_USER_ACCOUNT_ID).hasStaleUnreadReport).toBe(true);
+            expect(SidebarUtils.getInboxTabSummary(['1'], fresh, CURRENT_USER_ACCOUNT_ID).hasStaleUnreadReport).toBe(false);
+        });
+
+        it('does not flag an unread report that has no message date', () => {
+            // Given unread reports whose newest message date is missing or empty
+            const reportsToDisplay = buildReportsToDisplay([
+                {reportID: '1', isUnreadReport: true, lastVisibleActionCreated: undefined, lastVisibleActionCreatedForInboxTab: undefined},
+                {reportID: '2', isUnreadReport: true, lastVisibleActionCreated: '', lastVisibleActionCreatedForInboxTab: ''},
+            ]);
+
+            // When the Inbox tab row is summarized
+            const {counts, hasStaleUnreadReport} = SidebarUtils.getInboxTabSummary(['1', '2'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID);
+
+            // Then both still count as unread, but an empty date must not read as older than the cutoff
+            expect(counts[CONST.INBOX_TAB.UNREAD]).toBe(2);
+            expect(hasStaleUnreadReport).toBe(false);
+        });
+
+        it('does not flag an unread report whose message date is not a valid date', () => {
+            // Given an unread report with a zero date, which sorts before the cutoff when compared as a string
+            const reportsToDisplay = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreatedForInboxTab: '0000-00-00 00:00:00'}]);
+
+            // When the Inbox tab row is summarized
+            const {hasStaleUnreadReport} = SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID);
+
+            // Then the report is not stale, because the date does not describe a real message time
+            expect(hasStaleUnreadReport).toBe(false);
+        });
+
+        it('does not flag an old unread report the current user is not a participant of', () => {
+            // Given old unread reports with no read state for the current user: one whose participants exclude them,
+            // as when an admin opens another member's report from Search, and one from a search payload without participants
+            const reportsToDisplay = buildReportsToDisplay([
+                {
+                    reportID: '1',
+                    isUnreadReport: true,
+                    lastReadTime: undefined,
+                    lastVisibleActionCreatedForInboxTab: fourMonthsAgo(),
+                    participants: {[CURRENT_USER_ACCOUNT_ID + 1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+                },
+                {reportID: '2', isUnreadReport: true, lastReadTime: undefined, lastVisibleActionCreatedForInboxTab: fourMonthsAgo(), participants: undefined},
+            ]);
+
+            // When the Inbox tab row is summarized
+            const {counts, hasStaleUnreadReport} = SidebarUtils.getInboxTabSummary(['1', '2'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID);
+
+            // Then they still count as unread, but neither is an old chat the user was meant to read
+            expect(counts[CONST.INBOX_TAB.UNREAD]).toBe(2);
+            expect(hasStaleUnreadReport).toBe(false);
+        });
+
+        it('flags an old unread chat the current user never opened', () => {
+            // Given an old chat the current user was added to but never opened, so the backend sends no lastReadTime for them
+            const reportsToDisplay = buildReportsToDisplay([
+                {
+                    reportID: '1',
+                    isUnreadReport: true,
+                    lastReadTime: undefined,
+                    lastVisibleActionCreatedForInboxTab: fourMonthsAgo(),
+                    participants: {[CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY}},
+                },
+            ]);
+
+            // When the Inbox tab row is summarized
+            const {hasStaleUnreadReport} = SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID);
+
+            // Then the chat is stale, because a missing lastReadTime alone does not mean the user is not a participant
+            expect(hasStaleUnreadReport).toBe(true);
+        });
+
+        it('flags a stale chat the user participates in even when a non-participant report is also unread', () => {
+            // Given an old unread report the user is not a participant of, next to an old unread chat they are in
+            const reportsToDisplay = buildReportsToDisplay([
+                {reportID: '1', isUnreadReport: true, lastVisibleActionCreatedForInboxTab: fourMonthsAgo(), participants: undefined},
+                {reportID: '2', isUnreadReport: true, lastVisibleActionCreatedForInboxTab: fourMonthsAgo()},
+            ]);
+
+            // When the Inbox tab row is summarized
+            const {hasStaleUnreadReport} = SidebarUtils.getInboxTabSummary(['1', '2'], reportsToDisplay, CURRENT_USER_ACCOUNT_ID);
+
+            // Then skipping the non-participant report does not hide the real stale chat
+            expect(hasStaleUnreadReport).toBe(true);
         });
     });
 });

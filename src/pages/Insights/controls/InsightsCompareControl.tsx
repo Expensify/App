@@ -36,6 +36,8 @@ function InsightsCompareControl({value, onChange}: InsightsControlProps<SearchCo
             defaultValue={COMPARE_NONE}
             closeOverlay={closeOverlay}
             onChange={(item) => onChange(!item || item.value === COMPARE_NONE ? undefined : item.value)}
+            applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.COMPARE}
+            resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.COMPARE}
         />
     );
 

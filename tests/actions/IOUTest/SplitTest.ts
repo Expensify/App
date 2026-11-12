@@ -45,6 +45,7 @@ import {
 } from '@userActions/IOU/SplitExpenseItems';
 import type {UpdateSplitTransactionsData} from '@userActions/IOU/SplitTransactionUpdate';
 import {getExpenseReportIDsEmptiedBySplitUpdate, updateSplitTransactions, willSplitUpdateEmptyExpenseReport} from '@userActions/IOU/SplitTransactionUpdate';
+import {CAROUSEL_SOURCE, clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -69,7 +70,7 @@ import Onyx from 'react-native-onyx';
 import type {MockFetch} from '../../utils/TestHelper';
 
 import createPersonalDetails from '../../utils/collections/personalDetails';
-import createRandomPolicy, {createCategoryTaxRulesCollection} from '../../utils/collections/policies';
+import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
@@ -444,7 +445,7 @@ describe('split expense', () => {
                         const connection = Onyx.connect({
                             key: ONYXKEYS.COLLECTION.REPORT,
                             callback: (allReports) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
 
                                 // There should now be 10 reports
                                 expect(Object.values(allReports ?? {}).length).toBe(10);
@@ -521,7 +522,7 @@ describe('split expense', () => {
                         const connection = Onyx.connect({
                             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                             callback: (allReportActions) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
 
                                 // There should be reportActions on all 7 chat reports + 3 IOU reports in each 1:1 chat
                                 expect(Object.values(allReportActions ?? {}).length).toBe(10);
@@ -607,7 +608,7 @@ describe('split expense', () => {
                         const connection = Onyx.connect({
                             key: ONYXKEYS.COLLECTION.TRANSACTION,
                             callback: (allTransactions) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
 
                                 /* There should be 5 transactions
                                  *   – one existing one with Jules
@@ -672,7 +673,7 @@ describe('split expense', () => {
                         const connection = Onyx.connect({
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             callback: (allPersonalDetails) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 expect(allPersonalDetails).toMatchObject({
                                     [VIT_ACCOUNT_ID]: {
                                         accountID: VIT_ACCOUNT_ID,
@@ -693,7 +694,7 @@ describe('split expense', () => {
                         const connection = Onyx.connect({
                             key: ONYXKEYS.COLLECTION.REPORT,
                             callback: (allReports) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 for (const report of Object.values(allReports ?? {})) {
                                     if (!report?.pendingFields) {
                                         continue;
@@ -713,7 +714,7 @@ describe('split expense', () => {
                         const connection = Onyx.connect({
                             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                             callback: (allReportActions) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 for (const reportAction of Object.values(allReportActions ?? {})) {
                                     expect(reportAction?.pendingAction).toBeFalsy();
                                 }
@@ -728,7 +729,7 @@ describe('split expense', () => {
                         const connection = Onyx.connect({
                             key: ONYXKEYS.COLLECTION.TRANSACTION,
                             callback: (allTransactions) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 for (const transaction of Object.values(allTransactions ?? {})) {
                                     expect(transaction?.pendingAction).toBeFalsy();
                                 }
@@ -777,7 +778,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceReportID}`,
                 callback: (reportActions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(Object.values(reportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW));
                 },
             });
@@ -787,7 +788,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`,
                 callback: (report) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     expect(report?.lastVisibleActionCreated).toBe(reportPreviewAction?.created);
                     resolve(report);
                 },
@@ -965,7 +966,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 callback: (reportActions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(
                         Object.values(reportActions ?? {})
                             .filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU))
@@ -980,7 +981,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 callback: (reportVal) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(reportVal);
                 },
             });
@@ -1035,7 +1036,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                 callback: (transactions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(Object.values(transactions ?? {}).find((transaction) => transaction?.amount === -(transactionAmount / 2)));
                 },
             });
@@ -1091,7 +1092,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 callback: (reportVal) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(reportVal);
                 },
             });
@@ -1168,7 +1169,7 @@ describe('split expense', () => {
                 key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
                 callback: (recentlyUsedTags) => {
                     resolve(recentlyUsedTags ?? {});
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });
@@ -1495,7 +1496,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                 callback: (transactions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     const splits = Object.values(transactions ?? {}).filter((t) => t?.transactionID !== originalTransactionID && t?.comment?.originalTransactionID === originalTransactionID);
                     resolve(splits.filter((split): split is Transaction => split != null));
                 },
@@ -1564,7 +1565,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                 callback: (value) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(value);
                 },
             });
@@ -1630,7 +1631,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
                 callback: (reports) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(reports);
                 },
             });
@@ -1643,7 +1644,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                 callback: (value) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(value);
                 },
             });
@@ -1701,7 +1702,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                 callback: (transactions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(transactions);
                 },
             });
@@ -1715,7 +1716,7 @@ describe('split expense', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 callback: (actions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(actions);
                 },
             });
@@ -2018,7 +2019,7 @@ describe('startSplitBill', () => {
                 key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
                 callback: (recentlyUsedTags) => {
                     resolve(recentlyUsedTags ?? {});
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });
@@ -2230,7 +2231,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouAction.childReportID}`,
                 callback: (val) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(val);
                 },
             });
@@ -2356,7 +2357,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 callback: (val) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(val);
                 },
             });
@@ -2493,7 +2494,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`,
                 callback: (val) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(val);
                 },
             });
@@ -2596,7 +2597,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`,
                 callback: (val) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(val);
                 },
             });
@@ -2969,7 +2970,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${differentReportID}`,
                 callback: (val) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(val);
                 },
             });
@@ -7234,6 +7235,68 @@ describe('updateSplitTransactions', () => {
         return {splitTransactionID1, splitTransactionID2, splitTransactionID3};
     };
 
+    describe('prev/next carousel', () => {
+        afterEach(() => clearActiveTransactionIDs());
+
+        it('should remove the original expense from a carousel seeded from its report', async () => {
+            // Given an expense opened from its report's transaction list, next to one sibling expense
+            const {expenseReport, originalTransactionID} = await createBaseExpense();
+            if (!originalTransactionID || !expenseReport?.reportID) {
+                throw new Error('Missing original transaction data');
+            }
+            await setActiveTransactionIDs(['carousel-sibling', originalTransactionID], {source: CAROUSEL_SOURCE.reportRow(expenseReport.reportID)});
+
+            // When the expense is split, which moves the original to the hidden split report
+            const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+            await splitToTwo(expenseReport, originalTransactionID, iouAction);
+
+            // Then the carousel is cleared, because one expense left is nothing to page through and the original can't be opened
+            expect(getActiveTransactionIDs().ids).toBeNull();
+            expect(await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS)).toBeFalsy();
+        });
+
+        it('should keep the original expense out of the carousel when the split fails', async () => {
+            // Given an expense opened from its report's transaction list, between two sibling expenses
+            const {expenseReport, originalTransactionID} = await createBaseExpense();
+            if (!originalTransactionID || !expenseReport?.reportID) {
+                throw new Error('Missing original transaction data');
+            }
+            await setActiveTransactionIDs(['carousel-sibling-1', originalTransactionID, 'carousel-sibling-2'], {source: CAROUSEL_SOURCE.reportRow(expenseReport.reportID)});
+
+            // When the expense is split and the server then rejects the request
+            const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+            mockFetch?.pause?.();
+            await splitToTwo(expenseReport, originalTransactionID, iouAction);
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the original is back on its report, but the carousel isn't written back, like a failed move. The screen that
+            // owned it may be gone by then, so restoring it could leave a list nothing clears. The next seed brings it back.
+            const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+            expect(originalTransaction?.reportID).toBe(expenseReport.reportID);
+            expect(getActiveTransactionIDs().ids).toEqual(['carousel-sibling-1', 'carousel-sibling-2']);
+            expect(await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS)).toEqual(['carousel-sibling-1', 'carousel-sibling-2']);
+        });
+
+        it('should leave a carousel seeded from search results alone', async () => {
+            // Given an expense opened from search results, which span several reports
+            const {expenseReport, originalTransactionID} = await createBaseExpense();
+            if (!originalTransactionID || !expenseReport?.reportID) {
+                throw new Error('Missing original transaction data');
+            }
+            await setActiveTransactionIDs(['carousel-sibling', originalTransactionID], {source: CAROUSEL_SOURCE.search(unapprovedCashHash)});
+
+            // When the expense is split
+            const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+            await splitToTwo(expenseReport, originalTransactionID, iouAction);
+
+            // Then the carousel is unchanged, because search refreshes the carousel it owns from its own results
+            expect(getActiveTransactionIDs().ids).toEqual(['carousel-sibling', originalTransactionID]);
+            expect(await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS)).toEqual(['carousel-sibling', originalTransactionID]);
+        });
+    });
+
     it('should send reportID and localized failure fallback when updating existing split transactions', async () => {
         const {expenseReport, originalTransactionID} = await createBaseExpense();
 
@@ -10528,6 +10591,118 @@ describe('updateSplitExpenseAmountField', () => {
     });
 });
 
+describe('setDraftSplitTransaction', () => {
+    it('should set the associated tax for the category based on the tax expense rules', async () => {
+        // Given a policy with tax expense rules associated with category
+        const transactionID = '1';
+        const category = 'Advertising';
+        const policyID = '2';
+        const taxCode = 'id_TAX_EXEMPT';
+        const ruleTaxCode = 'id_TAX_RATE_1';
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(Number(policyID)),
+            taxRates: CONST.DEFAULT_TAX,
+            rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
+        };
+        const draftTransaction: Transaction = {
+            ...createRandomTransaction(1),
+            taxCode,
+            taxAmount: 0,
+            amount: 100,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+        // When setting a category of a draft split transaction
+        setDraftSplitTransaction(transactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, fakePolicy);
+
+        await waitForBatchedUpdates();
+
+        // Then the transaction tax rate and amount should be updated based on the expense rules
+        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+        expect(transaction?.taxCode).toBe(ruleTaxCode);
+        expect(transaction?.taxAmount).toBe(5);
+    });
+
+    describe('should not change the tax', () => {
+        it('if there are no tax expense rules', async () => {
+            // Given a policy without tax expense rules
+            const transactionID = '1';
+            const category = 'Advertising';
+            const policyID = '2';
+            const taxCode = 'id_TAX_EXEMPT';
+            const taxAmount = 0;
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {},
+            };
+            const draftTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                taxCode,
+                taxAmount,
+                amount: 100,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            // When setting a category of a draft split transaction
+            setDraftSplitTransaction(transactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, fakePolicy);
+
+            await waitForBatchedUpdates();
+
+            // Then the transaction tax rate and amount shouldn't be updated
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.taxCode).toBe(taxCode);
+            expect(transaction?.taxAmount).toBe(taxAmount);
+        });
+
+        it('if we are not updating category', async () => {
+            // Given a policy with tax expense rules associated with category
+            const transactionID = '1';
+            const category = 'Advertising';
+            const policyID = '2';
+            const ruleTaxCode = 'id_TAX_RATE_1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
+            };
+            const draftTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                amount: 100,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            // When setting a draft split transaction without category update
+            setDraftSplitTransaction(transactionID, draftTransaction, {}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, fakePolicy);
+
+            await waitForBatchedUpdates();
+
+            // Then the transaction tax rate and amount shouldn't be updated
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.taxCode).toBeUndefined();
+            expect(transaction?.taxAmount).toBeUndefined();
+        });
+    });
+
+    it('clears the draft when there is no split draft to start from', async () => {
+        // Given a split draft that already exists for the transaction
+        const transactionID = 'no-draft-base';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, createRandomTransaction(1));
+        await waitForBatchedUpdates();
+
+        // When a caller passes no transaction to start from
+        setDraftSplitTransaction(transactionID, undefined, {category: 'Advertising'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+
+        await waitForBatchedUpdates();
+
+        // Then the action no longer falls back by itself, so the null merge clears the draft
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`)).toBeFalsy();
+    });
+});
+
 describe('initSplitExpenseItemData', () => {
     it('should create split expense item data from transaction', () => {
         const transaction: Transaction = {
@@ -13222,100 +13397,5 @@ describe('updateSplitTransactions - emptied expense reports', () => {
         expect(reportBAfter?.total).toBe(-7500);
         const reportCAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportC.reportID}`);
         expect(reportCAfter?.total).toBe(-7500);
-    });
-});
-
-describe('setDraftSplitTransaction', () => {
-    const splitTransactionID = '1';
-    const splitPolicyID = '2';
-    const category = 'Advertising';
-    const ruleTaxCode = 'id_TAX_RATE_1';
-
-    const buildSplitPolicy = (): Policy => ({...createRandomPolicy(Number(splitPolicyID)), taxRates: CONST.DEFAULT_TAX});
-
-    const buildSplitDraft = (): Transaction => ({...createRandomTransaction(1), taxCode: 'id_TAX_EXEMPT', taxAmount: 0, amount: 100});
-
-    it('writes the tax the category rule asks for', async () => {
-        // Given a split draft on a policy whose expense default puts a tax rate on the category
-        const policy = buildSplitPolicy();
-        const draftTransaction = buildSplitDraft();
-        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
-
-        // When that category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
-        await waitForBatchedUpdates();
-
-        // Then the rule's rate is on the draft, because a split is sent with whatever tax it holds
-        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
-        expect(updatedTransaction?.taxCode).toBe(ruleTaxCode);
-        expect(updatedTransaction?.taxAmount).toBe(5);
-    });
-
-    it('falls back to the workspace default when the new category has no rule', async () => {
-        // Given a split draft carrying a rate an expense default put there, moved to a category no rule names
-        const policy = buildSplitPolicy();
-        const draftTransaction = {...buildSplitDraft(), taxCode: ruleTaxCode, taxAmount: 5};
-        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
-
-        // When the other category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
-        await waitForBatchedUpdates();
-
-        // Then the workspace default replaces it, so the split does not keep the rate the previous category asked for
-        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
-        expect(updatedTransaction?.taxCode).toBe('id_TAX_EXEMPT');
-        expect(updatedTransaction?.taxAmount).toBe(0);
-    });
-
-    it('leaves the tax alone when the only tax rule matches on more than the category', async () => {
-        // Given a split draft on a policy whose only tax rule also matches on a merchant, so no category owns a rate
-        const policy = buildSplitPolicy();
-        const draftTransaction = {...buildSplitDraft(), taxCode: ruleTaxCode, taxAmount: 5};
-        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode, 'Uber');
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
-
-        // When another category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
-        await waitForBatchedUpdates();
-
-        // Then the rate is kept, because a category change says nothing about a rule the category does not own
-        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
-        expect(updatedTransaction?.taxCode).toBe(ruleTaxCode);
-        expect(updatedTransaction?.taxAmount).toBe(5);
-    });
-
-    it('leaves the tax alone when the policy has no expense default', async () => {
-        // Given a split draft on a policy with no expense defaults at all
-        const policy = buildSplitPolicy();
-        const draftTransaction = buildSplitDraft();
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
-
-        // When a category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, {});
-        await waitForBatchedUpdates();
-
-        // Then the tax it already carried is kept, since no rule asked for a different one
-        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
-        expect(updatedTransaction?.taxCode).toBe('id_TAX_EXEMPT');
-        expect(updatedTransaction?.taxAmount).toBe(0);
-    });
-
-    it('leaves the tax alone when the category is not the field being changed', async () => {
-        // Given a split draft on a policy whose expense default puts a tax rate on a category
-        const policy = buildSplitPolicy();
-        const draftTransaction = buildSplitDraft();
-        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
-
-        // When a field other than the category is written
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {comment: 'Updated'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
-        await waitForBatchedUpdates();
-
-        // Then the rate is left as it was, because no category change can have brought a different rule into play
-        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
-        expect(updatedTransaction?.taxCode).toBe('id_TAX_EXEMPT');
-        expect(updatedTransaction?.taxAmount).toBe(0);
     });
 });

@@ -4,7 +4,7 @@ import {getTransactionDisplayAmount, isExpenseReport, isOptimisticPersonalDetail
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchSuggestionUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
-import {getCurrency} from '@libs/TransactionUtils';
+import {getCurrency, getMerchant} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
@@ -38,6 +39,7 @@ const expenseReportStatusFilterMapping: Record<string, ExpenseReportStatusPredic
 type GetSearchOnyxUpdateParams = {
     transaction: OnyxTypes.Transaction;
     participant?: Participant;
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
     iouReport?: OnyxEntry<OnyxTypes.Report>;
     iouAction?: OnyxEntry<OnyxTypes.ReportAction>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
@@ -84,6 +86,31 @@ function shouldOptimisticallyUpdateSearch(
         return false;
     }
 
+    // Merchant filters can be checked locally, so matching expenses must not wait for a server response, especially offline.
+    const merchantFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+    if (merchantFilters.length) {
+        if (!transaction) {
+            return false;
+        }
+        const merchant = getMerchant(transaction).toLowerCase();
+        const matchesMerchantFilters = merchantFilters.every(({filters}) => {
+            // Values in a positive clause are alternatives; a negated clause must exclude every listed value.
+            if (filters.at(0)?.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                return filters.every((filter) => merchant !== String(filter.value).toLowerCase());
+            }
+            return filters.some((filter) => {
+                const value = String(filter.value).toLowerCase();
+                if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS) {
+                    return merchant.includes(value);
+                }
+                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && merchant === value;
+            });
+        });
+        if (!matchesMerchantFilters) {
+            return false;
+        }
+    }
+
     const suggestedSearches = getSuggestedSearches(currentUserAccountID);
     const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
     const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
@@ -101,7 +128,7 @@ function shouldOptimisticallyUpdateSearch(
         CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
         CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
     ]);
-    const flatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key));
+    const flatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key) && filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
 
     // `status` and `policyID` are regular filters now, but they used to be root keys. They are already accounted for by the
     // status/policyID checks above, so they don't count as restrictive flat filters when deciding whether to optimistically update.
@@ -163,10 +190,13 @@ function getSearchOnyxUpdate({
     isFromOneTransactionReport,
     isInvoice,
     previousMoneyRequestAction,
+    currentUserPersonalDetails: passedCurrentUserPersonalDetails,
 }: GetSearchOnyxUpdateParams): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
     const toAccountID = participant?.accountID;
-    const deprecatedCurrentUserPersonalDetails = getCurrentUserPersonalDetails();
-    const fromAccountID = deprecatedCurrentUserPersonalDetails?.accountID;
+    // Callers that already have the current user's details (e.g. read from the CurrentUserPersonalDetails context) pass them in.
+    // The rest fall back to the Onyx subscription until they are migrated.
+    const currentUserPersonalDetails = passedCurrentUserPersonalDetails ?? getCurrentUserPersonalDetails();
+    const fromAccountID = currentUserPersonalDetails?.accountID;
 
     if (toAccountID === undefined || fromAccountID === undefined) {
         return;
@@ -182,9 +212,9 @@ function getSearchOnyxUpdate({
         },
         [fromAccountID]: {
             accountID: fromAccountID,
-            avatar: deprecatedCurrentUserPersonalDetails?.avatar,
-            displayName: deprecatedCurrentUserPersonalDetails?.displayName,
-            login: deprecatedCurrentUserPersonalDetails?.login,
+            avatar: currentUserPersonalDetails?.avatar,
+            displayName: currentUserPersonalDetails?.displayName,
+            login: currentUserPersonalDetails?.login,
         },
     };
     const hasGenuineModifiedMerchant = !!transaction.modifiedMerchant && !isInvalidMerchantValue(transaction.modifiedMerchant);

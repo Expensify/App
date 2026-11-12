@@ -163,7 +163,7 @@ describe('actions/VacationDelegate', () => {
             // When a delegate is picked
             await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
             await waitForBatchedUpdates();
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
 
             // Then the policyDiff is stored, pendingDelegate points at the pick, and the saved delegate is left unchanged
             const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
@@ -218,7 +218,7 @@ describe('actions/VacationDelegate', () => {
             // When a member who is missing from one of the workspaces is picked
             await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
             await waitForBatchedUpdates();
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
 
             // Then the pick never shows up as the delegate, because Profile would flash it, take it away on the 305, and show it again after the
             // missing workspaces step. The saved delegate stays in place the whole time.
@@ -247,7 +247,7 @@ describe('actions/VacationDelegate', () => {
             // When a delegate is picked
             await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com'});
             await waitForBatchedUpdates();
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
 
             // Then the payload is never visible, because the optimistic pendingAction hides it until the action clears it, so the Profile row
             // never flashes a red brick road for what is really the next step of the flow

@@ -117,6 +117,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                 {shouldShowDropdownMenu && (
                     <View style={styles.ml2}>
                         <ButtonWithDropdownMenu
+                            sentryLabel={CONST.SENTRY_LABEL.IMPORT_SPREADSHEET.COLUMN_DROPDOWN}
                             onPress={() => {}}
                             size={CONST.BUTTON_SIZE.SMALL}
                             shouldShowRadioButton

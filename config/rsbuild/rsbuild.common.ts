@@ -1,7 +1,7 @@
 import type {RsbuildConfig} from '@rsbuild/core';
 import type {DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
 
-import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
+import {InjectManifest} from '@aaroon/workbox-rspack-plugin';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
@@ -521,9 +521,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     ...(isDevelopment
                         ? []
                         : [
-                              new GenerateSW({
-                                  clientsClaim: true,
-                                  skipWaiting: true,
+                              new InjectManifest({
+                                  swSrc: path.resolve(dirname, '../../web/service-worker.ts'),
+                                  swDest: 'service-worker.js',
                                   // Cap is generous on purpose: the vendor (~6.5 MiB), main (~5.5 MiB),
                                   // authScreens.prefetch (~10.1 MiB) chunks and the canvaskit wasm (~7.7 MiB) are
                                   // all critical for offline boot, so we precache the lot. JS chunks are
@@ -535,24 +535,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   // worker requests the original URLs and the CDN transparently serves the Brotli copy,
                                   // so adding the twins to the precache as well would download every chunk twice.
                                   exclude: [/\.map$/, /^manifest.*\.js$/, /\.br$/],
-                                  // Single-page app: any unmatched navigation should serve the cached app shell.
-                                  navigateFallback: '/index.html',
-                                  // Don't fall back for asset-like or .well-known requests.
-                                  navigateFallbackDenylist: [/^\/_/, /^\/\.well-known/, /\/[^/?]+\.[^/]+$/],
-                                  runtimeCaching: [
-                                      {
-                                          // Same-origin user media (receipts, chat attachments) — cache opportunistically
-                                          // so they're viewable on offline refresh. The function below is serialized into
-                                          // the generated service worker, so it executes in the SW context where
-                                          // `sameOrigin` is the appropriate Workbox match (no need to read `self.location`).
-                                          urlPattern: ({sameOrigin, url, request}) => sameOrigin && (request.destination === 'image' || /\/(receipts|chat-attachments)\//.test(url.pathname)),
-                                          handler: 'StaleWhileRevalidate',
-                                          options: {
-                                              cacheName: 'user-media',
-                                              expiration: {maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60},
-                                          },
-                                      },
-                                  ],
                               }),
                           ]),
                     // Inject <link rel="prefetch/preload" /> into HTML.

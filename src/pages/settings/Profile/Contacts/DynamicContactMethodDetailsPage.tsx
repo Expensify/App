@@ -255,6 +255,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                     onClose={() => clearContactMethodErrors(contactMethod, 'defaultLogin')}
                 >
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_SET_AS_DEFAULT}
                         title={translate('contacts.setAsDefault')}
                         icon={icons.Star}
                         onPress={isAccountLocked ? showLockedAccountModal : navigateToSetDefaultConfirm}
@@ -280,6 +281,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                     onClose={() => clearContactMethodErrors(contactMethod, 'deletedLogin')}
                 >
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_REMOVE}
                         title={translate('common.remove')}
                         icon={icons.Trashcan}
                         onPress={() => {

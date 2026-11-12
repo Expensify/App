@@ -69,6 +69,7 @@ function DebugReportActionPage({
             {!!transactionID && (
                 <View style={[styles.mh5, styles.mb5]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.DEBUG.REPORT_ACTION_VIEW_TRANSACTION}
                         onPress={() => {
                             Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
                         }}

@@ -27,7 +27,15 @@ import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {getCustomColumnDefault, getFooterCountItems, getFooterTotalItems, getSearchColumnTranslationKey, getValidGroupBy, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {
+    getCustomColumnDefault,
+    getFiltersFormWithTripRoomStatuses,
+    getFooterCountItems,
+    getFooterTotalItems,
+    getSearchColumnTranslationKey,
+    getValidGroupBy,
+    mapFiltersFormToLabelValueList,
+} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -207,7 +215,7 @@ function SearchSavePage() {
         getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
 
     const appliedFilters = mapFiltersFormToLabelValueList(
-        searchAdvancedFiltersForm,
+        shouldReturnTripRooms ? getFiltersFormWithTripRoomStatuses(searchAdvancedFiltersForm) : searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
         undefined,
         translate,

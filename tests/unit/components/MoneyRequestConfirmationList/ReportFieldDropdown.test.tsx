@@ -19,12 +19,20 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../../utils/collections/policies';
+import getOnyxValue from '../../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 // Only the write matters here, so the action is stubbed to record what it is asked to save.
 jest.mock('@libs/actions/Transaction', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Transaction'),
     setTransactionReport: jest.fn(),
+}));
+
+// The dropdown sets the expense type on the route of the form it is rendered in.
+const FORM_ROUTE_KEY = 'form-route';
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useRoute: () => ({key: FORM_ROUTE_KEY, name: 'form', params: {}}),
 }));
 
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2), getCurrencySymbol: jest.fn(() => '$')}))}));
@@ -60,6 +68,9 @@ const OTHER_REPORT_ID = 'report2';
 const chatReport: Report = {reportID: CHAT_REPORT_ID, policyID: POLICY_ID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, iouReportID: CURRENT_REPORT_ID};
 const currentReport: Report = {reportID: CURRENT_REPORT_ID, policyID: POLICY_ID, chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE};
 const otherReport: Report = {reportID: OTHER_REPORT_ID, policyID: POLICY_ID, chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE};
+const CURRENT_USER_ACCOUNT_ID = 5;
+const SELF_DM_REPORT_ID = 'selfDM1';
+const selfDMReport: Report = {reportID: SELF_DM_REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM, type: CONST.REPORT.TYPE.CHAT, ownerAccountID: CURRENT_USER_ACCOUNT_ID};
 
 const getDropdown = (onClose: jest.Mock, isVisible = true) => (
     <OnyxListItemProvider>
@@ -162,6 +173,48 @@ describe('ReportFieldDropdown', () => {
         // Then the draft is moved to `report2` and the container closes, without the page's navigation
         expect(setTransactionReport).toHaveBeenCalledWith(TRANSACTION_ID, expect.objectContaining({reportID: OTHER_REPORT_ID}), true);
         expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('puts the draft expense on the self DM when no report is picked', async () => {
+        // Given a draft expense being created in a workspace chat, by a user with a self DM
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'user@test.com'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SELF_DM_REPORT_ID}`, selfDMReport);
+        await setDraftExpense();
+        const setParams = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+        const onClose = jest.fn();
+
+        // When the report row's dropdown opens and the user picks None
+        renderDropdown(onClose);
+        await waitForBatchedUpdates();
+        act(() => mockModalProps?.selectNoReport?.());
+        await waitForBatchedUpdates();
+
+        // Then the draft goes on no report and to the self DM, where it is saved unreported, the form is told it now
+        // holds a tracked expense, and the container closes
+        expect(setTransactionReport).toHaveBeenCalledWith(TRANSACTION_ID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+        const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+        expect(draft?.participants).toEqual([expect.objectContaining({reportID: SELF_DM_REPORT_ID, isSelfDM: true})]);
+        expect(setParams).toHaveBeenCalledWith({iouType: CONST.IOU.TYPE.TRACK}, FORM_ROUTE_KEY);
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not offer no report for a per diem expense, which only exists on a workspace', async () => {
+        // Given a per diem draft expense being created in a workspace chat
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: CURRENT_REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            participants: [{policyID: POLICY_ID, reportID: CHAT_REPORT_ID, isPolicyExpenseChat: true, selected: true}],
+        });
+        await waitForBatchedUpdates();
+
+        // When the report row's dropdown opens
+        renderDropdown(jest.fn());
+        await waitForBatchedUpdates();
+
+        // Then the list is not handed the option
+        expect(mockModalProps).toBeDefined();
+        expect(mockModalProps?.selectNoReport).toBeUndefined();
     });
 
     it('only closes when the current report is picked again', async () => {

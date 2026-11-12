@@ -9,11 +9,12 @@ import useFocusAfterNav from '@hooks/useFocusAfterNav';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSearchContext} from '@libs/actions/Search';
-import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {getAutocompleteCategories, getAutocompletePolicyData, getAutocompleteTags, parseForAutocomplete, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -98,6 +99,8 @@ function SearchAutocompleteInput({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const isTravelApprovalBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
     const inputRef = useRef<BaseTextInputRef>(null);
     const inputEventTimeStampRef = useRef<number | undefined>(undefined);
     const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
@@ -113,7 +116,9 @@ function SearchAutocompleteInput({
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const userLogins = new Set(Object.keys(loginList ?? {}));
 
-    const {exportedToFilterOptions} = useExportedToFilterOptions();
+    const ranges = parseForAutocomplete(value)?.ranges ?? [];
+    const [typedPolicyFilter] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => getAutocompletePolicyData(value, ranges, policies, substitutionMap).policyFilter});
+    const {exportedToFilterOptions} = useExportedToFilterOptions(typedPolicyFilter ?? getAutocompletePolicyData(value, ranges, undefined, substitutionMap).policyFilter);
     const exportedTo = new Set(exportedToFilterOptions);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
@@ -140,7 +145,7 @@ function SearchAutocompleteInput({
     const parser = (input: string) => {
         'worklet';
 
-        return parseForLiveMarkdown(input, currentUserDisplayName, substitutionMap, {userLogins, currencies, categories, tags, exportedTo});
+        return parseForLiveMarkdown(input, currentUserDisplayName, substitutionMap, {userLogins, currencies, categories, tags, exportedTo}, isTravelApprovalBetaEnabled);
     };
 
     const clearInput = () => {
@@ -216,6 +221,7 @@ function SearchAutocompleteInput({
                     shouldShowClearButton={!!value && !isSearchingForReports}
                     shouldHideClearButton={false}
                     onClearInput={clearInput}
+                    clearButtonSentryLabel={CONST.SENTRY_LABEL.SEARCH.AUTOCOMPLETE_INPUT_CLEAR_BUTTON}
                 />
             </Animated.View>
             <FormHelpMessage

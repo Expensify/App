@@ -80,6 +80,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -881,6 +882,7 @@ type ChangeTransactionsReportProps = {
     isVendorMatchingBetaEnabled: boolean | undefined;
     jsonQuery?: string;
     hash?: number;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 
     /** When true, each transaction gets an UNDELETED_TRANSACTION action from the caller instead of the normal move action. */
     isUndelete?: boolean;
@@ -908,6 +910,7 @@ function getChangeTransactionsReportOnyxData({
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
     cardList,
+    currentUserPersonalDetails,
     isUndelete,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1407,6 +1410,7 @@ function getChangeTransactionsReportOnyxData({
                 shouldRemoveRejectedExpenseViolation: true,
                 ownerLogin: undefined,
                 isVendorMatchingBetaEnabled,
+                iouReport: newReport,
             });
             optimisticData.push(violationData);
             failureData.push({
@@ -1441,8 +1445,8 @@ function getChangeTransactionsReportOnyxData({
         // 3. Keep track of the new report totals
         // Source report uses original transaction details (expense is being removed at its original amount)
         // Target report uses transactionForViolations (expense arrives with the updated rate/amount after auto-selecting workspace rate)
-        const {amount: sourceTransactionAmount = 0, currency: sourceTransactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
-        const {amount: targetTransactionAmount = 0, currency: targetTransactionCurrency} = getTransactionDetails(transactionForViolations, undefined, undefined, allowNegative) ?? {};
+        const {amount: sourceTransactionAmount = 0, currency: sourceTransactionCurrency} = getTransactionDetails(transaction, undefined, allowNegative) ?? {};
+        const {amount: targetTransactionAmount = 0, currency: targetTransactionCurrency} = getTransactionDetails(transactionForViolations, undefined, allowNegative) ?? {};
         const resolvedTargetTransactionCurrency = targetTransactionCurrency ?? transaction.currency;
         const oldReportTotal = oldReport?.total ?? 0;
 
@@ -1811,6 +1815,7 @@ function getChangeTransactionsReportOnyxData({
                 accountID,
                 login: email,
             },
+            currentUserPersonalDetails,
             iouReport: isUnreporting ? undefined : newReport,
             iouAction: searchIOUAction,
             policy: isUnreporting ? undefined : policy,

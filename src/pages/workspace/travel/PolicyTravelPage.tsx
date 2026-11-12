@@ -130,6 +130,8 @@ function WorkspaceTravelPage({
                 >
                     {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && canWriteMoreFeatures && (
                         <ButtonWithDropdownMenu
+                            // With one option the dropdown renders that option as a plain button, so the label follows what is rendered.
+                            sentryLabel={secondaryActions.length > 1 ? CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.MORE_DROPDOWN : CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.EXPORT}
                             onPress={() => {}}
                             customText={translate('common.more')}
                             options={secondaryActions}

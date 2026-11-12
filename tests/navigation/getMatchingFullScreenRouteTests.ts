@@ -23,6 +23,7 @@ jest.mock('@libs/Navigation/linkingConfig/RELATIONS', () => {
     return {
         RHP_TO_DOMAIN: {},
         RHP_TO_HOME: {Home: 'home'},
+        RHP_TO_INSIGHTS: {},
         RHP_TO_SEARCH: {},
         // Deeplink-only mapping: create-flow entry points resolve to the Search fullscreen under the RHP.
         RHP_TO_SEARCH_DEEPLINK: {

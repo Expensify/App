@@ -58,6 +58,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
 
             return (
                 <MenuItemAvatarNavigation
+                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.UBO_ROW}
                     key={ownerKey}
                     title={`${beneficialOwnerData.firstName} ${beneficialOwnerData.lastName}`}
                     description={`${beneficialOwnerData.street}, ${beneficialOwnerData.city}, ${beneficialOwnerData.state} ${beneficialOwnerData.zipCode}`}
@@ -103,6 +104,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                     />
                 )}
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.UBO_CONFIRM}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={isLoading}

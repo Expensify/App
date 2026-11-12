@@ -23,6 +23,7 @@ import type {
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchApproverGroup,
+    SearchViolationGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -223,6 +224,15 @@ type TransactionGroupListItemType = ListItem & {
     isOneTransactionReport?: boolean;
 
     transactionsQueryJSON?: SearchQueryJSON;
+
+    /** Expenses the group's own search returned that the list no longer shows, because they stopped matching it after it ran */
+    hiddenTransactionIDs?: string[];
+
+    /** Whether the group's own search has expenses it has not returned yet, which its Show more link loads */
+    hasMoreTransactions?: boolean;
+
+    /** Where the group's own search last started reading, which only its Show more link moves past the first page */
+    transactionsOffset?: number;
 
     /** Whether the report has visible violations for user */
     hasVisibleViolations?: boolean;
@@ -537,6 +547,17 @@ type TransactionApproverGroupListItemType = TransactionGroupListItemType & {grou
         formattedApprover?: string;
     };
 
+type TransactionViolationGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.VIOLATION} & SearchViolationGroup & {
+        /** Violation name translated for display and sorting */
+        formattedViolation: string;
+    };
+
+type TransactionPaidByGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.PAID_BY} & PersonalDetails &
+    SearchMemberGroup & {
+        /** Final and formatted name of the member who paid the reports, used for displaying and sorting */
+        formattedPaidBy?: string;
+    };
+
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     SearchListActionProps & {
         /** Whether the item's action is loading */
@@ -610,6 +631,8 @@ type GroupHeaderItemType =
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)
     | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
     | (TransactionApproverGroupListItemType & GroupHeaderListItemType)
+    | (TransactionViolationGroupListItemType & GroupHeaderListItemType)
+    | (TransactionPaidByGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -670,6 +693,8 @@ export type {
     TransactionYearGroupListItemType,
     TransactionQuarterGroupListItemType,
     TransactionApproverGroupListItemType,
+    TransactionViolationGroupListItemType,
+    TransactionPaidByGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

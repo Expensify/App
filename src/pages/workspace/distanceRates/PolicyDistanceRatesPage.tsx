@@ -30,12 +30,14 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearCreateDistanceRateItemAndError,
     clearDeleteDistanceRateError,
+    clearPolicyDistanceRateErrorFields,
     deletePolicyDistanceRates,
     openPolicyDistanceRatesPage,
     setPolicyDistanceRatesEnabled,
 } from '@libs/actions/Policy/DistanceRate';
-import {renameDistanceRateInline, updateDistanceRateValueInline} from '@libs/actions/Policy/InlineEdit';
+import {renameDistanceRateInline, updateDistanceRateValueInline, updateDistanceTaxClaimableValueInline} from '@libs/actions/Policy/InlineEdit';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
@@ -77,7 +79,7 @@ function PolicyDistanceRatesPage({
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {canWrite: canWriteDistanceRates, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
 
-    const customUnit = getDistanceRateCustomUnit(policy);
+    const [customUnit] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: getDistanceRateCustomUnit});
     const customUnitID = customUnit?.customUnitID;
     const customUnitRates: Record<string, Rate> = customUnit?.rates ?? {};
     const isDistanceRateTaxEnabled = isTaxTrackingEnabled(true, policy, true);
@@ -262,6 +264,11 @@ function PolicyDistanceRatesPage({
             clearDeleteDistanceRateError(policyID, customUnitID, rateID);
             return;
         }
+        const errorFields = customUnitRates[rateID]?.errorFields;
+        if (errorFields && Object.keys(errorFields).length > 0) {
+            clearPolicyDistanceRateErrorFields(policyID, customUnitID, rateID, Object.fromEntries(Object.keys(errorFields).map((field) => [field, null])));
+            return;
+        }
         clearCreateDistanceRateItemAndError(policyID, customUnitID, rateID);
     };
 
@@ -284,6 +291,8 @@ function PolicyDistanceRatesPage({
         const isDeleting = resolvedPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         const rateCurrency = rate.currency ?? CONST.CURRENCY.USD;
         const taxReclaimableAmount = getTaxReclaimableAmount(rate);
+        const taxRateExternalID = rate.attributes?.taxRateExternalID;
+        const hasTaxRate = !!taxRateExternalID && !!policy?.taxRates?.taxes[taxRateExternalID];
 
         return {
             keyForList: rate.customUnitRateID,
@@ -296,9 +305,10 @@ function PolicyDistanceRatesPage({
             taxReclaimableAmount,
             formattedTaxReclaimable: taxReclaimableAmount !== undefined ? convertAmountToDisplayString(taxReclaimableAmount, rateCurrency) : '',
             pendingAction: resolvedPendingAction ?? undefined,
-            errors: rate.errors ?? undefined,
+            errors: rate.errors ?? getLatestErrorFieldForAnyField(rate),
             canEditName: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
             canEditRate: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
+            canEditTaxReclaimable: canWriteDistanceRates && !isDeleting && !isSelectionModeActive && (hasTaxRate || !!rate.attributes?.taxClaimablePercentage),
             action: () => openRateDetailsByID(rate.customUnitRateID),
             dismissError: () => dismissErrorByID(rate.customUnitRateID),
             onToggleEnabled: (value: boolean) => updateDistanceRateEnabled(value, rate.customUnitRateID),
@@ -313,6 +323,12 @@ function PolicyDistanceRatesPage({
                     return;
                 }
                 showInlineEditError(updateDistanceRateValueInline(translate, policyID, customUnit, rate, newRate, toLocaleDigit));
+            },
+            onChangeTaxReclaimable: (newAmount: string) => {
+                if (!customUnit) {
+                    return;
+                }
+                showInlineEditError(updateDistanceTaxClaimableValueInline(translate, policyID, customUnit, rate, newAmount));
             },
         };
     });

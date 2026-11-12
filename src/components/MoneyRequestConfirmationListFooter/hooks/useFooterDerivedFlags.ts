@@ -7,7 +7,7 @@ import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {canShowReimbursableToggleForPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
+import {getCurrency, isManagedCardTransaction, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -74,7 +74,6 @@ function useFooterDerivedFlags({
 
     // Self-derived iou* values from the slice
     const iouCurrencyCode = getCurrency(transaction);
-    const isScan = isScanRequest(transaction);
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -83,7 +82,6 @@ function useFooterDerivedFlags({
     const shouldShowTags = (isPolicyExpenseChat || isUnreported || isCreatingTrackExpense) && hasEnabledTags(policyTagLists);
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
-    // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited.
     // For distance requests, don't show the merchant as there's already another "Distance" menu item.
     const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
 
@@ -107,7 +105,6 @@ function useFooterDerivedFlags({
 
     return {
         iouCurrencyCode,
-        isScan,
         isTrackExpense,
         isUnreported,
         isCreatingTrackExpense,

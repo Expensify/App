@@ -18,14 +18,13 @@ import {
     updateApprovalWorkflowRules,
     validateApprovalWorkflow,
 } from '@src/libs/actions/Workflow';
-import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
+import {getApprovalWorkflowRulesForPolicy, isApprovalWorkflowRule} from '@src/libs/RuleUtils';
 import {
     buildApprovalWorkflowRules,
     calculateApprovers,
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
     extractSubmitterEmails,
-    getApprovalWorkflowRulesForPolicy,
     getApproverPendingActionByMemberEmail,
 } from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -141,7 +140,7 @@ describe('actions/Workflow', () => {
                     if (!workflow) {
                         return;
                     }
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(workflow);
                 },
             });
@@ -2784,7 +2783,7 @@ describe('actions/Workflow', () => {
             await seed(approvalWorkflow);
 
             // When the fast edit is saved
-            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, isMultipleApproversBetaEnabled: false});
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, shouldUseApprovalWorkflowRules: false});
             await waitForBatchedUpdates();
 
             // Then employee2 submits to the default approver again, employee1 stays put, and the draft is gone
@@ -2805,7 +2804,7 @@ describe('actions/Workflow', () => {
             await seed(approvalWorkflow);
 
             // When the fast edit is saved
-            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, isMultipleApproversBetaEnabled: false});
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, shouldUseApprovalWorkflowRules: false});
             await waitForBatchedUpdates();
 
             // Then the draft is still cleared, so the next "+N more" starts clean
@@ -2815,7 +2814,7 @@ describe('actions/Workflow', () => {
             await waitForBatchedUpdates();
         });
 
-        it('drops a deselected member from the workflow rules when the rules beta is on', async () => {
+        it('drops a deselected member from the workflow rules when the workflow is saved as rules', async () => {
             mockFetch.pause();
 
             // Given the [employee1, employee2] -> employee3 workflow stored as rules, and a "+N more" edit where employee2 was deselected,
@@ -2832,8 +2831,8 @@ describe('actions/Workflow', () => {
             const approvalWorkflow = {...buildFastEditDraft([employee1Member]), defaultApprovalWorkflow};
             await seed(approvalWorkflow);
 
-            // When the fast edit is saved with the rules beta on
-            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: await getRulesCollection(), isMultipleApproversBetaEnabled: true});
+            // When the fast edit is saved as rules
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: await getRulesCollection(), shouldUseApprovalWorkflowRules: true});
             await waitForBatchedUpdates();
 
             // Then the rules that route to employee3 only list employee1 as a submitter, every rule of the default workflow

@@ -127,8 +127,8 @@ function InsightsGroupByPopup({options, runningTotalText, selectedValue, label, 
             onApply={applyChanges}
             label={label}
             showLabel={false}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+            resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.GROUP_BY}
+            applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.GROUP_BY}
         >
             <ListFilterHeightContextProvider>
                 <ListFilterWrapper

@@ -553,7 +553,7 @@ function openReportFromDeepLink(
 
         const disconnectSubscriptions = () => {
             for (const connection of connections) {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
             }
             connections.length = 0;
         };
@@ -698,7 +698,7 @@ function openReportFromDeepLink(
                                         if (!isActive || isLoadingReportData) {
                                             return;
                                         }
-                                        Onyx.disconnect(loadingConnection);
+                                        loadingConnection.unsubscribe();
 
                                         // The concierge route is a URL entry page that redirects itself, and on wide layouts it slides in as a
                                         // panel first, so open the chat the way the rest of the app does instead.

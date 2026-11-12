@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {FileToCopy} from '@react-native-documents/picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
@@ -72,6 +73,9 @@ type Item = {
     icon: IconAsset;
     /** The key in the translations file to use for the title */
     textTranslationKey: TranslationPaths;
+
+    /** Sentry label for the menu item */
+    sentryLabel: SentryLabel;
 } & (
     | {
           pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
@@ -345,6 +349,7 @@ function AttachmentPicker({
             {
                 icon: icons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
+                sentryLabel: CONST.SENTRY_LABEL.ATTACHMENT_PICKER.CHOOSE_DOCUMENT,
                 pickAttachment: showDocumentPicker,
             },
         ];
@@ -352,6 +357,7 @@ function AttachmentPicker({
             data.unshift({
                 icon: icons.Gallery,
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
+                sentryLabel: CONST.SENTRY_LABEL.ATTACHMENT_PICKER.CHOOSE_FROM_GALLERY,
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             });
         }
@@ -359,6 +365,7 @@ function AttachmentPicker({
             data.unshift({
                 icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
+                sentryLabel: CONST.SENTRY_LABEL.ATTACHMENT_PICKER.TAKE_PHOTO,
                 onPress: launchInAppCamera,
             });
         }
@@ -646,6 +653,7 @@ function AttachmentPicker({
                 <View style={[!shouldUseNarrowLayout && styles.createMenuContainer, bottomSafeAreaPaddingStyle]}>
                     {menuItemData.map((item, menuIndex) => (
                         <MenuItem
+                            sentryLabel={item.sentryLabel}
                             key={item.textTranslationKey}
                             icon={item.icon}
                             title={translate(item.textTranslationKey)}
