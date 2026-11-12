@@ -2658,7 +2658,7 @@ function handleBulkPayItemSelected(params: {
     // A bank payment of this selection pays none of it, so explain why instead of asking for account validation or bank setup it would never use
     if (isBankPayBlockedForSelection && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         Log.info('[BulkPay] Skipping account validation and bank setup: nothing is owed on the selected reports');
-        confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData as BulkPaySelectionData | undefined);
+        confirmPayment?.(paymentType, item?.additionalData);
         return;
     }
 
