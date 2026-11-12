@@ -6,7 +6,8 @@ import AmountFormFieldSignFlipButton from './primitives/AmountFormFieldSignFlipB
 
 /**
  * AmountFormField – a composable field for editing amount values.
- * For standard Onyx Form integration, use `AmountForm` instead.
+ * For FormProvider integration, use the `AmountForm` adapter with `displayAsTextInput` instead.
+ * See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md (section 7).
  *
  * The root component owns the canonical value, the selection, validation, and
  * the input callbacks through a root-instantiated edit controller. Compose the

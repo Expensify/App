@@ -3,13 +3,14 @@ import {fireEvent, render} from '@testing-library/react-native';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type RHPResizeHandleComponent from '@components/RHPResizeHandle';
 
-import {resetSingleRHPWidth, setSingleRHPWidth} from '@libs/actions/SingleRHPWidth';
+import {resetPaneWidth, setPaneWidth} from '@libs/actions/PaneWidth';
 import {translate} from '@libs/Localize';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
@@ -23,16 +24,16 @@ jest.mock('@libs/Navigation/helpers/singleRHPWidth', () => jest.requireActual<Re
 const mockTranslate: LocaleContextProps['translate'] = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate}));
 
-jest.mock('@libs/actions/SingleRHPWidth', () => ({
-    setSingleRHPWidth: jest.fn(),
-    resetSingleRHPWidth: jest.fn(),
+jest.mock('@libs/actions/PaneWidth', () => ({
+    setPaneWidth: jest.fn(),
+    resetPaneWidth: jest.fn(),
 }));
 
 const MIN_WIDTH = 380;
 const MAX_WIDTH = 800;
 
 let mockSavedWidth = 400;
-jest.mock('@hooks/useSingleRHPWidth', () => () => ({width: mockSavedWidth, min: MIN_WIDTH, max: MAX_WIDTH}));
+jest.mock('@hooks/useSingleRHPWidth', () => () => ({width: mockSavedWidth, bounds: {min: MIN_WIDTH, max: MAX_WIDTH}}));
 
 const WIDTH_VARIABLE = '--rhp-width';
 
@@ -134,14 +135,14 @@ describe('RHPResizeHandle', () => {
 
         // Then the cards follow through the CSS variable without saving yet, since mid-drag widths only live in CSS
         expect(readLiveWidth()).toBe('500px');
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
 
         // When the pointer is released, and the browser then reclaims capture as it always does after pointerup
         firePointer('pointerUp', 900);
         firePointer('lostPointerCapture', 900);
 
         // Then the dragged width is saved exactly once, so it survives a reload without a duplicate Onyx write
-        expect(jest.mocked(setSingleRHPWidth).mock.calls).toEqual([[500]]);
+        expect(jest.mocked(setPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH, 500]]);
     });
 
     it('clamps the live width to the bounds the window allows', () => {
@@ -167,8 +168,8 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerUp', 1000);
 
         // Then nothing is saved or reset, so no needless Onyx write follows, and the live width is cleared because no render follows to clear it
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
-        expect(resetSingleRHPWidth).not.toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
+        expect(resetPaneWidth).not.toHaveBeenCalled();
         expect(readLiveWidth()).toBe('');
     });
 
@@ -245,8 +246,8 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerUp', releaseClientX);
 
         // Then the saved width is dropped, so getting back to the default doesn't take pixel-perfect aim and follows the default if it changes
-        expect(resetSingleRHPWidth).toHaveBeenCalledTimes(1);
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(jest.mocked(resetPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH]]);
+        expect(setPaneWidth).not.toHaveBeenCalled();
     });
 
     it('thickens the line while a drag is held on the default width', () => {
@@ -258,13 +259,13 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerMove', 970);
 
         // Then the line thickens, so the snap onto the default is visible before release
-        expect(readPaintedLineWidth()).toBe(`${CONST.RHP_RESIZE.SNAPPED_INDICATOR_WIDTH}px`);
+        expect(readPaintedLineWidth()).toBe(`${CONST.RESIZE_HANDLE.PANE_SNAPPED_INDICATOR_WIDTH}px`);
 
         // When it is dragged past the snap threshold
         firePointer('pointerMove', 930);
 
         // Then the line goes back to the pressed width, since the cards follow the pointer again
-        expect(readPaintedLineWidth()).toBe(`${CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH}px`);
+        expect(readPaintedLineWidth()).toBe(`${CONST.RESIZE_HANDLE.PANE_ACTIVE_INDICATOR_WIDTH}px`);
     });
 
     it('lets go of the default width once a drag passes the snap threshold', () => {
@@ -294,8 +295,8 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerUp', 1000);
 
         // Then the saved width is dropped, so a single click returns the RHP to the default the same way a click resets a table column, and nothing is painted on the way
-        expect(resetSingleRHPWidth).toHaveBeenCalledTimes(1);
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(jest.mocked(resetPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH]]);
+        expect(setPaneWidth).not.toHaveBeenCalled();
         expect(readLiveWidth()).toBe('');
     });
 
@@ -308,8 +309,8 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerCancel', 1000);
 
         // Then nothing is reset, since only a release counts as a click
-        expect(resetSingleRHPWidth).not.toHaveBeenCalled();
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(resetPaneWidth).not.toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
     });
 
     it('widens the line by a pixel while the edge is pressed', () => {
@@ -321,7 +322,7 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerDown', 1000);
 
         // Then the line is a pixel wider than the hover one, so the press reads as grabbing the edge
-        expect(readLineWidth()).toBe(CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH);
+        expect(readLineWidth()).toBe(CONST.RESIZE_HANDLE.PANE_ACTIVE_INDICATOR_WIDTH);
 
         // When it is released
         firePointer('pointerUp', 1000);
@@ -343,8 +344,8 @@ describe('RHPResizeHandle', () => {
 
         // Then nothing is painted or saved, so the drag holds on the default without counting as a snap onto it
         expect(liveWidthMidDrag).toBe('');
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
-        expect(resetSingleRHPWidth).not.toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
+        expect(resetPaneWidth).not.toHaveBeenCalled();
     });
 
     it('exposes the edge to assistive technology as a focusable separator holding the width', () => {
@@ -380,7 +381,7 @@ describe('RHPResizeHandle', () => {
         const widenedWidth = 400 + 2 * CONST.RESIZE_HANDLE.KEYBOARD_STEP;
         expect(readLiveWidth()).toBe(`${widenedWidth}px`);
         expect(arrowLeft.preventDefault).toHaveBeenCalled();
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
 
         // And the announced width follows each press, since nothing renders until the key is released
         expect(handleElement.getAttribute('aria-valuenow')).toBe(String(widenedWidth));
@@ -390,7 +391,7 @@ describe('RHPResizeHandle', () => {
         fireKey('keyUp', 'ArrowLeft');
 
         // Then the width is saved once, the same way a drag saves it
-        expect(jest.mocked(setSingleRHPWidth).mock.calls).toEqual([[widenedWidth]]);
+        expect(jest.mocked(setPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH, widenedWidth]]);
 
         // When the saved width renders and the right arrow is tapped
         jest.clearAllMocks();
@@ -400,7 +401,7 @@ describe('RHPResizeHandle', () => {
         fireKey('keyUp', 'ArrowRight');
 
         // Then the edge moves back right, narrowing the cards by a step
-        expect(jest.mocked(setSingleRHPWidth).mock.calls).toEqual([[widenedWidth - CONST.RESIZE_HANDLE.KEYBOARD_STEP]]);
+        expect(jest.mocked(setPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH, widenedWidth - CONST.RESIZE_HANDLE.KEYBOARD_STEP]]);
     });
 
     it.each([
@@ -416,8 +417,8 @@ describe('RHPResizeHandle', () => {
 
         // Then nothing is painted or saved, the same as dragging past the bound
         expect(readLiveWidth()).toBe('');
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
-        expect(resetSingleRHPWidth).not.toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
+        expect(resetPaneWidth).not.toHaveBeenCalled();
     });
 
     it('drops the saved width when the arrow keys land on the default', () => {
@@ -429,8 +430,8 @@ describe('RHPResizeHandle', () => {
         pressKey('ArrowLeft');
 
         // Then the saved width is dropped rather than pinned to the default, the same as a drag that snaps onto it
-        expect(resetSingleRHPWidth).toHaveBeenCalledTimes(1);
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(jest.mocked(resetPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH]]);
+        expect(setPaneWidth).not.toHaveBeenCalled();
     });
 
     it('steps off the default width without snapping back to it', () => {
@@ -442,7 +443,7 @@ describe('RHPResizeHandle', () => {
         pressKey('ArrowLeft');
 
         // Then the width moves a step anyway, since snapping would keep the arrow keys from ever leaving the default
-        expect(jest.mocked(setSingleRHPWidth).mock.calls).toEqual([[DEFAULT_WIDTH + CONST.RESIZE_HANDLE.KEYBOARD_STEP]]);
+        expect(jest.mocked(setPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH, DEFAULT_WIDTH + CONST.RESIZE_HANDLE.KEYBOARD_STEP]]);
     });
 
     it.each(['Enter', ' '])('resets the width on %p, the same as a click, once while it is held', (key: string) => {
@@ -454,7 +455,7 @@ describe('RHPResizeHandle', () => {
         fireKey('keyDown', key, {repeat: true});
 
         // Then the saved width is dropped once, without the key reaching the page or global shortcuts
-        expect(resetSingleRHPWidth).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(resetPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH]]);
         expect(keyDown.stopPropagation).toHaveBeenCalled();
     });
 
@@ -467,7 +468,7 @@ describe('RHPResizeHandle', () => {
         fireBlur();
 
         // Then the width is saved anyway, rather than left painted until the next render drops it
-        expect(jest.mocked(setSingleRHPWidth).mock.calls).toEqual([[400 + CONST.RESIZE_HANDLE.KEYBOARD_STEP]]);
+        expect(jest.mocked(setPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH, 400 + CONST.RESIZE_HANDLE.KEYBOARD_STEP]]);
     });
 
     it('keeps the arrow-key width when the saved width changes mid-hold', () => {
@@ -494,7 +495,7 @@ describe('RHPResizeHandle', () => {
 
         // Then the drag keeps the width, and nothing is saved behind its back
         expect(readLiveWidth()).toBe('500px');
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
     });
 
     it('shows the line while the edge has keyboard focus', () => {

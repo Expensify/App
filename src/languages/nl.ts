@@ -1258,6 +1258,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Alles bekijken',
         topExpenses: 'Belangrijkste uitgaven',
         noExpensesInRange: 'Geen uitgaven in dit bereik',
+        efficiency: 'Efficiëntie',
+        workflowEfficiency: 'Workflow-efficiëntie',
+        longestToSubmit: 'Langste om in te dienen',
+        slowestToApprove: 'Traagst om goed te keuren',
+        mostTimeToPay: 'Meeste tijd om te betalen',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1417,6 +1422,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'of sleep ze hier naartoe',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Pagina ${page} van ${pageCount}`,
+        translate: 'Vertalen',
+        viewOriginal: 'Origineel weergeven',
+        translationDisclaimer: 'AI kan fouten maken. Controleer alsjeblieft het origineel nog een keer.',
+        translationError: {
+            unreadable: 'We konden deze bon niet duidelijk genoeg lezen om hem te vertalen.',
+            alreadyInLanguage: 'Deze bon is al in jouw taal.',
+            generic: 'We konden deze bon niet vertalen. Probeer het opnieuw.',
+        },
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
@@ -2047,6 +2060,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'heeft deze uitgave teruggezet',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `kilometervergoedingen bijgewerkt voor de nieuwe workspace - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} rapport`,
+                other: (count: number) => `${formattedCount ?? count} rapporten`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2294,6 +2313,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'op de laatste zaterdag van de maand',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'op de laatste zondag van de maand',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Dit rapport wordt geëxporteerd na de definitieve goedkeuring.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Vergoedbare uitgaven worden geëxporteerd zodra dit rapport is betaald.',
         },
     },
     profilePage: {
@@ -3301,6 +3324,7 @@ ${amount} voor ${merchant} - ${date}`,
         disablePaymentsPrompt: 'Hiermee verwijder je al je betaalinstellingen.',
         businessBankAccountCountries: 'Landen met zakelijke bankrekeningen',
         businessBankAccountCountriesDescription: 'Werknemers in deze landen geven lokale overboekingsgegevens op. Iedereen daarbuiten geeft internationale overschrijvingsgegevens op.',
+        businessBankAccountCountriesError: 'Het bijwerken van je terugbetalingslanden is mislukt. Probeer het opnieuw.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met je <account-manager-link>Accountmanager</account-manager-link> of <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5398,6 +5422,12 @@ ${amount} voor ${merchant} - ${date}`,
             readOnlyActionPrompt: 'Je rol in de workspace kan deze instellingen bekijken, maar niet bewerken.',
             noAccessActionPrompt: 'Je rol in deze workspace heeft geen toegang tot deze instellingen. Vraag een admin als je die nodig hebt.',
             connections: 'Verbindingen',
+            newRoles: 'Nieuwe rollen',
+            adminRoles: 'Beheerrollen',
+            otherRoles: 'Andere rollen',
+            roleSelectorDescription: `Wijs een rol toe om de werkruimte­rechten van een lid te beheren. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Werkruimterollen vergelijken</a>.`,
+            roleSelectorFeedback: 'Zie je de rol die je nodig hebt niet?',
+            roleSelectorFeedbackLink: 'Laat het ons weten',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
@@ -6747,7 +6777,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     mastercard: 'We hebben wereldwijde integraties met Mastercard, al verschilt de geschiktheid per bank en kaartprogramma.\n\nGa als volgt aan de slag:',
                     vcf: `1. Bezoek [dit hulpartikel](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) voor gedetailleerde instructies over het instellen van je Visa zakelijke kaarten.
 
-2. [Neem contact op met je bank](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) om te controleren of ze een commerciële feed voor je programma ondersteunen en vraag hen om deze in te schakelen.
+2. Neem contact op met je bank om te controleren of ze een commerciële feed voor je programma ondersteunen en vraag hen om deze in te schakelen.
 
 3. *Zodra de feed is ingeschakeld en je de details hebt, ga je verder naar het volgende scherm.*`,
                     gl1025: `1. Bezoek [dit hulpartikel](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) om te zien of American Express een commerciële feed voor uw programma kan inschakelen.
@@ -6757,7 +6787,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
 3. *Zodra u de feedinformatie heeft, gaat u door naar het volgende scherm.*`,
                     cdf: `1. Bezoek [dit helpartikel](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) voor gedetailleerde instructies over het instellen van je Mastercard Commercial Cards.
 
-2. [Neem contact op met je bank](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) om te controleren of zij een commerciële feed voor je programma ondersteunen, en vraag hen deze in te schakelen.
+2. Neem contact op met je bank om te controleren of zij een commerciële feed voor je programma ondersteunen, en vraag hen deze in te schakelen.
 
 3. *Zodra de feed is ingeschakeld en je de details hebt, ga je verder naar het volgende scherm.*`,
                     stripe: `1. Ga naar het Stripe-dashboard en vervolgens naar [Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -7771,6 +7801,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             changeOfficeLocation: 'Locatie kantoor wijzigen',
             changeWorkArrangement: 'Werkregeling wijzigen',
             changeRole: 'Rol wijzigen',
+            newRolesBanner: {
+                title: 'Nieuwe rollen beschikbaar',
+                subtitle: '<label-text>Geef leden precies de toegang die ze nodig hebben met de nieuwe rollen <strong>Alleen goedkeuren</strong> en <strong>Gast</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -9204,6 +9238,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
+                saveAnyway: 'Toch opslaan',
+                checkingRule: 'Je regel wordt gecontroleerd...',
                 fallbackBanner:
                     'Dit is geen standaardregel, dus hebben we een agentregel opgesteld. Agentregels worden uitgevoerd wanneer een declaratie of rapport wordt aangemaakt of bijgewerkt.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9666,8 +9702,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
         },
         digits: {
+            entity: 'Entiteit',
             updateCurrencyTitle: 'Werkruimtevaluta bijwerken?',
             updateCurrencyPrompt: 'Digits is momenteel alleen beschikbaar voor in de VS gevestigde bedrijven die in USD werken.',
+            importDescription: 'Kies welke Digits-configuraties je wilt importeren.',
+            accountTypesDescription: 'Je Digits-accounts worden geïmporteerd als categorieën.',
+            enableNewAccountsTitle: 'Nieuw geïmporteerde rekeningen inschakelen',
+            enableNewAccountsDescription: 'Nieuwe Digits-accounts zullen beschikbaar zijn als categorieën.',
+            dimensionsImport: 'Alle Digits-dimensies worden geïmporteerd als tags.',
+            departments: 'Afdelingen',
         },
         zohoBooks: {
             organization: 'Zoho Books-organisatie',
@@ -10046,6 +10089,25 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             return `heeft de categorie „${categoryName}” Itemized receipts gewijzigd naar ${newValue} (voorheen ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `heeft de categorie "${oldName}" hernoemd naar "${newName}"`,
+        setCategoryVisibility: (members: string, categories: string) => `heeft ${members} zo ingesteld dat ze alleen ${categories} zien`,
+        changedCategoryVisibility: (members: string, categories: string) => `heeft ${members} gewijzigd zodat ze alleen ${categories} zien`,
+        clearedCategoryVisibility: (members: string) => `heeft ${members} gewijzigd zodat ze alle categorieën kunnen zien`,
+        quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
+        oneCategory: (categoryName: string) => `de categorie ${categoryName}`,
+        someCategories: (categoryList: string) => `de ${categoryList} categorieën`,
+        everyone: 'iedereen',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 categorie',
+            other: `${count} categorieën`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 lid',
+            other: `${count} leden`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Categorieën: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Leden: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', omdat hun enige categorie is verwijderd. Werk hun categoriezichtbaarheid bij indien nodig.',
+        categoryVisibilityReasonDisabled: ', omdat hun enige categorie was uitgeschakeld. Werk indien nodig hun categoriezichtbaarheid bij.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `heeft de beschrijvingshint "${oldValue}" verwijderd uit de categorie "${categoryName}"`;
@@ -10775,6 +10837,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         columns: 'Kolommen',
         editColumns: 'Kolommen bewerken',
         resetColumns: 'Kolommen opnieuw instellen',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Kolomopties voor ${columnName}`,
+            sortAscending: 'Oplopend sorteren',
+            sortDescending: 'Aflopend sorteren',
+            hideColumn: 'Kolom verbergen',
+        },
         groupColumns: 'Kolommen groeperen',
         expenseColumns: 'Onkostencolommen',
         saveView: 'Weergave opslaan',
@@ -10914,6 +10982,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartaal',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Goedkeurder',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Overtreding',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Betaald door',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -11021,6 +11090,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartalen',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Goedkeurders',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Overtredingen',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Betalers',
         },
         spendOverTime: 'Uitgaven in de tijd',
         trip: {
@@ -12788,6 +12858,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         deletingTitle: 'Rapporten verwijderen...',
         deletingExpensesTitle: 'Uitgaven verwijderen...',
         runningBody: 'Wacht een paar minuten, of laat Concierge je een bericht sturen zodra het klaar is.',
+        changingWorkspaceTitle: 'Rapporten verplaatsen...',
         sendFromConcierge: 'Stuur me een bericht als het klaar is',
         conciergeTitle: 'Zeker weten!',
         conciergeBody: 'Concierge stuurt je een bericht zodra het klaar is.',
@@ -12823,6 +12894,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Uitgaven verwijderd in ${doneCount} van ${count} rapport`,
             other: `Uitgaven verwijderd in ${doneCount} van ${count} rapporten`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Werkruimte gewijzigd in ${doneCount} van ${count} rapport`,
+            other: `Werkruimte gewijzigd in ${doneCount} van ${count} rapporten`,
         }),
         noReportsTitle: 'Geen overeenkomende rapporten',
         noReportsBody: 'Geen van de rapporten die je hebt geselecteerd had deze actie nodig.',
@@ -12860,6 +12935,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: 'Uitgaven in 1 rapport konden niet worden verwijderd.',
             other: `Uitgaven in ${count} rapporten konden niet worden verwijderd.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 rapport kon niet worden verplaatst.',
+            other: `${count} rapporten konden niet worden verplaatst.`,
         }),
     },
     earlyRenewal: {

@@ -380,7 +380,7 @@ function SearchEditMultiplePage() {
                         <MenuItemField
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAX_FIELD}
                             name={policy?.taxRates?.name ?? translate('common.tax')}
-                            value={draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : ''}
+                            value={draftTransaction?.taxCode ? getTaxName(translate, policy, draftTransaction) : ''}
                             onPress={isTaxDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
                             isDisabled={isTaxDisabled}
                         />
