@@ -3269,8 +3269,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
  *
  * @param policyParam - the report's policy from the caller's own snapshot. It's ignored when it isn't the report's policy.
  * @param currentUserAccountID - falls back to the session's account ID when omitted
- * @param currentUserLogin - falls back to the session's email when omitted. The create-expenses check needs it: the
- * role that decides it is the current member's own `employeeList` entry, not `policy.role`.
  */
 function canAddTransaction(
     moneyRequestReport: OnyxEntry<Report>,
@@ -3292,10 +3290,6 @@ function canAddTransaction(
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = policyParam?.id && policyParam.id === moneyRequestReport?.policyID ? policyParam : getPolicy(moneyRequestReport?.policyID);
 
-    // The create-expenses permission belongs to the member, not to the workspace as a whole, so this reads the current
-    // member's role rather than the workspace-level one. An admin-level `policy.role` must not let a member whose own
-    // role forbids creating expenses add one. currentUserLogin will be required eventually, like currentUserAccountID,
-    // so callers subscribe to it and pass it in. See https://github.com/Expensify/App/issues/66412
     if (policy && !canCreateExpensesOnPolicy(policy, currentUserLogin ?? deprecatedCurrentUserEmail)) {
         return false;
     }
@@ -12005,9 +11999,7 @@ function canRequestMoney(
         return false;
     }
 
-    // The create-expenses permission belongs to the member, not to the workspace as a whole, so this reads the current
-    // member's role rather than the workspace-level one. A workspace whose global role allows creating expenses must not
-    // offer the option to a member whose own role does not.
+    // Members without create-expenses permission get no create options in the workspace chats and reports.
     if (!!policy?.id && report?.policyID === policy.id && !canCreateExpensesOnPolicy(policy, currentUserLogin ?? deprecatedCurrentUserEmail)) {
         return false;
     }

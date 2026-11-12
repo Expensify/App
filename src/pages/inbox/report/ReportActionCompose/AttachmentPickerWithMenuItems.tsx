@@ -316,8 +316,6 @@ function AttachmentPickerWithMenuItems({
     ).map((option) => options[option]);
     const moneyRequestOptions = moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
 
-    // The create-expenses permission belongs to the member, so this checks the current member's role rather than the
-    // workspace-level one, which is what decides whether the workspace can create reports.
     const createReportOption: PopoverMenuItem[] =
         !isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canCreateExpensesOnPolicy(policy, currentUserPersonalDetails.login)
             ? []
