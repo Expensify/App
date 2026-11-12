@@ -81,6 +81,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([exportDestinationSettingName], config?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.EXPORT_EXPENSES_EXPORT_AS}
                     name={translate('workspace.accounting.exportAs')}
                     value={exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.label`) : undefined}
                     onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.path)}
@@ -103,6 +104,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
             {!shouldHideReimbursableDefaultVendor(isReimbursable, config) && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.DEFAULT_VENDOR], config?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.EXPORT_EXPENSES_DEFAULT_VENDOR}
                         name={translate('workspace.accounting.defaultVendor')}
                         value={defaultVendor?.name}
                         onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.path)}
@@ -117,6 +119,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
             {!shouldHideNonReimbursableCreditCardAccount(isReimbursable, config) && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT], config?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.EXPORT_EXPENSES_CREDIT_CARD_ACCOUNT}
                         name={translate('workspace.netsuite.creditCardAccount')}
                         value={selectedCreditCardAccount?.name}
                         onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_CREDIT_CARD_ACCOUNT_SELECT.path)}
@@ -131,6 +134,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
             {!shouldHideNonReimbursableJournalPostingAccount(isReimbursable, config) && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.PAYABLE_ACCT], config?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.EXPORT_EXPENSES_NON_REIMBURSABLE_JOURNAL_POSTING_ACCOUNT}
                         name={translate('workspace.netsuite.nonReimbursableJournalPostingAccount')}
                         value={selectedPayableAccount?.name}
                         onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.path)}
@@ -144,6 +148,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
             {!shouldHideReimbursableJournalPostingAccount(isReimbursable, config) && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT], config?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.EXPORT_EXPENSES_REIMBURSABLE_JOURNAL_POSTING_ACCOUNT}
                         name={translate('workspace.netsuite.reimbursableJournalPostingAccount')}
                         value={selectedReimbursablePayableAccount?.name}
                         onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.path)}
@@ -157,6 +162,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
             {!shouldHideJournalPostingPreference(isReimbursable, config) && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE], config?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE}
                         name={translate('workspace.netsuite.journalPostingPreference.label')}
                         value={translate(
                             `workspace.netsuite.journalPostingPreference.values.${config?.journalPostingPreference ?? CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE}`,

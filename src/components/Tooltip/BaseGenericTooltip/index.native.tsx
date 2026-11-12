@@ -159,6 +159,7 @@ function BaseGenericTooltip({
             )}
             {isEducationTooltip ? (
                 <AnimatedPressableWithoutFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.TOOLTIP.EDUCATION_TOOLTIP}
                     style={[rootWrapperStyle, animationStyle]}
                     ref={rootWrapper}
                     onPress={onTooltipPress}

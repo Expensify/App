@@ -75,6 +75,7 @@ function GenericErrorPage({error}: {error?: Error}) {
                                 <View style={[styles.flexRow]}>
                                     <View style={[styles.flex1, styles.flexRow]}>
                                         <Button
+                                            sentryLabel={CONST.SENTRY_LABEL.ERROR_PAGE.REFRESH}
                                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                                             style={styles.mr3}
                                             onPress={() => refreshPage(chunkLoadError)}
@@ -83,6 +84,7 @@ function GenericErrorPage({error}: {error?: Error}) {
                                         </Button>
                                         {isAuthenticated && (
                                             <Button
+                                                sentryLabel={CONST.SENTRY_LABEL.ERROR_PAGE.SIGN_OUT}
                                                 onPress={() => {
                                                     signOutAndRedirectToSignIn();
                                                     refreshPage();
