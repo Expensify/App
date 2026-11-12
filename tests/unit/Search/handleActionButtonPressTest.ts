@@ -1,3 +1,4 @@
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 
 import * as ReportWorkflow from '@libs/actions/IOU/ReportWorkflow';
@@ -482,6 +483,8 @@ describe('handleBulkPayItemSelected', () => {
         ownerBillingGracePeriodEnd: undefined,
         currentUserAccountID: ownerAccountID,
         isOffline: false,
+        showOfflineModal: jest.fn(),
+        areAllMatchingItemsSelected: false,
         verifyAccountAndResume: jest.fn<void, [(() => void) | undefined]>(),
     };
 
@@ -717,148 +720,150 @@ describe('handleBulkPayItemSelected', () => {
         expect(baseParams.confirmPayment).not.toHaveBeenCalled();
     });
 
-    it('should defer to confirmPayment (offline modal) and never navigate to KYC/verify-account when offline, even for a bank-funded payment type', async () => {
-        const policy: Policy = {
-            ...createRandomPolicy(Number(policyID)),
-            id: policyID,
-            ownerAccountID,
-        };
+    describe('while offline', () => {
+        async function setUpAdminPolicy(): Promise<Policy> {
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                ownerAccountID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            return policy;
+        }
 
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-
-        handleBulkPayItemSelected({
-            ...baseParams,
-            policy,
-            amountOwed: 0,
-            // VBBA + unvalidated user would normally route to account verification / KYC; offline must short-circuit that.
-            isUserValidated: false,
-            isOffline: true,
-            item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
-        });
-
-        expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
-        expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
-        expect(Navigation.navigate).not.toHaveBeenCalled();
-        // confirmPayment (onBulkPaySelected) is what surfaces the offline modal. It must get no payment type, because
-        // 'ACH' maps to ELSEWHERE, which onBulkPaySelected would pay offline.
-        expect(baseParams.confirmPayment).toHaveBeenCalledWith(undefined);
-    });
-
-    it('should hand Mark as paid to confirmPayment while offline so it can be paid optimistically', async () => {
-        // Given a user who is offline
-        const policy: Policy = {
-            ...createRandomPolicy(Number(policyID)),
-            id: policyID,
-            ownerAccountID,
-        };
-
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-
-        // When they pick "Mark as paid" from the bulk Pay submenu
-        handleBulkPayItemSelected({
-            ...baseParams,
-            policy,
-            amountOwed: 0,
-            isOffline: true,
-            item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Mark as paid', icon: () => null},
-        });
-
-        // Then the payment goes straight to confirmPayment with the ELSEWHERE type, because marking as paid never
-        // needs KYC or bank account setup and can be queued offline
-        expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
-        expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
-        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, undefined);
-    });
-
-    it('should still block Mark as paid for a locked account while offline', async () => {
-        // Given a user with a locked account who is offline
-        const policy: Policy = {
-            ...createRandomPolicy(Number(policyID)),
-            id: policyID,
-            ownerAccountID,
-        };
-
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-
-        // When they pick "Mark as paid" from the bulk Pay submenu
-        handleBulkPayItemSelected({
-            ...baseParams,
-            policy,
-            amountOwed: 0,
-            isAccountLocked: true,
-            isOffline: true,
-            item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Mark as paid', icon: () => null},
-        });
-
-        // Then the locked account modal is shown and nothing is paid, because now that Mark as paid can go through
-        // offline, it must pass the same account checks as it does online
-        expect(baseParams.showLockedAccountModal).toHaveBeenCalled();
-        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
-    });
-
-    it.each([
-        {name: 'Pay via workspace', item: {key: policyID, text: 'Pay via workspace', icon: (): null => null}},
-        {
-            name: 'invoice Pay via Expensify bank account',
-            item: {
-                key: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                text: 'Personal account',
-                icon: (): null => null,
-                additionalData: {payAsBusiness: false, bankAccountID: 123, paymentMethod: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT},
+        it.each([
+            {name: 'a business bank account', item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null}},
+            {name: 'Pay via workspace', item: {key: policyID, text: 'Pay via workspace', icon: () => null}},
+            {
+                name: 'an invoice personal bank account',
+                item: {
+                    key: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                    text: 'Personal account',
+                    icon: () => null,
+                    additionalData: {payAsBusiness: false, bankAccountID: 123, paymentMethod: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT},
+                },
             },
-        },
-    ])('should not hand $name to confirmPayment as Mark as paid while offline', async ({item}) => {
-        // Given a user who is offline and is an admin of a workspace they could pay through
-        const policy: Policy = {
-            ...createRandomPolicy(Number(policyID)),
-            id: policyID,
-            ownerAccountID,
-            role: CONST.POLICY.ROLE.ADMIN,
-        };
+        ] satisfies Array<{name: string; item: PopoverMenuItem}>)('should show the offline modal for $name', async ({item}) => {
+            // Given an unvalidated admin who is offline
+            const policy = await setUpAdminPolicy();
 
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            // When they pick a payment method other than Mark as paid from the bulk Pay submenu
+            handleBulkPayItemSelected({
+                ...baseParams,
+                policy,
+                amountOwed: 0,
+                activeAdminPolicies: [policy],
+                isUserValidated: false,
+                isOffline: true,
+                item,
+            });
 
-        // When they pick a payment method other than Mark as paid from the bulk Pay submenu
-        handleBulkPayItemSelected({
-            ...baseParams,
-            policy,
-            amountOwed: 0,
-            activeAdminPolicies: [policy],
-            isOffline: true,
-            item,
+            // Then only the offline modal is shown, because these payments may need KYC, verification or bank account
+            // setup, which can't be completed offline
+            expect(baseParams.showOfflineModal).toHaveBeenCalledTimes(1);
+            expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+            expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
+            expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
-        // Then confirmPayment never receives the ELSEWHERE type, because onBulkPaySelected lets ELSEWHERE through
-        // offline and would mark the reports as paid instead of showing the offline modal
-        const paymentTypes = baseParams.confirmPayment.mock.calls.map((call: unknown[]) => call.at(0));
-        expect(paymentTypes).not.toContain(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
-    });
+        it('should show the offline modal for Mark as paid when all matching reports are selected', async () => {
+            // Given a user who is offline with "Select all" checked
+            const policy = await setUpAdminPolicy();
 
-    it('should not hand Pay via workspace to confirmPayment as Mark as paid for a locked account while offline', async () => {
-        // Given a user with a locked account who is offline and is an admin of a workspace
-        const policy: Policy = {
-            ...createRandomPolicy(Number(policyID)),
-            id: policyID,
-            ownerAccountID,
-            role: CONST.POLICY.ROLE.ADMIN,
-        };
+            // When they pick Mark as paid from the bulk Pay submenu
+            handleBulkPayItemSelected({
+                ...baseParams,
+                policy,
+                amountOwed: 0,
+                areAllMatchingItemsSelected: true,
+                isOffline: true,
+            });
 
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-
-        // When they pick "Pay via workspace" from the bulk Pay submenu
-        handleBulkPayItemSelected({
-            ...baseParams,
-            policy,
-            amountOwed: 0,
-            activeAdminPolicies: [policy],
-            isAccountLocked: true,
-            isOffline: true,
-            item: {key: policyID, text: 'Pay via workspace', icon: () => null},
+            // Then the offline modal is shown, because the server resolves which reports the search query matches
+            expect(baseParams.showOfflineModal).toHaveBeenCalledTimes(1);
+            expect(baseParams.confirmPayment).not.toHaveBeenCalled();
         });
 
-        // Then nothing is paid, because onBulkPaySelected doesn't check for a locked account and would
-        // mark the reports as paid if it received the ELSEWHERE type
-        const paymentTypes = baseParams.confirmPayment.mock.calls.map((call: unknown[]) => call.at(0));
-        expect(paymentTypes).not.toContain(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+        it('should hand Mark as paid to confirmPayment', async () => {
+            // Given a user who is offline
+            const policy = await setUpAdminPolicy();
+
+            // When they pick Mark as paid from the bulk Pay submenu
+            handleBulkPayItemSelected({
+                ...baseParams,
+                policy,
+                amountOwed: 0,
+                isOffline: true,
+            });
+
+            // Then the payment goes to confirmPayment, because Mark as paid only records a payment made outside
+            // Expensify and can be queued until the user reconnects
+            expect(baseParams.showOfflineModal).not.toHaveBeenCalled();
+            expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, undefined);
+        });
+
+        it('should block Mark as paid for a locked account', async () => {
+            // Given a user with a locked account who is offline
+            const policy = await setUpAdminPolicy();
+
+            // When they pick Mark as paid from the bulk Pay submenu
+            handleBulkPayItemSelected({
+                ...baseParams,
+                policy,
+                amountOwed: 0,
+                isAccountLocked: true,
+                isOffline: true,
+            });
+
+            // Then the locked account modal is shown and nothing is paid, because offline Mark as paid must pass
+            // the same account checks as it does online
+            expect(baseParams.showLockedAccountModal).toHaveBeenCalled();
+            expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+        });
+
+        it('should block Mark as paid for a restricted delegate', async () => {
+            // Given a delegate without pay access who is offline
+            const policy = await setUpAdminPolicy();
+
+            // When they pick Mark as paid from the bulk Pay submenu
+            handleBulkPayItemSelected({
+                ...baseParams,
+                policy,
+                amountOwed: 0,
+                isDelegateAccessRestricted: true,
+                isOffline: true,
+            });
+
+            // Then the delegate modal is shown and nothing is paid, because a delegate's access doesn't depend on
+            // the network
+            expect(baseParams.showDelegateNoAccessModal).toHaveBeenCalled();
+            expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+        });
+
+        it('should block Mark as paid when billing is past due', async () => {
+            // Given a workspace owner with an overdue balance who is offline
+            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+            const policy = await setUpAdminPolicy();
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: pastDate,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 100,
+            });
+
+            // When they pick Mark as paid from the bulk Pay submenu
+            handleBulkPayItemSelected({
+                ...baseParams,
+                policy,
+                amountOwed: 100,
+                ownerBillingGracePeriodEnd: pastDate,
+                isOffline: true,
+            });
+
+            // Then they are sent to the restricted action page and nothing is paid, because billable actions stay
+            // restricted while the balance is overdue
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+            expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+        });
     });
 });

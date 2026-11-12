@@ -42,7 +42,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
-import {getActivePaymentType} from '@libs/PaymentUtils';
+import {canPayOffline, getActivePaymentType} from '@libs/PaymentUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     getAccountIDForSubmitManagerEmail,
@@ -2596,6 +2596,8 @@ function handleBulkPayItemSelected(params: {
     setPendingPaymentAdditionalData?: (data: BulkPaySelectionData | undefined) => void;
     currentUserAccountID: number;
     isOffline: boolean;
+    showOfflineModal: () => void;
+    areAllMatchingItemsSelected: boolean;
     verifyAccountAndResume: (retry?: () => void) => void;
 }) {
     const {
@@ -2617,6 +2619,8 @@ function handleBulkPayItemSelected(params: {
         setPendingPaymentAdditionalData,
         currentUserAccountID,
         isOffline,
+        showOfflineModal,
+        areAllMatchingItemsSelected,
         verifyAccountAndResume,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
@@ -2626,12 +2630,10 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    // While offline, send every payment method except Mark as paid to the offline modal via confirmPayment (onBulkPaySelected),
-    // before any branch below can open a KYC / verification / bank setup flow. Mark as paid can be queued, so it runs the checks below.
-    // Pass no payment type: getActivePaymentType maps workspace and invoice keys to ELSEWHERE, which onBulkPaySelected would pay offline.
-    if (isOffline && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        Log.info('[BulkPay] Blocking bulk pay: offline, deferring to the offline modal');
-        confirmPayment?.(undefined);
+    // Check the menu key, not paymentType, because getActivePaymentType maps workspace and invoice keys to ELSEWHERE.
+    if (isOffline && !canPayOffline(item.key, areAllMatchingItemsSelected)) {
+        Log.info('[BulkPay] Blocking bulk pay: offline');
+        deferModalPresentationAfterPopoverDismiss(showOfflineModal);
         return;
     }
 

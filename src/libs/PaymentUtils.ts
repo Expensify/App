@@ -353,7 +353,16 @@ function getActivePaymentType(
     };
 }
 
+/**
+ * Only Mark as paid can be queued offline. Other payment types may need KYC or bank account setup, and paying all
+ * matching reports needs the server to resolve which reports the search query matches.
+ */
+function canPayOffline(paymentType: string | undefined, areAllMatchingItemsSelected: boolean): boolean {
+    return paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !areAllMatchingItemsSelected;
+}
+
 export {
+    canPayOffline,
     hasExpensifyPaymentMethod,
     getPaymentMethodDescription,
     formatPaymentMethods,
