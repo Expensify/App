@@ -13,5 +13,5 @@ This page is an **AgentZero reference** for newer Insights dashboards in develop
 
 The dedicated Insights section and first-release violation reporting are already shipped. The entries below describe additional dashboards, not the launch of Insights itself.
 
-- **Compliance Insights dashboard – gated rollout** – Expand access to a Control-plan dashboard showing violations over time, top violations, and violations by submitter or approver for eligible workspace admins and auditors. [Compliance dashboard development tracking](https://github.com/Expensify/App/issues/102809).
-- **Efficiency Insights dashboard – gated rollout** – Help eligible workspace admins and auditors identify delays in expense-report submission, approval, and payment. [Efficiency dashboard development tracking](https://github.com/Expensify/App/issues/104095) and [Efficiency rollout tracking](https://github.com/Expensify/App/issues/104100).
+- **Compliance Insights dashboard – gated rollout** – Expand access to a Control-plan dashboard showing violations over time, top violations, and violations by submitter or approver for eligible workspace admins and auditors.
+- **Efficiency Insights dashboard – gated rollout** – Help eligible workspace admins and auditors identify delays in expense-report submission, approval, and payment.
