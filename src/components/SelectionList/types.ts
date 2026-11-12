@@ -65,7 +65,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     shouldStopPropagation?: boolean;
 
     /** Called once when the scroll position gets within onEndReachedThreshold of the rendered content */
-    onEndReached?: () => void | Promise<void>;
+    onEndReached?: () => void;
 
     /** How far from the end the bottom edge of the list must be to trigger onEndReached */
     onEndReachedThreshold?: number;

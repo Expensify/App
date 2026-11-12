@@ -78,6 +78,8 @@ function DynamicIOURequestStepUpgrade({
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    // The Concierge chat is read with Onyx.get in the handlers, which needs this ID as a same-file subscription (see ONYX-1)
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isTrack = iouType === CONST.IOU.TYPE.TRACK;
     const [isUpgraded, setIsUpgraded] = useState(false);
@@ -277,13 +279,12 @@ function DynamicIOURequestStepUpgrade({
             : undefined;
 
     const getWorkspaceCreationOnyxData = async () => {
-        const [introSelected, onboardingPurposeSelected, onboarding, conciergeReportID] = await Onyx.multiGet([
+        const [introSelected, onboardingPurposeSelected, onboarding, conciergeChat] = await Onyx.multiGet([
             ONYXKEYS.NVP_INTRO_SELECTED,
             ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
             ONYXKEYS.NVP_ONBOARDING,
-            ONYXKEYS.CONCIERGE_REPORT_ID,
+            `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
         ]);
-        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
         return {introSelected, onboardingPurposeSelected, isSelfTourViewed: hasSeenTourSelector(onboarding), conciergeChat};
     };
 
