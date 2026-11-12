@@ -1084,6 +1084,60 @@ describe('actions/Workflow', () => {
             expect(settledPolicy?.employeeList?.[employee3Email]?.pendingAction).toBeFalsy();
             expect(settledPolicy?.employeeList?.[employee3Email]?.pendingFields).toBeFalsy();
         });
+
+        it('should keep the forwarding of an over-limit approver another group submits to when a workflow they are in is deleted', async () => {
+            mockFetch.pause();
+
+            // Given employee3 submits to employee1, who sends reports over 500.00 to employee2, who forwards them to employee4,
+            // while employee4 submits straight to employee2
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: 'admin', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', approvalLimit: 50000, overLimitForwardsTo: employee2Email, role: 'user', submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, forwardsTo: employee4Email, role: 'user', submitsTo: ownerEmail},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: 'user', submitsTo: employee1Email},
+                    [employee4Email]: {email: employee4Email, forwardsTo: '', role: 'user', submitsTo: employee2Email},
+                },
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When the admin deletes employee3's workflow as the Workflows page shows it, with employee2 as its over-limit approver
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails: {}, localeCompare: (a: string, b: string) => a.localeCompare(b)});
+            const workflow = approvalWorkflows.find((approvalWorkflow) => approvalWorkflow.approvers.at(0)?.email === employee1Email);
+            expect(workflow?.approvers.map((approver) => approver.email)).toEqual([employee1Email, employee2Email, employee4Email]);
+            if (!workflow) {
+                return;
+            }
+            removeApprovalWorkflow(workflow, policy);
+            await waitForBatchedUpdates();
+
+            // Then employee1 stops sending reports on, while employee2 still forwards employee4's reports, so the request leaves them out
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.employeeList?.[employee1Email]?.approvalLimit).toBeUndefined();
+            expect(updatedPolicy?.employeeList?.[employee1Email]?.overLimitForwardsTo).toBe('');
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.forwardsTo).toBe(employee4Email);
+            expect(updatedPolicy?.employeeList?.[employee3Email]?.submitsTo).toBe(ownerEmail);
+
+            const requestBody = getFetchMockCalls(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL).at(0)?.[1]?.body;
+            const sentEmployees = requestBody instanceof FormData ? requestBody.get('employees') : undefined;
+            const sentEmployeesText = typeof sentEmployees === 'string' ? sentEmployees : '';
+            expect(sentEmployeesText).toContain(employee1Email);
+            expect(sentEmployeesText).toContain(employee3Email);
+            expect(sentEmployeesText).not.toContain(`"email":"${employee2Email}"`);
+            expect(sentEmployeesText).not.toContain(`"email":"${employee4Email}"`);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('updateApprovalWorkflow', () => {
