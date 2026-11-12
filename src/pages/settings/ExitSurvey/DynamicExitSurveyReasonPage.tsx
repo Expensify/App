@@ -157,7 +157,6 @@ function DynamicExitSurveyReasonPage() {
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={submitAndSwitchToClassic}
                     isDisabled={isSwitchingToClassic}
-                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.SUBMIT_REASON_AND_GO_TO_CLASSIC}
                 >
                     <Button.Text>{translate('exitSurvey.goToExpensifyClassic')}</Button.Text>
                 </ButtonDisabledWhenOffline>
@@ -167,7 +166,6 @@ function DynamicExitSurveyReasonPage() {
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={goBackJustOnce}
                     isDisabled={isSwitchingToClassic}
-                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.GO_BACK_JUST_ONCE}
                     style={styles.mt3}
                 >
                     <Button.KeyboardShortcut />

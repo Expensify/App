@@ -2948,8 +2948,6 @@ const SENTRY_LABEL = {
         REASON_GO_BACK_JUST_ONCE: 'SettingsExitSurvey-ReasonGoBackJustOnce',
         REASON_GO_TO_CLASSIC: 'SettingsExitSurvey-ReasonGoToExpensifyClassic',
         GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
-        GO_BACK_JUST_ONCE: 'SettingsExitSurvey-GoBackJustOnce',
-        SUBMIT_REASON_AND_GO_TO_CLASSIC: 'SettingsExitSurvey-SubmitReasonAndGoToClassic',
     },
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'AppDownloadLinks-Android',
