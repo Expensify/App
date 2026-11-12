@@ -37,7 +37,7 @@ For a video walkthrough, watch [how to connect Business Central to Expensify](ht
 4. Register a single-tenant application with the Web redirect URI `https://businesscentral.dynamics.com/OAuthLanding.htm`.
 5. Add the Business Central application permission `API.ReadWrite.All`.
 6. Grant admin consent for the permission.
-7. Create a client secret in the app registration.
+7. Create a client secret in the app registration with a **Description**, such as **Expensify**, and an expiration date.
 8. Save the secret **Value** in your password manager immediately. Do not use the **Secret ID**.
 9. Copy the **Application (client) ID** from the app registration's **Overview** page.
 10. Return to **Expensify Assisted Setup** and enter this value in the **Client ID** field.
@@ -121,14 +121,15 @@ Use an account with the **Application Administrator**, **Cloud Application Admin
 6. Select **Register**.
 7. On the **Overview** page, copy the **Application (client) ID** and **Directory (tenant) ID**.
 8. Go to **Certificates & secrets > New client secret**.
-9. Choose an expiration date for the secret.
-10. Select **Add**.
-11. Copy the secret **Value** immediately. Entra hides it after you leave the page. Do not use the **Secret ID**.
-12. Go to **API permissions > Add a permission > Dynamics 365 Business Central > Application permissions**.
-13. Select `API.ReadWrite.All`.
-14. Select **Add permissions**.
-15. Select **Grant admin consent** for your tenant.
-16. Confirm that the permission status shows **Granted**.
+9. Enter a **Description**, such as **Expensify**.
+10. Choose an expiration date for the secret.
+11. Select **Add**.
+12. Copy the secret **Value** immediately. Entra hides it after you leave the page. Do not use the **Secret ID**.
+13. Go to **API permissions > Add a permission > Dynamics 365 Business Central > Application permissions**.
+14. Select `API.ReadWrite.All`.
+15. Select **Add permissions**.
+16. Select **Grant admin consent** for your tenant.
+17. Confirm that the permission status shows **Granted**.
 
 Client secrets expire after six months by default, with a maximum lifetime of 24 months. Your organization can require a shorter lifetime. Set a reminder to rotate the secret before its expiration date.
 
