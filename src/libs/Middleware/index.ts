@@ -3,6 +3,7 @@ import FraudMonitoring from './FraudMonitoring';
 import GlobalReimbursementPayError from './GlobalReimbursementPayError';
 import handleDeletedAccount from './HandleDeletedAccount';
 import HandleMovedScanFailedExpenses from './HandleMovedScanFailedExpenses';
+import HandleRejectedExpenseReport from './HandleRejectedExpenseReport';
 import HandleUnusedOptimisticID from './HandleUnusedOptimisticID';
 import LoadPostDataForOpenOrReconnect from './LoadPostDataForOpenOrReconnect';
 import LoadTest from './LoadTest';
@@ -20,6 +21,7 @@ import SupportalPermission from './SupportalPermission';
 export {
     ReplaceOptimisticAgentAccountID,
     HandleMovedScanFailedExpenses,
+    HandleRejectedExpenseReport,
     HandleUnusedOptimisticID,
     LoadTest,
     Logging,
