@@ -1492,6 +1492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: 'Remover esta despesa',
         removeExpenseConfirmation: 'Tem certeza de que deseja remover este recibo? Esta ação não poderá ser desfeita.',
         addExpense: 'Adicionar despesa',
+        createAnExpense: 'Criar uma despesa',
         chooseRecipient: 'Escolher destinatário',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Criar despesa de ${amount}`,
         confirmDetails: 'Confirmar detalhes',

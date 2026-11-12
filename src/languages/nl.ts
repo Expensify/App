@@ -1490,6 +1490,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: 'Deze uitgave verwijderen',
         removeExpenseConfirmation: 'Weet je zeker dat je deze bon wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
         addExpense: 'Uitgave toevoegen',
+        createAnExpense: 'Maak een uitgave',
         chooseRecipient: 'Kies ontvanger',
         createExpenseWithAmount: ({amount}: {amount: string}) => `${amount}-uitgave maken`,
         confirmDetails: 'Bevestig details',

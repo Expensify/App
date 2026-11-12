@@ -1539,6 +1539,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: 'Καταργήστε αυτήν τη δαπάνη',
         removeExpenseConfirmation: 'Είστε βέβαιοι ότι θέλετε να αφαιρέσετε αυτήν την απόδειξη; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.',
         addExpense: 'Προσθέστε δαπάνη',
+        createAnExpense: 'Δημιουργία δαπάνης',
         chooseRecipient: 'Επιλέξτε παραλήπτη',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Δημιουργία εξόδου ${amount}`,
         confirmDetails: 'Επιβεβαιώστε τα στοιχεία',

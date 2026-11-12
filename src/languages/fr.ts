@@ -1501,6 +1501,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: 'Supprimer cette dépense',
         removeExpenseConfirmation: 'Voulez-vous vraiment supprimer ce reçu ? Cette action est irréversible.',
         addExpense: 'Ajouter une dépense',
+        createAnExpense: 'Créer une dépense',
         chooseRecipient: 'Choisir le destinataire',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Créer une dépense de ${amount}`,
         confirmDetails: 'Confirmer les détails',

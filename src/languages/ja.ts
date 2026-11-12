@@ -1475,6 +1475,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: 'この経費を削除',
         removeExpenseConfirmation: 'この領収書を削除してもよろしいですか？この操作は元に戻せません。',
         addExpense: '経費を追加',
+        createAnExpense: '経費を作成',
         chooseRecipient: '送金先を選択',
         createExpenseWithAmount: ({amount}: {amount: string}) => `${amount} の経費を作成`,
         confirmDetails: '詳細を確認',

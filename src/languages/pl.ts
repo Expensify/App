@@ -1530,6 +1530,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: 'Usuń ten wydatek',
         removeExpenseConfirmation: 'Czy na pewno chcesz usunąć ten paragon? Tej operacji nie można cofnąć.',
         addExpense: 'Dodaj wydatek',
+        createAnExpense: 'Dodaj wydatek',
         chooseRecipient: 'Wybierz odbiorcę',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Utwórz wydatek ${amount}`,
         confirmDetails: 'Potwierdź szczegóły',

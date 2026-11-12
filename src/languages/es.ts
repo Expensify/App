@@ -1471,6 +1471,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpenseDistanceErrorModalDescription: 'Corrige el error de la tarifa de distancia e inténtalo de nuevo.',
         splitExpensePerDiemRateErrorModalDescription: 'Por favor, corrige el error de la tasa de viáticos y vuelve a intentarlo.',
         addExpense: 'Agregar gasto',
+        createAnExpense: 'Crear un gasto',
         expense: 'Gasto',
         categorize: 'Categorizar',
         share: 'Compartir',

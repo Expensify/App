@@ -1432,6 +1432,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: '移除此报销费用',
         removeExpenseConfirmation: '是否确定要删除此收据？此操作无法撤销。',
         addExpense: '添加报销',
+        createAnExpense: '创建报销费用',
         chooseRecipient: '选择收款人',
         createExpenseWithAmount: ({amount}: {amount: string}) => `创建 ${amount} 笔报销`,
         confirmDetails: '确认详情',
