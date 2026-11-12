@@ -219,10 +219,14 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             return;
         }
 
-        // The first approver gets every report, so a new workflow has nothing more to ask about them
+        // The first approver gets every report, so there's nothing more to ask about them
         if (approverIndex === 0 && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
             setApprovalWorkflowIsInitialFlow(false);
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
+            return;
+        }
+        if (approverIndex === 0) {
+            goBack();
             return;
         }
 

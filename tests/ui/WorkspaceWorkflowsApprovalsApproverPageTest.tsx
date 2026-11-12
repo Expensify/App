@@ -162,6 +162,7 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
     beforeEach(async () => {
         jest.mocked(ApproverSelectionList).mockClear();
         jest.mocked(Navigation.goBack).mockClear();
+        jest.mocked(Navigation.navigate).mockClear();
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
@@ -250,5 +251,25 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
         const removedRows = getRows().filter((row) => row.login === REMOVED_EMAIL);
         expect(removedRows).toHaveLength(1);
         expect(removedRows.at(0)?.isSelected).toBe(true);
+    });
+
+    it('takes the admin back to the workflow after picking a new first approver', async () => {
+        // Given the edited workflow Bob > Erin > an approver who left the workspace, on a workspace Frank just joined
+        const frankEmail = 'frank@example.com';
+        const frankAccountID = 6;
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[frankEmail]: {email: frankEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ADMIN_EMAIL}}});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[frankAccountID]: buildPersonalDetails(frankEmail, frankAccountID, 'frank')});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin opens Bob's place from the workflow and picks Frank instead
+        await renderPage(0, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER);
+        await tapRow(frankEmail);
+
+        // Then Frank becomes the first approver and the admin goes straight back to the workflow, since every report reaches the first approver and there's nothing more to set
+        expect((await getApproverEmails())?.at(0)).toBe(frankEmail);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalled();
     });
 });

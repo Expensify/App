@@ -135,7 +135,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     };
 
     const editApprover = (approverIndex: number) => {
-        if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+        // Every report reaches the first approver, so there's nothing to set for them besides who they are
+        if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE || approverIndex === 0) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
