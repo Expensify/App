@@ -70,6 +70,9 @@ type SearchChartViewProps = {
     /** Whether pressing a bar, point or slice opens Search filtered to it */
     shouldDrillDownOnPress?: boolean;
 
+    /** Query a pressed group is narrowed from instead of `queryJSON`, for charts whose data stops short of their date range, so Search lists only what the point plots */
+    drillDownQueryJSON?: Readonly<SearchQueryJSON>;
+
     /** Called with the group whose bar, point, slice or touch-opened tooltip is pressed. Takes precedence over `shouldDrillDownOnPress`. */
     onGroupPress?: (item: GroupedItem) => void;
 
@@ -113,6 +116,7 @@ function SearchChartView({
     shouldShowGroupLabels = true,
     shouldUseResponsiveLabels = false,
     shouldDrillDownOnPress = true,
+    drillDownQueryJSON,
     onGroupPress,
     tooltipFooter,
     shouldShowSinglePointAsBar = false,
@@ -185,11 +189,12 @@ function SearchChartView({
             return;
         }
 
-        if (!queryJSON) {
+        const pressedQueryJSON = drillDownQueryJSON ?? queryJSON;
+        if (!pressedQueryJSON) {
             return;
         }
 
-        const query = buildChartDrillDownQuery(queryJSON, getFilterQuery(item));
+        const query = buildChartDrillDownQuery(pressedQueryJSON, getFilterQuery(item));
 
         if (!query) {
             return;

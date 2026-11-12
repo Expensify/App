@@ -184,8 +184,8 @@ function InsightsChartWidget({
             />
         ) : null;
 
+    const queryJSONForSearch = buildSearchQueryJSON(applyInsightsFilters(chart, filters, undefined, today)) ?? queryJSON;
     const openOnSpend = () => {
-        const queryJSONForSearch = buildSearchQueryJSON(applyInsightsFilters(chart, filters, undefined, today)) ?? queryJSON;
         if (!queryJSONForSearch) {
             return;
         }
@@ -255,6 +255,7 @@ function InsightsChartWidget({
                             countDimension={countDimension}
                             isLoading={isLoading}
                             shouldDrillDownOnPress={supportsDrillIn}
+                            drillDownQueryJSON={queryJSONForSearch}
                             comparison={comparison}
                             shouldShowRunningTotal={shouldShowRunningTotal}
                             chartContainerStyle={cardPaddingHorizontal}
