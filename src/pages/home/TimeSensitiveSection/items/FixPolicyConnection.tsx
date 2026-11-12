@@ -39,6 +39,8 @@ function FixPolicyConnection({connectionName, policyID, policyName, integrationN
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.FIX_POLICY_CONNECTION}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.FIX_POLICY_CONNECTION}
             icon={icons.Connect}
             title={translate('homePage.timeSensitiveSection.fixPolicyConnection.title', {integrationName})}
             subtitle={subtitle}

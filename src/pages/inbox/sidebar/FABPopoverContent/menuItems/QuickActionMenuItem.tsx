@@ -155,6 +155,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     if (quickAction?.action && quickActionReport) {
         return (
             <FABFocusableMenuItem
+                sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
                 itemId={ITEM_ID}
                 isVisible={isVisible}
                 pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
@@ -202,6 +203,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
             itemId={ITEM_ID}
             isVisible={isVisible}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
