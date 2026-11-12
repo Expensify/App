@@ -1159,6 +1159,19 @@ function formatToMonthDayWithOptionalYearInUTC(datetime: string, dateFnsLocale: 
 }
 
 /**
+ * Formats an instant already converted to the viewer's timezone (see `getLocalDateFromDatetime`) as an abbreviated month
+ * and day, adding the year only when it differs from the viewer's current year.
+ *
+ * @returns Jun 20, or Jun 20, 2025 for a past year
+ */
+function formatLocalDateToMonthDayWithOptionalYear(localDate: Date, currentLocalYear: number, dateFnsLocale: DateFnsLocale | undefined): string {
+    if (localDate.getFullYear() !== currentLocalYear) {
+        return format(localDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale});
+    }
+    return formatToMonthDay(localDate, dateFnsLocale);
+}
+
+/**
  * Returns a boolean value indicating whether the card has expired.
  * @param expiryMonth month when card expires (starts from 1 so can be any number between 1 and 12)
  * @param expiryYear year when card expires
@@ -1467,18 +1480,38 @@ function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLoc
 }
 
 /**
- * Returns a formatted date range.
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
+ * whether the year is shown.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
+ */
+const memoizedCreateSearchDateRangeFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
+);
+
+/**
+ * Formats a Search date range with `Intl`'s range format, so each language orders the dates and joins them its own way,
+ * and parts the two dates share (such as the month or year) are written once.
+ */
+function formatSearchDateRange(start: Date, end: Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    // Hermes lacks `formatRange`, so native apps get it from polyfillDateTimeFormatRange.
+    return memoizedCreateSearchDateRangeFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).formatRange(toUTCWallClockDate(start), toUTCWallClockDate(end));
+}
+
+/**
+ * Returns a formatted date range, e.g. Sep 1 – 7, 2025.
  */
 function getFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowFullYear = false, shouldOmitCurrentYear = false): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
-    if (shouldShowFullYear || !isSameYear(new Date(start), new Date(end))) {
-        return `${format(start, 'MMM d, yyyy', {locale: dateFnsLocale})} - ${format(end, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+    if (!isValid(start) || !isValid(end)) {
+        return '';
     }
-    if (shouldOmitCurrentYear && isThisYear(start) && isThisYear(end)) {
-        return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${format(end, 'MMM d', {locale: dateFnsLocale})}`;
-    }
-    return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${format(end, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+    // The year is only left out when the caller asks to omit the current one and the whole range falls in it, since the
+    // reader then knows which year is meant. A range in any other year, or across two years, would be ambiguous without it.
+    const shouldOmitYear = !shouldShowFullYear && shouldOmitCurrentYear && isThisYear(start) && isThisYear(end);
+    return formatSearchDateRange(start, end, dateFnsLocale, !shouldOmitYear);
 }
 
 /** Returns a compact date range, e.g. "Sep 1 - 7, ’25". */
@@ -1524,7 +1557,7 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
     // `I kw.` in Polish and `第一季` in Chinese. `Intl.DateTimeFormat` has no quarter option at all, so date-fns is
     // the only way to localize this. The quarter still comes before the year by hand, because neither library has
     // a canned pattern pairing the two.
-    return `${format(quarterStart, 'QQQ yyyy', {locale: dateFnsLocale})} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
+    return `${format(quarterStart, 'QQQ yyyy', {locale: dateFnsLocale})} (${formatSearchDateRange(quarterStart, quarterEnd, dateFnsLocale, false)})`;
 }
 
 /**
@@ -1611,6 +1644,7 @@ const DateUtils = {
     doesDateBelongToAPastYear,
     formatToMonthDay,
     formatToMonthDayWithOptionalYearInUTC,
+    formatLocalDateToMonthDayWithOptionalYear,
     isCardExpired,
     getDifferenceInDaysFromNow,
     isValidDateString,

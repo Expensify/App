@@ -276,6 +276,7 @@ import ThumbsUp from '@assets/images/thumbs-up.svg';
 import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
+import Translate from '@assets/images/translate.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import TreasureChestGreenWithSparkle from '@assets/images/treasure-chest-green-with-sparkle.svg';
 import TreasureChest from '@assets/images/treasure-chest.svg';
@@ -530,6 +531,7 @@ const Expensicons = {
     ThumbsUpHourglass,
     ThreeDots,
     Transfer,
+    Translate,
     Trashcan,
     TriNetSquare,
     ZenefitsSquare,

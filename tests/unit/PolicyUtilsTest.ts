@@ -6934,6 +6934,48 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['cf-1']);
             });
 
+            it('uses only active Zoho Books vendors when Zoho Books and Business Central are both configured', () => {
+                // Given a workspace configured with both Business Central and Zoho Books, whose list also has a customer and an inactive vendor
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = createMock<Connections>({
+                    ...policy.connections,
+                    [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+                        config: {isConfigured: true},
+                        data: {
+                            vendors: [
+                                {id: 'zb-1', name: 'Zoho Books vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                                {id: 'zb-2', name: 'Zoho Books customer', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.CUSTOMER},
+                                {id: 'zb-3', name: 'Inactive Zoho Books vendor', isActive: false, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                            ],
+                        },
+                    },
+                });
+
+                // When resolving the vendor source without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then Zoho Books is the source, so the vendor field never shows the beta-gated Business Central list,
+                // and only active vendor-type records can be picked
+                expect(isVendorFeatureAvailable).toBe(true);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['zb-1']);
+            });
+
+            it('uses the Zoho Books empty state when the synced list has no vendors', () => {
+                // Given a configured Zoho Books workspace whose synced vendor list is empty
+                const translate = TestHelper.translateLocal;
+                const policy = createMock<Policy>({connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {config: {isConfigured: true}, data: {vendors: []}}})});
+
+                // When the vendor picker asks for its empty state
+                const emptyState = getVendorEmptyState(policy, translate);
+
+                // Then it points the admin to Zoho Books, where the vendors have to be added
+                expect(emptyState).toEqual({
+                    title: translate('workspace.zohoBooks.noVendorsFound'),
+                    subtitle: translate('workspace.zohoBooks.noVendorsFoundDescription'),
+                });
+            });
+
             it('uses the Business Central empty state when the synced list has no vendors', () => {
                 const translate = TestHelper.translateLocal;
                 expect(getVendorEmptyState(buildBusinessCentralPolicy([]), translate)).toEqual({
@@ -7272,6 +7314,25 @@ describe('PolicyUtils', () => {
                 const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
 
                 // Then only a configured connection enables Campfire vendor matching
+                expect(isVendorFeatureAvailableWithBeta).toBe(expected);
+                expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
+            });
+
+            it.each([
+                {name: 'configured connection', connection: {config: {isConfigured: true}}, expected: true},
+                {name: 'unconfigured connection', connection: {config: {isConfigured: false}}, expected: false},
+                {name: 'missing configuration flag', connection: {config: {}}, expected: false},
+                {name: 'missing configuration', connection: {}, expected: false},
+                {name: 'missing connection', connection: undefined, expected: false},
+            ])('checks Zoho Books vendor matching for $name independently of the beta', ({connection, expected}) => {
+                // Given a Zoho Books workspace whose connection may not be ready for vendor matching
+                const policy = createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: connection}});
+
+                // When checking availability with and without beta enrollment
+                const isVendorFeatureAvailableWithBeta = hasVendorFeature(policy, true);
+                const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
+
+                // Then only a configured connection enables Zoho Books vendor matching, because Zoho Books is GA and needs no beta
                 expect(isVendorFeatureAvailableWithBeta).toBe(expected);
                 expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
             });
@@ -8147,6 +8208,28 @@ describe('PolicyUtils', () => {
                 });
 
                 expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBe('campfire_vendor_1');
+            });
+
+            it('resolves Zoho Books default vendor', () => {
+                // Given a Zoho Books workspace with a default company card vendor
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'zoho_books_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                // When resolving the default vendor for Zoho Books
+                const defaultVendorID = getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS);
+
+                // Then it's the Zoho Books export default vendor, which unmatched expenses fall back to
+                expect(defaultVendorID).toBe('zoho_books_vendor_1');
             });
 
             it('resolves Business Central default vendor', () => {
