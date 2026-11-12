@@ -13,6 +13,9 @@ import {setMoneyRequestParticipantsFromReport, setMoneyRequestTimeRate} from '@u
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -29,31 +32,34 @@ function IOURequestStepTimeWorkspace({route, navigation}: IOURequestStepTimeWork
     const {accountID} = useCurrentUserPersonalDetails();
     const isTransactionDraft = shouldUseTransactionDraft(action);
 
+    const selectWorkspace = async (policy: OnyxEntry<Policy>) => {
+        // The workspace chat is only needed on selection, so read it once here instead of subscribing to every report
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+        const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+        const policyExpenseChat = getPolicyExpenseChat(accountID, policy?.id, reports);
+        if (!policyExpenseChat) {
+            console.error(`Couldn't find policy expense chat for policyID: ${policy?.id}`);
+            return;
+        }
+
+        setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
+        setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
+
+        const defaultRate = getDefaultTimeTrackingRate(policy);
+        if (defaultRate) {
+            setMoneyRequestTimeRate(transactionID, defaultRate, isTransactionDraft);
+        }
+
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS.getRoute(action, iouType, transactionID, policyExpenseChat.reportID));
+    };
+
     return (
         <BaseRequestStepWorkspace
             route={route}
             navigation={navigation}
             getPolicies={getActivePoliciesWithExpenseChatAndTimeEnabled}
             onSelectWorkspace={(policy) => {
-                // The workspace chat is only needed on selection, so read it once here instead of subscribing to every report
-                // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
-                Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => {
-                    const policyExpenseChat = getPolicyExpenseChat(accountID, policy?.id, reports);
-                    if (!policyExpenseChat) {
-                        console.error(`Couldn't find policy expense chat for policyID: ${policy?.id}`);
-                        return;
-                    }
-
-                    setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
-                    setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
-
-                    const defaultRate = getDefaultTimeTrackingRate(policy);
-                    if (defaultRate) {
-                        setMoneyRequestTimeRate(transactionID, defaultRate, isTransactionDraft);
-                    }
-
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS.getRoute(action, iouType, transactionID, policyExpenseChat.reportID));
-                });
+                selectWorkspace(policy);
             }}
         />
     );

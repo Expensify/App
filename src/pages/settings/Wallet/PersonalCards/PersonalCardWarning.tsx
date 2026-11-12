@@ -35,7 +35,7 @@ function PersonalCardWarning() {
     const adminPoliciesCountInCardFeeds = adminPolicyIdsInCardFeeds.length;
     const isAdmin = adminPoliciesCountInCardFeeds > 0;
 
-    const onPrimaryActionPress = () => {
+    const onPrimaryActionPress = async () => {
         if (!isAdmin) {
             const policyID = Object.keys(cardFeedsByPolicy).find((key) => !!key);
             if (!policyID) {
@@ -44,10 +44,9 @@ function PersonalCardWarning() {
             // The workspace chat is only needed on press, so read it once here instead of subscribing to every report.
             // A non-admin has no admin card feeds, so without the chat this falls back to the workspaces list.
             // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
-            Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => {
-                const expenseChatReportID = getPolicyExpenseChat(accountID, policyID, reports)?.reportID;
-                Navigation.navigate(expenseChatReportID ? ROUTES.REPORT_WITH_ID.getRoute(expenseChatReportID) : ROUTES.WORKSPACES_LIST.route);
-            });
+            const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+            const expenseChatReportID = getPolicyExpenseChat(accountID, policyID, reports)?.reportID;
+            Navigation.navigate(expenseChatReportID ? ROUTES.REPORT_WITH_ID.getRoute(expenseChatReportID) : ROUTES.WORKSPACES_LIST.route);
             return;
         }
         if (adminPoliciesCountInCardFeeds === 1) {

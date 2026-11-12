@@ -133,7 +133,7 @@ function DynamicIOURequestStepDestination({
         Navigation.goBack();
     };
 
-    const updateDestination = (destination: ListItem & {currency: string}) => {
+    const updateDestination = async (destination: ListItem & {currency: string}) => {
         if (openedFromStartPage && policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
@@ -189,7 +189,8 @@ function DynamicIOURequestStepDestination({
 
         // The workspace chat is only needed on submit, so read it once here instead of subscribing to every report
         // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
-        Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => applyDestination(getPolicyExpenseChat(accountID, policy?.id, reports)));
+        const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+        applyDestination(getPolicyExpenseChat(accountID, policy?.id, reports));
     };
 
     const tabTitles = {
@@ -303,7 +304,9 @@ function DynamicIOURequestStepDestination({
                         ref={destinationSelectionListRef}
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
-                        onSubmit={updateDestination}
+                        onSubmit={(destination) => {
+                            updateDestination(destination);
+                        }}
                     />
                 )}
             </StepScreenWrapper>

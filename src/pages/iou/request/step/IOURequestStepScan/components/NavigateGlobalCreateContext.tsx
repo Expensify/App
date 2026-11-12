@@ -38,7 +38,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
 import Onyx from 'react-native-onyx';
 
-type NavigateGlobalCreateFn = (transactionIDs: string[], isMultiScanEnabled: boolean) => void;
+type NavigateGlobalCreateFn = (transactionIDs: string[], isMultiScanEnabled: boolean) => void | Promise<void>;
 
 type ProviderProps = WithCurrentUserPersonalDetailsProps & {
     iouType: IOUType;
@@ -96,7 +96,7 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
-    const navigateGlobalCreate: NavigateGlobalCreateFn = (transactionIDs, isMultiScanEnabled) => {
+    const navigateGlobalCreate: NavigateGlobalCreateFn = async (transactionIDs, isMultiScanEnabled) => {
         startScanProcessSpan(isMultiScanEnabled);
 
         // Manual's confirmation flips the shared route to TRACK once it lands on the self DM, so a later scan arrives already resolved.
@@ -151,7 +151,8 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
 
             // The workspace chat is only needed after capture, so read it once here instead of subscribing to every report
             // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
-            Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => assignDraftsToTargetReport(getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id, reports)));
+            const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+            assignDraftsToTargetReport(getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id, reports));
         } else {
             endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
             navigateToParticipantPage(iouType, transactionID, reportID);

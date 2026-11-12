@@ -284,16 +284,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         });
     };
 
-    const handleAskToUnfreezePress = () => {
+    const handleAskToUnfreezePress = async () => {
         // The workspace chat is only needed on press, so read it once here instead of subscribing to every report
         // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
-        Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => {
-            const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard, reports)?.reportID;
-            if (!cardHolderWorkspaceChatReportID) {
-                return;
-            }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(cardHolderWorkspaceChatReportID));
-        });
+        const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+        const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard, reports)?.reportID;
+        if (!cardHolderWorkspaceChatReportID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(cardHolderWorkspaceChatReportID));
     };
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
@@ -334,7 +333,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         frozenDate={currentCard?.nameValuePairs?.frozen?.date}
                         style={styles.mt8}
                         canUnfreezeCard={canUnfreezeCard}
-                        onAskToUnfreezePress={handleAskToUnfreezePress}
+                        onAskToUnfreezePress={() => {
+                            handleAskToUnfreezePress();
+                        }}
                         onUnfreezePress={handleUnfreezePress}
                         cardPreview={
                             <CardPreview

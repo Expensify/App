@@ -115,7 +115,7 @@ function IOURequestStepHours({
 
     const navigateBack = () => Navigation.goBack(isEditingConfirmation ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID) : undefined);
 
-    const saveTime = () => {
+    const saveTime = async () => {
         if (rate === undefined) {
             return;
         }
@@ -142,19 +142,17 @@ function IOURequestStepHours({
             if (explicitPolicyID) {
                 // The workspace chat is only needed on submit, so read it once here instead of subscribing to every report
                 // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
-                Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => {
-                    const policyExpenseChat = getPolicyExpenseChat(accountID, policyID, reports);
-                    if (!policyExpenseChat) {
-                        console.error(`Couldn't find policy expense chat for policyID: ${policyID}`);
-                        return;
-                    }
+                const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+                const policyExpenseChat = getPolicyExpenseChat(accountID, policyID, reports);
+                if (!policyExpenseChat) {
+                    console.error(`Couldn't find policy expense chat for policyID: ${policyID}`);
+                    return;
+                }
 
-                    setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
-                    setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
+                setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
+                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
 
-                    Navigation.setNavigationActionToMicrotaskQueue(() => navigateToConfirmationPage(iouType, transactionID, policyExpenseChat.reportID, backToReport));
-                });
-                return;
+                return Navigation.setNavigationActionToMicrotaskQueue(() => navigateToConfirmationPage(iouType, transactionID, policyExpenseChat.reportID, backToReport));
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
         }
