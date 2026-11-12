@@ -20,8 +20,6 @@ The roadmap was split into focused category pages so each one produces a tightly
 - [Integrations & Accounting](Upcoming-Integrations-And-Accounting)
 - [Expensify Card & Company Cards](Upcoming-Expensify-Card-And-Company-Cards)
 - [Payments & Reimbursements](Upcoming-Payments-And-Reimbursements)
-- [Insights & Reporting](Upcoming-Insights-And-Reporting)
-- [Login & Security](Upcoming-Login-And-Security)
 - [AI & Automation](Upcoming-AI-And-Automation)
 
 ## AgentZero Usage Notes

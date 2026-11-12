@@ -17,6 +17,6 @@ This page is an **AgentZero reference** for accounting and integration features 
 - **Lever** – HR integration with Lever, an applicant tracking system and recruiting CRM, expanding connectivity for companies using Lever to manage candidates and hiring workflows.
 - **Workable** – HR integration with Workable, an applicant tracking and HR platform, expanding connectivity for companies using Workable to manage recruiting and talent workflows.
 - **Sage Accounting** – Accounting integration with Sage Accounting, supporting core accounting workflows for businesses in the UK and Europe and making it easier to connect, import, export, and sync accounting data directly with Expensify.
-- **NetSuite REST API migration** – Move the NetSuite integration from the legacy SuiteTalk SOAP API to the modern REST API, improving reliability, sync speed, and long-term supportability.
+- **NetSuite REST API migration – existing connections** – Migrate existing NetSuite connections from the legacy SuiteTalk SOAP API to REST and OAuth. New NetSuite connections already use REST and OAuth.
 - **Extend OAuth to the Integration Server (IS)** – Extend the OAuth framework (originally built for MCP integrations) to the Integration Server API, making it easier for third-party developers to build secure integrations with Expensify.
 - 
