@@ -5,6 +5,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -39,13 +41,20 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+const mockOpenSupportTicketOrConcierge = jest.fn();
+
 jest.mock('@hooks/useCurrentUserPersonalDetails');
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+jest.mock('@hooks/useOpenSupportTicket', () => () => ({openSupportTicketOrConcierge: mockOpenSupportTicketOrConcierge}));
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportType>('@userActions/Report'),
     joinRoom: jest.fn(),
 }));
 
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
+const mockUseNetwork = jest.mocked(useNetwork);
+const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const currentUserAccountID = 1;
 
 describe('HeaderView', () => {
@@ -56,6 +65,8 @@ describe('HeaderView', () => {
         mockUseCurrentUserPersonalDetails.mockReturnValue({
             accountID: currentUserAccountID,
         });
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseResponsiveLayout.mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: false, isSmallScreenWidth: false}));
     });
 
     afterEach(async () => {
@@ -351,14 +362,16 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
+        // When the chat header renders
         renderHeader(report.reportID);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the Book a call button is shown
+        // Then the Book a call button is shown, and Talk to a human is not
         expect(screen.getByText(translateLocal('videoChatButtonAndMenu.tooltip'))).toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal('initialSettingsPage.talkToAHuman'))).not.toBeOnTheScreen();
     });
 
-    it('should display the Book a call button in the Concierge chat when an account manager is assigned', async () => {
+    it('should display Talk to a human instead of Book a call in the Concierge chat when an account manager is assigned', async () => {
         // Given the Concierge chat and an assigned account manager with a calendar link
         const report = createRegularChat(501, [currentUserAccountID]);
         await act(async () => {
@@ -368,11 +381,120 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
+        // When the chat header renders
         renderHeader(report.reportID);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the Book a call button is shown
-        expect(screen.getByText(translateLocal('videoChatButtonAndMenu.tooltip'))).toBeOnTheScreen();
+        // Then Talk to a human replaces Book a call
+        expect(screen.getByText(translateLocal('initialSettingsPage.talkToAHuman'))).toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal('videoChatButtonAndMenu.tooltip'))).not.toBeOnTheScreen();
+    });
+
+    it('should display Talk to a human in the Concierge chat for a user with no assigned support contact', async () => {
+        // Given the Concierge chat for a user with no account manager, partner manager or guide
+        const report = createRegularChat(501, [currentUserAccountID]);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
+        });
+
+        // When the chat header renders
+        renderHeader(report.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Talk to a human is still shown
+        expect(screen.getByText(translateLocal('initialSettingsPage.talkToAHuman'))).toBeOnTheScreen();
+    });
+
+    it.each([
+        [true, false],
+        [true, true],
+        [false, false],
+        [false, true],
+    ])('should show the trial button only outside Concierge (Concierge: %s, narrow: %s)', async (isConciergeChat, shouldUseNarrowLayout) => {
+        // Given an onboarding chat for a small company eligible to start a free trial
+        const policyID = 'trial-policy';
+        const report = isConciergeChat ? createRegularChat(501, [currentUserAccountID]) : createRandomReport(502, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+        mockUseResponsiveLayout.mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout, isSmallScreenWidth: shouldUseNarrowLayout}));
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, isConciergeChat ? report.reportID : '503');
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {chatReportID: report.reportID});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, type: CONST.POLICY.TYPE.CORPORATE, ownerAccountID: currentUserAccountID});
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {autoRenew: true});
+        });
+
+        // When the onboarding chat header renders
+        renderHeader(report.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Concierge keeps its two support actions without the trial button, while other onboarding chats retain it
+        expect(screen.getByText(translateLocal('getAssistancePage.registerForWebinar'))).toBeOnTheScreen();
+        const trialButton = screen.queryByText(translateLocal('subscription.billingBanner.preTrial.title'));
+        if (isConciergeChat) {
+            expect(screen.getByText(translateLocal('initialSettingsPage.talkToAHuman'))).toBeOnTheScreen();
+            expect(trialButton).not.toBeOnTheScreen();
+        } else {
+            expect(trialButton).toBeOnTheScreen();
+        }
+    });
+
+    it('should request a support ticket when Talk to a human is pressed', async () => {
+        // Given the Concierge chat
+        const report = createRegularChat(501, [currentUserAccountID]);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
+        });
+        renderHeader(report.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        // When Talk to a human is pressed
+        fireEvent.press(screen.getByText(translateLocal('initialSettingsPage.talkToAHuman')));
+
+        // Then a new support ticket is requested
+        expect(mockOpenSupportTicketOrConcierge).toHaveBeenCalledTimes(1);
+    });
+
+    it('should disable Talk to a human while offline', async () => {
+        // Given the Concierge chat while the device is offline
+        const report = createRegularChat(501, [currentUserAccountID]);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
+        });
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        renderHeader(report.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        // When Talk to a human is pressed
+        fireEvent.press(screen.getByText(translateLocal('initialSettingsPage.talkToAHuman')));
+
+        // Then no ticket is requested
+        expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
+    });
+
+    it('should not display Talk to a human outside the Concierge chat', async () => {
+        // Given a regular chat that is not the Concierge chat
+        const report = createRegularChat(502, [currentUserAccountID, otherAccountID]);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+        });
+
+        // When the chat header renders
+        renderHeader(report.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Talk to a human is not shown
+        expect(screen.queryByText(translateLocal('initialSettingsPage.talkToAHuman'))).not.toBeOnTheScreen();
     });
 
     it('should not display the Book a call button in the account manager DM when there is no calendar link', async () => {

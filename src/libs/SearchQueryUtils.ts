@@ -20,6 +20,7 @@ import type {
     SearchQueryJSON,
     SearchQueryString,
     SearchWithdrawalType,
+    SelectedTransactions,
     SyntaxFilterKey,
     UserFriendlyKey,
     UserFriendlyValue,
@@ -209,6 +210,14 @@ function isFooterTotal(value: string): value is SearchFooterTotal {
 }
 
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
+
+/** Group-bys only Insights queries use. The Search command doesn't return data for them yet (see https://github.com/Expensify/App/issues/105303) */
+const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.VIOLATION, CONST.SEARCH.GROUP_BY.PAID_BY]);
+
+function isGroupBySupportedBySearch(groupBy: string | undefined): boolean {
+    return !groupBy || !INSIGHTS_ONLY_GROUP_BYS.has(groupBy);
+}
+
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
@@ -642,6 +651,8 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
     const equalTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
     const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
     const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
+    const greaterThanOrEqualTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO}`];
+    const lessThanOrEqualTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO}`];
 
     const amountStrings = [];
 
@@ -655,6 +666,14 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
 
     if (lessThan) {
         amountStrings.push(`${filterKey}<${sanitizeSearchValue(lessThan)}`);
+    }
+
+    if (greaterThanOrEqualTo) {
+        amountStrings.push(`${filterKey}>=${sanitizeSearchValue(greaterThanOrEqualTo)}`);
+    }
+
+    if (lessThanOrEqualTo) {
+        amountStrings.push(`${filterKey}<=${sanitizeSearchValue(lessThanOrEqualTo)}`);
     }
 
     if (negatedAmount) {
@@ -2182,11 +2201,14 @@ function buildFilterFormValuesFromQuery(
             filtersForm[rangeKey] = undefined;
         }
 
-        if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
+        const amountFilterKey = AMOUNT_FILTER_KEYS.find((key: string) => key === filterKey);
+        if (amountFilterKey) {
             const negatedKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.NOT_MODIFIER}`;
             const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
             const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
             const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
+            const greaterThanOrEqualToKey = `${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO}` as const;
+            const lessThanOrEqualToKey = `${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO}` as const;
 
             const isValidAmount = (value: string) => {
                 const parsed = parseAmountFilterValue(value);
@@ -2208,6 +2230,12 @@ function buildFilterFormValuesFromQuery(
             filtersForm[greaterThanKey] =
                 filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidAmount(filter.value.toString()))?.value.toString() ??
                 filtersForm[greaterThanKey];
+            filtersForm[greaterThanOrEqualToKey] =
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[greaterThanOrEqualToKey];
+            filtersForm[lessThanOrEqualToKey] =
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[lessThanOrEqualToKey];
             filtersForm[negatedKey] =
                 filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
                 filtersForm[negatedKey];
@@ -3408,7 +3436,27 @@ function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) 
     return lastQuery;
 }
 
+function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransactions: SelectedTransactions): SearchQueryJSON | undefined {
+    const excludedEntries = Object.values(excludedTransactions);
+    if (excludedEntries.some((transaction) => !transaction.reportID)) {
+        return undefined;
+    }
+    const excludedReportIDs = [...new Set(excludedEntries.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID))];
+    if (excludedReportIDs.length === 0) {
+        return queryJSON;
+    }
+
+    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
+    flatFilters.push({
+        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+        filters: excludedReportIDs.map((reportID) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: reportID})),
+    });
+
+    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
+}
+
 export {
+    getAllMatchingReportQuery,
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
@@ -3418,6 +3466,7 @@ export {
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
     getQueryWithoutGroupBy,
+    isGroupBySupportedBySearch,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     getChangedDisplayOptionsCount,
