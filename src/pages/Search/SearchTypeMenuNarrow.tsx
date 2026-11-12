@@ -27,7 +27,15 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getValidLastQuery, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
-import {getItemBadgeText, getLastSearchQuery, getOverflowMenu, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {
+    getItemBadgeText,
+    getLastSearchQuery,
+    getOverflowMenu,
+    getSearchTypeMenuTabSentryLabel,
+    SAVED_SEARCH_FALLBACK_ICON_NAME,
+    SAVED_SEARCH_ICON_NAMES,
+    SEARCH_TYPE_MENU_ICON_NAMES,
+} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -186,7 +194,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                 tabItems.push({
                     key: item.key,
-                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB,
+                    sentryLabel: getSearchTypeMenuTabSentryLabel(item.key),
                     icon: expensifyIcons[item.icon],
                     title,
                     badgeText,
