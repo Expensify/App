@@ -198,7 +198,8 @@ describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
         expect(cards).toHaveLength(BATCH);
         expect(within(cards[0]).getByText(TestHelper.translateLocal('workspace.common.everyone'))).toBeOnTheScreen();
         expect(within(cards[1]).getByText('Member 9 User')).toBeOnTheScreen();
-        const approvalsTab = screen.getByRole(CONST.ROLE.TAB, {name: TestHelper.translateLocal('workflowsPage.addApprovalsTitle')});
+        const approvalsTabLabel = `${TestHelper.translateLocal('workflowsPage.addApprovalsTitle')}. ${TestHelper.translateLocal('common.yourReviewIsRequired')}`;
+        const approvalsTab = screen.getByRole(CONST.ROLE.TAB, {name: approvalsTabLabel});
         expect(within(approvalsTab).getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeOnTheScreen();
 
         // When searching for only a healthy workflow
@@ -206,6 +207,7 @@ describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
         await waitFor(() => expect(countWorkflowCards()).toBe(1));
 
         // Then the full-collection indicator remains visible and search still bypasses pagination
+        expect(screen.getByRole(CONST.ROLE.TAB, {name: approvalsTabLabel})).toBeOnTheScreen();
         expect(within(approvalsTab).getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeOnTheScreen();
         expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: /load .* more/i})).not.toBeOnTheScreen();
 
@@ -219,6 +221,7 @@ describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the indicator clears, the repaired workflow is no longer promoted, and Load more still reveals it
+        expect(screen.getByRole(CONST.ROLE.TAB, {name: TestHelper.translateLocal('workflowsPage.addApprovalsTitle')})).toBeOnTheScreen();
         expect(within(approvalsTab).queryByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).not.toBeOnTheScreen();
         expect(screen.queryByText('Member 9 User')).not.toBeOnTheScreen();
         fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: loadMoreLabel(11 - BATCH)}));

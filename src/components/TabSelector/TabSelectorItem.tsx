@@ -5,6 +5,7 @@ import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,6 +60,7 @@ function TabSelectorItem({
     groupAccessibilityLabel,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -75,11 +77,12 @@ function TabSelectorItem({
     // PressableWithSecondaryInteraction handles the web `contextmenu` (right-click) event directly and does not respect the
     // pressable's `disabled` prop, so gate the secondary interaction ourselves to match the primary press behavior below.
     const isPressableDisabled = !disabledAction && isDisabled;
+    const tabAccessibilityTitle = shouldShowRedDotIndicator ? `${title}. ${translate('common.yourReviewIsRequired')}` : title;
 
     const children = (
         <AnimatedPressableWithSecondaryInteraction
             ref={tabRef}
-            accessibilityLabel={getGroupItemAccessibilityLabel(title, groupAccessibilityLabel)}
+            accessibilityLabel={getGroupItemAccessibilityLabel(tabAccessibilityTitle, groupAccessibilityLabel)}
             accessibilityState={accessibilityState}
             accessibilityRole={role}
             style={[
