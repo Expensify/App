@@ -2165,6 +2165,94 @@ describe('useSearchBulkActions - export options', () => {
             // Then the selected card groups reach the backend as a `cardID:` filter on the query rather than as IDs
             expect(JSON.stringify(query)).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
         });
+
+        // Without the flag the backend drops reported rows whose policy record is missing, so a card group exports incompletely.
+        it('attaches isCardGroupedExport:true to the Reconciliation query for a scoped card-group export', async () => {
+            // Given a ticked card group whose row is in the snapshot so a cardID filter can be built for it.
+            mockTemplatesIncludingReconciliation();
+            selectCardGroup();
+            const searchResults = makeSearchResults([]);
+            Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
+            mockCurrentSearchResults = searchResults;
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')).toBeDefined();
+            });
+
+            // When the Reconciliation export runs on that selection.
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')?.onSelected?.();
+
+            await waitFor(() => {
+                expect(queueExportSearchWithTemplate).toHaveBeenCalled();
+            });
+
+            const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
+            const query: unknown = JSON.parse(parameters?.jsonQuery ?? '{}');
+
+            // Then the flag is attached and the query stays ungrouped and card-scoped.
+            expect(query).toHaveProperty('isCardGroupedExport', true);
+            expect(query).not.toHaveProperty('groupBy');
+            expect(JSON.stringify(query)).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+        });
+
+        // Select-all on a card-grouped search must carry the flag too, otherwise the whole-search export loses the same rows.
+        it('attaches isCardGroupedExport:true to the Reconciliation query for a select-all export on a card-grouped search', async () => {
+            // Given every matching item selected on the Reconciliation search.
+            mockTemplatesIncludingReconciliation();
+            selectCardGroup();
+            mockAreAllMatchingItemsSelected = true;
+            mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.RECONCILIATION;
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')).toBeDefined();
+            });
+
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')?.onSelected?.();
+
+            await waitFor(() => {
+                expect(queueExportSearchWithTemplate).toHaveBeenCalled();
+            });
+
+            const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
+            const query: unknown = JSON.parse(parameters?.jsonQuery ?? '{}');
+
+            // Then the flag is attached and groupBy has been removed.
+            expect(query).toHaveProperty('isCardGroupedExport', true);
+            expect(query).not.toHaveProperty('groupBy');
+        });
+
+        // The flag is specific to card-group eligibility and must not leak to other groupings.
+        it('does not attach isCardGroupedExport for a non-card grouped export (e.g. groupBy:category)', async () => {
+            // Given select-all on a category-grouped search.
+            mockTemplatesIncludingReconciliation();
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+            mockAreAllMatchingItemsSelected = true;
+            mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.RECONCILIATION;
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')).toBeDefined();
+            });
+
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')?.onSelected?.();
+
+            await waitFor(() => {
+                expect(queueExportSearchWithTemplate).toHaveBeenCalled();
+            });
+
+            const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
+            const query: unknown = JSON.parse(parameters?.jsonQuery ?? '{}');
+
+            // Then the flag is absent.
+            expect(query).not.toHaveProperty('isCardGroupedExport');
+            expect(query).not.toHaveProperty('groupBy');
+        });
     });
 
     it('offers both current-view CSV options on a grouped search', async () => {

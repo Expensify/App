@@ -1371,6 +1371,11 @@ const translations = {
         topViolations: 'Top violations',
         violationsBySubmitter: 'Violations by submitter',
         violationsByApprover: 'Violations by approver',
+        efficiency: 'Efficiency',
+        workflowEfficiency: 'Workflow efficiency',
+        longestToSubmit: 'Longest to submit',
+        slowestToApprove: 'Slowest to approve',
+        mostTimeToPay: 'Most time to pay',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',
@@ -1720,6 +1725,12 @@ const translations = {
             return {
                 one: (count: number) => `${formattedCount ?? count} expense`,
                 other: (count: number) => `${formattedCount ?? count} expenses`,
+            };
+        },
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} report`,
+                other: (count: number) => `${formattedCount ?? count} reports`,
             };
         },
         deleteExpense: () => ({
@@ -10409,6 +10420,25 @@ const translations = {
             return `changed the "${categoryName}" category Itemized receipts to ${newValue} (previously ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `renamed the category "${oldName}" to "${newName}"`,
+        setCategoryVisibility: (members: string, categories: string) => `set ${members} to only see ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `changed ${members} to only see ${categories}`,
+        clearedCategoryVisibility: (members: string) => `changed ${members} to see all categories`,
+        quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
+        oneCategory: (categoryName: string) => `the ${categoryName} category`,
+        someCategories: (categoryList: string) => `the ${categoryList} categories`,
+        everyone: 'everyone',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 category',
+            other: `${count} categories`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 member',
+            other: `${count} members`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Categories: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Members: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', since their only category was deleted. Update their category visibility if needed.',
+        categoryVisibilityReasonDisabled: ', since their only category was disabled. Update their category visibility if needed.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `removed the description hint "${oldValue}" from the category "${categoryName}"`;
@@ -11368,6 +11398,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violation',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Paid by',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11434,6 +11465,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violations',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payers',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',

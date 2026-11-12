@@ -1304,6 +1304,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Προβολή όλων',
         topExpenses: 'Κορυφαίες δαπάνες',
         noExpensesInRange: 'Δεν υπάρχουν δαπάνες σε αυτό το εύρος',
+        efficiency: 'Αποδοτικότητα',
+        workflowEfficiency: 'Αποδοτικότητα ροής εργασιών',
+        longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
+        slowestToApprove: 'Πιο αργοί στην έγκριση',
+        mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -2110,6 +2115,12 @@ const translations: TranslationDeepObject<typeof en> = {
         unholdWhenReadyDM: 'Αποδεσμεύστε τις δαπάνες όταν είστε έτοιμοι να τις στείλετε.',
         undeletedExpense: 'ανέκτησε αυτή τη δαπάνη',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `οι τιμές αποζημίωσης χιλιομέτρων ενημερώθηκαν για το νέο χώρο εργασίας - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} αναφορά`,
+                other: (count: number) => `${formattedCount ?? count} αναφορές`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -10316,6 +10327,25 @@ ${reportName}`,
             return `άλλαξε τις αναλυτικές αποδείξεις της κατηγορίας «${categoryName}» σε ${newValue} (προηγουμένως ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `μετονόμασε την κατηγορία «${oldName}» σε «${newName}»`,
+        setCategoryVisibility: (members: string, categories: string) => `όρισε ώστε ${members} να βλέπουν μόνο ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `άλλαξε ώστε ${members} να βλέπουν μόνο ${categories}`,
+        clearedCategoryVisibility: (members: string) => `άλλαξε τα δικαιώματα των ${members} ώστε να βλέπουν όλες τις κατηγορίες`,
+        quotedCategoryName: (categoryName: string) => `«${categoryName}»`,
+        oneCategory: (categoryName: string) => `την κατηγορία ${categoryName}`,
+        someCategories: (categoryList: string) => `τις κατηγορίες ${categoryList}`,
+        everyone: 'όλοι',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 κατηγορία',
+            other: `${count} κατηγορίες`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 μέλος',
+            other: `${count} μέλη`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Κατηγορίες: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Μέλη: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', επειδή η μοναδική τους κατηγορία διαγράφηκε. Ενημερώστε, αν χρειάζεται, την ορατότητα της κατηγορίας τους.',
+        categoryVisibilityReasonDisabled: ', καθώς η μοναδική τους κατηγορία ήταν απενεργοποιημένη. Ενημερώστε την ορατότητα της κατηγορίας τους, αν χρειάζεται.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `αφαίρεσε την υπόδειξη περιγραφής «${oldValue}» από την κατηγορία «${categoryName}»`;
@@ -11244,6 +11274,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνο',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνων',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Παράβαση',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Πληρώθηκε από',
             },
             feed: 'Ροή',
             withdrawalType: {
@@ -11310,6 +11341,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνα',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνοντες',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Παραβάσεις',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Πληρωτές',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Καμία δαπάνη ακόμη',
