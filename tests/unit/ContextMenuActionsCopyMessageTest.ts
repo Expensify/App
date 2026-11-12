@@ -341,8 +341,7 @@ describe('ContextMenuActions copy message', () => {
         const payload = createReportActionPayload(
             createMock<CopyMessagePayload['reportAction']>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                message: [{html: ''}],
-                originalMessage: {receiptAdded: true},
+                message: {receiptAdded: true},
             }),
         );
         // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Translation parameters are required by the production callback signature; this stub returns markup for one key.
@@ -360,8 +359,7 @@ describe('ContextMenuActions copy message', () => {
         const payload = createReportActionPayload(
             createMock<CopyMessagePayload['reportAction']>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME,
-                message: [{html: ''}],
-                originalMessage: {oldName: '<Team>', newName: 'Ops & Co'},
+                message: {oldName: '<Team>', newName: 'Ops & Co'},
             }),
         );
         const translateRenamedWorkspace = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => {
