@@ -1243,6 +1243,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Naleving',
         runningTotal: 'Doorlopend totaal',
+        futureExpensesNotShown: (amount: string) => `Niet weergegeven: ${amount} aan toekomstige uitgaven.`,
+        violationsTrackedFrom: (date: string) => `Overtredingen worden bijgehouden vanaf ${date}.`,
         upsellState: {
             title: 'Upgrade naar Control voor meer inzichten',
             subtitle: 'Volg trends in naleving van onkostenbeleid en markeer herhaalde overtreders.',

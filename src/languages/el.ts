@@ -1290,6 +1290,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Συμμόρφωση',
         runningTotal: 'Τρέχον σύνολο',
+        futureExpensesNotShown: (amount: string) => `Δεν εμφανίζονται: ${amount} σε μελλοντικές δαπάνες.`,
+        violationsTrackedFrom: (date: string) => `Οι παραβάσεις παρακολουθούνται από ${date}.`,
         upsellState: {
             title: 'Αναβαθμίστε σε Control για περισσότερες πληροφορίες',
             subtitle: 'Παρακολουθήστε τις τάσεις συμμόρφωσης με την πολιτική εξόδων και επισημάνετε τους επανειλημμένους παραβάτες.',
