@@ -223,7 +223,6 @@ function ApprovalWorkflowSection({
                                 helperText={getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString})}
                                 helperTextStyle={styles.workflowApprovalLimitText}
                                 shouldShowRedDotIndicator
-                                shouldReadErrorWithLabel
                                 errorTextStyle={styles.alignItemsStart}
                                 errorText={getApproverError(approver)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}

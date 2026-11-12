@@ -95,7 +95,7 @@ describe('ApprovalWorkflowSection', () => {
         expect(errorMessage?.props.style).toEqual(expect.arrayContaining([expect.objectContaining({alignItems: 'flex-start'})]));
         const approverRow = screen.UNSAFE_getAllByType(MenuItem).find((item) => item.props.errorText === 'workflowsPage.approverNotWorkspaceMember');
         expect(approverRow?.props.brickRoadIndicator).toBeUndefined();
-        expect(approverRow?.props.shouldReadErrorWithLabel).toBe(true);
+        expect(approverRow?.props.shouldBeAccessible).toBe(false);
     });
 
     it('does not show the non-member error for a regular approver', () => {
