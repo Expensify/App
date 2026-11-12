@@ -110,6 +110,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                allTransactionViolations: transactionViolations,
             });
         } else if (currentChatReport && paymentType) {
             payWithWiseQuote({

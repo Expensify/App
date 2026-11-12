@@ -34,7 +34,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import {useRoute} from '@react-navigation/native';
 import {subYears} from 'date-fns';
@@ -59,7 +58,7 @@ function PrivatePersonalDetailsPage() {
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
     const dob = privatePersonalDetails?.dob ?? '';
-    const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address | undefined;
+    const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails));
     const [street1, street2Fallback] = getStreetLines(address?.street);
     const initialStreet1 = street1 ?? '';
     const initialStreet2 = address?.street2 ?? street2Fallback ?? '';

@@ -150,10 +150,6 @@ function hasAppliedCommuterExclusion(transaction: OnyxEntry<Transaction>): boole
     return isDistanceRequest(transaction) && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
 }
 
-function shouldUseCommuterExclusionForDisplay(transaction: OnyxEntry<Transaction>, isPolicyExpenseChat: boolean): boolean {
-    return hasAppliedCommuterExclusion(transaction) && isPolicyExpenseChat;
-}
-
 function getDisplayTransactionWithoutInvalidCommuterExclusion({
     transaction,
     isPolicyExpenseChat,
@@ -1866,7 +1862,6 @@ export {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     hasAppliedCommuterExclusion,
-    shouldUseCommuterExclusionForDisplay,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,
