@@ -229,6 +229,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
                 personalPolicyID,
                 hasDeleteWorkspaceExpensifyCardsError,
                 currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                currentUserLogin: session?.email,
                 accountIDToLogin: accountIDToLogin ?? {},
             });
 

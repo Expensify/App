@@ -22,7 +22,7 @@ import {hasAccountingConnections} from './connections';
 import {getPerDiemCustomUnit, isPerDiemEligiblePolicy} from './customUnits';
 import {isTimeTrackingEnabled} from './features';
 import {canCreateExpensesOnPolicy, canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyOwner, isPolicyUser} from './permissions';
-import {isArchivedPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
+import {isArchivedOrPendingDeletePolicy, isArchivedPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 
 type WorkspaceDetails = {
     policyID: string | undefined;
@@ -283,19 +283,31 @@ function hasAnyPaidPolicy(policies: OnyxCollection<Policy> | null) {
 }
 
 /**
-/**
- * Whether the user can create a report on this workspace: a paid (Team/Corporate) or Submit workspace the user
- * has a role on. Submit workspaces are free but still support report creation, so they belong here even though
- * they're excluded from `getGroupPaidPolicies`. A policy stub (e.g. the `{id, name}` the backend sends for a
- * preferred workspace the user is not a member of) has no type or role and is rejected. Workspaces whose role for the user
- * cannot create expenses (e.g. approve-only) are excluded.
+ * Whether the workspace can be the destination for a new report or expense: the default workspace, a row in a
+ * workspace picker, or the target when moving or duplicating expenses. Create report, the default expense workspace,
+ * moving expenses, the default workspace picker, categorizing, duplicating and the next default after deleting the
+ * default all use this rule, so they pick the same workspace. Flow-specific filters (per diem, time
+ * tracking) go on top of it. `getActivePoliciesWithExpenseChat`, behind the per diem and time workspace pickers, still
+ * has its own copy.
+ *
+ * - Only group workspaces (Team, Corporate, Submit). NewDot never creates reports or default expenses on the personal one.
+ * - Archived and pending-delete workspaces are read-only, so anything created there would be stuck. This applies
+ *   even when the policy has errors, unlike `shouldShowPolicy`, which keeps those visible so the Workspaces list can
+ *   show the error. Use `shouldShowPolicy` for Workspaces-page visibility, not this.
+ * - A pending join request means the user isn't a member yet.
+ * - The user's own member entry being pending delete doesn't disqualify the workspace. While a leave is in flight the
+ *   whole workspace is pending delete, which is already excluded. After a failed leave the member entry keeps its
+ *   pending delete, but the user is still a member.
+ * - The user's role must allow creating expenses, which also rules out stubs with no role, such as the `{id, name}`
+ *   the backend sends for a preferred workspace the user doesn't belong to, and approve-only members.
+ * - Teachers Unite only supports split expenses.
  */
 function canCreateReportOnPolicy(policy: OnyxEntry<Policy>, currentUserLogin?: string): policy is Policy {
     return (
-        !!policy &&
+        !!policy?.id &&
+        isGroupPolicy(policy) &&
         !policy.isJoinRequestPending &&
-        (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
-        shouldShowPolicy(policy, false, currentUserLogin) &&
+        !isArchivedOrPendingDeletePolicy(policy) &&
         canCreateExpensesOnPolicy(policy, currentUserLogin) &&
         !isTeachersUnitePolicyID(policy.id)
     );

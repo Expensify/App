@@ -4802,6 +4802,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
                 accountIDToLogin: {},
             });
 
@@ -4904,6 +4905,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
                 accountIDToLogin: {},
             });
 
@@ -4964,6 +4966,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
                 accountIDToLogin: {},
             });
             await waitForBatchedUpdates();
@@ -5032,6 +5035,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
                 accountIDToLogin: {},
             });
             await waitForBatchedUpdates();
@@ -5047,6 +5051,73 @@ describe('actions/Policy', () => {
             });
 
             expect(activePolicyID).toBe(regularGroupPolicy.id);
+        });
+
+        it.each([
+            ['an older eligible workspace', true],
+            ['the personal workspace when no other workspace is eligible', false],
+        ])('should skip archived and Teachers Unite workspaces and fall back to %s when deleting the active policy', async (_, hasEligibleWorkspace) => {
+            // Given a default workspace to delete, newer archived and Teachers Unite workspaces, and optionally an older regular one
+            const personalPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), created: '2020-01-01 10:00:00', pendingAction: null};
+            const activePolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), created: '2021-01-01 10:00:00', role: CONST.POLICY.ROLE.USER, pendingAction: null};
+            const archivedPolicy = {
+                ...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE),
+                created: '3000-01-01 10:00:00',
+                role: CONST.POLICY.ROLE.USER,
+                pendingAction: null,
+                archivedDate: '2024-01-01',
+            };
+            const teachersUnitePolicy = {
+                ...createRandomPolicy(4, CONST.POLICY.TYPE.CORPORATE),
+                id: CONST.TEACHERS_UNITE.TEST_POLICY_ID,
+                created: '2999-01-01 10:00:00',
+                role: CONST.POLICY.ROLE.USER,
+                pendingAction: null,
+            };
+            const regularGroupPolicy = {...createRandomPolicy(5, CONST.POLICY.TYPE.TEAM), created: '2022-01-01 10:00:00', role: CONST.POLICY.ROLE.USER, pendingAction: null};
+            const policies = [personalPolicy, activePolicy, archivedPolicy, teachersUnitePolicy, ...(hasEligibleWorkspace ? [regularGroupPolicy] : [])];
+            const policyCollection = Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy]));
+
+            for (const policy of policies) {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            }
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, activePolicy.id);
+            await waitForBatchedUpdates();
+
+            // When the deletion optimistically picks the new active workspace
+            Policy.deleteWorkspace({
+                policies: policyCollection,
+                policyID: activePolicy.id,
+                personalPolicyID: personalPolicy.id,
+                activePolicyID: activePolicy.id,
+                policyName: activePolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+                    callback: (policyID) => {
+                        connection.unsubscribe();
+                        resolve(policyID);
+                    },
+                });
+            });
+
+            // Then the newer workspaces are skipped, because every create flow would refuse them as a default
+            expect(activePolicyID).toBe(hasEligibleWorkspace ? regularGroupPolicy.id : personalPolicy.id);
         });
 
         it('should clear reimbursement account errors when no admin group workspace remains after deleting a workspace', async () => {
@@ -5085,6 +5156,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
                 accountIDToLogin: {},
             });
             await waitForBatchedUpdates();
@@ -5131,6 +5203,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
                 accountIDToLogin: {},
             });
             await waitForBatchedUpdates();
@@ -5165,6 +5238,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
                 accountIDToLogin: {},
             });
             await waitForBatchedUpdates();
@@ -5208,6 +5282,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
                 accountIDToLogin: {},
             });
             await waitForBatchedUpdates();
@@ -5256,6 +5331,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
                 accountIDToLogin: {[ownerAccountID]: ownerLogin},
             });
 
@@ -5298,6 +5374,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
                 accountIDToLogin: {},
             });
 
@@ -5341,6 +5418,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserLogin: ESH_EMAIL,
                 accountIDToLogin: {},
             });
 

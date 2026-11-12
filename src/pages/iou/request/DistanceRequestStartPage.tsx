@@ -16,7 +16,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {createOnyxTabNavigator, TabScreenWithFocusTrapWrapper} from '@libs/Navigation/OnyxTabNavigator';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
-import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
+import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {getPayeeName, isExpenseReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {isDistanceRequest} from '@libs/TransactionUtils';
@@ -68,11 +68,12 @@ function DistanceRequestStartPage({
     const {participants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserLogin).filter(isGroupPolicy);
-    const onlyActivePolicy = activeGroupPolicies.length === 1 ? activeGroupPolicies.at(0) : undefined;
+    // Same rule useDefaultParticipants resolves the target with, so the single workspace here and the target agree
+    const eligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(policies ?? null, currentUserLogin);
+    const onlyEligiblePolicy = eligiblePolicies.length === 1 ? eligiblePolicies.at(0) : undefined;
     const targetParticipant = participants.find((participant) => participant.isPolicyExpenseChat);
-    const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
-    const targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
+    const isOnlyWorkspaceTheTarget = onlyEligiblePolicy?.id === targetParticipant?.policyID;
+    const targetPolicy = isOnlyWorkspaceTheTarget ? onlyEligiblePolicy : undefined;
     const reportPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
     // Manual/Odometer distance produces no mapped route, so hide those tabs whenever the resolved
     // destination restricts distance to maps and GPS:
@@ -83,10 +84,10 @@ function DistanceRequestStartPage({
     //   `[].every()` is vacuously true (which would wrongly hide the tabs for personal-only users).
     const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
     const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
-    const isEveryActiveWorkspaceRestricted = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isMapOrGPSRequired);
+    const isEveryEligibleWorkspaceRestricted = eligiblePolicies.length > 1 && eligiblePolicies.every(isMapOrGPSRequired);
     const shouldHideManualAndOdometerTabs =
         !isLoadingDefaultParticipants &&
-        (isReportScopedTarget ? isMapOrGPSRequired(reportPolicy) : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryActiveWorkspaceRestricted));
+        (isReportScopedTarget ? isMapOrGPSRequired(reportPolicy) : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryEligibleWorkspaceRestricted));
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),

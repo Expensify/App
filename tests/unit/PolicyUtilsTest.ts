@@ -22,6 +22,7 @@ import {
     canRoleCreateExpenses,
     canSendInvoice,
     canSendInvoiceFromWorkspace,
+    canCreateReportOnPolicy,
     canShowReimbursableToggleForPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
     canSubmitOwnReportOnPolicy,
@@ -1204,6 +1205,72 @@ describe('PolicyUtils', () => {
             });
         });
 
+        describe('canCreateReportOnPolicy', () => {
+            const currentUserLogin = 'member@test.com';
+            // createRandomPolicy randomizes role and pendingAction, so pin every field the rule reads
+            const buildPolicy = (overrides: Partial<Policy> = {}): Policy => ({
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: 'policy',
+                role: CONST.POLICY.ROLE.USER,
+                isJoinRequestPending: false,
+                pendingAction: null,
+                archivedDate: undefined,
+                errors: {},
+                ...overrides,
+            });
+
+            it.each<[string, Policy]>([
+                ['a Collect workspace', buildPolicy({type: CONST.POLICY.TYPE.TEAM})],
+                ['a Control workspace', buildPolicy({type: CONST.POLICY.TYPE.CORPORATE})],
+                ['a Submit workspace', buildPolicy({type: CONST.POLICY.TYPE.SUBMIT})],
+                ['a workspace created offline', buildPolicy({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})],
+                [
+                    'a workspace the user failed to leave',
+                    buildPolicy({employeeList: {[currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}}),
+                ],
+                [
+                    'a workspace whose role is set on the policy while its employee list does not list the user',
+                    buildPolicy({employeeList: {'someone@test.com': {email: 'someone@test.com', role: CONST.POLICY.ROLE.USER}}}),
+                ],
+                [
+                    'a workspace where the role is only in the employee list',
+                    buildPolicy({role: undefined, employeeList: {[currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER}}}),
+                ],
+            ])('accepts %s', (_, policy) => {
+                // Given a workspace the user is a member of and can create expenses on
+                // When we check whether it can be the destination for a new report or expense
+                // Then it can, so every flow picks it the same way
+                expect(canCreateReportOnPolicy(policy, currentUserLogin)).toBe(true);
+            });
+
+            it.each<[string, Policy | undefined]>([
+                ['no policy', undefined],
+                ['a Personal workspace', buildPolicy({type: CONST.POLICY.TYPE.PERSONAL})],
+                ['an archived workspace', buildPolicy({archivedDate: '2024-01-01'})],
+                ['a workspace pending deletion', buildPolicy({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})],
+                ['a workspace pending deletion that has errors', buildPolicy({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: {error: 'Failed'}})],
+                ['a workspace with a pending join request', buildPolicy({isJoinRequestPending: true})],
+                ['a workspace without an ID', buildPolicy({id: ''})],
+                ['a workspace where the user is approve-only', buildPolicy({role: CONST.POLICY.ROLE.APPROVE_ONLY})],
+                ['the Teachers Unite workspace', buildPolicy({id: CONST.TEACHERS_UNITE.TEST_POLICY_ID})],
+                ['a preferred workspace stub the user is not a member of', createMock<Policy>({id: 'stub', name: 'Stub'})],
+            ])('rejects %s', (_, policy) => {
+                // Given a workspace a new report or expense would be stuck on, or that the user can't create expenses on
+                // When we check whether it can be the destination for a new report or expense
+                // Then it can't, in every flow
+                expect(canCreateReportOnPolicy(policy, currentUserLogin)).toBe(false);
+            });
+
+            it('finds the role under a lowercase employee key when the login has a different case', () => {
+                // Given a workspace whose employee list is keyed by the lowercase login and has no policy-level role
+                const policy = buildPolicy({role: undefined, employeeList: {[currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER}}});
+
+                // When we check it with the same login in mixed case, as personal details can return it
+                // Then the user's role is still found, so the workspace is accepted
+                expect(canCreateReportOnPolicy(policy, 'Member@Test.com')).toBe(true);
+            });
+        });
+
         describe('getGroupPoliciesWhereReportCanBeCreated', () => {
             const currentUserLogin = 'member@test.com';
             // createRandomPolicy randomizes these, so set the fields that decide whether a workspace is shown
@@ -1232,12 +1299,17 @@ describe('PolicyUtils', () => {
                 expect(result.map((policy) => policy.id).sort()).toEqual(['corporate', 'submit', 'team']);
             });
 
-            it('excludes workspaces with a pending join request, pending deletion, or an archive date', () => {
+            it('excludes workspaces with a pending join request, pending deletion (even with errors), or an archive date', () => {
                 // Given a regular workspace next to ones the user can't create reports in yet or anymore
                 const policies: OnyxCollection<Policy> = {
                     [`${ONYXKEYS.COLLECTION.POLICY}active`]: buildPolicy('active', CONST.POLICY.TYPE.TEAM),
                     [`${ONYXKEYS.COLLECTION.POLICY}joinPending`]: {...buildPolicy('joinPending', CONST.POLICY.TYPE.TEAM), isJoinRequestPending: true},
                     [`${ONYXKEYS.COLLECTION.POLICY}deleting`]: {...buildPolicy('deleting', CONST.POLICY.TYPE.TEAM), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    [`${ONYXKEYS.COLLECTION.POLICY}deletingWithErrors`]: {
+                        ...buildPolicy('deletingWithErrors', CONST.POLICY.TYPE.TEAM),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        errors: {error: 'Failed'},
+                    },
                     [`${ONYXKEYS.COLLECTION.POLICY}archived`]: {...buildPolicy('archived', CONST.POLICY.TYPE.TEAM), archivedDate: '2024-01-01'},
                 };
 

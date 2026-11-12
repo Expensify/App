@@ -4776,6 +4776,45 @@ describe('actions/Duplicate', () => {
             expect(requestMoneyCall?.[1]?.chatReportID).toBe(ACTIVE_PEC_REPORT_ID);
         });
 
+        it('should use activePolicyExpenseChat when the source policy is archived', async () => {
+            // Given a report on a workspace the user still belongs to but that has since been archived
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Archived Workspace Report',
+                chatReportID: 'chatSource',
+            };
+            const chatSource: Report = {
+                reportID: 'chatSource',
+                policyID: SOURCE_POLICY_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}chatSource`]: chatSource,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: createCashTransaction('tx1', 'rpt1'),
+            };
+            const allPolicies = createMock<BulkDuplicateReportsParams['allPolicies']>({
+                [`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`]: {...sourcePolicy, archivedDate: '2024-01-01'},
+                [`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_ID}`]: defaultPolicy,
+            });
+
+            // When the report is duplicated
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports, allTransactions, allPolicies}));
+            await waitForBatchedUpdates();
+
+            // Then the copy goes to the default workspace, because nothing new can be created on an archived one
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            expect(requestMoneyCall?.[1]?.chatReportID).toBe(ACTIVE_PEC_REPORT_ID);
+        });
+
         it('should skip reports with no transactions available', async () => {
             const report1: Report = {
                 reportID: 'rpt1',

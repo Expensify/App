@@ -432,6 +432,7 @@ type DeleteWorkspaceActionParams = {
     localeCompare: LocaleContextProps['localeCompare'];
     hasDeleteWorkspaceExpensifyCardsError?: boolean;
     currentUserAccountID: number;
+    currentUserLogin: string | undefined;
     accountIDToLogin: Record<number, string>;
 };
 
@@ -456,6 +457,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         personalPolicyID,
         hasDeleteWorkspaceExpensifyCardsError,
         currentUserAccountID,
+        currentUserLogin,
         accountIDToLogin,
     } = params;
 
@@ -585,19 +587,13 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     ];
 
     if (policyID === activePolicyID) {
-        const mostRecentlyCreatedGroupPolicy = Object.values(policies ?? {})
-            .filter(
-                (p) =>
-                    p &&
-                    p.id !== activePolicyID &&
-                    p.type !== CONST.POLICY.TYPE.PERSONAL &&
-                    p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                    PolicyUtils.canCreateExpensesOnPolicy(p),
-            )
+        // The new default has to pass the same rule every create flow uses to pick a destination, or those flows would ignore it
+        const mostRecentlyCreatedEligiblePolicy = Object.values(policies ?? {})
+            .filter((p) => p?.id !== activePolicyID && PolicyUtils.canCreateReportOnPolicy(p, currentUserLogin))
             .sort((policyA, policyB) => localeCompare(policyB?.created ?? '', policyA?.created ?? ''))
             .at(0);
 
-        const newActivePolicyID = mostRecentlyCreatedGroupPolicy?.id ?? personalPolicyID;
+        const newActivePolicyID = mostRecentlyCreatedEligiblePolicy?.id ?? personalPolicyID;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,

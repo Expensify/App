@@ -147,6 +147,7 @@ import {
     arePaymentsEnabled,
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
+    canCreateReportOnPolicy,
     canSendInvoiceFromWorkspace,
     canSubmitOwnReportOnPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
@@ -175,7 +176,6 @@ import {
     isPaidGroupPolicyByType,
     isPendingDeletePolicy,
     isPerDiemEnabled,
-    isPolicyAccessible,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyGuest,
@@ -13314,13 +13314,9 @@ function canDuplicateExpenseIntoSourceReport({
     isASAPSubmitBetaEnabled,
     rules,
 }: CanDuplicateExpenseIntoSourceReportParams): boolean {
-    if (!isExpenseReport(sourceReport) || isSourceReportArchived || !chatReport || isChatReportArchived || !isPolicyAccessible(policy, currentUserLogin)) {
-        return false;
-    }
-
-    // Duplicating always creates a new expense, so members who cannot create expenses on the
-    // source policy, like approve-only members, copy into their default workspace instead
-    if (!canCreateExpensesOnPolicy(policy, currentUserLogin)) {
+    // Duplicating always creates a new expense, so a source workspace that can't take one (archived, approve-only
+    // members, Teachers Unite) makes the copy go to the default workspace instead
+    if (!isExpenseReport(sourceReport) || isSourceReportArchived || !chatReport || isChatReportArchived || !canCreateReportOnPolicy(policy, currentUserLogin)) {
         return false;
     }
 
