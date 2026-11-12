@@ -5354,6 +5354,45 @@ describe('actions/Policy', () => {
             const message = closedAction && 'message' in closedAction && Array.isArray(closedAction.message) ? closedAction.message.at(0) : undefined;
             expect(message?.text).toBe('');
         });
+
+        it.each(['workspace.common.deleteOpenExpensifyCardsError', 'workspace.common.deleteTravelBillingError'] as const)(
+            'should show %s on the workspace without queuing the delete when the delete is known to be blocked',
+            async (blockedErrorKey) => {
+                // Given a workspace whose delete the backend is known to reject
+                const fakePolicy = createRandomPolicy(0);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+
+                // When the delete flow passes the blocker's error key, as it does while offline
+                Policy.deleteWorkspace({
+                    policies: {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy},
+                    policyID: fakePolicy.id,
+                    personalPolicyID: undefined,
+                    activePolicyID: undefined,
+                    policyName: fakePolicy.name,
+                    lastAccessedWorkspacePolicyID: undefined,
+                    policyCardFeeds: undefined,
+                    lastSelectedFeed: undefined,
+                    lastSelectedExpensifyCardFeed: undefined,
+                    reportsToArchive: [],
+                    transactionViolations: undefined,
+                    reimbursementAccountError: undefined,
+                    lastUsedPaymentMethods: undefined,
+                    localeCompare: TestHelper.localeCompare,
+                    deleteWorkspaceBlockedErrorKey: blockedErrorKey,
+                    currentUserAccountID: ESH_ACCOUNT_ID,
+                    accountIDToLogin: {},
+                });
+                await waitForBatchedUpdates();
+
+                // Then the workspace shows that blocker's error and stays, since a queued delete would only fail on reconnect
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+                expect(Object.values(policy?.errors ?? {})).toEqual([TestHelper.translateLocal(blockedErrorKey)]);
+                expect(policy?.pendingAction).not.toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                expect(apiWriteSpy).not.toHaveBeenCalled();
+                apiWriteSpy.mockRestore();
+            },
+        );
     });
 
     describe('leaveWorkspace', () => {
