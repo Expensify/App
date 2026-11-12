@@ -115,6 +115,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',

@@ -71,11 +71,6 @@ function getExportLabelForConnection(connectionName: ConnectionName, policy?: On
     return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 }
 
-/** Whether search can offer the connection as an Exported to value. Digits waits until the exported-status cell supports it. */
-function shouldShowConnectionInExportedToFilter(connectionName: ConnectionName): boolean {
-    return connectionName !== CONST.POLICY.CONNECTIONS.NAME.DIGITS;
-}
-
 function getExportLabelsForConnection(connectionName: ConnectionName, policies: Array<OnyxEntry<Policy>>): string[] {
     const connectionPolicies = policies.filter((policy) => !!policy?.connections?.[connectionName]);
     if (connectionPolicies.length === 0) {
@@ -158,5 +153,4 @@ export {
     isStandardExportTemplateLabel,
     isIntuitEnterpriseSuiteConnection,
     isQBORefreshTokenExpiringSoon,
-    shouldShowConnectionInExportedToFilter,
 };

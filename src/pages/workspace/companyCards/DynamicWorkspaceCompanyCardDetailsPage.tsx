@@ -101,6 +101,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',

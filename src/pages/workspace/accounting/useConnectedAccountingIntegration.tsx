@@ -499,8 +499,8 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
-        // Digits only has its Import page so far. Its export and advanced pages are added in later releases, so their rows stay hidden until then.
-        const shouldShowExportAndAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+        // The Digits Advanced page is added in a later release, so its row stays hidden until then.
+        const shouldShowAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.DIGITS;
         const configurationOptions = canWriteAccounting
             ? [
                   {
@@ -514,26 +514,21 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                           : undefined,
                       pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
                   },
-                  ...(shouldShowExportAndAdvancedOptions
-                      ? [
-                            {
-                                icon: icons.Send,
-                                iconRight: icons.ArrowRight,
-                                shouldShowRightIcon: true,
-                                title: translate('workspace.accounting.export'),
-                                onPress: integrationData?.onExportPagePress,
-                                brickRoadIndicator:
-                                    areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
-                                    shouldShowReimbursableExportDestinationAccountError(policy) ||
-                                    integrationData?.externalSubscribedExportSettingsHasErrorFields
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined,
-                                pendingAction:
-                                    settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields) ??
-                                    integrationData?.externalSubscribedExportSettingsPendingAction,
-                            },
-                        ]
-                      : []),
+                  {
+                      icon: icons.Send,
+                      iconRight: icons.ArrowRight,
+                      shouldShowRightIcon: true,
+                      title: translate('workspace.accounting.export'),
+                      onPress: integrationData?.onExportPagePress,
+                      brickRoadIndicator:
+                          areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
+                          shouldShowReimbursableExportDestinationAccountError(policy) ||
+                          integrationData?.externalSubscribedExportSettingsHasErrorFields
+                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                              : undefined,
+                      pendingAction:
+                          settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields) ?? integrationData?.externalSubscribedExportSettingsPendingAction,
+                  },
                   ...(shouldShowCardReconciliationOption && integrationData?.onCardReconciliationPagePress
                       ? [
                             {
@@ -545,7 +540,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                             },
                         ]
                       : []),
-                  ...(shouldShowExportAndAdvancedOptions
+                  ...(shouldShowAdvancedOptions
                       ? [
                             {
                                 icon: icons.Gear,

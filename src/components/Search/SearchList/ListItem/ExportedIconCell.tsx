@@ -38,6 +38,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'ZohoBooksSquare',
     ]);
 
@@ -53,6 +54,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     let isExportedToRillet = false;
     let isExportedToDualEntry = false;
     let isExportedToCampfire = false;
+    let isExportedToDigits = false;
     let isExportedToZohoBooks = false;
     let isExportedToBillCom = false;
     let isExportedToZenefits = false;
@@ -86,6 +88,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             isExportedToRillet = isExportedToRillet || label === CONST.EXPORT_LABELS.RILLET;
             isExportedToDualEntry = isExportedToDualEntry || label === CONST.EXPORT_LABELS.DUALENTRY;
             isExportedToCampfire = isExportedToCampfire || label === CONST.EXPORT_LABELS.CAMPFIRE;
+            isExportedToDigits = isExportedToDigits || label === CONST.EXPORT_LABELS.DIGITS;
             isExportedToZohoBooks = isExportedToZohoBooks || label === CONST.EXPORT_LABELS.ZOHO_BOOKS;
             isExportedToIntacct = isExportedToIntacct || label === CONST.EXPORT_LABELS.INTACCT || label === CONST.EXPORT_LABELS.SAGE_INTACCT;
         }
@@ -168,6 +171,13 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             {isExportedToCampfire && (
                 <Icon
                     src={icons.CampfireSquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[integrationIconStyle]}
+                />
+            )}
+            {isExportedToDigits && (
+                <Icon
+                    src={icons.DigitsSquare}
                     size={CONST.ICON_SIZE.SMALL}
                     additionalStyles={[integrationIconStyle]}
                 />
