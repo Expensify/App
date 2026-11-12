@@ -47,7 +47,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'No se pudo cargar el gráfico. Actualiza la página e inténtalo de nuevo.',
         dismiss: 'Descartar',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionar la columna ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} píxeles`,
+        resizePanel: 'Redimensionar el panel',
+        widthInPixels: ({width}: {width: number}) => `${width} píxeles`,
         proceed: 'Proceder',
         unshare: 'Dejar de compartir',
         yes: 'Sí',
@@ -9680,6 +9681,7 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: 'Entidad',
             updateCurrencyTitle: '¿Actualizar la moneda del espacio de trabajo?',
             updateCurrencyPrompt: 'Digits actualmente solo está disponible para empresas con sede en EE. UU. que operan en USD.',
             importDescription: 'Elige qué configuraciones de Digits quieres importar.',
@@ -10952,7 +10954,9 @@ ${reportName}`,
             workspace: {active: 'Activo', archived: 'Archivado', selectAll: 'Seleccionar todo'},
             amount: {
                 lessThan: (amount) => `Menos de ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Menor o igual que ${amount ?? ''}`,
                 greaterThan: (amount) => `Más que ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Mayor o igual que ${amount ?? ''}`,
                 between: (greaterThan, lessThan) => {
                     if (greaterThan && lessThan) {
                         return `Entre ${greaterThan} y ${lessThan}`;

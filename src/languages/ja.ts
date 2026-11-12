@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'キャンセル',
         dismiss: '閉じる',
         resizeColumn: ({columnName}: {columnName: string}) => `${columnName}列のサイズを変更`,
-        columnWidth: ({width}: {width: number}) => `${width}ピクセル`,
+        resizePanel: 'パネルのサイズを変更',
+        widthInPixels: ({width}: {width: number}) => `${width}ピクセル`,
         proceed: '続行',
         unshare: '共有を解除',
         yes: 'はい',
@@ -9577,6 +9578,7 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: 'エンティティ',
             updateCurrencyTitle: 'ワークスペースの通貨を更新しますか？',
             updateCurrencyPrompt: 'Digits は現在、USD で運営されている米国拠点の企業のみご利用いただけます。',
             importDescription: 'インポートする Digits の設定を選択してください。',
@@ -10776,7 +10778,9 @@ ${reportName}`,
             completed: '完了',
             amount: {
                 lessThan: (amount?: string) => `${amount ?? ''} 未満`,
+                lessThanOrEqualTo: (amount?: string) => `${amount ?? ''} 以下`,
                 greaterThan: (amount?: string) => `${amount ?? ''}より大きい`,
+                greaterThanOrEqualTo: (amount?: string) => `${amount ?? ''} 以上`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `${greaterThan} 以上 ${lessThan} 未満`;

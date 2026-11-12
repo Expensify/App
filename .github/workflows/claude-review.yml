@@ -87,6 +87,8 @@ jobs:
       - name: Setup Node
         if: steps.skip.outputs.skip != 'true' && (steps.filter.outputs.code == 'true' || steps.filter.outputs.docs == 'true')
         uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: '["server/victory-chart-renderer", "web/cloudflare-worker"]'
 
       - name: Run Claude Code (code)
         id: code-review
@@ -101,7 +103,7 @@ jobs:
           claude_args: |
             --model claude-opus-4-8
             --effort xhigh
-            --allowedTools "Task,Read(./**),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
+            --allowedTools "Task,Glob(./**),Grep(./**),Read(./**),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
 
       - name: Post code review results
         if: steps.code-review.outcome == 'success'
@@ -123,7 +125,7 @@ jobs:
           claude_args: |
             --model claude-opus-4-8
             --effort high
-            --allowedTools "Task,Read(./**),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment" --json-schema '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}'
+            --allowedTools "Task,Glob(./**),Grep(./**),Read(./**),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment" --json-schema '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}'
 
       - name: Post docs review summary
         if: steps.docs-review.outcome == 'success'
