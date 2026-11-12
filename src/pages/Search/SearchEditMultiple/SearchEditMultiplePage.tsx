@@ -425,7 +425,7 @@ function SearchEditMultiplePage() {
     // The selectable rows open their list in a container anchored to the row. A dependent tag level needs the levels
     // above it, which only the full page walks through, and a selection without a workspace has no lists to show.
     const canOpenListInDropdown = !!policyID;
-    const selectedTaxRate = draftTransaction?.taxCode ? (getTaxName(policy, draftTransaction) ?? '') : '';
+    const selectedTaxRate = draftTransaction?.taxCode ? (getTaxName(translate, policy, draftTransaction) ?? '') : '';
     const taxRateName = policy?.taxRates?.name ?? translate('common.tax');
     const lockedAmountTitle = draftAmount !== undefined ? convertToDisplayStringWithoutCurrency(draftAmount, currency) : '';
 
