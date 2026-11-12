@@ -69,6 +69,7 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.TABLE.SORT_ORDER_FIELD}
                     name={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
                     value={translate(`search.filters.sortOrder.${pendingSorting.order}`)}
