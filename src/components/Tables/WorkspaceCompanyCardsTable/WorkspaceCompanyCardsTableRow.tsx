@@ -1,17 +1,20 @@
 import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
 import Button from '@components/Button';
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
+import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatMaskedCardName} from '@libs/CardUtils';
+import {formatMaskedCardName, getCompanyCardFeed} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -19,7 +22,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardAssignmentData} from '@src/types/onyx/Card';
 
 import {Str} from 'expensify-common';
@@ -31,7 +34,21 @@ type WorkspaceCompanyCardTableRowData = TableData &
         isCardDeleted: boolean;
         isAssigned: boolean;
         assignedCard?: Card;
+
+        /** Whether the card name can be edited inline from the table. Only assigned cards opt in. */
+        canEditName?: boolean;
+
+        /** Provided only when `canEditName` is supported. */
+        onRenameName?: (newName: string) => void;
+
         exportAccountTitle?: string;
+
+        /** Abbreviated local date of the last successful sync, or "Never" / "Updating...". Unset for unassigned cards. */
+        lastUpdatedText?: string;
+
+        /** Full local timestamp of the last successful sync, as the card details page shows it */
+        lastUpdatedTooltip?: string;
+
         onDismissError?: () => void;
     };
 
@@ -78,7 +95,6 @@ function WorkspaceCompanyCardTableRow({
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
-
     const formattedCustomCardName = customCardName ?? '';
     const formattedCardDetails = formatMaskedCardName(cardName);
     const formattedCustomCardNameSuffix = formattedCustomCardName ? ` • ${formattedCustomCardName}` : '';
@@ -118,7 +134,10 @@ function WorkspaceCompanyCardTableRow({
         return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
-    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle].filter(Boolean).join(', ');
+    // Screen readers get the full sync timestamp, which sighted users see in the tooltip.
+    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle, item.lastUpdatedTooltip ?? item.lastUpdatedText]
+        .filter(Boolean)
+        .join(', ');
 
     return (
         <Table.Row
@@ -139,7 +158,7 @@ function WorkspaceCompanyCardTableRow({
                         {isAssigned ? (
                             <AccountAvatarWithCardFeed
                                 accountID={cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                cardFeed={assignedCard?.bank as CompanyCardFeed}
+                                cardFeed={getCompanyCardFeed(assignedCard?.bank)}
                                 cardFeedIconSize={subscriptCardFeedIconSize}
                                 borderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                                 containerStyle={styles.mr0}
@@ -184,11 +203,12 @@ function WorkspaceCompanyCardTableRow({
                             style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={customCardName ?? ''}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            <InlineTextEditCell
+                                value={customCardName ?? ''}
+                                accessibilityLabel={translate('workspace.companyCards.cardName')}
+                                canEdit={!!item.canEditName && !item.isCardDeleted}
+                                onSave={item.onRenameName}
+                                displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
                     )}
@@ -207,12 +227,30 @@ function WorkspaceCompanyCardTableRow({
                         </View>
                     )}
 
+                    {!shouldUseNarrowTableLayout && (
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <Tooltip text={item.lastUpdatedTooltip}>
+                                <Text
+                                    numberOfLines={1}
+                                    // Shrinks the text to its content so the tooltip centers on the date, not the whole cell.
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre, styles.alignSelfStart, styles.mw100]}
+                                >
+                                    {item.lastUpdatedText ?? ''}
+                                </Text>
+                            </Tooltip>
+                        </View>
+                    )}
+
                     <View
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
                         {!isAssigned && canWriteCompanyCards && (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_BUTTON}
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 onPress={assignCardOrOpenDetails}

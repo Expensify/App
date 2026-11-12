@@ -11,6 +11,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 
+import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -19,7 +20,7 @@ import type {Report, ReportAction, ReportNameValuePairs, Transaction} from '@src
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -40,6 +41,9 @@ type ReportActionItemParentActionProps = {
     shouldDisplayReplyDivider: boolean;
     isFirstVisibleReportAction: boolean;
     shouldUseThreadDividerLine?: boolean;
+
+    /** Parent links of the thread and its ancestors, shared by every ancestor shown above it */
+    reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
 };
 
 function ReportActionItemParentAction({
@@ -51,6 +55,7 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    reportsParentHierarchy,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
@@ -84,7 +89,9 @@ function ReportActionItemParentAction({
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const onCloseParentReportActionItem = () => {
         navigateToConciergeChatAndDeleteReport(
@@ -93,6 +100,7 @@ function ReportActionItemParentAction({
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,
@@ -109,7 +117,7 @@ function ReportActionItemParentAction({
                 errors={
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
-                errorRowStyles={[styles.ml10, styles.mr2]}
+                errorRowStyles={styles.ml10}
                 onClose={onCloseParentReportActionItem}
             >
                 {ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction, shouldDisplayNewMarker}) => (
@@ -125,11 +133,13 @@ function ReportActionItemParentAction({
                         introSelected={introSelected}
                         isReportArchived={isReportArchived}
                         isSelfTourViewed={isSelfTourViewed}
+                        hasCompletedGuidedSetupFlow={hasCompletedGuidedSetupFlow}
                         parentReportAction={parentReportAction}
                         transactionThreadReport={transactionThreadReport}
                         isFirstVisibleReportAction={isFirstVisibleReportAction}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         linkedTransactionRouteError={linkedTransactionRouteError}
+                        reportsParentHierarchy={reportsParentHierarchy}
                     />
                 ))}
             </OfflineWithFeedback>

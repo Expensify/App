@@ -60,6 +60,20 @@ jest.mock('@src/components/ReportActionAvatars', () => {
     };
 });
 
+// FlashList keeps a row's rendered children when only its index changes, so the index-based testID can go stale after a reorder. The cell's own index prop is always current.
+type RenderedElement = ReturnType<typeof screen.queryAllByLabelText>[number];
+
+function getDisplayNamesInListOrder() {
+    const getCellIndex = (element: RenderedElement) => {
+        let current: RenderedElement | null = element;
+        while (current && typeof current.props.index !== 'number') {
+            current = current.parent;
+        }
+        return typeof current?.props.index === 'number' ? current.props.index : Number.MAX_SAFE_INTEGER;
+    };
+    return screen.queryAllByLabelText('Chat member display names').sort((first, second) => getCellIndex(first) - getCellIndex(second));
+}
+
 describe('Sidebar', () => {
     beforeAll(() => {
         Onyx.init({
@@ -361,13 +375,12 @@ describe('Sidebar', () => {
                     // Then the order of the reports should be 1 > 3 > 2
                     //                                         ^--- (1 goes to the front and pushes other two down)
                     .then(() => {
-                        const firstElement = screen.queryByTestId('DisplayNames-0');
-                        const secondElement = screen.queryByTestId('DisplayNames-1');
-                        const thirdElement = screen.queryByTestId('DisplayNames-2');
+                        const displayNames = getDisplayNamesInListOrder();
 
-                        expect(firstElement).toHaveTextContent('Email Two');
-                        expect(secondElement).toHaveTextContent('Email Four');
-                        expect(thirdElement).toHaveTextContent('Email Three');
+                        expect(displayNames).toHaveLength(3);
+                        expect(displayNames.at(0)).toHaveTextContent('Email Two');
+                        expect(displayNames.at(1)).toHaveTextContent('Email Four');
+                        expect(displayNames.at(2)).toHaveTextContent('Email Three');
                     })
             );
         });

@@ -42,6 +42,8 @@ function extractAttachments(
     const attachments: Attachment[] = [];
     const canUserPerformAction = canUserPerformWriteAction(report, isReportArchived);
     let currentLink = '';
+    // A video without data-name waits for its inner text, which server-rendered <video> tags use for the original file name
+    let videoAwaitingFileName: Attachment | undefined;
 
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
@@ -51,17 +53,19 @@ function extractAttachments(
             if (name === 'video') {
                 const source = tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
 
-                const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${source}`);
-                attachments.unshift({
+                const originalFileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE];
+                const videoAttachment: Attachment = {
                     reportActionID: attribs['data-id'],
                     attachmentID: attribs[CONST.ATTACHMENT_ID_ATTRIBUTE],
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
-                    file: {name: fileName},
+                    file: {name: originalFileName || getFileName(`${source}`)},
                     duration: Number(attribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]),
                     isReceipt: false,
                     hasBeenFlagged: attribs['data-flagged'] === 'true',
-                });
+                };
+                attachments.unshift(videoAttachment);
+                videoAwaitingFileName = originalFileName ? undefined : videoAttachment;
                 return;
             }
 
@@ -98,7 +102,22 @@ function extractAttachments(
                 });
             }
         },
+        ontext: (text) => {
+            const innerText = text.trim();
+            if (!videoAwaitingFileName || !innerText) {
+                return;
+            }
+
+            const videoIndex = attachments.indexOf(videoAwaitingFileName);
+            attachments[videoIndex] = {...videoAwaitingFileName, file: {...videoAwaitingFileName.file, name: innerText}};
+            videoAwaitingFileName = undefined;
+        },
         onclosetag: (name) => {
+            if (name === 'video') {
+                videoAwaitingFileName = undefined;
+                return;
+            }
+
             if (name !== 'a' || !currentLink) {
                 return;
             }

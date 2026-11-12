@@ -33,6 +33,9 @@ const mockRNFS: {
     readDir: jest.Mock;
 } = jest.requireMock('react-native-fs');
 
+// Jest resolves the module to its iOS implementation, so the no-op used on other platforms is loaded by its full file name
+const removeStaleExportStagingDirShim = jest.requireActual<{default: () => Promise<void>}>('@libs/migrations/MoveFilesOutOfDocuments/removeStaleExportStagingDir/index.ts').default;
+
 const OLD_ATTACHMENT_DIR = '/mock/documents/attachments';
 const NEW_ATTACHMENT_DIR = '/mock/caches/attachments';
 const STALE_ONYX_DUMP = `/mock/documents/${CONST.DEFAULT_ONYX_DUMP_FILE_NAME}`;
@@ -155,6 +158,17 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
         await MoveFilesOutOfDocuments();
 
         expect(mockRNFS.unlink).toHaveBeenCalledWith(OLD_EXPORT_STAGING_DIR);
+    });
+
+    it('keeps the Android share staging directory, which uses the same path as the old iOS export staging directory', async () => {
+        // Given an Android device with a file staged by the share intent handler, which lives at the same path the iOS export staging folder used
+        mockRNFS.exists.mockImplementation((existsPath: string) => Promise.resolve(existsPath === OLD_EXPORT_STAGING_DIR));
+
+        // When the export staging cleanup runs on app launch with the non-iOS implementation, possibly before the share screen has read the staged file
+        await removeStaleExportStagingDirShim();
+
+        // Then the directory is kept, because deleting it would lose the file the user is sharing into the app
+        expect(mockRNFS.unlink).not.toHaveBeenCalledWith(OLD_EXPORT_STAGING_DIR);
     });
 
     it('does not block startup when the cleanup fails', async () => {

@@ -58,6 +58,10 @@ const darkTheme = {
     signInSidebar: colors.green800,
     sidebar: colors.productDark100,
     sidebarHover: colors.productDark300,
+    floatingTabBarSelectedBG: 'rgba(26,61,50,0.50)',
+    // selectedOptionBG (green700) at 40%
+    androidTabBarActiveIndicatorBG: 'rgba(8,82,57,0.40)',
+    androidTabBarShadow: '0px -4px 12px 0px rgba(2,18,4,0.24)',
     heading: colors.productDark900,
     textLight: colors.productDark900,
     textDark: colors.productDark100,
@@ -95,8 +99,12 @@ const darkTheme = {
     badgeDangerBG: colors.tangerine700,
     badgeSuccessText: colors.green200,
     badgeDangerText: colors.tangerine200,
+    badgeInfoBG: colors.blue700,
+    badgeInfoText: colors.blue200,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
+    badgeOfferBG: colors.pink700,
+    badgeOfferText: colors.pink200,
     bordersBold: colors.productDark400,
     buttonIcon: colors.productDark700,
     mentionText: colors.blue100,
@@ -203,6 +211,10 @@ const darkTheme = {
         unreported: {
             backgroundColor: colors.productDark400,
             textColor: colors.productDark900,
+        },
+        canceled: {
+            backgroundColor: colors.yellow700,
+            textColor: colors.yellow200,
         },
     },
 

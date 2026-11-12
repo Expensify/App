@@ -2,7 +2,7 @@ import ListFilterContent from '@components/Search/FilterComponents/ListFilterCon
 import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
 
 import {getFilterFormValues} from '@libs/SearchQueryUtils';
-import {getFilterNegatableValue} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, getFilterNegatableValue} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
@@ -36,7 +36,7 @@ function ListPopup({baseFilterKey, isDefault, values, label, updateFilterForm, c
             label={label}
             onApply={applyChanges}
             shouldShowActionButtons={!isDefault || !!value?.length}
-            applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
+            applySentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
         >
             <ListFilterContent
                 baseFilterKey={baseFilterKey}

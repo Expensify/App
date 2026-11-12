@@ -12,11 +12,14 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
+import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import type {StartWithLoading} from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
@@ -27,6 +30,7 @@ import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPoli
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
     getAttendeesListDisplayString,
     getTagArrayFromName,
@@ -43,6 +47,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
+import type {GestureResponderEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useState} from 'react';
@@ -60,7 +65,7 @@ import {
 } from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -80,6 +85,7 @@ function SearchEditMultiplePage() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allPolicyTagsLoadingStates] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [personalDetailsList] = usePersonalDetailsByIDs(
@@ -171,6 +177,9 @@ function SearchEditMultiplePage() {
     const areTagsEnabled = areSelectedTransactionsExpenses && !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
     const areAttendeesEnabled = areSelectedTransactionsExpenses && isAttendeeTrackingEnabledForSelection;
 
+    useLoadPolicyCategories(policy?.areCategoriesEnabled ? policyID : undefined);
+    useLoadPolicyTags(policy?.areTagsEnabled ? policyID : undefined);
+
     useEffect(() => {
         return () => {
             clearBulkEditDraftTransaction();
@@ -179,12 +188,10 @@ function SearchEditMultiplePage() {
 
     const [isSaving, setIsSaving] = useState(false);
 
-    const commit = (changes: TransactionChanges) => {
+    const commit = (changes: TransactionChanges, startWithLoading?: StartWithLoading) => {
         setIsSaving(true);
 
-        // Defer the bulk edit loop so the loading spinner has a chance to paint
-        // before the synchronous Onyx writes block the JS thread.
-        requestAnimationFrame(() => {
+        const applyChanges = () => {
             updateMultipleMoneyRequests({
                 isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionIDs,
@@ -196,6 +203,7 @@ function SearchEditMultiplePage() {
                 reportActions: mergedReportActions,
                 policyCategories: allPolicyCategories,
                 policyTags: allPolicyTags,
+                policyTagsLoadingStates: allPolicyTagsLoadingStates,
                 violations: allTransactionViolations,
                 reportNameValuePairs,
                 hash: currentSearchHash,
@@ -214,10 +222,16 @@ function SearchEditMultiplePage() {
             clearSelectedTransactions();
 
             Navigation.dismissToPreviousRHP();
-        });
+        };
+
+        if (!startWithLoading) {
+            applyChanges();
+            return;
+        }
+        return startWithLoading(applyChanges);
     };
 
-    const save = () => {
+    const save = (event?: GestureResponderEvent | KeyboardEvent, startWithLoading?: StartWithLoading) => {
         if (!draftTransaction || isSaving) {
             return;
         }
@@ -269,12 +283,12 @@ function SearchEditMultiplePage() {
                 if (action !== ModalActions.CONFIRM) {
                     return;
                 }
-                commit(changes);
+                commit(changes, startWithLoading);
             });
             return;
         }
 
-        commit(changes);
+        commit(changes, startWithLoading);
     };
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -306,23 +320,27 @@ function SearchEditMultiplePage() {
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.ph5, styles.mb5, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.AMOUNT_FIELD}
                         name={translate('iou.amount')}
                         value={draftTransaction?.amount !== undefined ? convertToDisplayStringWithoutCurrency(draftTransaction.amount, currency) : ''}
                         onPress={isAmountDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP)}
                         isDisabled={isAmountDisabled}
                     />
                     <MenuItemFieldHTML
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.DESCRIPTION_FIELD}
                         name={translate('common.description')}
                         value={description ? Parser.replace(description) : undefined}
                         onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP)}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.MERCHANT_FIELD}
                         name={translate('common.merchant')}
                         value={draftTransaction?.merchant}
                         onPress={hasPartiallyEditableMerchantTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_MERCHANT_RHP)}
                         isDisabled={hasPartiallyEditableMerchantTransaction}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.DATE_FIELD}
                         name={translate('common.date')}
                         value={draftTransaction?.created}
                         onPress={hasPartiallyEditableDateTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DATE_RHP)}
@@ -330,9 +348,13 @@ function SearchEditMultiplePage() {
                     />
                     {areCategoriesEnabled && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.CATEGORY_FIELD}
                             name={translate('common.category')}
                             value={draftTransaction?.category}
-                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP)}
+                            onPress={() => {
+                                startOpenCategoryPickerSpan();
+                                Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP);
+                            }}
                         />
                     )}
                     {areTagsEnabled &&
@@ -343,6 +365,7 @@ function SearchEditMultiplePage() {
                             const tagName = tagsArray.at(tagListIndex) ?? '';
                             return (
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAG_FIELD}
                                     key={tagList.name}
                                     name={tagList.name || translate('common.tag')}
                                     value={tagName ? getCleanedTagName(tagName) : ''}
@@ -352,14 +375,16 @@ function SearchEditMultiplePage() {
                         })}
                     {isTaxTrackingEnabled && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAX_FIELD}
                             name={policy?.taxRates?.name ?? translate('common.tax')}
-                            value={draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : ''}
+                            value={draftTransaction?.taxCode ? getTaxName(translate, policy, draftTransaction) : ''}
                             onPress={isTaxDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
                             isDisabled={isTaxDisabled}
                         />
                     )}
                     {areSelectedTransactionsBillable && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BILLABLE_FIELD}
                             name={translate('common.billable')}
                             value={getBooleanTitle(draftTransaction?.billable)}
                             onPress={isBillableDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_BILLABLE_RHP)}
@@ -368,6 +393,7 @@ function SearchEditMultiplePage() {
                     )}
                     {areSelectedTransactionsReimbursable && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.REIMBURSABLE_FIELD}
                             name={translate('common.reimbursable')}
                             value={getBooleanTitle(draftTransaction?.reimbursable)}
                             onPress={hasPartiallyEditableReimbursableTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP)}
@@ -376,14 +402,16 @@ function SearchEditMultiplePage() {
                     )}
                     {areAttendeesEnabled && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.ATTENDEES_FIELD}
                             name={translate('iou.attendees')}
-                            value={draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, localeCompare) : ''}
+                            value={draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, formatPhoneNumber, localeCompare) : ''}
                             onPress={isAttendeesDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP)}
                             isDisabled={isAttendeesDisabled}
                         />
                     )}
                 </ScrollView>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.SAVE_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={save}

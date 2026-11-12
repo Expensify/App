@@ -13,10 +13,9 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateExpensifyCardTitle} from '@libs/actions/Card';
-import {filterInactiveCardsForWorkspace} from '@libs/CardUtils';
-import {addErrorMessage} from '@libs/ErrorUtils';
+import {filterInactiveCardsForWorkspace, getCardNameError, getCardNameErrorMessage} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
+import StringUtils from '@libs/StringUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -29,7 +28,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type DynamicExpensifyCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_NAME>;
 
@@ -45,23 +44,23 @@ function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
     const card = cardsList?.[cardID];
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath, {compareParams: false});
-    }, [backPath]);
+    };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
-        updateExpensifyCardTitle(defaultFundID, Number(cardID), values[INPUT_IDS.NAME], card?.nameValuePairs?.cardTitle);
+        updateExpensifyCardTitle(defaultFundID, Number(cardID), StringUtils.sanitizeName(values[INPUT_IDS.NAME]), card?.nameValuePairs?.cardTitle);
         goBack();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
-        if (values.name) {
-            const {isValid, byteLength} = isValidInputLength(values.name, CONST.STANDARD_LENGTH_LIMIT);
-            if (!isValid) {
-                addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
-            }
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> = {};
+        const error = getCardNameError(values.name);
+
+        if (error) {
+            errors[INPUT_IDS.NAME] = getCardNameErrorMessage(translate, error, values.name);
         }
+
         return errors;
     };
 

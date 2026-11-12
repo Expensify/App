@@ -1,0 +1,78 @@
+diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/web/LoadSkiaWeb.js b/node_modules/@shopify/react-native-skia/lib/commonjs/web/LoadSkiaWeb.js
+index 571eca9..061b15c 100644
+--- a/node_modules/@shopify/react-native-skia/lib/commonjs/web/LoadSkiaWeb.js
++++ b/node_modules/@shopify/react-native-skia/lib/commonjs/web/LoadSkiaWeb.js
+@@ -10,12 +10,33 @@ function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e
+ // @ts-ignore
+ 
+ let ckSharedPromise;
++
++// The glue (`canvaskit.js`) and the binary (`canvaskit.wasm`) are only compatible within one canvaskit-wasm
++// release. When they come from different releases the binary can still link, but the glue then reads the
++// exports under stale names and the embind constructors are never registered: `CanvasKitInit` resolves with
++// an object that has none of its classes, and `Skia.web.ts` would happily wrap it until the first draw throws
++// `PictureRecorder is not a constructor` from a worklet, out of reach of any React error boundary.
++// Check a couple of embind classes here so the mismatch surfaces at load time instead.
++// See patches/@shopify/react-native-skia and https://github.com/Expensify/App/issues/102042.
++const isUsableCanvasKit = CanvasKit => typeof CanvasKit === "object" && CanvasKit !== null && typeof CanvasKit.PictureRecorder === "function" && typeof CanvasKit.Paint === "function";
+ const LoadSkiaWeb = async opts => {
+   if (global.CanvasKit !== undefined) {
+     return;
+   }
+   ckSharedPromise = ckSharedPromise !== null && ckSharedPromise !== void 0 ? ckSharedPromise : (0, _canvaskit.default)(opts);
+-  const CanvasKit = await ckSharedPromise;
++  let CanvasKit;
++  try {
++    CanvasKit = await ckSharedPromise;
++  } catch (error) {
++    // Don't cache the rejection: a later mount (different network conditions, or a reload of a stale
++    // cached binary) should get a fresh attempt instead of re-throwing the first failure forever.
++    ckSharedPromise = undefined;
++    throw error;
++  }
++  if (!isUsableCanvasKit(CanvasKit)) {
++    ckSharedPromise = undefined;
++    throw new Error("CanvasKit initialized without its bindings; canvaskit.js and canvaskit.wasm are probably from different versions");
++  }
+   // The CanvasKit API is stored on the global object and used
+   // to create the JsiSKApi in the Skia.web.ts file.
+   global.CanvasKit = CanvasKit;
+diff --git a/node_modules/@shopify/react-native-skia/lib/module/web/LoadSkiaWeb.js b/node_modules/@shopify/react-native-skia/lib/module/web/LoadSkiaWeb.js
+index cb11667..2f5b666 100644
+--- a/node_modules/@shopify/react-native-skia/lib/module/web/LoadSkiaWeb.js
++++ b/node_modules/@shopify/react-native-skia/lib/module/web/LoadSkiaWeb.js
+@@ -2,12 +2,33 @@
+ // @ts-ignore
+ import CanvasKitInit from "canvaskit-wasm/bin/full/canvaskit";
+ let ckSharedPromise;
++
++// The glue (`canvaskit.js`) and the binary (`canvaskit.wasm`) are only compatible within one canvaskit-wasm
++// release. When they come from different releases the binary can still link, but the glue then reads the
++// exports under stale names and the embind constructors are never registered: `CanvasKitInit` resolves with
++// an object that has none of its classes, and `Skia.web.ts` would happily wrap it until the first draw throws
++// `PictureRecorder is not a constructor` from a worklet, out of reach of any React error boundary.
++// Check a couple of embind classes here so the mismatch surfaces at load time instead.
++// See patches/@shopify/react-native-skia and https://github.com/Expensify/App/issues/102042.
++const isUsableCanvasKit = CanvasKit => typeof CanvasKit === "object" && CanvasKit !== null && typeof CanvasKit.PictureRecorder === "function" && typeof CanvasKit.Paint === "function";
+ export const LoadSkiaWeb = async opts => {
+   if (global.CanvasKit !== undefined) {
+     return;
+   }
+   ckSharedPromise = ckSharedPromise !== null && ckSharedPromise !== void 0 ? ckSharedPromise : CanvasKitInit(opts);
+-  const CanvasKit = await ckSharedPromise;
++  let CanvasKit;
++  try {
++    CanvasKit = await ckSharedPromise;
++  } catch (error) {
++    // Don't cache the rejection: a later mount (different network conditions, or a reload of a stale
++    // cached binary) should get a fresh attempt instead of re-throwing the first failure forever.
++    ckSharedPromise = undefined;
++    throw error;
++  }
++  if (!isUsableCanvasKit(CanvasKit)) {
++    ckSharedPromise = undefined;
++    throw new Error("CanvasKit initialized without its bindings; canvaskit.js and canvaskit.wasm are probably from different versions");
++  }
+   // The CanvasKit API is stored on the global object and used
+   // to create the JsiSKApi in the Skia.web.ts file.
+   global.CanvasKit = CanvasKit;

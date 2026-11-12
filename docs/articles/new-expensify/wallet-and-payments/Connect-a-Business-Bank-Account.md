@@ -25,16 +25,17 @@ To connect a business bank account, the Workspace must have Workflows enabled. [
 
 ## How to add a new US business bank account in Wallet
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account > Wallet**. 
-2. Click **Add bank account**.
-3. Select **Make payments**.
-4. Choose the country where your bank is located.
-5. Select **Log into your bank** (preferred) or **Connect manually**.
-6. Complete the identity verification, company details, and Beneficial Owner steps described below.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Click **Add bank account**.
+4. Select **Make payments**.
+5. Choose the country where your bank is located.
+6. Select **Log into your bank** (preferred) or **Connect manually**.
+7. Complete the identity verification, company details, and Beneficial Owner steps described below.
 
 <!-- SCREENSHOT:
 Suggestion: Wallet page showing Add bank account button and the Make payments option
-Location: After step 3
+Location: After step 4
 Purpose: Shows the new Wallet entry point for business bank accounts
 -->
 
@@ -118,12 +119,20 @@ After you submit your details:
 
 Once connected, your business bank account appears in **Account > Wallet**. If you have both personal and business bank accounts, Wallet separates them into **Personal bank accounts** and **Business bank accounts** sections.
 
-Every bank account shows a status badge. A finished account shows **Active**, while an account you never finished setting up shows **Incomplete** along with the message **Finish adding bank account**. Click **Finish** to resume setup from where you left off. [Learn what each bank account connection status means](/articles/new-expensify/wallet-and-payments/Check-Bank-Account-and-Card-Connection-Status).
+Every bank account shows a status badge. A finished account shows **Active**. An account that still needs your attention shows a badge that tells you what is left to do:
+
+- **Incomplete** with a **Finish adding bank account** message and a **Finish** action means setup was not submitted. Click **Finish** to resume setup from where you left off.
+- **Pending** with a **Please confirm test transactions** message and a **Confirm** action means the account was submitted and is waiting on test transactions. Click the account row to open **Validate your bank account**. If **Continue setup** and **Start over** appear first, click **Continue setup** to reach it. Learn how to [validate a business bank account](/articles/new-expensify/wallet-and-payments/Validate-a-Business-Bank-Account).
+- **Verifying** means Expensify is reviewing your documentation and no action is needed from you.
+- **Locked** means the account requires attention before it can be used. Learn how to [unlock a business bank account](/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account).
+- **Active** with a **Connect to Plaid for a more accurate Expensify Card limit** or **Fix your Plaid connection for a more accurate Expensify Card limit** message and a **Connect**/**Fix** action means the account isn't connected through Plaid or the account's Plaid connection is broken. Select **Connect**/**Fix**, log into your bank through Plaid, and choose the matching bank account.
+
+[Learn what each bank account connection status means](/articles/new-expensify/wallet-and-payments/Check-Bank-Account-and-Card-Connection-Status).
 
 <!-- SCREENSHOT:
-Suggestion: Wallet page showing separate Personal and Business bank account sections, with an Incomplete badge and the Finish adding bank account message on a partially set-up account
-Location: After the paragraph
-Purpose: Shows the new Wallet layout with separated sections and status badges
+Suggestion: Wallet page showing separate Personal and Business bank account sections, with an Incomplete badge on one account and a Pending badge on another
+Location: After the badge list
+Purpose: Distinguishes the Incomplete and Pending badges, which lead to different screens and are easy to confuse when deciding whether setup still needs to be finished
 -->
 
 ---

@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {hasReportBeenRejectedToSubmitter} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
@@ -25,7 +26,6 @@ import {View} from 'react-native';
 import {useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 import ReportPreviewActionButton from './ReportPreviewActionButton';
 import ReportPreviewHeader from './ReportPreviewHeader';
-import ReportPreviewHoldMenu from './ReportPreviewHoldMenu';
 import ReportPreviewTotal from './ReportPreviewTotal';
 import TransactionReportCarousel from './TransactionReportCarousel';
 
@@ -54,7 +54,7 @@ type MoneyRequestReportPreviewBodyProps = ForwardedFSClassProps & {
 
 /**
  * The layout body of the money request report preview: the pressable card that composes the header, carousel, action
- * button + total, and the hold menu. It owns no data — everything comes from the context slices via `useX()` hooks,
+ * button and total. It owns no data — everything comes from the context slices via `useX()` hooks,
  * except the pure layout wiring passed as props.
  */
 function MoneyRequestReportPreviewBody({
@@ -79,7 +79,7 @@ function MoneyRequestReportPreviewBody({
     const {isTransitionPending, isScanning, reportPreviewStyles} = useReportPreviewUIState();
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const isRejectedReport = iouReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && iouReport?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
+    const isRejectedReport = hasReportBeenRejectedToSubmitter(iouReport);
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
 
     return (
@@ -151,7 +151,6 @@ function MoneyRequestReportPreviewBody({
                         </View>
                     </PressableWithoutFeedback>
                 </View>
-                <ReportPreviewHoldMenu />
             </OfflineWithFeedback>
         </View>
     );

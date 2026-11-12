@@ -26,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type DynamicReceiptViewProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_RECEIPT_VIEW>;
 
@@ -79,11 +79,11 @@ function DynamicReceiptView({route}: DynamicReceiptViewProps) {
         Navigation.goBack(undefined, {afterTransition: handleDeleteReceipt});
     };
 
-    const handleGoBack = useCallback(() => {
+    const handleGoBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const handleDeleteReceiptPress = useCallback(async () => {
+    const handleDeleteReceiptPress = async () => {
         const result = await showConfirmModal({
             title: translate('receipt.deleteReceipt'),
             prompt: translate('receipt.deleteConfirmation'),
@@ -95,7 +95,7 @@ function DynamicReceiptView({route}: DynamicReceiptViewProps) {
             return;
         }
         deleteReceipt();
-    }, [showConfirmModal, translate, deleteReceipt]);
+    };
 
     return (
         <ScreenWrapper

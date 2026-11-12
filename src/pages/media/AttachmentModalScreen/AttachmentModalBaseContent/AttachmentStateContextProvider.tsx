@@ -1,6 +1,6 @@
 import type {AttachmentSource} from '@components/Attachments/types';
 
-import React, {createContext, useCallback, useMemo, useState} from 'react';
+import React, {createContext, useState} from 'react';
 
 function convertSourceToString(source: AttachmentSource) {
     if (typeof source === 'string' || typeof source === 'number') {
@@ -33,7 +33,7 @@ type Props = {
 
 function AttachmentStateContextProvider({children}: Props) {
     const [attachmentLoaded, setAttachmentLoadedState] = useState<Record<string, boolean>>({});
-    const setAttachmentLoaded = useCallback((key: AttachmentSource, state = true) => {
+    const setAttachmentLoaded = (key: AttachmentSource, state = true) => {
         const url = convertSourceToString(key);
         if (!url) {
             return;
@@ -42,14 +42,14 @@ function AttachmentStateContextProvider({children}: Props) {
             ...prevState,
             [url]: state,
         }));
-    }, []);
+    };
 
-    const clearAttachmentLoaded = useCallback(() => {
+    const clearAttachmentLoaded = () => {
         setAttachmentLoadedState({});
-    }, []);
+    };
 
-    const isAttachmentLoaded = useCallback((key: AttachmentSource) => attachmentLoaded?.[convertSourceToString(key)] === true, [attachmentLoaded]);
-    const value = useMemo(() => ({setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded}), [setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded]);
+    const isAttachmentLoaded = (key: AttachmentSource) => attachmentLoaded?.[convertSourceToString(key)] === true;
+    const value = {setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded};
     return <AttachmentStateContext.Provider value={value}>{children}</AttachmentStateContext.Provider>;
 }
 

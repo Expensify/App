@@ -105,6 +105,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
             <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt6, styles.alignSelfStretch]}>
                 <View style={equalButtonWrapperStyles}>
                     <Button
+                        sentryLabel={canUnfreezeCard ? CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.UNFREEZE : CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.ASK_TO_UNFREEZE}
                         onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
                         isDisabled={canUnfreezeCard && isOffline}
                         innerStyles={equalButtonInnerStyles}

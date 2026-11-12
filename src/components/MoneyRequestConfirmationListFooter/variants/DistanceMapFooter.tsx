@@ -52,6 +52,7 @@ function DistanceMapFooter({
                         amountDisplay={amountDisplay}
                         distanceData={distanceData}
                         isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                        descriptionHint={requiredFlags.descriptionHint}
                         errorState={errorState}
                     />
                 </ConfirmationFieldList>
