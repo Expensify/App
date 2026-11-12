@@ -4,7 +4,7 @@
  * The FlatList generic is phantom under the Strict API: VirtualizedListProps is not generic there (`Item = any`),
  * so `T` is ignored and `viewableItems[].item` widens from `unknown` to `any` after the flip.
  */
-import type {BackHandler, FlatListProps, TextInputProps} from 'react-native';
+import type {BackHandler, FlatListProps, ImageRequireSource, ImageURISource, TextInputProps} from 'react-native';
 
 type ViewableItemsChanged = NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>;
 
@@ -19,4 +19,10 @@ type TextInputScrollEvent = Parameters<NonNullable<TextInputProps['onScroll']>>[
 /** Only reachable through `react-native/Libraries/Utilities/BackHandler`, which the Strict API blocks */
 type HardwareBackPressEvent = Parameters<Parameters<typeof BackHandler.addEventListener>[1]>[0];
 
-export type {CellRendererProps, HardwareBackPressEvent, TextInputScrollEvent, ViewabilityConfig, ViewableItemsChanged, ViewToken};
+/**
+ * One image, as `ImageSourcePropType` minus its list of sources. The Strict API types that list as readonly, which expo-image's
+ * `source` prop does not accept, and an imported or icon image is never a list anyway.
+ */
+type SingleImageSource = ImageURISource | ImageRequireSource;
+
+export type {CellRendererProps, HardwareBackPressEvent, SingleImageSource, TextInputScrollEvent, ViewabilityConfig, ViewableItemsChanged, ViewToken};

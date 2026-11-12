@@ -22,7 +22,10 @@ function addBackgroundTaskListener() {
     if (subscription) {
         subscription.remove();
     }
-    subscription = eventEmitter.addListener('onBackgroundTaskExecution', onBackgroundTaskExecution);
+    // The native module sends `{taskName}`, but `NativeEventEmitter` can't say so on both React Native versions we support: it
+    // takes no event map on 0.86 and types every listener argument as `Object` under the Strict TypeScript API.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    subscription = eventEmitter.addListener('onBackgroundTaskExecution', onBackgroundTaskExecution as (event: unknown) => void);
 }
 
 const TaskManager = {

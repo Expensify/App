@@ -11,7 +11,8 @@ import shouldReportActivity from './shouldReportActivity';
  * @returns callback to unsubscribe
  */
 function addBecameActiveListener(callback: () => void): () => void {
-    let previousAppState: AppStateStatus = AppState.currentState ?? CONST.APP_STATE.ACTIVE;
+    // A plain string, because the Strict TypeScript API types `AppState.currentState` as `string` rather than `AppStateStatus`.
+    let previousAppState: string = AppState.currentState ?? CONST.APP_STATE.ACTIVE;
 
     function appStateChangeCallback(state: AppStateStatus) {
         if (shouldReportActivity && (previousAppState === CONST.APP_STATE.INACTIVE || previousAppState === CONST.APP_STATE.BACKGROUND) && state === CONST.APP_STATE.ACTIVE) {

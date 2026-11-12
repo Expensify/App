@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
+import type {ShareActionContent} from '@libs/ShareActionHandlerModule';
 
 import {close as closeModal} from '@userActions/Modal';
 import Tab from '@userActions/Tab';
@@ -96,7 +97,7 @@ function ShareRootPage() {
     }, [errorTitle, errorMessage]);
 
     const handleProcessFiles = () => {
-        ShareActionHandler.processFiles((processedFiles) => {
+        ShareActionHandler.processFiles((processedFiles: ShareActionContent[] | string) => {
             const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
             if (errorTitle) {
                 return;
