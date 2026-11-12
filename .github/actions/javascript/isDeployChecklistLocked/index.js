@@ -53358,29 +53358,29 @@ function parseChecklistSection(issueBody, sectionRegex, itemRegex, urlTransform)
     return {
       url: urlTransform ? urlTransform(rawUrl) : rawUrl,
       number: Number.parseInt(match[3], 10),
-      isChecked: match[1] === "x"
+      isChecked: match[1].toLowerCase() === "x"
     };
   });
   return items.sort((a, b) => a.number - b.number);
 }
 function getDeployChecklistPRList(issue2) {
-  const result = parseChecklistSection(issue2.body, /pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/, new RegExp(`- \\[([ x])] (${CONST_default.PULL_REQUEST_REGEX.source})`, "g"));
+  const result = parseChecklistSection(issue2.body, /pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/, new RegExp(`- \\[([ xX])] (${CONST_default.PULL_REQUEST_REGEX.source})`, "g"));
   if (result.length === 0) {
     console.log("Hmmm...The open deploy checklist does not list any pull requests, continuing...");
   }
   return result;
 }
 function getDeployChecklistPRListMobileExpensify(issue2) {
-  return parseChecklistSection(issue2.body, /Mobile-Expensify PRs:\*\*\r?\n((?:-.*\r?\n)+)/, new RegExp(`- \\[([ x])]\\s(${CONST_default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, "g"));
+  return parseChecklistSection(issue2.body, /Mobile-Expensify PRs:\*\*\r?\n((?:-.*\r?\n)+)/, new RegExp(`- \\[([ xX])]\\s(${CONST_default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, "g"));
 }
 function getDeployChecklistDeployBlockers(issue2) {
-  return parseChecklistSection(issue2.body, /Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/, new RegExp(`- \\[([ x])]\\s(${CONST_default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, "g"));
+  return parseChecklistSection(issue2.body, /Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/, new RegExp(`- \\[([ xX])]\\s(${CONST_default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, "g"));
 }
 function getDeployChecklistInternalQA(issue2) {
   return parseChecklistSection(
     issue2.body,
-    /Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/,
-    new RegExp(`- \\[([ x])]\\s(${CONST_default.PULL_REQUEST_REGEX.source})`, "g"),
+    /Internal QA:\*\*\r?\n((?:- \[[ xX]].*\r?\n)+)/,
+    new RegExp(`- \\[([ xX])]\\s(${CONST_default.PULL_REQUEST_REGEX.source})`, "g"),
     (url) => url.split("-").at(0)?.trim() ?? ""
   );
 }
@@ -53457,8 +53457,8 @@ function getDeployChecklistData(issue2) {
       PRListMobileExpensify: getDeployChecklistPRListMobileExpensify(issue2),
       deployBlockers: getDeployChecklistDeployBlockers(issue2),
       internalQAPRList: getDeployChecklistInternalQA(issue2),
-      isSentryChecked: issue2.body ? /-\s\[x]\sI checked \[Sentry]/.test(issue2.body) : false,
-      isGHStatusChecked: issue2.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue2.body) : false,
+      isSentryChecked: issue2.body ? /-\s\[[xX]]\sI checked \[Sentry]/.test(issue2.body) : false,
+      isGHStatusChecked: issue2.body ? /-\s\[[xX]]\sI checked \[GitHub Status]/.test(issue2.body) : false,
       version,
       tag: `${version}-staging`
     };

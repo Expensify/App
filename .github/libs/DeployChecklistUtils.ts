@@ -90,6 +90,9 @@ type DeployChecklistData = {
 /**
  * Generic checklist section parser. Extracts a section from the issue body,
  * parses checkbox items within it, and returns ChecklistItems sorted by number.
+ *
+ * GitHub renders both `[x]` and `[X]` as a checked box, and people sometimes edit the checklist
+ * with an uppercase X, so every checkbox regex in this file accepts both.
  */
 function parseChecklistSection(issueBody: string | null | undefined, sectionRegex: RegExp, itemRegex: RegExp, urlTransform?: (url: string) => string): ChecklistItem[] {
     const sectionMatch = issueBody?.match(sectionRegex) ?? null;
@@ -101,14 +104,14 @@ function parseChecklistSection(issueBody: string | null | undefined, sectionRege
         return {
             url: urlTransform ? urlTransform(rawUrl) : rawUrl,
             number: Number.parseInt(match[3], 10),
-            isChecked: match[1] === 'x',
+            isChecked: match[1].toLowerCase() === 'x',
         };
     });
     return items.sort((a, b) => a.number - b.number);
 }
 
 function getDeployChecklistPRList(issue: OctokitIssueItem): ChecklistItem[] {
-    const result = parseChecklistSection(issue.body, /pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/, new RegExp(`- \\[([ x])] (${CONST.PULL_REQUEST_REGEX.source})`, 'g'));
+    const result = parseChecklistSection(issue.body, /pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/, new RegExp(`- \\[([ xX])] (${CONST.PULL_REQUEST_REGEX.source})`, 'g'));
     if (result.length === 0) {
         console.log('Hmmm...The open deploy checklist does not list any pull requests, continuing...');
     }
@@ -116,18 +119,18 @@ function getDeployChecklistPRList(issue: OctokitIssueItem): ChecklistItem[] {
 }
 
 function getDeployChecklistPRListMobileExpensify(issue: OctokitIssueItem): ChecklistItem[] {
-    return parseChecklistSection(issue.body, /Mobile-Expensify PRs:\*\*\r?\n((?:-.*\r?\n)+)/, new RegExp(`- \\[([ x])]\\s(${CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'));
+    return parseChecklistSection(issue.body, /Mobile-Expensify PRs:\*\*\r?\n((?:-.*\r?\n)+)/, new RegExp(`- \\[([ xX])]\\s(${CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'));
 }
 
 function getDeployChecklistDeployBlockers(issue: OctokitIssueItem): ChecklistItem[] {
-    return parseChecklistSection(issue.body, /Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/, new RegExp(`- \\[([ x])]\\s(${CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'));
+    return parseChecklistSection(issue.body, /Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/, new RegExp(`- \\[([ xX])]\\s(${CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'));
 }
 
 function getDeployChecklistInternalQA(issue: OctokitIssueItem): ChecklistItem[] {
     return parseChecklistSection(
         issue.body,
-        /Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/,
-        new RegExp(`- \\[([ x])]\\s(${CONST.PULL_REQUEST_REGEX.source})`, 'g'),
+        /Internal QA:\*\*\r?\n((?:- \[[ xX]].*\r?\n)+)/,
+        new RegExp(`- \\[([ xX])]\\s(${CONST.PULL_REQUEST_REGEX.source})`, 'g'),
         (url) => url.split('-').at(0)?.trim() ?? '',
     );
 }
@@ -222,8 +225,8 @@ function getDeployChecklistData(issue: OctokitIssueItem): DeployChecklistData {
             PRListMobileExpensify: getDeployChecklistPRListMobileExpensify(issue),
             deployBlockers: getDeployChecklistDeployBlockers(issue),
             internalQAPRList: getDeployChecklistInternalQA(issue),
-            isSentryChecked: issue.body ? /-\s\[x]\sI checked \[Sentry]/.test(issue.body) : false,
-            isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
+            isSentryChecked: issue.body ? /-\s\[[xX]]\sI checked \[Sentry]/.test(issue.body) : false,
+            isGHStatusChecked: issue.body ? /-\s\[[xX]]\sI checked \[GitHub Status]/.test(issue.body) : false,
             version,
             tag: `${version}-staging`,
         };
