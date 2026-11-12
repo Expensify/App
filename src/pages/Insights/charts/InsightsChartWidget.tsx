@@ -46,8 +46,6 @@ import Animated, {FadeIn} from 'react-native-reanimated';
 
 import InsightsDataTable from './InsightsDataTable';
 
-const WORKFLOW_STAGE_COUNT = Object.keys(CONST.SEARCH.WORKFLOW_STAGES).length;
-
 type InsightsChartWidgetProps = {
     dashboardID: InsightsDashboardID;
 
@@ -250,7 +248,7 @@ function InsightsChartWidget({
                                               rows={rows}
                                               formatValue={formatValue}
                                               isLoading={isLoading}
-                                              skeletonRowCount={groupBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? WORKFLOW_STAGE_COUNT : undefined}
+                                              skeletonRowCount={groupBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? Object.keys(CONST.SEARCH.WORKFLOW_STAGES).length : undefined}
                                               onRowPress={openDetails}
                                           />
                                       )
