@@ -5,8 +5,8 @@ import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -34,6 +34,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 
+import {callIfAuthenticated} from '@userActions/Session';
 import {clearApprovalWorkflowApprover, removeApprovalWorkflowApprover, setApprovalWorkflowApprover, setApprovalWorkflowIsInitialFlow} from '@userActions/Workflow';
 
 import CONST from '@src/CONST';
@@ -41,6 +42,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -60,6 +62,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const {translate, formatPhoneNumber} = useLocalize();
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -226,28 +229,29 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                     >
                         {isEditingApprover && (
                             <View style={styles.mh5}>
-                                <MenuItemWithTopDescription
+                                <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_APPROVER}
                                     accessibilityLabel={approverDisplayName}
-                                    titleStyle={styles.textNormalThemeText}
-                                    description={translate('workflowsPage.approver')}
-                                    descriptionTextStyle={approverDisplayName ? styles.textLabelSupportingNormal : undefined}
-                                    titleComponent={
-                                        currentApprover ? (
-                                            <View style={styles.pr3}>
-                                                <UserPill
-                                                    avatar={currentApprover.avatar}
-                                                    displayName={currentApprover.displayName}
-                                                    email={currentApprover.email}
-                                                    style={styles.userPillStandalone}
-                                                />
-                                            </View>
-                                        ) : undefined
-                                    }
-                                    onPress={navigateToApproverChange}
-                                    shouldShowRightIcon
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                />
+                                    onPress={callIfAuthenticated(navigateToApproverChange, session)}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('workflowsPage.approver')}>
+                                            {!!currentApprover && (
+                                                <View style={styles.pr3}>
+                                                    <UserPill
+                                                        avatar={currentApprover.avatar}
+                                                        displayName={currentApprover.displayName}
+                                                        email={currentApprover.email}
+                                                        style={styles.userPillStandalone}
+                                                    />
+                                                </View>
+                                            )}
+                                        </MenuItemField.Content>
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             </View>
                         )}
 
