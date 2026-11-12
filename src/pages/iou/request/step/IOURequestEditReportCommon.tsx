@@ -198,7 +198,6 @@ function IOURequestEditReportCommon({
         fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, outstandingReportsOffset.current);
     };
 
-    // The list's onEndReached prop is typed () => void, so it gets a function that does not return the Promise
     const requestMoreOutstandingReports = () => {
         loadMoreOutstandingReports();
     };
