@@ -1,3 +1,4 @@
+import Icon from '@components/Icon';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
@@ -16,11 +17,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {createHasAdminPolicyWithXeroConnectionSelector} from '@selectors/Policy';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -34,6 +38,7 @@ function EnabledPage() {
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {login} = useCurrentUserPersonalDetails();
     const [hasAdminPolicyWithXeroConnection] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasAdminPolicyWithXeroConnectionSelector(login)});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const showTwoFactorAuthRequireModal = () => {
@@ -62,22 +67,34 @@ function EnabledPage() {
                     </View>
                 </Section>
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REPLACE_DEVICE}
                     title={translate('twoFactorAuth.replaceDevice')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_REPLACE_VERIFY_OLD)}
                     icon={icons.Sync}
                 />
-                <MenuItem
-                    title={translate('twoFactorAuth.disableTwoFactorAuth')}
-                    onPress={() => {
+                <MenuItem.Root
+                    sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DISABLE}
+                    onPress={callIfAuthenticated(() => {
                         if (hasAdminPolicyWithXeroConnection) {
                             showTwoFactorAuthRequireModal();
                             return;
                         }
                         Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
-                    }}
-                    icon={icons.Close}
-                    iconFill={theme.danger}
-                />
+                    }, session)}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <Icon
+                                src={icons.Close}
+                                fill={theme.danger}
+                                additionalStyles={styles.popoverMenuIcon}
+                            />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('twoFactorAuth.disableTwoFactorAuth')}</MenuItem.Title>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             </ScrollView>
         </TwoFactorAuthWrapper>
     );
