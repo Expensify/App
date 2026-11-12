@@ -2,7 +2,6 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import computeReportName from '@libs/computeReportName';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
@@ -207,26 +206,23 @@ const getPreviewActionsByChildReportID = (chatReportActions: ReportActions) => {
 // Returns the report-preview action ID of the oldest child in `reportIDs` matching `predicate`
 // (oldest by preview-action creation time), or undefined when none match.
 const getOldestPreviewActionID = (
-    chatReportID: string,
     reportIDs: string[] | undefined,
     reports: OnyxCollection<Report>,
     chatReportActions: OnyxEntry<ReportActions>,
     predicate?: (childReport: OnyxEntry<Report>) => boolean,
 ) => {
+    if (!chatReportActions) {
+        return undefined;
+    }
+    // A busy chat has thousands of actions, so they're indexed once instead of searched again for every child.
+    const previewActionsByChildReportID = getPreviewActionsByChildReportID(chatReportActions);
     let oldestCreated: string | undefined;
     let targetReportActionID: string | undefined;
-    let previewActionsByChildReportID: Map<string, ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> | undefined;
     for (const childReportID of reportIDs ?? []) {
         if (predicate && !predicate(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`])) {
             continue;
         }
-        // A busy chat has thousands of actions, so they're indexed once instead of searched again for every child.
-        if (chatReportActions && !previewActionsByChildReportID) {
-            previewActionsByChildReportID = getPreviewActionsByChildReportID(chatReportActions);
-        }
-        const reportPreviewAction = previewActionsByChildReportID
-            ? previewActionsByChildReportID.get(childReportID)
-            : getReportPreviewReportAction(chatReportID, childReportID, chatReportActions);
+        const reportPreviewAction = previewActionsByChildReportID.get(childReportID);
         if (!reportPreviewAction) {
             continue;
         }
@@ -900,8 +896,8 @@ export default createOnyxDerivedValueConfig({
             const chatReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`];
 
             actionTargetReportActionID =
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, chatReportActions, isActionable) ??
-                getOldestPreviewActionID(chatReportID, getChildReportIDs(chatReportID), reports, chatReportActions, (childReport) =>
+                getOldestPreviewActionID(erroredChildReportIDs, reports, chatReportActions, isActionable) ??
+                getOldestPreviewActionID(getChildReportIDs(chatReportID), reports, chatReportActions, (childReport) =>
                     needsViolationFix(
                         childReport,
                         getLoginByAccountID(childReport?.ownerAccountID, personalDetails),
@@ -911,7 +907,7 @@ export default createOnyxDerivedValueConfig({
                         currentUserEmail,
                     ),
                 ) ??
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, chatReportActions) ??
+                getOldestPreviewActionID(erroredChildReportIDs, reports, chatReportActions) ??
                 actionTargetReportActionID;
 
             // Clone the entry before mutating — it may be a reference carried over from

@@ -136,8 +136,6 @@ describe('hasPolicyRelevantFieldChanged', () => {
 });
 
 describe('getOldestPreviewActionID', () => {
-    const chatReportID = 'chat1';
-
     const createReportPreviewAction = (reportActionID: string, linkedReportID: string, created: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> => ({
         reportActionID,
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -147,11 +145,23 @@ describe('getOldestPreviewActionID', () => {
     });
 
     it('returns undefined when reportIDs is undefined', () => {
-        expect(getOldestPreviewActionID(chatReportID, undefined, {}, {})).toBeUndefined();
+        expect(getOldestPreviewActionID(undefined, {}, {})).toBeUndefined();
     });
 
     it('returns undefined when reportIDs is empty', () => {
-        expect(getOldestPreviewActionID(chatReportID, [], {}, {})).toBeUndefined();
+        expect(getOldestPreviewActionID([], {}, {})).toBeUndefined();
+    });
+
+    it('returns undefined when the chat has no report actions', () => {
+        // Given a child report whose chat has no report actions loaded
+        const childReport = createRandomReport(1);
+        const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`]: childReport};
+
+        // When the oldest preview action is looked up
+        const targetReportActionID = getOldestPreviewActionID([childReport.reportID], reports, undefined);
+
+        // Then nothing is found, since there is no preview action to point at
+        expect(targetReportActionID).toBeUndefined();
     });
 
     it('returns the reportActionID of the only child report with a matching preview action', () => {
@@ -160,7 +170,7 @@ describe('getOldestPreviewActionID', () => {
         const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`]: childReport};
         const chatReportActions: ReportActions = {[previewAction.reportActionID]: previewAction};
 
-        expect(getOldestPreviewActionID(chatReportID, [childReport.reportID], reports, chatReportActions)).toBe('action1');
+        expect(getOldestPreviewActionID([childReport.reportID], reports, chatReportActions)).toBe('action1');
     });
 
     it('returns the reportActionID of the oldest preview action among multiple matching child reports', () => {
@@ -177,7 +187,7 @@ describe('getOldestPreviewActionID', () => {
             [newerPreviewAction.reportActionID]: newerPreviewAction,
         };
 
-        expect(getOldestPreviewActionID(chatReportID, [childReport2.reportID, childReport1.reportID], reports, chatReportActions)).toBe('olderAction');
+        expect(getOldestPreviewActionID([childReport2.reportID, childReport1.reportID], reports, chatReportActions)).toBe('olderAction');
     });
 
     it('skips child reports that have no matching preview action', () => {
@@ -190,14 +200,14 @@ describe('getOldestPreviewActionID', () => {
         };
         const chatReportActions: ReportActions = {[previewAction.reportActionID]: previewAction};
 
-        expect(getOldestPreviewActionID(chatReportID, [childReportWithoutPreview.reportID, childReportWithPreview.reportID], reports, chatReportActions)).toBe('action1');
+        expect(getOldestPreviewActionID([childReportWithoutPreview.reportID, childReportWithPreview.reportID], reports, chatReportActions)).toBe('action1');
     });
 
     it('returns undefined when no child report has a matching preview action', () => {
         const childReport = createRandomReport(1);
         const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`]: childReport};
 
-        expect(getOldestPreviewActionID(chatReportID, [childReport.reportID], reports, {})).toBeUndefined();
+        expect(getOldestPreviewActionID([childReport.reportID], reports, {})).toBeUndefined();
     });
 
     it('excludes child reports that fail the predicate', () => {
@@ -215,7 +225,7 @@ describe('getOldestPreviewActionID', () => {
         };
         const predicate = (report: Report | undefined) => report?.reportID === includedReport.reportID;
 
-        expect(getOldestPreviewActionID(chatReportID, [excludedReport.reportID, includedReport.reportID], reports, chatReportActions, predicate)).toBe('includedAction');
+        expect(getOldestPreviewActionID([excludedReport.reportID, includedReport.reportID], reports, chatReportActions, predicate)).toBe('includedAction');
     });
 
     it('ignores non-REPORT_PREVIEW actions even when linkedReportID matches', () => {
@@ -230,7 +240,7 @@ describe('getOldestPreviewActionID', () => {
         const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`]: childReport};
         const chatReportActions: ReportActions = {[nonPreviewAction.reportActionID]: nonPreviewAction};
 
-        expect(getOldestPreviewActionID(chatReportID, [childReport.reportID], reports, chatReportActions)).toBeUndefined();
+        expect(getOldestPreviewActionID([childReport.reportID], reports, chatReportActions)).toBeUndefined();
     });
 });
 
