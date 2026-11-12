@@ -158,13 +158,21 @@ function isPolicyScopedRule(rule: Rule | undefined, policyID: string | undefined
 }
 
 /**
- * The order rules are applied in, oldest first, falling back to the ID for two rules created in the same moment.
+ * The order rules are applied in, which the backend decides by `priority` first and the client has to match.
  *
- * Every expense default is written with the same `priority`, so there is nothing for that field to decide between
- * two of them. Leaving the rules in Onyx key order instead would hand the outcome to whichever one the `GetRules`
- * response happened to list first, which is not an order the client picks or can repeat.
+ * A category tax default migrated from the old `policy.rules.expenseRules` carries a priority of 40000 while one
+ * written by the merchant rule editor carries 10000, so a migrated rule is applied after a newer rule and writes
+ * over it. Rules sharing a priority go oldest first, falling back to the ID for two created in the same moment.
+ * Leaving the rules in Onyx key order instead would hand the outcome to whichever one the `GetRules` response
+ * happened to list first, which is not an order the client picks or can repeat.
  */
 function compareByApplicationOrder({ruleID: ruleIDA, rule: ruleA}: RuleWithID, {ruleID: ruleIDB, rule: ruleB}: RuleWithID): number {
+    const priorityA = ruleA.priority ?? CONST.RULES.EXPENSE_DEFAULT.PRIORITY;
+    const priorityB = ruleB.priority ?? CONST.RULES.EXPENSE_DEFAULT.PRIORITY;
+    if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+    }
+
     if (ruleA.created !== ruleB.created) {
         // An age the rule does not carry is not an age that predates anything, so it goes last rather than
         // outranking a rule that does carry one.

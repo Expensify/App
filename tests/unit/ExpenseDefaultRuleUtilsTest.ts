@@ -765,12 +765,13 @@ describe('ExpenseDefaultRuleUtils', () => {
     });
     describe('getCategoryOnlyExpenseDefaultTaxID', () => {
         const policyID = '1';
-        const buildRule = (filters: RuleFilterNode, taxID = 'id_TAX_RATE_1', created?: string): Rule => ({
+        const buildRule = (filters: RuleFilterNode, taxID = 'id_TAX_RATE_1', created?: string, priority?: number): Rule => ({
             scope: CONST.RULES.SCOPE.POLICY,
             scopeID: policyID,
             triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
             filters,
             created,
+            priority,
             actions: toIndexMap([
                 {
                     name: CONST.RULES.ACTIONS.SET,
@@ -849,6 +850,21 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // Then the older rule's rate stands, because the engine writes each field the rules set and the newer
             // rule sets no tax to write over it
+            expect(taxID).toBe('id_TAX_RATE_1');
+        });
+
+        it('takes the rule the backend applies last when a migrated rule outranks a newer one', () => {
+            // Given a category tax default migrated from the old policy rules, which carries the higher priority the
+            // migration gives it, and a newer rule on the same category written by the merchant rule editor
+            const categoryFilter = {left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']} satisfies RuleFilterNode;
+            const migrated = buildRule(categoryFilter, 'id_TAX_RATE_1', '2026-01-01T00:00:00Z', 40000);
+            const newer = buildRule(categoryFilter, 'id_TAX_RATE_2', '2026-01-02T00:00:00Z', CONST.RULES.EXPENSE_DEFAULT.PRIORITY);
+
+            // When the rate is resolved
+            const taxID = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}1`]: migrated, [`${ONYXKEYS.COLLECTION.RULE}2`]: newer}, policyID, 'Travel');
+
+            // Then the migrated rule's rate wins despite being the older of the two, because the backend orders by
+            // priority before age and so applies it last
             expect(taxID).toBe('id_TAX_RATE_1');
         });
 
