@@ -5,8 +5,6 @@ keywords: [New Expensify, Dynamics 365 Business Central, Business Central, D365,
 internalScope: Audience is workspace admins connecting Dynamics 365 Business Central as an accounting integration. Covers prerequisites, Expensify Assisted Setup, manual Microsoft Entra and Business Central configuration, authentication, subsidiary selection, and disconnecting. Does not cover import, export, advanced settings, vendor matching, or Dynamics 365 Finance and Operations.
 contentType: task
 order: 1
-noindex: true
-sitemap: false
 ---
 
 <!-- cspell:ignore FULLACCESS AADSTS -->
@@ -26,6 +24,7 @@ To connect Business Central, you must:
 - Have access to Microsoft Entra to register an application and create a client secret.
 - Have an admin account that can grant consent for the application.
 
+
 ## How to prepare Business Central with Expensify Assisted Setup
 
 Start with **Expensify Assisted Setup**, which appears after you install the Expensify app from Microsoft Marketplace. The wizard guides you through Microsoft Entra registration and registers the application in Business Central. You do not need to repeat the manual configuration steps after you complete the wizard.
@@ -43,8 +42,8 @@ For a video walkthrough, watch [how to connect Business Central to Expensify](ht
 9. Copy the **Application (client) ID** from the app registration's **Overview** page.
 10. Return to **Expensify Assisted Setup** and enter this value in the **Client ID** field.
 11. Select **Register in Business Central**.
-12. Select **Grant Consent**.
-13. Complete the admin sign-in and consent process.
+12. If you did not already grant admin consent in Entra, select **Grant Consent**.
+13. If prompted, complete the admin sign-in and consent process.
 14. Select **Next**.
 15. Copy the **Tenant ID** and exact **Environment name** shown in the wizard.
 16. Complete the remaining setup for the journal batch, templates, and number series.
@@ -52,51 +51,7 @@ For a video walkthrough, watch [how to connect Business Central to Expensify](ht
 
 Keep the Tenant ID, Environment name, Client ID, and client secret Value for the connection in Expensify.
 
-Next, [connect Business Central to Expensify](#how-to-connect-business-central-to-expensify). For setup without the wizard, use the manual configuration sections that follow.
-
-## How to create the Microsoft Entra app registration manually
-
-Use this alternative if you configure the connection without **Expensify Assisted Setup**. If you completed the wizard, skip both manual configuration sections.
-
-Use a **Global Administrator** account to grant admin consent in Microsoft Entra.
-
-1. In the Microsoft Entra admin center, go to **App registrations > New registration**.
-2. Enter **Expensify** as the name.
-3. For the supported account type, choose **Accounts in this organizational directory only**.
-4. Under **Redirect URI**, select **Web**.
-5. Enter `https://businesscentral.dynamics.com/OAuthLanding.htm` as the redirect URI.
-6. Select **Register**.
-7. On the **Overview** page, copy the **Application (client) ID** and **Directory (tenant) ID**.
-8. Go to **Certificates & secrets > New client secret**.
-9. Choose an expiration date for the secret.
-10. Select **Add**.
-11. Copy the secret **Value** immediately. Entra hides it after you leave the page. Do not use the **Secret ID**.
-12. Go to **API permissions > Add a permission > Dynamics 365 Business Central > Application permissions**.
-13. Select `API.ReadWrite.All`.
-14. Select **Add permissions**.
-15. Select **Grant admin consent** for your tenant.
-16. Confirm that the permission status shows **Granted**.
-
-Client secrets expire after six months by default, with a maximum lifetime of 24 months. Your organization can require a shorter lifetime. Set a reminder to rotate the secret before its expiration date.
-
-## How to register the application in Business Central manually
-
-Use these steps only for manual configuration, after you create the Microsoft Entra app registration.
-
-1. Install the Expensify extension from Microsoft Marketplace in your Business Central environment.
-2. Complete the extension setup, including the journal batch, templates, and number series Expensify will use to create records.
-3. Search for **Microsoft Entra Applications** in Business Central.
-4. Select **New**.
-5. Enter the **Application (client) ID** from Entra in the **Client ID** field.
-6. Set **Description** to **Expensify**.
-7. Set **State** to **Enabled**.
-8. If the **App Name** field is available, optionally select **Expensify**.
-9. Under **User Permission Sets**, add `EXY FULLACCESS`.
-10. Select **Grant Consent**.
-11. Sign in with your admin account.
-12. Note your Business Central environment name exactly as it appears, such as **Production**.
-
-You need the environment name, **Directory (tenant) ID**, **Application (client) ID**, and secret **Value** to connect your workspace.
+Next, connect Business Central to Expensify with these values. For setup without the wizard, use the manual configuration sections later in this guide.
 
 ## How to connect Business Central to Expensify
 
@@ -151,13 +106,74 @@ To stop syncing Business Central with your workspace:
 
 Disconnecting stops syncing with Business Central and removes the connection from your workspace.
 
+## How to create the Microsoft Entra app registration manually
+
+Use this alternative if you configure the connection without **Expensify Assisted Setup**. If you completed the wizard, skip both manual configuration sections.
+
+
+Use an account with the **Application Administrator**, **Cloud Application Administrator**, or **Global Administrator** role to grant admin consent for Business Central in Microsoft Entra.
+
+1. In the Microsoft Entra admin center, go to **App registrations > New registration**.
+2. Enter **Expensify** as the name.
+3. For the supported account type, choose **Accounts in this organizational directory only**.
+4. Under **Redirect URI**, select **Web**.
+5. Enter `https://businesscentral.dynamics.com/OAuthLanding.htm` as the redirect URI.
+6. Select **Register**.
+7. On the **Overview** page, copy the **Application (client) ID** and **Directory (tenant) ID**.
+8. Go to **Certificates & secrets > New client secret**.
+9. Choose an expiration date for the secret.
+10. Select **Add**.
+11. Copy the secret **Value** immediately. Entra hides it after you leave the page. Do not use the **Secret ID**.
+12. Go to **API permissions > Add a permission > Dynamics 365 Business Central > Application permissions**.
+13. Select `API.ReadWrite.All`.
+14. Select **Add permissions**.
+15. Select **Grant admin consent** for your tenant.
+16. Confirm that the permission status shows **Granted**.
+
+Client secrets expire after six months by default, with a maximum lifetime of 24 months. Your organization can require a shorter lifetime. Set a reminder to rotate the secret before its expiration date.
+
+## How to register the application in Business Central manually
+
+Use these steps only for manual configuration, after you create the Microsoft Entra app registration.
+
+1. Install the [Expensify extension from Microsoft Marketplace](https://marketplace.microsoft.com/en-us/product/PUBID.expensifyinc1782923272301%7CAID.expensify%7CPAPPID.a7371368-7aed-4a6e-8ee7-f4bc757e0de3-preview?tab=DetailsAndSupport&flightCodes=7a84bb70e21c482f9b47d94f74cdc758) in your Business Central environment.
+2. Complete the extension setup, including the journal batch, templates, and number series Expensify will use to create records.
+3. Search for **Microsoft Entra Applications** in Business Central.
+4. Select **New**.
+5. Enter the **Application (client) ID** from Entra in the **Client ID** field.
+6. Set **Description** to **Expensify**.
+7. Set **State** to **Enabled**.
+8. If the **App Name** field is available, optionally select **Expensify**.
+9. Under **User Permission Sets**, add `EXY FULLACCESS`.
+10. If you haven't already granted admin consent in Microsoft Entra, select **Grant Consent** and sign in with your admin account. Otherwise, skip this step.
+11. Note your Business Central environment name exactly as it appears, such as **Production**.
+
+You need the environment name, **Directory (tenant) ID**, **Application (client) ID**, and secret **Value** to connect your workspace.
+
 # FAQ
+
+## Where can I download the Expensify extension for Dynamics 365 Business Central?
+
+You can install the [Expensify extension from Microsoft Marketplace](https://marketplace.microsoft.com/en-us/product/PUBID.expensifyinc1782923272301%7CAID.expensify%7CPAPPID.a7371368-7aed-4a6e-8ee7-f4bc757e0de3-preview?tab=DetailsAndSupport&flightCodes=7a84bb70e21c482f9b47d94f74cdc758). You'll need access to a Business Central environment where you can install extensions.
+
+## What information do I need to connect Business Central to Expensify?
+
+You'll need the following information:
+
+- **Tenant ID:** Your Microsoft Entra tenant ID.
+- **Environment name:** Your Business Central environment name, such as Production.
+- **Client ID:** The application ID from your Microsoft Entra app registration.
+- **Client secret:** The client secret from that app registration.
+
+You must also install and configure the Expensify extension in Business Central before connecting.
+
+## Can I connect other Microsoft Dynamics products to Expensify?
+
+The direct integration only supports Dynamics 365 Business Central. To export expenses to Dynamics 365 Finance and Operations or other Microsoft Dynamics products, use a flat-file export instead. Learn more about [indirect accounting integrations](/articles/new-expensify/connections/Indirect-Accounting-Integrations).
 
 ## Why don't I see tax settings after connecting?
 
-Expensify only displays **Taxes** when your Business Central company has VAT posting setups.
-
-US companies typically don't have VAT posting setups, so tax settings may not appear.
+Expensify only displays **Taxes** when your Business Central company has VAT posting setups. US companies typically don't have VAT posting setups, so tax settings may not appear.
 
 ## Which client secret value do I use?
 
@@ -170,7 +186,7 @@ Entra only shows the **Value** when you create the secret. If you did not save i
 Your account can lack the admin role required to grant consent.
 
 1. In the Microsoft Entra admin center, go to **Users > [user] > Assigned roles**.
-2. Confirm that your account has the **Global Administrator** role, or ask your tenant administrator to grant consent.
+2. Confirm that your account has the **Application Administrator**, **Cloud Application Administrator**, or **Global Administrator** role, or ask your tenant administrator to grant consent.
 
 A tenant created through a Business Central trial sign-up can have no administrator. For an unmanaged tenant, complete an admin takeover in the Microsoft 365 admin center before you grant consent.
 
