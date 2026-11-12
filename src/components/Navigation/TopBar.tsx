@@ -29,6 +29,7 @@ import {Keyboard, View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import AccountAvatarButton from './AccountAvatarButton';
+import useShouldUseFlatNavigationBar from './FlatNavigationBar/useShouldUseFlatNavigationBar';
 
 type TopBarProps = {
     breadcrumbLabel: string;
@@ -47,6 +48,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isAnonymousUser = isAnonymousUserUtil(session);
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
 
     const isInLandscapeMode = useIsInLandscapeMode();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
@@ -72,7 +74,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                         >
                             {breadcrumbLabel}
                         </Text>
-                        <EnvironmentBadge />
+                        {!shouldUseFlatNavigationBar && <EnvironmentBadge />}
                     </Animated.View>
                 </View>
                 {children}

@@ -5197,14 +5197,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         headerEnvBadge: {
-            position: 'absolute',
-            bottom: -8,
-            left: -8,
             height: 12,
             paddingLeft: 4,
             paddingRight: 4,
             alignItems: 'center',
-            zIndex: -1,
         },
 
         headerEnvBadgeText: {

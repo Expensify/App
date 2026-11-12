@@ -1,5 +1,5 @@
 /**
- * Small badge shown next to the top bar title on every environment except production, so it's easy to tell which one you are using.
+ * Small badge shown next to the logo or the top bar title on every environment except production, so it's easy to tell which one you are using.
  */
 import useEnvironment from '@hooks/useEnvironment';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -43,7 +43,7 @@ function EnvironmentBadge() {
             success={success}
             error={error}
             text={text}
-            badgeStyles={[styles.alignSelfStart, styles.headerEnvBadge, styles.environmentBadge, badgeEnvironmentStyle]}
+            badgeStyles={[styles.headerEnvBadge, styles.environmentBadge, badgeEnvironmentStyle]}
             textStyles={styles.headerEnvBadgeText}
             environment={environment}
         />
