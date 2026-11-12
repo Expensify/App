@@ -11,6 +11,8 @@ import variables from '@styles/variables';
 
 import type {NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
 
+import {isLiquidGlassAvailable} from 'expo-glass-effect';
+
 import type NativeTabBarOptionsParams from './types';
 
 /** UITabBar sits above the home indicator inset, so the floating buttons clear both. */
@@ -27,7 +29,8 @@ const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconNativeTabBarIOSLandscape,
     iconBoxSize: variables.nativeTabIconBoxIOSLandscape,
     direction: 'inline',
-    trailingInset: variables.nativeTabIconTrailingInsetIOSLandscape,
+    // Only the liquid glass bar draws a selected pill around the icon; the older bar centers the icon without one.
+    trailingInset: isLiquidGlassAvailable() ? variables.nativeTabIconTrailingInsetIOSLandscape : undefined,
 };
 
 /**
