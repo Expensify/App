@@ -3241,7 +3241,7 @@ const translations = {
             },
         },
         wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
-        wiseSetupInReview: {message: 'Global reimbursements setup in review.', checkStatus: 'Check status'},
+        wiseSetupInReview: {message: 'Global reimbursements setup in review.', checkStatus: 'Check status.'},
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',

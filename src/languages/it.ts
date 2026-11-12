@@ -3148,7 +3148,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Conto bancario rifiutato', heading: 'Il nostro partner ha rifiutato il tuo conto bancario', description: 'Chatta con Concierge per maggiori informazioni.'},
         },
         wiseSetupInProgress: {message: 'Configurazione dei rimborsi globali in corso.', continue: 'Continua.'},
-        wiseSetupInReview: {message: 'Configurazione dei rimborsi globali in revisione.', checkStatus: 'Controlla lo stato'},
+        wiseSetupInReview: {message: 'Configurazione dei rimborsi globali in revisione.', checkStatus: 'Controlla lo stato.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Configurare i rimborsi globali?',
             subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.',

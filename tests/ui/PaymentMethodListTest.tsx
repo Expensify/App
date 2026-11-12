@@ -322,7 +322,7 @@ describe('PaymentMethodList', () => {
         // When the Wallet's bank accounts list renders and the admin presses Check status
         renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Check status'), {preventDefault: jest.fn()});
+        fireEvent.press(screen.getByText('Check status.'), {preventDefault: jest.fn()});
 
         // Then the row says the setup is in review instead of offering to continue it, since the answers are already with Wise, and Check status opens its status page
         expect(screen.getByText('Global reimbursements setup in review.', {exact: false})).toBeOnTheScreen();

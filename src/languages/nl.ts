@@ -3148,7 +3148,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Bankrekening afgewezen', heading: 'Onze partner heeft je bankrekening afgewezen', description: 'Chat met Concierge voor meer informatie.'},
         },
         wiseSetupInProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.', continue: 'Doorgaan.'},
-        wiseSetupInReview: {message: 'Instellen van wereldwijde terugbetalingen wordt beoordeeld.', checkStatus: 'Status bekijken'},
+        wiseSetupInReview: {message: 'Instellen van wereldwijde terugbetalingen wordt beoordeeld.', checkStatus: 'Status bekijken.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',

@@ -3188,7 +3188,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Odrzucono konto bankowe', heading: 'Nasz partner odrzucił twoje konto bankowe', description: 'Porozmawiaj z Concierge, żeby dowiedzieć się więcej.'},
         },
         wiseSetupInProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.', continue: 'Kontynuuj.'},
-        wiseSetupInReview: {message: 'Konfiguracja globalnych zwrotów kosztów w trakcie weryfikacji.', checkStatus: 'Sprawdź status'},
+        wiseSetupInReview: {message: 'Konfiguracja globalnych zwrotów kosztów w trakcie weryfikacji.', checkStatus: 'Sprawdź status.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Skonfigurować globalne zwroty kosztów?',
             subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',

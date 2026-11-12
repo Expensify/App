@@ -3060,7 +3060,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Cuenta bancaria rechazada', heading: 'Nuestro socio rechazó tu cuenta bancaria', description: 'Chatea con Concierge para más información.'},
         },
         wiseSetupInProgress: {message: 'Configuración de reembolsos globales en curso.', continue: 'Continuar.'},
-        wiseSetupInReview: {message: 'Configuración de reembolsos globales en revisión.', checkStatus: 'Ver estado'},
+        wiseSetupInReview: {message: 'Configuración de reembolsos globales en revisión.', checkStatus: 'Ver estado.'},
         wiseGlobalReimbursementsIntro: {
             title: '¿Configurar reembolsos globales?',
             subtitle: 'Paga a miembros de todo el mundo en su moneda local.',

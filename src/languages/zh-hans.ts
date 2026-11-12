@@ -3043,7 +3043,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: '银行账户已被拒绝', heading: '我们的合作伙伴拒绝了你的银行账户', description: '与 Concierge 聊天以获取更多信息。'},
         },
         wiseSetupInProgress: {message: '全球报销设置进行中。', continue: '继续。'},
-        wiseSetupInReview: {message: '全球报销设置正在审核中。', checkStatus: '查看状态'},
+        wiseSetupInReview: {message: '全球报销设置正在审核中。', checkStatus: '查看状态。'},
         wiseGlobalReimbursementsIntro: {
             title: '设置全球报销？',
             subtitle: '按当地货币向全球成员付款。',
