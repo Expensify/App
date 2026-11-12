@@ -64,6 +64,55 @@ describe('sanitizeLogParams', () => {
         expect(result).toEqual({command: 'UpdateWiseOnboardingAdditionalData', step: 'representative', inputs: '<redacted>'});
     });
 
+    it('redacts bank account details and Plaid tokens', () => {
+        // Given the parameters of a manual bank account connection, which the API logs before sending
+        const params = {
+            command: 'ConnectBankAccountManually',
+            bankAccountID: 123,
+            accountNumber: '9876543210123',
+            routingNumber: '011000015',
+            plaidAccessToken: 'access-production-token',
+            publicToken: 'public-production-token',
+            ssnLast4: '6789',
+            plaidMask: '0123',
+        };
+
+        // When they are sanitized for the logs
+        const result = sanitizeLogParams(params);
+
+        // Then the bank details, tokens and SSN digits are redacted, and the rest stays readable
+        expect(result).toEqual({
+            command: 'ConnectBankAccountManually',
+            bankAccountID: 123,
+            accountNumber: '<redacted>',
+            routingNumber: '<redacted>',
+            plaidAccessToken: '<redacted>',
+            publicToken: '<redacted>',
+            ssnLast4: '<redacted>',
+            plaidMask: '0123',
+        });
+    });
+
+    it('redacts accounting integration credentials', () => {
+        // Given the parameters of Sage Intacct and NetSuite connections, which carry the customer's ERP credentials
+        const intacctParams = {command: 'ConnectPolicyToSageIntacct', policyID: '1', intacctUserID: 'user', intacctPassword: 'hunter2'};
+        const netSuiteParams = {command: 'ConnectPolicyToNetSuite', policyID: '1', netSuiteAccountID: 'account', netSuiteTokenID: 'tokenID', netSuiteTokenSecret: 'tokenSecret'};
+
+        // When they are sanitized for the logs
+        const intacctResult = sanitizeLogParams(intacctParams);
+        const netSuiteResult = sanitizeLogParams(netSuiteParams);
+
+        // Then the credentials are redacted, and the account identifiers stay readable
+        expect(intacctResult).toEqual({command: 'ConnectPolicyToSageIntacct', policyID: '1', intacctUserID: 'user', intacctPassword: '<redacted>'});
+        expect(netSuiteResult).toEqual({
+            command: 'ConnectPolicyToNetSuite',
+            policyID: '1',
+            netSuiteAccountID: 'account',
+            netSuiteTokenID: '<redacted>',
+            netSuiteTokenSecret: '<redacted>',
+        });
+    });
+
     it('leaves non-sensitive keys untouched', () => {
         const result = sanitizeLogParams({policyID: '1', currency: 'USD'});
         expect(result).toEqual({policyID: '1', currency: 'USD'});

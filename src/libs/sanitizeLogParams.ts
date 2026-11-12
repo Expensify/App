@@ -26,7 +26,15 @@ const SENSITIVE_KEYS = new Set([
     'ephemeralPublicKey',
     'opaquePaymentCard',
     'ssn',
+    'ssnLast4',
     'inputs',
+    'accountNumber',
+    'routingNumber',
+    'plaidAccessToken',
+    'publicToken',
+    'intacctPassword',
+    'netSuiteTokenID',
+    'netSuiteTokenSecret',
 ]);
 
 const REDACTED = '<redacted>';
