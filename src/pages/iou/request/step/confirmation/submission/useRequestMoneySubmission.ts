@@ -23,6 +23,7 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
+import shouldDeferAutoSubmitForBatchItem from '@userActions/IOU/shouldDeferAutoSubmitForBatchItem';
 import {requestMoney as requestMoneyIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
 
@@ -178,7 +179,11 @@ function useRequestMoneySubmission({
         let allTransactionsCreated = true;
         let lastOptimisticTransactionID: string | undefined;
 
-        for (const item of transactions) {
+        // An item defers the report's auto-submit only when the item after it really does land on that same report, so a
+        // report is never left waiting for an expense that is going to one of its own. The last item never defers, and so
+        // still lets the report auto-submit and close. Decided per item, inside the loop, because the shared report is only
+        // known once the previous item resolved it.
+        for (const [index, item] of transactions.entries()) {
             lastOptimisticTransactionID = rand64();
             const receipt = receiptFiles[item.transactionID];
             logSubmittedReceiptMilestone({
@@ -239,6 +244,16 @@ function useRequestMoneySubmission({
                 isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
                 writeBarrier,
+                shouldDeferAutoSubmit: shouldDeferAutoSubmitForBatchItem({
+                    index,
+                    transactions,
+                    report,
+                    existingIOUReport,
+                    policy,
+                    rules,
+                    isASAPSubmitBetaEnabled,
+                    action,
+                }),
                 report,
                 existingIOUReport,
                 optimisticChatReportID,
