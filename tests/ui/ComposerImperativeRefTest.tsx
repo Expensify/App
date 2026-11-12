@@ -1,5 +1,5 @@
 /** Executes Composer platform refs, animated clearing and focus-command consumers. */
-import {act, render, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook, waitFor} from '@testing-library/react-native';
 
 import type * as ImplementationModule from '@components/Composer/implementation/index';
 import type * as ImplementationNativeModule from '@components/Composer/implementation/index.native';
@@ -105,6 +105,15 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({runAfterTransitions: jes
 jest.mock('@libs/canFocusInputOnScreenFocus', () => () => false);
 jest.mock('@libs/willBlurTextInputOnTapOutside', () => () => false);
 jest.mock('@pages/Share/getFileSize', () => () => Promise.resolve(7));
+const mockGetImageSize = jest.fn<Promise<{width: number; height: number; rotation?: number}>, [string]>(() => Promise.resolve({width: 640, height: 480}));
+jest.mock('react-native-image-size', () => ({
+    __esModule: true,
+    default: {getSize: (uri: string) => mockGetImageSize(uri)},
+}));
+// Jest resolves the iOS/web variant, which leaves the reported size as is, so use the Android one that applies the rotation.
+jest.mock('@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize', () =>
+    jest.requireActual<Record<string, unknown>>('@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index.android'),
+);
 jest.mock('@pages/inbox/report/ReportActionEditMessageContext', () => ({
     useReportActionActiveEditActions: () => ({
         setEditingMessage: jest.fn<
@@ -175,6 +184,16 @@ function markdownProps() {
         throw new Error('Expected actual Composer to render markdown input');
     }
     return props;
+}
+
+function renderNativeComposerForPaste(onPasteFile: NonNullable<ComposerProps['onPasteFile']>) {
+    mockMarkdownInput = createMock<TextInput>({isFocused: () => false});
+    render(<NativeComposer onPasteFile={onPasteFile} />, {createNodeMock: () => mockMarkdownInput});
+    const paste = markdownProps().onPaste;
+    if (!paste) {
+        throw new Error('Expected native paste callback');
+    }
+    return paste;
 }
 
 function webMarkdownInput(value?: string) {
@@ -486,13 +505,44 @@ describe('Composer imperative refs', () => {
             clear(createMock<Parameters<typeof clear>[0]>({nativeEvent: {text: 'draft'}}));
             paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {items: [{type: 'text/plain', data: 'hello'}]}}));
             paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {items: [{type: 'image/png', data: 'file:///photo'}]}}));
-            await Promise.resolve();
         });
 
-        // Then text absence is not coerced and the attachment keeps its MIME-derived extension and observed size.
+        // Then text absence is not coerced and the attachment keeps its MIME-derived extension, observed size and image dimensions.
+        await waitFor(() => expect(onPasteFile).toHaveBeenCalledTimes(1));
         expect(onClear).toHaveBeenCalledWith('draft');
-        expect(onPasteFile).toHaveBeenCalledTimes(1);
+        expect(onPasteFile).toHaveBeenCalledWith({uri: 'file:///photo', name: 'photo.png', type: 'image/png', size: 7, width: 640, height: 480});
+    });
+
+    it('passes a pasted image on without dimensions when they cannot be read', async () => {
+        // Given a pasted image whose dimensions can't be read.
+        mockGetImageSize.mockRejectedValueOnce(new Error('Unreadable image'));
+        const onPasteFile = jest.fn<ReturnType<NonNullable<ComposerProps['onPasteFile']>>, Parameters<NonNullable<ComposerProps['onPasteFile']>>>();
+        const paste = renderNativeComposerForPaste(onPasteFile);
+
+        // When the image is pasted.
+        await act(async () => {
+            paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {items: [{type: 'image/png', data: 'file:///photo'}]}}));
+        });
+
+        // Then the attachment is still passed on, only without dimensions.
+        await waitFor(() => expect(onPasteFile).toHaveBeenCalledTimes(1));
         expect(onPasteFile).toHaveBeenCalledWith({uri: 'file:///photo', name: 'photo.png', type: 'image/png', size: 7});
+    });
+
+    it('applies the platform orientation rule to the dimensions of a pasted photo', async () => {
+        // Given a pasted photo that the image size library reports as rotated by 90 degrees.
+        mockGetImageSize.mockResolvedValueOnce({width: 640, height: 480, rotation: 90});
+        const onPasteFile = jest.fn<ReturnType<NonNullable<ComposerProps['onPasteFile']>>, Parameters<NonNullable<ComposerProps['onPasteFile']>>>();
+        const paste = renderNativeComposerForPaste(onPasteFile);
+
+        // When the photo is pasted.
+        await act(async () => {
+            paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {items: [{type: 'image/jpeg', data: 'file:///photo.jpg'}]}}));
+        });
+
+        // Then its dimensions describe the image as displayed.
+        await waitFor(() => expect(onPasteFile).toHaveBeenCalledTimes(1));
+        expect(onPasteFile).toHaveBeenCalledWith({uri: 'file:///photo.jpg', name: 'photo.jpg', type: 'image/jpeg', size: 7, width: 480, height: 640});
     });
 
     it.each([

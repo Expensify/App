@@ -5,7 +5,9 @@ type PluralParams = {count: number};
 type PluralHandler = ((count: number) => string) | string;
 type PluralForm = {
     zero?: string;
-    one: string;
+
+    // A handler rather than a literal, because `one` is not always the number 1: locales like French and Brazilian Portuguese select it for 0 and for fractions too.
+    one: PluralHandler;
     two?: string;
     few?: PluralHandler;
     many?: PluralHandler;

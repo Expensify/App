@@ -11,7 +11,7 @@ TypeScript encodes types, so JSDoc should not repeat them. Do not put types in `
 
 The same principle applies to component props and `src/types/onyx/**` properties. A member is documented with a `/** ... */` block comment above it (never a `//` comment) when there is a non-obvious fact to add: a unit, a default, a boundary condition, null/undefined semantics, ownership, an invariant, or how it differs from a sibling. A member whose name and type make it self-explanatory needs no comment, and a comment that only restates the de-camelCased name or the type adds nothing and buries the comments that do say something. So this rule cuts both ways: an undocumented member with a non-obvious fact is missing a comment, and a comment with no fact in it should be deleted. An undocumented self-explanatory member next to documented non-obvious ones is normal.
 
-ESLint's `jsdoc/require-jsdoc` only requires a comment on the `TSInterfaceDeclaration`/`TSTypeAliasDeclaration` itself for `src/types/onyx/**`; it does not check individual properties there. This rule is what catches an undocumented property that genuinely needs a comment.
+The `jsdoc/require-jsdoc` lint rule only requires a comment on the `TSInterfaceDeclaration`/`TSTypeAliasDeclaration` itself for `src/types/onyx/**`; it does not check individual properties there. This rule is what catches an undocumented property that genuinely needs a comment.
 
 ### Incorrect
 

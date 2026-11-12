@@ -22,6 +22,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import Button from './Button';
+import FSClassView from './FSClassView';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -145,6 +146,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
             <View style={[styles.flexRow, styles.flexWrap, styles.gap2]}>
                 {!!onRetryReceiptUpload && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.DOT_INDICATOR_MESSAGE.RETRY_RECEIPT_UPLOAD}
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onRetryReceiptUpload}
                     >
@@ -153,6 +155,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
                     </Button>
                 )}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.DOT_INDICATOR_MESSAGE.DOWNLOAD_RECEIPT}
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={() => {
                         downloadAttachmentFile(translate, receiptError.source, receiptError.filename ?? '', false);
@@ -165,30 +168,34 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
         );
         if (!isStackedLayout) {
             return (
-                <View
+                <FSClassView
                     style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, style]}
                     dataSet={receiptSelectionDataSet}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                 >
                     {messageRow}
                     {buttonsRow}
-                </View>
+                </FSClassView>
             );
         }
         return (
-            <View
+            <FSClassView
                 style={style}
                 dataSet={receiptSelectionDataSet}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 {messageRow}
                 <View style={styles.mt3}>{buttonsRow}</View>
-            </View>
+            </FSClassView>
         );
     }
 
+    // Error and info messages are text we write, not user data, so they stay readable in session recordings even under a masked container
     return (
-        <View
+        <FSClassView
             style={[styles.dotIndicatorMessage, style]}
             dataSet={selectionDataSet}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
         >
             <View
                 style={styles.offlineFeedbackErrorDot}
@@ -202,7 +209,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
                 />
             </View>
             <View style={styles.offlineFeedbackTextContainer}>{uniqueMessages.map(renderMessage)}</View>
-        </View>
+        </FSClassView>
     );
 }
 
