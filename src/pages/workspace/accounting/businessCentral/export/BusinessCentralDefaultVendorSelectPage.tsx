@@ -58,7 +58,7 @@ function BusinessCentralDefaultVendorSelectPage({policy}: WithPolicyConnectionsP
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.businessCentral.noVendorsFound')}
+            title={translate('workspace.common.noVendorsFound')}
             subtitle={translate('workspace.businessCentral.noVendorsFoundDescription')}
             containerStyle={styles.pb10}
         />

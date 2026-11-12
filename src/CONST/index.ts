@@ -3771,6 +3771,9 @@ const CONST = {
         IMPORT_ITEMS: 'importItems',
         ACCOUNTING_METHOD: 'accountingMethod',
         FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
+        API_PROVIDER: {
+            CODAT: 'codat',
+        },
     },
 
     QUICKBOOKS_CONFIG: {
@@ -4379,6 +4382,8 @@ const CONST = {
         CHECK: 'CHECK',
         VENDOR_BILL: 'VENDOR_BILL',
     },
+
+    QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME: 'Credit Card Misc.',
 
     RILLET_CONFIG: {
         SUBSIDIARY_ID: 'subsidiaryID',

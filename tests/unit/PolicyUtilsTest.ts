@@ -49,8 +49,10 @@ import {
     getDefaultChatEnabledPolicySelection,
     getDefaultTimeTrackingRate,
     getDefaultWorkspacePlanType,
+    getCampfireVendors,
     getDualEntryVendors,
     getCertiniaVendors,
+    getZohoBooksVendors,
     getEligibleBankAccountShareRecipientEmails,
     getExcludedUsers,
     getExpensifyTeamExclusions,
@@ -141,6 +143,7 @@ import {
     isRoomMemberProtectedByPolicyRole,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isQuickbooksDesktopVendorMatchingActive,
     isRilletVendorMatchingActive,
     isTaxCodeCustomized,
     isXeroVendorMatchingActive,
@@ -163,14 +166,17 @@ import ROUTES from '@src/ROUTES';
 import type {BankAccount, PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
+    CampfireVendor,
     Connections,
     DualEntryVendor,
     FinancialForceSyncedEntity,
     PolicyConnectionSyncProgress,
     PolicyConnectionSyncStage,
+    QBDNonReimbursableExportAccountType,
     QBONonReimbursableExportAccountType,
     SageIntacctExportConfig,
     TaxRates,
+    ZohoBooksVendor,
 } from '@src/types/onyx/Policy';
 import type Rule from '@src/types/onyx/Rule';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -6937,7 +6943,7 @@ describe('PolicyUtils', () => {
             it('uses the Business Central empty state when the synced list has no vendors', () => {
                 const translate = TestHelper.translateLocal;
                 expect(getVendorEmptyState(buildBusinessCentralPolicy([]), translate)).toEqual({
-                    title: translate('workspace.businessCentral.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
                 });
             });
@@ -7046,7 +7052,7 @@ describe('PolicyUtils', () => {
             it('uses the existing DualEntry empty state', () => {
                 const translate = TestHelper.translateLocal;
                 expect(getVendorEmptyState(buildDualEntryPolicy([]), translate)).toEqual({
-                    title: translate('workspace.dualEntry.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
                 });
             });
@@ -7157,9 +7163,313 @@ describe('PolicyUtils', () => {
 
                 // Then localized messages specific to Certinia are returned
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.certinia.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.certinia.noVendorsFoundDescription'),
                 });
+            });
+        });
+
+        describe('QBD vendors', () => {
+            const QBD_VENDORS_UNSYNCED = Symbol('QBD_VENDORS_UNSYNCED');
+            const buildQBDPolicy = (
+                nonReimbursable: QBDNonReimbursableExportAccountType | undefined,
+                vendors: Array<{id: string; name: string; currency: string; email: string}> | typeof QBD_VENDORS_UNSYNCED = [{id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''}],
+                {apiProvider = CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT}: {apiProvider?: string} = {},
+            ): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({apiProvider, export: {nonReimbursable}}),
+                            data: vendors === QBD_VENDORS_UNSYNCED ? undefined : {vendors},
+                        },
+                    },
+                });
+
+            it('requires Codat apiProvider and CREDIT_CARD_CHARGE export to activate', () => {
+                // Given a QBD workspace correctly configured for vendor matching
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+
+                // When checking activation
+                // Then the predicate is true and the feature requires the vendor matching beta
+                expect(isQuickbooksDesktopVendorMatchingActive(policy)).toBe(true);
+                expect(hasVendorFeature(policy, true)).toBe(true);
+                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(isQuickbooksDesktopVendorMatchingActive(undefined)).toBe(false);
+            });
+
+            it.each([
+                {label: 'missing connection', policy: createMock<Policy>({connections: {}})},
+                {label: 'missing config', policy: createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}}})},
+                {
+                    label: 'missing apiProvider',
+                    policy: buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, undefined, {apiProvider: ''}),
+                },
+                {
+                    label: 'non-codat apiProvider',
+                    policy: buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, undefined, {apiProvider: 'legacy-provider'}),
+                },
+                {label: 'CHECK export', policy: buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK)},
+                {label: 'VENDOR_BILL export', policy: buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL)},
+                {label: 'absent nonReimbursable', policy: buildQBDPolicy(undefined)},
+            ])('is inactive for $label', ({policy}) => {
+                // Given a QBD workspace that does not meet all activation conditions
+                // When checking the predicate
+                // Then it returns false
+                expect(isQuickbooksDesktopVendorMatchingActive(policy)).toBe(false);
+            });
+
+            it('returns the eligible vendor list, excluding the Credit Card Misc. fallback and empty-id records', () => {
+                // Given a QBD workspace with a normal vendor, the reserved fallback, and a vendor with no ID
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''},
+                    {id: 'qbd-2', name: 'Credit Card Misc.', currency: 'USD', email: ''},
+                    {id: '', name: 'No ID Vendor', currency: 'USD', email: ''},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getMatchingVendors(policy);
+
+                // Then only the normal vendor is returned
+                expect(vendors).toEqual([{id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''}]);
+            });
+
+            it('distinguishes an unloaded list from a loaded-empty list', () => {
+                // Given an unloaded vendor list and a loaded empty vendor list
+                const unloadedPolicy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, QBD_VENDORS_UNSYNCED);
+                const emptyPolicy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, []);
+
+                // When checking list load status and reading matching vendors
+                // Then the unloaded list is not marked loaded, while an empty array is marked loaded
+                expect(isMatchingVendorListLoaded(unloadedPolicy)).toBe(false);
+                expect(isMatchingVendorListLoaded(emptyPolicy)).toBe(true);
+                expect(getMatchingVendors(unloadedPolicy)).toEqual([]);
+            });
+
+            it('returns loaded-empty when the only vendor is the reserved Credit Card Misc. record', () => {
+                // Given a QBD workspace whose only vendor is the reserved fallback
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'ccm', name: 'Credit Card Misc.', currency: 'USD', email: ''},
+                ]);
+
+                // When reading the eligible list
+                // Then it is loaded-empty, not unloaded — any stored ID triggers inactive-vendor
+                expect(isMatchingVendorListLoaded(policy)).toBe(true);
+                expect(getMatchingVendors(policy)).toEqual([]);
+            });
+
+            it('resolves a normal QBD vendor by ID from the eligible list', () => {
+                // Given a QBD workspace with a normal vendor
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [{id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''}]);
+
+                // When resolving by ID through the matching path
+                // Then it resolves
+                expect(getMatchingVendorByID(policy, 'qbd-1')?.name).toBe('Acme QBD');
+            });
+
+            it('cannot resolve the reserved Credit Card Misc. record through getMatchingVendorByID (inactive-vendor violation path)', () => {
+                // Given a QBD workspace containing the reserved fallback vendor
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''},
+                    {id: 'ccm', name: 'Credit Card Misc.', currency: 'USD', email: ''},
+                ]);
+
+                // When attempting to resolve the reserved record through the matching path
+                // Then it is not found, triggering the inactive-vendor path
+                expect(getMatchingVendorByID(policy, 'ccm')).toBeUndefined();
+            });
+
+            it('can resolve the reserved Credit Card Misc. record through findVendorByID for historical display', () => {
+                // Given a QBD workspace with the reserved vendor in the raw list
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'ccm', name: 'Credit Card Misc.', currency: 'USD', email: ''},
+                ]);
+
+                // When looking up for display only (not for matching)
+                // Then the raw fallback resolves it for historical display
+                expect(findVendorByID(policy, 'ccm')?.name).toBe('Credit Card Misc.');
+            });
+
+            it('resolves a normal QBD vendor from raw list after the export mode is switched away (historical display)', () => {
+                // Given a QBD workspace that switched to CHECK mode (vendor matching no longer active)
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK, [{id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''}]);
+
+                // When looking up a vendor stored on a historical transaction
+                // Then findVendorByID resolves it from the raw list
+                expect(findVendorByID(policy, 'qbd-1')?.name).toBe('Acme QBD');
+            });
+
+            it('stays last in source order (loses to active Certinia)', () => {
+                // Given a workspace configured for both Certinia FFA and QBD vendor matching
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                            config: {isConfigured: true, hasPSA: false},
+                            data: {vendors: [{id: 'certinia-1', name: 'Certinia Vendor'}]},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
+                            data: {vendors: [{id: 'qbd-1', name: 'QBD Vendor', currency: 'USD', email: ''}]},
+                        },
+                    },
+                });
+
+                // When resolving the active integration
+                // Then Certinia takes precedence and QBD vendors are not returned
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
+                expect(getMatchingVendors(policy).map((v) => v.id)).toEqual(['certinia-1']);
+            });
+
+            it('uses QBD-specific empty state copy', () => {
+                // Given a QBD workspace with an empty vendor list
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, []);
+                const translate = TestHelper.translateLocal;
+
+                // When retrieving the vendor empty state
+                // Then QBD-specific messages are returned, not the accounts copy
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.qbd.noVendorsFoundDescription'),
+                });
+            });
+        });
+
+        describe('Campfire vendors', () => {
+            const buildCampfirePolicy = (vendors: CampfireVendor[] | undefined, isConfigured = true): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                            config: {isConfigured},
+                            data: vendors === undefined ? undefined : {vendors},
+                        },
+                    },
+                });
+
+            it('returns only active vendor-type records, excluding customers and inactive vendors', () => {
+                // Given a Campfire workspace with a mix of active vendors, inactive vendors, and customers
+                const policy = buildCampfirePolicy([
+                    {id: 'cf-1', name: 'Active Vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                    {id: 'cf-2', name: 'Inactive Vendor', isActive: false, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                    {id: 'cf-3', name: 'Active Customer', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.CUSTOMER},
+                    {id: 'cf-4', name: 'Active Vendor 2', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getCampfireVendors(policy);
+
+                // Then only active vendor-type records are returned
+                expect(vendors.map((v) => v.id)).toEqual(['cf-1', 'cf-4']);
+            });
+
+            it('excludes vendors with an empty id', () => {
+                // Given a Campfire workspace with a vendor with no id
+                const policy = buildCampfirePolicy([
+                    {id: '', name: 'No ID Vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                    {id: 'cf-1', name: 'Valid Vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getCampfireVendors(policy);
+
+                // Then only the vendor with a valid id is returned
+                expect(vendors).toEqual([{id: 'cf-1', name: 'Valid Vendor', currency: '', email: ''}]);
+            });
+
+            it('returns an empty array when the vendor list is undefined', () => {
+                // Given a Campfire workspace with no synced vendor data
+                const policy = buildCampfirePolicy(undefined);
+
+                // When reading the vendor list
+                // Then an empty array is returned (not undefined)
+                expect(getCampfireVendors(policy)).toEqual([]);
+            });
+
+            it('preserves the vendor email when present', () => {
+                // Given a Campfire vendor with an email address
+                const policy = buildCampfirePolicy([{id: 'cf-1', name: 'Vendor With Email', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR, email: 'vendor@example.com'}]);
+
+                // When reading the eligible vendor list
+                const vendors = getCampfireVendors(policy);
+
+                // Then the email is preserved in the normalized shape
+                expect(vendors).toEqual([{id: 'cf-1', name: 'Vendor With Email', currency: '', email: 'vendor@example.com'}]);
+            });
+        });
+
+        describe('Zoho Books vendors', () => {
+            const buildZohoBooksPolicy = (vendors: ZohoBooksVendor[] | undefined, isConfigured = true): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+                            config: {isConfigured},
+                            data: vendors === undefined ? undefined : {vendors},
+                        },
+                    },
+                });
+
+            it('returns only active vendor-type records, excluding customers and inactive vendors', () => {
+                // Given a Zoho Books workspace with a mix of active vendors, inactive vendors, and customers
+                const policy = buildZohoBooksPolicy([
+                    {id: 'zb-1', name: 'Active Vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                    {id: 'zb-2', name: 'Inactive Vendor', isActive: false, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                    {id: 'zb-3', name: 'Active Customer', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.CUSTOMER},
+                    {id: 'zb-4', name: 'Active Vendor 2', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getZohoBooksVendors(policy);
+
+                // Then only active vendor-type records are returned
+                expect(vendors.map((v) => v.id)).toEqual(['zb-1', 'zb-4']);
+            });
+
+            it('excludes vendors with an empty id', () => {
+                // Given a Zoho Books workspace with a vendor with no id
+                const policy = buildZohoBooksPolicy([
+                    {id: '', name: 'No ID Vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                    {id: 'zb-1', name: 'Valid Vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getZohoBooksVendors(policy);
+
+                // Then only the vendor with a valid id is returned
+                expect(vendors).toEqual([{id: 'zb-1', name: 'Valid Vendor', currency: '', email: ''}]);
+            });
+
+            it('returns an empty array when the vendor list is undefined', () => {
+                // Given a Zoho Books workspace with no synced vendor data
+                const policy = buildZohoBooksPolicy(undefined);
+
+                // When reading the vendor list
+                // Then an empty array is returned (not undefined)
+                expect(getZohoBooksVendors(policy)).toEqual([]);
+            });
+
+            it('preserves the vendor email when present', () => {
+                // Given a Zoho Books vendor with an email address
+                const policy = buildZohoBooksPolicy([{id: 'zb-1', name: 'Vendor With Email', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR, email: 'ap@example.com'}]);
+
+                // When reading the eligible vendor list
+                const vendors = getZohoBooksVendors(policy);
+
+                // Then the email is preserved in the normalized shape
+                expect(vendors).toEqual([{id: 'zb-1', name: 'Vendor With Email', currency: '', email: 'ap@example.com'}]);
+            });
+
+            it('returns an empty array when policy has no Zoho Books connection', () => {
+                // Given a policy with no Zoho Books connection
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
+
+                // When reading the Zoho Books vendor list
+                // Then an empty array is returned
+                expect(getZohoBooksVendors(policy)).toEqual([]);
             });
         });
 
@@ -7299,6 +7609,43 @@ describe('PolicyUtils', () => {
 
             it('returns false when policy is undefined', () => {
                 expect(hasVendorFeature(undefined, true)).toBe(false);
+            });
+
+            it('returns true for QBD Codat + CREDIT_CARD_CHARGE when beta is enabled', () => {
+                // Given a QBD workspace correctly configured for vendor matching
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
+                        },
+                    },
+                });
+
+                // When checking with the beta on and off
+                // Then QBD requires the beta
+                expect(hasVendorFeature(policy, true)).toBe(true);
+                expect(hasVendorFeature(policy, false)).toBe(false);
+            });
+
+            it('returns false for QBD CHECK export even when beta is enabled', () => {
+                // Given a QBD workspace in CHECK export mode
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK},
+                            }),
+                        },
+                    },
+                });
+
+                // When checking with the beta on
+                // Then CHECK mode does not qualify
+                expect(hasVendorFeature(policy, true)).toBe(false);
             });
         });
 
@@ -7938,6 +8285,42 @@ describe('PolicyUtils', () => {
             it('returns undefined when policy is undefined', () => {
                 expect(getActiveVendorMatchingIntegration(undefined)).toBeUndefined();
             });
+
+            it('returns QBD when QBD Codat + CREDIT_CARD_CHARGE is active', () => {
+                // Given a QBD workspace correctly configured for vendor matching
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
+                        },
+                    },
+                });
+
+                // When resolving the active integration
+                // Then QBD is returned
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.QBD);
+            });
+
+            it('returns undefined when QBD is connected but not in CREDIT_CARD_CHARGE mode', () => {
+                // Given a QBD workspace in CHECK mode
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK},
+                            }),
+                        },
+                    },
+                });
+
+                // When resolving the active integration
+                // Then no vendor matching integration is active
+                expect(getActiveVendorMatchingIntegration(policy)).toBeUndefined();
+            });
         });
 
         describe('getVendorEmptyState', () => {
@@ -7962,7 +8345,7 @@ describe('PolicyUtils', () => {
             it('returns Xero empty state copy when Xero is the active integration', () => {
                 const policy = buildXeroPolicy();
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.xero.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.xero.noVendorsFoundDescription'),
                 });
             });
@@ -7970,8 +8353,80 @@ describe('PolicyUtils', () => {
             it('returns Rillet empty state copy when Rillet is the active integration', () => {
                 const policy = buildRilletPolicy();
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.rillet.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
+                });
+            });
+
+            it('returns QBD empty state copy when QBD is the active integration', () => {
+                // Given a QBD workspace with an empty vendor list
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
+                            data: {vendors: []},
+                        },
+                    },
+                });
+
+                // When retrieving the vendor empty state
+                // Then QBD-specific messages are returned, not the accounts copy
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.qbd.noVendorsFoundDescription'),
+                });
+            });
+
+            it('returns Campfire empty state copy when Campfire is the active integration', () => {
+                // Given a Campfire workspace with an empty vendor list
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                            config: {isConfigured: true},
+                            data: {vendors: []},
+                        },
+                    },
+                });
+
+                // When retrieving the vendor empty state
+                // Then Campfire-specific messages are returned
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.campfire.noVendorsFoundDescription'),
+                });
+            });
+
+            it('returns DualEntry empty state copy when DualEntry is the active integration', () => {
+                // Given a DualEntry workspace with an empty vendor list
+                const policy = createMock<Policy>({
+                    connections: {
+                        dualEntry: {
+                            config: {isConfigured: true, subsidiaryID: '10'},
+                            data: {vendors: []},
+                        },
+                    },
+                });
+
+                // When retrieving the vendor empty state
+                // Then DualEntry-specific messages are returned
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
+                });
+            });
+
+            it('falls back to QBO default copy when no supported integration is active', () => {
+                // Given a policy with no active vendor-matching integration
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
+
+                // When retrieving the vendor empty state
+                // Then the QBO default messages are returned
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.qbo.noAccountsFound'),
+                    subtitle: translate('workspace.qbo.noAccountsFoundDescription', 'QuickBooks Online'),
                 });
             });
         });
