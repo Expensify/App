@@ -1860,7 +1860,21 @@ describe('useGettingStartedItems', () => {
                 const createExpenseItem = result.current.items.find((item) => item.key === 'createExpense');
                 expect(createExpenseItem?.route).toBeUndefined();
                 createExpenseItem?.onPress?.();
-                expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array));
+                await waitFor(() => expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array)));
+            });
+
+            it('should pass the draft IDs that exist when createExpense is pressed', async () => {
+                // Given a draft written after the hook rendered. The hook no longer subscribes to drafts, so it must read them when pressed
+                startMoneyRequest.mockClear();
+                await setupTrackPersonalScenario({policy: {areCategoriesEnabled: true}});
+                const {result} = renderHook(() => useGettingStartedItems());
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft1`, {transactionID: 'draft1'});
+
+                // When the user presses createExpense
+                result.current.items.find((item) => item.key === 'createExpense')?.onPress?.();
+
+                // Then the press reads the current drafts instead of a value captured at render, so the old flow's draft is still cleared
+                await waitFor(() => expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), ['draft1']));
             });
 
             it('should mark createExpense incomplete with no transactions and complete once a non-deleted transaction exists', async () => {
