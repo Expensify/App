@@ -34,6 +34,8 @@ jest.mock('@hooks/useCurrencyList', () => ({
     }),
 }));
 
+const mockedNumberWithSymbolForm = jest.mocked(NumberWithSymbolForm);
+
 beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useDefaultExpensePolicy).mockReturnValue(undefined);
@@ -80,7 +82,7 @@ describe('AmountFilterContent currency selection', () => {
         );
 
         // When the filter configures the shared number input.
-        const props = jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0];
+        const props = mockedNumberWithSymbolForm.mock.lastCall?.[0];
 
         // Then validation uses the currency precision, or two places for Any currency.
         expect(props?.decimals).toBe(decimals);
@@ -95,19 +97,19 @@ describe('AmountFilterContent currency selection', () => {
                 onChange={jest.fn()}
             />,
         );
-        expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0].decimals).toBe(2);
+        expect(mockedNumberWithSymbolForm.mock.lastCall?.[0].decimals).toBe(2);
 
         // When JPY is selected.
         act(() => jest.mocked(IOURequestStepCurrencyModal).mock.lastCall?.[0].onInputChange?.('JPY'));
 
         // Then the shared input receives zero precision to reject fractions.
-        expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0]).toMatchObject({currency: 'JPY', decimals: 0});
+        expect(mockedNumberWithSymbolForm.mock.lastCall?.[0]).toMatchObject({currency: 'JPY', decimals: 0});
 
         // When Any currency is selected.
         act(() => jest.mocked(IOURequestStepCurrencyModal).mock.lastCall?.[0].onInputChange?.(''));
 
         // Then two-decimal precision becomes available again.
-        expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0]).toMatchObject({currency: '', decimals: 2});
+        expect(mockedNumberWithSymbolForm.mock.lastCall?.[0]).toMatchObject({currency: '', decimals: 2});
     });
 
     it.each(['Greater than ', 'Less than '])('trims the %s label in the currency button name', (label) => {
@@ -124,7 +126,7 @@ describe('AmountFilterContent currency selection', () => {
         );
 
         // When the currency button's accessible name combines the label with its selected currency.
-        const props = jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0];
+        const props = mockedNumberWithSymbolForm.mock.lastCall?.[0];
 
         // Then no trailing translation space remains before the spoken separator.
         expect(props?.currencyButtonAccessibilityLabel).toBe(`${label.trim()}, common.selectCurrency, USD`);
@@ -143,8 +145,8 @@ describe('AmountFilterContent currency selection', () => {
         );
 
         // When the money-request currency button opens its picker and a currency is selected.
-        expect(jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0]).toMatchObject({value: '12.00', currency: '', shouldShowCurrencyButton: true, allowNegativeInput: true});
-        act(() => jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].onCurrencyButtonPress?.());
+        expect(mockedNumberWithSymbolForm.mock.calls.at(-1)?.[0]).toMatchObject({value: '12.00', currency: '', shouldShowCurrencyButton: true, allowNegativeInput: true});
+        act(() => mockedNumberWithSymbolForm.mock.calls.at(-1)?.[0].onCurrencyButtonPress?.());
         expect(jest.mocked(IOURequestStepCurrencyModal).mock.calls.at(-1)?.[0].isPickerVisible).toBe(true);
         act(() => {
             jest.mocked(IOURequestStepCurrencyModal).mock.calls.at(-1)?.[0].onInputChange?.('USD');
@@ -175,8 +177,8 @@ describe('AmountFilterContent currency selection', () => {
         );
 
         // When an amount is entered and confirmed without manually choosing a currency.
-        expect(jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].currency).toBe(expectedCurrency);
-        act(() => jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].onInputChange?.('12.00'));
+        expect(mockedNumberWithSymbolForm.mock.calls.at(-1)?.[0].currency).toBe(expectedCurrency);
+        act(() => mockedNumberWithSymbolForm.mock.calls.at(-1)?.[0].onInputChange?.('12.00'));
         fireEvent.press(screen.getByRole('button'));
 
         // Then the displayed default is also included in the submitted operand.
@@ -224,12 +226,12 @@ describe('AmountFilterContent currency selection', () => {
         fireEvent.press(screen.getByRole('button'));
 
         // Then the button uses Any, its accessibility label keeps Any currency, and the amount returns to bare hundredths.
-        expect(jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0]).toMatchObject({
+        expect(mockedNumberWithSymbolForm.mock.calls.at(-1)?.[0]).toMatchObject({
             value: '0.10',
             currency: '',
             currencyButtonLabel: 'common.any',
         });
-        expect(jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].currencyButtonAccessibilityLabel).toContain('common.anyCurrency');
+        expect(mockedNumberWithSymbolForm.mock.calls.at(-1)?.[0].currencyButtonAccessibilityLabel).toContain('common.anyCurrency');
         expect(onChange).toHaveBeenCalledWith({[`${baseFilterKey}EqualTo`]: '10', [`${baseFilterKey}GreaterThan`]: undefined, [`${baseFilterKey}LessThan`]: undefined});
     });
 
@@ -246,7 +248,7 @@ describe('AmountFilterContent currency selection', () => {
         );
 
         // When the shared picker opens and closes without a selection.
-        act(() => jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].onCurrencyButtonPress?.());
+        act(() => mockedNumberWithSymbolForm.mock.calls.at(-1)?.[0].onCurrencyButtonPress?.());
         act(() => jest.mocked(IOURequestStepCurrencyModal).mock.calls.at(-1)?.[0].hidePickerModal());
         fireEvent.press(screen.getByRole('button'));
 
@@ -266,11 +268,11 @@ describe('AmountFilterContent currency selection', () => {
                 onChange={onChange}
             />,
         );
-        jest.mocked(NumberWithSymbolForm).mockClear();
+        mockedNumberWithSymbolForm.mockClear();
 
         // When a new Between filter is entered without selecting either currency.
         fireEvent.press(screen.getByTestId('base-list-item-Between'), {nativeEvent: {}});
-        const bounds = jest.mocked(NumberWithSymbolForm).mock.calls.slice(-2);
+        const bounds = mockedNumberWithSymbolForm.mock.calls.slice(-2);
         expect(bounds.map(([props]) => props.currency)).toEqual(['GBP', 'GBP']);
         act(() => {
             bounds.at(0)?.[0].onInputChange?.('10');
@@ -295,7 +297,7 @@ describe('AmountFilterContent currency selection', () => {
         );
 
         // When the range is reopened and confirmed without changes.
-        expect(jest.mocked(NumberWithSymbolForm).mock.calls.map(([{currency, decimals}]) => ({currency, decimals}))).toEqual([
+        expect(mockedNumberWithSymbolForm.mock.calls.map(([{currency, decimals}]) => ({currency, decimals}))).toEqual([
             {currency: 'JPY', decimals: 0},
             {currency: 'GBP', decimals: 2},
         ]);
@@ -341,7 +343,7 @@ describe('AmountFilterContent currency selection', () => {
 
         // Then its UI does not gain a currency picker.
         expect(IOURequestStepCurrencyModal).not.toHaveBeenCalled();
-        expect(NumberWithSymbolForm).not.toHaveBeenCalled();
+        expect(mockedNumberWithSymbolForm).not.toHaveBeenCalled();
         fireEvent.press(screen.getByRole('button'));
         expect(onChange).toHaveBeenCalledWith({totalEqualTo: '1200', totalGreaterThan: undefined, totalLessThan: undefined});
     });
@@ -368,8 +370,8 @@ describe('AmountPopup currency selection', () => {
 
         // When an amount is entered and both popup steps are applied without choosing a currency.
         fireEvent.press(equalTo, {nativeEvent: {}});
-        expect(jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].currency).toBe('GBP');
-        act(() => jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].onInputChange?.('11.99'));
+        expect(mockedNumberWithSymbolForm.mock.calls.at(-1)?.[0].currency).toBe('GBP');
+        act(() => mockedNumberWithSymbolForm.mock.calls.at(-1)?.[0].onInputChange?.('11.99'));
         act(() => jest.mocked(BasePopup).mock.calls.at(-1)?.[0].onApply());
         act(() => jest.mocked(BasePopup).mock.calls.at(-1)?.[0].onApply());
 
@@ -401,14 +403,14 @@ describe('AmountPopup currency selection', () => {
 
         // When the shared picker selects a currency or Any currency and both popup steps are applied.
         fireEvent.press(equalTo, {nativeEvent: {}});
-        act(() => jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].onCurrencyButtonPress?.());
+        act(() => mockedNumberWithSymbolForm.mock.calls.at(-1)?.[0].onCurrencyButtonPress?.());
         expect(jest.mocked(IOURequestStepCurrencyModal).mock.calls.at(-1)?.[0].isPickerVisible).toBe(true);
         act(() => jest.mocked(IOURequestStepCurrencyModal).mock.calls.at(-1)?.[0].onInputChange?.(currency));
         act(() => jest.mocked(BasePopup).mock.calls.at(-1)?.[0].onApply());
         act(() => jest.mocked(BasePopup).mock.calls.at(-1)?.[0].onApply());
 
         // Then quick filters use the compact currency label and preserve the format used by advanced filters.
-        expect(jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].currencyButtonLabel).toBe(currency || 'common.any');
+        expect(mockedNumberWithSymbolForm.mock.calls.at(-1)?.[0].currencyButtonLabel).toBe(currency || 'common.any');
         expect(updateFilterForm).toHaveBeenCalledWith({[`${baseFilterKey}EqualTo`]: expected, [`${baseFilterKey}GreaterThan`]: '', [`${baseFilterKey}LessThan`]: ''});
     });
 });
