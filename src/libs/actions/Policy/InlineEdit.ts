@@ -27,7 +27,7 @@ import {
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 import {getPerDiemAmountError, getPerDiemAmountErrorMessage, getPerDiemNameError, getPerDiemNameErrorMessage} from '@libs/PolicyPerDiemUtils';
-import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
+import {areRateAmountsEqual, getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
 
@@ -160,7 +160,7 @@ function updateDistanceRateValueInline(
     }
 
     const currentRateValue = (rate.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET;
-    if (Number(newRate).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) === currentRateValue.toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES)) {
+    if (areRateAmountsEqual(newRate, currentRateValue)) {
         return;
     }
 
@@ -174,7 +174,7 @@ function updateDistanceTaxClaimableValueInline(translate: LocalizedTranslate, po
     }
 
     const currentAmount = getTaxClaimableDisplayAmount(rate.attributes?.taxClaimablePercentage ?? 0, rate.rate ?? 0);
-    if (Number(newAmount).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) === Number(currentAmount).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES)) {
+    if (areRateAmountsEqual(newAmount, currentAmount)) {
         return;
     }
 

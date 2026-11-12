@@ -73,6 +73,7 @@ import {
     getPolicyIDFromDomainName,
     getRateDisplayValue,
     getRateValueWithDecimals,
+    areRateAmountsEqual,
     getOwnerChangePayerSuccessData,
     getOwnedPaidPolicies,
     getSageIntacctVendors,
@@ -2287,6 +2288,27 @@ describe('PolicyUtils', () => {
                 // Then the editor receives a numeric string while the display keeps its locale separator
                 expect(editorValue).toBe('0.123');
                 expect(displayValue).toBe('0,123');
+            });
+        });
+
+        describe('areRateAmountsEqual', () => {
+            it.each<[string | number, string | number, boolean]>([
+                ['0.1', '0.10', true],
+                ['0.1', '0.1000', true],
+                [0.1, '0.1000', true],
+                ['0.1000', 0.1, true],
+                [0.1 + 0.2, '0.3000', true],
+                ['0.12344', '0.1234', true],
+                ['', 0, true],
+                ['0.1000', '0.1001', false],
+                ['0.1234', '0.1235', false],
+            ])('compares %s and %s as %s at editor precision', (firstAmount, secondAmount, expected) => {
+                // Given saved and entered amounts with different padding or calculation precision
+                // When deciding whether an editor should persist a change
+                const areEqual = areRateAmountsEqual(firstAmount, secondAmount);
+
+                // Then formatting differences are ignored without losing meaningful fourth-decimal changes
+                expect(areEqual).toBe(expected);
             });
         });
 

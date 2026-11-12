@@ -215,6 +215,11 @@ function getRateValueWithDecimals(value: number): string {
     return numValue.toFixed(fractionDigits);
 }
 
+/** Ignores display padding and floating-point noise when detecting unchanged rate amounts. */
+function areRateAmountsEqual(firstAmount: string | number, secondAmount: string | number): boolean {
+    return Number(firstAmount).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) === Number(secondAmount).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+}
+
 function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string, withDecimals?: boolean): string {
     const numValue = getNumericValue(value, toLocaleDigit);
     if (Number.isNaN(numValue)) {
@@ -256,6 +261,7 @@ export {
     getPerDiemRateCustomUnitRate,
     getRateDisplayValue,
     getRateValueWithDecimals,
+    areRateAmountsEqual,
     getUnitRateValue,
     removePendingFieldsFromCustomUnit,
 };
