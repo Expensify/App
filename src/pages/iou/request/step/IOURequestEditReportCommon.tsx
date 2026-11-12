@@ -27,7 +27,7 @@ import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, 
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,6 +76,9 @@ type IOURequestEditReportCommonProps = {
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
+
+    /** Leaves a new expense off any report. Offered next to the new report option when passed */
+    selectNoReport?: () => void;
     isPerDiemRequest: boolean;
     isTimeRequest?: boolean;
     isUnreportedManagedCardTransaction?: boolean;
@@ -123,6 +126,7 @@ function IOURequestEditReportCommon({
     isUnreported,
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
     createReport,
+    selectNoReport,
     isPerDiemRequest,
     isTimeRequest = false,
     isUnreportedManagedCardTransaction = false,
@@ -422,7 +426,7 @@ function IOURequestEditReportCommon({
     } else {
         autoReportOption = (
             <MenuItem.Root
-                onPress={callFunctionIfActionIsAllowed(handleAutoReport, false, session)}
+                onPress={callIfAuthenticated(handleAutoReport, session)}
                 sentryLabel={autoReportSentryLabel}
             >
                 <MenuItem.Row>
@@ -438,9 +442,33 @@ function IOURequestEditReportCommon({
         );
     }
 
-    const listHeaderContent = createReportOption ?? autoReportOption;
+    const noReportOption = selectNoReport ? (
+        <MenuItem.Root
+            onPress={selectNoReport}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_PICKER.NO_REPORT}
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <MenuItem.Icon src={icons.Close} />
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.Title>{translate('common.none')}</MenuItem.Title>
+                </MenuItem.Content>
+            </MenuItem.Row>
+        </MenuItem.Root>
+    ) : undefined;
+
+    const newReportOption = createReportOption ?? autoReportOption;
+    const headerOptionCount = (newReportOption ? 1 : 0) + (noReportOption ? 1 : 0);
+    const listHeaderContent =
+        headerOptionCount > 0 ? (
+            <>
+                {newReportOption}
+                {noReportOption}
+            </>
+        ) : undefined;
     const isSearchable = !hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const listSize: ReportListSize = {rowCount: eligibleReports.length + (listHeaderContent ? 1 : 0), isSearchable};
+    const listSize: ReportListSize = {rowCount: eligibleReports.length + headerOptionCount, isSearchable};
 
     let shouldShowNotFoundPage;
     if (listHeaderContent) {

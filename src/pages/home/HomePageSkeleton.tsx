@@ -28,6 +28,8 @@ const TITLE_LINE_HEIGHT = variables.widgetHeaderTitleLineHeight;
 const TRAILING_BAR_WIDTH = 68;
 const TRAILING_SUB_BAR_WIDTH = 40;
 const CARD_TITLE_WIDTH = 120;
+const SUBTITLE_LINE_HEIGHT = lineHeightScale.label;
+const CARD_SUBTITLE_WIDTH = 90;
 const LOWER_BAR_WIDTH = 80;
 
 // Home's first insight, spend over time, is a line chart, which holds its loading spinner at this height.
@@ -110,9 +112,10 @@ function renderIconTwoBarWithTrailingRow(args: TrailingSkeletonRowArgs) {
 type HomePageSkeletonCardProps = {
     children: React.ReactNode;
     hasBottomPadding?: boolean;
+    subtitle?: React.ReactNode;
 };
 
-function HomePageSkeletonCard({children, hasBottomPadding = true}: HomePageSkeletonCardProps) {
+function HomePageSkeletonCard({children, hasBottomPadding = true, subtitle}: HomePageSkeletonCardProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -120,10 +123,13 @@ function HomePageSkeletonCard({children, hasBottomPadding = true}: HomePageSkele
         <View testID={CARD_TEST_ID}>
             <WidgetContainer
                 titleContent={
-                    <SkeletonTextLine
-                        lineHeight={TITLE_LINE_HEIGHT}
-                        barWidth={CARD_TITLE_WIDTH}
-                    />
+                    <>
+                        <SkeletonTextLine
+                            lineHeight={TITLE_LINE_HEIGHT}
+                            barWidth={CARD_TITLE_WIDTH}
+                        />
+                        {subtitle}
+                    </>
                 }
                 containerStyles={hasBottomPadding && styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
             >
@@ -181,7 +187,15 @@ function HomePageSkeletonSpinnerCard() {
     const chartPaddingStyle = useInsightChartPaddingStyle();
 
     return (
-        <HomePageSkeletonCard hasBottomPadding={false}>
+        <HomePageSkeletonCard
+            hasBottomPadding={false}
+            subtitle={
+                <SkeletonTextLine
+                    lineHeight={SUBTITLE_LINE_HEIGHT}
+                    barWidth={CARD_SUBTITLE_WIDTH}
+                />
+            }
+        >
             <View style={chartPaddingStyle}>
                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
                     <ActivityIndicator

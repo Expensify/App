@@ -27,7 +27,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -95,9 +95,9 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.BUSINESS_CENTRAL_CONFIG.ACCOUNTING_METHOD], businessCentralConfig?.pendingFields)}>
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.ACCOUNTING_METHOD}
+                        onPress={callIfAuthenticated(
                             () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ACCOUNTING_METHOD.getRoute(policyID)) : undefined),
-                            false,
                             session,
                         )}
                     >
@@ -117,6 +117,7 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.BUSINESS_CENTRAL_CONFIG.POSTING_MODE], businessCentralConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.POSTING_MODE}
                     name={translate('workspace.businessCentral.advanced.postingMode.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED_POSTING_MODE.getRoute(policyID)) : undefined)}
                     value={translate(`workspace.businessCentral.advanced.postingMode.values.${postingMode}.label`)}
@@ -170,6 +171,7 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSEMENT_BANK_ACCOUNT_ID], businessCentralConfig?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.REIMBURSEMENT_BANK_ACCOUNT}
                         name={translate('workspace.businessCentral.advanced.reimbursementBankAccount.label')}
                         onPress={() =>
                             policyID
@@ -206,6 +208,7 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.BUSINESS_CENTRAL_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], businessCentralConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.SETTLEMENTS_BANK_ACCOUNT}
                                 name={translate('workspace.businessCentral.advanced.settlementsBankAccount.label')}
                                 onPress={() =>
                                     policyID

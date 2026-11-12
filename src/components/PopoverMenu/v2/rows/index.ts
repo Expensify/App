@@ -11,5 +11,3 @@ export type {RadioItemProps} from './RadioItem';
 export {default as Separator} from './Separator';
 export {default as useSelectableRow} from './useSelectableRow';
 export type {UseSelectableRowResult} from './useSelectableRow';
-// Re-exported here so custom non-row content placed alongside rows can self-gate without reaching into the sub barrel.
-export {useIsAtActiveLevel} from '../sub/SubContext';

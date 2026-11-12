@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Annuler',
         dismiss: 'Fermer',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionner la colonne ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        resizePanel: 'Redimensionner le panneau',
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Continuer',
         unshare: 'Arrêter le partage',
         yes: 'Oui',
@@ -1265,6 +1266,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Tout afficher',
         topExpenses: 'Dépenses principales',
         noExpensesInRange: 'Aucune dépense dans cette plage',
+        efficiency: 'Efficacité',
+        workflowEfficiency: 'Efficacité du flux de travail',
+        longestToSubmit: 'Le plus long à soumettre',
+        slowestToApprove: 'Plus lent à approuver',
+        mostTimeToPay: 'Délai de paiement le plus long',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1427,6 +1433,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'ou faites-en glisser un ici',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Page ${page} sur ${pageCount}`,
+        translate: 'Traduire',
+        viewOriginal: 'Afficher l’original',
+        translationDisclaimer: 'L’IA peut faire des erreurs. Veuillez vérifier l’original.',
+        translationError: {
+            unreadable: 'Nous n’avons pas pu lire ce reçu avec suffisamment de clarté pour le traduire.',
+            alreadyInLanguage: 'Ce reçu est déjà dans votre langue.',
+            generic: "Nous n'avons pas pu traduire ce reçu. Veuillez réessayer.",
+        },
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -2064,6 +2078,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'a restauré cette dépense',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `les taux kilométriques ont été mis à jour pour le nouvel espace de travail - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} note de frais`,
+                other: (count: number) => `${formattedCount ?? count} notes de frais`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2312,6 +2332,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'le dernier samedi du mois',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'le dernier dimanche du mois',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Cette note de frais sera exportée après l’approbation finale.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Les dépenses remboursables seront exportées lorsque cette note de frais sera payée.',
         },
     },
     profilePage: {
@@ -3322,6 +3346,7 @@ ${amount} pour ${merchant} - ${date}`,
         businessBankAccountCountries: 'Pays des comptes bancaires professionnels',
         businessBankAccountCountriesDescription:
             'Les employés de ces pays fournissent des coordonnées de virement local. Tous les autres fournissent des coordonnées de virement international.',
+        businessBankAccountCountriesError: 'La mise à jour de vos pays de remboursement a échoué. Veuillez réessayer.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Un workflow d’approbation personnalisé est activé sur cet espace de travail. Pour examiner ou modifier ce workflow, veuillez contacter votre <account-manager-link>chargé de compte</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5441,6 +5466,12 @@ ${amount} pour ${merchant} - ${date}`,
             readOnlyActionPrompt: 'Votre rôle dans cet espace de travail peut afficher ces paramètres, mais ne peut pas les modifier.',
             noAccessActionPrompt: 'Votre rôle dans l’espace de travail n’a pas accès à ces paramètres. Demandez à un administrateur si vous en avez besoin.',
             connections: 'Connexions',
+            newRoles: 'Nouveaux rôles',
+            adminRoles: 'Rôles d’administrateur',
+            otherRoles: 'Autres rôles',
+            roleSelectorDescription: `Assignez un rôle pour gérer les autorisations d’espace de travail d’un membre. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Comparer les rôles d’espace de travail</a>.`,
+            roleSelectorFeedback: 'Vous ne voyez pas le rôle dont vous avez besoin ?',
+            roleSelectorFeedbackLink: 'Faites-le nous savoir',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -6816,7 +6847,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         'Nous proposons des intégrations globales avec Mastercard, bien que l’éligibilité varie selon la banque et le programme de carte.\n\nPour commencer, il vous suffit de :',
                     vcf: `1. Consultez [cet article d'aide](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) pour obtenir des instructions détaillées sur la configuration de vos cartes Visa Commercial Cards.
 
-2. [Contactez votre banque](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
+2. Contactez votre banque pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
 
 3. *Une fois le flux activé et que vous disposez de ses détails, passez à l'écran suivant.*`,
                     gl1025: `1. Consultez [cet article d’aide](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) pour savoir si American Express peut activer un flux commercial pour votre programme.
@@ -6826,7 +6857,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
 3. *Une fois que vous avez les informations du flux, continuez vers l’écran suivant.*`,
                     cdf: `1. Consultez [cet article d'aide](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) pour des instructions détaillées sur la configuration de vos Mastercard Commercial Cards.
 
- 2. [Contactez votre banque](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
+ 2. Contactez votre banque pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
 
 3. *Une fois le flux activé et que vous disposez de ses détails, continuez vers l'écran suivant.*`,
                     stripe: `1. Accédez au tableau de bord Stripe, puis allez dans [Paramètres](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -7858,6 +7889,11 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             changeOfficeLocation: 'Modifier le lieu de travail',
             changeWorkArrangement: 'Modifier l’organisation du travail',
             changeRole: 'Modifier le rôle',
+            newRolesBanner: {
+                title: 'Nouveaux rôles disponibles',
+                subtitle:
+                    '<label-text>Donnez aux membres uniquement l’accès dont ils ont besoin grâce aux nouveaux rôles <strong>Approbation uniquement</strong> et <strong>Invité</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -7972,6 +8008,13 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 comingSoon: 'Bientôt disponible',
                 joinWaitlist: 'Rejoindre la liste d’attente',
                 onWaitlist: 'Vous êtes sur la liste d’attente',
+                waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
+            },
+            integrationWaitlist: {
+                comingSoon: 'Bientôt disponible',
+                joinWaitlist: 'Rejoindre la liste d’attente',
+                onWaitlist: 'Vous êtes sur la liste d’attente',
+                onTheList: 'Vous êtes sur la liste !',
                 waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
             },
             setup: 'Connecter',
@@ -8644,6 +8687,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Notre intégration Campfire est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Digits. Alignez les dimensions de codage des dépenses sur votre configuration Digits pour une meilleure visibilité financière.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Notre intégration Digits est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
                 description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Dynamics 365 Business Central. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Dynamics 365 Business Central pour une meilleure visibilité financière.`,
@@ -9304,6 +9353,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
+                saveAnyway: 'Enregistrer quand même',
+                checkingRule: 'Vérification de votre règle...',
                 fallbackBanner:
                     'Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent. Les règles d’agent s’exécutent lorsqu’une dépense ou une note de frais est créée ou mise à jour.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9769,6 +9820,17 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 },
             },
         },
+        digits: {
+            entity: 'Entité',
+            updateCurrencyTitle: 'Mettre à jour la devise de l’espace de travail ?',
+            updateCurrencyPrompt: 'Digits n’est actuellement disponible que pour les entreprises basées aux États-Unis qui opèrent en USD.',
+            importDescription: 'Choisissez quelles configurations Digits importer.',
+            accountTypesDescription: 'Vos comptes Digits seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes Digits seront disponibles en tant que catégories.',
+            dimensionsImport: 'Toutes les dimensions Digits sont importées en tant que tags.',
+            departments: 'Services',
+        },
         zohoBooks: {
             organization: 'Organisation Zoho Books',
             organizationSelectDescription: 'Choisissez l’organisation dans Zoho Books à partir de laquelle vous souhaitez importer des données.',
@@ -10146,6 +10208,25 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             return `a modifié les reçus détaillés de la catégorie « ${categoryName} » en ${newValue} (auparavant ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `a renommé la catégorie « ${oldName} » en « ${newName} »`,
+        setCategoryVisibility: (members: string, categories: string) => `a configuré ${members} pour ne voir que ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `a modifié ${members} pour qu’ils ne voient que ${categories}`,
+        clearedCategoryVisibility: (members: string) => `a modifié ${members} pour voir toutes les catégories`,
+        quotedCategoryName: (categoryName: string) => `« ${categoryName} »`,
+        oneCategory: (categoryName: string) => `la catégorie ${categoryName}`,
+        someCategories: (categoryList: string) => `les catégories ${categoryList}`,
+        everyone: 'tout le monde',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 catégorie',
+            other: `${count} catégories`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 membre',
+            other: `${count} membres`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Catégories : ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Membres : ${memberList}`,
+        categoryVisibilityReasonDeleted: ', car leur seule catégorie a été supprimée. Mettez à jour la visibilité de leur catégorie si nécessaire.',
+        categoryVisibilityReasonDisabled: ', car leur seule catégorie a été désactivée. Mettez à jour la visibilité de leurs catégories si nécessaire.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `a supprimé l’indication de description « ${oldValue} » de la catégorie « ${categoryName} »`;
@@ -10877,6 +10958,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         columns: 'Colonnes',
         editColumns: 'Modifier les colonnes',
         resetColumns: 'Réinitialiser les colonnes',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Options de la colonne ${columnName}`,
+            sortAscending: 'Trier par ordre croissant',
+            sortDescending: 'Trier par ordre décroissant',
+            hideColumn: 'Masquer la colonne',
+        },
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
         saveView: 'Enregistrer la vue',
@@ -10959,7 +11046,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             completed: 'Terminé',
             amount: {
                 lessThan: (amount?: string) => `Inférieur à ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Inférieur ou égal à ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Supérieur à ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Supérieur ou égal à ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Entre ${greaterThan} et ${lessThan}`;
@@ -11016,6 +11105,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateur',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infraction',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payé par',
             },
             feed: 'Fil',
             withdrawalType: {
@@ -11078,6 +11168,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateurs',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infractions',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payeurs',
         },
         moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',
@@ -12899,6 +12990,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         deletingTitle: 'Suppression des notes de frais...',
         deletingExpensesTitle: 'Suppression des dépenses...',
         runningBody: 'Patientez quelques minutes, ou laissez Concierge vous envoyer un message lorsque ce sera terminé.',
+        changingWorkspaceTitle: 'Déplacement des notes de frais...',
         sendFromConcierge: 'Envoyez-moi un message quand ce sera fait',
         conciergeTitle: 'Bien sûr !',
         conciergeBody: 'Concierge vous enverra un message lorsque ce sera terminé.',
@@ -12934,6 +13026,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Dépenses supprimées pour ${doneCount} sur ${count} note de frais`,
             other: `Dépenses supprimées pour ${doneCount} sur ${count} notes de frais`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Espace de travail modifié pour ${doneCount} sur ${count} note de frais`,
+            other: `Espace de travail modifié pour ${doneCount} sur ${count} notes de frais`,
         }),
         noReportsTitle: 'Aucune note de frais correspondante',
         noReportsBody: 'Aucune des notes de frais que vous avez sélectionnées n’avait besoin de cette action.',
@@ -12971,6 +13067,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: "Les dépenses de 1 note de frais n'ont pas pu être supprimées.",
             other: `Les dépenses de ${count} notes de frais n'ont pas pu être supprimées.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: "1 note de frais n'a pas pu être déplacée.",
+            other: `${count} notes de frais n'ont pas pu être déplacées.`,
         }),
     },
     earlyRenewal: {
