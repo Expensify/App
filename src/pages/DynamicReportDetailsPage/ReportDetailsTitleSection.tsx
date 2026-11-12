@@ -61,7 +61,6 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
     const parentReportAction = useParentReportAction(report);
@@ -79,16 +78,15 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
         isTrackExpenseReport: isTrackExpenseReportUtil(report, parentReport, parentReportAction),
     });
     const invoiceReceiverPolicy = usePolicy(getInvoiceReceiverPolicyID(parentReport));
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(
+    const parentNavigationSubtitleData = getParentNavigationSubtitle({
         report,
         policy,
         invoiceReceiverPolicy,
-        conciergeReportID,
         translate,
         formatPhoneNumber,
-        derivedParentReportName,
+        parentReportName: derivedParentReportName,
         isParentReportArchived,
-    );
+    });
 
     const titleField: OnyxTypes.PolicyReportField | undefined = (() => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
