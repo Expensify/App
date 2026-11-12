@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import PopoverAnchorTooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useKeyboardState from '@hooks/useKeyboardState';
+import useKeyboardShownRef from '@hooks/useKeyboardShownRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -92,7 +92,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
     const theme = useTheme();
     const {translate, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isKeyboardShown} = useKeyboardState();
+    const isKeyboardShownRef = useKeyboardShownRef();
     const {firstName} = useCurrentUserPersonalDetails();
     const {askConcierge, askConciergeWithAttachment, shouldShowAskConcierge, conciergeTargetReportID} = useAskConcierge({forceConcierge: true});
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Send', 'Paperclip']);
@@ -220,7 +220,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
     };
 
     const handleKeyPress = (event: TextInputKeyPressEvent) => {
-        if (canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
+        if (canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShownRef.current)) {
             return;
         }
 

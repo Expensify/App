@@ -6,7 +6,7 @@ import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 
-import useKeyboardState from '@hooks/useKeyboardState';
+import useKeyboardShownRef from '@hooks/useKeyboardShownRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -94,7 +94,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     const containerRef = useRef<ComponentRef<typeof View>>(null);
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
-    const {isKeyboardShown} = useKeyboardState();
+    const isKeyboardShownRef = useKeyboardShownRef();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
@@ -287,7 +287,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
      */
     const triggerSaveOrCancel = useCallback(
         (e: TextInputKeyPressEvent | KeyboardEvent) => {
-            if (!e || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
+            if (!e || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShownRef.current)) {
                 return;
             }
             const keyEvent = e as KeyboardEvent;
@@ -310,7 +310,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                 deleteDraft();
             }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, hideSuggestionMenu, publishDraft, draft, deleteDraft, suggestionsRef],
+        [shouldUseNarrowLayout, isKeyboardShownRef, hideSuggestionMenu, publishDraft, draft, deleteDraft, suggestionsRef],
     );
 
     useEffect(() => {
