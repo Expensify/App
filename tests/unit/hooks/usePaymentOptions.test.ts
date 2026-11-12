@@ -55,10 +55,9 @@ describe('usePaymentOptions', () => {
         const formattedAmount = '$50.00';
 
         // When invoice payment options are built
-        const {result} = renderHook(
-            () => usePaymentOptions({iouReport: {reportID: '1', type: CONST.REPORT.TYPE.INVOICE}, policyID: '1', formattedAmount, onPress: jest.fn()}),
-            {wrapper: LocaleContextProvider},
-        );
+        const {result} = renderHook(() => usePaymentOptions({iouReport: {reportID: '1', type: CONST.REPORT.TYPE.INVOICE}, policyID: '1', formattedAmount, onPress: jest.fn()}), {
+            wrapper: LocaleContextProvider,
+        });
         await waitForBatchedUpdatesWithAct();
 
         // Then the invoice category keeps its amount while its submenu stays concise
