@@ -3201,6 +3201,16 @@ const translations: TranslationDeepObject<typeof en> = {
                     GRANTS: 'Prześlij decyzję o przyznaniu dotacji, pisemne potwierdzenie lub umowę.',
                     LEGAL: 'Prześlij umowę, pisemne potwierdzenie lub umowę sprzedaży aktywów.',
                 },
+                bankStatementHints: {
+                    REVENUE: 'Musi pokazywać otrzymane przychody.',
+                    PERSONAL_FUNDING: 'Musi pokazywać wniesione przez Ciebie środki.',
+                    BUSINESS_LOAN: 'Musi pokazywać otrzymane środki z kredytu.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Musi pokazywać otrzymane środki z inwestycji.',
+                    INVESTMENT_INCOME: 'Musi pokazywać otrzymane dochody z inwestycji.',
+                    DONATIONS: 'Musi pokazywać otrzymaną darowiznę.',
+                    GRANTS: 'Musi pokazywać otrzymane środki z dotacji.',
+                    LEGAL: 'Musi pokazywać otrzymane środki z ugody.',
+                },
                 uploadButtons: {
                     TAX_DOCUMENTS: 'Prześlij zeznanie podatkowe',
                     AUDITED_FINANCIAL_STATEMENTS: 'Prześlij zbadane sprawozdanie finansowe',

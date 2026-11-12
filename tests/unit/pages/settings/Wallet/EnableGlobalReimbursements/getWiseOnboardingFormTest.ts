@@ -132,10 +132,10 @@ describe('source of wealth pages built from the requirement attributes', () => {
         const revenueUploads = getProofField(CONST.WISE.SOURCE_OF_WEALTH.REVENUE)?.uploads;
         const donationUploads = getProofField(CONST.WISE.SOURCE_OF_WEALTH.DONATIONS)?.uploads;
 
-        // Then revenue has one button for all its types, and donations have one for their other types and one for the bank statement, which its name describes without a hint
+        // Then revenue has one button for all its types, and donations have one for their other types and one for the bank statement, with a hint on what it must show
         expect(revenueUploads?.map((upload) => upload.fileTypes.map((option) => option.key))).toEqual([['TAX_DOCUMENTS', 'AUDITED_FINANCIAL_STATEMENTS', 'BANK_STATEMENT']]);
         expect(donationUploads?.map((upload) => upload.fileTypes.map((option) => option.key))).toEqual([['DONATION_RECEIPTS', 'CONTRACTS'], ['BANK_STATEMENT']]);
-        expect(donationUploads?.at(1)?.descriptionKey).toBeUndefined();
+        expect(donationUploads?.at(1)?.descriptionKey).toBe('walletPage.wiseOnboarding.sourceOfWealthProof.bankStatementHints.DONATIONS');
     });
 
     it('names a button that takes one document after it, so a source of single documents needs no hint above them', () => {

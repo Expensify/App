@@ -32,7 +32,7 @@ type LabelledUpload = {
     /** Text of the button */
     buttonText: string;
 
-    /** Hint under the button, shown when the button takes several kinds of document */
+    /** Hint under the button, such as what the document must show */
     description?: string;
 };
 
@@ -168,8 +168,7 @@ function LabelledFileUploadAdapter({
                                 ))}
                             </View>
                         ))}
-                        {/* A button named after its one document needs no hint */}
-                        {!!upload.description && upload.types.length > 1 && <Text style={[styles.textLabelSupporting, styles.mt2]}>{upload.description}</Text>}
+                        {!!upload.description && <Text style={[styles.textLabelSupporting, styles.mt2]}>{upload.description}</Text>}
                         {!!shownError && (
                             <DotIndicatorMessage
                                 style={[styles.formError, styles.mt3]}

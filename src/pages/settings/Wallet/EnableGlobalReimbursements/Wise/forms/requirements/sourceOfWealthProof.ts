@@ -38,7 +38,10 @@ function getUploads(attributes: WiseKYCRequirement['attributes'], source: Source
     const bankStatement = CONST.WISE.SOURCE_OF_WEALTH_DOCUMENT_TYPE.BANK_STATEMENT;
     const needsBankStatement = getSourcesNeedingBankStatement(attributes).includes(source) && documentTypes.includes(bankStatement);
     const otherTypes = needsBankStatement ? documentTypes.filter((documentType) => documentType !== bankStatement) : documentTypes;
-    return [...(otherTypes.length > 0 ? [getUpload(otherTypes)] : []), ...(needsBankStatement ? [getUpload([bankStatement])] : [])];
+    return [
+        ...(otherTypes.length > 0 ? [getUpload(otherTypes)] : []),
+        ...(needsBankStatement ? [{...getUpload([bankStatement]), descriptionKey: `walletPage.wiseOnboarding.sourceOfWealthProof.bankStatementHints.${source}` as const}] : []),
+    ];
 }
 
 /**

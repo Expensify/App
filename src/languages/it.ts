@@ -3159,6 +3159,16 @@ const translations: TranslationDeepObject<typeof en> = {
                     GRANTS: 'Carica una lettera di concessione del contributo, una conferma scritta o un contratto.',
                     LEGAL: 'Carica un contratto, una conferma scritta o un contratto di vendita di beni.',
                 },
+                bankStatementHints: {
+                    REVENUE: 'Deve mostrare i ricavi ricevuti.',
+                    PERSONAL_FUNDING: 'Deve mostrare i fondi che hai versato.',
+                    BUSINESS_LOAN: 'Deve mostrare i fondi del finanziamento ricevuti.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Deve mostrare i fondi dell’investimento ricevuti.',
+                    INVESTMENT_INCOME: 'Deve mostrare i redditi da investimento ricevuti.',
+                    DONATIONS: 'Deve mostrare la donazione ricevuta.',
+                    GRANTS: 'Deve mostrare i fondi del contributo ricevuti.',
+                    LEGAL: 'Deve mostrare i fondi della transazione ricevuti.',
+                },
                 uploadButtons: {
                     TAX_DOCUMENTS: 'Carica dichiarazione dei redditi',
                     AUDITED_FINANCIAL_STATEMENTS: 'Carica bilancio certificato',

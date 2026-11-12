@@ -3136,6 +3136,16 @@ const translations: TranslationDeepObject<typeof en> = {
                     GRANTS: '助成金の交付決定通知書、書面による確認書、または契約書をアップロードしてください。',
                     LEGAL: '契約書、書面による確認書、または資産売却契約書をアップロードしてください。',
                 },
+                bankStatementHints: {
+                    REVENUE: '収益の受領がわかるものが必要です。',
+                    PERSONAL_FUNDING: '拠出した資金がわかるものが必要です。',
+                    BUSINESS_LOAN: 'ローン資金の受領がわかるものが必要です。',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: '投資資金の受領がわかるものが必要です。',
+                    INVESTMENT_INCOME: '投資収益の受領がわかるものが必要です。',
+                    DONATIONS: '寄付の受領がわかるものが必要です。',
+                    GRANTS: '助成金の受領がわかるものが必要です。',
+                    LEGAL: '和解金の受領がわかるものが必要です。',
+                },
                 uploadButtons: {
                     TAX_DOCUMENTS: '税務申告書をアップロード',
                     AUDITED_FINANCIAL_STATEMENTS: '監査済み財務諸表をアップロード',

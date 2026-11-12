@@ -3159,6 +3159,16 @@ const translations: TranslationDeepObject<typeof en> = {
                     GRANTS: 'Upload een toekenningsbrief voor de subsidie, schriftelijke bevestiging of overeenkomst.',
                     LEGAL: 'Upload een overeenkomst, schriftelijke bevestiging of koopovereenkomst voor activa.',
                 },
+                bankStatementHints: {
+                    REVENUE: 'Moet de ontvangen omzet tonen.',
+                    PERSONAL_FUNDING: 'Moet het geld tonen dat je hebt ingebracht.',
+                    BUSINESS_LOAN: 'Moet het ontvangen geleende geld tonen.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Moet het ontvangen investeringsgeld tonen.',
+                    INVESTMENT_INCOME: 'Moet de ontvangen beleggingsinkomsten tonen.',
+                    DONATIONS: 'Moet de ontvangen donatie tonen.',
+                    GRANTS: 'Moet het ontvangen subsidiegeld tonen.',
+                    LEGAL: 'Moet het ontvangen schikkingsbedrag tonen.',
+                },
                 uploadButtons: {
                     TAX_DOCUMENTS: 'Belastingaangifte uploaden',
                     AUDITED_FINANCIAL_STATEMENTS: 'Gecontroleerde jaarrekening uploaden',

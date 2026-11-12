@@ -3177,6 +3177,16 @@ const translations: TranslationDeepObject<typeof en> = {
                     GRANTS: 'Importez une lettre d’attribution de subvention, une confirmation écrite ou un contrat.',
                     LEGAL: 'Importez un contrat, une confirmation écrite ou un contrat de vente d’actifs.',
                 },
+                bankStatementHints: {
+                    REVENUE: 'Doit montrer les revenus reçus.',
+                    PERSONAL_FUNDING: 'Doit montrer les fonds que vous avez apportés.',
+                    BUSINESS_LOAN: 'Doit montrer les fonds du prêt reçus.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Doit montrer les fonds d’investissement reçus.',
+                    INVESTMENT_INCOME: 'Doit montrer les revenus de placement reçus.',
+                    DONATIONS: 'Doit montrer le don reçu.',
+                    GRANTS: 'Doit montrer les fonds de la subvention reçus.',
+                    LEGAL: 'Doit montrer les fonds du règlement reçus.',
+                },
                 uploadButtons: {
                     TAX_DOCUMENTS: 'Importer la déclaration fiscale',
                     AUDITED_FINANCIAL_STATEMENTS: 'Importer les états financiers audités',

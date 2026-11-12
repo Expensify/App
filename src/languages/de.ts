@@ -3169,6 +3169,16 @@ const translations: TranslationDeepObject<typeof en> = {
                     GRANTS: 'Laden Sie einen Förderbescheid, eine schriftliche Bestätigung oder einen Vertrag hoch.',
                     LEGAL: 'Laden Sie einen Vertrag, eine schriftliche Bestätigung oder einen Kaufvertrag über Vermögenswerte hoch.',
                 },
+                bankStatementHints: {
+                    REVENUE: 'Muss den Eingang der Umsätze zeigen.',
+                    PERSONAL_FUNDING: 'Muss die von Ihnen eingebrachten Mittel zeigen.',
+                    BUSINESS_LOAN: 'Muss den Eingang der Darlehensmittel zeigen.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Muss den Eingang der Investitionsmittel zeigen.',
+                    INVESTMENT_INCOME: 'Muss den Eingang der Kapitalerträge zeigen.',
+                    DONATIONS: 'Muss den Eingang der Spende zeigen.',
+                    GRANTS: 'Muss den Eingang der Fördermittel zeigen.',
+                    LEGAL: 'Muss den Eingang der Vergleichszahlung zeigen.',
+                },
                 uploadButtons: {
                     TAX_DOCUMENTS: 'Steuererklärung hochladen',
                     AUDITED_FINANCIAL_STATEMENTS: 'Geprüften Jahresabschluss hochladen',

@@ -205,7 +205,7 @@ type DynamicFormFileUpload = {
     /** Translation of `label`, used instead of it when set */
     labelKey?: TranslationPaths;
 
-    /** Hint under a button that takes several kinds of document. A button for one kind is named after it, so it shows none. */
+    /** Hint under the button, such as what the document must show */
     description?: string;
 
     /** Translation of `description`, used instead of it when set */

@@ -3049,6 +3049,16 @@ const translations: TranslationDeepObject<typeof en> = {
                     GRANTS: '请上传资助批准函、书面确认或合同。',
                     LEGAL: '请上传合同、书面确认或资产出售协议。',
                 },
+                bankStatementHints: {
+                    REVENUE: '必须显示已收到的收入。',
+                    PERSONAL_FUNDING: '必须显示您投入的资金。',
+                    BUSINESS_LOAN: '必须显示已收到的贷款资金。',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: '必须显示已收到的投资资金。',
+                    INVESTMENT_INCOME: '必须显示已收到的投资收益。',
+                    DONATIONS: '必须显示已收到的捐赠。',
+                    GRANTS: '必须显示已收到的资助资金。',
+                    LEGAL: '必须显示已收到的和解资金。',
+                },
                 uploadButtons: {
                     TAX_DOCUMENTS: '上传纳税申报表',
                     AUDITED_FINANCIAL_STATEMENTS: '上传经审计的财务报表',

@@ -3230,6 +3230,16 @@ const translations = {
                     GRANTS: 'Upload a grant approval letter, written confirmation, or contract.',
                     LEGAL: 'Upload a contract, written confirmation, or asset sale agreement.',
                 },
+                bankStatementHints: {
+                    REVENUE: 'Must show the revenue received.',
+                    PERSONAL_FUNDING: 'Must show the funds you put in.',
+                    BUSINESS_LOAN: 'Must show the loan funds received.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Must show the investment funds received.',
+                    INVESTMENT_INCOME: 'Must show the investment income received.',
+                    DONATIONS: 'Must show the donation received.',
+                    GRANTS: 'Must show the grant funds received.',
+                    LEGAL: 'Must show the settlement funds received.',
+                },
                 uploadButtons: {
                     TAX_DOCUMENTS: 'Upload tax return',
                     AUDITED_FINANCIAL_STATEMENTS: 'Upload audited financial statements',

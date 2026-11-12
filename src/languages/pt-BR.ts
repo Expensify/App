@@ -3163,6 +3163,16 @@ const translations: TranslationDeepObject<typeof en> = {
                     GRANTS: 'Envie uma carta de concessão do subsídio, uma confirmação por escrito ou um contrato.',
                     LEGAL: 'Envie um contrato, uma confirmação por escrito ou um contrato de venda de ativos.',
                 },
+                bankStatementHints: {
+                    REVENUE: 'Deve mostrar a receita recebida.',
+                    PERSONAL_FUNDING: 'Deve mostrar os fundos que você aportou.',
+                    BUSINESS_LOAN: 'Deve mostrar os fundos do empréstimo recebidos.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Deve mostrar os fundos do investimento recebidos.',
+                    INVESTMENT_INCOME: 'Deve mostrar os rendimentos de investimento recebidos.',
+                    DONATIONS: 'Deve mostrar a doação recebida.',
+                    GRANTS: 'Deve mostrar os fundos do subsídio recebidos.',
+                    LEGAL: 'Deve mostrar os fundos do acordo recebidos.',
+                },
                 uploadButtons: {
                     TAX_DOCUMENTS: 'Enviar declaração de imposto de renda',
                     AUDITED_FINANCIAL_STATEMENTS: 'Enviar demonstrações financeiras auditadas',
