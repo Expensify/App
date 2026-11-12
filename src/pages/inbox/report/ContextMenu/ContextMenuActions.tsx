@@ -78,7 +78,7 @@ import {
     getMarkedReimbursedMessage,
     getMccGroupCategoryMessage,
     getMemberChangeMessageFragment,
-    getMessageTextOfOldDotReportAction,
+    getMessageOfOldDotReportAction,
     getOriginalMessage,
     getOverLimitForwardsToUpdateMessage,
     getPlaidBalanceFailureMessage,
@@ -1453,7 +1453,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
                     Clipboard.setString(translate('iou.retracted'));
                 } else if (isOldDotReportAction(reportAction)) {
-                    Clipboard.setString(getMessageTextOfOldDotReportAction(translate, reportAction));
+                    setClipboardMessage(getMessageOfOldDotReportAction(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION) {
                     const originalMessage = getOriginalMessage(reportAction) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage'];
                     Clipboard.setString(getDismissedViolationMessageText(translate, originalMessage));
