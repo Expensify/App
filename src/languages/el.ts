@@ -572,6 +572,10 @@ const translations: TranslationDeepObject<typeof en> = {
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
         shareReport: 'Κοινοποιήστε την αναφορά',
         reportShared: 'Η αναφορά κοινοποιήθηκε',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} ημέρα`,
+            other: (count: number) => `${formattedCount ?? count} ημέρες`,
+        }),
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',

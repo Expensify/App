@@ -575,6 +575,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exports vers',
         shareReport: 'Partager la note de frais',
         reportShared: 'Note de frais partagée',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} jour`,
+            other: (count: number) => `${formattedCount ?? count} jours`,
+        }),
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',

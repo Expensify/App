@@ -574,6 +574,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'エクスポート先',
         shareReport: 'レポートを共有',
         reportShared: 'レポートを共有しました',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 日`,
+            other: (count: number) => `${formattedCount ?? count} 日`,
+        }),
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
