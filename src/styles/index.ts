@@ -892,6 +892,11 @@ const staticStyles = (theme: ThemeColors) =>
             paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
         },
 
+        // The "y" at the end of the wordmark already leaves empty space on its right, so the badge sits closer than the default badge margin
+        flatNavigationBarEnvironmentBadge: {
+            marginLeft: 6,
+        },
+
         flatNavigationBarCreateButtonContainer: {
             marginHorizontal: variables.flatNavigationBarCreateButtonInset,
             marginBottom: variables.flatNavigationBarCreateButtonGap,

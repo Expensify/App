@@ -9,6 +9,8 @@ import {isInternalTestBuild} from '@libs/Environment/Environment';
 
 import CONST from '@src/CONST';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
 
 import pkg from '../../package.json';
@@ -22,7 +24,11 @@ const ENVIRONMENT_SHORT_FORM = {
     [CONST.ENVIRONMENT.ADHOC]: 'ADHOC',
 };
 
-function EnvironmentBadge() {
+type EnvironmentBadgeProps = {
+    style?: StyleProp<ViewStyle>;
+};
+
+function EnvironmentBadge({style}: EnvironmentBadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {environment, isProduction} = useEnvironment();
@@ -43,7 +49,7 @@ function EnvironmentBadge() {
             success={success}
             error={error}
             text={text}
-            badgeStyles={[styles.headerEnvBadge, styles.environmentBadge, badgeEnvironmentStyle]}
+            badgeStyles={[styles.headerEnvBadge, styles.environmentBadge, badgeEnvironmentStyle, style]}
             textStyles={styles.headerEnvBadgeText}
             environment={environment}
         />

@@ -86,7 +86,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                     >
                         <View style={styles.flatNavigationBarHeader}>
                             <FlatNavLogo onPress={navigateToHome} />
-                            <EnvironmentBadge />
+                            <EnvironmentBadge style={styles.flatNavigationBarEnvironmentBadge} />
                         </View>
                         <View style={styles.flatNavigationBarCreateButtonContainer}>
                             <FlatNavCreateButton />
