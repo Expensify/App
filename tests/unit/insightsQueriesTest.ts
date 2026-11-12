@@ -500,7 +500,7 @@ describe('insightsQueries', () => {
             const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}};
 
             // When the headline chart's query is built to stop at today
-            const chartQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters, undefined, true);
+            const chartQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters, undefined, '2026-10-08');
 
             // Then it keeps the date range and only takes expenses dated before tomorrow
             expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}:${CONST.SEARCH.DATE_PRESETS.THIS_YEAR}`);
@@ -512,7 +512,7 @@ describe('insightsQueries', () => {
             const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}};
 
             // When the headline chart's query is built to stop at today
-            const chartQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters, undefined, true);
+            const chartQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters, undefined, '2026-10-08');
 
             // Then the query is the same as one that doesn't stop at today
             expect(chartQuery).toBe(applyInsightsFilters(SPEND_SPEC.headlineChart, filters));
@@ -536,7 +536,7 @@ describe('insightsQueries', () => {
             const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}};
 
             // When its query is built to stop at today
-            const chartQuery = applyInsightsFilters(chart, filters, undefined, true);
+            const chartQuery = applyInsightsFilters(chart, filters, undefined, '2026-10-08');
 
             // Then the query is the same as one that doesn't stop at today, since expense dates don't bound that chart
             expect(chartQuery).toBe(applyInsightsFilters(chart, filters));

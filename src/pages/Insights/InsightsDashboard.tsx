@@ -267,6 +267,7 @@ function InsightsDashboardContent({
                         supportsDrillIn={supportsDrillIn}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
+                        asOfDate={asOfDate}
                     >
                         {!!asOfDate && !!futureExpenses?.count && (
                             <InsightsFutureExpensesNote
@@ -299,6 +300,7 @@ function InsightsDashboardContent({
                                         countDimension={countDimension}
                                         supportsDrillIn={supportsDrillIn}
                                         onRetry={onRetry}
+                                        asOfDate={asOfDate}
                                     />
                                 ))}
                             </View>

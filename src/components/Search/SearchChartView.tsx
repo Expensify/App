@@ -93,6 +93,9 @@ type SearchChartViewProps = {
 
     /** First day the data was recorded, as a yyyy-MM-dd string, so compared buckets before it plot nothing instead of 0 */
     trackedFrom?: string;
+
+    /** Day the data was counted through, as a yyyy-MM-dd string, which decides where the line ends and which period is in progress. Defaults to the device's today. */
+    today?: string;
 };
 
 /**
@@ -118,6 +121,7 @@ function SearchChartView({
     renderDetails,
     chartContainerStyle,
     trackedFrom,
+    today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
 }: SearchChartViewProps) {
     const theme = useTheme();
     const {preferredLocale, translate, dateFnsLocale, numberFormat} = useLocalize();
@@ -127,7 +131,6 @@ function SearchChartView({
 
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
 

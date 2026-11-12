@@ -46,14 +46,13 @@ function getDayAfter(date: Date): string {
     return format(addDays(date, 1), CONST.DATE.FNS_FORMAT_STRING);
 }
 
-/** Builds the filter that leaves out expenses dated after today, or nothing when the date range already ends by today. */
-function buildStopAtTodayFormValues(date: InsightsFilters['date']): Partial<SearchAdvancedFiltersForm> {
-    const now = new Date();
+/** Builds the filter that leaves out expenses dated after `lastDay`, or nothing when the date range already ends by then. */
+function buildStopAtDayFormValues(date: InsightsFilters['date'], lastDay: string): Partial<SearchAdvancedFiltersForm> {
     const {end} = getInsightsDateRange(date);
-    if (!end || end <= format(now, CONST.DATE.FNS_FORMAT_STRING)) {
+    if (!end || end <= lastDay) {
         return {};
     }
-    return {[FILTER_KEYS.DATE_BEFORE]: getDayAfter(now)};
+    return {[FILTER_KEYS.DATE_BEFORE]: getDayAfter(parseISO(lastDay))};
 }
 
 /** Builds the page's filters in the shape a search query is built from. Leaves the workspaces out when none are selected, which reports on all of them. */
@@ -105,13 +104,13 @@ function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
     return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy as SearchGroupBy, compare: filters.compare});
 }
 
-/** Builds a chart's query with the page's filters applied. `shouldStopAtToday` leaves out expenses dated after today, for charts on the expense date whose query goes to Search instead of GetInsights. */
-function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode, shouldStopAtToday = false): SearchQueryString {
+/** Builds a chart's query with the page's filters applied. `lastDay` (yyyy-MM-dd) leaves out expenses dated after it, for charts on the expense date whose query goes to Search instead of GetInsights. */
+function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode, lastDay?: string): SearchQueryString {
     const isExpenseDateChart = !chart.dateFilterKey || chart.dateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
     const query = buildQueryStringFromFilterFormValues(
         {
             ...buildFilterFormValues(filters, true, chart.dateFilterKey),
-            ...(shouldStopAtToday && isExpenseDateChart && buildStopAtTodayFormValues(filters.date)),
+            ...(!!lastDay && isExpenseDateChart && buildStopAtDayFormValues(filters.date, lastDay)),
             has: chart.has,
             groupBy: chart.groupBy ?? getQueryGroupBy(filters),
             view: chart.view,
