@@ -1,6 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import PushRowWithModal from '@src/components/PushRowWithModal';
 import PushRowModal from '@src/components/PushRowWithModal/PushRowModal';
@@ -11,7 +12,18 @@ import React from 'react';
 
 import createMock from '../utils/createMock';
 
-jest.mock('@components/MenuItemWithTopDescription', () => jest.fn(() => null));
+jest.mock('@components/MenuItem', () => ({
+    __esModule: true,
+    default: {
+        Root: jest.fn(({children}: {children?: React.ReactNode}) => children),
+        Chevron: () => null,
+        BrickRoadIndicator: () => null,
+        HelpText: () => null,
+    },
+}));
+jest.mock('@components/MenuItem/presets/MenuItemField', () => ({__esModule: true, default: {Row: jest.fn(() => null)}}));
+jest.mock('@hooks/useOnyx', () => () => [undefined]);
+jest.mock('@userActions/Session', () => ({callIfAuthenticated: (callback: () => void) => callback}));
 jest.mock('@src/components/PushRowWithModal/PushRowModal', () => jest.fn(() => null));
 jest.mock('@src/utils/keyboard', () => ({
     __esModule: true,
@@ -21,13 +33,15 @@ jest.mock('@src/utils/keyboard', () => ({
 const optionsList = {RETAIL: 'Retail', SERVICES: 'Services', SOFTWARE: 'Software'};
 
 describe('PushRowWithModal', () => {
-    const mockedRow = jest.mocked(MenuItemWithTopDescription);
+    const mockedRow = jest.mocked(MenuItem.Root);
+    const mockedFieldRow = jest.mocked(MenuItemField.Row);
     const mockedModal = jest.mocked(PushRowModal);
     const getRow = () => mockedRow.mock.lastCall?.[0];
     const getModal = () => mockedModal.mock.lastCall?.[0];
 
     beforeEach(() => {
         mockedRow.mockClear();
+        mockedFieldRow.mockClear();
         mockedModal.mockClear();
     });
 
@@ -45,6 +59,51 @@ describe('PushRowWithModal', () => {
             />,
         );
     }
+
+    it('keeps an unchangeable answer non-interactive without dimming it', () => {
+        // Given a field whose saved answer cannot be changed
+        render(
+            <PushRowWithModal
+                value="RETAIL"
+                shouldAllowChange={false}
+                optionsList={optionsList}
+                description="Industry"
+                modalHeaderTitle="Industry"
+                searchInputTitle="Industry"
+            />,
+        );
+
+        // When the field row is composed
+        const row = getRow();
+        const field = mockedFieldRow.mock.lastCall?.[0];
+
+        // Then it retains the answer without a press handler or disabled opacity
+        expect(row?.onPress).toBeUndefined();
+        expect(row?.isDisabled).toBe(false);
+        expect(field?.name).toBe('Industry');
+        expect(field?.value).toBe('Retail');
+    });
+
+    it('passes temporary disabled state to the root while retaining its edit action', () => {
+        // Given an editable field temporarily unavailable, such as while offline
+        render(
+            <PushRowWithModal
+                disabled
+                optionsList={optionsList}
+                description="Industry"
+                modalHeaderTitle="Industry"
+                searchInputTitle="Industry"
+            />,
+        );
+
+        // When the row is composed
+        const row = getRow();
+
+        // Then the root blocks interaction and dims the row, rather than making the field permanently read-only
+        expect(row?.isDisabled).toBe(true);
+        expect(row?.onPress).toEqual(expect.any(Function));
+        expect(mockedFieldRow.mock.lastCall?.[0].value).toBe('');
+    });
 
     it('saves the ticked options together when the user presses Save', async () => {
         // Given a multi-select row with Retail saved
@@ -81,7 +140,7 @@ describe('PushRowWithModal', () => {
         expect(onInputChange).not.toHaveBeenCalled();
         expect(onBlur).toHaveBeenCalledTimes(1);
         expect(getModal()?.selectedOptions).toEqual(['RETAIL']);
-        expect(getRow()?.title).toBe('Retail');
+        expect(mockedFieldRow.mock.lastCall?.[0].value).toBe('Retail');
     });
 
     it('drops a saved option missing from the list when the user saves', async () => {

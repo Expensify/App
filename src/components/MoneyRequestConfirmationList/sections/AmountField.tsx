@@ -1,4 +1,4 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -29,6 +29,7 @@ import {calculateTaxAmount, getTaxCode, getTaxValue, hasAnyManuallyEnteredScanFi
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -40,6 +41,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -90,6 +92,7 @@ function AmountField({
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {splitDraftTransaction, baseTransaction} = useSplitDraftBaseTransaction(transactionID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
@@ -417,19 +420,26 @@ function AmountField({
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
                             />
                         ) : (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canOpenAmountPage}
-                                title={formattedAmount}
-                                description={translate('iou.amount')}
-                                interactive={canOpenAmountPage}
-                                onPress={openAmountPage}
+                            <MenuItem.Root
+                                onPress={canOpenAmountPage ? callIfAuthenticated(openAmountPage, session) : undefined}
                                 style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.moneyRequestConfirmationAmount}
-                                disabled={didConfirm}
-                                brickRoadIndicator={shouldDisplayFieldError && amountIsMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
+                                isDisabled={didConfirm}
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
-                            />
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.FieldName>{translate('iou.amount')}</MenuItem.FieldName>
+                                        <MenuItem.FieldValue style={styles.moneyRequestConfirmationAmount}>{formattedAmount}</MenuItem.FieldValue>
+                                    </MenuItem.Content>
+                                    {(canOpenAmountPage || (shouldDisplayFieldError && amountIsMissing)) && (
+                                        <MenuItem.Trailing>
+                                            {shouldDisplayFieldError && amountIsMissing && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                            {canOpenAmountPage && <MenuItem.Chevron />}
+                                        </MenuItem.Trailing>
+                                    )}
+                                </MenuItem.Row>
+                                {shouldDisplayFieldError && amountIsMissing && <MenuItem.HelpText message={translate('common.error.enterAmount')} isError />}
+                            </MenuItem.Root>
                         )}
                     </View>
                     {/* The push row carries its own 20px of horizontal padding, so the button is inset to the 16px

@@ -234,7 +234,6 @@
 "../../src/components/MoneyRequestConfirmationList/hooks/useSplitParticipants.tsx"	"@typescript-eslint/no-deprecated/MoneyRequestAmountInput"	1
 "../../src/components/MoneyRequestConfirmationList/hooks/useSplitParticipants.tsx"	"no-restricted-imports"	1
 "../../src/components/MoneyRequestConfirmationList/hooks/useTransactionReportForConfirmation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/MoneyRequestConfirmationList/sections/AmountField.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/MoneyRequestConfirmationList/sections/AmountField.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolForm"	1
 "../../src/components/MoneyRequestConfirmationList/sections/AmountField.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationList/sections/AmountField.tsx"	"no-restricted-imports"	1
@@ -305,7 +304,6 @@
 "../../src/components/ProductMarketingWindow/ProductMarketingWindowManager.tsx"	"rulesdir/no-onyx-loading-status"	2
 "../../src/components/ProductTrainingContext/index.tsx"	"rulesdir/no-onyx-loading-status"	4
 "../../src/components/PromotedActionsBar.tsx"	"no-restricted-imports"	1
-"../../src/components/PushRowWithModal/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/PushRowWithModal/PushRowModal.tsx"	"no-restricted-imports"	1
 "../../src/components/RadioButtonWithLabel.tsx"	"no-restricted-syntax"	1
 "../../src/components/Reactions/AddReactionBubble.tsx"	"react-hooks/refs"	1
@@ -420,7 +418,6 @@
 "../../src/components/StatePicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/StatePicker/StateSelectorModal.tsx"	"no-restricted-imports"	1
 "../../src/components/SubStepForms/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/components/SubStepForms/ConfirmationStep.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/SubStepForms/CountryFullStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SubStepForms/DateOfBirthStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/SubStepForms/DateOfBirthStep.tsx"	"react-hooks/purity"	2
@@ -2246,7 +2243,6 @@
 "../../tests/ui/NumberWithSymbolFormWithoutTouchScreenTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/ProfilePageTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	5
 "../../tests/ui/PublicProfilePageTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	4
-"../../tests/ui/PushRowWithModalTest.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../tests/ui/RecentlyAddedSectionTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/ui/ReportActionItemTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/ui/ReportActionItemTest.tsx"	"react-hooks/globals"	1

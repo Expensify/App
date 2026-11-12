@@ -1,12 +1,19 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+
+import useOnyx from '@hooks/useOnyx';
 
 import toggleArrayItem from '@libs/toggleArrayItem';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useRef, useState} from 'react';
 
 import PushRowModal from './PushRowModal';
@@ -65,6 +72,7 @@ function PushRowWithModal(props: PushRowWithModalProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [pendingSelection, setPendingSelection] = useState<string[]>([]);
     const shouldBlurOnCloseRef = useRef(true);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     let selection: string[] = [];
     if (props.canSelectMultiple) {
@@ -111,21 +119,24 @@ function PushRowWithModal(props: PushRowWithModalProps) {
 
     return (
         <>
-            <MenuItemWithTopDescription
-                description={description}
-                title={selection
-                    .map((key) => optionsList[key])
-                    .filter(Boolean)
-                    .join(', ')}
-                shouldShowRightIcon={shouldAllowChange}
-                onPress={handleModalOpen}
-                wrapperStyle={wrapperStyles}
-                interactive={shouldAllowChange}
-                disabled={disabled}
+            <MenuItem.Root
+                onPress={shouldAllowChange ? callIfAuthenticated(handleModalOpen, session) : undefined}
+                style={wrapperStyles}
+                isDisabled={disabled}
                 sentryLabel={CONST.SENTRY_LABEL.PUSH_ROW_WITH_MODAL.OPEN}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-            />
+            >
+                <MenuItemField.Row
+                    name={description}
+                    value={selection
+                        .map((key) => optionsList[key])
+                        .filter(Boolean)
+                        .join(', ')}
+                >
+                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    {shouldAllowChange && <MenuItem.Chevron />}
+                </MenuItemField.Row>
+                {!!errorText && <MenuItem.HelpText message={errorText} isError />}
+            </MenuItem.Root>
             <PushRowModal
                 isVisible={isModalVisible}
                 canSelectMultiple={!!props.canSelectMultiple}

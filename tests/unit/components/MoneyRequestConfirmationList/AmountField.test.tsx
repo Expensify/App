@@ -75,14 +75,27 @@ jest.mock('@pages/iou/request/step/IOURequestStepCurrencyModal', () => {
         );
     };
 });
-jest.mock('@components/MenuItemWithTopDescription', () => {
+jest.mock('@components/MenuItem', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
-    return ({title, interactive = true}: {title?: string; interactive?: boolean}) => (
-        <>
-            <Text>{`Read-only amount: ${title ?? ''}`}</Text>
-            {interactive && <Text>Opens amount page</Text>}
-        </>
-    );
+    return {
+        __esModule: true,
+        default: {
+            Root: ({children, onPress}: {children?: React.ReactNode; onPress?: () => void}) => (
+                <>
+                    {children}
+                    {!!onPress && <Text>Opens amount page</Text>}
+                </>
+            ),
+            Row: ({children}: {children?: React.ReactNode}) => children,
+            Content: ({children}: {children?: React.ReactNode}) => children,
+            Trailing: ({children}: {children?: React.ReactNode}) => children,
+            FieldName: Text,
+            FieldValue: ({children}: {children?: string}) => <Text>{`Read-only amount: ${children ?? ''}`}</Text>,
+            Chevron: () => null,
+            BrickRoadIndicator: () => null,
+            HelpText: ({message}: {message: string}) => <Text>{message}</Text>,
+        },
+    };
 });
 jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
