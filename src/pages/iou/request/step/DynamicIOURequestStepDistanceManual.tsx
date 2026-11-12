@@ -109,26 +109,15 @@ function DynamicIOURequestStepDistanceManual({
 
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [personalDetails] = useAllPersonalDetails();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(parentReport?.ownerAccountID));
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: validTransactionDraftIDsSelector,
-    });
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-    });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -144,7 +133,6 @@ function DynamicIOURequestStepDistanceManual({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
         iouType,
@@ -244,14 +232,36 @@ function DynamicIOURequestStepDistanceManual({
 
     const navigateToNextPage = async (amount: string) => {
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
-        const [lastSelectedDistanceRates, quickAction, policyRecentlyUsedCurrencies, splitDraftTransaction, recentWaypoints, rules] = await Onyx.multiGet([
+        const [
+            lastSelectedDistanceRates,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            splitDraftTransaction,
+            recentWaypoints,
+            rules,
+            policyCategories,
+            policyTags,
+            reportPolicyTags,
+            introSelected,
+            transactionDrafts,
+            onboarding,
+            conciergeChat,
+        ] = await Onyx.multiGet([
             ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
             ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             ONYXKEYS.RECENTLY_USED_CURRENCIES,
             `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
             ONYXKEYS.NVP_RECENT_WAYPOINTS,
             ONYXKEYS.COLLECTION.RULE,
+            `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+            ONYXKEYS.NVP_ONBOARDING,
+            `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
         ]);
+        const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
         if (action === CONST.IOU.ACTION.EDIT) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
@@ -347,12 +357,12 @@ function DynamicIOURequestStepDistanceManual({
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
-            isSelfTourViewed: !!isSelfTourViewed,
+            isSelfTourViewed: hasSeenTourSelector(onboarding),
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeChat,
-            draftTransactionIDs,
+            draftTransactionIDs: validTransactionDraftIDsSelector(transactionDrafts),
             optimisticTransactionID,
             optimisticChatReportID,
             isTrackIntentUser,
