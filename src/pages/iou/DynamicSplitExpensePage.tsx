@@ -127,7 +127,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const draftTransactionReport = useReportOrReportDraft(draftTransaction?.reportID);
     const parentTransactionReport = useReportOrReportDraft(draftTransactionReport?.parentReportID);
     const expenseReport = draftTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? draftTransactionReport : parentTransactionReport;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
     const allTransactions = useAllTransactions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -142,7 +141,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`);
     const personalPolicy = usePersonalPolicy();
     const effectivePolicy = useSplitEffectivePolicy(currentReport, draftTransaction, transaction);
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
@@ -329,8 +327,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         );
     };
 
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-
     const onSaveSplitExpense = async () => {
         if (isPerDiemRequest(transaction) && hasCustomUnitOutOfPolicyViolation) {
             showConfirmModal({
@@ -393,12 +389,15 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             return;
         }
 
-        const [reportDrafts, allSnapshots, policyRecentlyUsedCurrencies, quickAction, allPolicyTags] = await Onyx.multiGet([
+        const [reportDrafts, allSnapshots, policyRecentlyUsedCurrencies, quickAction, allPolicyTags, policyCategories, policyRecentlyUsedCategories, introSelected] = await Onyx.multiGet([
             ONYXKEYS.COLLECTION.REPORT_DRAFT,
             ONYXKEYS.COLLECTION.SNAPSHOT,
             ONYXKEYS.RECENTLY_USED_CURRENCIES,
             ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             ONYXKEYS.COLLECTION.POLICY_TAGS,
+            `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`,
+            `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`,
+            ONYXKEYS.NVP_INTRO_SELECTED,
         ]);
         updateSplitTransactionsFromSplitExpensesFlow({
             isVendorMatchingBetaEnabled,
@@ -439,7 +438,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             expenseReport,
             isOffline,
             delegateAccountID,
-            isTrackIntentUser,
+            isTrackIntentUser: isTrackIntentUserSelector(introSelected),
             formatPhoneNumber,
             rules,
         });

@@ -52,14 +52,10 @@ function DynamicIOURequestStepAttendees({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policyID = report?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -86,7 +82,13 @@ function DynamicIOURequestStepAttendees({
         }
         if (!deepEqual(previousAttendees, attendees)) {
             if (isEditing) {
-                const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
+                const [rules, policyCategories, policyTags, reportPolicyTags, introSelected] = await Onyx.multiGet([
+                    ONYXKEYS.COLLECTION.RULE,
+                    `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+                    ONYXKEYS.NVP_INTRO_SELECTED,
+                ]);
                 updateMoneyRequestAttendees({
                     isVendorMatchingBetaEnabled,
                     transactionID,
@@ -104,7 +106,7 @@ function DynamicIOURequestStepAttendees({
                     isOffline,
                     delegateAccountID,
                     reportPolicyTags,
-                    isTrackIntentUser,
+                    isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                     getCurrencyDecimals,
                     getCurrencySymbol,
                     rules,

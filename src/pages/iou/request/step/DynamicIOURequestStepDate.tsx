@@ -82,15 +82,11 @@ function DynamicIOURequestStepDate({
     const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(effectivePolicy, customUnitRateID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -130,7 +126,14 @@ function DynamicIOURequestStepDate({
             return;
         }
 
-        const [rules, lastSelectedDistanceRates] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]);
+        const [rules, lastSelectedDistanceRates, policyCategories, policyTags, reportPolicyTags, introSelected] = await Onyx.multiGet([
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+            `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+        ]);
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
         if (isEditing) {
@@ -154,7 +157,7 @@ function DynamicIOURequestStepDate({
                 isOffline,
                 delegateAccountID,
                 distanceOriginalPolicy,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 getCurrencyDecimals,
                 getCurrencySymbol,
