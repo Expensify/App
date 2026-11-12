@@ -4516,7 +4516,7 @@ describe('SearchUIUtils', () => {
                 currency: 'USD',
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                formattedWeek: 'Jan 25 - Jan 31, 2026',
+                formattedWeek: 'Jan 25\u2009–\u200931, 2026',
                 shortFormattedWeek: 'Jan 25 - 31, ’26',
                 lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                 transactions: [],
@@ -5020,7 +5020,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                    formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                    formattedQuarter: 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)',
                     shortFormattedQuarter: 'Q1 ’26',
                     sortKey: 20261,
                     transactions: [],
@@ -5034,7 +5034,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                    formattedQuarter: 'Q4 2025 (Oct 1 - Dec 31)',
+                    formattedQuarter: 'Q4 2025 (Oct 1\u2009–\u2009Dec 31)',
                     shortFormattedQuarter: 'Q4 ’25',
                     sortKey: 20254,
                     transactions: [],
@@ -5101,8 +5101,8 @@ describe('SearchUIUtils', () => {
             );
 
             expect(result).toHaveLength(2);
-            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1 - Mar 31)')).toBe(true);
-            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1 - Sep 30)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1\u2009–\u2009Sep 30)')).toBe(true);
         });
 
         it('should calculate sortKey correctly for quarter groups', () => {
@@ -5138,7 +5138,7 @@ describe('SearchUIUtils', () => {
                 currency: 'USD',
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                formattedQuarter: 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)',
                 shortFormattedQuarter: 'Q1 ’26',
                 sortKey: 20261,
                 transactions: [],
@@ -5156,7 +5156,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                    formattedWeek: 'Jan 25 - Jan 31, 2026',
+                    formattedWeek: 'Jan 25\u2009–\u200931, 2026',
                     shortFormattedWeek: 'Jan 25 - 31, ’26',
                     lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                     transactions: [],
@@ -5169,7 +5169,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                    formattedWeek: 'Dec 21 - Dec 27, 2025',
+                    formattedWeek: 'Dec 21\u2009–\u200927, 2025',
                     shortFormattedWeek: 'Dec 21 - 27, ’25',
                     lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2025-12-21', undefined, new Date().getFullYear() !== 2025),
                     transactions: [],
@@ -9040,8 +9040,8 @@ describe('SearchUIUtils', () => {
             // Then each entry filters on merchant with the group's own value, and the empty merchant maps to `none`,
             // so the export can match each group exactly. The hook test checks that the backend gets `eq`.
             expect(selectedGroupEntries).toEqual([
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
+                {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
+                {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
             ]);
         });
     });
@@ -17789,5 +17789,37 @@ describe('getMatchingFilters', () => {
 
         // Then nothing is left, so the list shows its no results message
         expect(matchingFilters).toEqual([]);
+    });
+});
+
+describe('canEditSearchColumns', () => {
+    it('lets users pick the columns of expense and expense report searches', () => {
+        // Given the search types whose tables have customizable columns
+        // When asked whether users can edit their columns
+        // Then both allow it, regardless of trip rooms
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.EXPENSE, false)).toBe(true);
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, false)).toBe(true);
+    });
+
+    it('does not let users pick the columns of a task or invoice search', () => {
+        // Given task and invoice searches, whose tables have no customizable columns
+        // When asked whether users can edit their columns
+        // Then neither allows it, so the headings get no column menus
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TASK, false)).toBe(false);
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.INVOICE, false)).toBe(false);
+    });
+
+    it('does not let users pick the columns of a trip search that shows expenses', () => {
+        // Given a trip search that doesn't return trip rooms, so its table is the expense table
+        // When asked whether users can edit its columns
+        // Then it doesn't allow it, since the trip columns only apply to the rooms table
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TRIP, false)).toBe(false);
+    });
+
+    it('lets users pick the columns of a search that returns trip rooms', () => {
+        // Given a trip search that returns trip rooms
+        // When asked whether users can edit its columns
+        // Then it allows it
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TRIP, true)).toBe(true);
     });
 });

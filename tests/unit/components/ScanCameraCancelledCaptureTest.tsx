@@ -56,7 +56,6 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan/components/ScannerControls
 jest.mock('@pages/iou/request/step/IOURequestStepScan/components/CameraViewport', () => () => null);
 jest.mock('@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt', () => () => null);
 jest.mock('@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews', () => () => null);
-jest.mock('@pages/iou/request/step/IOURequestStepScan/components/MultiScanEducationalModal', () => () => null);
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext', () => ({
     useMultiScanState: () => ({isMultiScanEnabled: false, canUseMultiScan: false}),
