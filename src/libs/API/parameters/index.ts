@@ -639,6 +639,7 @@ export type {default as GetWiseBankAccountFieldsParams} from './GetWiseBankAccou
 export type {default as CreateWiseBankAccountParams} from './CreateWiseBankAccountParams';
 export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
+export type {default as JoinAccountingIntegrationWaitlistParams} from './JoinAccountingIntegrationWaitlistParams';
 export type {default as AskToJoinPolicyParams} from './AskToJoinPolicyParams';
 export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
@@ -755,6 +756,7 @@ export type {default as ResetDomainMemberTwoFactorAuthParams} from './ResetDomai
 export type {default as AuthorizeTransactionParams} from './AuthorizeTransactionParams';
 export type {default as RevealCardPINParams} from './RevealCardPINParams';
 export type {default as DenyTransactionParams} from './DenyTransactionParams';
+export type {default as RecordFraudFeedbackParams} from './RecordFraudFeedbackParams';
 export type {default as ChangeCardPINParams} from './ChangeCardPINParams';
 export type {default as ExportDomainMembersCSVParams} from './ExportDomainMembersCSVParams';
 export type {default as InitiateBankAccountUnlockParams} from './InitiateBankAccountUnlockParams';
