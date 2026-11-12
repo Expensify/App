@@ -95,7 +95,6 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const reports = useChangeTransactionsReportReports(transactions, selectedReport?.reportID);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const selectReport = async (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
@@ -103,11 +102,12 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             return;
         }
 
-        const [allPolicyCategories, allPolicyTags, rules, cardList] = await Onyx.multiGet([
+        const [allPolicyCategories, allPolicyTags, rules, cardList, introSelected] = await Onyx.multiGet([
             ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
             ONYXKEYS.COLLECTION.POLICY_TAGS,
             ONYXKEYS.COLLECTION.RULE,
             ONYXKEYS.CARD_LIST,
+            ONYXKEYS.NVP_INTRO_SELECTED,
         ]);
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
@@ -130,7 +130,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 reports: reportsForCall,
                 rules,
                 cardList,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
                 delegateAccountID,
@@ -148,11 +148,12 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         if (!selectedReport || transactionIDs.length === 0) {
             return;
         }
-        const [personalPolicyID, allPolicyTags, rules, cardList] = await Onyx.multiGet([
+        const [personalPolicyID, allPolicyTags, rules, cardList, introSelected] = await Onyx.multiGet([
             ONYXKEYS.PERSONAL_POLICY_ID,
             ONYXKEYS.COLLECTION.POLICY_TAGS,
             ONYXKEYS.COLLECTION.RULE,
             ONYXKEYS.CARD_LIST,
+            ONYXKEYS.NVP_INTRO_SELECTED,
         ]);
         const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
@@ -169,7 +170,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             reports,
             rules,
             cardList,
-            isTrackIntentUser,
+            isTrackIntentUser: isTrackIntentUserSelector(introSelected),
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
             delegateAccountID,
@@ -188,13 +189,13 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             return;
         }
 
-        const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
+        const [rules, introSelected] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.NVP_INTRO_SELECTED]);
         const optimisticReport = createNewReport(
             ownerPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
-            isTrackIntentUser,
+            isTrackIntentUserSelector(introSelected),
             getCurrencyDecimals,
             rules,
             false,

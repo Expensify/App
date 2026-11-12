@@ -76,15 +76,10 @@ function DynamicIOURequestStepDescription({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
 
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -156,7 +151,13 @@ function DynamicIOURequestStepDescription({
         }
 
         if (action === CONST.IOU.ACTION.EDIT) {
-            const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
+            const [rules, policyTags, policyVendors, reportPolicyTags, introSelected] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.RULE,
+                `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`,
+                `${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`,
+                `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+            ]);
             updateMoneyRequestDescription({
                 isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID,
@@ -174,7 +175,7 @@ function DynamicIOURequestStepDescription({
                 isASAPSubmitBetaEnabled,
                 delegateAccountID,
                 reportPolicyTags,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,

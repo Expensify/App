@@ -74,7 +74,6 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const reportAttributesDerived = useReportAttributes();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const privateIsArchived = useReportIsArchived(reportID);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
@@ -139,7 +138,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const chatReportTransactions = useReportTransactions(reportID);
     const onConfirm = async () => {
         setIsConfirmed(true);
-        const quickAction = await Onyx.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+        const [quickAction, introSelected] = await Onyx.multiGet([ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, ONYXKEYS.NVP_INTRO_SELECTED]);
         completeSplitBill({
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
@@ -152,7 +151,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             transactionViolations,
             personalDetails,
             delegateAccountID,
-            isTrackIntentUser,
+            isTrackIntentUser: isTrackIntentUserSelector(introSelected),
             sessionEmail: session?.email,
             formatPhoneNumber,
             rules,

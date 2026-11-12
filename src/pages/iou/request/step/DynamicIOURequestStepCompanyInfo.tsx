@@ -64,7 +64,6 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
 
     const policyID = getIOURequestPolicyID(transaction, report);
     const policy = usePolicy(policyID);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const formattedAmount = convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
 
@@ -103,13 +102,15 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
         );
         markPendingWriteForSearchPage(!!isFromGlobalCreate);
         const invoiceChatReportID = report?.reportID ? undefined : reportID;
-        const [policyRecentlyUsedCategories, policyCategories, policyRecentlyUsedTags, policyTags, policyRecentlyUsedCurrencies] = await Onyx.multiGet([
+        const [policyRecentlyUsedCategories, policyCategories, policyRecentlyUsedTags, policyTags, policyRecentlyUsedCurrencies, transactionDrafts] = await Onyx.multiGet([
             `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
             `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
             `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
             `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
             ONYXKEYS.RECENTLY_USED_CURRENCIES,
+            ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
         ]);
+        const draftTransactionIDs = validTransactionDraftIDsSelector(transactionDrafts);
         sendInvoice({
             getCurrencyDecimals,
             currentUserAccountID: currentUserPersonalDetails.accountID,
