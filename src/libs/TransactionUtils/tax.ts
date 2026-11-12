@@ -10,7 +10,8 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils/customUnits';
+import {isSelectableTaxCode, resolveCurrentTaxCode} from '@libs/PolicyUtils/tax';
 
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
@@ -18,11 +19,8 @@ import type {ExpenseRule, Unit} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest} from './fields';
 import getDistanceInMeters from './getDistanceInMeters';
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest} from './index';
 
 /**
  * Calculates tax amount from the given expense amount and tax percentage

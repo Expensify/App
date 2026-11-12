@@ -31,7 +31,7 @@ import {
     isReportApproved,
     isSettled,
 } from './ReportUtils';
-import {hasNonReimbursableTransactions} from './TransactionUtils';
+import {hasNonReimbursableTransactions} from './TransactionUtils/fields';
 
 /**
  * Generates a report title using the names of participants, excluding the current user.
