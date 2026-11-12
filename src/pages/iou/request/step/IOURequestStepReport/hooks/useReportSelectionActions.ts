@@ -120,7 +120,6 @@ function useReportSelectionActions({
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const {removeTransaction} = useSearchSelectionActions();
     const reports = useChangeTransactionsReportReports(transaction ? [transaction] : [], undefined);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -205,11 +204,12 @@ function useReportSelectionActions({
                 );
 
                 if (isEditing) {
-                    const [allPolicyCategories, allPolicyTags, rules, cardList] = await Onyx.multiGet([
+                    const [allPolicyCategories, allPolicyTags, rules, cardList, introSelected] = await Onyx.multiGet([
                         ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
                         ONYXKEYS.COLLECTION.POLICY_TAGS,
                         ONYXKEYS.COLLECTION.RULE,
                         ONYXKEYS.CARD_LIST,
+                        ONYXKEYS.NVP_INTRO_SELECTED,
                     ]);
                     const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
                     const reportsForCall = report?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report, ...reports} : reports;
@@ -229,7 +229,7 @@ function useReportSelectionActions({
                         reports: reportsForCall,
                         rules,
                         cardList,
-                        isTrackIntentUser,
+                        isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                         personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                         selfDMReportActions,
                         delegateAccountID,
@@ -247,7 +247,12 @@ function useReportSelectionActions({
             return;
         }
         const moveToPersonalPolicy = async () => {
-            const [allPolicyTags, rules, cardList] = await Onyx.multiGet([ONYXKEYS.COLLECTION.POLICY_TAGS, ONYXKEYS.COLLECTION.RULE, ONYXKEYS.CARD_LIST]);
+            const [allPolicyTags, rules, cardList, introSelected] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.POLICY_TAGS,
+                ONYXKEYS.COLLECTION.RULE,
+                ONYXKEYS.CARD_LIST,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+            ]);
             const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
             changeTransactionsReport({
                 isVendorMatchingBetaEnabled,
@@ -263,7 +268,7 @@ function useReportSelectionActions({
                 reports,
                 rules,
                 cardList,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                 personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                 selfDMReportActions,
                 delegateAccountID,

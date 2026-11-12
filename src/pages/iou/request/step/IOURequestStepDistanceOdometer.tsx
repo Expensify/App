@@ -130,17 +130,13 @@ function IOURequestStepDistanceOdometer({
     const isArchived = useReportIsArchived(report?.reportID);
     const [personalDetails] = useAllPersonalDetails();
     const reportAttributesDerived = useReportAttributes();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(parentReport?.ownerAccountID));
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const policy = usePolicy(report?.policyID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -149,7 +145,6 @@ function IOURequestStepDistanceOdometer({
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
     // isEditing: we're changing an already existing odometer expense; isEditingConfirmation: we navigated here by pressing 'Distance' field from the confirmation step during the creation of a new odometer expense to adjust the input before submitting
@@ -221,7 +216,6 @@ function IOURequestStepDistanceOdometer({
     });
 
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {
         startReading,
@@ -280,8 +274,6 @@ function IOURequestStepDistanceOdometer({
         translate,
         selfDMReport,
         policyForMovingExpenses,
-        recentWaypoints,
-        introSelected,
         personalOutputCurrency: personalPolicy?.outputCurrency,
     });
 
@@ -442,7 +434,12 @@ function IOURequestStepDistanceOdometer({
             const hasChanges = previousDistance !== calculatedDistance || previousStart !== start || previousEnd !== end;
 
             if (hasChanges) {
-                const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
+                const [rules, recentWaypoints, introSelected] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.NVP_RECENT_WAYPOINTS, ONYXKEYS.NVP_INTRO_SELECTED]);
+                const [policyTags, policyCategories, reportPolicyTags] = await Promise.all([
+                    Onyx.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`),
+                    Onyx.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`),
+                    Onyx.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`),
+                ]);
                 // Update distance (which will also update amount and merchant)
                 updateMoneyRequestDistance({
                     isVendorMatchingBetaEnabled,
@@ -465,7 +462,7 @@ function IOURequestStepDistanceOdometer({
                     recentWaypoints,
                     delegateAccountID,
                     reportPolicyTags,
-                    isTrackIntentUser,
+                    isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     violations: allTransactionViolations,
                     getCurrencyDecimals,

@@ -79,13 +79,10 @@ function IOURequestStepDistanceGPS({
     const [personalDetails] = useAllPersonalDetails();
     const reportAttributesDerived = useReportAttributes();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -100,10 +97,8 @@ function IOURequestStepDistanceGPS({
     const policy = usePolicy(report?.policyID);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
         iouType,
@@ -139,6 +134,21 @@ function IOURequestStepDistanceGPS({
     });
 
     const navigateToNextStep = async () => {
+        // Read before setGPSTransactionDraftData merges into the transaction draft collection, so the draft IDs are the ones from before the merge.
+        const [[lastSelectedDistanceRates, quickAction, policyRecentlyUsedCurrencies, recentWaypoints, rules, introSelected, allTransactionDrafts, onboarding], conciergeChat] =
+            await Promise.all([
+                Onyx.multiGet([
+                    ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+                    ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                    ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                    ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                    ONYXKEYS.COLLECTION.RULE,
+                    ONYXKEYS.NVP_INTRO_SELECTED,
+                    ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                    ONYXKEYS.NVP_ONBOARDING,
+                ]),
+                Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`),
+            ]);
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
         const originalDistance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit);
         const modifiedDistance = gpsDraftDetails?.modifiedDistance !== undefined ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.modifiedDistance, unit) : undefined;
@@ -149,13 +159,6 @@ function IOURequestStepDistanceGPS({
         const waypoints = getGPSWaypoints(gpsDraftDetails);
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
-        const [lastSelectedDistanceRates, quickAction, policyRecentlyUsedCurrencies, recentWaypoints, rules] = await Onyx.multiGet([
-            ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
-            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            ONYXKEYS.RECENTLY_USED_CURRENCIES,
-            ONYXKEYS.NVP_RECENT_WAYPOINTS,
-            ONYXKEYS.COLLECTION.RULE,
-        ]);
 
         handleMoneyRequestStepDistanceNavigation({
             isVendorMatchingBetaEnabled,
@@ -195,15 +198,15 @@ function IOURequestStepDistanceGPS({
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
-            draftTransactionIDs,
-            isSelfTourViewed: !!isSelfTourViewed,
+            draftTransactionIDs: validTransactionDraftIDsSelector(allTransactionDrafts),
+            isSelfTourViewed: hasSeenTourSelector(onboarding),
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeChat,
             optimisticTransactionID,
             optimisticChatReportID,
-            isTrackIntentUser,
+            isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,

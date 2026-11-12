@@ -89,14 +89,11 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
     const [personalDetails] = useAllPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
     });
@@ -178,12 +175,17 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         const isFromGlobalCreate = getIsFromGlobalCreate(transaction);
 
         const firstReceiptFile = files.at(0);
-        const [quickAction, policyRecentlyUsedCurrencies, activePolicyID, recentWaypoints, userLocation] = await Onyx.multiGet([
-            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            ONYXKEYS.RECENTLY_USED_CURRENCIES,
-            ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            ONYXKEYS.NVP_RECENT_WAYPOINTS,
-            ONYXKEYS.USER_LOCATION,
+        const [[quickAction, policyRecentlyUsedCurrencies, activePolicyID, recentWaypoints, userLocation, onboarding, transactionDrafts], conciergeChat] = await Promise.all([
+            Onyx.multiGet([
+                ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+                ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                ONYXKEYS.USER_LOCATION,
+                ONYXKEYS.NVP_ONBOARDING,
+                ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+            ]),
+            Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`),
         ]);
 
         // Split bill flow
@@ -282,8 +284,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             policyParams: {policy, policyTagList},
             billable: false,
             reimbursable: defaultReimbursable,
-            isSelfTourViewed,
-            allTransactionDrafts,
+            isSelfTourViewed: hasSeenTourSelector(onboarding),
+            allTransactionDrafts: validTransactionDraftsSelector(transactionDrafts),
             personalDetails,
             recentWaypoints,
             optimisticTransactionIDs,
