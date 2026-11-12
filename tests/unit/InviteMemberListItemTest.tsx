@@ -101,4 +101,18 @@ describe('InviteMemberListItem', () => {
 
         expect(expectedAvatar.mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining(expectedProps));
     });
+
+    it.each([
+        ['the item login', 'new@example.com', 'new@example.com'],
+        ['undefined when the item has no login', null, undefined],
+    ])('passes %s to the user avatar as accountEmail', (_label, login, expectedAccountEmail) => {
+        // Given a new invitee with an optimistic accountID and no personal details yet
+        const item = buildItem({accountID: 7, login});
+
+        // When the row renders
+        renderItem({item});
+
+        // Then the login reaches the avatar, so it can draw a letter avatar instead of the generic fallback
+        expect(mockUserAvatar.mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining({accountID: 7, accountEmail: expectedAccountEmail}));
+    });
 });

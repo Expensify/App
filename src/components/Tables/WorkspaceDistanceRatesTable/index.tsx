@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -18,13 +19,13 @@ import type {Unit} from '@src/types/onyx/Policy';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
 
 import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
 
-type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'endDate' | 'enabled' | 'actions';
+type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'taxReclaimableOn' | 'startDate' | 'endDate' | 'enabled' | 'actions';
 
 type WorkspaceDistanceRatesTableProps = {
     ratesData: DistanceRateTableItemData[];
@@ -33,6 +34,9 @@ type WorkspaceDistanceRatesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     canWriteDistanceRates: boolean;
+
+    /** Whether the workspace tracks tax and distance rates track tax. The tax reclaimable column also needs a rate with an amount. */
+    isDistanceRateTaxEnabled: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
 };
@@ -51,6 +55,7 @@ function WorkspaceDistanceRatesTable({
     selectionEnabled,
     selectedKeys,
     canWriteDistanceRates,
+    isDistanceRateTaxEnabled,
     onRowSelectionChange,
     headerComponent,
 }: WorkspaceDistanceRatesTableProps) {
@@ -61,6 +66,7 @@ function WorkspaceDistanceRatesTable({
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const hasAnyDateBound = ratesData.some((item) => !!item.rate.startDate || !!item.rate.endDate);
+    const shouldShowTaxReclaimableColumn = isDistanceRateTaxEnabled && ratesData.some((item) => item.taxReclaimableAmount !== undefined);
 
     const columns: Array<TableColumn<DistanceRatesTableColumnKey>> = [
         {
@@ -88,6 +94,19 @@ function WorkspaceDistanceRatesTable({
                 containerStyles: [styles.editableCellHeader],
             },
         },
+        ...(shouldShowTaxReclaimableColumn
+            ? ([
+                  {
+                      key: 'taxReclaimableOn',
+                      label: translate('workspace.taxes.taxReclaimableOn'),
+                      sortable: true,
+                      styling: {
+                          // editableCellHeader aligns the label with the padded tax cell.
+                          containerStyles: styles.editableCellHeader,
+                      },
+                  },
+              ] as const)
+            : []),
         ...(hasAnyDateBound
             ? ([
                   {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},
@@ -108,15 +127,19 @@ function WorkspaceDistanceRatesTable({
             if (diff !== 0) {
                 return diff * orderMultiplier;
             }
-            return localeCompare(a.rate.name ?? '', b.rate.name ?? '') * orderMultiplier;
+            return DistanceRequestUtils.compareRatesByDisplayName(a.rate, b.rate, localeCompare, orderMultiplier);
         }
 
         if (activeSorting.columnKey === 'name') {
-            return localeCompare(a.rate.name ?? '', b.rate.name ?? '') * orderMultiplier;
+            return DistanceRequestUtils.compareRatesByDisplayName(a.rate, b.rate, localeCompare, orderMultiplier);
         }
 
         if (activeSorting.columnKey === 'rate') {
             return ((a.rate.rate ?? 0) - (b.rate.rate ?? 0)) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'taxReclaimableOn') {
+            return ((a.taxReclaimableAmount ?? 0) - (b.taxReclaimableAmount ?? 0)) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'startDate') {
@@ -153,15 +176,12 @@ function WorkspaceDistanceRatesTable({
           ]
         : undefined;
 
-    const statusLabels = useMemo(
-        () => ({
-            [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
-        }),
-        [translate],
-    );
+    const statusLabels = {
+        [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
+    };
 
     const renderItem = ({item, index}: ListRenderItemInfo<DistanceRateTableItemData>) => (
         <WorkspaceDistanceRatesTableRow
@@ -170,6 +190,7 @@ function WorkspaceDistanceRatesTable({
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             shouldShowDateColumns={hasAnyDateBound}
+            shouldShowTaxReclaimableColumn={shouldShowTaxReclaimableColumn}
             statusLabels={statusLabels}
             unit={unit}
         />

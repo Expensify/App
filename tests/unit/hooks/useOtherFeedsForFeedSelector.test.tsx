@@ -213,6 +213,7 @@ describe('useOtherFeedsForFeedSelector', () => {
         // Use toMatchObject so Jest does not deep-compare leftElement (React nodes use private fields and break toEqual).
         expect(result.current.at(0)).toMatchObject({
             value: '999_oauth.chase.com',
+            selectionValue: `oauth.chase.com${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}999`,
             feed: 'oauth.chase.com',
             fundID: 999,
             country: 'US',
@@ -221,6 +222,27 @@ describe('useOtherFeedsForFeedSelector', () => {
             isSelected: false,
         });
         expect(React.isValidElement(result.current.at(0)?.leftElement)).toBe(true);
+    });
+
+    it('should leave selectionValue undefined when the feed has no valid fundID', () => {
+        // Given a feed whose fundID cannot be parsed, so there is no `${feed}${separator}${fundID}` key it could match in the available list
+        mockVisibleFeeds([
+            {
+                id: '_oauth.chase.com',
+                feed: 'oauth.chase.com',
+                fundID: '',
+                name: 'Chase feed',
+                linkedPolicyIDs: ['policy_unrelated'],
+            },
+        ]);
+
+        // When the hook builds the other-workspace rows
+        const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
+
+        // Then the row is still listed, but without a selection key, so the page falls back to the row value instead of a bogus `feed#NaN` key
+        expect(result.current).toHaveLength(1);
+        expect(result.current.at(0)?.selectionValue).toBeUndefined();
+        expect(mockGetCardFeedWithDomainID).not.toHaveBeenCalled();
     });
 
     it('should set isSelected when feed id matches the selected feed from useCompanyCards', () => {

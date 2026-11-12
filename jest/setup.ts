@@ -152,11 +152,6 @@ jest.mock('react-native-reanimated', () => ({
     // react-native-reanimated/mock leaves dispatchCommand out (see its own "ADD ME IF NEEDED" comment). forceClearInput
     // (src/libs/ComponentUtils) dispatches it from a UI-thread worklet, so any test exercising that path needs it mocked.
     dispatchCommand: jest.fn(),
-    // react-native-reanimated/mock also leaves out useComposedEventHandler, useHandler and isSharedValue, which Gesture Handler 3
-    // calls from its detectors (including the ones behind its ScrollView / FlatList wrappers).
-    useComposedEventHandler: jest.fn(() => () => {}),
-    useHandler: jest.fn(() => ({context: {}, doDependenciesDiffer: false})),
-    isSharedValue: jest.fn((value: unknown) => typeof value === 'object' && value !== null && 'value' in value && 'get' in value && typeof value.get === 'function'),
     useReducedMotion: jest.fn,
     useScrollViewOffset: jest.fn(() => 0),
     useAnimatedRef: jest.fn(() => jest.fn()),
@@ -170,13 +165,6 @@ jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
 
 jest.mock('react-native-app-logs', () => require<typeof RNAppLogs>('react-native-app-logs/jest'));
-
-jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
-    const scheduleOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue, ...args: Args): void => {
-        worklet(...args);
-    };
-    return scheduleOnLiveMarkdownRuntime;
-});
 
 jest.mock('@src/setup/telemetry', () => ({
     __esModule: true,
@@ -355,6 +343,9 @@ jest.mock('@shopify/react-native-skia', () => ({
     listFontFamilies: jest.fn(() => []),
 }));
 
+// The native tab bar icons are drawn with Skia's imperative API, which the mock above leaves out, so the tabs get no icons.
+jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer', () => jest.fn(() => undefined));
+
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),
     createKeys: jest.fn(() => Promise.resolve({publicKey: ''})),
@@ -370,6 +361,8 @@ jest.mock('victory-native', () => ({
     CartesianChart: jest.fn(
         ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
     ),
+    Pie: {Chart: jest.fn(() => null)},
+    PolarChart: jest.fn(() => null),
 }));
 
 // Provide a default global fetch mock for tests that do not explicitly set it up

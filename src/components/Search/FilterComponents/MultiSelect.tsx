@@ -128,6 +128,8 @@ function MultiSelect<T extends string>({
         isSelected: !!selectedItems.find((i) => i.value === item.value),
         icons: item.icons,
         leftElement: item.leftElement,
+        // Without vertical padding a two line title still fits the estimated row height
+        itemStyle: item.alternateText ? undefined : styles.pv0,
     }));
 
     const shouldShowSearchSpinner = isSearching && listData.length === 0;
@@ -201,6 +203,7 @@ function MultiSelect<T extends string>({
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     data={listData}
                     ListItem={MultiSelectListItem}
+                    titleNumberOfLines={2}
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}

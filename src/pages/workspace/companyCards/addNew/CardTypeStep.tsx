@@ -29,7 +29,7 @@ import type {CardFeedProvider, CombinedCardFeeds} from '@src/types/onyx/CardFeed
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type CardTypeSelection = CardFeedProvider | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK;
@@ -148,7 +148,7 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
     const isNewCardTypeSelected = typeSelected !== feedType;
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
 
-    const submit = useCallback(() => {
+    const submit = () => {
         if (!typeSelected || (typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK && !shouldShowMockFeed)) {
             setIsError(true);
         } else if (typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK) {
@@ -164,7 +164,7 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
                 isEditing: false,
             });
         }
-    }, [bankName, cardFeeds, isNewCardTypeSelected, isOtherBankSelected, lastSelectedFeed, policyID, shouldShowMockFeed, typeSelected, workspaceAccountID]);
+    };
 
     const handleBackButtonPress = () => {
         if (isOtherBankSelected) {
@@ -178,14 +178,11 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.next'),
-            onConfirm: submit,
-        }),
-        [submit, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.next'),
+        onConfirm: submit,
+    };
 
     return (
         <ScreenWrapper

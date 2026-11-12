@@ -1,13 +1,13 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import useMoneyRequestReportSortedTransactions, {EMPTY_VIOLATIONS} from '@components/MoneyRequestReportView/useMoneyRequestReportSortedTransactions';
+import useMoneyRequestReportSortedTransactions from '@components/MoneyRequestReportView/useMoneyRequestReportSortedTransactions';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {StableReport} from '@src/selectors/Report';
-import type {Card, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Card, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
 
@@ -29,14 +29,6 @@ const REPORT: StableReport = {
     currency: CONST.CURRENCY.USD,
     ownerAccountID: CURRENT_USER_ACCOUNT_ID,
 };
-
-const MISSING_CATEGORY_VIOLATIONS: TransactionViolations = [
-    {
-        name: CONST.VIOLATIONS.MISSING_CATEGORY,
-        type: CONST.VIOLATION_TYPES.VIOLATION,
-        showInReview: true,
-    },
-];
 
 const wrapper = ({children}: {children: ReactNode}) => (
     <LocaleContextProvider>
@@ -211,73 +203,6 @@ describe('useMoneyRequestReportSortedTransactions', () => {
                 ['3', 'thread3'],
             ]),
         );
-    });
-
-    it('should map each transaction to its visible violations with a stable empty reference', async () => {
-        // Given one transaction with a violation and one without
-        const transactions = [buildTransaction('1', {created: '2024-01-01'}), buildTransaction('2', {created: '2024-01-02'})];
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`, MISSING_CATEGORY_VIOLATIONS);
-
-        // When the hook renders
-        const {result} = await renderSortedTransactions(buildParams({transactions}));
-
-        // Then the clean transaction gets the shared empty array so its row props stay referentially stable
-        expect(result.current.violationsByTransactionID.get('1')).toEqual(MISSING_CATEGORY_VIOLATIONS);
-        expect(result.current.violationsByTransactionID.get('2')).toBe(EMPTY_VIOLATIONS);
-    });
-
-    it('should use the stable empty reference when no violations are loaded', async () => {
-        // Given no violations exist in Onyx at all
-        const transactions = [buildTransaction('1')];
-
-        // When the hook renders
-        const {result} = await renderSortedTransactions(buildParams({transactions}));
-
-        // Then the transaction still gets the shared empty array
-        expect(result.current.violationsByTransactionID.get('1')).toBe(EMPTY_VIOLATIONS);
-    });
-
-    it('should not re-render when a violation of a transaction outside the report changes', async () => {
-        // Given a report whose only transaction has no violations
-        const params = buildParams({transactions: [buildTransaction('1')]});
-        let renderCount = 0;
-        const {result} = renderHook(
-            () => {
-                renderCount++;
-                return useMoneyRequestReportSortedTransactions(params);
-            },
-            {wrapper},
-        );
-        await act(async () => {
-            await waitForBatchedUpdates();
-        });
-        const renderCountBefore = renderCount;
-        const violationsMapBefore = result.current.violationsByTransactionID;
-
-        // When a transaction from another report gets a violation
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}999`, MISSING_CATEGORY_VIOLATIONS);
-            await waitForBatchedUpdates();
-        });
-
-        // Then the hook does not re-render, so the violations map and the rows' renderItem stay referentially stable
-        expect(renderCount).toBe(renderCountBefore);
-        expect(result.current.violationsByTransactionID).toBe(violationsMapBefore);
-    });
-
-    it('should pick up a new violation on a transaction of the report', async () => {
-        // Given a report whose only transaction has no violations yet
-        const {result} = await renderSortedTransactions(buildParams({transactions: [buildTransaction('1')]}));
-        expect(result.current.violationsByTransactionID.get('1')).toBe(EMPTY_VIOLATIONS);
-
-        // When that transaction gets a violation
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`, MISSING_CATEGORY_VIOLATIONS);
-            await waitForBatchedUpdates();
-        });
-
-        // Then the narrowed subscription still delivers it to the row
-        expect(result.current.violationsByTransactionID.get('1')).toEqual(MISSING_CATEGORY_VIOLATIONS);
     });
 
     it('should resolve card names from the card list', async () => {

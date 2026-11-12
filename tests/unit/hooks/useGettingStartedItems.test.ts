@@ -37,6 +37,7 @@ const useResponsiveLayoutMock = jest.requireMock<jest.Mock>('@hooks/useResponsiv
 jest.mock('@userActions/Policy/Category', () => ({enablePolicyCategories: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({enableCompanyCards: jest.fn(), enableExpensifyCard: jest.fn(), enablePolicyConnections: jest.fn(), enablePolicyRules: jest.fn()}));
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({startMoneyRequest: jest.fn()}));
+jest.mock('@libs/actions/Policy/Rules', () => ({getRules: jest.fn(), resetRulesFetchState: jest.fn()}));
 
 const {startMoneyRequest} = jest.requireMock<{startMoneyRequest: jest.Mock}>('@libs/actions/IOU/MoneyRequest');
 
@@ -389,7 +390,7 @@ describe('useGettingStartedItems', () => {
             await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
-            expect(connectItem?.route).toBe(ROUTES.WORKSPACE_ACCOUNTING.getRoute(POLICY_ID));
+            expect(connectItem?.route).toBe(ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING));
         });
 
         it('should be not completed when workspace has no accounting connection', async () => {

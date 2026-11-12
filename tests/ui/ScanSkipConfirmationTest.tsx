@@ -73,7 +73,7 @@ jest.mock('react-native-permissions', () => ({
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
     useCameraDevices: jest.fn(() => []),
-    useCameraFormat: jest.fn(() => null),
+    usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams', () => ({
@@ -117,6 +117,8 @@ jest.mock('@hooks/useConfirmModal', () => {
     const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
     return mockUseConfirmModal;
 });
+
+jest.mock('@hooks/useMultiScanEducationalModal', () => ({__esModule: true, default: () => () => undefined}));
 
 jest.mock('@components/Modal/Global/ModalContext', () => {
     const {createMockModalContextModule} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');

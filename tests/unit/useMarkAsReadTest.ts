@@ -4,8 +4,8 @@ import {IsHiddenWideTabPreMountContext} from '@hooks/useIsHiddenWideTabPreMount'
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 import useMarkAsRead, {resetMarkAsReadScopes} from '@hooks/useMarkAsRead';
 
+import Log from '@libs/Log';
 import type Navigation from '@libs/Navigation/Navigation';
-import type * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -24,6 +24,9 @@ let mockHasFocus = true;
 let mockIsFocused = true;
 let mockReferrer: string | undefined;
 let mockIsInPreloadedTab = false;
+let mockNotificationPreference: string = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+let mockLHNUnreadState = 'unread';
+const CURRENT_USER_ACCOUNT_ID = 123;
 
 jest.mock('@libs/Visibility', () => ({
     __esModule: true,
@@ -43,12 +46,22 @@ jest.mock('@hooks/useAppFocusEvent', () => ({
 }));
 
 jest.mock('@libs/ReportUtils', () => {
-    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
+    const actual = jest.requireActual<Record<string, unknown>>('@libs/ReportUtils');
     return {
         ...actual,
         isUnread: () => mockIsUnread,
+        getReportNotificationPreference: () => mockNotificationPreference,
     };
 });
+
+jest.mock('@libs/SidebarUtils', () => ({
+    getLHNUnreadState: () => mockLHNUnreadState,
+}));
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: CURRENT_USER_ACCOUNT_ID, login: 'test@example.com'}),
+}));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -116,6 +129,8 @@ describe('useMarkAsRead', () => {
         mockIsFocused = true;
         mockReferrer = undefined;
         mockIsInPreloadedTab = false;
+        mockNotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+        mockLHNUnreadState = 'unread';
     });
 
     it('holds the mark-as-read while the Inbox tab is preloaded, and marks read once the tab opens', () => {
@@ -548,5 +563,99 @@ describe('useMarkAsRead', () => {
         readNewestAction.mockClear();
         rerenderA({report: reportAWithNewMessage});
         expect(readNewestAction).not.toHaveBeenCalledWith('A', expect.anything());
+    });
+
+    describe('LHN unread telemetry', () => {
+        const unreadChat = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            lastReadTime: '2023-01-01 10:00:00.000',
+            lastVisibleActionCreated: '2023-01-01 11:00:00.000',
+            lastActorAccountID: 999,
+            lastMessageText: 'hello',
+        } as OnyxTypes.Report;
+
+        let logInfoSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            logInfoSpy.mockRestore();
+        });
+
+        it('logs when an unread chat is opened that the LHN did not show as unread', () => {
+            // Given the LHN did not list the chat before it was opened
+            mockLHNUnreadState = 'notListed';
+
+            // When the chat is opened
+            renderMarkAsRead({report: unreadChat});
+
+            // Then the mismatch is logged with the fields needed to tell a stale LHN from a race
+            expect(logInfoSpy).toHaveBeenCalledWith(
+                '[LHNUnread] Opened unread report that LHN did not show as unread',
+                false,
+                expect.objectContaining({
+                    reportID: REPORT_ID,
+                    lhnUnreadState: 'notListed',
+                    hasLastMessageText: true,
+                    lastVisibleActionCreated: unreadChat.lastVisibleActionCreated,
+                    lastReadTime: unreadChat.lastReadTime,
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                }),
+            );
+        });
+
+        it('does not log when the LHN showed the chat as unread', () => {
+            // Given the LHN listed the chat as unread
+            mockLHNUnreadState = 'unread';
+
+            // When the chat is opened
+            renderMarkAsRead({report: unreadChat});
+
+            // Then nothing is logged
+            expect(logInfoSpy).not.toHaveBeenCalled();
+        });
+
+        it('does not log for muted chats, own messages, or preloaded tabs', () => {
+            mockLHNUnreadState = 'notListed';
+
+            // Given a muted chat, when it is opened, then nothing is logged
+            mockNotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+            renderMarkAsRead({report: unreadChat});
+            expect(logInfoSpy).not.toHaveBeenCalled();
+            mockNotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+
+            // Given the last message is the current user's own, when it is opened, then nothing is logged
+            renderMarkAsRead({report: {...unreadChat, lastActorAccountID: CURRENT_USER_ACCOUNT_ID} as OnyxTypes.Report});
+            expect(logInfoSpy).not.toHaveBeenCalled();
+
+            // Given the chat is mounted in a preloaded tab, when it mounts, then nothing is logged
+            mockIsInPreloadedTab = true;
+            renderMarkAsRead({report: unreadChat});
+            expect(logInfoSpy).not.toHaveBeenCalled();
+        });
+
+        it('logs on reveal of a hidden wide pre-mount, not while it is hidden', () => {
+            // Given an unread chat the LHN did not list, mounted hidden as a wide submit pre-mount
+            mockLHNUnreadState = 'notListed';
+            let isHiddenPreMount = true;
+            const {rerender} = renderMarkAsRead(
+                {report: unreadChat},
+                createHiddenPreMountWrapper(() => isHiddenPreMount),
+            );
+
+            // Then nothing is logged while the user cannot see it
+            expect(logInfoSpy).not.toHaveBeenCalled();
+
+            // When the submit reveals it
+            isHiddenPreMount = false;
+            rerender(undefined);
+
+            // Then the mismatch is logged once, as on a regular open
+            expect(logInfoSpy).toHaveBeenCalledTimes(1);
+            expect(logInfoSpy).toHaveBeenCalledWith('[LHNUnread] Opened unread report that LHN did not show as unread', false, expect.objectContaining({reportID: REPORT_ID}));
+        });
     });
 });

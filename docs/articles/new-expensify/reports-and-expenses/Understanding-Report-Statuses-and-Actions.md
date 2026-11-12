@@ -22,6 +22,8 @@ Each report status reflects a different stage in the reporting workflow:
   - **Confirmed**: The reimbursement has been confirmed.
 - **Done**: The report is locked. No further edits or deletions can be made. This is the final status for non-approvable reports.
 
+To view **Report history**, open a workspace expense report and select the next-step message in the report header. You can see completed actions and upcoming steps, including who needs to act next.
+
 ---
 
 # Report Action Buttons
@@ -93,6 +95,9 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 - **To delete a report**: Go to a **Draft** report and tap **More > Delete**.
   - If the report contains only one expense, that expense will also be deleted.
   - If the report contains multiple expenses, they will become **Unreported** and available to add to a new report.
+- **To delete another member’s report as a Workspace Admin**: Go to the member’s **Draft** report on your workspace and tap **More > Delete**.
+  - The expenses on the report become **Unreported** and stay in the member’s account, including when the report contains only one expense.
+  - This applies to **Draft** reports only. You can’t delete a member’s report after it is submitted, and you can’t delete a member’s individual expenses.
 
 ---
 
@@ -122,6 +127,8 @@ If no green button appears, it means no immediate action is required. Tap the **
 ## Can I delete reports?  
 Yes—if the report is a **Draft** or is **Outstanding**. **Done** or **Paid** reports cannot be deleted.
 
+## Can a Workspace Admin delete a member’s report?  
+Yes, while the report is still a **Draft**. Open the report and tap **More > Delete**. The expenses on it become **Unreported** rather than deleted, so the member can add them to a new report.
 ## Who can view a Draft (unsubmitted) report?
 The submitter, their copilots, the approvers in their approval workflow, and Workspace Admins can all view a Draft report in **Spend > Reports**. Viewing a Draft report is not limited to Workspace Admins.
 

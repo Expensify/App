@@ -1,12 +1,12 @@
 /**
- * Rotates a captured still so the receipt reads upright, reconciling the decoded frame's orientation
- * with VisionCamera's display orientation. Returns undefined when the photo is already upright.
+ * Rotates a captured still so the receipt reads upright. Returns undefined when the photo is already upright.
  */
+import releaseQuietly from '@libs/cameraCapture/releaseQuietly';
 import {JPEG_QUALITY} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import Log from '@libs/Log';
 
-import type {Orientation} from 'react-native-vision-camera';
+import type {CameraOrientation} from 'react-native-vision-camera';
 
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import ImageSize from 'react-native-image-size';
@@ -17,30 +17,23 @@ type PhotoSize = {
     rotation?: number;
 };
 
-function getUprightRotation({width, height, rotation = 0}: PhotoSize, orientation?: Orientation): number | undefined {
+function getUprightRotation({width, height, rotation = 0}: PhotoSize, orientation?: CameraOrientation): number | undefined {
     // The image loader applies the file's rotation metadata while decoding, so measure the frame the way it
     // hands it over: a 1920x1440 photo whose metadata asks for 90 decodes as 1440x1920.
     const isSideways = rotation === 90 || rotation === 270;
     const decodedWidth = isSideways ? height : width;
     const decodedHeight = isSideways ? width : height;
 
-    // VisionCamera's `PhotoFile.orientation` is the display orientation relative to the sensor, as a
-    // counter-clockwise angle (see its `RotationHelper`): a portrait capture off a landscape sensor reports
-    // `landscape-left`, so 270 counter-clockwise, so 90 clockwise. The opposite hold turns the other way.
-    const quarterTurn = orientation === 'landscape-right' ? 270 : 90;
-    return decodedWidth > decodedHeight ? quarterTurn : undefined;
-}
-
-/** The garbage collector can't see the native memory a 12 MP bitmap holds, so free it as soon as the photo is saved. */
-function releaseQuietly(releasable: {release: () => void}) {
-    try {
-        releasable.release();
-    } catch (error) {
-        Log.warn('[PhotoUpgrade] could not release a native image', {error: error instanceof Error ? error.message : String(error)});
+    // VisionCamera v5 writes the rotation into the file, so this only catches a still saved without it. The size alone
+    // can't tell a quarter turn from three quarters, so follow the capture's orientation: CameraX reports a 90 degree
+    // turn as 'left' and 270 as 'right'.
+    if (decodedWidth <= decodedHeight) {
+        return undefined;
     }
+    return orientation === 'right' ? 270 : 90;
 }
 
-function rotatePhotoToUpright(stillPath: string, orientation?: Orientation): Promise<string | undefined> {
+function rotatePhotoToUpright(stillPath: string, orientation?: CameraOrientation): Promise<string | undefined> {
     const sourceUri = getPhotoSource(stillPath);
     const startedAt = Date.now();
 

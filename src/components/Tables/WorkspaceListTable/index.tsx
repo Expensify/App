@@ -1,8 +1,10 @@
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -18,6 +20,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -69,6 +72,8 @@ type WorkspaceListTableProps = {
 };
 
 export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const {contentInsetAdjustmentBehavior} = useTabRootScrollProps();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -125,8 +130,10 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
-    const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.OWNER || role === CONST.POLICY.ROLE.AUDITOR;
-    const canSeeFilter = canUseArchivePolicies && workspaces.some((w) => canAccessArchived(w.role));
+    // Submit workspaces lock every member, including the owner, to the Editor role, so Editors there get the same archived access as Admins.
+    const canAccessArchived = ({role, type}: Pick<WorkspaceRowData, 'role' | 'type'>) =>
+        role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR || (type === CONST.POLICY.TYPE.SUBMIT && role === CONST.POLICY.ROLE.EDITOR);
+    const canSeeFilter = canUseArchivePolicies && workspaces.some(canAccessArchived);
     const searchBarComponent = (
         <Table.FilterBar
             label={translate('workspace.common.findWorkspace')}
@@ -149,7 +156,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     };
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceRowData> = (item, filterValues) => {
-        if (item.isArchived && !canAccessArchived(item.role)) {
+        if (item.isArchived && !canAccessArchived(item)) {
             return false;
         }
 
@@ -192,7 +199,8 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
         ? [
               {
                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
-                  buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route))),
+                  buttonAction: () =>
+                      interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)), session),
                   buttonText: translate('workspace.new.newWorkspace'),
               },
           ]
@@ -211,6 +219,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
+            contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />

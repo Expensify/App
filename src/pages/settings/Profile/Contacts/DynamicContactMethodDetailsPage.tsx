@@ -40,6 +40,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import {close} from '@userActions/Modal';
@@ -56,8 +57,6 @@ import KeyboardUtils from '@src/utils/keyboard';
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-
-import getDecodedContactMethodFromUriParam from './utils';
 
 type DynamicContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS>;
 
@@ -88,7 +87,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
     /**
      * Gets the current contact method from the route params
      */
-    const contactMethod: string = useMemo(() => getDecodedContactMethodFromUriParam(route.params.contactMethod), [route.params.contactMethod]);
+    const contactMethod: string = useMemo(() => addSMSDomainIfPhoneNumber(route.params.contactMethod), [route.params.contactMethod]);
 
     const loginDataRef = useRef<Login | undefined>(undefined);
     const loginData = useMemo(() => {
@@ -256,6 +255,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                     onClose={() => clearContactMethodErrors(contactMethod, 'defaultLogin')}
                 >
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_SET_AS_DEFAULT}
                         title={translate('contacts.setAsDefault')}
                         icon={icons.Star}
                         onPress={isAccountLocked ? showLockedAccountModal : navigateToSetDefaultConfirm}
@@ -281,6 +281,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                     onClose={() => clearContactMethodErrors(contactMethod, 'deletedLogin')}
                 >
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_REMOVE}
                         title={translate('common.remove')}
                         icon={icons.Trashcan}
                         onPress={() => {

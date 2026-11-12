@@ -12,15 +12,18 @@
 
 ### [@shopify+flash-list+2.3.2+002+skip-layout-when-hidden.patch](@shopify+flash-list+2.3.2+002+skip-layout-when-hidden.patch)
 
-- Reason: Prevents FlashList from losing its render state when a navigation stack hides the parent container with `display: none`. Four guards in total — two in `RecyclerView` to skip layout processing while hidden, and two in `useRecyclerViewController` to make scroll methods safe while hidden:
+- Reason: Prevents FlashList from losing its render state when a navigation stack hides the parent container with `display: none`. Seven guards in total — two in `RecyclerView` to skip layout processing while hidden, two in `useRecyclerViewController` to make scroll methods safe while hidden, and three in the viewability path to make native scroll events safe before the first layout:
   1. **First `useLayoutEffect`** in `RecyclerView` (measures parent container): After calling `measureParentSize()`, if both width and height are 0, return early before calling `updateLayoutParams()` or updating `containerViewSizeRef`. This preserves the last known valid window size and prevents the layout manager from receiving zero dimensions.
   2. **Second `useLayoutEffect`** in `RecyclerView` (measures individual items): If `containerViewSizeRef.current` is 0x0 (because the first effect bailed out), return early before calling `modifyChildrenLayout()`. This prevents item measurements taken under `display: none` (also 0) from corrupting stored layouts.
   3. **`scrollToIndex`** in `useRecyclerViewController`: When the list is hidden, guards 1/2 leave `layoutManager` undefined. Any `scrollToIndex` call (also reached via `scrollToEnd`, `scrollToItem`, `scrollToTop`) would then throw "LayoutManager is not initialized, window size is unavailable" from `recyclerViewManager.getWindowSize()`. Early-return a resolved Promise when `!recyclerViewManager.hasLayout()` so the call becomes a safe no-op; the list will scroll correctly on its next layout pass.
   4. **`scrollToOffset` RTL+horizontal branch** in `useRecyclerViewController`: Only the `I18nManager.isRTL && horizontal` branch reads `getChildContainerDimensions()` and `getWindowSize()`, both of which throw when `layoutManager` is undefined. Gate the branch on `recyclerViewManager.hasLayout()` so the RTL math is skipped while hidden; the non-RTL / vertical paths are unaffected and continue using the underlying `scrollViewRef.scrollTo()` directly.
+  5. **`ViewabilityManager.updateViewableItems`**: A list that first mounts at 0x0 never creates a `layoutManager` (guard 1), so a native scroll event that arrives before the first real layout (for example, iOS adjusting the content inset with no user touch) reaches `RecyclerView`'s `onScroll` → `recordInteraction()` → `updateViewableItems()`. Upstream reads `getWindowSize()` before checking `shouldListenToVisibleIndices`, so even lists with no viewability callbacks threw "LayoutManager is not initialized, window size is unavailable" (Sentry `APP-MHA`). Return early when there are no viewability listeners or `!rvManager.hasLayout()`, before calling `getWindowSize()`. The upstream `!this.shouldListenToVisibleIndices` check after `getWindowSize()` is now redundant but is left untouched for easier rebases; when bumping FlashList, keep this earlier guard or the crash returns.
+  6. **`RecyclerViewManager.recordInteraction`**: Return early when `!hasLayout()`. This also keeps `hasInteracted` unset until the list can measure anything, so `viewabilityConfig.waitForInteraction` still works on the next scroll.
+  7. **`RecyclerViewManager.computeItemViewability`**: Return early when `!hasLayout()`. Lists with `onViewableItemsChanged` would otherwise throw "LayoutManager is not initialized, visible indices are not unavailable" from `computeVisibleIndices()` on the same scroll event.
   When the container becomes visible again, `onLayout` fires (React Native Web uses ResizeObserver), triggering a re-render with correct dimensions so FlashList resumes normally without re-initialization.
-- Files changed: `dist/recyclerview/RecyclerView.js` and `dist/recyclerview/hooks/useRecyclerViewController.js`.
+- Files changed: `dist/recyclerview/RecyclerView.js`, `dist/recyclerview/RecyclerViewManager.js`, `dist/recyclerview/hooks/useRecyclerViewController.js`, and `dist/recyclerview/viewability/ViewabilityManager.js`.
 - Upstream PR/issue: TBD
-- E/App issue: https://github.com/Expensify/App/issues/83976 (original), https://github.com/Expensify/App/issues/90756 (scroll-while-hidden follow-up)
+- E/App issue: https://github.com/Expensify/App/issues/83976 (original), https://github.com/Expensify/App/issues/90756 (scroll-while-hidden follow-up), https://github.com/Expensify/App/issues/104502 (scroll-before-first-layout follow-up)
 - PR introducing patch: https://github.com/Expensify/App/pull/84887
 
 ### [@shopify+flash-list+2.3.2+003+fix-inverted-scroll-direction-on-web.patch](@shopify+flash-list+2.3.2+003+fix-inverted-scroll-direction-on-web.patch)
@@ -153,7 +156,7 @@
   - The **larger** value gives the real width back `MAX_LOCK_RELEASE_CYCLES` (1) time, then the lock holds. The counter isn't reset when the same pair locks again, or a flicker would top it up forever.
   - Anything **outside the pair** is a real resize, so release and reset.
 
-  With the lock held, `boundedSize` stops changing, `recomputeLayouts` stops running and the re-renders stop. The trade-off: the flicker usually uses up the one allowed release, so the width stays put until the next real resize. A list that later stops needing a scrollbar keeps about 15px of empty space on the right.
+  With the lock held, `boundedSize` stops changing, `recomputeLayouts` stops running and the re-renders stop. The trade-off: the flicker usually uses up the one allowed release, so the width stays put until the next real resize. A list that later stops needing a scrollbar keeps about 15px of empty space on the right. Patch 017 releases this stale lock when the footer changes height independently of width, while preserving the guard across parent renders, including recreated JSX.
 - Files changed: `dist/recyclerview/layout-managers/LinearLayoutManager.js` only.
 - Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334
 - E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263, https://github.com/Expensify/App/issues/95719
@@ -201,3 +204,13 @@
 - E/App issue: https://github.com/Expensify/App/issues/97472
 - Sentry: https://expensify.sentry.io/issues/APP-8PG
 - PR introducing patch: https://github.com/Expensify/App/pull/98015
+
+### [@shopify+flash-list+2.3.2+017+reset-scrollbar-lock-on-content-change.patch](@shopify+flash-list+2.3.2+017+reset-scrollbar-lock-on-content-change.patch)
+
+- Reason: Patch 012 retained its exhausted release budget after loading content changed. Cells could stay locked to the smaller width even after the scrollbar disappeared, while the header returned to full width.
+- Changes: Adds `resetScrollbarOscillation`, which returns true only when an active width lock was released. A vertical web footer reports layout changes; when its height changes at the same width, it attempts to release the lock and requests a new layout pass only if a lock existed. Loading skeleton exit animations can therefore finish before the actual viewport width is measured again.
+- Width measurements: The inner bounded-size measuring view reports width changes, since scrollbar visibility can resize it without changing the outer viewport. It compares against the last measured window width, preserving any intentional cell-width lock.
+- Files changed: `dist/recyclerview/RecyclerView.js`, `dist/recyclerview/RecyclerViewManager.js`, `dist/recyclerview/RecyclerViewManager.d.ts`, `dist/recyclerview/hooks/useSecondaryProps.js`, `dist/recyclerview/layout-managers/LinearLayoutManager.js`, and `dist/recyclerview/layout-managers/LinearLayoutManager.d.ts`.
+- Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334 (tracks the underlying web scrollbar oscillation addressed by patch 012; this patch releases the stale width lock after content changes).
+- E/App issue: https://github.com/Expensify/App/issues/103719
+- PR introducing patch: https://github.com/Expensify/App/pull/104066

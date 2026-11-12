@@ -57,7 +57,7 @@ function buildParams(reportActions: ReportAction[], overrides: Partial<Params> =
         reportActions,
         reportTransactionIDs: [TRANSACTION_ID],
         canPerformWriteAction: true,
-        shouldShowHarvestCreatedAction: false,
+        shouldShowCreatedAction: false,
         isOffline: false,
         ...overrides,
     };
@@ -137,7 +137,7 @@ describe('useMoneyRequestReportVisibleActions', () => {
     it('should show the CREATED action when the harvested expense needs it', async () => {
         const actions = [buildComment('2'), buildComment('1', {actionName: CONST.REPORT.ACTIONS.TYPE.CREATED})];
 
-        const result = await renderWithActions(actions, {shouldShowHarvestCreatedAction: true});
+        const result = await renderWithActions(actions, {shouldShowCreatedAction: true});
 
         expect(getVisibleIDs(result.current.visibleReportActions)).toEqual(['1', '2']);
     });

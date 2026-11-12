@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
+import {getTaxClaimableDisplayAmount, validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyDistanceRateTaxReclaimableOnEditForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type PolicyDistanceRateTaxReclaimableEditPageProps = WithPolicyOnyxProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT>;
@@ -42,8 +42,7 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
     const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
-    const currentTaxReclaimableOnValue =
-        rate?.attributes?.taxClaimablePercentage && rate?.rate ? ((rate.attributes.taxClaimablePercentage * rate.rate) / 100).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) : '';
+    const currentTaxReclaimableOnValue = rate?.attributes?.taxClaimablePercentage && rate?.rate ? getTaxClaimableDisplayAmount(rate.attributes.taxClaimablePercentage, rate.rate) : '';
 
     const submitTaxReclaimableOn = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => {
         if (values.taxClaimableValue === currentTaxReclaimableOnValue) {
@@ -65,10 +64,7 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
         Navigation.goBack();
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => validateTaxClaimableValue(values, rate, translate),
-        [rate, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => validateTaxClaimableValue(values, rate, translate);
 
     return (
         <AccessOrNotFoundWrapper

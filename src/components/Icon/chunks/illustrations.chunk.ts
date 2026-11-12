@@ -62,6 +62,7 @@ import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth-reference-hands.svg';
+import EarthWithCoins from '@assets/images/product-illustrations/earth-with-coins.svg';
 import EarthWithControls from '@assets/images/product-illustrations/earth-with-controls.svg';
 import EmptyStateDomainExists from '@assets/images/product-illustrations/empty-state-domain-exists.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
@@ -78,8 +79,10 @@ import CardReplacementSuccess from '@assets/images/product-illustrations/illustr
 import Copilots from '@assets/images/product-illustrations/illustration__copilots.svg';
 import AgentsIceCream from '@assets/images/product-illustrations/illustration_agents-ice-cream.svg';
 import IceCreamMenu from '@assets/images/product-illustrations/illustration_ice-cream-menu.svg';
+import MagnifyingGlassSpyNewspaper from '@assets/images/product-illustrations/magnifying-glass-spy-newspaper.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
+import NotebookGremlin from '@assets/images/product-illustrations/notebook-gremlin.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import PlanetWithMobileApp from '@assets/images/product-illustrations/planet-with-mobile-app.svg';
 import ReceiptWranglerSpaceCowgirl from '@assets/images/product-illustrations/receipt-wrangler-space-cowgirl.svg';
@@ -114,10 +117,13 @@ import AiBot from '@assets/images/simple-illustrations/simple-illustration__ai-b
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
+import BankCheck from '@assets/images/simple-illustrations/simple-illustration__bank-check.svg';
 import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
+import BankX from '@assets/images/simple-illustrations/simple-illustration__bank-x.svg';
 import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
+import BriefcaseHandshake from '@assets/images/simple-illustrations/simple-illustration__briefcase-handshake.svg';
 import Briefcase from '@assets/images/simple-illustrations/simple-illustration__briefcase.svg';
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
@@ -299,6 +305,7 @@ const Illustrations = {
     HoldExpense,
     ReceiptFairy,
     EmptyStateTravel,
+    EarthWithCoins,
     EarthWithControls,
     EmptyStateDomainExists,
     Fireworks,
@@ -308,8 +315,10 @@ const Illustrations = {
     CardReplacementSuccess,
     Copilots,
     ValidateCode,
+    MagnifyingGlassSpyNewspaper,
     ModalHoldOrReject,
     MushroomTopHat,
+    NotebookGremlin,
     PaymentHands,
     PlanetWithMobileApp,
     ReceiptWranglerSpaceCowgirl,
@@ -355,7 +364,9 @@ const Illustrations = {
     AiBot,
     Building,
     BuildingCross,
+    BankCheck,
     BankCoin,
+    BankX,
     Coins,
     CardDenied,
     CardIntoWallet,
@@ -409,6 +420,7 @@ const Illustrations = {
     CarIce,
     BlueShield,
     Briefcase,
+    BriefcaseHandshake,
     Pencil,
     ShareBank,
     Luggage,

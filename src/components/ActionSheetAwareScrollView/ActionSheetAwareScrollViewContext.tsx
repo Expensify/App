@@ -6,7 +6,7 @@ import createDummySharedValue from '@src/utils/createDummySharedValue';
 import type {PropsWithChildren} from 'react';
 import type {ValueOf} from 'type-fest';
 
-import React, {createContext, useContext, useMemo} from 'react';
+import React, {createContext, useContext} from 'react';
 
 import type {ActionSheetAwareScrollViewActionsContextValue, ActionSheetAwareScrollViewMeasurements, ActionSheetAwareScrollViewStateContextValue} from './types';
 
@@ -114,21 +114,15 @@ function ActionSheetAwareScrollViewProvider(props: PropsWithChildren) {
         INITIAL_ACTION_SHEET_STATE,
     );
 
-    const stateValue = useMemo<ActionSheetAwareScrollViewStateContextValue>(
-        () => ({
-            currentActionSheetState: currentState,
-        }),
-        [currentState],
-    );
+    const stateValue: ActionSheetAwareScrollViewStateContextValue = {
+        currentActionSheetState: currentState,
+    };
 
-    const actionsValue = useMemo<ActionSheetAwareScrollViewActionsContextValue>(
-        () => ({
-            transitionActionSheetState: transition,
-            transitionActionSheetStateWorklet: transitionWorklet,
-            resetStateMachine: reset,
-        }),
-        [reset, transition, transitionWorklet],
-    );
+    const actionsValue: ActionSheetAwareScrollViewActionsContextValue = {
+        transitionActionSheetState: transition,
+        transitionActionSheetStateWorklet: transitionWorklet,
+        resetStateMachine: reset,
+    };
 
     return (
         <ActionSheetAwareScrollViewActionsContext.Provider value={actionsValue}>

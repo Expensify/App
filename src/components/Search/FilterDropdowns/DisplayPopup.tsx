@@ -1,21 +1,26 @@
+import Button from '@components/Button';
 import CompactMenuContext from '@components/CompactMenuContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
+import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import Navigation from '@libs/Navigation/Navigation';
-import {getGroupBySections, getSearchColumnTranslationKey, getValidGroupBy, getViewOptions} from '@libs/SearchUIUtils';
+import {buildQueryStringWithResetDisplay, getChangedDisplayOptionsCount} from '@libs/SearchQueryUtils';
+import {canEditSearchColumns, getGroupBySections, getSearchColumnTranslationKey, getValidGroupBy, getViewOptions} from '@libs/SearchUIUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +31,9 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
+import {View} from 'react-native';
 
 import CurrencyPopup from './CurrencyPopup';
 import GroupByPopup from './GroupByPopup';
@@ -43,11 +50,14 @@ type DisplayPopupProps = {
 };
 
 function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayPopupProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useResponsiveLayout(); // eslint-disable-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Columns']);
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const {currentDefaultSearchQueryJSON} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedDisplayFilter, setSelectedDisplayFilter] = useState<
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
@@ -63,7 +73,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     const groupBy = groupBySections.flatMap((section) => section.options).find((option) => option.value === queryJSON.groupBy) ?? null;
     const viewOptions = getViewOptions(translate);
     const view = viewOptions.find((option) => option.value === queryJSON.view) ?? viewOptions.at(0);
-    const shouldShowColumnsButton = isLargeScreenWidth && (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+    const shouldShowColumnsButton = isLargeScreenWidth && canEditSearchColumns(queryJSON.type, shouldReturnTripRooms);
 
     const limitValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT];
 
@@ -73,13 +83,22 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         };
 
         const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
-        const isTripType = queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
+        // Trip rooms have no group-by, so only a trip search without the TravelApproval beta offers it
+        const isTripType = queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP && !shouldReturnTripRooms;
         const sortByValue = queryJSON.sortBy;
         const sortOrderValue = queryJSON.sortOrder;
         const groupByValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY];
         const validGroupByValue = getValidGroupBy(groupByValue);
         const groupCurrencyValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY];
         const viewValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
+        const canResetDisplay = getChangedDisplayOptionsCount(queryJSON, currentDefaultSearchQueryJSON) > 0;
+
+        const resetDisplayOptions = () => {
+            const queryString = buildQueryStringWithResetDisplay(queryJSON, currentDefaultSearchQueryJSON);
+            close(() => {
+                Navigation.setParams({q: queryString, rawQuery: undefined});
+            });
+        };
 
         return (
             <ScrollView contentContainerStyle={[styles.pv4]}>
@@ -87,7 +106,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     name={translate('search.display.sortBy')}
                     onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY)}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
-                    value={`${translate(getSearchColumnTranslationKey(sortByValue, queryJSON.type))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
+                    value={`${translate(getSearchColumnTranslationKey(sortByValue, queryJSON.type, shouldReturnTripRooms))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
                 />
                 {(isExpenseType || isTripType) && (
                     <MenuItemField
@@ -97,7 +116,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         value={validGroupByValue ? translate(`search.filters.groupBy.${validGroupByValue}`) : undefined}
                     />
                 )}
-                {!!groupBy && (
+                {!!groupBy && !shouldReturnTripRooms && (
                     <MenuItemField
                         name={translate('common.groupCurrency')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY)}
@@ -124,10 +143,10 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
                         <MenuItem.Root
-                            onPress={callFunctionIfActionIsAllowed(() => {
+                            onPress={callIfAuthenticated(() => {
                                 closeOverlay();
                                 openSearchColumns();
-                            })}
+                            }, session)}
                             accessibilityLabel={translate('search.editColumns')}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
                         >
@@ -141,6 +160,17 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                             </MenuItem.Row>
                         </MenuItem.Root>
                     </CompactMenuContext.Provider>
+                )}
+                {canResetDisplay && (
+                    <View style={[styles.ph5, styles.mt2]}>
+                        <Button
+                            size={CONST.BUTTON_SIZE.MEDIUM}
+                            onPress={resetDisplayOptions}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.RESET_DISPLAY_BUTTON}
+                        >
+                            <Button.Text>{translate('common.reset')}</Button.Text>
+                        </Button>
+                    </View>
                 )}
             </ScrollView>
         );
@@ -189,6 +219,9 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onBackButtonPress={goBack}
                     onChange={(item) => {
                         const newValue = item?.value;
+                        if (newValue !== queryJSON.groupBy) {
+                            clearSelectedText();
+                        }
                         if (!newValue) {
                             updateFilterForm({groupBy: undefined, groupCurrency: undefined});
                         } else {
@@ -206,6 +239,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
                     searchPlaceholder={translate('common.groupCurrency')}
+                    applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.GROUP_CURRENCY}
+                    resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.GROUP_CURRENCY}
                 />
             );
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:
@@ -217,6 +252,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
                     onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
+                    applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.VIEW}
+                    resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.VIEW}
                 />
             );
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT:
@@ -228,6 +265,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
                     onChange={(value) => updateFilterForm({limit: value})}
+                    applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.LIMIT}
+                    resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.LIMIT}
                 />
             );
         default:

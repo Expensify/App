@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -54,7 +54,9 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -110,7 +112,15 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
+            navigateToConciergeChat({
+                conciergeReportID,
+                introSelected,
+                currentUserAccountID,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                conciergePersonalDetails,
+                shouldDismissModal: false,
+            });
         });
     };
 

@@ -1,4 +1,4 @@
-import type ReportNameUtils = require('@libs/ReportNameUtils');
+import type NetworkState = require('@libs/NetworkState');
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
 import {getOldestPreviewActionID, hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
 
@@ -41,8 +41,9 @@ jest.mock('@libs/SidebarUtils', () => ({
     },
 }));
 
-jest.mock('@libs/ReportNameUtils', () => ({
-    computeReportName: jest.fn(() => 'Test Report'),
+jest.mock('@libs/computeReportName', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'Test Report'),
 }));
 
 const basePolicy = createMock<Policy>({
@@ -274,6 +275,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const args: Parameters<ReportAttributesConfig['compute']>[0] = [
             overrideReports ?? reports, // reports
             undefined, // preferredLocale
+            undefined, // countryCodeByIP
             undefined, // transactionViolations
             undefined, // reportActions
             undefined, // reportNameValuePairs
@@ -410,7 +412,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             locale: null,
         };
 
-        const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+        const computeReportNameMock = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
         computeReportNameMock.mockClear();
 
         const result = config.compute(buildArgs(updatedPolicies), {
@@ -450,7 +452,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             locale: null,
         };
 
-        const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+        const computeReportNameMock = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
         computeReportNameMock.mockReturnValue('New Name');
 
         const result = config.compute(buildArgs(updatedPolicies), {
@@ -803,7 +805,7 @@ describe('reportAttributes compute — policy change code flow', () => {
 
             const reportMetadata: ReportMetadata = {pendingChatMembers: []};
             const args = buildArgs(policies, singleReport);
-            args[12] = {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}r1`]: reportMetadata};
+            args[13] = {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}r1`]: reportMetadata};
 
             config.compute(args, {
                 currentValue: undefined,
@@ -812,6 +814,31 @@ describe('reportAttributes compute — policy change code flow', () => {
             });
 
             expect(generateReportAttributes).toHaveBeenCalledWith(expect.objectContaining({reportMetadata}));
+        });
+    });
+
+    describe('isOffline', () => {
+        const singleReport: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1};
+
+        it.each([
+            ['online', true, false],
+            ['offline', false, true],
+        ])('forwards the current network state to generateReportAttributes when %s', (_, hasRadio, expectedIsOffline) => {
+            // Given the device network state. NetworkState is required here rather than imported because beforeEach resets the module
+            // registry, so only this instance is the one the freshly required reportAttributes config reads from.
+            jest.requireActual<typeof NetworkState>('@libs/NetworkState').setHasRadio(hasRadio);
+            const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
+            generateReportAttributes.mockClear();
+
+            // When the report attributes are recomputed
+            config.compute(buildArgs(policies, singleReport), {
+                currentValue: undefined,
+                sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
+                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            });
+
+            // Then generateReportAttributes receives isOffline explicitly, so it no longer falls back to the deprecated module-level network subscription
+            expect(generateReportAttributes).toHaveBeenCalledWith(expect.objectContaining({isOffline: expectedIsOffline}));
         });
     });
 
@@ -868,14 +895,14 @@ describe('reportAttributes compute — policy change code flow', () => {
             // Given a first compute that saw the card's live fraud pointing at the fraud report
             const liveFraudCardList: CardList = {[CARD_ID]: cardWithFraud};
             const initialArgs = buildArgs(policies, cardReports);
-            initialArgs[15] = liveFraudCardList;
+            initialArgs[16] = liveFraudCardList;
             config.compute(initialArgs, {currentValue: undefined, sourceValues: undefined});
             generateReportAttributes.mockClear();
 
             // When the backend clears possibleFraud, which also drops the card's fraudAlertReportID
             const clearedFraudCardList: CardList = {[CARD_ID]: createRandomExpensifyCard(CARD_ID, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})};
             const args = buildArgs(policies, cardReports);
-            args[15] = clearedFraudCardList;
+            args[16] = clearedFraudCardList;
             config.compute(args, {
                 currentValue: seededValue,
                 triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CARD_LIST]),
@@ -891,7 +918,7 @@ describe('reportAttributes compute — policy change code flow', () => {
 
             // Given a first compute that saw the card's live fraud pointing at the fraud report
             const initialArgs = buildArgs(policies, cardReports);
-            initialArgs[15] = {[CARD_ID]: cardWithFraud};
+            initialArgs[16] = {[CARD_ID]: cardWithFraud};
             config.compute(initialArgs, {currentValue: undefined, sourceValues: undefined});
             generateReportAttributes.mockClear();
 
@@ -912,13 +939,13 @@ describe('reportAttributes compute — policy change code flow', () => {
             ['no card list', undefined],
         ])('recomputes persisted fraud alert green dots on the first compute after app start with %s', (_, cardList: CardList | undefined) => {
             const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
-            const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+            const computeReportNameMock = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
             computeReportNameMock.mockClear();
 
             // Given REPORT_ATTRIBUTES restored from disk with a fraud alert green dot no card points at anymore, and an approval green dot
             const args = buildArgs(policies, cardReports);
-            args[3] = cardReportActions;
-            args[15] = cardList;
+            args[4] = cardReportActions;
+            args[16] = cardList;
 
             // When the first compute after app start runs without source values
             const result = config.compute(args, {currentValue: seededValue, sourceValues: undefined});
@@ -936,13 +963,13 @@ describe('reportAttributes compute — policy change code flow', () => {
             ['a locale change', ONYXKEYS.NVP_PREFERRED_LOCALE],
             ['a currency list load', ONYXKEYS.CURRENCY_LIST],
         ])('recomputes the fraud alert report name when %s runs in the same compute as a card change', (_, triggeredKey: OnyxKey) => {
-            const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+            const computeReportNameMock = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
             computeReportNameMock.mockClear();
 
             // Given a stored fraud alert report with a stale name that the card's live fraud points at
             const args = buildArgs(policies, cardReports);
             args[1] = CONST.LOCALES.ES;
-            args[15] = {[CARD_ID]: cardWithFraud};
+            args[16] = {[CARD_ID]: cardWithFraud};
 
             // When a full recompute runs in the same compute as the card change
             const result = config.compute(args, {currentValue: seededValue, triggeredKeys: new Set<OnyxKey>([triggeredKey, ONYXKEYS.CARD_LIST])});
@@ -960,13 +987,13 @@ describe('reportAttributes compute — policy change code flow', () => {
             const childFraudReport = {...fraudChatReport, chatReportID: OTHER_REPORT_ID};
             const reportsWithParent: OnyxCollection<Report> = {...cardReports, [`${ONYXKEYS.COLLECTION.REPORT}${FRAUD_REPORT_ID}`]: childFraudReport};
             const initialArgs = buildArgs(policies, reportsWithParent);
-            initialArgs[15] = {[CARD_ID]: cardWithFraud};
+            initialArgs[16] = {[CARD_ID]: cardWithFraud};
             config.compute(initialArgs, {currentValue: undefined, sourceValues: undefined});
             generateReportAttributes.mockClear();
 
             // When the backend clears possibleFraud on the card
             const args = buildArgs(policies, reportsWithParent);
-            args[15] = {[CARD_ID]: createRandomExpensifyCard(CARD_ID, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})};
+            args[16] = {[CARD_ID]: createRandomExpensifyCard(CARD_ID, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})};
             config.compute(args, {currentValue: seededValue, triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CARD_LIST])});
 
             // Then only the fraud report is recomputed, since the fraud alert dot doesn't feed the parent chat

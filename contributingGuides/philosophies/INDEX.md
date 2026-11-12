@@ -18,6 +18,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 * [Internationalization Philosophy](/contributingGuides/philosophies/INTERNATIONALIZATION.md)
 * [Offline Philosophy](/contributingGuides/philosophies/OFFLINE.md)
 * [Onyx Data Management Philosophy](/contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md)
+* [Onyx update manager](/contributingGuides/ONYX_UPDATE_MANAGER.md)
 * [Over-engineering Philosophy](/contributingGuides/philosophies/OVERENGINEERING.md)
 * [Optimization Philosophy](/contributingGuides/philosophies/OPTMIZATION.md)
 * [Pagination Philosophy](contributingGuides/philosophies/PAGINATION.md)

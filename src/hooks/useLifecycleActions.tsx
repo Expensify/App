@@ -16,22 +16,17 @@ import {
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isExported as isExportedUtils,
+    shouldBlockSubmitDueToDeletedWorkspace,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
-import {
-    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
-    hasOnlyPendingCardTransactions,
-    showHeldExpensesBlockModal,
-    showPendingCardTransactionsBlockModal,
-} from '@libs/TransactionUtils';
+import {hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
-import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,12 +35,13 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
+import {getArchiveReason} from '@selectors/Report';
 import React, {useEffect, useRef} from 'react';
 
 import type {ActionHandledType} from './useHoldMenuSubmit';
 
 import useConfirmModal from './useConfirmModal';
-import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
+import useConfirmSubmitReportViolations from './useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -55,9 +51,11 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useStrictPolicyRules from './useStrictPolicyRules';
 import useThemeStyles from './useThemeStyles';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
@@ -110,6 +108,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: delegateEmailSelector,
     });
@@ -144,6 +143,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {currentSearchResults} = useSearchResultsContext();
     const {selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
@@ -166,7 +166,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 1;
 
-    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
+    const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, getArchiveReason(chatReportActions));
+
+    const shouldBlockSubmit =
+        isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy || isBlockSubmitDueToDeletedWorkspace;
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
@@ -178,13 +181,19 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: moneyRequestReport,
+        isTrackIntentUser,
+        rules,
+    });
 
-    const handleMarkPendingRTERTransactionsAsCash = () => {
-        markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
-    };
-
-    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: moneyRequestReport?.reportID,
+        report: moneyRequestReport,
+        policy,
+        shouldShowMarkAsDoneCopy,
+    });
 
     const onApprove = (isFullApproval: boolean, skipAnimation = false) => {
         if (isDelegateAccessRestricted) {
@@ -195,6 +204,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             startApprovedAnimation();
         }
         approveMoneyRequest({
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             currentUserAccountIDParam: accountID,
@@ -217,6 +227,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             delegateAccountID,
             isTrackIntentUser,
             rules,
+            allTransactionViolations,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
@@ -266,12 +277,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const confirmApproval = (skipAnimation = false) => {
         onApprove(true, skipAnimation);
     };
-    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
-        policy,
-        report: moneyRequestReport,
-        isTrackIntentUser,
-        rules,
-    });
 
     const handleSubmitReport = (skipAnimation = false) => {
         if (!moneyRequestReport || shouldBlockSubmit) {
@@ -288,9 +293,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             return;
         }
 
-        const doSubmit = () => {
-            if (isSubmitPolicy(policy)) {
+        if (isSubmitPolicy(policy)) {
+            confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
                 openReportSubmitToPopover({
+                    shouldResolveAcknowledgedViolations,
                     onSubmitSuccess: () => {
                         if (skipAnimation) {
                             clearSelectedTransactions(true);
@@ -299,11 +305,15 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         startSubmittingAnimation();
                     },
                 });
-                return;
-            }
+            });
+            return;
+        }
+
+        confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
             submitReport({
                 getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
+                expenseReportTransactions: transactions,
                 policy,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
@@ -311,6 +321,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 isASAPSubmitBetaEnabled,
                 userBillingGracePeriodEnds,
                 amountOwed,
+                shouldResolveAcknowledgedViolations,
                 onSubmitted: () => {
                     if (skipAnimation) {
                         return;
@@ -321,6 +332,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 delegateEmail,
                 delegateAccountID,
                 submitterLogin,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 isTrackIntentUser,
                 rules,
             });
@@ -330,14 +342,13 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 shouldCalculateTotals,
                 isOffline,
                 isLoading: !!currentSearchResults?.search?.isLoading,
+                shouldReturnTripRooms,
             });
             if (skipAnimation) {
                 clearSelectedTransactions(true);
                 onCleanup?.();
             }
-        };
-
-        confirmPendingRTERAndProceed(doSubmit);
+        });
     };
 
     const actions: Record<string, SecondaryActionEntry> = {

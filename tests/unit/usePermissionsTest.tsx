@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import OnyxListItemProvider, {BetasContext, BetaConfigurationContext, BetaOverridesContext} from '@components/OnyxListItemProvider';
 
 import Permissions from '@libs/Permissions';
 
@@ -187,6 +187,26 @@ describe('usePermissions', () => {
         // Then: That beta is disabled while the others granted by 'all' stay enabled
         expect(result.current.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS)).toBe(false);
         expect(result.current.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)).toBe(true);
+    });
+
+    it('treats absent-provider null as off while preserving undefined as unknown', () => {
+        // Given the raw contexts have no providers
+        const outside = renderHook(() => usePermissions());
+        // When a beta is checked without loaded account state
+        // Then null means outside-provider off rather than the inside-provider loading state
+        expect(outside.result.current.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)).toBe(false);
+        expect(outside.result.current.isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING)).toBe(false);
+        const inside = renderHook(() => usePermissions(), {
+            wrapper: ({children}: ChildrenProps) => (
+                <BetasContext.Provider value={undefined}>
+                    <BetaConfigurationContext.Provider value={undefined}>
+                        <BetaOverridesContext.Provider value={undefined}>{children}</BetaOverridesContext.Provider>
+                    </BetaConfigurationContext.Provider>
+                </BetasContext.Provider>
+            ),
+        });
+        expect(inside.result.current.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)).toBe(false);
+        expect(inside.result.current.isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING)).toBeUndefined();
     });
 
     describe('isBetaEnabledOrUnknown', () => {
