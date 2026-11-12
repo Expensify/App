@@ -156,6 +156,28 @@ describe('PolicyDistanceRatesUtils', () => {
                 expect(isUnmodified).toBe(true);
             });
 
+            it.each(['0.1', '0.10', '0.1000', '0.123', '0.1234'])('matches a restored reclaimable amount of %s regardless of padding', (enteredAmount) => {
+                // Given a government snapshot whose reclaimable amount uses two to four meaningful decimals
+                const taxClaimablePercentage = getSavedTaxClaimablePercentage(enteredAmount, 14);
+                const governmentRate = {...fuelBandGovernmentRate, taxClaimablePercentage};
+                const rate = buildRate(
+                    {rate: 14, startDate: '2026-06-01', endDate: undefined, attributes: {taxClaimablePercentage, governmentRate}},
+                    governmentRate,
+                );
+
+                // When checking a rate restored through the editor's amount-to-percentage conversion
+                const isUnmodified = isGovernmentRateUnmodified(rate);
+
+                // Then reducing display padding does not remove its government-managed status
+                expect(isUnmodified).toBe(true);
+
+                // When the reclaimable amount changes in the fourth decimal place
+                const modifiedRate = {...rate, attributes: {...rate.attributes, taxClaimablePercentage: getSavedTaxClaimablePercentage('0.1001', 14)}};
+
+                // Then meaningful precision is still compared rather than rounded to two decimals
+                expect(isGovernmentRateUnmodified(modifiedRate)).toBe(false);
+            });
+
             it('should return false when the reclaimable amount was edited', () => {
                 // Given a fuel band whose reclaimable amount an admin changed to 0.03
                 const rate = buildFuelBandRate(getSavedTaxClaimablePercentage('0.03', 14));

@@ -45,7 +45,7 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
     const currentTaxReclaimableOnValue = rate?.attributes?.taxClaimablePercentage && rate?.rate ? getTaxClaimableDisplayAmount(rate.attributes.taxClaimablePercentage, rate.rate) : '';
 
     const submitTaxReclaimableOn = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => {
-        if (values.taxClaimableValue === currentTaxReclaimableOnValue) {
+        if (Number(values.taxClaimableValue).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) === Number(currentTaxReclaimableOnValue).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES)) {
             Navigation.goBack();
             return;
         }

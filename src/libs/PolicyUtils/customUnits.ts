@@ -207,6 +207,15 @@ function getPerDiemRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateI
     return perDiemUnit?.rates[customUnitRateID];
 }
 
+/** Keeps the Classic rate precision without a locale separator, so amount inputs can localize it themselves. */
+function getRateValueWithDecimals(value: number): string {
+    const numValue = parseFloat(value.toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES));
+    const decimalPart = numValue.toString().split('.').at(1) ?? '';
+    // Set the fraction digits to be between 2 and 4 (OD Behavior)
+    const fractionDigits = Math.min(Math.max(decimalPart.length, CONST.MIN_TAX_RATE_DECIMAL_PLACES), CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+    return numValue.toFixed(fractionDigits);
+}
+
 function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string, withDecimals?: boolean): string {
     const numValue = getNumericValue(value, toLocaleDigit);
     if (Number.isNaN(numValue)) {
@@ -214,10 +223,7 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     }
 
     if (withDecimals) {
-        const decimalPart = numValue.toString().split('.').at(1) ?? '';
-        // Set the fraction digits to be between 2 and 4 (OD Behavior)
-        const fractionDigits = Math.min(Math.max(decimalPart.length, CONST.MIN_TAX_RATE_DECIMAL_PLACES), CONST.MAX_TAX_RATE_DECIMAL_PLACES);
-        return Number(numValue).toFixed(fractionDigits).toString().replace('.', toLocaleDigit('.'));
+        return getRateValueWithDecimals(Number(numValue)).replace('.', toLocaleDigit('.'));
     }
 
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
@@ -250,6 +256,7 @@ export {
     getCustomUnitsForDuplication,
     getPerDiemRateCustomUnitRate,
     getRateDisplayValue,
+    getRateValueWithDecimals,
     getUnitRateValue,
     removePendingFieldsFromCustomUnit,
 };

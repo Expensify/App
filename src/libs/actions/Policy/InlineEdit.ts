@@ -159,8 +159,8 @@ function updateDistanceRateValueInline(
         return getDistanceRateValueErrorMessage(translate, rateError);
     }
 
-    const currentRateValue = (parseFloat((rate.rate ?? 0).toString()) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
-    if (Number(newRate).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) === currentRateValue) {
+    const currentRateValue = (rate.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET;
+    if (Number(newRate).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) === currentRateValue.toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES)) {
         return;
     }
 
@@ -174,7 +174,7 @@ function updateDistanceTaxClaimableValueInline(translate: LocalizedTranslate, po
     }
 
     const currentAmount = getTaxClaimableDisplayAmount(rate.attributes?.taxClaimablePercentage ?? 0, rate.rate ?? 0);
-    if (Number(newAmount).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) === currentAmount) {
+    if (Number(newAmount).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) === Number(currentAmount).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES)) {
         return;
     }
 

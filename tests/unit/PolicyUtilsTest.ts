@@ -72,6 +72,7 @@ import {
     getPolicyForAssignedCard,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getRateValueWithDecimals,
     getOwnerChangePayerSuccessData,
     getOwnedPaidPolicies,
     getSageIntacctVendors,
@@ -2254,6 +2255,41 @@ describe('PolicyUtils', () => {
                 expect(pickedDefault?.name).toBe('Default Rate');
             });
         });
+        describe('getRateValueWithDecimals', () => {
+            it.each([
+                [0, '0.00'],
+                [1, '1.00'],
+                [0.1, '0.10'],
+                [0.12, '0.12'],
+                [0.123, '0.123'],
+                [0.1234, '0.1234'],
+                [0.12346, '0.1235'],
+                [0.12001, '0.12'],
+                [0.99999, '1.00'],
+                [0.1 + 0.2, '0.30'],
+            ])('formats %s as %s', (value, expected) => {
+                // Given a rate amount with up to four meaningful decimals or extra calculation precision
+                // When preparing the raw amount for an editor
+                const displayValue = getRateValueWithDecimals(value);
+
+                // Then Classic precision is preserved without unnecessary zeros beyond two decimals
+                expect(displayValue).toBe(expected);
+            });
+
+            it('leaves locale separators to the display caller', () => {
+                // Given a locale whose decimal separator is a comma
+                const toCommaDigit = (digit: string) => (digit === '.' ? ',' : digit);
+
+                // When preparing the raw editor value and the localized display value
+                const editorValue = getRateValueWithDecimals(0.123);
+                const displayValue = getRateDisplayValue(0.123, toCommaDigit, true);
+
+                // Then the editor receives a numeric string while the display keeps its locale separator
+                expect(editorValue).toBe('0.123');
+                expect(displayValue).toBe('0,123');
+            });
+        });
+
         describe('getRateDisplayValue', () => {
             it('should return an empty string for NaN', () => {
                 // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
