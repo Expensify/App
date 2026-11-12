@@ -3147,8 +3147,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Account approvato', heading: 'Approvato per pagare in tutto il mondo', description: 'Paga i membri ovunque si trovino.'},
             rejected: {title: 'Conto bancario rifiutato', heading: 'Il nostro partner ha rifiutato il tuo conto bancario', description: 'Chatta con Concierge per maggiori informazioni.'},
         },
-        wiseSetupInProgress: {message: 'Configurazione dei rimborsi globali in corso.', continue: 'Continua.'},
-        wiseSetupInReview: {message: 'Configurazione dei rimborsi globali in revisione.', checkStatus: 'Controlla lo stato.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Configurazione dei rimborsi globali in corso.', link: 'Continua.'},
+            inReview: {message: 'Configurazione dei rimborsi globali in revisione.', link: 'Controlla lo stato.'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Configurare i rimborsi globali?',
             subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.',

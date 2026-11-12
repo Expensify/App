@@ -3042,8 +3042,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: '账户已批准', heading: '获批可在全球范围内支付', description: '无论成员身在何处，都能支付给他们。'},
             rejected: {title: '银行账户已被拒绝', heading: '我们的合作伙伴拒绝了你的银行账户', description: '与 Concierge 聊天以获取更多信息。'},
         },
-        wiseSetupInProgress: {message: '全球报销设置进行中。', continue: '继续。'},
-        wiseSetupInReview: {message: '全球报销设置正在审核中。', checkStatus: '查看状态。'},
+        wiseSetupRow: {
+            inProgress: {message: '全球报销设置进行中。', link: '继续。'},
+            inReview: {message: '全球报销设置正在审核中。', link: '查看状态。'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: '设置全球报销？',
             subtitle: '按当地货币向全球成员付款。',

@@ -3187,8 +3187,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Konto zatwierdzone', heading: 'Zatwierdzone do płatności na całym świecie', description: 'Wypłacaj członkom wynagrodzenie, gdziekolwiek są.'},
             rejected: {title: 'Odrzucono konto bankowe', heading: 'Nasz partner odrzucił twoje konto bankowe', description: 'Porozmawiaj z Concierge, żeby dowiedzieć się więcej.'},
         },
-        wiseSetupInProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.', continue: 'Kontynuuj.'},
-        wiseSetupInReview: {message: 'Konfiguracja globalnych zwrotów kosztów w trakcie weryfikacji.', checkStatus: 'Sprawdź status.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.', link: 'Kontynuuj.'},
+            inReview: {message: 'Konfiguracja globalnych zwrotów kosztów w trakcie weryfikacji.', link: 'Sprawdź status.'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Skonfigurować globalne zwroty kosztów?',
             subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',

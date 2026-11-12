@@ -3160,8 +3160,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Konto genehmigt', heading: 'Zur weltweiten Zahlung freigegeben', description: 'Bezahlen Sie Mitglieder, wo immer sie sind.'},
             rejected: {title: 'Bankkonto abgelehnt', heading: 'Unser Partner hat Ihr Bankkonto abgelehnt', description: 'Chatten Sie mit Concierge, um weitere Informationen zu erhalten.'},
         },
-        wiseSetupInProgress: {message: 'Einrichtung der globalen Rückerstattungen läuft.', continue: 'Fortfahren.'},
-        wiseSetupInReview: {message: 'Einrichtung der globalen Rückerstattungen wird geprüft.', checkStatus: 'Status prüfen.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Einrichtung der globalen Rückerstattungen läuft.', link: 'Fortfahren.'},
+            inReview: {message: 'Einrichtung der globalen Rückerstattungen wird geprüft.', link: 'Status prüfen.'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Globale Rückerstattungen einrichten?',
             subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.',

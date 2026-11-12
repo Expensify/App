@@ -3240,8 +3240,10 @@ const translations = {
                 description: 'Chat with Concierge for more information.',
             },
         },
-        wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
-        wiseSetupInReview: {message: 'Global reimbursements setup in review.', checkStatus: 'Check status.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Global reimbursements setup in progress.', link: 'Continue.'},
+            inReview: {message: 'Global reimbursements setup in review.', link: 'Check status.'},
+        },
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',

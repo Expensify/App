@@ -3217,8 +3217,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 description: 'Συνομιλήστε με το Concierge για περισσότερες πληροφορίες.',
             },
         },
-        wiseSetupInProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.', continue: 'Συνέχεια.'},
-        wiseSetupInReview: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται υπό έλεγχο.', checkStatus: 'Έλεγχος κατάστασης.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.', link: 'Συνέχεια.'},
+            inReview: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται υπό έλεγχο.', link: 'Έλεγχος κατάστασης.'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',
             subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',

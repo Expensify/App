@@ -3119,8 +3119,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'アカウントが承認されました', heading: '世界中で支払い承認済み', description: 'メンバーがどこにいても支払いましょう。'},
             rejected: {title: '銀行口座が拒否されました', heading: 'パートナーがあなたの銀行口座を拒否しました', description: '詳しくは Concierge にチャットでお問い合わせください。'},
         },
-        wiseSetupInProgress: {message: 'グローバル払い戻しの設定が進行中です。', continue: '続行。'},
-        wiseSetupInReview: {message: 'グローバル払い戻しの設定を審査中です。', checkStatus: 'ステータスを確認。'},
+        wiseSetupRow: {
+            inProgress: {message: 'グローバル払い戻しの設定が進行中です。', link: '続行。'},
+            inReview: {message: 'グローバル払い戻しの設定を審査中です。', link: 'ステータスを確認。'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',
             subtitle: '世界中のメンバーに現地通貨で支払えます。',

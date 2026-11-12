@@ -14,19 +14,12 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
-import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
-
-/** While the admin has something to do they continue the setup, and while Wise reviews it the admin can only check its status */
-const COPY = {
-    inProgress: {message: 'walletPage.wiseSetupInProgress.message', link: 'walletPage.wiseSetupInProgress.continue'},
-    inReview: {message: 'walletPage.wiseSetupInReview.message', link: 'walletPage.wiseSetupInReview.checkStatus'},
-} as const satisfies Record<string, {message: TranslationPaths; link: TranslationPaths}>;
 
 type WiseSetupInProgressRowProps = {
     bankAccountID: number;
@@ -47,7 +40,8 @@ function WiseSetupInProgressRow({bankAccountID, isInReview, isOnboardingSubmitte
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass']);
-    const copy = isInReview ? COPY.inReview : COPY.inProgress;
+    // While the admin has something to do they continue the setup, and while Wise reviews it the admin can only check its status.
+    const copyState = isInReview ? 'inReview' : 'inProgress';
 
     const openSetup = () =>
         Navigation.navigate(
@@ -67,12 +61,12 @@ function WiseSetupInProgressRow({bankAccountID, isInReview, isOnboardingSubmitte
                 variant="label"
                 style={[styles.textSupporting, styles.flexShrink1]}
             >
-                {translate(copy.message)}{' '}
+                {translate(`walletPage.wiseSetupRow.${copyState}.message`)}{' '}
                 <TextLink
                     variant="label"
                     onPress={openSetup}
                 >
-                    {translate(copy.link)}
+                    {translate(`walletPage.wiseSetupRow.${copyState}.link`)}
                 </TextLink>
             </Text>
         </View>
