@@ -1,13 +1,11 @@
 ---
 title: Agent Trigger Reference
-description: Every event your agent can react to, with ready-to-copy instruction phrases for your agent's prompt.
+description: Every event your Agent can react to, with ready-to-copy instruction phrases for your agent's prompt.
 keywords: [Custom Agent, Agent, agent triggers, report_activity, agent instructions, expense report events, workspace automation, when to trigger agent, report submitted, report approved, Expensify automation]
-internalScope: Audience is workspace admins configuring agents. Covers all expose-level report_activity events. Does not cover chat message triggers or report-received triggers.
-contentType: topic
-order: 9
+internalScope: Audience is workspace admins configuring Agents. Covers all expose-level report_activity events. Does not cover chat message triggers or report-received triggers.
 ---
 
-An agent reacts to expense report events when its instructions match what happened. This reference lists every event your agent can respond to, along with example phrases you can paste directly into your prompt.
+An Agent reacts to expense report events when its instructions match what happened. This reference lists every event your agent can respond to, along with example phrases you can paste directly into your prompt.
 
 # Agent Trigger Reference
 
@@ -190,12 +188,38 @@ To react to this event, include phrases like:
 - When a queued payment is stopped before being sent
 - When reimbursement is removed from the queue
 
-**A reimbursement payment is taking longer than expected to process.**
+**A reimbursement payment is taking longer than expected, its expected arrival date changed, or a deposit the employee's bank first rejected arrived after all.**
 
 To react to this event, include phrases like:
 - When a reimbursement is delayed
 - When a payment is held for review
 - When reimbursement processing is paused
+- When the expected reimbursement date changes
+- When a rejected reimbursement deposit arrives late
+
+**The employee's bank rejected a Global Reimbursements deposit, so the money did not arrive.**
+
+To react to this event, include phrases like:
+- When the employee's bank rejects a Global Reimbursements deposit
+- When a Global Reimbursements deposit bounces
+
+**The money for a Global Reimbursements payment that didn't reach the employee was returned to the company's bank account. The report goes back to approved so it can be paid again.**
+
+To react to this event, include phrases like:
+- When a Global Reimbursements payment is refunded
+- When money for a failed reimbursement is returned to the company's bank account
+
+**Our payments partner put a Global Reimbursements payment on hold while it reviews it. The payment can't be canceled while it's on hold.**
+
+To react to this event, include phrases like:
+- When a Global Reimbursements payment is put on hold
+- When our payments partner holds a reimbursement for review
+
+**Our payments partner finished reviewing a Global Reimbursements payment that was on hold and lifted the hold.**
+
+To react to this event, include phrases like:
+- When a held Global Reimbursements payment is released
+- When the review of a held reimbursement is complete
 
 **An ACH reimbursement payment was returned (bounced) after it was sent. The reimbursement did not reach the employee. The report status returns to approved (awaiting re-payment).**
 
@@ -350,7 +374,7 @@ To react to this event, include phrases like:
 To react to this event, include phrases like:
 - When someone leaves a comment or message in a report
 - When a user asks a question or leaves a note in the conversation
-- When someone @mentions an agent in a report
+- When someone @mentions an Agent in a report
 
 **An approver at an intermediate step in a multi-level approval chain approved the expense report and forwarded it to the next approver.**
 
@@ -660,6 +684,12 @@ To react to this event, include phrases like:
 - When the Expensify Card settlement account is frozen or locked
 - When card transactions are blocked because the settlement account was locked
 
+**Global Reimbursements was enabled on the workspace bank account while auto-pay was on. The message appears in the workspace #admins room and explains that exchange rates and fees for auto-paid cross-border reports cannot be previewed before payment.**
+
+To react to this event, include phrases like:
+- When Global Reimbursements is enabled on a bank account used for auto-pay
+- When admins are told about cross-border fees for auto-paid reports
+
 **A report submission was blocked by a Dynamic External Workflow (DEW). The workspace has a custom external approval service configured that rejected or errored when the report was submitted. The error message from the external service is shown in the report chat. The report remains open (not submitted) until the issue is resolved.**
 
 To react to this event, include phrases like:
@@ -926,4 +956,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 127 events AI agents can react to.*
+*This reference covers all 132 events AI Agents can react to.*
