@@ -5,6 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -51,6 +52,13 @@ const buildOpenExpenseReport = (reportID: string) => ({
     stateNum: CONST.REPORT.STATE_NUM.OPEN,
     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
 });
+
+const loadDuplicate = async (report: Partial<Report>) => {
+    await act(async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${DUPLICATE_TRANSACTION_ID}`, buildExpense(DUPLICATE_TRANSACTION_ID, OTHER_REPORT_ID));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_REPORT_ID}`, report);
+    });
+};
 
 const renderHeader = async () => {
     render(
@@ -104,10 +112,7 @@ describe('MoneyRequestHeaderPrimaryAction Keep this one', () => {
 
     it('is offered when every duplicate and its report are loaded', async () => {
         // Given the duplicate and its open report are both in Onyx
-        await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${DUPLICATE_TRANSACTION_ID}`, buildExpense(DUPLICATE_TRANSACTION_ID, OTHER_REPORT_ID));
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_REPORT_ID}`, buildOpenExpenseReport(OTHER_REPORT_ID));
-        });
+        await loadDuplicate(buildOpenExpenseReport(OTHER_REPORT_ID));
 
         // When the header renders
         await renderHeader();
@@ -136,6 +141,37 @@ describe('MoneyRequestHeaderPrimaryAction Keep this one', () => {
         await renderHeader();
 
         // Then Keep this one is hidden, because the duplicate is filtered out of the merge and Confirm would fail
+        expect(screen.queryByText('violations.keepThisOne')).not.toBeOnTheScreen();
+    });
+
+    it('is offered when the violation lists this expense and a duplicate more than once', async () => {
+        // Given every duplicate is loaded, but the violation repeats the duplicate and references this expense
+        await loadDuplicate(buildOpenExpenseReport(OTHER_REPORT_ID));
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
+                {
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    data: {duplicates: [DUPLICATE_TRANSACTION_ID, DUPLICATE_TRANSACTION_ID, TRANSACTION_ID]},
+                },
+            ]);
+        });
+
+        // When the header renders
+        await renderHeader();
+
+        // Then Keep this one shows, because the extra IDs don't stand for duplicates that are still missing
+        expect(screen.getByText('violations.keepThisOne')).toBeOnTheScreen();
+    });
+
+    it('is not offered when a duplicate is on a paid report', async () => {
+        // Given the duplicate is loaded on a paid report
+        await loadDuplicate({...buildOpenExpenseReport(OTHER_REPORT_ID), stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+
+        // When the header renders
+        await renderHeader();
+
+        // Then Keep this one is hidden, because the paid duplicate is filtered out of the merge and Confirm would fail
         expect(screen.queryByText('violations.keepThisOne')).not.toBeOnTheScreen();
     });
 });

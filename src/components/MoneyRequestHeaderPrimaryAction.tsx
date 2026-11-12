@@ -87,9 +87,11 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     const loadedDuplicateTransactions = Object.values(duplicateTransactions ?? {}).filter(
         (duplicate): duplicate is NonNullable<typeof duplicate> => !!duplicate && duplicate.transactionID !== transaction?.transactionID,
     );
-    const {hasUnloadedReport: hasUnloadedDuplicateReport} = useDuplicateReportsStatus(loadedDuplicateTransactions);
-    // Same rule as the review page: a duplicate missing from Onyx would be left out of the merge.
-    const hasUnloadedDuplicate = hasUnloadedDuplicateReport || loadedDuplicateTransactions.length < duplicateTransactionIDs.length;
+    // The violation can list this expense or the same ID twice, while the loaded duplicates are keyed and exclude this expense.
+    const expectedDuplicateIDs = new Set(duplicateTransactionIDs.filter((id) => id !== transaction?.transactionID));
+    const {hasUnloadedReport: hasUnloadedDuplicateReport, hasSettledOrApprovedReport: hasSettledOrApprovedDuplicate} = useDuplicateReportsStatus(loadedDuplicateTransactions);
+    // Same rule as Keep selected on the review page: a duplicate that is missing, approved or paid is left out of the merge and Confirm fails.
+    const canKeepThisOne = !hasUnloadedDuplicateReport && !hasSettledOrApprovedDuplicate && loadedDuplicateTransactions.length >= expectedDuplicateIDs.size;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -160,7 +162,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE) {
-            if (hasUnloadedDuplicate) {
+            if (!canKeepThisOne) {
                 return null;
             }
             return (
