@@ -25,9 +25,6 @@ type AddressInputKeys = {
     street2?: string;
     city?: string;
     state?: string;
-
-    /** Where AddressSearch writes the state's code, which it otherwise replaces with the full name outside the US and Canada */
-    stateCode?: string;
     zip?: string;
     country?: string;
     zipPostCode?: string;
@@ -69,6 +66,9 @@ type AddressFormProps = ForwardedFSClassProps & {
 
     /** The states to list instead of the US states or Canadian provinces */
     stateOptions?: Record<string, string>;
+
+    /** Whether a picked address fills the state with its code outside the US and Canada, for a caller that lists the states of other countries */
+    shouldKeepStateCode?: boolean;
     onCountryChange?: (country: unknown) => void;
     shouldAllowCountryChange?: boolean;
 };
@@ -92,6 +92,7 @@ function AddressFormFields({
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
     stateOptions,
+    shouldKeepStateCode = false,
     onCountryChange,
     shouldAllowCountryChange = true,
     forwardedFSClass,
@@ -123,6 +124,7 @@ function AddressFormFields({
                     defaultValue={defaultValues?.street}
                     errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
                     renamedInputKeys={inputKeys}
+                    shouldKeepStateCode={shouldKeepStateCode}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     limitSearchesToCountry={shouldAllowCountryChange ? undefined : defaultValues?.country}
                     onCountryChange={handleCountryChange}

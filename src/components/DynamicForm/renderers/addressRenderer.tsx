@@ -20,8 +20,7 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles},
         isMenuRow: false,
         input: (
             <AddressFormFields
-                // The state picker takes the code, so it is written over the full name AddressSearch gives outside the US and Canada
-                inputKeys={{...addressKeys, stateCode: addressKeys.state}}
+                inputKeys={addressKeys}
                 // AddressFormFields lists the states of the default country, and assumes the US without one
                 defaultValues={{
                     street: defaultValue ?? '',
@@ -39,6 +38,8 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles},
                 shouldAllowCountryChange={!disabled}
                 shouldDisplayStateSelector={isStateAsked(country)}
                 stateOptions={getStateOptions(country)}
+                // The pick can switch to any country with a state list, so the code is kept even while the current country has none
+                shouldKeepStateCode
                 forwardedFSClass={forwardedFSClass}
                 onCountryChange={(pickedCountry) => {
                     // AddressSearch reports the country on every pick and the state reset arrives as '', so only a new country refreshes

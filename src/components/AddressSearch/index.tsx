@@ -119,6 +119,7 @@ function AddressSearch({
         lat: 'addressLat',
         lng: 'addressLng',
     },
+    shouldKeepStateCode = false,
     autoComplete = 'off',
     autoFocus = false,
     resultTypes = 'address',
@@ -242,12 +243,9 @@ function AddressSearch({
             address: autocompleteData.description || details.formatted_address || '',
         };
 
-        // A caller that lists the states of other countries in a picker can take the code under its own stateCode input key
-        const stateCode = values.state;
-
         // If the address is not in the US, use the full length state name since we're displaying the address's
-        // state / province in a TextInput instead of in a picker.
-        if (country !== CONST.COUNTRY.US && country !== CONST.COUNTRY.CA) {
+        // state / province in a TextInput instead of in a picker, unless the caller's picker lists the codes of other countries too.
+        if (!shouldKeepStateCode && country !== CONST.COUNTRY.US && country !== CONST.COUNTRY.CA) {
             values.state = longStateName;
         }
 
@@ -291,10 +289,6 @@ function AddressSearch({
                     continue;
                 }
                 onInputChange?.(inputValue, inputKey);
-            }
-            // After the loop, so a caller that points stateCode at its state input gets the code over the full name
-            if (renamedInputKeys?.stateCode) {
-                onInputChange?.(stateCode, renamedInputKeys.stateCode);
             }
         } else {
             onInputChange?.(values);

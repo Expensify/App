@@ -36,23 +36,26 @@ const SYDNEY_DETAILS: PartialDeep<GooglePlaceDetail, {recurseIntoArrays: true}> 
 /* eslint-enable @typescript-eslint/naming-convention */
 
 describe('AddressSearch', () => {
-    it('writes the state code under the stateCode key while the state keeps its full name outside the US and Canada', () => {
-        // Given an address search whose caller asks for the state code under its own key
+    it.each([
+        {shouldKeepStateCode: true, expected: 'NSW'},
+        {shouldKeepStateCode: false, expected: 'New South Wales'},
+    ])('writes $expected as an Australian state when shouldKeepStateCode is $shouldKeepStateCode', ({shouldKeepStateCode, expected}) => {
+        // Given an address search whose caller shows the state either in a picker listing codes or as text
         const onInputChange = jest.fn();
         render(
             <AddressSearch
                 inputID="street"
                 label="Address"
                 onInputChange={onInputChange}
-                renamedInputKeys={{street: 'street', state: 'state', stateCode: 'stateCode'}}
+                renamedInputKeys={{street: 'street', state: 'state'}}
+                shouldKeepStateCode={shouldKeepStateCode}
             />,
         );
 
         // When the user picks an address in Sydney
         act(() => pickPlace?.(SYDNEY_DATA, SYDNEY_DETAILS));
 
-        // Then the state is the full name other callers show as text, and the code goes to the caller's stateCode key
-        expect(onInputChange).toHaveBeenCalledWith('New South Wales', 'state');
-        expect(onInputChange).toHaveBeenCalledWith('NSW', 'stateCode');
+        // Then the state is written once, as the code a picker lists or the full name a text input shows
+        expect(onInputChange.mock.calls.filter(([, key]) => key === 'state')).toEqual([[expected, 'state']]);
     });
 });
