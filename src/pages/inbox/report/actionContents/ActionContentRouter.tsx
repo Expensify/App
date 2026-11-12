@@ -149,6 +149,9 @@ type ActionContentRouterProps = {
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
     isTrackIntentUser?: boolean;
     paymentExpectedDate?: string;
+
+    /** Whether the action is shown at the top of its thread */
+    isThreadReportParentAction?: boolean;
 };
 
 function ActionContentRouter({
@@ -172,6 +175,7 @@ function ActionContentRouter({
     isTrackIntentUser,
     isLatestConciergeFeedbackAction,
     paymentExpectedDate,
+    isThreadReportParentAction = false,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
@@ -400,6 +404,7 @@ function ActionContentRouter({
             <PolicyChangeLogContent
                 action={action}
                 policyID={policyID}
+                isThreadReportParentAction={isThreadReportParentAction}
             />
         );
     }
