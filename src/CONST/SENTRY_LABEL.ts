@@ -971,6 +971,7 @@ const SENTRY_LABEL = {
         PAY: 'MoreMenu-Pay',
         DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
         MOVE_EXPENSE: 'MoreMenu-MoveExpense',
+        TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
     },
     REPORT_PREVIEW: {
         CARD: 'ReportPreview-Card',
