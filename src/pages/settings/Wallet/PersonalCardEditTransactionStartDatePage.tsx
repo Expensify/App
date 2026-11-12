@@ -29,7 +29,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {cardByIdSelector} from '@selectors/Card';
-import {format, parseISO, subDays} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -47,7 +47,9 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const currentStartDate = card?.scrapeMinDate;
 
-    const [dateOptionSelected, setDateOptionSelected] = useState<DateOption>(CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+    const [dateOptionSelected, setDateOptionSelected] = useState<DateOption>(
+        currentStartDate ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM : CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+    );
 
     const [startDate, setStartDate] = useState(() => {
         if (currentStartDate) {
@@ -71,8 +73,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     };
 
     const getNewStartDate = () => {
-        const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
-        return dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate;
+        return dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? '' : startDate;
     };
 
     const submit = () => {
@@ -83,7 +84,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
 
         const newStartDate = getNewStartDate();
 
-        if (currentStartDate !== newStartDate) {
+        if ((currentStartDate ?? '') !== newStartDate) {
             updateAssignedCardTransactionStartDate(cardID, newStartDate, currentStartDate);
         }
         Navigation.goBack(backPath);
