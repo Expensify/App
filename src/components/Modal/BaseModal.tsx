@@ -6,10 +6,10 @@ import RHPResizeHandle from '@components/RHPResizeHandle';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
 
-import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResizableSingleRHP from '@hooks/useResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -260,7 +260,7 @@ function BaseModal({
 
     // A right docked modal opened from inside the RHP sits on the RHP's own card, so it must not dim it or add a second shadow.
     const isStackedOnRHP = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
-    const isResizableSingleRHP = useIsResizableSingleRHP();
+    const {isResizable: isResizableSingleRHP} = useResizableSingleRHP();
     const {width: singleRHPWidth} = useSingleRHPWidth();
     const stackedResizableRHPWidth = isStackedOnRHP && isResizableSingleRHP ? singleRHPWidth : undefined;
 

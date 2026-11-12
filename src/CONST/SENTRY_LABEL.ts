@@ -3,6 +3,56 @@ const SENTRY_LABEL = {
         CLEAR_BUTTON: 'TextInput-ClearButton',
         PASSWORD_VISIBILITY_TOGGLE: 'TextInput-PasswordVisibilityToggle',
     },
+    ADD_PAYMENT_METHOD_MENU: {
+        PERSONAL_BANK_ACCOUNT: 'AddPaymentMethodMenu-PersonalBankAccount',
+        BUSINESS_BANK_ACCOUNT: 'AddPaymentMethodMenu-BusinessBankAccount',
+    },
+    AVATAR_WITH_IMAGE_PICKER: {
+        EDIT_MENU_UPLOAD_PHOTO: 'AvatarWithImagePicker-EditMenuUploadPhoto',
+        EDIT_MENU_REMOVE_PHOTO: 'AvatarWithImagePicker-EditMenuRemovePhoto',
+        EDIT_MENU_VIEW_PHOTO: 'AvatarWithImagePicker-EditMenuViewPhoto',
+    },
+    DYNAMIC_FORM: {
+        TABS_ITEM: 'DynamicForm-TabsItem',
+    },
+    APPROVE_MENU: {
+        OPTION: {
+            PARTIAL: 'ApproveMenu-Option-Partial',
+            FULL: 'ApproveMenu-Option-Full',
+        },
+    },
+    SETTLEMENT_BUTTON: {
+        PAYMENT_MENU: {
+            PERSONAL: 'SettlementButton-PaymentMenu-Personal',
+            BUSINESS: 'SettlementButton-PaymentMenu-Business',
+            BUSINESS_BANK_ACCOUNT: 'SettlementButton-PaymentMenu-BusinessBankAccount',
+            PAY_WITH_WORKSPACE: 'SettlementButton-PaymentMenu-PayWithWorkspace',
+            PAY_ELSEWHERE: 'SettlementButton-PaymentMenu-PayElsewhere',
+            INVOICE_INDIVIDUAL: 'SettlementButton-PaymentMenu-InvoiceIndividual',
+            INVOICE_BUSINESS: 'SettlementButton-PaymentMenu-InvoiceBusiness',
+        },
+        INVOICE_PAYMENT_MENU: {
+            BANK_ACCOUNT: 'SettlementButton-InvoicePaymentMenu-BankAccount',
+            ADD_BANK_ACCOUNT: 'SettlementButton-InvoicePaymentMenu-AddBankAccount',
+            PAY_ELSEWHERE: 'SettlementButton-InvoicePaymentMenu-PayElsewhere',
+        },
+    },
+    PAY_MENU: {
+        OPTION: {
+            PERSONAL: 'PayMenu-Option-Personal',
+            BUSINESS: 'PayMenu-Option-Business',
+            PAY_ELSEWHERE: 'PayMenu-Option-PayElsewhere',
+            APPROVE: 'PayMenu-Option-Approve',
+            INVOICE_INDIVIDUAL: 'PayMenu-Option-InvoiceIndividual',
+            INVOICE_BUSINESS: 'PayMenu-Option-InvoiceBusiness',
+            PAY_WITH_WORKSPACE: 'PayMenu-Option-PayWithWorkspace',
+        },
+        INVOICE_OPTION: {
+            BANK_ACCOUNT: 'PayMenu-InvoiceOption-BankAccount',
+            ADD_BANK_ACCOUNT: 'PayMenu-InvoiceOption-AddBankAccount',
+            PAY_ELSEWHERE: 'PayMenu-InvoiceOption-PayElsewhere',
+        },
+    },
     DATE_PICKER: {
         CLEAR_BUTTON: 'DatePicker-ClearButton',
     },
@@ -232,6 +282,18 @@ const SENTRY_LABEL = {
         THUMBNAIL: 'VideoPlayer-Thumbnail',
         MUTE_BUTTON: 'VideoPlayer-MuteButton',
         VIDEO: 'VideoPlayer-Video',
+        MORE_MENU_DOWNLOAD: 'VideoPlayer-MoreMenuDownload',
+        MORE_MENU_PLAYBACK_SPEED: 'VideoPlayer-MoreMenuPlaybackSpeed',
+        PLAYBACK_SPEED_OPTION: {
+            SPEED_025: 'VideoPlayer-PlaybackSpeedOption-Speed025',
+            SPEED_050: 'VideoPlayer-PlaybackSpeedOption-Speed050',
+            SPEED_075: 'VideoPlayer-PlaybackSpeedOption-Speed075',
+            SPEED_100: 'VideoPlayer-PlaybackSpeedOption-Speed100',
+            SPEED_125: 'VideoPlayer-PlaybackSpeedOption-Speed125',
+            SPEED_150: 'VideoPlayer-PlaybackSpeedOption-Speed150',
+            SPEED_175: 'VideoPlayer-PlaybackSpeedOption-Speed175',
+            SPEED_200: 'VideoPlayer-PlaybackSpeedOption-Speed200',
+        },
     },
     ADDRESS_SEARCH: {
         CURRENT_LOCATION_BUTTON: 'AddressSearch-CurrentLocationButton',
@@ -245,6 +307,7 @@ const SENTRY_LABEL = {
         CHOOSE_FILE: 'ImportSpreadsheet-ChooseFile',
         COLUMN_DROPDOWN: 'ImportSpreadsheet-ColumnDropdown',
         IMPORT_BUTTON: 'ImportSpreadsheet-ImportButton',
+        COLUMN_ROLE_OPTION: 'ImportSpreadsheet-ColumnRoleOption',
     },
     IMPORTED_STATE_INDICATOR: {
         RESET: 'ImportedStateIndicator-Reset',
@@ -370,6 +433,9 @@ const SENTRY_LABEL = {
         DETAILS_BUTTON: 'HeaderView-DetailsButton',
         JOIN_BUTTON: 'HeaderView-JoinButton',
         NEW_CONCIERGE_CHAT_BUTTON: 'HeaderView-NewConciergeChatButton',
+        CHRONOS_TIMER_MENU_START_TIMER: 'HeaderView-ChronosTimerMenuStartTimer',
+        CHRONOS_TIMER_MENU_STOP_TIMER: 'HeaderView-ChronosTimerMenuStopTimer',
+        CHRONOS_TIMER_MENU_SCHEDULE_OOO: 'HeaderView-ChronosTimerMenuScheduleOOO',
     },
     BLOCKING_VIEW: {
         RETRY_BUTTON: 'BlockingView-RetryButton',
@@ -669,6 +735,55 @@ const SENTRY_LABEL = {
         CHANGE_REPORT_REMOVE_FROM_REPORT: 'Search-ChangeReportRemoveFromReport',
         ADVANCED_FILTERS_RESET_BUTTON: 'Search-AdvancedFiltersResetButton',
         ADVANCED_FILTERS_APPLY_BUTTON: 'Search-AdvancedFiltersApplyButton',
+        STATIC_LIST_ITEM_CHECKBOX: 'Search-StaticListItemCheckbox',
+        SELECT_ALL_MENU: {
+            SELECT_ALL_ON_PAGE: 'Search-SelectAllMenu-SelectAllOnPage',
+            SELECT_ALL_MATCHING: 'Search-SelectAllMenu-SelectAllMatching',
+        },
+        BULK_ACTIONS_EXPORT: 'Search-BulkActionsExport',
+        BULK_ACTIONS_MOVE_EXPENSES: 'Search-BulkActionsMoveExpenses',
+        BULK_ACTIONS_PAY: 'Search-BulkActionsPay',
+        BULK_ACTIONS_APPROVE: 'Search-BulkActionsApprove',
+        BULK_ACTIONS_SUBMIT: 'Search-BulkActionsSubmit',
+        BULK_ACTIONS_DOWNLOAD_PDF: 'Search-BulkActionsDownloadPDF',
+        BULK_ACTIONS_CHANGE_WORKSPACE: 'Search-BulkActionsChangeWorkspace',
+        BULK_ACTIONS_UNDELETE: 'Search-BulkActionsUndelete',
+        BULK_ACTIONS_DUPLICATE_EXPENSE: 'Search-BulkActionsDuplicateExpense',
+        BULK_ACTIONS_EDIT_MULTIPLE: 'Search-BulkActionsEditMultiple',
+        BULK_ACTIONS_REJECT: 'Search-BulkActionsReject',
+        BULK_ACTIONS_CHANGE_APPROVER: 'Search-BulkActionsChangeApprover',
+        BULK_ACTIONS_MERGE_REPORTS: 'Search-BulkActionsMergeReports',
+        BULK_ACTIONS_DOWNLOAD_RECEIPTS: 'Search-BulkActionsDownloadReceipts',
+        BULK_ACTIONS_DOWNLOAD_STATEMENT_PDF: 'Search-BulkActionsDownloadStatementPDF',
+        BULK_ACTIONS_HOLD: 'Search-BulkActionsHold',
+        BULK_ACTIONS_UNHOLD: 'Search-BulkActionsUnhold',
+        BULK_ACTIONS_MERGE: 'Search-BulkActionsMerge',
+        BULK_ACTIONS_SPLIT: 'Search-BulkActionsSplit',
+        BULK_ACTIONS_DUPLICATE_REPORT: 'Search-BulkActionsDuplicateReport',
+        BULK_ACTIONS_DELETE: 'Search-BulkActionsDelete',
+        BULK_ACTIONS_NO_OPTIONS_AVAILABLE: 'Search-BulkActionsNoOptionsAvailable',
+        BULK_EXPORT_MENU: {
+            EXPORT_TO_INTEGRATION: 'Search-BulkExportMenu-ExportToIntegration',
+            MARK_AS_EXPORTED: 'Search-BulkExportMenu-MarkAsExported',
+            CURRENT_VIEW: 'Search-BulkExportMenu-CurrentView',
+            CURRENT_VIEW_GROUPS_ONLY: 'Search-BulkExportMenu-CurrentViewGroupsOnly',
+            TEMPLATE: 'Search-BulkExportMenu-Template',
+            BASIC_EXPORT: 'Search-BulkExportMenu-BasicExport',
+        },
+        BULK_PAY_MENU: {
+            PERSONAL: 'Search-BulkPayMenu-Personal',
+            BUSINESS: 'Search-BulkPayMenu-Business',
+            BUSINESS_BANK_ACCOUNT: 'Search-BulkPayMenu-BusinessBankAccount',
+            PAY_WITH_WORKSPACE: 'Search-BulkPayMenu-PayWithWorkspace',
+            PAY_ELSEWHERE: 'Search-BulkPayMenu-PayElsewhere',
+            INVOICE_INDIVIDUAL: 'Search-BulkPayMenu-InvoiceIndividual',
+            INVOICE_BUSINESS: 'Search-BulkPayMenu-InvoiceBusiness',
+        },
+        BULK_INVOICE_PAY_MENU: {
+            BANK_ACCOUNT: 'Search-BulkInvoicePayMenu-BankAccount',
+            ADD_BANK_ACCOUNT: 'Search-BulkInvoicePayMenu-AddBankAccount',
+            PAY_ELSEWHERE: 'Search-BulkInvoicePayMenu-PayElsewhere',
+        },
     },
     SEARCH_EDIT_MULTIPLE: {
         AMOUNT_FIELD: 'SearchEditMultiple-AmountField',
@@ -712,6 +827,7 @@ const SENTRY_LABEL = {
     },
     EXPENSE_RULES: {
         TABLE_ROW: 'ExpenseRules-TableRow',
+        EMPTY_STATE_NEW_RULE: 'ExpenseRules-EmptyStateNewRule',
     },
     TABLE: {
         FILTERS: 'Table-Filters',
@@ -865,6 +981,32 @@ const SENTRY_LABEL = {
             HARASSMENT: 'Report-FlagCommentOption-Harassment',
             ASSAULT: 'Report-FlagCommentOption-Assault',
         },
+        MONEY_REPORT_HEADER_SELECTION_MENU: {
+            SUBMIT: 'Report-MoneyReportHeaderSelectionMenu-Submit',
+            APPROVE: 'Report-MoneyReportHeaderSelectionMenu-Approve',
+            PAY: 'Report-MoneyReportHeaderSelectionMenu-Pay',
+        },
+        SELECTION_TOOLBAR_MENU: {
+            SUBMIT: 'Report-SelectionToolbarMenu-Submit',
+            APPROVE: 'Report-SelectionToolbarMenu-Approve',
+            PAY: 'Report-SelectionToolbarMenu-Pay',
+        },
+        MONEY_REPORT_HEADER_SUBMIT_MENU: {
+            SUBMIT: 'Report-MoneyReportHeaderSubmitMenu-Submit',
+            SUBMIT_VIA_PDF: 'Report-MoneyReportHeaderSubmitMenu-SubmitViaPDF',
+        },
+        SELECTED_EXPENSES_MENU_EDIT_MULTIPLE: 'Report-SelectedExpensesMenuEditMultiple',
+        SELECTED_EXPENSES_MENU_HOLD: 'Report-SelectedExpensesMenuHold',
+        SELECTED_EXPENSES_MENU_UNHOLD: 'Report-SelectedExpensesMenuUnhold',
+        SELECTED_EXPENSES_MENU_REJECT: 'Report-SelectedExpensesMenuReject',
+        SELECTED_EXPENSES_MENU_EXPORT: 'Report-SelectedExpensesMenuExport',
+        SELECTED_EXPENSES_MENU_MERGE: 'Report-SelectedExpensesMenuMerge',
+        SELECTED_EXPENSES_MENU_MOVE_EXPENSES: 'Report-SelectedExpensesMenuMoveExpenses',
+        SELECTED_EXPENSES_MENU_SPLIT: 'Report-SelectedExpensesMenuSplit',
+        SELECTED_EXPENSES_MENU_DUPLICATE: 'Report-SelectedExpensesMenuDuplicate',
+        SELECTED_EXPENSES_MENU_DELETE: 'Report-SelectedExpensesMenuDelete',
+        SELECTED_EXPENSES_EXPORT_TEMPLATE: 'Report-SelectedExpensesExportTemplate',
+        MONEY_REQUEST_REPORT_TRANSACTION_ITEM_CHECKBOX: 'Report-MoneyRequestReportTransactionItemCheckbox',
     },
     REPORT_DETAILS: {
         VIEW_AVATAR: 'ReportDetails-ViewAvatar',
@@ -971,6 +1113,10 @@ const SENTRY_LABEL = {
         PAY: 'MoreMenu-Pay',
         DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
         MOVE_EXPENSE: 'MoreMenu-MoveExpense',
+        TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
+        DUPLICATE_EXPENSE: 'MoreMenu-DuplicateExpense',
+        SEND_TO_SOMEONE: 'MoreMenu-SendToSomeone',
+        SEND_TO_EMPLOYER: 'MoreMenu-SendToEmployer',
     },
     REPORT_PREVIEW: {
         CARD: 'ReportPreview-Card',
@@ -986,6 +1132,10 @@ const SENTRY_LABEL = {
             CREATE_EXPENSE: 'ReportPreview-AddExpenseMenu-CreateExpense',
             TRACK_DISTANCE: 'ReportPreview-AddExpenseMenu-TrackDistance',
             ADD_EXISTING_EXPENSE: 'ReportPreview-AddExpenseMenu-AddExistingExpense',
+        },
+        EXPORT_MENU: {
+            EXPORT_TO_INTEGRATION: 'ReportPreview-ExportMenu-ExportToIntegration',
+            MARK_AS_EXPORTED: 'ReportPreview-ExportMenu-MarkAsExported',
         },
     },
     REQUEST_CONFIRMATION_LIST: {
@@ -1265,9 +1415,6 @@ const SENTRY_LABEL = {
     REPORT_PICKER_MODAL: {
         BACK_BUTTON: 'ReportPickerModal-BackButton',
     },
-    REPORT_PICKER: {
-        NO_REPORT: 'ReportPicker-SelectNoReport',
-    },
     ATTENDEE_PICKER_MODAL: {
         BACK_BUTTON: 'AttendeePickerModal-BackButton',
     },
@@ -1479,12 +1626,30 @@ const SENTRY_LABEL = {
             PERSONAL_LIABILITY_SWITCH: 'WorkspaceCompanyCards-PersonalLiabilitySwitch',
             ASSIGN_BUTTON: 'WorkspaceCompanyCards-AssignButton',
             FEED_ERROR_TRY_AGAIN: 'WorkspaceCompanyCards-FeedErrorTryAgain',
+            BULK_ACTIONS_UNASSIGN: 'WorkspaceCompanyCards-BulkActionsUnassign',
+            BULK_ACTIONS_VIEW_TRANSACTIONS: 'WorkspaceCompanyCards-BulkActionsViewTransactions',
+            BULK_ACTIONS_EDIT_TRANSACTION_START_DATE: 'WorkspaceCompanyCards-BulkActionsEditTransactionStartDate',
+            BULK_ACTIONS_EXPORT_CSV: 'WorkspaceCompanyCards-BulkActionsExportCSV',
         },
         LIST: {
             NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
             NEW_DOMAIN_BUTTON: 'WorkspaceList-NewDomainButton',
             THREE_DOT_MENU: 'WorkspaceList-ThreeDotMenu',
             ROW: 'WorkspaceList-Row',
+            EMPTY_STATE_NEW_WORKSPACE: 'WorkspaceList-EmptyStateNewWorkspace',
+            TAB: {
+                WORKSPACES: 'WorkspaceList-Tab-Workspaces',
+                DOMAINS: 'WorkspaceList-Tab-Domains',
+            },
+            THREE_DOT_MENU_GO_TO_WORKSPACE: 'WorkspaceList-ThreeDotMenuGoToWorkspace',
+            THREE_DOT_MENU_LEAVE: 'WorkspaceList-ThreeDotMenuLeave',
+            THREE_DOT_MENU_DUPLICATE: 'WorkspaceList-ThreeDotMenuDuplicate',
+            THREE_DOT_MENU_COPY_SETTINGS: 'WorkspaceList-ThreeDotMenuCopySettings',
+            THREE_DOT_MENU_SET_AS_DEFAULT: 'WorkspaceList-ThreeDotMenuSetAsDefault',
+            THREE_DOT_MENU_ARCHIVE: 'WorkspaceList-ThreeDotMenuArchive',
+            THREE_DOT_MENU_DELETE: 'WorkspaceList-ThreeDotMenuDelete',
+            THREE_DOT_MENU_UNARCHIVE: 'WorkspaceList-ThreeDotMenuUnarchive',
+            THREE_DOT_MENU_TRANSFER_OWNER: 'WorkspaceList-ThreeDotMenuTransferOwner',
         },
         INITIAL: {
             PROFILE: 'WorkspaceInitial-NavItem-Profile',
@@ -1685,6 +1850,7 @@ const SENTRY_LABEL = {
             AUTO_UPDATE_GOVERNMENT_RATE_SWITCH: 'WorkspaceDistanceRates-AutoUpdateGovernmentRateSwitch',
             TRACK_TAX_SWITCH: 'WorkspaceDistanceRates-TrackTaxSwitch',
             REQUIRE_MAP_OR_GPS_SWITCH: 'WorkspaceDistanceRates-RequireMapOrGPSSwitch',
+            EMPTY_STATE_ADD_RATE: 'WorkspaceDistanceRates-EmptyStateAddRate',
         },
         WORKFLOWS: {
             AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
@@ -1726,6 +1892,7 @@ const SENTRY_LABEL = {
         },
         ACCOUNTING: {
             EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
+            JOIN_WAITLIST_BUTTON: 'WorkspaceAccounting-JoinWaitlist',
             CARD_RECONCILIATION_ACCOUNT: 'WorkspaceAccounting-CardReconciliationAccount',
             CLAIM_OFFER: 'WorkspaceAccounting-ClaimOffer',
             CLAIM_OFFER_CONNECT: {
@@ -1800,6 +1967,10 @@ const SENTRY_LABEL = {
                     LOCATIONS: 'WorkspaceAccountingQBO-ImportRow-Locations',
                     ITEMS: 'WorkspaceAccountingQBO-ImportRow-Items',
                     TAXES: 'WorkspaceAccountingQBO-ImportRow-Taxes',
+                },
+                CONNECTION_OPTIONS: {
+                    SETUP: 'WorkspaceAccountingQBO-ConnectionOptions-Setup',
+                    CONNECT_TO_SANDBOX: 'WorkspaceAccountingQBO-ConnectionOptions-ConnectToSandbox',
                 },
             },
             QBD: {
@@ -1970,6 +2141,11 @@ const SENTRY_LABEL = {
                     CODING_DIMENSION_3: 'WorkspaceAccountingCertinia-ImportDimensionRow-CodingDimension3',
                     CODING_DIMENSION_4: 'WorkspaceAccountingCertinia-ImportDimensionRow-CodingDimension4',
                 },
+                CONNECTION_OPTIONS: {
+                    CONNECT: 'WorkspaceAccountingCertinia-ConnectionOptions-Connect',
+                    CONNECT_SANDBOX: 'WorkspaceAccountingCertinia-ConnectionOptions-ConnectSandbox',
+                    REUSE_EXISTING_CONNECTION: 'WorkspaceAccountingCertinia-ConnectionOptions-ReuseExistingConnection',
+                },
             },
             DUAL_ENTRY: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingDualEntry-AutoSyncSwitch',
@@ -2138,6 +2314,10 @@ const SENTRY_LABEL = {
                     INTERNAL_ID: 'WorkspaceAccountingNetSuite-CustomFieldViewRow-InternalID',
                     SCRIPT_ID: 'WorkspaceAccountingNetSuite-CustomFieldViewRow-ScriptID',
                     MAPPING: 'WorkspaceAccountingNetSuite-CustomFieldViewRow-Mapping',
+                },
+                CONNECTION_OPTIONS: {
+                    CREATE_NEW_CONNECTION: 'WorkspaceAccountingNetSuite-ConnectionOptions-CreateNewConnection',
+                    REUSE_EXISTING_CONNECTION: 'WorkspaceAccountingNetSuite-ConnectionOptions-ReuseExistingConnection',
                 },
             },
             RILLET: {
@@ -2451,9 +2631,16 @@ const SENTRY_LABEL = {
         TIME_TRACKING: {
             DEFAULT_RATE: 'WorkspaceTimeTracking-DefaultRate',
         },
+        CONFIRMATION_FORM_PLAN_TYPE: 'WorkspaceConfirmationForm-PlanType',
+        CONFIRMATION_FORM_OWNER: 'WorkspaceConfirmationForm-Owner',
     },
     ACCOUNT_SWITCHER: {
         SHOW_ACCOUNTS: 'AccountSwitcher-ShowAccounts',
+        ACCOUNT_MENU: {
+            CURRENT_ACCOUNT: 'AccountSwitcher-AccountMenu-CurrentAccount',
+            SWITCH_TO_DELEGATOR: 'AccountSwitcher-AccountMenu-SwitchToDelegator',
+            SWITCH_BACK: 'AccountSwitcher-AccountMenu-SwitchBack',
+        },
     },
     SIDE_PANEL: {
         HELP: 'SidePanel-Help',
@@ -2508,6 +2695,11 @@ const SENTRY_LABEL = {
         },
         WORKSPACES_SHOW_MORE: 'Onboarding-WorkspacesShowMore',
         WORKSPACES_TRY_AGAIN: 'Onboarding-WorkspacesTryAgain',
+        HELP_MENU_SCHEDULE_CALL: 'Onboarding-HelpMenuScheduleCall',
+        HELP_MENU_EVENT_TIME: 'Onboarding-HelpMenuEventTime',
+        HELP_MENU_RESCHEDULE: 'Onboarding-HelpMenuReschedule',
+        HELP_MENU_CANCEL: 'Onboarding-HelpMenuCancel',
+        HELP_MENU_REGISTER_FOR_WEBINAR: 'Onboarding-HelpMenuRegisterForWebinar',
     },
     TRACK_TRAINING: {
         HELP_BUTTON: 'TrackTraining-HelpButton',
@@ -2750,6 +2942,9 @@ const SENTRY_LABEL = {
         VACATION_DELEGATE_MISSING_WORKSPACES_CONFIRM: 'SettingsProfile-VacationDelegateMissingWorkspacesConfirm',
         VACATION_DELEGATE_MISSING_WORKSPACES_INVITE: 'SettingsProfile-VacationDelegateMissingWorkspacesInvite',
         VACATION_DELEGATE_MISSING_WORKSPACES_SKIP: 'SettingsProfile-VacationDelegateMissingWorkspacesSkip',
+        AVATAR_EDIT_MENU_UPLOAD_PHOTO: 'SettingsProfile-AvatarEditMenuUploadPhoto',
+        AVATAR_EDIT_MENU_REMOVE_PHOTO: 'SettingsProfile-AvatarEditMenuRemovePhoto',
+        AVATAR_EDIT_MENU_VIEW_PHOTO: 'SettingsProfile-AvatarEditMenuViewPhoto',
     },
     SETTINGS_PREFERENCES: {
         PRIORITY_MODE: 'SettingsPreferences-PriorityMode',
@@ -3185,6 +3380,11 @@ const SENTRY_LABEL = {
         LIST: {
             ROW: 'DomainList-Row',
             THREE_DOT_MENU: 'DomainList-ThreeDotMenu',
+            EMPTY_STATE_NEW_DOMAIN: 'DomainList-EmptyStateNewDomain',
+            THREE_DOT_MENU_ITEM: {
+                GO_TO_DOMAIN: 'DomainList-ThreeDotMenuItem-GoToDomain',
+                VERIFY_DOMAIN: 'DomainList-ThreeDotMenuItem-VerifyDomain',
+            },
         },
     },
     FEATURE_TRAINING: {

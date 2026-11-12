@@ -1,6 +1,7 @@
 import {act, render, renderHook, screen} from '@testing-library/react-native';
 
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
+import {BetasContext} from '@components/OnyxListItemProvider';
 
 import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
@@ -94,6 +95,7 @@ function setupUseOnyx(
         isReportLoadPending?: boolean;
         loadingState?: ReportLoadingStateOverrides;
         conciergeReportID?: string;
+        singleExpenseReportView?: typeof CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE | typeof CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE;
     } = {},
 ) {
     const report = 'report' in options ? options.report : mockReport;
@@ -109,6 +111,7 @@ function setupUseOnyx(
         [ONYXKEYS.IS_LOADING_APP]: options.isLoadingApp ?? false,
         [ONYXKEYS.PERSISTED_REQUESTS]: requests,
         [ONYXKEYS.CONCIERGE_REPORT_ID]: options.conciergeReportID,
+        [ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW]: options.singleExpenseReportView,
         [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.reportID ?? REPORT_ID}`]: {
             isLoadingInitialReportActions: false,
             hasOnceLoadedReportActions: true,
@@ -251,6 +254,32 @@ describe('ReportActions', () => {
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockUserTypingEventListener).not.toHaveBeenCalled();
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+    });
+
+    it.each([
+        {betaEnabled: false, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, showsTable: false},
+        {betaEnabled: true, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, showsTable: true},
+        {betaEnabled: true, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE, showsTable: false},
+    ])('respects the single-expense preference $view with beta enabled: $betaEnabled', ({betaEnabled, view, showsTable}) => {
+        // Given one expense and a saved view, only users on the beta may select the table surface.
+        setupTransactions(createTransactions(1));
+        setupUseOnyx({report: {...mockReport, type: CONST.REPORT.TYPE.EXPENSE}, singleExpenseReportView: view});
+
+        // When the split report boundary selects the money report surface.
+        render(
+            <BetasContext.Provider value={betaEnabled ? [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW] : []}>
+                <ReportActions />
+            </BetasContext.Provider>,
+        );
+
+        // Then the extracted money component preserves both the preference and its beta gate.
+        if (showsTable) {
+            expect(mockMoneyRequestList).toHaveBeenCalled();
+            expect(mockReportActionsListBody).not.toHaveBeenCalled();
+        } else {
+            expect(mockMoneyRequestList).not.toHaveBeenCalled();
+            expect(mockReportActionsListBody).toHaveBeenCalled();
+        }
     });
 
     it.each(moneyReportTypes)('waits for missing %s transactions while online', (type) => {
