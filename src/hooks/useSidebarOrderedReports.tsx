@@ -41,7 +41,7 @@ type SidebarOrderedReportsStateContextValue = {
     chatTabBrickRoad: BrickRoad;
     activeTab: ValueOf<typeof CONST.INBOX_TAB>;
     inboxTabCounts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>;
-    /** Whether the Unread tab holds a report whose newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS. */
+    /** Whether the Unread tab holds a report the user participates in whose newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS. */
     hasStaleUnreadReport: boolean;
 };
 
@@ -401,7 +401,10 @@ function SidebarOrderedReportsContextProvider({
     const filteredReportIDs = useStableArrayReference(computedFilteredReportIDs);
 
     // Derived from the full "All" set (not the currently filtered view).
-    const {counts: inboxTabCounts, hasStaleUnreadReport} = useMemo(() => SidebarUtils.getInboxTabSummary(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
+    const {counts: inboxTabCounts, hasStaleUnreadReport} = useMemo(
+        () => SidebarUtils.getInboxTabSummary(orderedReportIDs, reportsToDisplayInLHN, accountID),
+        [orderedReportIDs, reportsToDisplayInLHN, accountID],
+    );
 
     // Held in a ref so getReportIDsForTab stays referentially stable (keeping the actions context stable) and only
     // filters when a bulk tab action actually asks for a tab's reports, rather than on every LHN update.

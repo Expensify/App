@@ -98,6 +98,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
         <>
             <View style={styles.avatarSectionWrapper}>
                 <AvatarWithImagePicker
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.GROUP_AVATAR}
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
                     source={groupAvatarSource}
                     avatar={groupAvatar}
@@ -115,6 +116,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                 />
             </View>
             <MenuItemWithTopDescription
+                sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.GROUP_NAME_FIELD}
                 title={groupName}
                 onPress={navigateToEditChatName}
                 shouldShowRightIcon

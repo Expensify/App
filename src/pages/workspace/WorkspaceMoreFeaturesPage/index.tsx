@@ -157,7 +157,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     //
     // Use the active vendor source so a stale GA connection cannot bypass the beta for another
     // integration. When no source is active, keep the connected integration's discovery row.
-    // QBO (R1), Sage Intacct (R2), Xero (R3), Rillet, DualEntry, and Campfire are GA. Business Central and Certinia require the vendorMatching beta.
+    // QBO (R1), Sage Intacct (R2), Xero (R3), Rillet, DualEntry, Campfire, and Zoho Books are GA. Business Central and Certinia require the vendorMatching beta.
     // Certinia is deliberately not in the discovery list. It reaches the row only through
     // getActiveVendorMatchingIntegration's strict FFA gate, so PSA connections never see it.
     const vendorMatchingConnection =
@@ -169,6 +169,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
             CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE,
+            CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS,
             CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
         ]);
     const isGenerallyAvailableVendorConnection =
@@ -177,7 +178,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.XERO ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.RILLET ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY ||
-        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
     const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
@@ -303,6 +305,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.FolderOpen}
                             title={translate('workspace.moreFeatures.categories.title')}
                             subtitle={translate('workspace.moreFeatures.categories.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.CATEGORIES_SWITCH}
                             isActive={policy?.areCategoriesEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areCategoriesEnabled}
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
@@ -324,6 +327,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.Tag}
                             title={translate('workspace.moreFeatures.tags.title')}
                             subtitle={translate('workspace.moreFeatures.tags.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.TAGS_SWITCH}
                             isActive={policy?.areTagsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areTagsEnabled}
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
@@ -342,6 +346,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.Coins}
                             title={translate('workspace.moreFeatures.taxes.title')}
                             subtitle={translate('workspace.moreFeatures.taxes.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.TAXES_SWITCH}
                             isActive={isPolicyTaxEnabled(policy)}
                             pendingAction={policy?.pendingFields?.tax}
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
@@ -368,6 +373,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 icon={illustrations.Briefcase}
                                 title={translate('workspace.moreFeatures.vendors.title')}
                                 subtitle={translate('workspace.moreFeatures.vendors.subtitle')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.VENDORS_SWITCH}
                                 isActive={hasVendorFeature(policy, isVendorMatchingBetaEnabled ?? false)}
                                 // The Vendors switch is locked for everyone until the EnablePolicyVendors backend command exists.
                                 // Its active state is derived from policy.connections (via hasVendorFeature), so there's nothing
@@ -392,6 +398,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.Workflows}
                             title={translate('workspace.moreFeatures.workflows.title')}
                             subtitle={translate('workspace.moreFeatures.workflows.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.WORKFLOWS_SWITCH}
                             isActive={policy?.areWorkflowsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areWorkflowsEnabled}
                             disabled={!canWriteMoreFeatures || isSmartLimitEnabled}
@@ -413,6 +420,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.Flash}
                             title={translate('workspace.moreFeatures.rules.title')}
                             subtitle={translate('workspace.moreFeatures.rules.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.RULES_SWITCH}
                             isActive={arePolicyRulesEnabled(policy, policyCategories)}
                             pendingAction={policy?.pendingFields?.areRulesEnabled}
                             disabled={!canWriteMoreFeatures}
@@ -446,6 +454,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.Car}
                             title={translate('workspace.moreFeatures.distanceRates.title')}
                             subtitle={translate('workspace.moreFeatures.distanceRates.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.DISTANCE_RATES_SWITCH}
                             isActive={policy?.areDistanceRatesEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areDistanceRatesEnabled}
                             disabled={!canWriteMoreFeatures || isDistanceRatesLockedByCommuterExclusions}
@@ -471,6 +480,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.Luggage}
                             title={translate('workspace.moreFeatures.travel.title')}
                             subtitle={translate('workspace.moreFeatures.travel.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.TRAVEL_SWITCH}
                             isActive={policy?.isTravelEnabled ?? false}
                             pendingAction={policy?.pendingFields?.isTravelEnabled}
                             disabled={!canWriteMoreFeatures || isTravelBillingEnabled}
@@ -495,6 +505,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.HandCard}
                             title={translate('workspace.moreFeatures.expensifyCard.title')}
                             subtitle={translate('workspace.moreFeatures.expensifyCard.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.EXPENSIFY_CARD_SWITCH}
                             isActive={policy?.areExpensifyCardsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areExpensifyCardsEnabled}
                             disabled={!canWriteMoreFeatures || (!!policy?.areExpensifyCardsEnabled && !!paymentBankAccountID) || !isEmptyObject(cardsList)}
@@ -519,6 +530,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.CompanyCard}
                             title={translate('workspace.moreFeatures.companyCards.title')}
                             subtitle={translate('workspace.moreFeatures.companyCards.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.COMPANY_CARDS_SWITCH}
                             isActive={policy?.areCompanyCardsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areCompanyCardsEnabled}
                             disabled={!canWriteMoreFeatures || !isEmptyObject(getCompanyFeeds(cardFeeds))}
@@ -543,6 +555,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.PerDiem}
                             title={translate('workspace.moreFeatures.perDiem.title')}
                             subtitle={translate('workspace.moreFeatures.perDiem.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.PER_DIEM_SWITCH}
                             isActive={isPerDiemEnabled(policy) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED)}
                             pendingAction={policy?.pendingFields?.arePerDiemRatesEnabled}
                             disabled={!canWriteMoreFeatures}
@@ -570,6 +583,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.Clock}
                             title={translate('workspace.moreFeatures.timeTracking.title')}
                             subtitle={translate('workspace.moreFeatures.timeTracking.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.TIME_TRACKING_SWITCH}
                             isActive={isTimeTrackingEnabled(policy)}
                             pendingAction={policy?.pendingFields?.isTimeTrackingEnabled}
                             disabled={!canWriteMoreFeatures}
@@ -594,6 +608,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.InvoiceBlue}
                             title={translate('workspace.moreFeatures.invoices.title')}
                             subtitle={translate('workspace.moreFeatures.invoices.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.INVOICES_SWITCH}
                             isActive={policy?.areInvoicesEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areInvoicesEnabled}
                             disabled={!canWriteMoreFeatures}

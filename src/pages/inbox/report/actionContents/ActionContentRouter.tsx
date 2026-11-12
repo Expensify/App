@@ -149,6 +149,9 @@ type ActionContentRouterProps = {
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
     isTrackIntentUser?: boolean;
     paymentExpectedDate?: string;
+
+    /** Whether the action is shown at the top of its thread */
+    isThreadReportParentAction?: boolean;
 };
 
 function ActionContentRouter({
@@ -172,6 +175,7 @@ function ActionContentRouter({
     isTrackIntentUser,
     isLatestConciergeFeedbackAction,
     paymentExpectedDate,
+    isThreadReportParentAction = false,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
@@ -337,6 +341,7 @@ function ActionContentRouter({
         return (
             <PaymentContent
                 action={action}
+                reportID={actionOwnerReportID}
                 expectedDate={paymentExpectedDate}
                 policyID={policyID}
             />
@@ -399,6 +404,7 @@ function ActionContentRouter({
             <PolicyChangeLogContent
                 action={action}
                 policyID={policyID}
+                isThreadReportParentAction={isThreadReportParentAction}
             />
         );
     }
@@ -590,7 +596,12 @@ function ActionContentRouter({
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED)) {
-        return <HomeAddressRequiredContent action={action} />;
+        return (
+            <HomeAddressRequiredContent
+                action={action}
+                reportID={reportID}
+            />
+        );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)) {
         const delegateSubmitMessage = getDelegateSubmitMessage(translate, action, currentUserEmail);

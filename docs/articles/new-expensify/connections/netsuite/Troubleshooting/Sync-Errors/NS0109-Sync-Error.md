@@ -72,7 +72,7 @@ On web:
 
 1. Go to the navigation tabs on the left and select **Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Edit the NetSuite connection.
 5. Enter the updated credentials.
 6. Click **Save**.
@@ -82,7 +82,7 @@ On mobile:
 
 1. Tap the navigation tabs on the bottom and select **Workspaces**.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Update the NetSuite credentials.
 5. Tap **Save**.
 6. Tap **Sync Now**.

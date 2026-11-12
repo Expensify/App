@@ -1,10 +1,12 @@
 import {useReportChartCaptureLoading} from '@components/Charts/context/ChartCaptureContext';
+import type {ChartAverage} from '@components/Search/buildChartSeries';
 import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
+import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import SearchChartView from '@components/Search/SearchChartView';
-import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+import type {GroupedItem, SearchChartCountDimension, SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
@@ -61,8 +63,8 @@ type InsightsChartWidgetProps = {
     /** The snapshot stored under the chart's query for the previous period */
     previousPeriodSnapshot: OnyxEntry<SearchResults>;
 
-    /** Average group total the backend returned for the chart, drawn in the Average compare mode */
-    averageTotal: number | undefined;
+    /** Average the backend returned for the chart's metric, drawn in the Average compare mode */
+    average: ChartAverage | undefined;
 
     /** Whether GetInsights answered the dashboard's query */
     isDashboardLoaded: boolean | undefined;
@@ -72,6 +74,12 @@ type InsightsChartWidgetProps = {
 
     /** Dashboard filters sent to Concierge when the user asks to explain the chart */
     insightsScope: InsightsScope;
+
+    /** What the chart's counts are counts of, which names them in the tooltip */
+    countDimension?: SearchChartCountDimension;
+
+    /** Whether the chart links to the Spend page, from its menu and from a pressed point that has no Details panel to open. Defaults to true. */
+    supportsDrillIn?: boolean;
 
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
@@ -87,10 +95,12 @@ function InsightsChartWidget({
     snapshot,
     previousPeriodQueryJSON,
     previousPeriodSnapshot,
-    averageTotal,
+    average,
     isDashboardLoaded,
     filters,
     insightsScope,
+    countDimension,
+    supportsDrillIn = true,
     onRetry,
     onGroupByChange,
 }: InsightsChartWidgetProps) {
@@ -101,12 +111,13 @@ function InsightsChartWidget({
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}, filters);
+    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded}, filters);
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     useReportChartCaptureLoading(isLoading);
     const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
-    const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
+    const isTimeGrouped = !!CHART_GROUP_BY_CONFIG[groupBy].getDateRange;
+    const shouldShowTable = !isTimeGrouped && (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE);
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
     const canRunningTotal = isRunningTotalAvailable(filters.date);
@@ -126,11 +137,12 @@ function InsightsChartWidget({
             translate,
             today: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             shouldShowRunningTotal,
+            countDimension,
         });
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };
 
-    // The Details panel covers the Spend dashboard only. Other dashboards open Search filtered to the pressed group.
+    // The Details panel covers the Spend dashboard only
     const openDetails =
         dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && queryJSON
             ? (item: GroupedItem) => {
@@ -160,18 +172,22 @@ function InsightsChartWidget({
         ) : null;
 
     const headerMenu =
-        !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
+        !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && supportsDrillIn)) ? (
             <WidgetHeaderMenu
                 size={CONST.BUTTON_SIZE.SMALL}
                 testID={`insightsChartMenu-${chart.graphKey}`}
-                sentryLabel="InsightsChartMenu"
+                sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU}
                 menuItems={[
-                    {
-                        text: translate('insightsPage.viewOnSpend'),
-                        icon: icons.Expand,
-                        onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
-                        shouldCallAfterModalHide: true,
-                    },
+                    ...(supportsDrillIn
+                        ? [
+                              {
+                                  text: translate('insightsPage.viewOnSpend'),
+                                  icon: icons.Expand,
+                                  onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
+                                  shouldCallAfterModalHide: true,
+                              },
+                          ]
+                        : []),
                     ...(state === INSIGHTS_CHART_STATE.READY
                         ? [
                               {
@@ -215,12 +231,14 @@ function InsightsChartWidget({
                             groupBy={groupBy}
                             data={data}
                             metric={chart.metric}
+                            countDimension={countDimension}
                             isLoading={isLoading}
+                            shouldDrillDownOnPress={supportsDrillIn}
                             comparison={comparison}
                             shouldShowRunningTotal={shouldShowRunningTotal}
                             chartContainerStyle={cardPaddingHorizontal}
                             shouldShowSinglePointAsBar
-                            shouldShowGroupLabels={false}
+                            shouldShowGroupLabels={isTimeGrouped}
                             onGroupPress={openDetails}
                             tooltipFooter={openDetails ? <Text style={[styles.chartTooltipText, styles.link, styles.mt2]}>{translate('insightsPage.viewDetails')}</Text> : undefined}
                             renderDetails={

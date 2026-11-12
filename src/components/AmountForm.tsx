@@ -105,8 +105,9 @@ function AmountForm({
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
     const symbol = getLocalizedCurrencySymbol(preferredLocale, currency) ?? '';
 
-    // Use AmountFormField for standard text input. Currency-button variants still use the legacy form.
-    if (displayAsTextInput && !shouldShowCurrencyButton) {
+    if (displayAsTextInput) {
+        const currencyButtonText = currencyButtonLabel ?? currency;
+
         return (
             <AmountFormField
                 value={value ?? ''}
@@ -126,7 +127,16 @@ function AmountForm({
                     onBlur={onBlur}
                     onSubmitEditing={onSubmitEditing}
                     ref={ref}
-                />
+                >
+                    {shouldShowCurrencyButton && !!currencyButtonText && (
+                        <AmountFormField.CurrencyPickerButton
+                            currency={currencyButtonText}
+                            accessibilityLabel={currencyButtonAccessibilityLabel}
+                            onPress={onCurrencyButtonPress}
+                            isDisabled={disabled}
+                        />
+                    )}
+                </AmountFormField.Input>
             </AmountFormField>
         );
     }

@@ -1,6 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
+import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
 import useNetwork from '@hooks/useNetwork';
 
 import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
@@ -48,6 +49,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
 
 jest.mock('@libs/SearchAutocompleteUtils', () => ({
     parseForAutocomplete: jest.fn(),
+    getAutocompletePolicyData: jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').getAutocompletePolicyData,
     getAutocompleteTags: jest.fn(() => ['Engineering', 'Marketing', 'Sales', 'Design']),
     getAutocompleteRecentTags: jest.fn(() => ['Engineering', 'Marketing']),
     getAutocompleteCategories: jest.fn(() => ['Travel', 'Office Supplies', 'Meals', 'Software']),
@@ -100,6 +102,8 @@ jest.mock('@libs/SearchQueryUtils', () => ({
     getUserFriendlyKey: jest.fn((key: string) => key),
     getUserFriendlyValue: jest.fn((value: string) => value),
     isFilterSupported: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isFilterSupported,
+    resolvePolicyIDFromName: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').resolvePolicyIDFromName,
+    isGroupBySupportedBySearch: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isGroupBySupportedBySearch,
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({
@@ -109,10 +113,10 @@ jest.mock('@libs/SearchUIUtils', () => ({
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
     __esModule: true,
-    default: () => ({
+    default: jest.fn(() => ({
         exportedToFilterOptions: ['QuickBooks Online', 'Xero', 'NetSuite'],
         connectedIntegrationNames: new Set<string>(),
-    }),
+    })),
 }));
 
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
@@ -159,6 +163,41 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: ''}));
 
         expect(result.current).toEqual([]);
+    });
+
+    it.each([
+        ['workspace:"USD Workspace" exported-to:', undefined, ['usd'], false],
+        ['workspace:"CAD Workspace" exported-to:', undefined, ['cad'], false],
+        ['workspace:usd exported-to:', undefined, ['usd'], false],
+        ['-workspace:"CAD Workspace" exported-to:', undefined, ['cad'], true],
+        ['workspace:"USD Workspace" -workspace:"CAD Workspace" exported-to:', undefined, ['usd'], false],
+        ['-workspace:"CAD Workspace" workspace:"USD Workspace" exported-to:', undefined, ['usd'], false],
+        ['workspace:"CAD Workspace" -workspace:"USD Workspace" exported-to:', undefined, ['cad'], false],
+        ['-workspace:"USD Workspace" workspace:"CAD Workspace" exported-to:', undefined, ['cad'], false],
+        ['workspace:"CAD Workspace" -workspace:"CAD Workspace" exported-to:', undefined, [], false],
+        ['workspace:usd workspace:cad exported-to:', undefined, [], false],
+        ['-workspace:usd -workspace:cad exported-to:', undefined, ['usd', 'cad'], true],
+        ['workspace:"USD Workspace","CAD Workspace" exported-to:', undefined, ['usd', 'cad'], false],
+        [
+            'workspace:"Same name","Same name" exported-to:',
+            {[`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:Same name`]: 'usd', [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:Same name:1`]: 'cad'},
+            ['usd', 'cad'],
+            false,
+        ],
+        ['exported-to:', undefined, undefined, false],
+    ] as const)('scopes exported-to options to the typed query %s', (query, substitutions, expectedPolicyIDs, isNegated) => {
+        // Given both USD and CAD workspaces and the real autocomplete parser
+        parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
+        const policies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}usd`]: createMock<Policy>({id: 'usd', name: 'USD Workspace', outputCurrency: CONST.CURRENCY.USD}),
+            [`${ONYXKEYS.COLLECTION.POLICY}cad`]: createMock<Policy>({id: 'cad', name: 'CAD Workspace', outputCurrency: CONST.CURRENCY.CAD}),
+        };
+
+        // When a workspace is typed or selected without submitting the search
+        renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: query, policies, autocompleteSubstitutions: substitutions}));
+
+        // Then the export options receive the typed scope, including an explicit all-workspaces override
+        expect(useExportedToFilterOptions).toHaveBeenLastCalledWith({value: expectedPolicyIDs, isNegated});
     });
 
     it('returns empty array when parseForAutocomplete returns undefined', () => {
@@ -636,7 +675,11 @@ describe('useAutocompleteSuggestions', () => {
         expect(parseForAutocomplete).toHaveBeenCalledWith(query);
     });
 
-    it('uses real parser offsets and repeated substitutions for workspaces with the same name', () => {
+    it.each([
+        'workspace:"Test Workspace","Test Workspace",',
+        'workspace:"Test Workspace" -workspace:"Test Workspace" workspace:',
+        'workspace:"Test Workspace" workspace:"Test Workspace" workspace:',
+    ])('excludes every selected duplicate-name workspace in %s', (query) => {
         // Given two selected workspaces whose display names collide but whose IDs differ.
         parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
         const policies: NonNullable<OnyxCollection<Policy>> = {
@@ -648,7 +691,7 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() =>
             useAutocompleteSuggestions({
                 ...defaultParams,
-                autocompleteQueryValue: 'workspace:"Test Workspace","Test Workspace",',
+                autocompleteQueryValue: query,
                 policies,
                 autocompleteSubstitutions: Object.fromEntries([
                     ['policyID:Test Workspace', 'A'],
