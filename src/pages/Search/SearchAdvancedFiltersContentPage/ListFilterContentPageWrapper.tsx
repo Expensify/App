@@ -29,6 +29,7 @@ function ListFilterContentPageWrapper({baseFilterKey, value: initialValue, isNeg
             style={[styles.flex1]}
             footer={
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => onChange(value, isNegated)}

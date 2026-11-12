@@ -13,9 +13,10 @@ Connecting QuickBooks Online to Expensify helps streamline expense tracking and 
 
 To choose how data is imported from QuickBooks Online to Expensify:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
-2. Click **Import** under the QuickBooks Online connection
-3. Review and adjust each of the following:
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**
+2. Select **Configure** next to QuickBooks Online
+3. Select **Import**
+4. Review and adjust each of the following:
 
 - **Chart of accounts**: Automatically imported as categories. This setting cannot be changed.
 - **Classes**: Import as tags to allow expense-level coding.
@@ -36,9 +37,10 @@ To choose how data is imported from QuickBooks Online to Expensify:
 
 To choose how data is exported from Expensify to QuickBooks Online:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
-2. Click **Export** under the QuickBooks Online connection
-3. Configure the following settings:
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**
+2. Select **Configure** next to QuickBooks Online
+3. Select **Export**
+4. Configure the following settings:
 
 - **Preferred exporter**: Select a workspace admin for automatic exports
 - **Export date**: Choose from:
@@ -68,9 +70,10 @@ To choose how data is exported from Expensify to QuickBooks Online:
 
 To manage automation and other connection preferences:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
-2. Click **Advanced** under the QuickBooks Online connection
-3. Configure the following:
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**
+2. Select **Configure** next to QuickBooks Online
+3. Select **Advanced**
+4. Configure the following:
 
 - **Auto-sync**: Automatically updates data between QuickBooks Online and Expensify
 - **Invite employees**: Imports and invites employees from QuickBooks Online
@@ -80,8 +83,11 @@ To manage automation and other connection preferences:
   - If reimbursed via ACH in Expensify, the status will sync to paid in QuickBooks
 - **QuickBooks bill payment account**: Select where payments for expense reports are recorded
 - **QuickBooks invoice collections account**: Select where payments for invoices are recorded
-
-**Sync Consolidated Travel Billing settlements** is not on this page. It is on the **Consolidated Travel Billing** page under **Export**.
+- **Sync Consolidated Travel Billing settlements**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Turn on this toggle to continuously reconcile settlements through QuickBooks Online. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
+- **QuickBooks Online currency conversion fee account**: Select the account for currency conversion (FX) fees. This setting appears under **Sync reimbursed reports** only when it is enabled, you reimburse through Expensify, and a business bank account is connected. If **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, each cross-border reimbursement exports a separate journal entry for the fee alongside the bill payment. This journal entry:
+  - Debits the selected currency conversion fee account and credits cash
+  - Uses the memo “Foreign Exchange Fees for Expensify report [reportID]”
+  - Only exports if this account is mapped
 
 ---
 

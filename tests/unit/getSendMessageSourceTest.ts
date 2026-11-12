@@ -14,6 +14,7 @@ import {
     isPolicyExpenseChat,
     isReportTransactionThread,
     isSelfDM,
+    isSupportTicket,
     isTaskReport,
 } from '@libs/ReportUtils';
 import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
@@ -55,6 +56,7 @@ jest.mock('@libs/ReportUtils', () => {
         isPolicyExpenseChat: jest.fn(actual.isPolicyExpenseChat),
         isReportTransactionThread: jest.fn(actual.isReportTransactionThread),
         isSelfDM: jest.fn(actual.isSelfDM),
+        isSupportTicket: jest.fn(actual.isSupportTicket),
         isTaskReport: jest.fn(actual.isTaskReport),
     };
 });
@@ -86,6 +88,7 @@ const PREDICATES = [
     isPolicyExpenseChat,
     isReportTransactionThread,
     isSelfDM,
+    isSupportTicket,
     isTaskReport,
 ];
 
@@ -360,6 +363,17 @@ describe('getSendMessageSource', () => {
             expect(getSendMessageSource(params())).toBe(withTab(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.SELF_DM));
         });
 
+        it('returns support_ticket for a support ticket', () => {
+            // Given a support ticket opened from Settings > Help
+            jest.mocked(isSupportTicket).mockReturnValue(true);
+
+            // When a message is sent in it
+            const source = getSendMessageSource(params());
+
+            // Then it gets its own bucket instead of falling through to other_chat
+            expect(source).toBe(withTab(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.SUPPORT_TICKET));
+        });
+
         it('returns other_chat when nothing matches', () => {
             expect(getSendMessageSource(params())).toBe(withTab(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.OTHER_CHAT));
         });
@@ -400,6 +414,7 @@ describe('getSendMessageSource — integration with real ReportUtils', () => {
         jest.mocked(isOneTransactionReport).mockImplementation(actualReportUtils.isOneTransactionReport);
         jest.mocked(isReportTransactionThread).mockImplementation(actualReportUtils.isReportTransactionThread);
         jest.mocked(isChatThread).mockImplementation(actualReportUtils.isChatThread);
+        jest.mocked(isSupportTicket).mockImplementation(actualReportUtils.isSupportTicket);
     });
 
     it('classifies a multi-transaction expense report as expense_report_multi', () => {
@@ -415,6 +430,17 @@ describe('getSendMessageSource — integration with real ReportUtils', () => {
     it('classifies a transaction thread as expense_transaction_thread, beating the chat-thread check it also matches', () => {
         const transactionThread = {reportID: '300', type: CONST.REPORT.TYPE.CHAT, parentReportID: PARENT_EXPENSE_REPORT_ID, parentReportActionID: PARENT_IOU_ACTION_ID} as Report;
         expect(getSendMessageSource(params({report: transactionThread}))).toBe(withTab(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.EXPENSE_TRANSACTION_THREAD));
+    });
+
+    it('classifies a support ticket as support_ticket even though it hangs off a parent action', () => {
+        // Given a real support ticket shape: its own report type, no chatType, linked to a parent report action
+        const supportTicket = {reportID: '302', type: CONST.REPORT.TYPE.SUPPORT_TICKET, parentReportID: '999', parentReportActionID: '998'} as Report;
+
+        // When a message is sent in it
+        const source = getSendMessageSource(params({report: supportTicket}));
+
+        // Then the support ticket check catches it, since none of the chat checks match a non-chat report type
+        expect(source).toBe(withTab(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.SUPPORT_TICKET));
     });
 
     it('classifies a plain chat thread (no expense parent) as report_thread', () => {

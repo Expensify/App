@@ -58,11 +58,21 @@ Yes. Once verified, the reimbursement account can be shared with other workspace
 The verification process can take anywhere from a few business days to several weeks, depending on whether all required documentation is provided when it begins.
 
 ## Why is my employee not receiving the full deposit?
-Some employees may receive a slightly smaller reimbursement than expected when paid into a bank account with a different currency. This happens due to foreign exchange (FX) fees when transmitting payments across borders, or fees charged by the receiving bank. The employee absorbs these fees, while the company sees the full report amount on their statement.
+When a reimbursement is paid into a bank account with a different currency, Expensify's currency conversion costs can make the deposited amount smaller than expected. Who absorbs Expensify's conversion costs depends on the setting at **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees**:
+
+- **Employee pays** (the default for existing Global Reimbursement setups): the employee absorbs Expensify's conversion costs, and the company sees the report total on their statement.
+- **Company pays** (the default for new Global Reimbursement setups): the company absorbs Expensify's conversion costs so the employee receives the full intended amount in their local currency before any receiving-bank fees, and the company's business bank account is debited more than the report total.
+
+The receiving bank may charge its own fees, reducing the final deposit even when **Company pays** is selected. This setting does not cover or prevent receiving-bank fees.
+
+Learn how to [choose who pays currency conversion fees](/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-who-pays-currency-conversion-fees).
 
 ## Why is the reimbursement amount different from the expense amount?
-If your workspace and employees use different currencies, the reimbursement amount received by the employee will differ from the original expense amount. Exchange rates set by different providers on different days can cause the final amount to differ slightly from the original expense. Transaction fees may also contribute to this difference.
+If your workspace and employees use different currencies, the reimbursement amount received by the employee can differ from the original expense amount. Exchange rates set by different providers on different days can cause the final amount to differ slightly from the original expense. When **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, the company absorbs Expensify's conversion costs. Any fees charged separately by the receiving bank can still reduce the final deposit.
 
 If a payment bounces and must be returned to the business bank account, the conversion fee is incurred again. This means the returned payment will be credited to your business bank account for an amount different from the original withdrawal. Track and reconcile these differences using the 'International Reimbursement ID' stored in each report's details.
+
+## Why does the payment message on a cross-border report show a different amount than the report total?
+When a report is paid across borders from a business bank account, the payment message on the report names the exact amount credited to the employee in their own deposit currency, along with the last four digits of the account the payment was sent from and the account it was deposited into. This credited amount can differ from the report total because of the currency conversion and any FX fees described above. Same-currency reimbursements continue to show the report total.
 
 </div>

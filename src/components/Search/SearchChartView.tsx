@@ -1,6 +1,6 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
 import type {ChartDataPoint, ChartValueFormatter} from '@components/Charts/types';
-import formatExpenseCount from '@components/Charts/utils/formatExpenseCount';
+import formatChartCount, {MAX_COUNT_FRACTION_DIGITS} from '@components/Charts/utils/formatChartCount';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -22,7 +22,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
-import type {ChartView, GroupedItem, SearchChartMetric, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartView, GroupedItem, SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchQueryJSON} from './types';
 
 import {buildChartSeries, isChartAverage} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
@@ -56,6 +56,9 @@ type SearchChartViewProps = {
     /** What the chart plots for each group: the money it totals, or how many expenses it holds. Defaults to the amount. */
     metric?: SearchChartMetric;
 
+    /** What a group's count counts, which names it in the tooltip. Defaults to expenses. */
+    countDimension?: SearchChartCountDimension;
+
     isLoading?: boolean;
 
     /** Whether a bar chart labels its bars and a donut chart shows its legend. Line chart labels always show. */
@@ -66,6 +69,12 @@ type SearchChartViewProps = {
 
     /** Whether pressing a bar, point or slice opens Search filtered to it */
     shouldDrillDownOnPress?: boolean;
+
+    /** Called with the group whose bar, point, slice or touch-opened tooltip is pressed. Takes precedence over `shouldDrillDownOnPress`. */
+    onGroupPress?: (item: GroupedItem) => void;
+
+    /** Shown at the end of a tooltip opened by a touch tap */
+    tooltipFooter?: React.ReactNode;
 
     /** Whether a line chart with a single point is drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
@@ -93,10 +102,13 @@ function SearchChartView({
     groupBy,
     data,
     metric = CONST.SEARCH.CHART_METRIC.AMOUNT,
+    countDimension = CONST.SEARCH.CHART_COUNT_DIMENSION.EXPENSE,
     isLoading,
     shouldShowGroupLabels = true,
     shouldUseResponsiveLabels = false,
     shouldDrillDownOnPress = true,
+    onGroupPress,
+    tooltipFooter,
     shouldShowSinglePointAsBar = false,
     comparison,
     shouldShowRunningTotal = false,
@@ -118,7 +130,9 @@ function SearchChartView({
     // A count names what it counts, since nothing else in a tooltip or a donut's centre says the number is expenses rather than money.
     // Axis ticks take the bare number instead, to stay short, and `shouldUseWholeNumberTicks` keeps them off fractions of an expense.
     const formatCount: ChartValueFormatter = (value, options) =>
-        options?.shouldUseCompactNotation ? numberFormat(value, {notation: 'compact'}).replace('K', 'k') : formatExpenseCount(value, translate, numberFormat);
+        options?.shouldUseCompactNotation
+            ? numberFormat(value, {notation: 'compact', maximumFractionDigits: MAX_COUNT_FRACTION_DIGITS}).replace('K', 'k')
+            : formatChartCount(value, countDimension, translate, numberFormat);
     const formatValue = isCountMetric ? formatCount : undefined;
 
     // A count says nothing about the money behind it, so a count chart names each group's spend alongside it, in that group's own currency.
@@ -156,7 +170,16 @@ function SearchChartView({
 
     const handleItemPress = (dataPoint: ChartDataPoint, index: number) => {
         const item = rows.at(index)?.item;
-        if (!item || !queryJSON) {
+        if (!item) {
+            return;
+        }
+
+        if (onGroupPress) {
+            onGroupPress(item);
+            return;
+        }
+
+        if (!queryJSON) {
             return;
         }
 
@@ -169,6 +192,7 @@ function SearchChartView({
     };
 
     const onItemPress = shouldDrillDownOnPress ? handleItemPress : undefined;
+    const onTooltipPress = onGroupPress ? handleItemPress : undefined;
 
     const firstItem = data.at(0);
     const currency = sanitizeCurrencyCode(firstItem?.currency ?? CONST.CURRENCY.USD);
@@ -186,9 +210,12 @@ function SearchChartView({
                 series={series}
                 isLoading={isLoading}
                 onBarPress={onItemPress}
+                onTooltipPress={onTooltipPress}
+                tooltipFooter={tooltipFooter}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 formatValue={formatValue}
+                countDimension={countDimension}
                 shouldUseWholeNumberTicks={isCountMetric}
                 shouldShowLabels={shouldShowGroupLabels}
                 shouldWrapLabels={shouldUseResponsiveLabels}
@@ -201,9 +228,12 @@ function SearchChartView({
                     series={series}
                     isLoading={isLoading}
                     onBarPress={onItemPress}
+                    onTooltipPress={onTooltipPress}
+                    tooltipFooter={tooltipFooter}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     shouldUseWholeNumberTicks={isCountMetric}
                 />
             ) : (
@@ -212,11 +242,14 @@ function SearchChartView({
                     series={series}
                     isLoading={isLoading}
                     onPointPress={onItemPress}
+                    onTooltipPress={onTooltipPress}
+                    tooltipFooter={tooltipFooter}
                     labelSteps={labelSteps}
                     shouldShowTooltipChange={!shouldShowRunningTotal || !isChartAverage(comparison)}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     shouldUseWholeNumberTicks={isCountMetric}
                 />
             ),
@@ -226,10 +259,13 @@ function SearchChartView({
                 series={series}
                 isLoading={isLoading}
                 onSlicePress={onItemPress}
+                onTooltipPress={onTooltipPress}
+                tooltipFooter={tooltipFooter}
                 valueUnit={unit?.value}
                 valueUnitPosition={unitPosition}
                 valueDecimals={getCurrencyDecimals(currency)}
                 formatValue={formatValue}
+                countDimension={countDimension}
                 shouldShowLegend={shouldShowGroupLabels}
                 shouldUseResponsiveLegend={shouldUseResponsiveLabels}
             />

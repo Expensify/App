@@ -253,6 +253,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         }
                         footerContent={
                             <FormAlertWithSubmitButton
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_CARD_SAVE}
                                 buttonText={hasEligibleCards ? translate('common.save') : translate('common.buttonConfirm')}
                                 isAlertVisible={false}
                                 isDisabled={isCardSettingsLoading}
