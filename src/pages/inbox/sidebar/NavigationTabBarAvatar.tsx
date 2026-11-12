@@ -1,4 +1,5 @@
 import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
+import getTabAccessibilityLabel from '@components/Navigation/NavigationTabBar/getTabAccessibilityLabel';
 import TabBarLabel from '@components/Navigation/NavigationTabBar/TabBarLabel';
 import {PressableWithFeedback} from '@components/Pressable';
 
@@ -35,7 +36,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     return (
         <PressableWithFeedback
             onPress={onPress}
-            accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
+            accessibilityLabel={getTabAccessibilityLabel(`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}`, !!status, translate)}
             role={CONST.ROLE.TAB}
             wrapperStyle={shouldUseNarrowLayout ? styles.navigationTabBarSlot : styles.flex1}
             accessibilityState={accountAccessibilityState}

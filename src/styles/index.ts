@@ -6,6 +6,7 @@ import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/Wid
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
+import {getSidePanelWidthStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import CONST from '@src/CONST';
@@ -561,11 +562,6 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: lineHeightScale.label,
         },
 
-        /** Gives every digit the same advance so a counter doesn't shift sideways as its digits change. */
-        tabularNums: {
-            fontVariant: ['tabular-nums'],
-        },
-
         mutedNormalTextLabel: {
             color: theme.textSupporting,
             fontSize: fontScale.label,
@@ -769,7 +765,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
         },
@@ -881,6 +876,51 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: 4,
+        },
+
+        flatNavigationBarContainer: {
+            height: '100%',
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+            backgroundColor: theme.appBG,
+        },
+
+        flatNavigationBarHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            height: variables.flatNavigationBarHeaderHeight,
+            paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+        },
+
+        flatNavigationBarCreateButtonContainer: {
+            marginHorizontal: variables.flatNavigationBarCreateButtonInset,
+            marginBottom: variables.flatNavigationBarCreateButtonGap,
+        },
+
+        flatNavigationBarCreateButton: {
+            height: variables.flatNavigationBarCreateButtonHeight,
+            minHeight: variables.flatNavigationBarCreateButtonHeight,
+        },
+
+        flatNavigationBarItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            height: variables.flatNavigationBarItemHeight,
+            paddingHorizontal: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        flatNavigationBarAccountItem: {
+            height: variables.flatNavigationBarAccountItemHeight,
+        },
+
+        flatNavigationBarDivider: {
+            height: 1,
+            marginHorizontal: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+            marginVertical: 8,
+            backgroundColor: theme.border,
         },
 
         button: {
@@ -2052,6 +2092,16 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
             boxShadow: 'none',
+        },
+
+        // The liquid glass behind the icon draws the button's surface and its own depth.
+        floatingActionButtonGlass: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+        },
+
+        floatingButtonGlass: {
+            borderRadius: variables.componentBorderRadiusCircle,
         },
 
         floatingCameraButton: {
@@ -4091,6 +4141,12 @@ const staticStyles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        // Lays a centered heading's label over the hidden copy that sizes its slot
+        searchColumnMenuLabelOverlay: {
+            ...StyleSheet.absoluteFill,
+            justifyContent: 'center',
+        },
+
         zIndex10: {
             zIndex: 10,
         },
@@ -4370,6 +4426,20 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: 20,
+        },
+
+        receiptScanningLine: {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderTopWidth: CONST.RECEIPT.TRANSLATION_SCAN_LINE_HEIGHT,
+            borderTopColor: theme.success,
+        },
+
+        translatedReceiptCard: {
+            width: '100%',
+            maxWidth: 400,
         },
 
         bgGreenSuccess: {
@@ -6965,6 +7035,15 @@ const staticStyles = (theme: ThemeColors) =>
             right: -variables.sideBarWidth,
             backgroundColor: theme.overlay,
         },
+        // Straddles the side panel's left edge, so the line drawn at its centre runs just outside the panel's border.
+        sidePanelResizeHandle: {
+            ...positioning.pAbsolute,
+            top: 0,
+            bottom: 0,
+            left: -CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2,
+            width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
+        } satisfies ViewStyle,
+
         sidePanelContent: {
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             top: 0,
@@ -7250,8 +7329,19 @@ const dynamicStyles = (theme: ThemeColors) =>
                 ...positioning.pAbsolute,
                 top: variables.rhpFloatingCardMargin,
                 bottom: variables.rhpFloatingCardMargin,
-                width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
-                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+                width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
+            }) satisfies ViewStyle,
+
+        // Spans the single RHP card and the handle straddling its left edge, and shares their containing block's right, top and bottom edges.
+        rhpResizableDialog: (singleRHPWidth: number) =>
+            ({
+                ...positioning.pAbsolute,
+                ...pointerEventsBoxNone,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET + CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
             }) satisfies ViewStyle,
 
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
@@ -7597,8 +7687,8 @@ const dynamicStyles = (theme: ThemeColors) =>
         sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
             opacity: isOverlayVisible ? variables.overlayOpacity : 0,
         }),
-        sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
-            width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
+        sidePanelContentWidth: (shouldUseNarrowLayout: boolean, sidePanelWidth: number): ViewStyle => ({
+            width: shouldUseNarrowLayout ? '100%' : getSidePanelWidthStyleValue(sidePanelWidth),
         }),
         sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
@@ -8039,9 +8129,9 @@ const plainStyles = (theme: ThemeColors) =>
                 gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
             }) satisfies ViewStyle,
 
-        insightsAICardText: {
-            width: variables.insightsAICardTextWidth,
-        } satisfies TextStyle,
+        insightsAICard: {
+            width: variables.insightsAICardWidth,
+        } satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {
             width: variables.insightsEmptyStateIllustrationSize,

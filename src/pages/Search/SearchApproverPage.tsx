@@ -175,6 +175,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
 
     const button = (
         <FormAlertWithSubmitButton
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.APPROVER_SAVE_BUTTON}
             isDisabled={!selectedApproverEmail}
             buttonText={translate('common.save')}
             onSubmit={addApprover}

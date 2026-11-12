@@ -19,7 +19,7 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SageIntacctMappingName, SageIntacctMappingValue} from '@src/types/onyx/Policy';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
@@ -36,7 +37,7 @@ import {useSharedValue} from 'react-native-reanimated';
 
 type SageIntacctToggleMappingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
 
-const IMPORT_MAPPING_SWITCH_SENTRY_LABELS: Record<SageIntacctMappingName, string> = {
+const IMPORT_MAPPING_SWITCH_SENTRY_LABELS: Record<SageIntacctMappingName, SentryLabel> = {
     [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_DEPARTMENTS_SWITCH,
     [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_CLASSES_SWITCH,
     [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_LOCATIONS_SWITCH,
@@ -129,11 +130,8 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(
-                            () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName)),
-                            false,
-                            session,
-                        )}
+                        onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName)), session)}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.MAPPING_TYPE}
                     >
                         <MenuItemField.Row
                             name={translate('workspace.common.displayedAs')}

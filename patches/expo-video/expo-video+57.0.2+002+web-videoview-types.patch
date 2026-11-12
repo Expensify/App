@@ -1,0 +1,24 @@
+diff --git a/node_modules/expo-video/build/VideoView.web.d.ts b/node_modules/expo-video/build/VideoView.web.d.ts
+index 55c6d82..48eda21 100644
+--- a/node_modules/expo-video/build/VideoView.web.d.ts
++++ b/node_modules/expo-video/build/VideoView.web.d.ts
+@@ -1,9 +1,16 @@
+ import React from 'react';
+-import type VideoPlayer from './VideoPlayer.web';
++import type { VideoPlayer } from './VideoPlayer.types';
+ import type { VideoViewProps } from './VideoView.types';
+ export declare function isPictureInPictureSupported(): boolean;
++export type VideoView = {
++    enterFullscreen(): Promise<void>;
++    exitFullscreen(): Promise<void>;
++    startPictureInPicture(): Promise<void>;
++    stopPictureInPicture(): Promise<void>;
++    nativeRef: React.RefObject<HTMLVideoElement | null>;
++};
+ export declare const VideoView: React.ForwardRefExoticComponent<{
+     player?: VideoPlayer;
+-} & VideoViewProps & React.RefAttributes<unknown>>;
++} & VideoViewProps & React.RefAttributes<VideoView>>;
+ export default VideoView;
+ //# sourceMappingURL=VideoView.web.d.ts.map
+\ No newline at end of file

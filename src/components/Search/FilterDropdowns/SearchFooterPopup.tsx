@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFooterCountItems, getFooterTotalItems} from '@libs/SearchUIUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -107,7 +107,7 @@ function SearchFooterPopup({
                 )}
                 {shouldShowTotalSelector && !!totalType && (
                     <MenuItem.Root
-                        onPress={!isTotalLoading ? callFunctionIfActionIsAllowed(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL), false, session) : undefined}
+                        onPress={!isTotalLoading ? callIfAuthenticated(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL), session) : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL}
                     >
                         <MenuItemField.Row
@@ -119,11 +119,7 @@ function SearchFooterPopup({
                     </MenuItem.Root>
                 )}
                 <MenuItem.Root
-                    onPress={
-                        !isTotalLoading && !isOffline
-                            ? callFunctionIfActionIsAllowed(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY), false, session)
-                            : undefined
-                    }
+                    onPress={!isTotalLoading && !isOffline ? callIfAuthenticated(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY), session) : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_CURRENCY}
                 >
                     <MenuItemField.Row
@@ -150,6 +146,8 @@ function SearchFooterPopup({
                 // Reset falls back to the count that matches the search type, which is also what an unset selection shows.
                 onChange={(item) => onCountChange(item?.value ?? defaultCountType)}
                 defaultValue={defaultCountType}
+                applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_APPLY.COUNT}
+                resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_RESET.COUNT}
             />
         );
     }
@@ -164,6 +162,8 @@ function SearchFooterPopup({
                 closeOverlay={closeOverlay}
                 onChange={(item) => onTotalChange(item?.value ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL)}
                 defaultValue={CONST.SEARCH.FOOTER_TOTAL.TOTAL}
+                applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_APPLY.TOTAL}
+                resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_RESET.TOTAL}
             />
         );
     }
@@ -180,6 +180,8 @@ function SearchFooterPopup({
             defaultValue={defaultCurrency}
             shouldShowList={isExpanded}
             shouldUseFixedPopoverHeight
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_APPLY.CURRENCY}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_RESET.CURRENCY}
         />
     );
 }
