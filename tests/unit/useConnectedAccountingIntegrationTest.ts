@@ -311,27 +311,27 @@ describe('useConnectedAccountingIntegration', () => {
     });
 
     describe('Configuration rows for Digits', () => {
-        it('should show the Import row but not the Export and Advanced rows', () => {
-            // Given a workspace connected to Digits, which only has its Import page so far
+        it('should show the Import and Export rows but not the Advanced row', () => {
+            // Given a workspace connected to Digits, which has its Import and Export pages but no Advanced page yet
             mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.DIGITS;
 
             // When the connected integration's settings rows are built
             const titles = getSettingsMenuItemTitles(policy);
 
-            // Then only Import is offered, because the Export and Advanced pages arrive in later releases and their rows would lead nowhere
+            // Then Advanced is left out, because its page arrives in a later release and the row would lead nowhere
             expect(titles).toContain('workspace.accounting.import');
-            expect(titles).not.toContain('workspace.accounting.export');
+            expect(titles).toContain('workspace.accounting.export');
             expect(titles).not.toContain('workspace.accounting.advanced');
         });
 
-        it('should keep the Export and Advanced rows for other connectors', () => {
+        it('should keep the Advanced row for other connectors', () => {
             // Given a workspace connected to Campfire, which has every configuration page
             mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
 
             // When the connected integration's settings rows are built
             const titles = getSettingsMenuItemTitles(campfirePolicy);
 
-            // Then all three rows show, since only Digits hides the rows for pages it doesn't have yet
+            // Then all three rows show, since only Digits hides the row for a page it doesn't have yet
             expect(titles).toEqual(expect.arrayContaining(['workspace.accounting.import', 'workspace.accounting.export', 'workspace.accounting.advanced']));
         });
     });

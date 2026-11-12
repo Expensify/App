@@ -1941,6 +1941,10 @@ const SENTRY_LABEL = {
                 ACCOUNTS_SWITCH: 'WorkspaceAccountingDigits-AccountsSwitch',
                 ENABLE_NEW_ACCOUNTS_SWITCH: 'WorkspaceAccountingDigits-EnableNewAccountsSwitch',
                 DEPARTMENTS_SWITCH: 'WorkspaceAccountingDigits-DepartmentsSwitch',
+                PREFERRED_EXPORTER: 'WorkspaceAccountingDigits-PreferredExporter',
+                EXPORT_DATE: 'WorkspaceAccountingDigits-ExportDate',
+                DEFAULT_COMPANY_CARD_VENDOR: 'WorkspaceAccountingDigits-DefaultCompanyCardVendor',
+                COMPANY_CARD_ACCOUNT: 'WorkspaceAccountingDigits-CompanyCardAccount',
             },
             CERTINIA: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingCertinia-AutoSyncSwitch',

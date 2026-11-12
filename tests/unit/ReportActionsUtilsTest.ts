@@ -1573,6 +1573,24 @@ describe('ReportActionsUtils', () => {
             ]);
         });
 
+        it('links several Digits card transactions to their Digits ledger', () => {
+            // Given a Digits export that created a ledger transaction for each of two company card expenses
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.DIGITS, [
+                'https://my.digits.com/@acme/transactions/ledger/txn-1',
+                'https://my.digits.com/@acme/transactions/ledger/txn-2',
+            ]);
+
+            // When the export confirmation is formatted
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            // Then the company card link opens the company's Digits ledger instead of falling back to QuickBooks Online
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.EXPORT_LABELS.DIGITS}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://my.digits.com/@acme/transactions/ledger'},
+            ]);
+        });
+
         it('does not link Business Central export record IDs', () => {
             // Given an export with one out-of-pocket record and multiple company card records stored as IDs
             const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.BUSINESS_CENTRAL, ['card-record-1', 'card-record-2'], ['reimbursable-record-1']);

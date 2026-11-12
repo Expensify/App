@@ -7111,6 +7111,53 @@ const translations = {
             enableNewAccountsDescription: 'New Digits accounts will be available as categories.',
             dimensionsImport: 'All Digits dimensions import as tags.',
             departments: 'Departments',
+            exportDescription: 'Configure how Expensify data exports to Digits.',
+            exportReimbursable: {
+                label: 'Export reimbursable expenses as',
+                values: {
+                    VENDOR_BILL: {
+                        label: 'Vendor bills',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Vendor bill date',
+                description: 'Use this date when exporting reports to Digits.',
+                values: {
+                    LAST_EXPENSE: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    REPORT_EXPORTED: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to Digits.',
+                    },
+                    REPORT_SUBMITTED: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Export company card expenses as',
+                values: {
+                    TRANSACTION: {
+                        label: 'Transactions',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Default vendor for all company cards',
+                description: "Choose a default Digits vendor for expenses that don't match automatically.",
+            },
+            companyCardAccount: {
+                label: 'Company card account',
+                description: 'Choose where to export company card transactions.',
+            },
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Digits and sync the connection again',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Please add bank or credit card accounts in Digits and sync the connection again',
         },
         zohoBooks: {
             organization: 'Zoho Books organization',

@@ -1,7 +1,7 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {Filter} from '@components/Search/types';
 
-import {getExportLabelsForConnection, getStandardExportTemplateDisplayName, shouldShowConnectionInExportedToFilter} from '@libs/AccountingUtils';
+import {getExportLabelsForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -79,7 +79,7 @@ export default function useExportedToFilterOptions(policyIDsOverride?: Filter): 
     const connectedIntegrationNames = policyIDs.value?.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
 
     const connectedIntegrationSearchValues = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.flatMap((connectionName) => {
-        if (!shouldShowConnectionInExportedToFilter(connectionName) || !connectedIntegrationNames.has(connectionName)) {
+        if (!connectedIntegrationNames.has(connectionName)) {
             return [];
         }
 
