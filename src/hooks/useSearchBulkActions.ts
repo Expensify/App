@@ -1024,17 +1024,23 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const selectedBulkPayReport = selectedBulkPayReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedBulkPayReportID}`] : undefined;
     const selectedBulkPayChatReportID = selectedBulkPayReport?.chatReportID;
 
+    // Bulk pay pays the selected reports that can be paid, or the reports behind the selected expenses when no report is selected
+    const bulkPaySelectedOptions = useMemo(
+        () => (selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions)),
+        [selectedReports.length, payableSelectedReports, selectedTransactions],
+    );
+
     // A bank payment of this selection would pay none of it, so it explains why before asking for account validation or bank setup
     const isBankPayBlockedForSelection = useMemo(() => {
+        // The backend pays a "Select all" selection itself and skips the reports with nothing owed there
         if (areAllMatchingItemsSelected) {
             return false;
         }
-        const selectedOptions = selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions);
         return (
-            selectedOptions.length > 0 &&
-            selectedOptions.every((item) => isSelectedReportBankPayBlocked(getReportFromSearchSnapshot(item.reportID, searchResults?.data, allReports), searchResults?.data, policies))
+            bulkPaySelectedOptions.length > 0 &&
+            bulkPaySelectedOptions.every((item) => isSelectedReportBankPayBlocked(getReportFromSearchSnapshot(item.reportID, searchResults?.data, allReports), searchResults?.data, policies))
         );
-    }, [areAllMatchingItemsSelected, selectedReports.length, payableSelectedReports, selectedTransactions, searchResults?.data, allReports, policies]);
+    }, [areAllMatchingItemsSelected, bulkPaySelectedOptions, searchResults?.data, allReports, policies]);
 
     const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: payScopedPolicyIDs.at(0),
@@ -1788,7 +1794,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const selectedOptions = selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions);
+            const selectedOptions = bulkPaySelectedOptions;
             const expenseReportBankAccountID = additionalData?.bankAccountID;
 
             const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
@@ -1815,18 +1821,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             // A report with nothing owed can only be marked as paid, so a bank payment leaves it out and lists it for the user once the rest are paid
             const bankPaySkippedReportsByID = new Map<string, Report>();
-            for (const reportID of new Set(selectedOptions.map((item) => item.reportID))) {
-                const report = reportID ? getReportFromSearchSnapshot(reportID, searchResults?.data, allReports) : undefined;
-                if (!reportID || !report) {
-                    continue;
-                }
-                const reportPaymentMethod =
-                    paymentMethod ?? getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods, getReportType(report), isIOUReportUtil(reportID));
-                if (!reportPaymentMethod || reportPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                    continue;
-                }
-                if (isSelectedReportBankPayBlocked(report, searchResults?.data, policies)) {
-                    bankPaySkippedReportsByID.set(reportID, report);
+            if (paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                for (const reportID of new Set(selectedOptions.map((item) => item.reportID))) {
+                    const report = reportID ? getReportFromSearchSnapshot(reportID, searchResults?.data, allReports) : undefined;
+                    if (!reportID || !report) {
+                        continue;
+                    }
+                    const reportPaymentMethod =
+                        paymentMethod ?? getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods, getReportType(report), isIOUReportUtil(reportID));
+                    if (!reportPaymentMethod || reportPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                        continue;
+                    }
+                    if (isSelectedReportBankPayBlocked(report, searchResults?.data, policies)) {
+                        bankPaySkippedReportsByID.set(reportID, report);
+                    }
                 }
             }
             const showBankPaySkippedReports = (skippedReports?: BankPaySkippedReport[]) =>
@@ -2180,6 +2188,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             showWiseQuoteCarouselModal,
             showBankPaySkippedModal,
             payScopedPolicyIDs,
+            bulkPaySelectedOptions,
             showOfflineModal,
             areAllMatchingItemsSelected,
             queryJSON,

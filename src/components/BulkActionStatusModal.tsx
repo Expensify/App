@@ -155,6 +155,7 @@ function BulkActionDone({action, total, failedReportIDs, skippedReportIDs, isBan
     const {translate} = useLocalize();
     const unpaidReportIDs = [...failedReportIDs, ...skippedReportIDs];
     const doneTitlePath = isBankPayment ? 'bulkAction.paidWithBankTitle' : DONE_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY];
+    // Clamped at 0 in case the backend's total leaves out reports it skipped, so the title never reads "Paid -1 of 3"
     const doneTitle = total === 0 ? translate('bulkAction.noReportsTitle') : translate(doneTitlePath, {doneCount: Math.max(total - unpaidReportIDs.length, 0), count: total});
 
     const viewUnpaidReports = () => {

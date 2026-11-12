@@ -9,7 +9,6 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
-import useBankPaySkippedModal from '@hooks/useBankPaySkippedModal';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -22,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
+import useReportBankPaySkippedModal from '@hooks/useReportBankPaySkippedModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
@@ -177,7 +177,7 @@ function SettlementButton({
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const isBankAccountLocked = canAccessPolicyBankAccount(policy, bankAccountList) && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
-    const {isBankPayBlocked, showBankPaySkippedModal} = useBankPaySkippedModal({bankAccountList, report: iouReport, policy, onlyShowPayElsewhere});
+    const {isBankPayBlocked, showReportBankPaySkippedModal} = useReportBankPaySkippedModal({bankAccountList, report: iouReport, policy, onlyShowPayElsewhere});
 
     function getLatestPersonalBankAccount() {
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
@@ -257,7 +257,7 @@ function SettlementButton({
 
     const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>, bankAccountID?: number) => {
         if (isBankPayBlocked && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            showBankPaySkippedModal({bankAccountID});
+            showReportBankPaySkippedModal(bankAccountID);
             return;
         }
         if (checkForNecessaryAction(paymentMethodType, action)) {

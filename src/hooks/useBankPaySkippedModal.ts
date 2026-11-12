@@ -3,10 +3,9 @@
  * for a single report, for some reports of a bulk payment, or for a bulk payment where none could be paid.
  */
 import {getAccessiblePolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {isBankPayBlockedBySpend} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import type {BankAccountList, Policy, Report} from '@src/types/onyx';
+import type {BankAccountList, Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -21,41 +20,35 @@ type BankPaySkippedReport = {
 type UseBankPaySkippedModalParams = {
     /** The user's bank accounts, so the title can name the one paying */
     bankAccountList: OnyxEntry<BankAccountList>;
-
-    /** The report a single Pay button pays. Left out for a bulk payment */
-    report?: OnyxEntry<Report>;
-
-    /** The workspace whose bank account the title names when none was picked */
-    policy?: OnyxEntry<Policy>;
-
-    /** Whether the report can only be marked as paid, before its bank account option is kept to explain why it can't pay */
-    onlyShowPayElsewhere?: boolean;
 };
 
 type ShowBankPaySkippedModalParams = {
     /** The bank account picked to pay with, which the title names */
     bankAccountID?: number;
 
-    /** The workspace whose bank account names the title in a bulk payment, which can span several */
+    /** The workspace whose bank account the title names when none was picked */
     policy?: OnyxEntry<Policy>;
 
-    /** Reports a bulk payment left unpaid while it paid the others. Leave it empty when nothing was paid */
+    /** Whether one report was paid from its own Pay button rather than a selection in bulk */
+    isSingleReport?: boolean;
+
+    /**
+     * Set when a bulk payment paid some reports and skipped these, to list them by name.
+     * Left out when it paid none of them. A skipped report without a name is simply missing from the list.
+     */
     skippedReports?: BankPaySkippedReport[];
 };
 
-function useBankPaySkippedModal({bankAccountList, report, policy, onlyShowPayElsewhere = false}: UseBankPaySkippedModalParams) {
+function useBankPaySkippedModal({bankAccountList}: UseBankPaySkippedModalParams) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
 
-    // Nothing is owed on the report, so the bank account stays on offer and picking it explains why it can't pay instead of hiding it
-    const isBankPayBlocked = onlyShowPayElsewhere && isBankPayBlockedBySpend(report, policy);
-
-    const showBankPaySkippedModal = ({bankAccountID, policy: titlePolicy = policy, skippedReports = []}: ShowBankPaySkippedModalParams = {}) => {
-        const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : getAccessiblePolicyBankAccount(titlePolicy, bankAccountList);
+    const showBankPaySkippedModal = ({bankAccountID, policy, isSingleReport = false, skippedReports}: ShowBankPaySkippedModalParams) => {
+        const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : getAccessiblePolicyBankAccount(policy, bankAccountList);
         const title = translate('iou.payWithBankAccountTitle', bankAccount?.accountData?.accountNumber?.slice(-4));
         const confirmText = translate('common.buttonConfirm');
 
-        if (!report && skippedReports.length > 0) {
+        if (!isSingleReport && skippedReports) {
             // A bulk payment can skip dozens of reports, so the names scroll under a fixed description to keep Got it on screen
             return showConfirmModal({
                 title,
@@ -69,13 +62,13 @@ function useBankPaySkippedModal({bankAccountList, report, policy, onlyShowPayEls
 
         return showConfirmModal({
             title,
-            prompt: translate(report ? 'iou.bankPayReportSkippedDescription' : 'iou.bankPayAllReportsSkippedDescription'),
+            prompt: translate(isSingleReport ? 'iou.bankPayReportSkippedDescription' : 'iou.bankPayAllReportsSkippedDescription'),
             confirmText,
             shouldShowCancelButton: false,
         });
     };
 
-    return {isBankPayBlocked, showBankPaySkippedModal};
+    return {showBankPaySkippedModal};
 }
 
 export default useBankPaySkippedModal;
