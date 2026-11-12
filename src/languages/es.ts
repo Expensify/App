@@ -8496,6 +8496,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             statusExpired: 'Expirado',
             statusInactive: 'Inactivo',
             unit: 'Unidad',
+            ukFuelRateTaxError: 'Añade una tasa impositiva del 20% para registrar los impuestos de las tarifas de combustible recomendadas del Reino Unido.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Añade una tasa impositiva del 20% en ${integrationName} para registrar los impuestos de las tarifas de combustible recomendadas del Reino Unido.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a <a href="#">Más funcionalidades</a> para hacer ese cambio.</muted-text>',
             deleteDistanceRate: 'Eliminar tasa de distancia',

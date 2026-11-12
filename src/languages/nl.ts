@@ -8335,6 +8335,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             statusExpired: 'Verlopen',
             statusInactive: 'Inactief',
             unit: 'Eenheid',
+            ukFuelRateTaxError: 'Voeg een belastingtarief van 20% toe om belasting bij te houden voor de Britse adviesbrandstoftarieven.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Voeg een belastingtarief van 20% toe in ${integrationName} om belasting bij te houden voor de Britse adviesbrandstoftarieven.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Belastingen moeten in de workspace zijn ingeschakeld om deze functie te gebruiken. Ga naar <a href="#">Meer functies</a> om dat te wijzigen.</muted-text>',
             deleteDistanceRate: 'Afstandstarief verwijderen',

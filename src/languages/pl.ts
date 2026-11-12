@@ -8368,6 +8368,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             statusExpired: 'Wygasła',
             statusInactive: 'Nieaktywna',
             unit: 'Jednostka',
+            ukFuelRateTaxError: 'Dodaj stawkę podatku 20%, aby śledzić podatek dla brytyjskich zalecanych stawek paliwowych.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Dodaj stawkę podatku 20% w ${integrationName}, aby śledzić podatek dla brytyjskich zalecanych stawek paliwowych.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Aby korzystać z tej funkcji, włącz podatki w przestrzeni roboczej. Przejdź do sekcji <a href="#">Więcej funkcji</a>, aby to zmienić.</muted-text>',
             deleteDistanceRate: 'Usuń stawkę za dystans',

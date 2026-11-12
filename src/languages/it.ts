@@ -8356,6 +8356,9 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             statusExpired: 'Scaduto',
             statusInactive: 'Inattivo',
             unit: 'Unit',
+            ukFuelRateTaxError: 'Aggiungi un’aliquota del 20% per monitorare le imposte sulle tariffe carburante consigliate del Regno Unito.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Aggiungi un’aliquota del 20% in ${integrationName} per monitorare le imposte sulle tariffe carburante consigliate del Regno Unito.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Per usare questa funzione devi abilitare le imposte nello spazio di lavoro. Vai su <a href="#">Altre funzionalità</a> per effettuare questa modifica.</muted-text>',
             deleteDistanceRate: 'Elimina tariffa chilometrica',

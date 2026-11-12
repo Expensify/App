@@ -440,6 +440,7 @@ export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDist
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
 export type {default as SetWorkspaceDistanceAutoUpdateParams} from './SetWorkspaceDistanceAutoUpdateParams';
 export type {default as EnableDistanceRequestTaxParams} from './EnableDistanceRequestTaxParams';
+export type {default as DismissUKFuelRateTaxErrorParams} from './DismissUKFuelRateTaxErrorParams';
 export type {default as SetCustomUnitDefaultCategoryParams} from './SetCustomUnitDefaultCategoryParams';
 export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolicyDistanceRateValueParams';
 export type {default as UpdatePolicyDistanceRateParams} from './UpdatePolicyDistanceRateParams';

@@ -8432,6 +8432,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             statusExpired: 'Expiré',
             statusInactive: 'Inactif',
             unit: 'Unité',
+            ukFuelRateTaxError: 'Veuillez ajouter un taux de taxe de 20 % pour suivre la taxe sur les tarifs de carburant recommandés au Royaume-Uni.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Veuillez ajouter un taux de taxe de 20 % dans ${integrationName} pour suivre la taxe sur les tarifs de carburant recommandés au Royaume-Uni.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Les taxes doivent être activées sur l’espace de travail pour utiliser cette fonctionnalité. Rendez-vous dans <a href="#">Plus de fonctionnalités</a> pour effectuer cette modification.</muted-text>',
             deleteDistanceRate: 'Supprimer le taux de distance',
