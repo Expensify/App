@@ -9942,6 +9942,7 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: 'Οντότητα',
             updateCurrencyTitle: 'Ενημέρωση νομίσματος χώρου εργασίας;',
             updateCurrencyPrompt: 'Το Digits είναι προς το παρόν διαθέσιμο μόνο για εταιρείες με έδρα στις ΗΠΑ που λειτουργούν σε USD.',
             importDescription: 'Επιλέξτε ποιες διαμορφώσεις Digits θέλετε να εισαγάγετε.',

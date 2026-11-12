@@ -9575,6 +9575,7 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: 'エンティティ',
             updateCurrencyTitle: 'ワークスペースの通貨を更新しますか？',
             updateCurrencyPrompt: 'Digits は現在、USD で運営されている米国拠点の企業のみご利用いただけます。',
             importDescription: 'インポートする Digits の設定を選択してください。',

@@ -9678,6 +9678,7 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: 'Entidad',
             updateCurrencyTitle: '¿Actualizar la moneda del espacio de trabajo?',
             updateCurrencyPrompt: 'Digits actualmente solo está disponible para empresas con sede en EE. UU. que operan en USD.',
             importDescription: 'Elige qué configuraciones de Digits quieres importar.',
