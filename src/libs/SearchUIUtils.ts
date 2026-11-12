@@ -106,6 +106,7 @@ import type {ValueOf} from 'type-fest';
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
 import {addDays, format, getYear, parse, subDays} from 'date-fns';
+import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 
 import type {TransactionPreviewData} from './actions/Search';
@@ -121,6 +122,7 @@ import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
+import formatTagParentPath from './formatTagParentPath';
 import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
 import getTransactionFromTransactionListItem from './getTransactionFromTransactionListItem';
 import interceptAnonymousUser from './interceptAnonymousUser';
@@ -800,6 +802,10 @@ function isPolicyEligibleForTopCategories(policy: OnyxTypes.Policy): boolean {
     return isGroupPolicy(policy) && policy.areCategoriesEnabled === true;
 }
 
+function isPolicyEligibleForTopTags(policy: OnyxTypes.Policy): boolean {
+    return isGroupPolicy(policy) && policy.areTagsEnabled === true;
+}
+
 /**
  * `hasReportAwaitingApproval` seeds the approve suggestion so a user who is the manager of a report awaiting their
  * approval sees it even when they are not part of the policy's approval workflow (e.g. an approver chosen manually on
@@ -920,6 +926,8 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowExpensifyCardSuggestion || shouldShowReimbursementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion && !isTrackIntentWithWorkflowsDisabled,
             [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: shouldShowTopCategoriesSuggestion,
+            // Home builds this chart from the dashboard's saved level, not a canned Search suggestion.
+            [CONST.SEARCH.SEARCH_KEYS.TOP_TAGS]: false,
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: shouldShowViolationsBySubmitterSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
@@ -3333,6 +3341,16 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFil
     return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
 }
 
+/** The same leaf under different dependent parents must open a different expense search. */
+function buildTagGroupQuery(queryJSON: SearchQueryJSON, tagGroup: SearchTagGroup): SearchQueryJSON | undefined {
+    const isLevelAware = tagGroup.tagLevel !== undefined;
+    return buildSpecificGroupQuery(
+        isLevelAware ? {...queryJSON, tagLevel: tagGroup.tagLevel, tagParent: tagGroup.parentTagPath ?? ''} : queryJSON,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+        !isLevelAware && (tagGroup.tag === '' || tagGroup.tag === '(untagged)') ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
+    );
+}
+
 function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined): number[] {
     if (!data || !queryJSON?.groupBy) {
         return [];
@@ -3394,11 +3412,7 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
             case CONST.SEARCH.GROUP_BY.TAG: {
                 const tagGroup = group as SearchTagGroup;
                 if (tagGroup.tag !== undefined) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(
-                        queryJSON,
-                        CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                        tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
-                    );
+                    transactionsQueryJSON = buildTagGroupQuery(queryJSON, tagGroup);
                 }
                 break;
             }
@@ -3764,19 +3778,19 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
         if (isGroupEntry(key)) {
             const tagGroup = data[key] as SearchTagGroup;
 
-            const transactionsQueryJSON =
-                queryJSON && tagGroup.tag !== undefined
-                    ? buildSpecificGroupQuery(
-                          queryJSON,
-                          CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                          tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
-                      )
-                    : undefined;
+            const transactionsQueryJSON = queryJSON && tagGroup.tag !== undefined ? buildTagGroupQuery(queryJSON, tagGroup) : undefined;
 
             // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
             const rawTag = tagGroup.tag;
             const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
-            const formattedTag = isEmptyTag ? translate('search.noTag') : getCommaSeparatedTagNameWithSanitizedColons(rawTag);
+            const tagName = tagGroup.tagLevel !== undefined ? Str.htmlDecode(rawTag) : undefined;
+            let formattedTag: string;
+            if (tagName !== undefined) {
+                const parentLabel = formatTagParentPath(tagGroup.parentTagPath);
+                formattedTag = `${tagName}${parentLabel ? ` (${parentLabel})` : ''}`;
+            } else {
+                formattedTag = isEmptyTag ? translate('search.noTag') : getCommaSeparatedTagNameWithSanitizedColons(rawTag);
+            }
 
             tagSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.TAG,
@@ -3784,6 +3798,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
                 transactionsQueryJSON,
                 ...tagGroup,
                 formattedTag,
+                ...(tagGroup.tagLevel !== undefined && {formattedTagName: tagName}),
                 keyForList: key,
             };
         }
@@ -8454,6 +8469,7 @@ export {
     isPolicyEligibleForSpendOverTime,
     isPolicyEligibleForTopSpenders,
     isPolicyEligibleForTopCategories,
+    isPolicyEligibleForTopTags,
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,

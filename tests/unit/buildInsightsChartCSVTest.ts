@@ -183,4 +183,18 @@ describe('buildInsightsChartCSV', () => {
         // Then the CSV names the person rather than exposing only their internal account ID
         expect(csv).toBe('\uFEFFFrom,Expenses,Total,Currency\r\nAlex Smith,2,123.45,USD');
     });
+
+    it('exports selected-level names, ancestors, and shares of all spend in chart order', () => {
+        // Given tag rows with the same display labels as the chart
+        const data: GroupedItem[] = [
+            {...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.TAG, tag: 'R&D: West', formattedTagName: 'R&D: West', tagLevel: 2, parentTagPath: 'US', percentOfTotal: 40},
+            {...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.TAG, tag: '=1+1', formattedTagName: '=1+1', tagLevel: 2, parentTagPath: '', percentOfTotal: -5, total: -150},
+        ];
+
+        // When the tag ranking is exported
+        const csv = buildInsightsChartCSV({data, groupBy: CONST.SEARCH.GROUP_BY.TAG, currency: CONST.CURRENCY.USD, getCurrencyDecimals, translate, today: AFTER_EVERY_PERIOD});
+
+        // Then parents stay separate, untagged spend is not redistributed, and formulas cannot execute
+        expect(csv).toBe("\uFEFFTag,Parent,Total,Share of total (%),Expenses,Currency\r\nR&D: West,US,123.45,40,2,USD\r\n'=1+1,,-1.50,-5,2,USD");
+    });
 });

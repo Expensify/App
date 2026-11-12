@@ -83,14 +83,26 @@ function buildDashboardQuery(query: SearchQueryString, dashboard: InsightsDashbo
 /** Builds the dashboard-wide query the whole page is narrowed by. Keeps the grouping the user picked, Running total included, so reopening the dashboard restores it. `getQueryGroupBy` resolves it to a real bucket for the backend request. */
 function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
     // Running total is a display grouping outside the Search grammar, so it isn't a SearchGroupBy. The serializer writes it verbatim and the Insights parser reads it back.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the serializer accepts any groupBy string, and `parseInsightsFilters` reads `runningTotal` back off the raw query
-    return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy as SearchGroupBy, compare: filters.compare});
+    return buildQueryStringFromFilterFormValues({
+        ...buildFilterFormValues(filters),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the serializer accepts any groupBy string, and `parseInsightsFilters` reads `runningTotal` back off the raw query
+        groupBy: filters.groupBy as SearchGroupBy,
+        compare: filters.compare,
+        tagLevel: filters.tagLevel?.toString(),
+    });
 }
 
 /** Builds a chart's query with the page's filters applied. */
 function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): SearchQueryString {
     const query = buildQueryStringFromFilterFormValues(
-        {...buildFilterFormValues(filters, true, chart.dateFilterKey), has: chart.has, groupBy: chart.groupBy ?? getQueryGroupBy(filters), view: chart.view, compare},
+        {
+            ...buildFilterFormValues(filters, true, chart.dateFilterKey),
+            has: chart.has,
+            groupBy: chart.groupBy ?? getQueryGroupBy(filters),
+            view: chart.view,
+            compare,
+            ...(chart.groupBy === CONST.SEARCH.GROUP_BY.TAG && {tagLevel: String(filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL)}),
+        },
         {sortBy: chart.sortBy, sortOrder: chart.sortOrder, limit: chart.limit},
     );
     // Appended, since the workflow stage isn't a filter the Search filter form has
@@ -101,6 +113,7 @@ type InsightsChartQuery = {
     chart: InsightsChartSpec;
     queryJSON: Readonly<SearchQueryJSON> | undefined;
     previousPeriodQueryJSON?: Readonly<SearchQueryJSON>;
+    averageQueryJSON?: Readonly<SearchQueryJSON>;
 };
 
 type InsightsGraphHashes = {
@@ -112,7 +125,7 @@ type InsightsGraphHashEntry = [InsightsGraphKey, InsightsGraphHashes];
 
 /** Returns the chart's graph slot paired with the hashes its current period, previous period and average are stored under. */
 function buildSnapshotHashEntry(
-    {chart, queryJSON, previousPeriodQueryJSON}: InsightsChartQuery,
+    {chart, queryJSON, previousPeriodQueryJSON, averageQueryJSON}: InsightsChartQuery,
     dashboard: InsightsDashboardID,
     filters: InsightsFilters,
 ): InsightsGraphHashEntry | undefined {
@@ -121,7 +134,7 @@ function buildSnapshotHashEntry(
         return undefined;
     }
     const previousPeriodSnapshotHash = previousPeriodQueryJSON?.hash;
-    const averageSnapshotHash = buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard)?.hash;
+    const averageSnapshotHash = (averageQueryJSON ?? buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard))?.hash;
     if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
     }
@@ -145,9 +158,10 @@ type InsightsQuery = {
 
 /** Builds one request for the dashboard's headline chart and the given supporting charts, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
 function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, supportingChartSpecs: InsightsChartSpec[]): InsightsQuery | undefined {
+    const dashboardFilters = {...filters, tagLevel: dashboard === CONST.INSIGHTS.DASHBOARD.SPEND ? (filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL) : undefined};
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
-    const inputQuery = buildInsightsQueryString(filters);
-    const queryJSON = buildDashboardQuery(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
+    const inputQuery = buildInsightsQueryString(dashboardFilters);
+    const queryJSON = buildDashboardQuery(buildInsightsQueryString({...dashboardFilters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
     if (!queryJSON) {
         return undefined;
     }
@@ -157,6 +171,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
         chart,
         queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
         previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
+        ...(chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && {averageQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard)}),
     });
     const headlineChart = buildChartQuery(spec.headlineChart);
     const supportingCharts = supportingChartSpecs.map(buildChartQuery);
@@ -170,6 +185,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
             hash: queryJSON.hash,
             type: queryJSON.type,
             groupBy: queryJSON.groupBy,
+            ...(dashboard === CONST.INSIGHTS.DASHBOARD.SPEND && {tagLevel: dashboardFilters.tagLevel}),
             filters: dashboard === CONST.INSIGHTS.DASHBOARD.COMPLIANCE ? buildComplianceFilters(filters) : queryJSON.filters,
             inputQuery,
             searchKey: spec.searchKey,

@@ -9025,6 +9025,8 @@ const CONST = {
             COLUMNS: 'columns',
             LIMIT: 'limit',
             COMPARE: 'compare',
+            TAG_LEVEL: 'tagLevel',
+            TAG_PARENT: 'tagParent',
         },
         VIEW: {
             TABLE: 'table',
@@ -9346,6 +9348,7 @@ const CONST = {
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
             TOP_CATEGORIES: 'topCategories',
+            TOP_TAGS: 'topTags',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
@@ -10508,6 +10511,7 @@ const CONST = {
     },
 
     INSIGHTS: {
+        DEFAULT_TAG_LEVEL: 1,
         DASHBOARD: {
             SPEND: 'spend',
             EFFICIENCY: 'efficiency',
@@ -10524,6 +10528,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            TOP_TAGS: 'topTags',
             TOP_VIOLATIONS: 'topViolations',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',

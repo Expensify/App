@@ -268,6 +268,12 @@ type SearchMerchantGroup = SearchGroupBase & {
 type SearchTagGroup = SearchGroupBase & {
     /** Tag name */
     tag: string;
+
+    /** 1-based position; absent on legacy full-tag groups. */
+    tagLevel?: number;
+
+    /** Encoded ancestor path for dependent tags, empty for independent tags. */
+    parentTagPath?: string;
 };
 
 /** Model of day grouped search result */

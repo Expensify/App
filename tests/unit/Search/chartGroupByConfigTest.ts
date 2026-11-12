@@ -13,6 +13,8 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem, SearchGroupBy} from '@components/Search/types';
 
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 
 import type HybridAppModuleType from '@expensify/react-native-hybrid-app/src/types';
@@ -211,6 +213,24 @@ const optionalLabelCases: Array<Pick<ChartGroupByCase, 'groupBy' | 'item'>> = [
 ];
 
 describe('CHART_GROUP_BY_CONFIG', () => {
+    it.each([
+        {tag: '', expectedTag: CONST.SEARCH.TAG_EMPTY_VALUE},
+        {tag: '(untagged)', expectedTag: CONST.SEARCH.TAG_EMPTY_VALUE},
+        {tag: 'Engineering:Backend', expectedTag: 'Engineering:Backend'},
+        {tag: '12" Monitor', expectedTag: '12" Monitor'},
+    ])('drills into tag "$tag" using "$expectedTag"', ({tag, expectedTag}) => {
+        // Given a tag group returned by a chart snapshot
+        const item = createMock<TransactionTagGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.TAG, tag});
+
+        // When the group is opened on Spend
+        const filterQuery = CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.TAG].getFilterQuery(item);
+
+        // Then the full tag stays in one filter instead of becoming a partial tag and a keyword
+        expect(buildSearchQueryJSON(filterQuery)?.flatFilters).toEqual([
+            {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: expectedTag}]},
+        ]);
+    });
+
     it('uses the explicit exact operator for merchant drill-downs', () => {
         // Given a merchant group whose short name must match exactly.
         const item = createMock<TransactionMerchantGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT, merchant: 'I'});

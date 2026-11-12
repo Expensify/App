@@ -53,12 +53,16 @@ const FEBRUARY: GroupedItem = {
 };
 const DATA: GroupedItem[] = [FEBRUARY];
 
-function renderWidget({dashboardID = CONST.INSIGHTS.DASHBOARD.SPEND, supportsDrillIn}: {dashboardID?: InsightsDashboardID; supportsDrillIn?: boolean} = {}) {
+function renderWidget({
+    dashboardID = CONST.INSIGHTS.DASHBOARD.SPEND,
+    chart = CHART,
+    supportsDrillIn,
+}: {dashboardID?: InsightsDashboardID; chart?: typeof CHART; supportsDrillIn?: boolean} = {}) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <InsightsChartWidget
                 dashboardID={dashboardID}
-                chart={CHART}
+                chart={chart}
                 queryJSON={QUERY}
                 snapshot={undefined}
                 previousPeriodQueryJSON={undefined}
@@ -134,7 +138,7 @@ describe('Insights chart CSV action', () => {
     });
 });
 
-describe('Insights chart press', () => {
+describe('Insights chart view and press', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
     beforeEach(async () => {
@@ -145,6 +149,34 @@ describe('Insights chart press', () => {
     });
 
     afterEach(() => Onyx.clear());
+
+    it.each([
+        {hasComparison: false, expectedView: CONST.SEARCH.VIEW.PIE},
+        {hasComparison: true, expectedView: CONST.SEARCH.VIEW.BAR},
+    ])('renders multiple tags as $expectedView with comparison=$hasComparison', async ({hasComparison, expectedView}) => {
+        // Given multiple tag results, optionally paired with historical groups.
+        const chart = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+        if (!chart) {
+            throw new Error('Missing Top tags chart');
+        }
+        const data: GroupedItem[] = ['Marketing', 'Sales'].map((tag) => ({
+            groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+            tag,
+            keyForList: tag,
+            total: 10000,
+            count: 1,
+            currency: CONST.CURRENCY.USD,
+            transactions: [],
+        }));
+        jest.mocked(useInsightsChartData).mockReturnValue({data, state: INSIGHTS_CHART_STATE.READY, comparison: hasComparison ? {data, color: '#000000'} : undefined});
+
+        // When the Top tags widget renders the selected comparison.
+        renderWidget({chart});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then ordinary rankings use a donut while comparisons retain paired bars.
+        expect(jest.mocked(SearchChartView).mock.lastCall?.[0]).toMatchObject({view: expectedView, shouldShowSinglePointAsBar: true});
+    });
 
     it('opens the Details panel for the pressed period on the Spend dashboard', async () => {
         // Given a Spend chart plotting February, for a user on the beta the panel ships behind
@@ -178,6 +210,18 @@ describe('Insights chart press', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the chart gets no press override, so a press still opens Search filtered to the point
+        expect(jest.mocked(SearchChartView).mock.lastCall?.[0].onGroupPress).toBeUndefined();
+    });
+
+    it('keeps tag drill-down on Search while the Details panel does not support tags', async () => {
+        // Given a Top tags chart for a user with the Details panel enabled.
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.INSIGHTS_AI]);
+
+        // When the tag chart renders on the Spend dashboard.
+        renderWidget({chart: {...CHART, graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS, groupBy: CONST.SEARCH.GROUP_BY.TAG, view: CONST.SEARCH.VIEW.PIE}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then tags retain the existing level-aware Search drill-down instead of a Details handler that does nothing.
         expect(jest.mocked(SearchChartView).mock.lastCall?.[0].onGroupPress).toBeUndefined();
     });
 });

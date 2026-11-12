@@ -28,6 +28,8 @@ groupCurrency
   = "groupCurrency"
   / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
+tagLevel = "tagLevel"i / "tag-level"i { return "tagLevel"; }
+tagParent = "tagParent"i / "tag-parent"i { return "tagParent"; }
 category = "category"i { return "category"; }
 vendor = "vendor"i { return "vendor"; }
 to = "to"i { return "to"; }

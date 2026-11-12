@@ -76,7 +76,7 @@ type SearchChartViewProps = {
     /** Shown at the end of a tooltip opened by a touch tap */
     tooltipFooter?: React.ReactNode;
 
-    /** Whether a line chart with a single point is drawn as a bar */
+    /** Whether line and pie charts with a single point are drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
 
     /** What the chart is compared against, drawn as a second series */
@@ -164,6 +164,7 @@ function SearchChartView({
         colorScheme: theme.colorScheme,
     });
     const points = rows.map((row) => row.point);
+    const renderedView = view === CONST.SEARCH.VIEW.PIE && shouldShowSinglePointAsBar && points.length === 1 ? CONST.SEARCH.VIEW.BAR : view;
 
     // On narrow layout, a single step spanning the whole axis labels only the first and last points
     const labelSteps = shouldUseNarrowLayout && axisLabelSteps ? [Math.max(1, points.length - 1)] : axisLabelSteps;
@@ -274,7 +275,7 @@ function SearchChartView({
 
     return (
         <>
-            <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[view]}</View>
+            <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[renderedView]}</View>
             {renderDetails?.({series, rows, metric, formatValue})}
         </>
     );
