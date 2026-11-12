@@ -20,6 +20,8 @@ const SIBLING_TRANSACTION_ID = '22222';
 
 // Inlined because a `jest.mock` factory may only close over locals initialized with a literal.
 const TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY = 'transactionThreadNavigationTransactionIDs';
+const SINGLE_EXPENSE_REPORT_VIEW_KEY = 'nvp_expensify_singleExpenseReportView';
+const SINGLE_EXPENSE_TABLE_VIEW_BETA = 'singleExpenseTableView';
 
 const mockNavigate = jest.fn();
 
@@ -53,6 +55,7 @@ jest.mock('@react-navigation/native', () => {
 let mockParentReportID: string | undefined = EXPENSE_REPORT_ID;
 let mockParentTransactionCount: number | undefined = 1;
 let mockSiblingTransactionIDs: string[] | undefined;
+let mockSingleExpenseReportView: string | undefined;
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
@@ -60,11 +63,20 @@ jest.mock('@hooks/useOnyx', () => ({
         if (key === TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY) {
             return [options?.selector ? options.selector(mockSiblingTransactionIDs) : mockSiblingTransactionIDs, {status: 'loaded'}];
         }
+        if (key === SINGLE_EXPENSE_REPORT_VIEW_KEY) {
+            return [mockSingleExpenseReportView, {status: 'loaded'}];
+        }
         const value = key.endsWith(EXPENSE_REPORT_ID)
             ? {reportID: EXPENSE_REPORT_ID, type: 'expense', transactionCount: mockParentTransactionCount}
             : {reportID: THREAD_REPORT_ID, parentReportID: mockParentReportID, parentReportActionID: '1'};
         return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
     },
+}));
+
+// The table view is behind a beta, so turn it on for the table view cases.
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: (beta: string) => beta === SINGLE_EXPENSE_TABLE_VIEW_BETA}),
 }));
 
 let mockOneTransactionThreadReportID: string | undefined = THREAD_REPORT_ID;
@@ -102,6 +114,7 @@ describe('OneTransactionThreadRedirectHandler', () => {
         mockOneTransactionThreadReportID = THREAD_REPORT_ID;
         mockParentReportAction = createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
         mockSiblingTransactionIDs = undefined;
+        mockSingleExpenseReportView = undefined;
     });
 
     it('replaces the route with the parent report when the thread is the only expense of the report', async () => {
@@ -288,5 +301,49 @@ describe('OneTransactionThreadRedirectHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('mocks the single-expense report view under the key the handler subscribes to', () => {
+        expect(SINGLE_EXPENSE_REPORT_VIEW_KEY).toBe(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW);
+        expect(SINGLE_EXPENSE_TABLE_VIEW_BETA).toBe(CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW);
+    });
+
+    it('keeps the thread route when it is opened from its row in the table view', async () => {
+        // Given the user picked the table view, where the expense is a row the user opens on purpose
+        mockSingleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE;
+
+        // When the expense's thread opens from its report, which it carries as backTo
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/e/${EXPENSE_REPORT_ID}`};
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it stays on the thread instead of bouncing back to the report
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('redirects to the report in the table view when the thread is opened from somewhere else', async () => {
+        // Given the user picked the table view
+        mockSingleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE;
+
+        // When the expense's thread opens from Home, as Recently added and the "Expense added" growl do
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: 'home'};
+        render(<OneTransactionThreadRedirectHandler />);
+
+        // Then it's replaced with the report, which shows the table the user picked
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=home`, {forceReplace: true});
+    });
+
+    it('redirects when the user views single-expense reports in the expense view', async () => {
+        // Given the user explicitly picked the expense view
+        mockSingleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE;
+
+        // When the expense's thread opens
+        render(<OneTransactionThreadRedirectHandler />);
+
+        // Then it's replaced with the report, which shows the expense inline
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
     });
 });

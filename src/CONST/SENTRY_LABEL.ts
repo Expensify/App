@@ -971,6 +971,7 @@ const SENTRY_LABEL = {
         PAY: 'MoreMenu-Pay',
         DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
         MOVE_EXPENSE: 'MoreMenu-MoveExpense',
+        TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
     },
     REPORT_PREVIEW: {
         CARD: 'ReportPreview-Card',
@@ -1264,9 +1265,6 @@ const SENTRY_LABEL = {
     },
     REPORT_PICKER_MODAL: {
         BACK_BUTTON: 'ReportPickerModal-BackButton',
-    },
-    REPORT_PICKER: {
-        NO_REPORT: 'ReportPicker-SelectNoReport',
     },
     ATTENDEE_PICKER_MODAL: {
         BACK_BUTTON: 'AttendeePickerModal-BackButton',
@@ -1726,6 +1724,7 @@ const SENTRY_LABEL = {
         },
         ACCOUNTING: {
             EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
+            JOIN_WAITLIST_BUTTON: 'WorkspaceAccounting-JoinWaitlist',
             CARD_RECONCILIATION_ACCOUNT: 'WorkspaceAccounting-CardReconciliationAccount',
             CLAIM_OFFER: 'WorkspaceAccounting-ClaimOffer',
             CLAIM_OFFER_CONNECT: {
