@@ -5685,10 +5685,28 @@ function isSubmittedTransactionViolationShortName(name: string): name is Submitt
  * Falls back to the raw identifier when no short-name translation exists.
  */
 function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
-    if (violationName === CONST.VIOLATIONS.RULE_VIOLATION || violationName.startsWith('nonDefault')) {
-        return translate('violations.shortName.customRules');
+    switch (violationName) {
+        case CONST.VIOLATIONS.NONDEFAULT_AMOUNT:
+            return translate('violations.nonDefaultAmount');
+        case CONST.VIOLATIONS.NONDEFAULT_BILLABLE:
+            return translate('violations.nonDefaultBillable');
+        case CONST.VIOLATIONS.NONDEFAULT_CATEGORY:
+            return translate('violations.nonDefaultCategory');
+        case CONST.VIOLATIONS.NONDEFAULT_COMMENT:
+            return translate('violations.nonDefaultComment');
+        case CONST.VIOLATIONS.NONDEFAULT_MERCHANT:
+            return translate('violations.nonDefaultMerchant');
+        case CONST.VIOLATIONS.NONDEFAULT_REIMBURSABLE:
+            return translate('violations.nonDefaultReimbursable');
+        case CONST.VIOLATIONS.NONDEFAULT_TAG:
+            return translate('violations.nonDefaultTag');
+        case CONST.VIOLATIONS.NONDEFAULT_TAX:
+            return translate('violations.nonDefaultTax');
+        case CONST.VIOLATIONS.RULE_VIOLATION:
+            return translate('violations.shortName.customRules');
+        default:
+            return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
     }
-    return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
 }
 
 function collectViolationNamesForTransaction(violationNames: Set<string>, violations: ViolationsSnapshot['transactions'] | undefined, transactionID: string) {
