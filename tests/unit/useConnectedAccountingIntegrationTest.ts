@@ -136,6 +136,18 @@ const campfirePolicy: Policy = {
     } as Policy['connections'],
 };
 
+const DIGITS_COMPANY_NAME = 'Acme Inc.';
+
+const digitsPolicy: Policy = {
+    ...policy,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The hook only reads the connected company, so the rest of the connection is left out.
+    connections: {
+        [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+            data: {company: {id: 'company-1', name: DIGITS_COMPANY_NAME, currency: CONST.CURRENCY.USD}},
+        },
+    } as Policy['connections'],
+};
+
 function createNetSuitePolicy(netSuiteConnection: Record<string, unknown>): Policy {
     return {
         ...policy,
@@ -157,6 +169,11 @@ function getCredentialsItemText(policyToRender: Policy) {
 function getSettingsMenuItemDescriptions(policyToRender: Policy) {
     const {result} = renderHook(() => useConnectedAccountingIntegration(policyToRender));
     return result.current.connectionDetails?.settingsMenuItems.map((item) => item.description);
+}
+
+function getSettingsMenuItem(policyToRender: Policy, description: string) {
+    const {result} = renderHook(() => useConnectedAccountingIntegration(policyToRender));
+    return result.current.connectionDetails?.settingsMenuItems.find((item) => item.description === description);
 }
 
 function getSettingsMenuItemTitles(policyToRender: Policy) {
@@ -316,6 +333,45 @@ describe('useConnectedAccountingIntegration', () => {
 
             // Then all three rows show, since only Digits hides the rows for pages it doesn't have yet
             expect(titles).toEqual(expect.arrayContaining(['workspace.accounting.import', 'workspace.accounting.export', 'workspace.accounting.advanced']));
+        });
+    });
+
+    describe('Entity row for Digits', () => {
+        it('should show the connected company in a read-only Entity row', () => {
+            // Given a workspace connected to Digits whose sync saved the company the admin signed in to
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+
+            // When the connected integration's settings rows are built
+            const entityRow = getSettingsMenuItem(digitsPolicy, 'workspace.digits.entity');
+
+            // Then the row names the company and can't be pressed, because a Digits sign-in covers exactly one company and there is nothing to switch to
+            expect(entityRow?.title).toBe(DIGITS_COMPANY_NAME);
+            expect(entityRow?.interactive).toBe(false);
+            expect(entityRow?.onPress).toBeUndefined();
+        });
+
+        it('should leave out the Entity row until the first sync saves the company', () => {
+            // Given a workspace connected to Digits whose first sync hasn't saved the company yet
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+
+            // When the connected integration's settings rows are built
+            const descriptions = getSettingsMenuItemDescriptions(policy);
+
+            // Then there is no Entity row, so the card never shows a row with an empty company name
+            expect(descriptions).not.toContain('workspace.digits.entity');
+        });
+
+        it('should drop the Entity row when the last sync failed with an authentication error', () => {
+            // Given a workspace connected to Digits whose last sync failed because the Digits access was revoked
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+            mockSynchronizationError = 'Authentication failed';
+            mockIsAuthenticationError = true;
+
+            // When the connected integration's settings rows are built
+            const descriptions = getSettingsMenuItemDescriptions(digitsPolicy);
+
+            // Then the Entity row is hidden like other connectors' rows, since the admin has to sign in to Digits again first
+            expect(descriptions).not.toContain('workspace.digits.entity');
         });
     });
 });

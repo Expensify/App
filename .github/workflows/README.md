@@ -96,9 +96,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `APPLE_TEAM_ID` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
-1. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
-1. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
-1. `CLOUDFLARE_TOKEN` - Required for hosting website
+1. `CLOUDFLARE_TOKEN` - Purges the help-site Cloudflare cache
 1. `APPLE_CONTACT_EMAIL` - Email used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 1. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/

@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: '取消',
         dismiss: '关闭',
         resizeColumn: ({columnName}: {columnName: string}) => `调整${columnName}列宽`,
-        columnWidth: ({width}: {width: number}) => `${width} 像素`,
+        resizePanel: '调整面板宽度',
+        widthInPixels: ({width}: {width: number}) => `${width} 像素`,
         proceed: '继续',
         unshare: '取消共享',
         yes: '是',
@@ -9315,6 +9316,7 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: '实体',
             updateCurrencyTitle: '更新工作区货币？',
             updateCurrencyPrompt: 'Digits 目前仅适用于在美国运营且使用美元的公司。',
             importDescription: '选择要导入的 Digits 配置。',
@@ -10487,7 +10489,9 @@ ${reportName}`,
             completed: '已完成',
             amount: {
                 lessThan: (amount?: string) => `少于 ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `小于或等于 ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `大于 ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `大于或等于 ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `介于 ${greaterThan} 和 ${lessThan} 之间`;

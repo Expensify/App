@@ -15,8 +15,15 @@ on:
         description: Pull request number (used for adhoc builds)
         type: string
         default: ''
+      build-preview-worker:
+        description: Bundle the branch Worker for a per-PR deployment (after the existing reviewed-code gate)
+        type: boolean
+        default: false
 
     outputs:
+      BUILD_SHA:
+        description: Immutable App commit used for the web build and Worker bundle
+        value: ${{ jobs.build.outputs.BUILD_SHA }}
       TAR_FILENAME:
         description: Filename of the .tar.gz web build artifact
         value: ${{ jobs.build.outputs.TAR_FILENAME }}
@@ -32,6 +39,7 @@ jobs:
     name: Build Web
     runs-on: blacksmith-8vcpu-ubuntu-2404
     outputs:
+      BUILD_SHA: ${{ steps.checkout.outputs.commit }}
       TAR_FILENAME: webBuild.tar.gz
       ZIP_FILENAME: webBuild.zip
       SOURCEMAP_FILENAME: merged-source-map.js.map
@@ -39,6 +47,7 @@ jobs:
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
     steps:
       - name: Checkout
+        id: checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ inputs.ref }}
@@ -55,6 +64,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: ${{ inputs.build-preview-worker && '["web/cloudflare-worker"]' || '[]' }}
 
       - name: Build web
         run: |
@@ -67,6 +78,36 @@ jobs:
           fi
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      # No Cloudflare credentials are available to branch dependencies, build hooks or the bundler.
+      - name: Bundle the branch Worker for this web build
+        if: ${{ inputs.build-preview-worker }}
+        working-directory: web/cloudflare-worker
+        run: |
+          if ! node -e 'const fs = require("node:fs"); const expected = JSON.parse(fs.readFileSync("package.json", "utf8")).devDependencies.wrangler; process.exit(require("wrangler/package.json").version === expected ? 0 : 1)' 2>/dev/null; then
+            npm ci --workspaces=false
+          fi
+          npx wrangler deploy --dry-run --env staging --outdir ../../adhoc-worker
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';
+          import {experimental_readRawConfig} from 'wrangler';
+          const {rawConfig} = experimental_readRawConfig({config: 'wrangler.jsonc'});
+          const runtime = {...rawConfig, ...rawConfig.env?.staging};
+          writeFileSync('../../adhoc-worker/runtime.json', JSON.stringify({
+            compatibility_date: runtime.compatibility_date,
+            compatibility_flags: runtime.compatibility_flags ?? [],
+          }));
+          NODE
+        env:
+          WRANGLER_SEND_METRICS: false
+
+      - name: Upload the branch Worker bundle
+        if: ${{ inputs.build-preview-worker }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: adhoc-worker-artifact
+          path: ./adhoc-worker
+          if-no-files-found: error
 
       - name: Upload web sourcemaps artifact
         # v6

@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Annulla',
         dismiss: 'Chiudi',
         resizeColumn: ({columnName}: {columnName: string}) => `Ridimensiona la colonna ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixel`,
+        resizePanel: 'Ridimensiona il pannello',
+        widthInPixels: ({width}: {width: number}) => `${width} pixel`,
         proceed: 'Continua',
         unshare: 'Rimuovi condivisione',
         yes: 'Sì',
@@ -9727,6 +9728,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
         },
         digits: {
+            entity: 'Entità',
             updateCurrencyTitle: 'Aggiornare la valuta dello spazio di lavoro?',
             updateCurrencyPrompt: 'Digits è attualmente disponibile solo per le aziende con sede negli Stati Uniti che operano in USD.',
             importDescription: 'Scegli quali configurazioni Digits importare.',
@@ -10953,7 +10955,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             completed: 'Completato',
             amount: {
                 lessThan: (amount?: string) => `Meno di ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Minore o uguale a ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maggiore di ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Maggiore o uguale a ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Tra ${greaterThan} e ${lessThan}`;
