@@ -4817,6 +4817,7 @@ ${amount} per ${merchant} - ${date}`,
         transactionFrequency: 'Frequenza prevista delle transazioni',
         corpayAccountUse: 'Come userai il tuo account Corpay?',
         businessActivities: 'La tua azienda svolge qualcuna delle seguenti attività?',
+        selectBusinessActivities: 'Seleziona tutte le opzioni pertinenti.',
         activities: {
             charitableOrganization: 'Operare come organizzazione benefica',
             preciousStonesOrMetals: 'Commercio di pietre o metalli preziosi',

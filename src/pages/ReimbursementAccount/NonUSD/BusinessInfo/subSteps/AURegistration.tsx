@@ -49,17 +49,18 @@ function AURegistration({onNext, isEditing}: SubPageProps) {
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={submit}
             validate={validate}
-            style={[styles.flexGrow1]}
-            submitButtonStyles={[styles.mh5]}
+            style={[styles.mh5, styles.flexGrow1]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.auRegistrationTitle')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('businessInfoStep.auRegistrationTitle')}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 label={translate('businessInfoStep.registeredTradeName')}
                 aria-label={translate('businessInfoStep.registeredTradeName')}
+                role={CONST.ROLE.PRESENTATION}
+                forceActiveLabel
                 inputID={DBA_OR_REGISTERED_TRADE_NAME}
                 sentryLabel={CONST.SENTRY_LABEL.CORPAY_ONBOARDING.REGISTERED_TRADE_NAME}
-                containerStyles={[styles.mt5, styles.mh5]}
+                containerStyles={[styles.mt5]}
                 defaultValue={draft?.[DBA_OR_REGISTERED_TRADE_NAME] ?? reimbursementAccount?.achData?.corpay?.[DBA_OR_REGISTERED_TRADE_NAME] ?? ''}
                 shouldSaveDraft={!isEditing}
             />
@@ -67,6 +68,7 @@ function AURegistration({onNext, isEditing}: SubPageProps) {
                 InputComponent={DatePicker}
                 inputID={DATE_OF_INCORPORATION}
                 label={translate('businessInfoStep.incorporationDate')}
+                wrapperStyle={styles.mt5}
                 placeholder={translate('businessInfoStep.incorporationDatePlaceholder')}
                 defaultValue={draft?.[DATE_OF_INCORPORATION] ?? reimbursementAccount?.achData?.corpay?.[DATE_OF_INCORPORATION] ?? ''}
                 shouldSaveDraft={!isEditing}

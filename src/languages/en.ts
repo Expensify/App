@@ -5015,6 +5015,7 @@ const translations = {
         incorporationTypeName: 'Incorporation type',
         businessCategory: 'Business category',
         businessActivities: 'Does your business do any of the following?',
+        selectBusinessActivities: 'Select all that apply.',
         activities: {
             charitableOrganization: 'Operate as a charitable organization',
             preciousStonesOrMetals: 'Deal in precious stones or metals',

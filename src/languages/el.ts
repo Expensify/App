@@ -4897,6 +4897,7 @@ ${amount} για ${merchant} - ${date}`,
         transactionFrequency: 'Αναμενόμενη συχνότητα συναλλαγών',
         corpayAccountUse: 'Πώς θα χρησιμοποιήσετε τον λογαριασμό Corpay;',
         businessActivities: 'Κάνει η επιχείρησή σας κάποια από τα παρακάτω;',
+        selectBusinessActivities: 'Επιλέξτε όλα όσα ισχύουν.',
         activities: {
             charitableOrganization: 'Λειτουργήστε ως φιλανθρωπικός οργανισμός',
             preciousStonesOrMetals: 'Συναλλαγές σε πολύτιμους λίθους ή μέταλλα',

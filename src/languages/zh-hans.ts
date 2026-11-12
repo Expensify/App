@@ -4658,6 +4658,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         transactionFrequency: '预期交易频率',
         corpayAccountUse: '您将如何使用您的 Corpay 账户？',
         businessActivities: '您的企业是否从事以下任何业务？',
+        selectBusinessActivities: '请选择所有适用项。',
         activities: {
             charitableOrganization: '以慈善组织的形式运作',
             preciousStonesOrMetals: '从事贵金属或宝石交易',

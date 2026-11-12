@@ -158,4 +158,21 @@ describe('PushRowWithModal', () => {
         // Then the existing row receives the label for Sentry without including user data.
         expect(getRow()?.sentryLabel).toBe(label);
     });
+
+    it('keeps long declaration questions readable without requiring a search label', () => {
+        // Given a yes/no declaration whose full wording must be visible.
+        // When the row requests an unlimited description and no searchable picker.
+        render(
+            <PushRowWithModal
+                optionsList={{true: 'Yes', false: 'No'}}
+                description="Full politically exposed person question"
+                modalHeaderTitle="Full politically exposed person question"
+                numberOfLinesDescription={0}
+            />,
+        );
+
+        // Then neither the question's wrapping nor the missing search label is lost by the wrapper.
+        expect(getRow()?.numberOfLinesDescription).toBe(0);
+        expect(getModal()?.searchInputTitle).toBeUndefined();
+    });
 });

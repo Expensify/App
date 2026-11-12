@@ -4771,6 +4771,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         transactionFrequency: '取引の想定頻度',
         corpayAccountUse: 'Corpay アカウントをどのようにご利用になりますか？',
         businessActivities: 'お客様のビジネスでは、次のうちいずれかを行っていますか？',
+        selectBusinessActivities: '該当するものをすべて選択してください。',
         activities: {
             charitableOrganization: '慈善団体として運営する',
             preciousStonesOrMetals: '貴石や貴金属を取り扱う',

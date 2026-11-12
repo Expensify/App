@@ -86,6 +86,19 @@ function AUPaymentsAndFunding({onNext, isEditing}: SubPageProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.paymentsAndFunding')}</Text>
             <InputWrapper
+                InputComponent={TextInput}
+                label={translate('businessInfoStep.monthlyTransactions')}
+                aria-label={translate('businessInfoStep.monthlyTransactions')}
+                role={CONST.ROLE.PRESENTATION}
+                forceActiveLabel
+                inputMode={CONST.INPUT_MODE.NUMERIC}
+                inputID={NUMBER_OF_MONTHLY_TRANSACTION}
+                sentryLabel={CONST.SENTRY_LABEL.CORPAY_ONBOARDING.MONTHLY_TRANSACTIONS}
+                containerStyles={[styles.mt5, styles.mh5, styles.mb5]}
+                defaultValue={String(draft?.[NUMBER_OF_MONTHLY_TRANSACTION] ?? saved?.[NUMBER_OF_MONTHLY_TRANSACTION] ?? '')}
+                shouldSaveDraft={!isEditing}
+            />
+            <InputWrapper
                 InputComponent={PushRowWithModal}
                 optionsList={getListOptionsFromCorpayPicklist(fields.picklists.SourceOfFunds)}
                 description={translate('businessInfoStep.sourceOfFunds')}
@@ -102,6 +115,8 @@ function AUPaymentsAndFunding({onNext, isEditing}: SubPageProps) {
                     InputComponent={TextInput}
                     label={translate('businessInfoStep.otherSourceOfFunds')}
                     aria-label={translate('businessInfoStep.otherSourceOfFunds')}
+                    role={CONST.ROLE.PRESENTATION}
+                    forceActiveLabel
                     inputID={OTHER_SOURCE_OF_FUNDS}
                     sentryLabel={CONST.SENTRY_LABEL.CORPAY_ONBOARDING.OTHER_SOURCE_OF_FUNDS}
                     containerStyles={[styles.mt5, styles.mh5]}
@@ -114,6 +129,8 @@ function AUPaymentsAndFunding({onNext, isEditing}: SubPageProps) {
                     InputComponent={TextInput}
                     label={translate('businessInfoStep.otherBusinessLegalStructure')}
                     aria-label={translate('businessInfoStep.otherBusinessLegalStructure')}
+                    role={CONST.ROLE.PRESENTATION}
+                    forceActiveLabel
                     inputID={OTHER_BUSINESS_LEGAL_STRUCTURE}
                     sentryLabel={CONST.SENTRY_LABEL.CORPAY_ONBOARDING.OTHER_BUSINESS_LEGAL_STRUCTURE}
                     containerStyles={[styles.mt5, styles.mh5]}
@@ -121,17 +138,6 @@ function AUPaymentsAndFunding({onNext, isEditing}: SubPageProps) {
                     shouldSaveDraft={!isEditing}
                 />
             )}
-            <InputWrapper
-                InputComponent={TextInput}
-                label={translate('businessInfoStep.monthlyTransactions')}
-                aria-label={translate('businessInfoStep.monthlyTransactions')}
-                inputMode={CONST.INPUT_MODE.NUMERIC}
-                inputID={NUMBER_OF_MONTHLY_TRANSACTION}
-                sentryLabel={CONST.SENTRY_LABEL.CORPAY_ONBOARDING.MONTHLY_TRANSACTIONS}
-                containerStyles={[styles.mt5, styles.mh5]}
-                defaultValue={String(draft?.[NUMBER_OF_MONTHLY_TRANSACTION] ?? saved?.[NUMBER_OF_MONTHLY_TRANSACTION] ?? '')}
-                shouldSaveDraft={!isEditing}
-            />
             <InputWrapper
                 InputComponent={PushRowWithModal}
                 optionsList={getListOptionsFromCorpayPicklist(fields.picklists.ExpectedFrequencyOfTransactions)}

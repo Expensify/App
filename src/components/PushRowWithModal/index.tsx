@@ -23,7 +23,12 @@ type PushRowWithModalBaseProps = {
     description: string;
 
     modalHeaderTitle: string;
-    searchInputTitle: string;
+
+    /** Omit for short option lists that do not need a search input. */
+    searchInputTitle?: string;
+
+    /** Defaults to two lines; zero lets long questions wrap without truncation. */
+    numberOfLinesDescription?: number;
 
     /** Defaults to the shared picker label when no flow-specific label is provided. */
     sentryLabel?: SentryLabel;
@@ -71,6 +76,7 @@ function PushRowWithModal(props: PushRowWithModalProps) {
         description,
         modalHeaderTitle,
         searchInputTitle,
+        numberOfLinesDescription,
         sentryLabel = CONST.SENTRY_LABEL.PUSH_ROW_WITH_MODAL.OPEN,
         shouldAllowChange = true,
         disabled = false,
@@ -128,6 +134,7 @@ function PushRowWithModal(props: PushRowWithModalProps) {
         <>
             <MenuItemWithTopDescription
                 description={description}
+                numberOfLinesDescription={numberOfLinesDescription}
                 sentryLabel={sentryLabel}
                 title={selection
                     .map((key) => optionsList[key])

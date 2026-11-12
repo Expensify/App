@@ -4815,6 +4815,7 @@ ${amount} voor ${merchant} - ${date}`,
         transactionFrequency: 'Verwachte frequentie van transacties',
         corpayAccountUse: 'Hoe ga je je Corpay-account gebruiken?',
         businessActivities: 'Doet je bedrijf een van de volgende dingen?',
+        selectBusinessActivities: 'Selecteer alles wat van toepassing is.',
         activities: {
             charitableOrganization: 'Opereren als een liefdadigheidsorganisatie',
             preciousStonesOrMetals: 'Handel in edelstenen of edelmetalen',

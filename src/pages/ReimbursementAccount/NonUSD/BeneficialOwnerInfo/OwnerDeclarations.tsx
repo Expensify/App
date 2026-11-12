@@ -57,7 +57,6 @@ function OwnerDeclarations({onSubmit}: OwnerDeclarationsProps) {
                 optionsList={optionsList}
                 description={translate('ownershipInfoStep.anyUSCitizenOwners')}
                 modalHeaderTitle={translate('ownershipInfoStep.anyUSCitizenOwners')}
-                searchInputTitle={translate('common.search')}
                 inputID={ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP}
                 sentryLabel={CONST.SENTRY_LABEL.CORPAY_ONBOARDING.US_CITIZEN_OWNERS}
                 defaultValue={String(draft?.[ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP] ?? saved?.[ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP] ?? '')}
@@ -68,7 +67,7 @@ function OwnerDeclarations({onSubmit}: OwnerDeclarationsProps) {
                 optionsList={optionsList}
                 description={translate('ownershipInfoStep.isPoliticallyExposed')}
                 modalHeaderTitle={translate('ownershipInfoStep.isPoliticallyExposed')}
-                searchInputTitle={translate('common.search')}
+                numberOfLinesDescription={0}
                 inputID={POLITICALLY_EXPOSED_PERSON}
                 sentryLabel={CONST.SENTRY_LABEL.CORPAY_ONBOARDING.POLITICALLY_EXPOSED}
                 defaultValue={String(draft?.[POLITICALLY_EXPOSED_PERSON] ?? saved?.[POLITICALLY_EXPOSED_PERSON] ?? '')}
@@ -80,6 +79,8 @@ function OwnerDeclarations({onSubmit}: OwnerDeclarationsProps) {
                     InputComponent={TextInput}
                     label={translate('ownershipInfoStep.pepDetails')}
                     aria-label={translate('ownershipInfoStep.pepDetails')}
+                    role={CONST.ROLE.PRESENTATION}
+                    forceActiveLabel
                     inputID={NAME_TITLE_POSITION_HELD}
                     sentryLabel={CONST.SENTRY_LABEL.CORPAY_ONBOARDING.PEP_DETAILS}
                     containerStyles={[styles.mt5, styles.mh5]}
