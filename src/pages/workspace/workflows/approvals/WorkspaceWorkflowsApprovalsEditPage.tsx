@@ -48,7 +48,6 @@ import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -67,10 +66,9 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [personalDetails] = useAllPersonalDetails();
-    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const policyRulesSelector = (rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, route.params.policyID);
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
-    const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowMetadata);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
@@ -183,10 +181,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
-        if (isLoadingApprovalWorkflow) {
-            return;
-        }
-
         if (!currentApprovalWorkflow) {
             // Don't clear if we're in the middle of deleting - this prevents the UI from blinking
             if (isDeleting.current) {
@@ -222,7 +216,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         route.params.memberEmail,
         approvalWorkflow?.action,
         approvalWorkflow?.originalApprovers,
-        isLoadingApprovalWorkflow,
     ]);
 
     return (

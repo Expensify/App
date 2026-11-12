@@ -54,6 +54,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.X
 
                     return (
                         <PressableWithFeedback
+                            sentryLabel={CONST.SENTRY_LABEL.AVATAR_SELECTOR.PRESET_AVATAR}
                             key={id}
                             accessible
                             accessibilityRole="button"
@@ -80,6 +81,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.X
 
                     return (
                         <PressableWithFeedback
+                            sentryLabel={CONST.SENTRY_LABEL.AVATAR_SELECTOR.LETTER_AVATAR}
                             key={id}
                             accessible
                             accessibilityRole="button"
