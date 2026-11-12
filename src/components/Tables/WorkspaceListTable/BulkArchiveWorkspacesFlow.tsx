@@ -9,7 +9,7 @@ import {close} from '@libs/actions/Modal';
 import {queueBulkArchivePolicy} from '@libs/actions/Policy/Policy';
 import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
 import {filterInactiveCards} from '@libs/CardUtils';
-import {getBulkActionSkippedNotice, getBulkArchiveWorkspacesWarnings} from '@libs/WorkspacesSettingsUtils';
+import {getBulkActionSkippedWarning, getBulkArchiveWorkspacesWarnings} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,7 +56,7 @@ function BulkArchiveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismis
         close(() => {
             const cardFeedsPerPolicy = getCardFeedsForDisplayPerPolicy(allCardFeeds, translate, feedKeysWithCards, policies);
             const rowsToArchive = selectedRows.filter((row) => policyIDs.includes(row.policyID));
-            const skippedWorkspaceNames = selectedRows.filter((row) => !policyIDs.includes(row.policyID)).map((row) => row.title);
+            const skippedWorkspaces = selectedRows.filter((row) => !policyIDs.includes(row.policyID)).map((row) => ({policyID: row.policyID, name: row.title}));
 
             const warnings = getBulkArchiveWorkspacesWarnings(
                 rowsToArchive.map((row) => {
@@ -75,17 +75,12 @@ function BulkArchiveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismis
                 }),
                 translate,
             );
-            const skippedNotice = getBulkActionSkippedNotice(policyIDs.length, selectedRows.length, skippedWorkspaceNames, translate);
+            const skippedWarning = getBulkActionSkippedWarning(policyIDs.length, selectedRows.length, skippedWorkspaces, translate);
+            const allWarnings = skippedWarning ? [...warnings, skippedWarning] : warnings;
 
             showConfirmModal({
                 title: translate('workspace.common.archiveWorkspacesTitle', {count: policyIDs.length}),
-                prompt:
-                    warnings.length > 0 || !!skippedNotice ? (
-                        <BulkActionConfirmationPrompt
-                            warnings={warnings}
-                            notice={skippedNotice}
-                        />
-                    ) : undefined,
+                prompt: allWarnings.length > 0 ? <BulkActionConfirmationPrompt warnings={allWarnings} /> : undefined,
                 confirmText: translate('common.archive'),
                 cancelText: translate('common.cancel'),
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,

@@ -211,13 +211,22 @@ function getBulkLeaveWorkspacesWarnings(workspaces: BulkLeaveWorkspace[], userEm
 }
 
 /**
- * Tells the user which selected workspaces a bulk action leaves out. Returns an empty string when it applies to all of them.
+ * Tells the user which selected workspaces a bulk action leaves out, listed like the other warnings. Returns undefined
+ * when it applies to all of them.
  */
-function getBulkActionSkippedNotice(appliedCount: number, selectedCount: number, skippedWorkspaceNames: string[], translate: LocaleContextProps['translate']): string {
-    if (skippedWorkspaceNames.length === 0) {
-        return '';
+function getBulkActionSkippedWarning(
+    appliedCount: number,
+    selectedCount: number,
+    skippedWorkspaces: BulkActionWorkspace[],
+    translate: LocaleContextProps['translate'],
+): BulkActionWarningGroup | undefined {
+    if (skippedWorkspaces.length === 0) {
+        return undefined;
     }
-    return `${translate('workspace.common.bulkActionAppliesTo', appliedCount, selectedCount)} ${translate('workspace.common.bulkActionSkippedWorkspaces', {count: skippedWorkspaceNames.length, workspaceNames: skippedWorkspaceNames.join(', ')})}`;
+    return {
+        warning: `${translate('workspace.common.bulkActionAppliesTo', appliedCount, selectedCount)} ${translate('workspace.common.bulkActionSkippedWorkspaces', {count: skippedWorkspaces.length})}`,
+        workspaces: skippedWorkspaces,
+    };
 }
 
 type BulkArchiveWorkspace = BulkActionWorkspace & {
@@ -360,7 +369,7 @@ export {
     getLeaveWorkspaceConfirmationPrompt,
     getBulkLeaveWorkspacesWarnings,
     getBulkArchiveWorkspacesWarnings,
-    getBulkActionSkippedNotice,
+    getBulkActionSkippedWarning,
     getWorkspacesBulkActions,
 };
 export type {BrickRoad, BulkActionWarningGroup, WorkspacesBulkAction, WorkspacesBulkActionContext, WorkspacesBulkActionRow};

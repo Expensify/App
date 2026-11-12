@@ -1,7 +1,7 @@
 import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
 import {
     getBrickRoadForPolicy,
-    getBulkActionSkippedNotice,
+    getBulkActionSkippedWarning,
     getBulkArchiveWorkspacesWarnings,
     getBulkLeaveWorkspacesWarnings,
     getChatTabBrickRoad,
@@ -362,32 +362,37 @@ describe('WorkspacesSettingsUtils', () => {
         });
     });
 
-    describe('getBulkActionSkippedNotice', () => {
-        it('names the skipped workspaces and how many the action applies to', () => {
+    describe('getBulkActionSkippedWarning', () => {
+        it('lists the skipped workspaces under how many the action applies to', () => {
             // Given an action that applies to one of three selected workspaces
-            // When the notice is built
-            const notice = getBulkActionSkippedNotice(1, 3, ['Skipped 1', 'Skipped 2'], TestHelper.translateLocal);
+            const skippedWorkspaces = [
+                {policyID: '1', name: 'Skipped 1'},
+                {policyID: '2', name: 'Skipped 2'},
+            ];
+
+            // When the skipped warning is built
+            const warning = getBulkActionSkippedWarning(1, 3, skippedWorkspaces, TestHelper.translateLocal);
 
             // Then it says how many workspaces the action covers and lists the ones it leaves out
-            expect(notice).toBe('This applies to 1 of the 3 selected workspaces. These will be skipped: Skipped 1, Skipped 2.');
+            expect(warning).toEqual({warning: 'This applies to 1 of the 3 selected workspaces. These will be skipped:', workspaces: skippedWorkspaces});
         });
 
-        it('names a single skipped workspace in the singular', () => {
+        it('words a single skipped workspace in the singular', () => {
             // Given an action that applies to one of two selected workspaces
-            // When the notice is built
-            const notice = getBulkActionSkippedNotice(1, 2, ['Acme'], TestHelper.translateLocal);
+            // When the skipped warning is built
+            const warning = getBulkActionSkippedWarning(1, 2, [{policyID: '1', name: 'Acme'}], TestHelper.translateLocal);
 
             // Then the sentence is worded for one workspace
-            expect(notice).toBe('This applies to 1 of the 2 selected workspaces. This will be skipped: Acme.');
+            expect(warning?.warning).toBe('This applies to 1 of the 2 selected workspaces. This will be skipped:');
         });
 
-        it('is empty when the action applies to every selected workspace', () => {
+        it('is undefined when the action applies to every selected workspace', () => {
             // Given an action that skips none of the selected workspaces
-            // When the notice is built
-            const notice = getBulkActionSkippedNotice(2, 2, [], TestHelper.translateLocal);
+            // When the skipped warning is built
+            const warning = getBulkActionSkippedWarning(2, 2, [], TestHelper.translateLocal);
 
             // Then there is nothing to tell the user
-            expect(notice).toBe('');
+            expect(warning).toBeUndefined();
         });
     });
 

@@ -9,7 +9,7 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import {close} from '@libs/actions/Modal';
 import {queueBulkLeavePolicy} from '@libs/actions/Policy/Policy';
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
-import {getBulkActionSkippedNotice, getBulkLeaveWorkspacesWarnings} from '@libs/WorkspacesSettingsUtils';
+import {getBulkActionSkippedWarning, getBulkLeaveWorkspacesWarnings} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,8 +56,15 @@ function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}
             const userLogin = currentUserPersonalDetails.login ?? '';
             const getPolicy = (row: WorkspaceRowData) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${row.policyID}`];
             const rowsToLeave = selectedRows.filter((row) => policyIDs.includes(row.policyID));
-            const payerRows = selectedRows.filter((row) => !policyIDs.includes(row.policyID) && getPolicy(row)?.achAccount?.reimburser === userLogin);
-            const skippedWorkspaceNames = selectedRows.filter((row) => !policyIDs.includes(row.policyID) && !payerRows.includes(row)).map((row) => row.title);
+            // Owners and archived workspaces are skipped for that reason, so only the rest are blocked by being the payer.
+            const payerRows = selectedRows.filter(
+                (row) =>
+                    !policyIDs.includes(row.policyID) &&
+                    !row.isArchived &&
+                    row.ownerAccountID !== currentUserPersonalDetails.accountID &&
+                    getPolicy(row)?.achAccount?.reimburser === userLogin,
+            );
+            const skippedWorkspaces = selectedRows.filter((row) => !policyIDs.includes(row.policyID) && !payerRows.includes(row)).map((row) => ({policyID: row.policyID, name: row.title}));
 
             const warnings = getBulkLeaveWorkspacesWarnings(
                 [...rowsToLeave, ...payerRows].map((row) => ({
@@ -74,17 +81,12 @@ function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}
                 userLogin,
                 translate,
             );
-            const skippedNotice = getBulkActionSkippedNotice(policyIDs.length, selectedRows.length, skippedWorkspaceNames, translate);
+            const skippedWarning = getBulkActionSkippedWarning(policyIDs.length, selectedRows.length, skippedWorkspaces, translate);
+            const allWarnings = skippedWarning ? [...warnings, skippedWarning] : warnings;
 
             showConfirmModal({
                 title: translate('workspace.common.leaveWorkspacesTitle', {count: policyIDs.length}),
-                prompt:
-                    warnings.length > 0 || !!skippedNotice ? (
-                        <BulkActionConfirmationPrompt
-                            warnings={warnings}
-                            notice={skippedNotice}
-                        />
-                    ) : undefined,
+                prompt: allWarnings.length > 0 ? <BulkActionConfirmationPrompt warnings={allWarnings} /> : undefined,
                 confirmText: translate('common.leave'),
                 cancelText: translate('common.cancel'),
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,

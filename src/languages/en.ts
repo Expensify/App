@@ -5596,9 +5596,9 @@ const translations = {
                 other: (count: number) => `Transfer owner of ${count} workspaces?`,
             }),
             bulkActionAppliesTo: (count: number, total: number) => `This applies to ${count} of the ${total} selected workspaces.`,
-            bulkActionSkippedWorkspaces: ({workspaceNames}: {count: number; workspaceNames: string}) => ({
-                one: `This will be skipped: ${workspaceNames}.`,
-                other: `These will be skipped: ${workspaceNames}.`,
+            bulkActionSkippedWorkspaces: () => ({
+                one: 'This will be skipped:',
+                other: 'These will be skipped:',
             }),
             bulkTransferOwnerNoneEligible: 'None of the selected workspaces can be transferred together. Select one workspace at a time to transfer it.',
             deleteWorkspaceTitle: (workspaceName: string) => `Delete ${workspaceName}?`,

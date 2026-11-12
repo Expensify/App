@@ -6,6 +6,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
+import BulkActionConfirmationPrompt from '@components/Tables/WorkspaceListTable/BulkActionConfirmationPrompt';
 import BulkArchiveWorkspacesFlow from '@components/Tables/WorkspaceListTable/BulkArchiveWorkspacesFlow';
 import BulkLeaveWorkspacesFlow from '@components/Tables/WorkspaceListTable/BulkLeaveWorkspacesFlow';
 import LeaveWorkspaceFlow from '@components/Tables/WorkspaceListTable/LeaveWorkspaceFlow';
@@ -46,7 +47,7 @@ import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicyByType} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {getBulkActionSkippedNotice, getWorkspacesBulkActions} from '@libs/WorkspacesSettingsUtils';
+import {getBulkActionSkippedWarning, getWorkspacesBulkActions} from '@libs/WorkspacesSettingsUtils';
 import type {WorkspacesBulkAction} from '@libs/WorkspacesSettingsUtils';
 
 import {setNameValuePair} from '@userActions/User';
@@ -293,8 +294,9 @@ function WorkspacesListPage() {
         onConfirm: () => void,
         buttonVariant: ValueOf<typeof CONST.BUTTON_VARIANT> = CONST.BUTTON_VARIANT.DANGER,
     ) => {
-        const skippedWorkspaceNames = selectedRows.filter((row) => !policyIDs.includes(row.policyID)).map((row) => row.title);
-        const prompt = getBulkActionSkippedNotice(policyIDs.length, selectedRows.length, skippedWorkspaceNames, translate) || undefined;
+        const skippedWorkspaces = selectedRows.filter((row) => !policyIDs.includes(row.policyID)).map((row) => ({policyID: row.policyID, name: row.title}));
+        const skippedWarning = getBulkActionSkippedWarning(policyIDs.length, selectedRows.length, skippedWorkspaces, translate);
+        const prompt = skippedWarning ? <BulkActionConfirmationPrompt warnings={[skippedWarning]} /> : undefined;
 
         showConfirmModal({
             title,
