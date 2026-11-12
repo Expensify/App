@@ -188,7 +188,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
     const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
     const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
-    const shouldShowCategoryVisibility = isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) && isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
+    const shouldShowCategoryVisibility = isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
     const [policyCategoriesVisibility] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: policyCategoriesVisibilitySelector});
 
     const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(shouldShowCategoryVisibility ? policyID : undefined);
