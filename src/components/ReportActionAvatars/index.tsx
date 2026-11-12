@@ -155,7 +155,7 @@ function ReportActionAvatars({
     const shouldSortByName = !!sortAvatars?.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME);
     // Only a name sort reads personal details, and only for the accounts in the stack
     const [iconPersonalDetails] = useAllPersonalDetailsWithoutSnapshots(
-        personalDetailsListSelector(shouldSortByName ? unsortedIcons.map((icon) => (typeof icon.id === 'number' ? icon.id : undefined)) : undefined),
+        personalDetailsListSelector(shouldSortByName ? unsortedIcons.map((icon) => Number(icon.id) || undefined) : undefined),
     );
 
     if (!unsortedIcons.length) {

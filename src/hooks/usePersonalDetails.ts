@@ -11,6 +11,8 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
+const skipPersonalDetailsSelector = (): {value: unknown} | undefined => undefined;
+
 // On Search, @hooks/useOnyx reads the snapshot, which is missing while it loads. The live list covers that gap.
 function usePersonalDetailsByIDs(accountIDs: Array<number | undefined> | undefined): UseOnyxResult<PersonalDetailsList>;
 function usePersonalDetailsByIDs<TReturn>(accountIDs: Array<number | undefined> | undefined, selector: (personalDetails: PersonalDetailsList) => TReturn): UseOnyxResult<TReturn>;
@@ -24,10 +26,16 @@ function usePersonalDetailsByIDs<TReturn>(accountIDs: Array<number | undefined> 
         return {value: selector ? selector(personalDetails) : personalDetails};
     };
     const [personalDetailsFromSnapshot, result] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: wrappedSelector});
-    const [livePersonalDetails] = useOnyxWithoutSnapshots(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: wrappedSelector});
-    const loaded = personalDetailsFromSnapshot ?? livePersonalDetails;
-    if (loaded) {
-        return [loaded.value, result];
+    // Off Search both reads hit the same live key, so the live one only selects while the first has nothing
+    const hasPersonalDetailsFromSnapshot = !!personalDetailsFromSnapshot;
+    const [livePersonalDetails, liveResult] = useOnyxWithoutSnapshots(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: hasPersonalDetailsFromSnapshot ? skipPersonalDetailsSelector : wrappedSelector,
+    });
+    if (personalDetailsFromSnapshot) {
+        return [personalDetailsFromSnapshot.value, result];
+    }
+    if (livePersonalDetails) {
+        return [livePersonalDetails.value, liveResult];
     }
     return [selector ? selector({}) : {}, result];
 }

@@ -20,9 +20,7 @@ function useSortedIcons(icons: Icon[], sort?: SortingOption | SortingOption[]): 
 
     const shouldSortByName = sortBy.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME);
     // Only a name sort reads personal details, and only for the accounts in the stack
-    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(
-        personalDetailsListSelector(shouldSortByName ? icons.map((icon) => (typeof icon.id === 'number' ? icon.id : undefined)) : undefined),
-    );
+    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector(shouldSortByName ? icons.map((icon) => Number(icon.id) || undefined) : undefined));
 
     let sortedIcons = icons;
     if (shouldSortByName) {
