@@ -229,7 +229,10 @@ const getOldestPreviewActionID = (
         if (!reportPreviewAction) {
             continue;
         }
-        if (oldestCreated === undefined || reportPreviewAction.created < oldestCreated) {
+        // Ties go to the lower reportActionID, so the pick doesn't depend on the order reports were stored in.
+        const isOlder = oldestCreated === undefined || reportPreviewAction.created < oldestCreated;
+        const isSameAgeWithLowerID = reportPreviewAction.created === oldestCreated && reportPreviewAction.reportActionID < (targetReportActionID ?? '');
+        if (isOlder || isSameAgeWithLowerID) {
             oldestCreated = reportPreviewAction.created;
             targetReportActionID = reportPreviewAction.reportActionID;
         }
