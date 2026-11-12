@@ -59,6 +59,7 @@ let previousPolicies: OnyxCollection<Policy>;
 let previousReportsTransactions: Record<string, Transaction[]> | undefined;
 let previousFraudAlertReportIDs: Set<string> | undefined;
 let previousCardList: OnyxEntry<CardList>;
+let previousChildReportIDsWithError: Set<string> | undefined;
 
 const RECOMPUTE_ALL = 'all' as const;
 
@@ -239,6 +240,13 @@ const getOldestPreviewActionID = (
     }
     return targetReportActionID;
 };
+
+// The child's own brickRoadStatus is hidden when its workspace chat is accessible, so needsParentChatErrorPropagation is read too.
+const needsErrorOnParentChat = (report: OnyxEntry<Report>, attributes: ReportAttributesDerivedValue['reports'][string] | undefined) =>
+    !!report?.reportID &&
+    !!report.chatReportID &&
+    report.reportID !== report.chatReportID &&
+    (!!attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
 
 const isActionable = (childReport: OnyxEntry<Report>) => isOpenReport(childReport) || isProcessingReport(childReport);
 
@@ -820,31 +828,38 @@ export default createOnyxDerivedValueConfig({
         // Propagate errors from IOU reports to their parent chat reports.
         const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const currentUserEmail = session?.email ?? '';
-        const erroredChildReportIDsByChat = new Map<string, string[]>();
-        const childReportIDsByChat = new Map<string, string[]>();
-        for (const report of Object.values(reports)) {
-            if (!report?.reportID || !report.chatReportID || report.reportID === report.chatReportID) {
-                continue;
+
+        // Only the reports recomputed in this run can start or stop needing their error shown on the parent chat.
+        let childReportIDsWithError = previousChildReportIDsWithError;
+        if (!useIncrementalUpdates || !childReportIDsWithError) {
+            childReportIDsWithError = new Set();
+            for (const report of Object.values(reports)) {
+                if (report && needsErrorOnParentChat(report, reportAttributes[report.reportID])) {
+                    childReportIDsWithError.add(report.reportID);
+                }
             }
+        } else {
+            for (const key of dataToIterate) {
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                if (needsErrorOnParentChat(reports[key], reportAttributes[reportID])) {
+                    childReportIDsWithError.add(reportID);
+                } else {
+                    childReportIDsWithError.delete(reportID);
+                }
+            }
+        }
+        previousChildReportIDsWithError = childReportIDsWithError;
 
-            const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
-            childReportIDs.push(report.reportID);
-            childReportIDsByChat.set(report.chatReportID, childReportIDs);
-
-            // If this is an IOU report and its calculated attributes have an error,
-            // then we need to mark its parent chat report.
-            // We read `needsParentChatErrorPropagation` rather than `brickRoadStatus` because the per-report
-            // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
-            // we still need to propagate the error up so the parent shows the indicator.
-            const attributes = reportAttributes[report.reportID];
-            if (!attributes?.needsParentChatErrorPropagation && attributes?.brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+        const erroredChildReportIDsByChat = new Map<string, string[]>();
+        for (const reportID of childReportIDsWithError) {
+            const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            if (!report?.chatReportID) {
                 continue;
             }
 
             // When the child IOU's parent action in the chat is deleted (e.g. another user deleted the request
             // while an optimistic pay was queued offline), the chat has no actionable surface for the error.
             // Skip propagation so the parent DM row doesn't show a stale "Fix" for a request that no longer exists.
-            // Checked only for children with an error, as it is the costly part of this loop over every report.
             const parentReportAction = report.parentReportActionID
                 ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
                 : undefined;
@@ -856,6 +871,23 @@ export default createOnyxDerivedValueConfig({
             erroredChildReportIDs.push(report.reportID);
             erroredChildReportIDsByChat.set(report.chatReportID, erroredChildReportIDs);
         }
+
+        // Every child of a chat is only needed when none of its errored children can be acted on, so they're collected on first use.
+        let childReportIDsByChat: Map<string, string[]> | undefined;
+        const getChildReportIDs = (chatReportID: string) => {
+            if (!childReportIDsByChat) {
+                childReportIDsByChat = new Map();
+                for (const report of Object.values(reports)) {
+                    if (!report?.reportID || !report.chatReportID || report.reportID === report.chatReportID) {
+                        continue;
+                    }
+                    const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
+                    childReportIDs.push(report.reportID);
+                    childReportIDsByChat.set(report.chatReportID, childReportIDs);
+                }
+            }
+            return childReportIDsByChat.get(chatReportID);
+        };
 
         // Apply the error status to the parent chat reports.
         for (const [chatReportID, erroredChildReportIDs] of erroredChildReportIDsByChat) {
@@ -869,7 +901,7 @@ export default createOnyxDerivedValueConfig({
 
             actionTargetReportActionID =
                 getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, chatReportActions, isActionable) ??
-                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, chatReportActions, (childReport) =>
+                getOldestPreviewActionID(chatReportID, getChildReportIDs(chatReportID), reports, chatReportActions, (childReport) =>
                     needsViolationFix(
                         childReport,
                         getLoginByAccountID(childReport?.ownerAccountID, personalDetails),
@@ -890,6 +922,10 @@ export default createOnyxDerivedValueConfig({
                 actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
                 actionTargetReportActionID,
             };
+            // A chat that is itself a child now has an error of its own to pass up on the next run.
+            if (needsErrorOnParentChat(reports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`], reportAttributes[chatReportID])) {
+                childReportIDsWithError.add(chatReportID);
+            }
         }
 
         return {
@@ -906,6 +942,7 @@ export default createOnyxDerivedValueConfig({
         previousPolicies = undefined;
         previousFraudAlertReportIDs = undefined;
         previousCardList = undefined;
+        previousChildReportIDsWithError = undefined;
     },
 });
 
