@@ -67,8 +67,8 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
             <MenuItem.Root onPress={!isBankAccountAdded ? handleModifyAccountNumbers : undefined}>
                 <MenuItem.Row>
                     <MenuItem.Content>
-                        {!!bankName && <MenuItem.FieldName>{bankName}</MenuItem.FieldName>}
-                        <MenuItem.FieldValue>{`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}</MenuItem.FieldValue>
+                        {!!bankName && <MenuItem.FieldName forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{bankName}</MenuItem.FieldName>}
+                        <MenuItem.FieldValue forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}</MenuItem.FieldValue>
                     </MenuItem.Content>
                     {!isBankAccountAdded && (
                         <MenuItem.Trailing>
@@ -83,7 +83,7 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>{translate('personalInfoStep.legalName')}</MenuItem.FieldName>
-                                <MenuItem.FieldValue>{legalName}</MenuItem.FieldValue>
+                                <MenuItem.FieldValue forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{legalName}</MenuItem.FieldValue>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
@@ -94,7 +94,7 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>{translate('personalInfoStep.address')}</MenuItem.FieldName>
-                                <MenuItem.FieldValue>{address}</MenuItem.FieldValue>
+                                <MenuItem.FieldValue forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{address}</MenuItem.FieldValue>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />

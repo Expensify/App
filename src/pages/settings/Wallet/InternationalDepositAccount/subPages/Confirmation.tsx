@@ -179,6 +179,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
                     isDisabled={disabled}
                     testID={id}
                     value={title}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             ))}
             <FormProvider

@@ -78,6 +78,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                     onMove(BUSINESS_INFO_STEP_INDEXES.TAX_ID_NUMBER);
                 }}
                 value={values[BUSINESS_INFO_STEP_KEYS.COMPANY_TAX_ID]}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <MenuItemField
                 name={translate('common.companyAddress')}
@@ -85,6 +86,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_ADDRESS);
                 }}
                 value={`${values[BUSINESS_INFO_STEP_KEYS.STREET]}, ${values[BUSINESS_INFO_STEP_KEYS.CITY]}, ${values[BUSINESS_INFO_STEP_KEYS.STATE]} ${values[BUSINESS_INFO_STEP_KEYS.ZIP_CODE]}`}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <MenuItemField
                 name={translate('common.phoneNumber')}
@@ -92,6 +94,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                     onMove(BUSINESS_INFO_STEP_INDEXES.PHONE_NUMBER);
                 }}
                 value={values[BUSINESS_INFO_STEP_KEYS.COMPANY_PHONE]}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <MenuItemField
                 name={translate('businessInfoStep.companyWebsite')}
