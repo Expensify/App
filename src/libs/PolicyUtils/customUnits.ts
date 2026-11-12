@@ -211,7 +211,6 @@ function getPerDiemRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateI
 function getRateValueWithDecimals(value: number): string {
     const numValue = parseFloat(value.toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES));
     const decimalPart = numValue.toString().split('.').at(1) ?? '';
-    // Set the fraction digits to be between 2 and 4 (OD Behavior)
     const fractionDigits = Math.min(Math.max(decimalPart.length, CONST.MIN_TAX_RATE_DECIMAL_PLACES), CONST.MAX_TAX_RATE_DECIMAL_PLACES);
     return numValue.toFixed(fractionDigits);
 }
