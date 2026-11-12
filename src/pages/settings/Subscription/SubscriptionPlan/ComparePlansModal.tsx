@@ -79,7 +79,7 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
                     <Header style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}>
                         {isSmallScreenWidth && <Header.BackButton onPress={onClose} />}
                         <Header.Title title={translate('subscription.compareModal.comparePlans')} />
-                        <Header.Right>{!isSmallScreenWidth && <Header.CloseButton onPress={onClose} />}</Header.Right>
+                        {!isSmallScreenWidth && <Header.CloseButton onPress={onClose} />}
                     </Header>
                     <ScrollView>{renderPlans()}</ScrollView>
                 </Modal>
