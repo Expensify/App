@@ -3299,6 +3299,76 @@ describe('SearchUIUtils', () => {
             expect(exportedTransaction?.exportedTo).toBe(`${CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV}, ${CONST.EXPORT_LABELS.XERO}`);
         });
 
+        it('should fill formattedViolations from the positive has filter only, ignoring a negated one', () => {
+            // Given an expense whose report has a submit snapshot and an approve snapshot with different violations,
+            // and a query that includes approved violations but excludes submitted ones
+            const violationsReportID = 'formatted-violations-report';
+            const violationsTransactionID = 'formatted-violations-transaction';
+            const data = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT}${violationsReportID}`]: {...report1, reportID: violationsReportID},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${violationsTransactionID}`]: {
+                    ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                    transactionID: violationsTransactionID,
+                    reportID: violationsReportID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${violationsReportID}`]: {
+                    submitted: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        created: '2024-12-21 13:05:20',
+                        message: [],
+                        reportActionID: 'submitted',
+                        reportID: violationsReportID,
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            violations: {transactions: {[violationsTransactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}]}},
+                        },
+                    },
+                    approved: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                        created: '2024-12-22 13:05:20',
+                        message: [],
+                        reportActionID: 'approved',
+                        reportID: violationsReportID,
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            expenseReportID: violationsReportID,
+                            violations: {transactions: {[violationsTransactionID]: [{name: CONST.VIOLATIONS.OVER_LIMIT}, {name: CONST.VIOLATIONS.MISSING_COMMENT}]}},
+                        },
+                    },
+                },
+            } as OnyxTypes.SearchResults['data'];
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            // When the expense rows are built for that query
+            const result = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    queryJSON,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionListItemType,
+            )[0];
+            const violationsTransaction = result.find((item) => item.transactionID === violationsTransactionID);
+
+            // Then only the approve-stage labels are listed alphabetically, so the sort key matches the cell for this query
+            expect(violationsTransaction?.formattedViolations).toBe(`${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+
         it('should return getReportSections result when type is EXPENSE REPORT', async () => {
             // canApproveIOU reads the Onyx session accountID, not getSections' currentAccountID; merge admin so
             // this test matches the fixture when run in isolation (without earlier getAction tests that set session).
@@ -9373,6 +9443,61 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
+        it('should sort the violations column by its labels, with expenses without violations first when ascending', () => {
+            // Given expenses whose violation labels are already joined alphabetically, as the Violations cell lists them, and one
+            // expense without violations
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const transactions: TransactionListItemType[] = [
+                {...baseTransaction, transactionID: 'missing-category', keyForList: 'missing-category', formattedViolations: translateLocal('violations.shortName.missingCategory')},
+                {...baseTransaction, transactionID: 'no-violations', keyForList: 'no-violations', formattedViolations: undefined},
+                {
+                    ...baseTransaction,
+                    transactionID: 'card-match-and-tag',
+                    keyForList: 'card-match-and-tag',
+                    formattedViolations: `${translateLocal('violations.shortName.rter')}, ${translateLocal('violations.shortName.missingTag')}`,
+                },
+                {...baseTransaction, transactionID: 'description', keyForList: 'description', formattedViolations: translateLocal('violations.shortName.missingComment')},
+            ];
+
+            // When the expenses are sorted by the Violations column in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            // Then the rows follow the labels the column shows, not the raw violation names, and the expense without
+            // violations comes first ascending and last descending, as the backend orders it
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([
+                'no-violations',
+                'card-match-and-tag',
+                'description',
+                'missing-category',
+            ]);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([
+                'missing-category',
+                'description',
+                'card-match-and-tag',
+                'no-violations',
+            ]);
+        });
+
         it('should sort expenses by the Rejected column, ranking expenses without the field as not rejected', () => {
             // Given a rejected expense, a never rejected one, and one returned without the field, with `inserted` set so
             // the tie breaker between the equal rows is predictable
@@ -13787,10 +13912,30 @@ describe('SearchUIUtils', () => {
             expect(tagGLCodeHeader?.sortColumnName).toBe(CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE);
         });
 
-        test('Should exclude Violations from sort options', () => {
-            expect(SearchUIUtils.getSortByOptions([CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE], translateLocal)).toEqual([
+        test('Should include Violations in sort options', () => {
+            // Given the Violations column is shown next to another sortable column
+            const columns = [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE];
+
+            // When the Sort by options are built for those columns
+            const sortByOptions = SearchUIUtils.getSortByOptions(columns, translateLocal);
+
+            // Then Violations can be picked, since the rows sort by the violation labels the column shows
+            expect(sortByOptions).toEqual([
+                {text: translateLocal('common.violations'), value: CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS},
                 {text: translateLocal('common.categoryGLCode'), value: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE},
             ]);
+        });
+
+        test('Should make the Violations header sortable', () => {
+            // Given the expense table headers
+            const headers = getExpenseHeaders();
+
+            // When the Violations header is looked up
+            const violationsHeader = headers.find(({columnName}) => columnName === CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+
+            // Then it isn't marked unsortable, so clicking it sorts the rows like the other column headers
+            expect(violationsHeader).toBeDefined();
+            expect(violationsHeader?.isColumnSortable).not.toBe(false);
         });
 
         test('Should show MCC whenever that column is selected, even with no displayable MCC', () => {
@@ -16203,7 +16348,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
+                `${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.missingCategory')}`,
             );
         });
 
@@ -16275,7 +16420,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.missingCategory')}`,
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.receiptRequired')}`,
             );
         });
 
@@ -16403,7 +16548,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
+                `${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.missingCategory')}`,
             );
         });
 
@@ -16591,6 +16736,27 @@ describe('SearchUIUtils', () => {
                     translateLocal,
                 ),
             ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+
+        test('lists each label once, alphabetically, even when different violation names share a label', () => {
+            // Given a submit snapshot whose names are out of label order, two of which share the "Receipt required" label
+            const reportActions = [
+                createSubmittedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [
+                            {name: CONST.VIOLATIONS.RECEIPT_REQUIRED},
+                            {name: CONST.VIOLATIONS.MISSING_CATEGORY},
+                            {name: CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT},
+                        ],
+                    },
+                }),
+            ];
+
+            // When the violations are read for a submitted-violation search
+            const violations = SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
+
+            // Then the shared label shows once and the labels read alphabetically, matching the key the Violations column sorts by
+            expect(violations).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.receiptRequired')}`);
         });
     });
 

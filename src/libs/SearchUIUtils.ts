@@ -72,6 +72,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 
 import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -120,6 +121,7 @@ import {convertAttendeesToArray} from './AttendeeUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
+import getCollator from './CollatorUtils';
 import DateUtils from './DateUtils';
 import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
 import getTransactionFromTransactionListItem from './getTransactionFromTransactionListItem';
@@ -223,7 +225,9 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDateRangeForPreset,
     getFilterFromQuery,
+    getPositiveHasFilterValues,
     getQueryHashes,
+    hasValuesIncludeViolationFilter,
     isFilterSupported,
     isFilterNegated,
     isGroupBySupportedBySearch,
@@ -370,6 +374,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: 'formattedViolations' as const,
 };
 
 const taskColumnNamesToSortingProperty: TaskSorting = {
@@ -520,7 +525,6 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.ACTION,
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-    CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
     // The trip search sorts by start date, trip name and traveler, but not by end date
     CONST.SEARCH.TABLE_COLUMNS.END_DATE,
 ]);
@@ -1992,6 +1996,8 @@ function getTransactionsSections({
     const transactionsSections: TransactionListItemType[] = [];
 
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
+    const violationHasValues = getPositiveHasFilterValues(currentQueryJSON);
+    const shouldFormatViolations = hasValuesIncludeViolationFilter(violationHasValues);
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -2087,6 +2093,16 @@ function getTransactionsSections({
                 formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
+                ...(shouldFormatViolations
+                    ? {
+                          formattedViolations: getViolationsForTransaction(
+                              Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {}),
+                              transactionItem.transactionID,
+                              violationHasValues,
+                              translate,
+                          ),
+                      }
+                    : {}),
                 date,
                 submitted,
                 approved,
@@ -5726,12 +5742,12 @@ function formatTransactionViolationNames(violationNames: Set<string>, translate?
         violationNames.delete(CONST.VIOLATIONS.RECEIPT_REQUIRED);
     }
 
-    const names = Array.from(violationNames);
-    if (!translate) {
-        return names.join(', ');
-    }
-
-    return names.map((name) => getViolationDisplayName(name, translate)).join(', ');
+    // Labels are de-duplicated because different names can share one (cashExpenseWithNoReceipt and receiptRequired).
+    const labels = translate ? new Set(Array.from(violationNames, (name) => getViolationDisplayName(name, translate))) : violationNames;
+    const collator = getCollator(IntlStore.getCurrentLocale());
+    return Array.from(labels)
+        .sort((first, second) => collator.compare(first, second))
+        .join(', ');
 }
 
 function collectSubmittedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
@@ -5759,7 +5775,7 @@ function collectApprovedViolationNamesForTransaction(violationNames: Set<string>
 /**
  * Collects a transaction's submitted violations from its report's submit actions.
  * A report can be submitted more than once, so this aggregates across every submit action,
- * dedupes by violation name, and returns a comma-separated display string.
+ * dedupes by violation messages, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
  *
  * Itemized receipt required supersedes receipt required (same rule as `filterReceiptViolations`),
@@ -5778,7 +5794,7 @@ function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAct
 /**
  * Collects a transaction's approved violations from its report's approved and forwarded actions.
  * A report can be approved or forwarded more than once, so this aggregates across every matching action,
- * dedupes by violation name, and returns a comma-separated display string.
+ * dedupes by violation messages, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
  *
  * Itemized receipt required supersedes receipt required (same rule as `filterReceiptViolations`),

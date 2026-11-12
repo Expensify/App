@@ -19,6 +19,7 @@ import type {
     SearchFooterTotal,
     SearchQueryJSON,
     SearchQueryString,
+    SearchSortBy,
     SearchWithdrawalType,
     SelectedTransactions,
     SyntaxFilterKey,
@@ -868,20 +869,30 @@ function getQueryWithFooterSelection(
  * search snapshots can still include FORWARDED actions with violation data.
  */
 function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
-    const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
-    if (hasFilterGroups.length === 0) {
-        return false;
-    }
+    return hasValuesIncludeViolationFilter(getPositiveHasFilterValues(queryJSON));
+}
 
-    return hasFilterGroups.some((group) =>
-        group.filters.some((filter) => {
-            if (filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-                return false;
-            }
+function isHasFilterValue(value: string): value is HasFilterValue {
+    return Object.values<string>(CONST.SEARCH.HAS_VALUES).includes(value);
+}
+
+/**
+ * Returns the `has` values the query includes, leaving out negated ones such as `-has:submitted-violation`.
+ */
+function getPositiveHasFilterValues(queryJSON: SearchQueryJSON | undefined): HasFilterValues {
+    const hasValues: HasFilterValues = [];
+    for (const filterGroup of queryJSON?.flatFilters ?? []) {
+        if (filterGroup.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            continue;
+        }
+        for (const filter of filterGroup.filters) {
             const value = filter.value.toString();
-            return value === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION || value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION;
-        }),
-    );
+            if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && isHasFilterValue(value)) {
+                hasValues.push(value);
+            }
+        }
+    }
+    return hasValues;
 }
 
 /**
@@ -889,6 +900,21 @@ function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolea
  */
 function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefined): boolean {
     return !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+}
+
+/**
+ * Returns the column the rows are sorted by on the client.
+ */
+function getEffectiveSortBy(queryJSON: SearchQueryJSON | undefined): SearchSortBy | undefined {
+    if (queryJSON?.sortBy !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS) {
+        return queryJSON?.sortBy;
+    }
+
+    if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryHasViolationFilter(queryJSON)) {
+        return queryJSON.sortBy;
+    }
+
+    return CONST.SEARCH.TABLE_COLUMNS.DATE;
 }
 
 /**
@@ -3529,7 +3555,9 @@ export {
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,
     queryHasViolationFilter,
+    getPositiveHasFilterValues,
     hasValuesIncludeViolationFilter,
+    getEffectiveSortBy,
 };
 
 export type {BuildUserReadableQueryStringParams};

@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
+import {getEffectiveSortBy} from '@libs/SearchQueryUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCreatedDateType} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
@@ -120,7 +121,7 @@ function SearchStaticList({
             reportAttributesDerivedValue: undefined,
         });
 
-        return getSortedSections(type, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
+        return getSortedSections(type, filteredData, localeCompare, translate, getEffectiveSortBy(queryJSON), sortOrder, validGroupBy)
             .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .slice(0, STATIC_LIST_MAX_ITEMS);
     })();

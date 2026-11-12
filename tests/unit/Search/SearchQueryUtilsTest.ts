@@ -30,6 +30,8 @@ import {
     getQueryWithoutGroupBy,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
+    getEffectiveSortBy,
+    getPositiveHasFilterValues,
     getDateFilterRange,
     getKeywordQueryForSearchInput,
     getKeywordQueryWithCurrentSearchContext,
@@ -6614,6 +6616,79 @@ describe('SearchQueryUtils', () => {
 
         test('returns false for undefined has values', () => {
             expect(hasValuesIncludeViolationFilter(undefined)).toBe(false);
+        });
+    });
+
+    describe('getPositiveHasFilterValues', () => {
+        test('returns the positive has values and leaves out negated ones', () => {
+            // Given a query that includes approved violations and receipts but excludes submitted violations
+            const queryJSON = buildSearchQueryJSON(
+                `type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} has:${CONST.SEARCH.HAS_VALUES.RECEIPT} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`,
+            );
+
+            // When the has values are read from the query
+            const hasValues = getPositiveHasFilterValues(queryJSON);
+
+            // Then only the positive values are returned, so the Violations column never lists a stage the query excludes
+            expect(hasValues).toEqual(expect.arrayContaining([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION, CONST.SEARCH.HAS_VALUES.RECEIPT]));
+            expect(hasValues).not.toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+        });
+
+        test('returns an empty list when the query has no has filter', () => {
+            // Given a query without any has filter
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            // When the has values are read from the query
+            const hasValues = getPositiveHasFilterValues(queryJSON);
+
+            // Then nothing is returned, so no violation labels are computed for the rows
+            expect(hasValues).toEqual([]);
+        });
+    });
+
+    describe('getEffectiveSortBy', () => {
+        test('falls back to date for a Violations sort without a violation has filter', () => {
+            // Given a Violations sort on a query that has no violation data to sort by
+            const queryJSON = buildSearchQueryJSON(`type:expense sortBy:${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the rows sort by date, the same order the backend returns for this query
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
+        });
+
+        test('falls back to date when the violation has filter is negated', () => {
+            // Given a Violations sort on a query that excludes approved violations instead of including them
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} sortBy:${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the rows sort by date, because a negated filter doesn't give the rows any violation labels
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
+        });
+
+        test('keeps the Violations sort when the query includes a violation has filter', () => {
+            // Given a Violations sort on an expense query that includes approved violations
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} sortBy:${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the rows sort by their violation labels
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
+        test('keeps any other sort column as it is', () => {
+            // Given a query sorted by merchant without any violation has filter
+            const queryJSON = buildSearchQueryJSON(`type:expense sortBy:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the fallback only applies to the Violations column
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
         });
     });
 
