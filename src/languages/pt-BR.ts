@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Cancelar',
         dismiss: 'Fechar',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionar a coluna ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        resizePanel: 'Redimensionar o painel',
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Continuar',
         unshare: 'Deixar de compartilhar',
         yes: 'Sim',
@@ -1260,6 +1261,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Ver tudo',
         topExpenses: 'Maiores despesas',
         noExpensesInRange: 'Nenhuma despesa nesse intervalo',
+        efficiency: 'Eficiência',
+        workflowEfficiency: 'Eficiência de fluxo de trabalho',
+        longestToSubmit: 'Mais demorados para enviar',
+        slowestToApprove: 'Mais lento para aprovar',
+        mostTimeToPay: 'Maior prazo para pagar',
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -1418,6 +1424,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'ou arraste e solte um aqui',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Página ${page} de ${pageCount}`,
+        translate: 'Traduzir',
+        viewOriginal: 'Ver original',
+        translationDisclaimer: 'A IA pode cometer erros. Confira o original novamente.',
+        translationError: {
+            unreadable: 'Não conseguimos ler este recibo com clareza suficiente para traduzi-lo.',
+            alreadyInLanguage: 'Este recibo já está no seu idioma.',
+            generic: 'Não foi possível traduzir este recibo. Tente novamente.',
+        },
     },
     quickAction: {
         scanReceipt: 'Digitalizar recibo',
@@ -2042,6 +2056,12 @@ const translations: TranslationDeepObject<typeof en> = {
         tagDisabledAlert: {title: 'Tag desativada', prompt: 'Ative as tags no workspace para editar os detalhes da despesa ou excluir a tag desta despesa.', confirmText: 'Excluir tag'},
         undeletedExpense: 'restaurou esta despesa',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `taxas de distância atualizadas para o novo workspace - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} relatório`,
+                other: (count: number) => `${formattedCount ?? count} relatórios`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2298,6 +2318,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'no último sábado do mês',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'no último domingo do mês',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Este relatório será exportado após a aprovação final.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'As despesas reembolsáveis serão exportadas quando este relatório for pago.',
         },
     },
     profilePage: {
@@ -7911,6 +7935,13 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 onWaitlist: 'Você está na lista de espera',
                 waitlistDescription: 'O Concierge vai enviar uma mensagem para avisar quando essa integração estiver pronta e como conectá-la.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Em breve',
+                joinWaitlist: 'Entrar na lista de espera',
+                onWaitlist: 'Você está na lista de espera',
+                onTheList: 'Você está na lista!',
+                waitlistDescription: 'O Concierge vai enviar uma mensagem para avisar quando essa integração estiver pronta e como conectá-la.',
+            },
             setup: 'Conectar',
             connectToSandbox: 'Conectar ao sandbox',
             lastSync: (relativeDate: string) => `Última sincronização ${relativeDate}`,
@@ -8322,6 +8353,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             statusExpired: 'Expirado',
             statusInactive: 'Inativo',
             unit: 'Unidade',
+            ukFuelRateTaxError: 'Adicione uma alíquota de 20% para acompanhar os impostos sobre as tarifas de combustível recomendadas do Reino Unido.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Adicione uma alíquota de 20% no ${integrationName} para acompanhar os impostos sobre as tarifas de combustível recomendadas do Reino Unido.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Os impostos precisam estar ativados no workspace para usar este recurso. Vá até <a href="#">Mais recursos</a> para fazer essa alteração.</muted-text>',
             deleteDistanceRate: 'Excluir taxa de distância',
@@ -9234,6 +9268,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 describeRuleForConcierge: 'Descreva sua regra e o Concierge vai criá-la',
                 gotIt: 'Entendi',
                 createRule: 'Criar regra',
+                saveAnyway: 'Salvar mesmo assim',
+                checkingRule: 'Verificando sua regra...',
                 fallbackBanner:
                     'Esta não é uma regra padrão, então criamos uma regra de agente. As regras de agente são executadas quando uma despesa ou um relatório é criado ou atualizado.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9692,8 +9728,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             },
         },
         digits: {
+            entity: 'Entidade',
             updateCurrencyTitle: 'Atualizar a moeda do espaço de trabalho?',
             updateCurrencyPrompt: 'No momento, o Digits só está disponível para empresas sediadas nos EUA que operam em USD.',
+            importDescription: 'Escolha quais configurações do Digits importar.',
+            accountTypesDescription: 'Suas contas do Digits serão importadas como categorias.',
+            enableNewAccountsTitle: 'Ativar contas recém-importadas',
+            enableNewAccountsDescription: 'Novas contas Digits ficarão disponíveis como categorias.',
+            dimensionsImport: 'Todas as dimensões Digits são importadas como tags.',
+            departments: 'Departamentos',
         },
         zohoBooks: {
             organization: 'Organização Zoho Books',
@@ -10069,6 +10112,25 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `alterou a categoria "${categoryName}" Itens detalhados de recibos para ${newValue} (antes ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `renomeou a categoria "${oldName}" para "${newName}"`,
+        setCategoryVisibility: (members: string, categories: string) => `configurou ${members} para ver apenas ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `alterou ${members} para verem apenas ${categories}`,
+        clearedCategoryVisibility: (members: string) => `alterou ${members} para ver todas as categorias`,
+        quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
+        oneCategory: (categoryName: string) => `a categoria ${categoryName}`,
+        someCategories: (categoryList: string) => `as categorias ${categoryList}`,
+        everyone: 'todos',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 categoria',
+            other: `${count} categorias`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 membro',
+            other: `${count} membros`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Categorias: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Membros: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', já que a única categoria deles foi excluída. Atualize a visibilidade da categoria deles, se necessário.',
+        categoryVisibilityReasonDisabled: ', já que a única categoria deles foi desativada. Atualize a visibilidade da categoria, se necessário.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `removeu a dica de descrição "${oldValue}" da categoria "${categoryName}"`;
@@ -10792,6 +10854,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         columns: 'Colunas',
         editColumns: 'Editar colunas',
         resetColumns: 'Redefinir colunas',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Opções da coluna ${columnName}`,
+            sortAscending: 'Classificar em ordem crescente',
+            sortDescending: 'Classificar em ordem decrescente',
+            hideColumn: 'Ocultar coluna',
+        },
         groupColumns: 'Agrupar colunas',
         expenseColumns: 'Colunas de despesas',
         saveView: 'Salvar visualização',
@@ -10874,7 +10942,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             completed: 'Concluído',
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Menor ou igual a ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maior que ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Maior ou igual a ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Entre ${greaterThan} e ${lessThan}`;
@@ -10931,6 +11001,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprovador',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violação',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pago por',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -11034,6 +11105,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprovadores',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violações',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pagadores',
         },
         moneyRequestReport: {emptyStateTitle: 'Ainda não há despesas', accessPlaceHolder: 'Abrir para ver detalhes'},
         errors: {
@@ -11132,6 +11204,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             category: 'Categoria',
             tag: 'Etiqueta',
         },
+        switchToTableView: 'Mudar para visualização em tabela',
+        switchToExpenseView: 'Mudar para visualização de despesa',
     },
     report: {
         newReport: {

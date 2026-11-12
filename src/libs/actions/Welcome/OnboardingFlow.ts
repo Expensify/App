@@ -11,7 +11,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Account, Locale, Onboarding} from '@src/types/onyx';
+import type {Account, IntroSelected, Locale, Onboarding} from '@src/types/onyx';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -164,6 +164,15 @@ function buildOnboardingFlowParams(
 }
 
 /**
+ * Returns the saved onboarding company size only when it is one of the known sizes, current or legacy.
+ * `companySize` is stored as a plain string, so an unknown value is dropped instead of being sent as a company size.
+ */
+function getIntroSelectedCompanySize(introSelected: OnyxEntry<IntroSelected>): OnboardingCompanySize | undefined {
+    const companySize = introSelected?.companySize;
+    return Object.values(CONST.ONBOARDING_COMPANY_SIZE).find((size) => size === companySize);
+}
+
+/**
  * Resolves the onboarding path to resume after required-2FA setup during incomplete guided setup.
  */
 function getRequired2FAOnboardingResumePath(onboardingFlowParams: GetOnboardingInitialPathParamsType): string {
@@ -209,4 +218,12 @@ async function resumeOnboardingAfterRequired2FASetup(onboardingFlowParams: GetOn
 const getOnboardingMessages = (locale?: Locale) => buildOnboardingMessages(onboardingData, locale);
 
 export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
-export {buildOnboardingFlowParams, getOnboardingInitialPath, getRequired2FAOnboardingResumePath, resumeOnboardingAfterRequired2FASetup, startOnboardingFlow, getOnboardingMessages};
+export {
+    buildOnboardingFlowParams,
+    getIntroSelectedCompanySize,
+    getOnboardingInitialPath,
+    getRequired2FAOnboardingResumePath,
+    resumeOnboardingAfterRequired2FASetup,
+    startOnboardingFlow,
+    getOnboardingMessages,
+};

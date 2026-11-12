@@ -108,8 +108,10 @@ const translations = {
         dismiss: 'Dismiss',
         // @context Accessible name of the draggable edge between two table columns. "columnName" is the heading of the column to the left of the edge.
         resizeColumn: ({columnName}: {columnName: string}) => `Resize ${columnName} column`,
-        // @context Spoken by screen readers for the width of a table column while its edge is resized.
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        // @context Accessible name of the draggable edge of a side panel, such as the right-hand panel.
+        resizePanel: 'Resize panel',
+        // @context Spoken by screen readers for the width of a table column or panel while its edge is resized.
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Proceed',
         unshare: 'Unshare',
@@ -1382,6 +1384,11 @@ const translations = {
         topViolations: 'Top violations',
         violationsBySubmitter: 'Violations by submitter',
         violationsByApprover: 'Violations by approver',
+        efficiency: 'Efficiency',
+        workflowEfficiency: 'Workflow efficiency',
+        longestToSubmit: 'Longest to submit',
+        slowestToApprove: 'Slowest to approve',
+        mostTimeToPay: 'Most time to pay',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',
@@ -1569,6 +1576,14 @@ const translations = {
         addAdditionalReceipt: 'Add additional receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
         crop: 'Crop',
+        translate: 'Translate',
+        viewOriginal: 'View original',
+        translationDisclaimer: 'AI can make mistakes. Please double-check the original.',
+        translationError: {
+            unreadable: "We couldn't read this receipt clearly enough to translate it.",
+            alreadyInLanguage: 'This receipt is already in your language.',
+            generic: "We couldn't translate this receipt. Please try again.",
+        },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Page ${page} of ${pageCount}`,
         addAReceipt: {
             phrase1: 'Add a receipt',
@@ -1723,6 +1738,12 @@ const translations = {
             return {
                 one: (count: number) => `${formattedCount ?? count} expense`,
                 other: (count: number) => `${formattedCount ?? count} expenses`,
+            };
+        },
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} report`,
+                other: (count: number) => `${formattedCount ?? count} reports`,
             };
         },
         deleteExpense: () => ({
@@ -2462,6 +2483,10 @@ const translations = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'on the last Saturday of the month',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'on the last Sunday of the month',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'This report will be exported after final approval.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Reimbursable expenses will be exported when this report is paid.',
         },
     },
     profilePage: {
@@ -7112,8 +7137,15 @@ const translations = {
             },
         },
         digits: {
+            entity: 'Entity',
             updateCurrencyTitle: 'Update workspace currency?',
             updateCurrencyPrompt: 'Digits is currently only available for US-based companies that operate in USD.',
+            importDescription: 'Choose which Digits configurations to import.',
+            accountTypesDescription: 'Your Digits accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Digits accounts will be available as categories.',
+            dimensionsImport: 'All Digits dimensions import as tags.',
+            departments: 'Departments',
         },
         zohoBooks: {
             organization: 'Zoho Books organization',
@@ -8586,6 +8618,13 @@ const translations = {
                 onWaitlist: 'You’re on the waitlist',
                 waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Coming soon',
+                joinWaitlist: 'Join waitlist',
+                onWaitlist: 'You’re on the waitlist',
+                onTheList: 'You’re on the list!',
+                waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
+            },
             setup: 'Connect',
             connectToSandbox: 'Connect to sandbox',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
@@ -9165,6 +9204,9 @@ const translations = {
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
+            ukFuelRateTaxError: 'Please add a 20% tax rate to track tax on the UK Advisory Fuel Rates.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Please add a 20% tax rate in ${integrationName} to track tax on the UK Advisory Fuel Rates.`,
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
@@ -10233,6 +10275,8 @@ const translations = {
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
+                saveAnyway: 'Save anyway',
+                checkingRule: 'Checking your rule...',
                 fallbackBanner: "This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated.",
                 fallbackBannerWithExplanation: (explanation: string) =>
                     `This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated. ${explanation}`,
@@ -10424,6 +10468,25 @@ const translations = {
             return `changed the "${categoryName}" category Itemized receipts to ${newValue} (previously ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `renamed the category "${oldName}" to "${newName}"`,
+        setCategoryVisibility: (members: string, categories: string) => `set ${members} to only see ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `changed ${members} to only see ${categories}`,
+        clearedCategoryVisibility: (members: string) => `changed ${members} to see all categories`,
+        quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
+        oneCategory: (categoryName: string) => `the ${categoryName} category`,
+        someCategories: (categoryList: string) => `the ${categoryList} categories`,
+        everyone: 'everyone',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 category',
+            other: `${count} categories`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 member',
+            other: `${count} members`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Categories: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Members: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', since their only category was deleted. Update their category visibility if needed.',
+        categoryVisibilityReasonDisabled: ', since their only category was disabled. Update their category visibility if needed.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `removed the description hint "${oldValue}" from the category "${categoryName}"`;
@@ -11212,6 +11275,12 @@ const translations = {
         columns: 'Columns',
         editColumns: 'Edit columns',
         resetColumns: 'Reset columns',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `${columnName} column options`,
+            sortAscending: 'Sort ascending',
+            sortDescending: 'Sort descending',
+            hideColumn: 'Hide column',
+        },
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
         saveView: 'Save view',
@@ -11304,7 +11373,9 @@ const translations = {
             completed: 'Completed',
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Less than or equal to ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Greater than or equal to ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Between ${greaterThan} and ${lessThan}`;
@@ -11377,6 +11448,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violation',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Paid by',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11443,6 +11515,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violations',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payers',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',
@@ -11547,6 +11620,8 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
+        switchToTableView: 'Switch to table view',
+        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {

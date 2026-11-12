@@ -356,6 +356,7 @@ function WorkspacesListPage() {
                     value: type,
                     text: translate('workspace.common.setAsDefaultShort'),
                     icon: icons.Star,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_SET_AS_DEFAULT,
                     onSelected: () => {
                         if (!activePolicyID) {
                             return;
@@ -369,6 +370,7 @@ function WorkspacesListPage() {
                     value: type,
                     text: translate('workspace.common.exportMembers'),
                     icon: icons.Export,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_EXPORT_MEMBERS,
                     shouldSkipFocusRestore: true,
                     onSelected: () => {
                         if (policyIDs.length === selectedRows.length) {
@@ -392,6 +394,7 @@ function WorkspacesListPage() {
                     value: type,
                     text: translate('workspace.people.transferOwner'),
                     icon: icons.Transfer,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_TRANSFER_OWNER,
                     shouldSkipFocusRestore: true,
                     disabled: isCheckingTransfer,
                     shouldShowLoadingSpinnerIcon: isCheckingTransfer,
@@ -409,6 +412,7 @@ function WorkspacesListPage() {
                     value: type,
                     text: translate('workspace.copyPolicySettings.title'),
                     icon: icons.Copy,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_COPY_SETTINGS,
                     onSelected: () => {
                         clearCopyPolicySettings();
                         Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(firstPolicyID));
@@ -419,6 +423,7 @@ function WorkspacesListPage() {
                     value: type,
                     text: translate('common.duplicate'),
                     icon: icons.Plus,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_DUPLICATE,
                     onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(firstPolicyID)),
                 };
             case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.ARCHIVE:
@@ -426,6 +431,7 @@ function WorkspacesListPage() {
                     value: type,
                     text: translate('common.archive'),
                     icon: icons.Box,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_ARCHIVE,
                     shouldSkipFocusRestore: true,
                     onSelected: () => {
                         // The single workspace confirmation is handled by ArchiveWorkspaceFlow, mounted below.
@@ -441,6 +447,7 @@ function WorkspacesListPage() {
                     value: type,
                     text: translate('common.delete'),
                     icon: icons.Trashcan,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_DELETE,
                     shouldSkipFocusRestore: true,
                     onSelected: () => {
                         if (isLoadingBill) {
@@ -459,6 +466,7 @@ function WorkspacesListPage() {
                     value: type,
                     text: translate('workspace.common.unarchive'),
                     icon: icons.ArrowCircleClockwise,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_UNARCHIVE,
                     shouldSkipFocusRestore: true,
                     onSelected: callIfAuthenticated(() => setActiveFlow({type, policyID: firstPolicyID}), session),
                 };
@@ -468,6 +476,7 @@ function WorkspacesListPage() {
                     value: type,
                     text: translate('common.leave'),
                     icon: icons.Exit,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_LEAVE,
                     shouldSkipFocusRestore: true,
                     onSelected: callIfAuthenticated(() => {
                         if (isSingleSelection) {

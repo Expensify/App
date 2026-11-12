@@ -348,6 +348,7 @@ function ColumnsSettingsList({
             </View>
             <View style={[styles.ph5, styles.pb5]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.COLUMNS_SETTINGS_LIST.SAVE_BUTTON}
                     size={CONST.BUTTON_SIZE.LARGE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleSave}
