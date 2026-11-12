@@ -78,6 +78,7 @@ describe('activeSpans benchmark logging', () => {
         // eslint-disable-next-line no-underscore-dangle -- __DEV__ is the React Native global the code under test reads
         (global as Record<string, unknown>).__DEV__ = false;
         const consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {});
+        // The Jest setup already replaces console.debug with a mock, so the spy starts with the calls of earlier tests
         consoleDebugSpy.mockClear();
         startSpan('ManualOpenReport', {name: 'ManualOpenReport'});
         startSpan('ManualOpenSearchRouter', {name: 'ManualOpenSearchRouter'});

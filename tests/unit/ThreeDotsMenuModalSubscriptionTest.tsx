@@ -40,8 +40,15 @@ describe('ThreeDotsMenu modal subscription', () => {
         return waitForBatchedUpdates();
     });
 
-    it('re-renders only when an alert modal is about to cover it, and then closes its open popover', async () => {
-        // Given a menu with its popover open, because many of these menus stay mounted on the Workspaces tab while the user navigates
+    afterEach(async () => {
+        // Every test starts with no modal, because the key outlives the rendered menu
+        setModalVisibility(false);
+        willAlertModalBecomeVisible(false);
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    // Renders a menu and opens its popover, because many of these menus stay mounted on the Workspaces tab while the user navigates
+    async function renderOpenMenu() {
         const onRender = jest.fn();
         render(
             <Profiler
@@ -60,6 +67,12 @@ describe('ThreeDotsMenu modal subscription', () => {
         fireEvent.press(screen.getByTestId('three-dots-menu'));
         expect(await screen.findByTestId('popover-open')).toBeOnTheScreen();
         onRender.mockClear();
+        return onRender;
+    }
+
+    it('does not re-render when a right-docked screen opens and closes', async () => {
+        // Given a menu with its popover open
+        const onRender = await renderOpenMenu();
 
         // When a right-docked screen such as the Search Router is focused and then blurred, which writes the modal visibility on every open and close
         setModalVisibility(true, CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
@@ -70,6 +83,11 @@ describe('ThreeDotsMenu modal subscription', () => {
 
         // Then the menu does not render, because it only depends on whether an alert modal is about to cover it
         expect(onRender).not.toHaveBeenCalled();
+    });
+
+    it('stays open when a popover is about to become visible', async () => {
+        // Given a menu with its popover open
+        await renderOpenMenu();
 
         // When a popover is about to become visible
         willAlertModalBecomeVisible(true, true);
@@ -77,6 +95,11 @@ describe('ThreeDotsMenu modal subscription', () => {
 
         // Then the menu stays open, because the menu's own popover announces itself this way when it opens
         expect(screen.getByTestId('popover-open')).toBeOnTheScreen();
+    });
+
+    it('closes its popover when an alert modal is about to cover it and stays closed after the modal goes away', async () => {
+        // Given a menu with its popover open
+        await renderOpenMenu();
 
         // When an alert modal is about to become visible
         willAlertModalBecomeVisible(true);

@@ -12,7 +12,7 @@ type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
     spanName: string;
     startTimeForLog: number;
-    /** Set by cancelSpan before the span is ended, so endSpan can skip benchmark logging without reading the span back. */
+    /** Set by cancelSpan, so endSpan can skip benchmark logging without the span's attributes, which it reads only in development builds. */
     isCanceled?: boolean;
 };
 
@@ -36,8 +36,7 @@ function startSpan(spanId: string, options: StartSpanOptions) {
     }
     // End any existing span for this name
     cancelSpan(spanId);
-    // Release bundles keep console calls (nothing strips them), and React Native serializes every argument before passing
-    // it to the native logger. Span logs are only useful while debugging locally.
+    // Native release bundles keep console calls, and React Native serializes every argument before passing it to the native logger.
     if (__DEV__) {
         console.debug(`[Sentry][${spanId}] Starting span`, {
             spanId,

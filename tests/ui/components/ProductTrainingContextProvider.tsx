@@ -1,4 +1,4 @@
-import {render, renderHook} from '@testing-library/react-native';
+import {cleanup, render, renderHook} from '@testing-library/react-native';
 
 import {ProductTrainingContextProvider, useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
@@ -12,7 +12,7 @@ import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {Ref, RefObject} from 'react';
+import type {Ref} from 'react';
 
 import {createRef, useImperativeHandle} from 'react';
 import Onyx from 'react-native-onyx';
@@ -80,7 +80,8 @@ describe('ProductTrainingContextProvider', () => {
     });
 
     afterEach(async () => {
-        // Clean up test environment after each test
+        // Unmount before clearing Onyx, so the clear does not update providers that are still mounted outside act
+        cleanup();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -464,19 +465,22 @@ describe('ProductTrainingContextProvider', () => {
             // Given a tooltip that hides under modals and the mileage rate tooltip that is shown on a modal screen
             const accountSwitcherRef = createRef<ProductTrainingRef>();
             const mileageRef = createRef<ProductTrainingRef>();
-            const renderConsumer = (tooltipName: typeof ACCOUNT_SWITCHER | typeof MILEAGE_RATE_AUTO_UPDATED, ref: RefObject<ProductTrainingRef | null>) =>
-                render(
-                    wrapper({
-                        children: (
+            render(
+                wrapper({
+                    children: (
+                        <>
                             <ProductTraining
-                                ref={ref}
-                                tooltipName={tooltipName}
+                                ref={accountSwitcherRef}
+                                tooltipName={ACCOUNT_SWITCHER}
                             />
-                        ),
-                    }),
-                );
-            renderConsumer(ACCOUNT_SWITCHER, accountSwitcherRef);
-            renderConsumer(MILEAGE_RATE_AUTO_UPDATED, mileageRef);
+                            <ProductTraining
+                                ref={mileageRef}
+                                tooltipName={MILEAGE_RATE_AUTO_UPDATED}
+                            />
+                        </>
+                    ),
+                }),
+            );
             await waitForBatchedUpdatesWithAct();
 
             // When an alert modal is about to become visible

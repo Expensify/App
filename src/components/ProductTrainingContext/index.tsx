@@ -96,7 +96,8 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     const [activeTooltips, setActiveTooltips] = useState<Map<ProductTrainingTooltipName, number>>(new Map());
 
     // Registration counts the consumers mounted with shouldShow per tooltip name, because several consumers can share a name.
-    // Eligibility is checked at render, so both callbacks use nothing but the setter.
+    // Both callbacks must use nothing but the setter: consumers list them as effect dependencies, so a new identity would
+    // unregister and re-register every tooltip on each provider render.
     const registerTooltip = (tooltipName: ProductTrainingTooltipName) => {
         setActiveTooltips((prev) => new Map(prev).set(tooltipName, (prev.get(tooltipName) ?? 0) + 1));
     };
