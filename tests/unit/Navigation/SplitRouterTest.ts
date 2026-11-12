@@ -95,7 +95,12 @@ describe('SplitRouter', () => {
 
                 // Then both visible panes recover only their identifying params, without React Navigation hint keys
                 expect(result.routes.map((route) => ({name: route.name, params: route.params}))).toEqual(
-                    isNarrowLayout ? [{name: sidebar, params: scope}] : [{name: sidebar, params: scope}, {name: central, params: scope}],
+                    isNarrowLayout
+                        ? [{name: sidebar, params: scope}]
+                        : [
+                              {name: sidebar, params: scope},
+                              {name: central, params: scope},
+                          ],
                 );
             });
 
