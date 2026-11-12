@@ -204,6 +204,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         {!!paymentBankAccountID && !!continuousReconciliation && (
                             <View style={styles.mt5}>
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_ACCOUNT}
                                     name={translate('workspace.accounting.reconciliationAccount')}
                                     value={bankAccountTitle}
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path))}

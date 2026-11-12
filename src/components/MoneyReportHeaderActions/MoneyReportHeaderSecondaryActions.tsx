@@ -514,6 +514,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
                 delegateAccountID,
+                allTransactionViolations,
             });
 
         if (!isUserValidated && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -559,6 +560,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction, isDisabled
     return (
         <View style={wrapperStyle}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 innerStyles={innerStyles}
                 style={shouldTakeRemainingWidth ? styles.w100 : undefined}

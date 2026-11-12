@@ -128,7 +128,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     >();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
     const {login: currentUserLogin, email: currentUserEmail, accountID, localCurrencyCode, displayName: currentUserDisplayName} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -301,7 +301,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
-                dateFnsLocale,
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -519,7 +518,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 if (!transaction) {
                     return;
                 }
-                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, getCurrencyDecimals, [], false, isReportInSearch);
+                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, translate, getCurrencyDecimals, [], false, isReportInSearch);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE]: {
@@ -786,6 +785,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
     return (
         <ButtonWithDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
             ref={dropdownMenuRef}
             onPress={() => {}}
             shouldAlwaysShowDropdownMenu
