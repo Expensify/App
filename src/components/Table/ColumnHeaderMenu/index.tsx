@@ -21,13 +21,21 @@ const MENU_ANCHOR_ALIGNMENT: AnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
+type ContentProps = {
+    children: React.ReactNode;
+};
+
 /** The popover holding the menu's items, opening below the heading. */
-function Content({children}: {children: React.ReactNode}) {
+function Content({children}: ContentProps) {
     return <PopoverMenu.Content anchorAlignment={MENU_ANCHOR_ALIGNMENT}>{children}</PopoverMenu.Content>;
 }
 
+type ClearSortItemProps = WithRequiredSentryLabel & {
+    onSelect: () => void;
+};
+
 /** Returns the table to its unsorted order. */
-function ClearSortItem({onSelect, sentryLabel}: WithRequiredSentryLabel & {onSelect: () => void}) {
+function ClearSortItem({onSelect, sentryLabel}: ClearSortItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
