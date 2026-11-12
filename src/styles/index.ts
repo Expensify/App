@@ -1615,6 +1615,16 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
         },
 
+        /**
+         * The secondary row reserves a fixed height so that the typing indicator appearing and disappearing never
+         * shifts the compose box. On mobile web in landscape that costs scarce vertical space for a row that is empty
+         * most of the time, so there it collapses to its content and accepts the shift instead.
+         */
+        chatItemComposeSecondaryRowCompact: {
+            marginTop: 0,
+            marginBottom: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
+        },
+
         chatItemComposeSecondaryRowSubText: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -2092,6 +2102,16 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
             boxShadow: 'none',
+        },
+
+        // The liquid glass behind the icon draws the button's surface and its own depth.
+        floatingActionButtonGlass: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+        },
+
+        floatingButtonGlass: {
+            borderRadius: variables.componentBorderRadiusCircle,
         },
 
         floatingCameraButton: {
@@ -3102,6 +3122,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerBarNarrowHeight: {
             height: variables.contentHeaderNarrowHeight,
+        },
+
+        headerBarCompactHeight: {
+            height: variables.contentHeaderCompactHeight,
         },
 
         imageViewContainer: {
@@ -4131,6 +4155,12 @@ const staticStyles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        // Lays a centered heading's label over the hidden copy that sizes its slot
+        searchColumnMenuLabelOverlay: {
+            ...StyleSheet.absoluteFill,
+            justifyContent: 'center',
+        },
+
         zIndex10: {
             zIndex: 10,
         },
@@ -4410,6 +4440,20 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: 20,
+        },
+
+        receiptScanningLine: {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderTopWidth: CONST.RECEIPT.TRANSLATION_SCAN_LINE_HEIGHT,
+            borderTopColor: theme.success,
+        },
+
+        translatedReceiptCard: {
+            width: '100%',
+            maxWidth: 400,
         },
 
         bgGreenSuccess: {
@@ -7301,6 +7345,17 @@ const dynamicStyles = (theme: ThemeColors) =>
                 bottom: variables.rhpFloatingCardMargin,
                 width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
                 right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
+            }) satisfies ViewStyle,
+
+        // Spans the single RHP card and the handle straddling its left edge, and shares their containing block's right, top and bottom edges.
+        rhpResizableDialog: (singleRHPWidth: number) =>
+            ({
+                ...positioning.pAbsolute,
+                ...pointerEventsBoxNone,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET + CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
             }) satisfies ViewStyle,
 
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the

@@ -1,27 +1,24 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import type {ConfirmationFieldErrors, SiblingFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import type {ConfirmationField, ConfirmationFieldErrors, SiblingFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import {NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import useConfirmationFieldErrors from '@components/MoneyRequestConfirmationList/hooks/useConfirmationFieldErrors';
-
-jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 
 type Props = {
     fieldErrors: ConfirmationFieldErrors;
     siblingFieldErrors?: SiblingFieldErrors;
     onSwitchToTransaction?: (transactionID: string) => void;
-    formErrorMessage?: string;
-    routeError?: string;
+    onRevealField: (field: ConfirmationField, transactionID: string | undefined) => void;
 };
 
+const ON_SCREEN_TRANSACTION_ID = 'txn1';
 const MISSING_AMOUNT: ConfirmationFieldErrors = {amount: 'common.error.fieldRequired'};
 const PARTIALLY_FILLED_SIBLING: SiblingFieldErrors = {transactionID: 'txn2', fieldErrors: MISSING_AMOUNT};
-const INVALID_SIBLING: SiblingFieldErrors = {transactionID: 'txn2', fieldErrors: {amount: 'common.error.invalidAmount'}};
 
 function renderFieldErrors(initialProps: Props) {
     return renderHook(
-        ({fieldErrors, siblingFieldErrors, onSwitchToTransaction, formErrorMessage, routeError}: Props) =>
-            useConfirmationFieldErrors({fieldErrors, siblingFieldErrors, onSwitchToTransaction, formErrorMessage, routeError}),
+        ({fieldErrors, siblingFieldErrors, onSwitchToTransaction, onRevealField}: Props) =>
+            useConfirmationFieldErrors({transactionID: ON_SCREEN_TRANSACTION_ID, fieldErrors, siblingFieldErrors, onSwitchToTransaction, onRevealField}),
         {initialProps},
     );
 }
@@ -30,181 +27,78 @@ describe('useConfirmationFieldErrors', () => {
     it('keeps the field errors hidden until a confirm is blocked by them', () => {
         // Given a confirmation whose amount is missing, before the user pressed the confirm button
         // When it renders
-        const {result} = renderFieldErrors({fieldErrors: MISSING_AMOUNT});
+        const {result} = renderFieldErrors({fieldErrors: MISSING_AMOUNT, onRevealField: jest.fn()});
 
-        // Then neither the field nor the footer flags anything yet
+        // Then the field doesn't flag anything yet
         expect(result.current.visibleFieldErrors).toBe(NO_FIELD_ERRORS);
-        expect(result.current.footerErrorMessage).toBeUndefined();
     });
 
-    it('shows the field errors and the footer summary once a confirm is blocked', () => {
-        // Given a confirmation whose amount is missing
-        const {result} = renderFieldErrors({fieldErrors: MISSING_AMOUNT});
-
-        // When the confirm is blocked by it
-        act(() => result.current.revealFieldErrors());
-
-        // Then the amount shows its error, and the summary above the button explains the block even if the amount is scrolled away
-        expect(result.current.visibleFieldErrors).toEqual(MISSING_AMOUNT);
-        expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
-    });
-
-    it('asks to fix the errors when every field error is an invalid value rather than a missing one', () => {
-        // Given a confirmation whose only field error is an invalid amount, such as a negative amount to a person
-        const {result} = renderFieldErrors({fieldErrors: {amount: 'common.error.invalidAmount'}});
-
-        // When the confirm is blocked by it
-        act(() => result.current.revealFieldErrors());
-
-        // Then the field shows it, and the footer uses the line other forms show, since nothing is missing for "required fields" to describe
-        expect(result.current.visibleFieldErrors).toEqual({amount: 'common.error.invalidAmount'});
-        expect(result.current.footerErrorMessage).toBe('common.error.fixErrorsBeforeContinuing');
-    });
-
-    it('asks for the required fields when a missing value and an invalid one block together', () => {
-        // Given a confirmation with a missing date and an invalid merchant
-        const {result} = renderFieldErrors({fieldErrors: {date: 'common.error.fieldRequired', merchant: 'iou.error.invalidMerchant'}});
+    it.each([
+        ['the amount when the merchant is flagged too', {amount: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'}, undefined, 'amount', ON_SCREEN_TRANSACTION_ID],
+        ['the merchant when the date is flagged too', {date: 'common.error.fieldRequired', merchant: 'iou.error.invalidMerchant'}, undefined, 'merchant', ON_SCREEN_TRANSACTION_ID],
+        ['the date when it is the only one flagged', {date: 'common.error.fieldRequired'}, undefined, 'date', ON_SCREEN_TRANSACTION_ID],
+        [
+            'the flagged field of another receipt when the one on screen has none',
+            NO_FIELD_ERRORS,
+            {transactionID: 'txn2', fieldErrors: {merchant: 'iou.error.invalidMerchant'}},
+            'merchant',
+            'txn2',
+        ],
+    ] as const)('scrolls to %s once a confirm is blocked', (_case, fieldErrors, siblingFieldErrors, expectedField, expectedTransactionID) => {
+        // Given a confirmation whose receipt on screen, or another receipt of the multi-scan, holds these field errors
+        const onRevealField = jest.fn();
+        const {result} = renderFieldErrors({fieldErrors, siblingFieldErrors, onRevealField});
 
         // When the confirm is blocked by them
         act(() => result.current.revealFieldErrors());
 
-        // Then the footer asks for the required fields, since the missing value is what the user has to add first
-        expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
+        // Then the first flagged field in screen order is scrolled into view, so the user reaches the error they meet first even if they had scrolled past it
+        expect(onRevealField).toHaveBeenCalledWith(expectedField, expectedTransactionID);
     });
 
     it('keeps the errors shown while any field is still missing, and hides them once all are filled in', () => {
         // Given a blocked confirm with both the amount and the merchant missing
-        const {result, rerender} = renderFieldErrors({fieldErrors: {amount: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'}});
+        const {result, rerender} = renderFieldErrors({fieldErrors: {amount: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'}, onRevealField: jest.fn()});
         act(() => result.current.revealFieldErrors());
 
         // When only the amount is filled in
-        rerender({fieldErrors: {merchant: 'common.error.fieldRequired'}});
+        rerender({fieldErrors: {merchant: 'common.error.fieldRequired'}, onRevealField: jest.fn()});
 
-        // Then the merchant and the summary still show
+        // Then the merchant is still flagged
         expect(result.current.visibleFieldErrors).toEqual({merchant: 'common.error.fieldRequired'});
-        expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
 
-        // When the merchant is filled in as well
-        rerender({fieldErrors: NO_FIELD_ERRORS});
-
-        // Then nothing is flagged
-        expect(result.current.visibleFieldErrors).toBe(NO_FIELD_ERRORS);
-        expect(result.current.footerErrorMessage).toBeUndefined();
-
-        // When the user empties a field again afterwards
-        rerender({fieldErrors: MISSING_AMOUNT});
+        // When the merchant is filled in as well, and the user then empties a field again
+        rerender({fieldErrors: NO_FIELD_ERRORS, onRevealField: jest.fn()});
+        rerender({fieldErrors: MISSING_AMOUNT, onRevealField: jest.fn()});
 
         // Then it is only flagged on the next blocked confirm, as before the first one
         expect(result.current.visibleFieldErrors).toBe(NO_FIELD_ERRORS);
-        expect(result.current.footerErrorMessage).toBeUndefined();
-    });
-
-    it('puts the summary over a form error raised elsewhere, and leaves that error to block once the fields are filled in', () => {
-        // Given a distance expense whose rate error is in the footer, and whose date is missing
-        const rateError = 'iou.error.invalidRate';
-        const {result, rerender} = renderFieldErrors({fieldErrors: {date: 'common.error.fieldRequired'}, formErrorMessage: rateError});
-
-        // When a confirm is blocked by the missing date
-        act(() => result.current.revealFieldErrors());
-
-        // Then the summary takes the footer, since the date may be scrolled out of view
-        expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
-
-        // When the date is filled in while the rate is still out of policy
-        rerender({fieldErrors: NO_FIELD_ERRORS, formErrorMessage: rateError});
-
-        // Then the rate error is back in the footer, as it was never cleared and still blocks confirming
-        expect(result.current.footerErrorMessage).toBe(rateError);
-    });
-
-    it('keeps a route error in the footer over the summary and any other form error', () => {
-        // Given a distance expense whose route failed to load, with its date missing and another form error set
-        const routeError = 'Could not load the route';
-        const {result} = renderFieldErrors({fieldErrors: {date: 'common.error.fieldRequired'}, formErrorMessage: 'Please select a valid distance rate', routeError});
-
-        // When nothing has been confirmed yet
-        // Then the route error shows over the form error
-        expect(result.current.footerErrorMessage).toBe(routeError);
-
-        // When the field errors are revealed
-        act(() => result.current.revealFieldErrors());
-
-        // Then the route error stays over the summary, since the expense can't be confirmed until the route loads
-        expect(result.current.footerErrorMessage).toBe(routeError);
-    });
-
-    it('brings the partially filled sibling receipt on screen when the receipt on screen is complete', () => {
-        // Given a multi-scan whose receipt on screen is complete while a sibling receipt is partially filled
-        const onSwitchToTransaction = jest.fn();
-        const {result} = renderFieldErrors({fieldErrors: NO_FIELD_ERRORS, siblingFieldErrors: PARTIALLY_FILLED_SIBLING, onSwitchToTransaction});
-
-        // When the confirm is blocked by the sibling
-        act(() => result.current.revealFieldErrors());
-
-        // Then the sibling is brought on screen, so its blank fields show their errors instead of Create looking like it did nothing
-        expect(onSwitchToTransaction).toHaveBeenCalledWith('txn2');
-    });
-
-    it('asks to fix the errors when the sibling receipt only holds an invalid value', () => {
-        // Given a multi-scan whose receipt on screen is complete while a sibling receipt holds an invalid amount
-        const onSwitchToTransaction = jest.fn();
-        const {result} = renderFieldErrors({fieldErrors: NO_FIELD_ERRORS, siblingFieldErrors: INVALID_SIBLING, onSwitchToTransaction});
-
-        // When the confirm is blocked by the sibling
-        act(() => result.current.revealFieldErrors());
-
-        // Then the sibling is brought on screen and the summary doesn't ask for fields that aren't missing
-        expect(onSwitchToTransaction).toHaveBeenCalledWith('txn2');
-        expect(result.current.footerErrorMessage).toBe('common.error.fixErrorsBeforeContinuing');
     });
 
     it('keeps an invalid value on the receipt on screen in view before moving to a partially filled sibling', () => {
         // Given a multi-scan whose receipt on screen has a typed merchant that isn't allowed, while a sibling receipt is partially filled
         const onSwitchToTransaction = jest.fn();
-        const {result, rerender} = renderFieldErrors({fieldErrors: {merchant: 'iou.error.invalidMerchant'}, siblingFieldErrors: PARTIALLY_FILLED_SIBLING, onSwitchToTransaction});
+        const onRevealField = jest.fn();
+        const {result, rerender} = renderFieldErrors({
+            fieldErrors: {merchant: 'iou.error.invalidMerchant'},
+            siblingFieldErrors: PARTIALLY_FILLED_SIBLING,
+            onSwitchToTransaction,
+            onRevealField,
+        });
 
         // When the confirm is blocked
         act(() => result.current.revealFieldErrors());
 
-        // Then the receipt on screen stays, so its error is seen, and the summary asks to fix the error it shows
+        // Then the receipt on screen stays and its merchant is scrolled into view, so its error is seen
         expect(onSwitchToTransaction).not.toHaveBeenCalled();
-        expect(result.current.footerErrorMessage).toBe('common.error.fixErrorsBeforeContinuing');
+        expect(onRevealField).toHaveBeenLastCalledWith('merchant', ON_SCREEN_TRANSACTION_ID);
 
         // When the user fixes the merchant and confirms again
-        rerender({fieldErrors: NO_FIELD_ERRORS, siblingFieldErrors: PARTIALLY_FILLED_SIBLING, onSwitchToTransaction});
+        rerender({fieldErrors: NO_FIELD_ERRORS, siblingFieldErrors: PARTIALLY_FILLED_SIBLING, onSwitchToTransaction, onRevealField});
         act(() => result.current.revealFieldErrors());
 
-        // Then the partially filled sibling is brought on screen and the summary asks for its required fields
+        // Then the partially filled sibling is brought on screen and scrolled to its missing amount, since the receipt on screen has nothing left to fix
         expect(onSwitchToTransaction).toHaveBeenCalledWith('txn2');
-        expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
-    });
-
-    it('stays on the receipt on screen when one of its own fields is missing', () => {
-        // Given a multi-scan whose receipt on screen is missing its amount, while a sibling receipt is also partially filled
-        const onSwitchToTransaction = jest.fn();
-        const {result} = renderFieldErrors({fieldErrors: MISSING_AMOUNT, siblingFieldErrors: PARTIALLY_FILLED_SIBLING, onSwitchToTransaction});
-
-        // When the confirm is blocked
-        act(() => result.current.revealFieldErrors());
-
-        // Then the user keeps the receipt they are on, which now shows its own errors
-        expect(onSwitchToTransaction).not.toHaveBeenCalled();
-        expect(result.current.visibleFieldErrors).toEqual(MISSING_AMOUNT);
-    });
-
-    it('keeps the summary while a sibling receipt of a multi-scan still has a field error', () => {
-        // Given a blocked confirm on a multi-scan whose partially filled receipt is not the one on screen
-        const {result, rerender} = renderFieldErrors({fieldErrors: NO_FIELD_ERRORS, siblingFieldErrors: PARTIALLY_FILLED_SIBLING});
-        act(() => result.current.revealFieldErrors());
-
-        // When the complete receipt is still the one on screen
-        // Then the summary still explains why the confirm is blocked
-        expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
-
-        // When no receipt has a field error any more
-        rerender({fieldErrors: NO_FIELD_ERRORS, siblingFieldErrors: undefined});
-
-        // Then the summary goes away
-        expect(result.current.footerErrorMessage).toBeUndefined();
+        expect(onRevealField).toHaveBeenLastCalledWith('amount', 'txn2');
     });
 });

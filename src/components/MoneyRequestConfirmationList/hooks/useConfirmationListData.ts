@@ -27,6 +27,7 @@ import useConfirmationPolicyData from './useConfirmationPolicyData';
 import useConfirmationValidation from './useConfirmationValidation';
 import useFormErrorManagement from './useFormErrorManagement';
 import useParticipantSection from './useParticipantSection';
+import useScrollToFlaggedField from './useScrollToFlaggedField';
 import useTransactionReportForConfirmation from './useTransactionReportForConfirmation';
 
 /**
@@ -96,6 +97,7 @@ function useConfirmationListDataWithPolicy({
     const scrollFocusedInputIntoView = (input: MeasurableInput) => {
         listRef.current?.scrollInputIntoView(input);
     };
+    const {fieldViewRefs, scrollToField} = useScrollToFlaggedField(listRef, transaction?.transactionID);
 
     const iouAmount = getConfirmationAmount(transaction);
     const iouCurrencyCode = getCurrency(transaction);
@@ -169,6 +171,7 @@ function useConfirmationListDataWithPolicy({
         isEditingSplitBill,
         hasSmartScanFailed,
         didConfirmSplit,
+        routeError,
         isTypeSplit,
         shouldShowReadOnlySplits,
         isDistanceRequest,
@@ -245,12 +248,12 @@ function useConfirmationListDataWithPolicy({
         isTaxAmountEmpty,
     });
 
-    const {visibleFieldErrors, footerErrorMessage, revealFieldErrors} = useConfirmationFieldErrors({
+    const {visibleFieldErrors, revealFieldErrors} = useConfirmationFieldErrors({
+        transactionID,
         fieldErrors,
         siblingFieldErrors,
         onSwitchToTransaction,
-        formErrorMessage: errorMessage,
-        routeError,
+        onRevealField: scrollToField,
     });
 
     const confirm = buildConfirmAction({
@@ -301,7 +304,7 @@ function useConfirmationListDataWithPolicy({
                 isConfirmed,
                 isConfirming,
                 receiptOptions,
-                errorMessage: footerErrorMessage,
+                errorMessage,
                 expensesNumber,
                 showRemoveExpenseConfirmModal,
                 transaction,
@@ -328,6 +331,7 @@ function useConfirmationListDataWithPolicy({
                 isScanRequest,
                 isEditingSplitBill,
                 scrollFocusedInputIntoView,
+                fieldViewRefs,
                 onSubmitForm: confirm,
                 onTaxAmountEmptyChange: setIsTaxAmountEmpty,
             },

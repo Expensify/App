@@ -279,8 +279,8 @@ function isConfirmationMerchantRequired(params: ConfirmationMerchantRequirementP
  * programmatically and never set it), so the manual gate is part of the predicate rather than of each call site.
  * A Scan the user started filling in counts too: its three revealed fields are all-or-nothing, so once any of them
  * carries a value the blank ones are missing rather than SmartScan's to read.
- * `getConfirmationFieldErrors` reads it to build the amount error, and the field, the blocked confirm and the summary
- * above the confirm button all read that one map, so an amount reported missing is always the one shown as missing.
+ * `getConfirmationFieldErrors` reads it to build the amount error, and the field and the blocked confirm both read
+ * that one map, so an amount reported missing is always the one shown as missing.
  */
 function isConfirmationAmountMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, shouldRequireMerchant = true): boolean {
     if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, shouldRequireMerchant)) {

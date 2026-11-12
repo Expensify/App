@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Annuleren',
         dismiss: 'Sluiten',
         resizeColumn: ({columnName}: {columnName: string}) => `Kolom ${columnName} vergroten of verkleinen`,
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        resizePanel: 'Paneel vergroten of verkleinen',
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Doorgaan',
         unshare: 'Delen stoppen',
         yes: 'Ja',
@@ -237,7 +238,6 @@ const translations: TranslationDeepObject<typeof en> = {
             phoneNumber: `Voer een volledig telefoonnummer in
 (bijv. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Dit veld is verplicht',
-            fixErrorsBeforeContinuing: 'Los de fouten in het formulier op voordat je verdergaat.',
             requestModified: 'Dit verzoek wordt bewerkt door een ander lid',
             characterLimitExceedCounter: (length: number, limit: number) => `Limiet voor aantal tekens overschreden (${length}/${limit})`,
             dateInvalid: 'Selecteer een geldige datum',
@@ -1258,6 +1258,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Alles bekijken',
         topExpenses: 'Belangrijkste uitgaven',
         noExpensesInRange: 'Geen uitgaven in dit bereik',
+        efficiency: 'Efficiëntie',
+        workflowEfficiency: 'Workflow-efficiëntie',
+        longestToSubmit: 'Langste om in te dienen',
+        slowestToApprove: 'Traagst om goed te keuren',
+        mostTimeToPay: 'Meeste tijd om te betalen',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1417,6 +1422,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'of sleep ze hier naartoe',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Pagina ${page} van ${pageCount}`,
+        translate: 'Vertalen',
+        viewOriginal: 'Origineel weergeven',
+        translationDisclaimer: 'AI kan fouten maken. Controleer alsjeblieft het origineel nog een keer.',
+        translationError: {
+            unreadable: 'We konden deze bon niet duidelijk genoeg lezen om hem te vertalen.',
+            alreadyInLanguage: 'Deze bon is al in jouw taal.',
+            generic: 'We konden deze bon niet vertalen. Probeer het opnieuw.',
+        },
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
@@ -1750,7 +1763,6 @@ const translations: TranslationDeepObject<typeof en> = {
             atLeastTwoDifferentWaypoints: 'Voer minimaal twee verschillende adressen in',
             splitExpenseMultipleParticipantsErrorMessage: 'Een uitgave kan niet worden opgesplitst tussen een werkruimte en andere leden. Werk je selectie alsjeblieft bij.',
             invalidMerchant: 'Voer een geldige leverancier in',
-            enterRequiredFields: 'Vul alsjeblieft de verplichte velden in.',
             atLeastOneAttendee: 'Er moet ten minste één deelnemer worden geselecteerd',
             invalidQuantity: 'Voer een geldige hoeveelheid in',
             quantityGreaterThanZero: 'Hoeveelheid moet groter zijn dan nul',
@@ -2048,6 +2060,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'heeft deze uitgave teruggezet',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `kilometervergoedingen bijgewerkt voor de nieuwe workspace - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} rapport`,
+                other: (count: number) => `${formattedCount ?? count} rapporten`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2295,6 +2313,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'op de laatste zaterdag van de maand',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'op de laatste zondag van de maand',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Dit rapport wordt geëxporteerd na de definitieve goedkeuring.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Vergoedbare uitgaven worden geëxporteerd zodra dit rapport is betaald.',
         },
     },
     profilePage: {
@@ -7898,6 +7920,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 onWaitlist: 'Je staat op de wachtlijst',
                 waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Binnenkort beschikbaar',
+                joinWaitlist: 'Aanmelden voor wachtlijst',
+                onWaitlist: 'Je staat op de wachtlijst',
+                onTheList: 'Je staat op de lijst!',
+                waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
+            },
             setup: 'Verbinden',
             connectToSandbox: 'Verbinden met sandbox',
             lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
@@ -8306,6 +8335,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             statusExpired: 'Verlopen',
             statusInactive: 'Inactief',
             unit: 'Eenheid',
+            ukFuelRateTaxError: 'Voeg een belastingtarief van 20% toe om belasting bij te houden voor de Britse adviesbrandstoftarieven.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Voeg een belastingtarief van 20% toe in ${integrationName} om belasting bij te houden voor de Britse adviesbrandstoftarieven.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Belastingen moeten in de workspace zijn ingeschakeld om deze functie te gebruiken. Ga naar <a href="#">Meer functies</a> om dat te wijzigen.</muted-text>',
             deleteDistanceRate: 'Afstandstarief verwijderen',
@@ -9680,6 +9712,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
         },
         digits: {
+            entity: 'Entiteit',
             updateCurrencyTitle: 'Werkruimtevaluta bijwerken?',
             updateCurrencyPrompt: 'Digits is momenteel alleen beschikbaar voor in de VS gevestigde bedrijven die in USD werken.',
             importDescription: 'Kies welke Digits-configuraties je wilt importeren.',
@@ -10066,6 +10099,25 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             return `heeft de categorie „${categoryName}” Itemized receipts gewijzigd naar ${newValue} (voorheen ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `heeft de categorie "${oldName}" hernoemd naar "${newName}"`,
+        setCategoryVisibility: (members: string, categories: string) => `heeft ${members} zo ingesteld dat ze alleen ${categories} zien`,
+        changedCategoryVisibility: (members: string, categories: string) => `heeft ${members} gewijzigd zodat ze alleen ${categories} zien`,
+        clearedCategoryVisibility: (members: string) => `heeft ${members} gewijzigd zodat ze alle categorieën kunnen zien`,
+        quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
+        oneCategory: (categoryName: string) => `de categorie ${categoryName}`,
+        someCategories: (categoryList: string) => `de ${categoryList} categorieën`,
+        everyone: 'iedereen',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 categorie',
+            other: `${count} categorieën`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 lid',
+            other: `${count} leden`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Categorieën: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Leden: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', omdat hun enige categorie is verwijderd. Werk hun categoriezichtbaarheid bij indien nodig.',
+        categoryVisibilityReasonDisabled: ', omdat hun enige categorie was uitgeschakeld. Werk indien nodig hun categoriezichtbaarheid bij.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `heeft de beschrijvingshint "${oldValue}" verwijderd uit de categorie "${categoryName}"`;
@@ -10795,6 +10847,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         columns: 'Kolommen',
         editColumns: 'Kolommen bewerken',
         resetColumns: 'Kolommen opnieuw instellen',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Kolomopties voor ${columnName}`,
+            sortAscending: 'Oplopend sorteren',
+            sortDescending: 'Aflopend sorteren',
+            hideColumn: 'Kolom verbergen',
+        },
         groupColumns: 'Kolommen groeperen',
         expenseColumns: 'Onkostencolommen',
         saveView: 'Weergave opslaan',
@@ -10877,7 +10935,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             completed: 'Voltooid',
             amount: {
                 lessThan: (amount?: string) => `Minder dan ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Kleiner dan of gelijk aan ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Groter dan ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Groter dan of gelijk aan ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Tussen ${greaterThan} en ${lessThan}`;
@@ -10934,6 +10994,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartaal',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Goedkeurder',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Overtreding',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Betaald door',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -11041,6 +11102,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartalen',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Goedkeurders',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Overtredingen',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Betalers',
         },
         spendOverTime: 'Uitgaven in de tijd',
         trip: {

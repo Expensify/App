@@ -49,8 +49,13 @@ describe('buildConfirmAction', () => {
     });
 
     it('returns without calling onConfirm when validate returns null', () => {
+        // Given a confirmation whose validation stops it without an error to show
         const params = makeBase({validate: jest.fn(() => null)});
+
+        // When the user confirms
         buildConfirmAction(params)({paymentType: undefined});
+
+        // Then nothing is submitted and no error is set, since validation already handled the press
         expect(params.onConfirm).not.toHaveBeenCalled();
         expect(params.setConfirmError).not.toHaveBeenCalled();
     });
@@ -78,15 +83,19 @@ describe('buildConfirmAction', () => {
         // Then the field errors are revealed and the earlier confirm's error is dropped, since validation checks it again on the next confirm
         expect(params.revealFieldErrors).toHaveBeenCalledTimes(1);
         expect(params.clearConfirmError).toHaveBeenCalledTimes(1);
-        expect(params.setConfirmError).not.toHaveBeenCalled();
         expect(params.onConfirm).not.toHaveBeenCalled();
     });
 
     it('sets didConfirmSplit when validation result has shouldSetDidConfirmSplit', () => {
+        // Given an edited split whose SmartScan failed, so validation asks to remember that the split was confirmed
         const params = makeBase({
             validate: jest.fn(() => ({errorKey: 'iou.error.genericSmartscanFailureMessage', shouldSetDidConfirmSplit: true})),
         });
+
+        // When the user confirms
         buildConfirmAction(params)({paymentType: undefined});
+
+        // Then the split is marked as confirmed and the SmartScan failure becomes the form error
         expect(params.setDidConfirmSplit).toHaveBeenCalledWith(true);
         expect(params.setConfirmError).toHaveBeenCalledWith('iou.error.genericSmartscanFailureMessage');
     });

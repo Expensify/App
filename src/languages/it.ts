@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Annulla',
         dismiss: 'Chiudi',
         resizeColumn: ({columnName}: {columnName: string}) => `Ridimensiona la colonna ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixel`,
+        resizePanel: 'Ridimensiona il pannello',
+        widthInPixels: ({width}: {width: number}) => `${width} pixel`,
         proceed: 'Continua',
         unshare: 'Rimuovi condivisione',
         yes: 'Sì',
@@ -237,7 +238,6 @@ const translations: TranslationDeepObject<typeof en> = {
             phoneNumber: `Inserisci un numero di telefono completo
 (ad es. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Questo campo è obbligatorio',
-            fixErrorsBeforeContinuing: 'Correggi gli errori nel modulo prima di continuare.',
             requestModified: 'Questa richiesta viene modificata da un altro membro',
             characterLimitExceedCounter: (length: number, limit: number) => `Limite di caratteri superato (${length}/${limit})`,
             dateInvalid: 'Seleziona una data valida',
@@ -1262,6 +1262,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Vedi tutto',
         topExpenses: 'Spese principali',
         noExpensesInRange: 'Nessuna spesa in questo intervallo',
+        efficiency: 'Efficienza',
+        workflowEfficiency: 'Efficienza del flusso di lavoro',
+        longestToSubmit: 'Più lungo per l’invio',
+        slowestToApprove: 'I più lenti ad approvare',
+        mostTimeToPay: 'Tempo massimo per pagare',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -1419,6 +1424,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'o trascinalo qui',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Pagina ${page} di ${pageCount}`,
+        translate: 'Traduci',
+        viewOriginal: 'Vedi originale',
+        translationDisclaimer: 'L’IA può commettere errori. Controlla di nuovo l’originale.',
+        translationError: {
+            unreadable: 'Non siamo riusciti a leggere chiaramente questa ricevuta per tradurla.',
+            alreadyInLanguage: 'Questa ricevuta è già nella tua lingua.',
+            generic: 'Non siamo riusciti a tradurre questa ricevuta. Riprova.',
+        },
     },
     quickAction: {
         scanReceipt: 'Scansiona ricevuta',
@@ -1754,7 +1767,6 @@ const translations: TranslationDeepObject<typeof en> = {
             atLeastTwoDifferentWaypoints: 'Inserisci almeno due indirizzi diversi',
             splitExpenseMultipleParticipantsErrorMessage: 'Una spesa non può essere suddivisa tra uno spazio di lavoro e altri membri. Aggiorna la tua selezione.',
             invalidMerchant: 'Inserisci un esercente valido',
-            enterRequiredFields: 'Inserisci i campi obbligatori.',
             atLeastOneAttendee: 'Devi selezionare almeno un partecipante',
             invalidQuantity: 'Inserisci una quantità valida',
             quantityGreaterThanZero: 'La quantità deve essere maggiore di zero',
@@ -2053,6 +2065,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'ha ripristinato questa spesa',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `tariffe chilometriche aggiornate per il nuovo spazio di lavoro - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} report`,
+                other: (count: number) => `${formattedCount ?? count} report`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2300,6 +2318,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'l’ultimo sabato del mese',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: "l'ultima domenica del mese",
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: "Questo report verrà esportato dopo l'approvazione finale.",
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Le spese rimborsabili verranno esportate quando questo report sarà pagato.',
         },
     },
     profilePage: {
@@ -7916,6 +7938,13 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 onWaitlist: 'Sei in lista d’attesa',
                 waitlistDescription: 'Concierge ti invierà un messaggio per farti sapere quando questa integrazione sarà pronta e come collegarla.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Presto in arrivo',
+                joinWaitlist: 'Unisciti alla lista d’attesa',
+                onWaitlist: 'Sei in lista d’attesa',
+                onTheList: 'Sei in lista!',
+                waitlistDescription: 'Concierge ti invierà un messaggio per farti sapere quando questa integrazione sarà pronta e come collegarla.',
+            },
             setup: 'Connetti',
             connectToSandbox: 'Connetti alla sandbox',
             lastSync: (relativeDate: string) => `Ultima sincronizzazione ${relativeDate}`,
@@ -8327,6 +8356,9 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             statusExpired: 'Scaduto',
             statusInactive: 'Inattivo',
             unit: 'Unit',
+            ukFuelRateTaxError: 'Aggiungi un’aliquota del 20% per monitorare le imposte sulle tariffe carburante consigliate del Regno Unito.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Aggiungi un’aliquota del 20% in ${integrationName} per monitorare le imposte sulle tariffe carburante consigliate del Regno Unito.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Per usare questa funzione devi abilitare le imposte nello spazio di lavoro. Vai su <a href="#">Altre funzionalità</a> per effettuare questa modifica.</muted-text>',
             deleteDistanceRate: 'Elimina tariffa chilometrica',
@@ -9706,6 +9738,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
         },
         digits: {
+            entity: 'Entità',
             updateCurrencyTitle: 'Aggiornare la valuta dello spazio di lavoro?',
             updateCurrencyPrompt: 'Digits è attualmente disponibile solo per le aziende con sede negli Stati Uniti che operano in USD.',
             importDescription: 'Scegli quali configurazioni Digits importare.',
@@ -10088,6 +10121,25 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             return `ha modificato le ricevute con voce di dettaglio della categoria "${categoryName}" in ${newValue} (in precedenza ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `ha rinominato la categoria "${oldName}" in "${newName}"`,
+        setCategoryVisibility: (members: string, categories: string) => `ha impostato ${members} per vedere solo ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `ha modificato ${members} in modo che possano vedere solo ${categories}`,
+        clearedCategoryVisibility: (members: string) => `ha modificato ${members} per vedere tutte le categorie`,
+        quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
+        oneCategory: (categoryName: string) => `la categoria ${categoryName}`,
+        someCategories: (categoryList: string) => `le categorie ${categoryList}`,
+        everyone: 'tutti',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 categoria',
+            other: `${count} categorie`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 membro',
+            other: `${count} membri`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Categorie: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Membri: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', perché la loro unica categoria è stata eliminata. Aggiorna la visibilità della loro categoria se necessario.',
+        categoryVisibilityReasonDisabled: ', perché la loro unica categoria è stata disattivata. Aggiorna la visibilità della loro categoria se necessario.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `ha rimosso il suggerimento di descrizione "${oldValue}" dalla categoria "${categoryName}"`;
@@ -10825,6 +10877,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         columns: 'Colonne',
         editColumns: 'Modifica colonne',
         resetColumns: 'Reimposta colonne',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Opzioni della colonna ${columnName}`,
+            sortAscending: 'Ordina in modo crescente',
+            sortDescending: 'Ordina in modo decrescente',
+            hideColumn: 'Nascondi colonna',
+        },
         groupColumns: 'Raggruppa colonne',
         expenseColumns: 'Colonne spese',
         saveView: 'Salva vista',
@@ -10907,7 +10965,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             completed: 'Completato',
             amount: {
                 lessThan: (amount?: string) => `Meno di ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Minore o uguale a ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maggiore di ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Maggiore o uguale a ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Tra ${greaterThan} e ${lessThan}`;
@@ -10964,6 +11024,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvatore',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violazione',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pagato da',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -11026,6 +11087,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestri',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvatori',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violazioni',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pagatori',
         },
         moneyRequestReport: {emptyStateTitle: 'Nessuna spesa ancora', accessPlaceHolder: 'Apri per i dettagli'},
         noCategory: 'Nessuna categoria',

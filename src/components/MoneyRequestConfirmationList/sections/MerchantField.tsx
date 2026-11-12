@@ -35,7 +35,7 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}: MerchantFieldProps) {
-    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually, fieldViewRefs} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -121,7 +121,10 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}
 
     if (!isReadOnly) {
         return (
-            <View style={[styles.mh4, styles.mv2]}>
+            <View
+                ref={fieldViewRefs?.merchant}
+                style={[styles.mh4, styles.mv2]}
+            >
                 <TextInput
                     value={merchantInput}
                     readOnly={didConfirm}

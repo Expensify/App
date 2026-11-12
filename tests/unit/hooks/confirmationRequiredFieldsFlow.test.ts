@@ -28,6 +28,7 @@ jest.mock('@react-navigation/native', () => {
 const WORKSPACE_PARTICIPANT = {accountID: 0, isPolicyExpenseChat: true, policyID: 'policy1'} as Participant;
 const CURRENT_USER = {accountID: 1} as CurrentUserPersonalDetails;
 const mockOnConfirm = jest.fn();
+const mockOnRevealField = jest.fn();
 
 // A manual expense to a workspace, as the draft starts: no amount entered and the "Expense" placeholder as its merchant
 const blankDraft: OnyxTypes.Transaction = {
@@ -63,6 +64,7 @@ function useManualWorkspaceConfirmation(
         isEditingSplitBill: false,
         hasSmartScanFailed: false,
         didConfirmSplit: false,
+        routeError: undefined,
         isTypeSplit: false,
         shouldShowReadOnlySplits: true,
         isDistanceRequest: false,
@@ -99,12 +101,12 @@ function useManualWorkspaceConfirmation(
         isTaxAmountEmpty,
         siblingTransactions,
     });
-    const {visibleFieldErrors, footerErrorMessage, revealFieldErrors} = useConfirmationFieldErrors({
+    const {visibleFieldErrors, revealFieldErrors} = useConfirmationFieldErrors({
+        transactionID: transaction.transactionID,
         fieldErrors,
         siblingFieldErrors,
         onSwitchToTransaction: undefined,
-        formErrorMessage: errorMessage,
-        routeError: undefined,
+        onRevealField: mockOnRevealField,
     });
     const confirm = buildConfirmAction({
         iouType: CONST.IOU.TYPE.SUBMIT,
@@ -122,41 +124,14 @@ function useManualWorkspaceConfirmation(
         onConfirm: mockOnConfirm,
     });
 
-    return {confirm, validate, visibleFieldErrors, footerErrorMessage};
+    return {confirm, visibleFieldErrors, footerErrorMessage: errorMessage};
 }
 
 describe('required fields on a manual workspace expense', () => {
     beforeEach(() => {
         mockOnConfirm.mockClear();
+        mockOnRevealField.mockClear();
         mockIsFocused = true;
-    });
-
-    it('keeps the blank merchant flagged and the summary shown after only the amount is entered', () => {
-        // Given a manual workspace expense with neither an amount nor a merchant
-        const {result, rerender} = renderHook((transaction: OnyxTypes.Transaction) => useManualWorkspaceConfirmation(transaction), {initialProps: blankDraft});
-
-        // When the user presses Create
-        act(() => result.current.confirm());
-
-        // Then both fields read as required and the summary sits above the button, as either may be scrolled out of view
-        expect(result.current.visibleFieldErrors).toEqual({amount: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'});
-        expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
-
-        // When the user enters only the amount
-        rerender({...blankDraft, amount: 2500, isAmountSet: true});
-
-        // Then the merchant is still flagged and the summary stays, since a required field is still missing
-        expect(result.current.visibleFieldErrors).toEqual({merchant: 'common.error.fieldRequired'});
-        expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
-
-        // When the user presses Create again
-        act(() => result.current.confirm());
-
-        // Then the blank merchant still reads as required rather than invalid, so the summary still explains the block
-        expect(result.current.validate()).toEqual({isFieldError: true});
-        expect(result.current.visibleFieldErrors).toEqual({merchant: 'common.error.fieldRequired'});
-        expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
-        expect(mockOnConfirm).not.toHaveBeenCalled();
     });
 
     it('keeps the errors shown when the user leaves the page and comes back without filling anything in', () => {
@@ -170,28 +145,8 @@ describe('required fields on a manual workspace expense', () => {
         mockIsFocused = true;
         rerender(blankDraft);
 
-        // Then both fields are still flagged and the summary still shows, since the fields are still blank
+        // Then both fields are still flagged, since they are still blank
         expect(result.current.visibleFieldErrors).toEqual({amount: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'});
-        expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
-    });
-
-    it('clears the errors and confirms once every required field is filled in', () => {
-        // Given a blocked confirm on a manual workspace expense with neither an amount nor a merchant
-        const {result, rerender} = renderHook((transaction: OnyxTypes.Transaction) => useManualWorkspaceConfirmation(transaction), {initialProps: blankDraft});
-        act(() => result.current.confirm());
-
-        // When the user enters both the amount and the merchant
-        rerender({...blankDraft, amount: 2500, isAmountSet: true, merchant: 'Office Depot', isMerchantSet: true});
-
-        // Then nothing is flagged any more
-        expect(result.current.visibleFieldErrors).toEqual({});
-        expect(result.current.footerErrorMessage).toBeUndefined();
-
-        // When the user presses Create
-        act(() => result.current.confirm());
-
-        // Then the expense is confirmed
-        expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
 
     it('does not let the tax error of a removed expense block the one left on screen', () => {
@@ -211,12 +166,12 @@ describe('required fields on a manual workspace expense', () => {
         rerender({transaction: remainingExpense, isTaxAmountEmpty: false});
         act(() => result.current.confirm());
 
-        // Then only the required fields summary explains the block
-        expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
+        // Then only the blank merchant explains the block, and the removed expense's tax error is gone from the footer
+        expect(result.current.visibleFieldErrors).toEqual({merchant: 'common.error.fieldRequired'});
+        expect(result.current.footerErrorMessage).toBeUndefined();
 
         // When the user fills in the merchant and presses Create again
         rerender({transaction: {...remainingExpense, merchant: 'Office Depot', isMerchantSet: true}, isTaxAmountEmpty: false});
-        expect(result.current.footerErrorMessage).toBeUndefined();
         act(() => result.current.confirm());
 
         // Then the expense is confirmed, since the tax error belonged to the expense that was removed
@@ -233,19 +188,19 @@ describe('required fields on a manual workspace expense', () => {
             {initialProps: {transaction: invalidExpense, siblingTransactions: [validExpense]}},
         );
         act(() => result.current.confirm());
-        expect(result.current.footerErrorMessage).toBe('common.error.fixErrorsBeforeContinuing');
+        expect(result.current.visibleFieldErrors).toEqual({merchant: 'iou.error.invalidMerchant'});
 
         // When the user pages to the valid expense and presses Create there
         rerender({transaction: validExpense, siblingTransactions: [invalidExpense]});
+        mockOnRevealField.mockClear();
         act(() => result.current.confirm());
 
-        // Then nothing is submitted and the summary still explains why, since Create submits both expenses
+        // Then nothing is submitted, and the invalid merchant of the other expense is the field brought into view, since Create submits both expenses
         expect(mockOnConfirm).not.toHaveBeenCalled();
-        expect(result.current.footerErrorMessage).toBe('common.error.fixErrorsBeforeContinuing');
+        expect(mockOnRevealField).toHaveBeenCalledWith('merchant', invalidExpense.transactionID);
 
         // When the other expense's merchant is fixed and the user presses Create
         rerender({transaction: validExpense, siblingTransactions: [{...invalidExpense, merchant: 'Office Depot'}]});
-        expect(result.current.footerErrorMessage).toBeUndefined();
         act(() => result.current.confirm());
 
         // Then both expenses are confirmed

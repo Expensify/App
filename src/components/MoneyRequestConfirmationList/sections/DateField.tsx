@@ -55,7 +55,7 @@ type DateFieldProps = {
 
 function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, fieldError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, fieldViewRefs} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -134,7 +134,10 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, fieldError,
     if (!isReadOnly) {
         return (
             // The bordered rows carry their own vertical margin, so an extra bottom margin here would stack with it.
-            <View style={[styles.mh4, !shouldUseDropdownRows && styles.mb2]}>
+            <View
+                ref={fieldViewRefs?.date}
+                style={[styles.mh4, !shouldUseDropdownRows && styles.mb2]}
+            >
                 <DatePicker
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     value={shouldShowEmptyDate ? '' : iouCreated}

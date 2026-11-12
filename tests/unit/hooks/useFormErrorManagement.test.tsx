@@ -38,6 +38,7 @@ const baseParams: Params = {
     isEditingSplitBill: false,
     hasSmartScanFailed: false,
     didConfirmSplit: false,
+    routeError: undefined,
     isTypeSplit: false,
     shouldShowReadOnlySplits: false,
     isDistanceRequest: false,
@@ -124,6 +125,11 @@ describe('useFormErrorManagement', () => {
 
         // Then the distance rate error stays, since it is no longer the one the confirm set
         expect(result.current.formError).toBe('iou.error.invalidRate');
+    });
+
+    it('errorMessage returns routeError when present', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, routeError: 'route.error.unreachable'}), {wrapper: Wrapper});
+        expect(result.current.errorMessage).toBe('route.error.unreachable');
     });
 
     it('errorMessage returns undefined for violations.missingAttendees on non-split flows', async () => {

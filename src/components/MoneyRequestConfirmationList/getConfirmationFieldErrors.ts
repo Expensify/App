@@ -1,8 +1,8 @@
 /**
  * The errors the amount, date and merchant fields of the confirmation show under their inputs. They are computed
  * from the transaction on every render, so an error goes away as soon as its field is fixed and nothing has to
- * remember to clear it. The same map blocks confirmation, flags each field and drives the summary above the confirm
- * button, so those three can't disagree about what is missing.
+ * remember to clear it. The same map blocks confirmation, flags each field and picks the field a blocked confirm
+ * scrolls to, so those three can't disagree about what is missing.
  */
 import {isP2PRecipient, isParticipantP2P} from '@libs/IOUUtils';
 import {getConfirmationAmount, isConfirmationAmountMissing, isConfirmationDateMissing, isConfirmationMerchantMissing, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
@@ -21,6 +21,8 @@ type ConfirmationFieldErrors = {
     date?: TranslationPaths;
     merchant?: TranslationPaths;
 };
+
+type ConfirmationField = keyof ConfirmationFieldErrors;
 
 type GetConfirmationFieldErrorsParams = {
     /** Total amount of the expense, in the smallest currency unit */
@@ -162,4 +164,4 @@ function hasBlockingFieldErrors(fieldErrors: ConfirmationFieldErrors, siblingFie
 
 export default getConfirmationFieldErrors;
 export {NO_FIELD_ERRORS, getSiblingFieldErrors, hasBlockingFieldErrors};
-export type {ConfirmationFieldErrors, GetConfirmationFieldErrorsParams, SiblingFieldErrors};
+export type {ConfirmationField, ConfirmationFieldErrors, GetConfirmationFieldErrorsParams, SiblingFieldErrors};

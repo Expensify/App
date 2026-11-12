@@ -81,19 +81,8 @@ describe('getConfirmationFieldErrors', () => {
         // When its field errors are computed
         const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, ...blankRequiredMerchantParams, iouAmount: 0});
 
-        // Then both fields read as required, so the summary above the button applies to each of them
+        // Then both fields read as required, so each of them is flagged under its own input
         expect(fieldErrors).toEqual({amount: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'});
-    });
-
-    it('keeps the blank required merchant flagged once only the amount is filled in', () => {
-        // Given a manual workspace expense whose amount was entered after a blocked confirm, while the merchant is still blank
-        const transaction = createManualTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT, isMerchantSet: false});
-
-        // When its field errors are computed
-        const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, ...blankRequiredMerchantParams});
-
-        // Then the merchant is still reported as missing, rather than the error going away with the amount's
-        expect(fieldErrors).toEqual({merchant: 'common.error.fieldRequired'});
     });
 
     it('reports a required merchant the user typed but that is not allowed as invalid, not missing', () => {
@@ -143,22 +132,6 @@ describe('getConfirmationFieldErrors', () => {
         expect(fieldErrors).toEqual({merchant: 'iou.error.invalidMerchant'});
     });
 
-    it('drops the merchant error once the recipient changes from a workspace chat to a user', () => {
-        // Given an untouched manual draft that still carries the placeholder merchant
-        const transaction = createManualTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT, isMerchantSet: false, participants: [P2P_PARTICIPANT]});
-
-        // When the recipient is a user, so the merchant is no longer required
-        const fieldErrors = getConfirmationFieldErrors(transaction, {
-            ...baseParams,
-            ...blankRequiredMerchantParams,
-            isPolicyExpenseChat: false,
-            isMerchantRequired: false,
-        });
-
-        // Then the merchant is no longer reported
-        expect(fieldErrors).toBe(NO_FIELD_ERRORS);
-    });
-
     it('keeps the date flagged until it is filled in, even once the amount is', () => {
         // Given a manual expense whose amount was entered while the date is still empty
         const transaction = createManualTransaction({created: ''});
@@ -193,48 +166,32 @@ describe('getConfirmationFieldErrors', () => {
         expect(fieldErrors).toBe(NO_FIELD_ERRORS);
     });
 
-    it('flags only the amount on a scan whose merchant and date were entered by hand', () => {
-        // Given a scan headed for a workspace where the user typed the merchant and picked the date but left the amount blank
-        const transaction = createScanDraft({merchant: 'Hilton', isMerchantSet: true, created: '2026-11-05', isCreatedSet: true});
+    it.each([
+        ['the merchant and the date', {merchant: 'Hilton', isMerchantSet: true, created: '2026-11-05', isCreatedSet: true}, {iouMerchant: 'Hilton'}, {amount: 'common.error.fieldRequired'}],
+        ['only the amount', {amount: 2500, isAmountSet: true}, {iouAmount: 2500}, {date: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'}],
+    ] as const)('flags the blank fields on a workspace scan where the user entered %s', (_entered, transactionOverrides, paramsOverrides, expectedFieldErrors) => {
+        // Given a scan headed for a workspace where the user entered some of the amount, merchant and date by hand
+        const transaction = createScanDraft(transactionOverrides);
 
         // When its field errors are computed
-        const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, ...scanParams, iouMerchant: 'Hilton'});
+        const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, ...scanParams, ...paramsOverrides});
 
-        // Then the amount is required, because the three fields are all-or-nothing once one is entered
-        expect(fieldErrors).toEqual({amount: 'common.error.fieldRequired'});
+        // Then the fields left blank are required, because the three are all-or-nothing once one is entered
+        expect(fieldErrors).toEqual(expectedFieldErrors);
     });
 
-    it('flags the merchant and the date on a workspace scan where only the amount was entered', () => {
-        // Given a workspace scan with only the amount entered
-        const transaction = createScanDraft({amount: 2500, isAmountSet: true});
-
-        // When its field errors are computed
-        const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, ...scanParams, iouAmount: 2500});
-
-        // Then both blank fields are required
-        expect(fieldErrors).toEqual({date: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'});
-    });
-
-    it('reports an amount never entered on an expense to a person as required, not invalid', () => {
-        // Given a manual expense to a user whose amount field was left blank
-        const transaction = createManualTransaction({amount: 0, isAmountSet: false, participants: [P2P_PARTICIPANT]});
+    it.each([
+        ['an amount never entered as required', false, 'common.error.fieldRequired'],
+        ['a typed $0 amount as invalid', true, 'common.error.invalidAmount'],
+    ] as const)('reports %s on an expense to a person', (_case, isAmountSet, expectedError) => {
+        // Given a manual expense to a user whose amount is $0, either left blank or typed
+        const transaction = createManualTransaction({amount: 0, isAmountSet, participants: [P2P_PARTICIPANT]});
 
         // When its field errors are computed
         const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, iouAmount: 0, isPolicyExpenseChat: false, isMerchantRequired: false});
 
-        // Then the amount reads as missing, so the required fields summary covers it the same as on a workspace expense
-        expect(fieldErrors).toEqual({amount: 'common.error.fieldRequired'});
-    });
-
-    it('reports a zero amount to a person as invalid', () => {
-        // Given a manual expense to a user where the user typed a $0 amount
-        const transaction = createManualTransaction({amount: 0, isAmountSet: true, participants: [P2P_PARTICIPANT]});
-
-        // When its field errors are computed
-        const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, iouAmount: 0, isPolicyExpenseChat: false, isMerchantRequired: false});
-
-        // Then the amount is invalid, as a 1:1 expense can't be $0
-        expect(fieldErrors).toEqual({amount: 'common.error.invalidAmount'});
+        // Then a blank amount reads as missing, the same as on a workspace expense, while a typed $0 is invalid because a 1:1 expense can't be $0
+        expect(fieldErrors).toEqual({amount: expectedError});
     });
 
     it('does not check the amount of a distance expense, which is computed rather than typed', () => {

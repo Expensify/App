@@ -260,7 +260,7 @@ function IOURequestStepDistanceMap({
         }
         if (isWaypointsNullIslandError) {
             return {
-                isWaypointsNullIslandError: translate('common.error.fixErrorsBeforeContinuing'),
+                isWaypointsNullIslandError: `${translate('common.please')} ${translate('common.fixTheErrors')} ${translate('common.inTheFormBeforeContinuing')}.`,
             } as Errors;
         }
         if (duplicateWaypointsError) {

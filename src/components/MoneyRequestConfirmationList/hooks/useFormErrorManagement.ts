@@ -49,6 +49,9 @@ type UseFormErrorManagementParams = {
     /** Whether the user has already confirmed the split */
     didConfirmSplit: boolean;
 
+    /** Truthy when the route to the confirmation page has a known error */
+    routeError: string | null | undefined;
+
     /** Whether the current IOU type is split */
     isTypeSplit: boolean;
 
@@ -84,7 +87,7 @@ type UseFormErrorManagementResult = {
     /** Whether a previously surfaced violation has been resolved */
     isViolationFixed: boolean;
 
-    /** User-visible message for the form error, or for `debouncedFormError` on an editable split. A route error is put ahead of it by `useConfirmationFieldErrors`. */
+    /** User-visible error message derived from `routeError` and `debouncedFormError` */
     errorMessage: string | undefined;
 };
 
@@ -94,9 +97,9 @@ type UseFormErrorManagementResult = {
  * Holds a debounced form-error string, exposes setters and clearing helpers used by the
  * controllers, and derives the violation-fixed flag and the user-visible error message.
  * `shouldDisplayFieldError` is gated on edit-split-bill mode so field-level errors only render in
- * that flow. `errorMessage` leaves out the errors their own field already shows (missingAttendees,
- * the tax amount error, and the invalid amount an edited split flags as the user types) so they
- * don't show twice.
+ * that flow. `errorMessage` prefers `routeError`, then leaves out the errors their own field already
+ * shows (missingAttendees, the tax amount error, and the invalid amount an edited split flags as the
+ * user types) so they don't show twice.
  * The amount, date and merchant errors of a blocked confirm aren't held here at all: they are derived
  * by `getConfirmationFieldErrors` and shown through `useConfirmationFieldErrors`.
  */
@@ -112,6 +115,7 @@ function useFormErrorManagement({
     isEditingSplitBill,
     hasSmartScanFailed,
     didConfirmSplit,
+    routeError,
     isTypeSplit,
     shouldShowReadOnlySplits,
     isDistanceRequest,
@@ -201,6 +205,9 @@ function useFormErrorManagement({
     const isShownOnAmountField = (error: TranslationPaths | ''): boolean => !isDistanceRequest && error === 'common.error.invalidAmount';
 
     const computeErrorMessage = (): string | undefined => {
+        if (routeError) {
+            return routeError;
+        }
         // This runs ahead of the split branch below because splits render the same amount input, so the error duplicates the same way.
         if (isShownOnAmountField(formError)) {
             return undefined;

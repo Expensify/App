@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: '取消',
         dismiss: '关闭',
         resizeColumn: ({columnName}: {columnName: string}) => `调整${columnName}列宽`,
-        columnWidth: ({width}: {width: number}) => `${width} 像素`,
+        resizePanel: '调整面板宽度',
+        widthInPixels: ({width}: {width: number}) => `${width} 像素`,
         proceed: '继续',
         unshare: '取消共享',
         yes: '是',
@@ -237,7 +238,6 @@ const translations: TranslationDeepObject<typeof en> = {
             phoneNumber: `请输入完整的电话号码
 （例如：${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER}）`,
             fieldRequired: '此字段为必填项',
-            fixErrorsBeforeContinuing: '请先修复表单中的错误，然后再继续。',
             requestModified: '此请求正在被另一位成员修改',
             characterLimitExceedCounter: (length: number, limit: number) => `超出字符限制（${length}/${limit}）`,
             dateInvalid: '请选择一个有效日期',
@@ -1208,6 +1208,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: '查看全部',
         topExpenses: '最高花费',
         noExpensesInRange: '此范围内没有报销费用',
+        efficiency: '效率',
+        workflowEfficiency: '工作流程效率',
+        longestToSubmit: '提交所用时间最长',
+        slowestToApprove: '审批最慢',
+        mostTimeToPay: '最长付款时间',
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1359,6 +1364,10 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: '或将文件拖放到此处',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `第 ${page} 页，共 ${pageCount} 页`,
+        translate: '翻译',
+        viewOriginal: '查看原文',
+        translationDisclaimer: 'AI 可能会出错。请再次核对原文。',
+        translationError: {unreadable: '我们无法清晰读取此收据，因而无法对其进行翻译。', alreadyInLanguage: '该收据已经是你的语言了。', generic: '我们无法翻译此收据。请重试。'},
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -1687,7 +1696,6 @@ const translations: TranslationDeepObject<typeof en> = {
             atLeastTwoDifferentWaypoints: '请输入至少两个不同的地址',
             splitExpenseMultipleParticipantsErrorMessage: '无法将一笔报销同时分摊到一个工作区和其他成员。请更新你的选择。',
             invalidMerchant: '请输入有效的商家',
-            enterRequiredFields: '请输入必填字段。',
             atLeastOneAttendee: '必须选择至少一位参加者',
             invalidQuantity: '请输入有效的数量',
             quantityGreaterThanZero: '数量必须大于零',
@@ -1967,6 +1975,12 @@ const translations: TranslationDeepObject<typeof en> = {
         tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
         undeletedExpense: '恢复了此报销单',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `已为新工作区更新里程报销标准 - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} 报告`,
+                other: (count: number) => `${formattedCount ?? count} 份报销单`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2212,6 +2226,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: '在每月的最后一个星期六',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: '在每月的最后一个星期日',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: '此报表将在最终批准后导出。',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: '当此报表支付后，可报销费用将被导出。',
         },
     },
     profilePage: {
@@ -7605,6 +7623,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 onWaitlist: '您在候补名单中',
                 waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
             },
+            integrationWaitlist: {
+                comingSoon: '即将推出',
+                joinWaitlist: '加入候补名单',
+                onWaitlist: '您在候补名单中',
+                onTheList: '你已在名单上！',
+                waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
+            },
             setup: '连接',
             connectToSandbox: '连接到沙盒',
             lastSync: (relativeDate: string) => `上次同步于 ${relativeDate}`,
@@ -8006,6 +8031,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             statusExpired: '已过期',
             statusInactive: '未启用',
             unit: '单位',
+            ukFuelRateTaxError: '请添加20%的税率，以跟踪英国建议燃油费率的税额。',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) => `请在${integrationName}中添加20%的税率，以跟踪英国建议燃油费率的税额。`,
             taxFeatureNotEnabledMessage: '<muted-text>必须在工作区中启用税费才能使用此功能。前往<a href="#">更多功能</a>进行更改。</muted-text>',
             deleteDistanceRate: '删除距离费率',
             areYouSureDelete: () => ({
@@ -9298,6 +9325,7 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: '实体',
             updateCurrencyTitle: '更新工作区货币？',
             updateCurrencyPrompt: 'Digits 目前仅适用于在美国运营且使用美元的公司。',
             importDescription: '选择要导入的 Digits 配置。',
@@ -9669,6 +9697,25 @@ ${reportName}`,
             return `将“${categoryName}”类别的分项收据更改为 ${newValue}（之前为 ${oldValue}）`;
         },
         setCategoryName: (oldName: string, newName: string) => `已将类别“${oldName}”重命名为“${newName}”`,
+        setCategoryVisibility: (members: string, categories: string) => `已将${members}设置为仅可查看${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `已更改${members}为仅能看到${categories}`,
+        clearedCategoryVisibility: (members: string) => `已更改${members}为可查看所有类别`,
+        quotedCategoryName: (categoryName: string) => `“${categoryName}”`,
+        oneCategory: (categoryName: string) => `${categoryName} 类别`,
+        someCategories: (categoryList: string) => `类别${categoryList}`,
+        everyone: '所有人',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 个类别',
+            other: `${count} 个类别`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 名成员',
+            other: `${count} 名成员`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `类别：${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `成员：${memberList}`,
+        categoryVisibilityReasonDeleted: '，因为他们唯一的类别已被删除。如有需要，请更新其类别可见性。',
+        categoryVisibilityReasonDisabled: '，因为他们唯一的类别已被禁用。如有需要，请更新其类别可见性。',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `已从类别“${categoryName}”中移除描述提示“${oldValue}”`;
@@ -10363,6 +10410,12 @@ ${reportName}`,
         columns: '列',
         editColumns: '编辑列',
         resetColumns: '重置列',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `${columnName}列选项`,
+            sortAscending: '升序排序',
+            sortDescending: '降序排序',
+            hideColumn: '隐藏列',
+        },
         groupColumns: '分组列',
         expenseColumns: '报销列',
         saveView: '保存视图',
@@ -10445,7 +10498,9 @@ ${reportName}`,
             completed: '已完成',
             amount: {
                 lessThan: (amount?: string) => `少于 ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `小于或等于 ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `大于 ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `大于或等于 ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `介于 ${greaterThan} 和 ${lessThan} 之间`;
@@ -10502,6 +10557,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: '违规',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: '付款方',
             },
             feed: '动态',
             withdrawalType: {
@@ -10558,6 +10614,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
             [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: '违规',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: '付款方',
         },
         moneyRequestReport: {emptyStateTitle: '暂时没有报销费用', accessPlaceHolder: '展开查看详情'},
         noCategory: '无类别',

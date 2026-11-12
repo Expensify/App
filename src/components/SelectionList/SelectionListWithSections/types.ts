@@ -66,6 +66,9 @@ type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
 
     /** Scrolls the list so an input rendered inside `listFooterContent` is not hidden behind the keyboard. */
     scrollInputIntoView: (input: MeasurableInput) => void;
+
+    /** Scrolls the list just enough to show a view rendered inside `listFooterContent`, when that view is out of sight. */
+    scrollToReveal: (view: MeasurableInput) => void;
 };
 
 type SectionHeader = {

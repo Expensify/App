@@ -271,29 +271,17 @@ describe('ReportActionsUtils', () => {
     describe('isConfirmationMerchantRequired', () => {
         const workspaceManualExpense = {isPolicyExpenseChat: true, isScanRequest: false, isEditingSplitBill: false, shouldShowMerchant: true};
 
-        it('requires the merchant of a manual expense to a workspace', () => {
-            // Given a manual expense to a workspace chat that shows the merchant field
-            // When its merchant requirement is checked
-            // Then the merchant is required
-            expect(isConfirmationMerchantRequired(workspaceManualExpense)).toBe(true);
-        });
-
         it.each([
-            ['a scan, whose merchant SmartScan reads off the receipt', {isScanRequest: true}],
-            ['an expense to a person', {isPolicyExpenseChat: false}],
-            ['a confirmation that hides the merchant field', {shouldShowMerchant: false}],
-        ])('leaves the merchant optional on %s', (_case, overrides) => {
-            // Given a manual workspace expense that differs in this one way
+            ['a manual expense to a workspace, where only the user can enter it', {}, true],
+            ['the split of a workspace scan being edited, which is only editable once SmartScan left fields blank', {isScanRequest: true, isEditingSplitBill: true}, true],
+            ['a scan, whose merchant SmartScan reads off the receipt', {isScanRequest: true}, false],
+            ['an expense to a person, which does not need a merchant', {isPolicyExpenseChat: false}, false],
+            ['a confirmation that hides the merchant field, which cannot be filled in', {shouldShowMerchant: false}, false],
+        ])('decides whether the merchant is required on %s', (_case, overrides, isRequired) => {
+            // Given a manual workspace expense that differs in this way, if at all
             // When its merchant requirement is checked
-            // Then the merchant is optional
-            expect(isConfirmationMerchantRequired({...workspaceManualExpense, ...overrides})).toBe(false);
-        });
-
-        it('requires the merchant while the split of a workspace scan is being edited', () => {
-            // Given a split of a scanned workspace expense that is being edited
-            // When its merchant requirement is checked
-            // Then the merchant is required, the same as on a manual workspace expense
-            expect(isConfirmationMerchantRequired({...workspaceManualExpense, isScanRequest: true, isEditingSplitBill: true})).toBe(true);
+            // Then the merchant is required only where a workspace needs one and nothing but the user can fill it in
+            expect(isConfirmationMerchantRequired({...workspaceManualExpense, ...overrides})).toBe(isRequired);
         });
     });
 

@@ -110,7 +110,29 @@ const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardSho
         }, CONST.MAX_TRANSITION_DURATION_MS);
     };
 
-    return {containerRef, trackScrollOffset, scrollInputIntoView};
+    const scrollToReveal = (view: MeasurableInput) => {
+        const list = listRef.current;
+        // The container also holds the footer below the list, so only the scroll view's own frame is the visible area.
+        const scroller = list?.getNativeScrollRef();
+        if (!list || !isMeasurable(view) || !isMeasurable(scroller)) {
+            return;
+        }
+        scroller.measureInWindow((scrollerX, scrollerY, scrollerWidth, scrollerHeight) => {
+            view.measureInWindow((viewX, viewY, viewWidth, viewHeight) => {
+                const visibleTop = scrollerY + EXTRA_SCROLL_PADDING;
+                const visibleBottom = scrollerY + scrollerHeight - EXTRA_SCROLL_PADDING;
+                if (viewY < visibleTop) {
+                    list.scrollToOffset({offset: scrollOffsetRef.current + viewY - visibleTop, animated: true});
+                    return;
+                }
+                if (viewY + viewHeight > visibleBottom) {
+                    list.scrollToOffset({offset: scrollOffsetRef.current + viewY + viewHeight - visibleBottom, animated: true});
+                }
+            });
+        });
+    };
+
+    return {containerRef, trackScrollOffset, scrollInputIntoView, scrollToReveal};
 };
 
 export default useScrollToFocusedInput;
