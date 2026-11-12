@@ -28,7 +28,7 @@ import type {ConfirmButtonOptions, ListItem} from './SelectionList/types';
 import Badge from './Badge';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import RenderHTML from './RenderHTML';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
@@ -243,7 +243,7 @@ function WorkspaceMemberRoleList({
 
     return (
         <>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('common.role')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />

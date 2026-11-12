@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -39,7 +39,7 @@ function ValueSelectorModal({
                 testID="ValueSelectorModal"
                 shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={label}
                     onBackButtonPress={onClose}
                 />

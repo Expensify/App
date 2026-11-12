@@ -17,7 +17,7 @@ import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {View} from 'react-native';
 
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 import Text from './Text';
@@ -132,7 +132,7 @@ function ConnectionLayout({
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
                 testID={displayName}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={headerTitleAlreadyTranslated ?? (headerTitle ? translate(headerTitle) : '')}
                     subtitle={headerSubtitle}
                     onBackButtonPress={onBackButtonPress}

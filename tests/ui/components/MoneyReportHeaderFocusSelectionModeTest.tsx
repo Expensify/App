@@ -1,6 +1,7 @@
 import {render} from '@testing-library/react-native';
 
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import HeaderAvatarWithDisplayName from '@components/Header/primitives/HeaderAvatarWithDisplayName';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 
 import useOnyx from '@hooks/useOnyx';
@@ -51,7 +52,8 @@ jest.mock('@libs/actions/MobileSelectionMode', () => ({
 }));
 
 jest.mock('@components/MoneyReportHeaderModals', () => ({__esModule: true, default: jest.fn(({children}: {children: React.ReactNode}) => children)}));
-jest.mock('@components/HeaderWithBackButton', () => ({__esModule: true, default: jest.fn(() => null)}));
+jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => ({__esModule: true, default: jest.fn(() => null)}));
+jest.mock('@components/Header/primitives/HeaderAvatarWithDisplayName', () => ({__esModule: true, default: jest.fn(() => null)}));
 jest.mock('@components/MoneyReportHeaderActions', () => ({__esModule: true, default: jest.fn(() => null)}));
 jest.mock('@components/MoneyReportHeaderMoreContent', () => ({__esModule: true, default: jest.fn(() => null)}));
 jest.mock('@components/HeaderLoadingBar', () => ({__esModule: true, default: jest.fn(() => null)}));
@@ -80,7 +82,8 @@ const mockedUseOnyx = jest.mocked(useOnyx);
 const mockedUseIsFocused = jest.mocked(useIsFocused);
 const mockedUseTransactionsAndViolations = jest.mocked(useTransactionsAndViolationsForReport);
 const mockedTurnOffMobileSelectionMode = jest.mocked(turnOffMobileSelectionMode);
-const mockedHeaderWithBackButton = jest.mocked(HeaderWithBackButton);
+const mockedHeaderWithBackButtonAndTitle = jest.mocked(HeaderWithBackButtonAndTitle);
+const mockedHeaderAvatarWithDisplayName = jest.mocked(HeaderAvatarWithDisplayName);
 
 describe('MoneyReportHeader mobile selection mode', () => {
     beforeEach(() => {
@@ -130,9 +133,10 @@ describe('MoneyReportHeader mobile selection mode', () => {
             />,
         );
 
-        const headerProps = mockedHeaderWithBackButton.mock.calls.at(0)?.[0];
-        expect(headerProps?.title).toBeUndefined();
-        expect(headerProps?.report).toEqual(report);
+        const titleHeaderProps = mockedHeaderWithBackButtonAndTitle.mock.calls.at(0)?.[0];
+        const avatarHeaderProps = mockedHeaderAvatarWithDisplayName.mock.calls.at(0)?.[0];
+        expect(titleHeaderProps?.title).toBeUndefined();
+        expect(avatarHeaderProps?.report).toEqual(report);
     });
 
     it('renders the selection header when focused with selection mode on and multiple transactions', () => {
@@ -150,9 +154,10 @@ describe('MoneyReportHeader mobile selection mode', () => {
             />,
         );
 
-        const headerProps = mockedHeaderWithBackButton.mock.calls.at(0)?.[0];
-        expect(headerProps?.title).toBeDefined();
-        expect(headerProps?.report).toBeUndefined();
+        const titleHeaderProps = mockedHeaderWithBackButtonAndTitle.mock.calls.at(0)?.[0];
+        const avatarHeaderProps = mockedHeaderAvatarWithDisplayName.mock.calls.at(0)?.[0];
+        expect(titleHeaderProps?.title).toBeDefined();
+        expect(avatarHeaderProps?.report).toBeUndefined();
         expect(mockedTurnOffMobileSelectionMode).not.toHaveBeenCalled();
     });
 });

@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Modal from '@components/Modal';
 
 import useNetwork from '@hooks/useNetwork';
@@ -100,7 +100,7 @@ function ConnectToMergeFlow({setupLink, title, onDone}: ConnectToMergeFlowProps)
             isVisible={isWebViewOpen}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={title}
                 onBackButtonPress={handleBackPress}
             />

@@ -28,8 +28,9 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
+import Header from './Header';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import HeaderLoadingBar from './HeaderLoadingBar';
-import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
 import MoneyReportHeaderModals from './MoneyReportHeaderModals';
 import MoneyReportHeaderMoreContent from './MoneyReportHeaderMoreContent';
@@ -37,6 +38,8 @@ import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestR
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {PaymentAnimationsProvider} from './PaymentAnimationsContext';
 import {useSearchSelectionActions} from './Search/SearchContext';
+import SearchButton from './Search/SearchRouter/SearchButton';
+import SidePanelButton from './SidePanel/SidePanelButton';
 
 type MoneyReportHeaderProps = {
     reportID: string | undefined;
@@ -152,7 +155,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         // dropdown instead, matching the transaction list and the selection toolbar which are both wide-RHP aware.
         if (shouldUseNarrowLayoutOnWideRHP) {
             return (
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.selectMultiple')}
                     onBackButtonPress={() => {
                         clearSelectedTransactions(true);
@@ -165,20 +168,15 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
-            <HeaderWithBackButton
-                shouldShowReportAvatarWithDisplay
-                shouldDisplayStatus
-                shouldShowPinButton={false}
-                report={moneyRequestReport}
-                shouldShowBackButton={shouldShowBackButton}
-                shouldDisplaySearchRouter={shouldDisplaySearchRouter}
-                shouldDisplayHelpButton={!(isReportInRHP && shouldUseNarrowLayout)}
-                onBackButtonPress={onBackButtonPress}
-                shouldShowBorderBottom={false}
-                shouldEnableDetailPageNavigation
-                openParentReportInCurrentTab
-            >
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+            <Header>
+                {shouldShowBackButton && <Header.BackButton onPress={onBackButtonPress} />}
+                <Header.AvatarWithDisplayName
+                    report={moneyRequestReport}
+                    shouldDisplayStatus
+                    shouldEnableDetailPageNavigation
+                    openParentReportInCurrentTab
+                />
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pr2]}>
                     {shouldRenderActionsInHeaderRow && (
                         <MoneyReportHeaderActions
                             reportID={reportIDProp}
@@ -201,7 +199,9 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                         )
                     )}
                 </View>
-            </HeaderWithBackButton>
+                {shouldDisplaySearchRouter && <SearchButton />}
+                {!(isReportInRHP && shouldUseNarrowLayout) && <SidePanelButton />}
+            </Header>
             {!shouldShowHeaderButtonsInHeaderRow && (
                 <MoneyReportHeaderActions
                     reportID={reportIDProp}

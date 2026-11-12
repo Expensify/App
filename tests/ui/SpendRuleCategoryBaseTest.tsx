@@ -36,7 +36,7 @@ jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/MultiSelectListItem', () => jest.fn(() => null));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: PropsWithChildren) => children));
 jest.mock('@components/ScrollView', () => jest.fn(({children}: PropsWithChildren) => children));
-jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
+jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => jest.fn(() => null));
 jest.mock('@components/BlockingViews/BlockingView', () => jest.fn(() => null));
 jest.mock('@components/FormAlertWithSubmitButton', () => jest.fn(() => null));
 jest.mock('@hooks/useDebouncedState', () =>

@@ -21,7 +21,7 @@ import {View} from 'react-native';
 
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import DelegatorList from './DelegatorList';
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionList from './SelectionList/SelectionListWithSections';
 
@@ -195,7 +195,7 @@ function BaseVacationDelegateSelectionComponent({
 
     return (
         <>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={headerTitle}
                 onBackButtonPress={onBackButtonPress}
             />
