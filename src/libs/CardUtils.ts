@@ -81,11 +81,6 @@ function getCardFeedColors(cardFeed: string | undefined): {background: string; t
     return feedKey !== undefined ? CARD_FEED_COLORS[feedKey] : GENERIC_CARD_COLORS;
 }
 
-/** Returns the background hex color for the card image shown for a given feed. */
-function getCardFeedBackgroundColor(cardFeed: string | undefined): string {
-    return getCardFeedColors(cardFeed).background;
-}
-
 /** Returns the WCAG-compliant overlay text color for a given feed's card artwork. */
 function getCardFeedTextColor(cardFeed: string | undefined): string {
     return getCardFeedColors(cardFeed).text;
@@ -2592,7 +2587,6 @@ export {
     getEffectiveFeedReimbursable,
     canResolveTransactionCard,
     getAssignedCardSortKey,
-    getCardFeedBackgroundColor,
     getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
     getDisplayedExpensifyCardLimitType,

@@ -19,6 +19,8 @@ import {expensifyLoginsSelector, getContactMethodsOptions} from '@libs/UserUtils
 
 import {callIfAuthenticated} from '@userActions/Session';
 
+import FontUtils from '@styles/utils/FontUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -79,12 +81,13 @@ function DynamicContactMethodsPage() {
                                 key={option.partnerUserID}
                             >
                                 <MenuItem.Root
+                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_ROW}
                                     onPress={callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID))), session)}
                                     isDisabled={!!option.pendingAction}
                                 >
                                     <MenuItem.Row>
                                         <MenuItem.Content>
-                                            <MenuItem.Title>{option.menuItemTitle}</MenuItem.Title>
+                                            <MenuItem.Title style={FontUtils.fontFamily.platform.EXP_NEUE}>{option.menuItemTitle}</MenuItem.Title>
                                             {!!option.description && <MenuItem.Description>{option.description}</MenuItem.Description>}
                                         </MenuItem.Content>
                                         <MenuItem.Trailing>
@@ -98,6 +101,7 @@ function DynamicContactMethodsPage() {
                 )}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.NEW_CONTACT_METHOD}
                         size={CONST.BUTTON_SIZE.LARGE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={addNewContactMethod}

@@ -123,6 +123,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const avatarButton = (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.CLOSE_ACCOUNT}
             onPress={() => {
                 showCloseAccountModal();
             }}
@@ -156,6 +157,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 onClose={() => clearChangeDomainSecurityGroupError(domainAccountID, memberLogin)}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.DOMAIN_GROUP}
                     name={translate('domain.members.domainGroup')}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
                     value={userSecurityGroup?.securityGroup?.name}
@@ -200,6 +202,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             <View style={styles.mt6} />
             {!!accountRequiresTwoFactorAuth && (
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.RESET_TWO_FACTOR_AUTH}
                     title={translate('domain.common.resetTwoFactorAuth')}
                     icon={icons.CircularArrowBackwards}
                     onPress={() => {
@@ -211,6 +214,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
             {isAccountLocked ? (
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.UNLOCK_ACCOUNT}
                     key="UnlockAccount"
                     title={translate('lockAccountPage.unlockAccount')}
                     icon={icons.Unlock}
@@ -218,6 +222,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 />
             ) : (
                 <MenuItem.Root
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.REPORT_SUSPICIOUS_ACTIVITY}
                     key="ReportSuspiciousActivity"
                     onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)), session)}
                 >
