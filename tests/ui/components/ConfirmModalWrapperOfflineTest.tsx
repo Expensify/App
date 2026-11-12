@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -31,7 +31,7 @@ function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
 
-function renderConfirmModalWrapper(onConfirm?: () => Promise<string | void>) {
+function renderConfirmModalWrapper(onConfirm?: () => Promise<string | void>, shouldStackButtons = true) {
     const closeModal = jest.fn();
     const resolveModal = jest.fn();
 
@@ -49,6 +49,7 @@ function renderConfirmModalWrapper(onConfirm?: () => Promise<string | void>) {
                 // Routing confirm through the async resolve path lets us assert the confirm handler ran without depending on the modal-hide animation.
                 isConfirmLoading={false}
                 onConfirm={onConfirm}
+                shouldStackButtons={shouldStackButtons}
             />
         </Wrapper>,
     );
@@ -105,20 +106,25 @@ describe('ConfirmModalWrapper (locked BA offline)', () => {
         expect(resolveModal).toHaveBeenCalledWith({action: 'CONFIRM'});
     });
 
-    it('keeps an async confirmation open with safe feedback after rejection and allows another attempt', async () => {
+    it.each([true, false])('announces busy and offers safe retry after rejection with stacked buttons: %p', async (shouldStackButtons) => {
         // Given an async action rejects without supplying user-facing copy
-        const confirm = jest.fn<Promise<string | void>, []>().mockRejectedValueOnce(new Error('Private server details')).mockResolvedValueOnce('Please try again.');
-        const {closeModal, resolveModal} = renderConfirmModalWrapper(confirm);
+        const pendingConfirmation = Promise.withResolvers<string | void>();
+        const confirm = jest.fn<Promise<string | void>, []>().mockReturnValueOnce(pendingConfirmation.promise).mockResolvedValueOnce('Please try again.');
+        const {closeModal, resolveModal} = renderConfirmModalWrapper(confirm, shouldStackButtons);
         await waitForBatchedUpdatesWithAct();
 
         // When the user confirms
         fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: CONFIRM_TEXT}));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: CONFIRM_TEXT, busy: true})).toBeDisabled();
+        await act(async () => pendingConfirmation.reject(new Error('Private server details')));
         await waitForBatchedUpdatesWithAct();
 
         // Then the modal offers retry and cancel, without exposing private error details or resolving as success
         expect(screen.getByText('Oops... something went wrong and your request could not be completed. Please try again later.')).toBeOnTheScreen();
         expect(screen.queryByText('Private server details')).not.toBeOnTheScreen();
         expect(screen.getByRole(CONST.ROLE.BUTTON, {name: CANCEL_TEXT})).toBeEnabled();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: CONFIRM_TEXT, busy: false})).toBeEnabled();
         expect(closeModal).not.toHaveBeenCalled();
         expect(resolveModal).not.toHaveBeenCalled();
 

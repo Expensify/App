@@ -186,7 +186,7 @@ describe('Device management sign out on all devices', () => {
         expect(Growl.success).not.toHaveBeenCalled();
     });
 
-    it('prevents repeated submissions while the request is pending, then offers retry in the same confirmation', async () => {
+    it('announces pending submissions as busy, prevents duplicates, and clears busy after failure before retrying', async () => {
         // Given the server holds the first request before reporting a failure
         const response = Promise.withResolvers<{jsonCode: number}>();
         mockAPI.makeRequestWithSideEffects.mockReturnValueOnce(response.promise);
@@ -207,18 +207,23 @@ describe('Device management sign out on all devices', () => {
         // Then one request is sent, and failure keeps the confirmation available for retry or cancel
         expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
         expect(confirmButton).toBeDisabled();
+        expect(confirmation.getByRole(CONST.ROLE.BUTTON, {name: SIGN_OUT_TEXT, busy: true})).toBeDisabled();
         await act(async () => response.resolve({jsonCode: 500}));
         await waitForBatchedUpdatesWithAct();
         expect(confirmation.getByText(ERROR_TEXT)).toBeOnTheScreen();
-        expect(confirmation.getByRole(CONST.ROLE.BUTTON, {name: SIGN_OUT_TEXT})).toBeEnabled();
+        expect(confirmation.getByRole(CONST.ROLE.BUTTON, {name: SIGN_OUT_TEXT, busy: false})).toBeEnabled();
         expect(confirmation.getByRole(CONST.ROLE.BUTTON, {name: 'Cancel'})).toBeEnabled();
         expect(redirectToSignIn).not.toHaveBeenCalled();
         expect(Growl.success).not.toHaveBeenCalled();
 
         // When retry succeeds
-        mockAPI.makeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
+        const retryResponse = Promise.withResolvers<{jsonCode: number}>();
+        mockAPI.makeRequestWithSideEffects.mockReturnValueOnce(retryResponse.promise);
         jest.mocked(redirectToSignIn).mockResolvedValueOnce();
         fireEvent.press(confirmation.getByRole(CONST.ROLE.BUTTON, {name: SIGN_OUT_TEXT}));
+        await waitForBatchedUpdatesWithAct();
+        expect(confirmation.getByRole(CONST.ROLE.BUTTON, {name: SIGN_OUT_TEXT, busy: true})).toBeDisabled();
+        await act(async () => retryResponse.resolve({jsonCode: CONST.JSON_CODE.SUCCESS}));
         await waitForBatchedUpdatesWithAct();
 
         // Then sign-out succeeds without requiring the user to reopen the confirmation
