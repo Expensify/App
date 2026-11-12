@@ -80,6 +80,7 @@ jest.mock('@libs/actions/Search', () => {
         unholdMoneyRequestOnSearch: jest.fn(),
         getChatReportWithFallback: actualSearch.getChatReportWithFallback,
         getReportFromSearchSnapshot: actualSearch.getReportFromSearchSnapshot,
+        getReportActionsFromSearchSnapshot: actualSearch.getReportActionsFromSearchSnapshot,
         getPolicyFromSearchSnapshot: actualSearch.getPolicyFromSearchSnapshot,
         resolveSearchPayPaymentMethod: actualSearch.resolveSearchPayPaymentMethod,
     };
