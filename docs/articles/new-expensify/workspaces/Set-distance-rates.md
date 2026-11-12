@@ -110,7 +110,7 @@ For **Remote or mobile** members, who have no regular workplace, home-and-office
 
 Only **Map** and **GPS** distance methods are available while a commute exclusion is enabled. Members see the excluded distance during confirmation and on the final expense.
 
-To change the starting arrangement later, open **Exclude commutes > Default work arrangement** and choose an arrangement. You can also [set a member's work arrangement individually](/articles/new-expensify/workspaces/Managing-Workspace-Members#how-to-set-a-members-work-arrangement-for-commute-exclusions). Work arrangement changes apply to future mileage calculations; existing expenses are not automatically recalculated.
+To change the starting arrangement later, open **Exclude commutes > Default work arrangement** and choose an arrangement. You can also [set a member's work arrangement individually](/articles/new-expensify/workspaces/Manage-Workspace-Members-and-Access#How-to-set-a-work-arrangement-for-commute-exclusions). Work arrangement changes apply to future mileage calculations; existing expenses are not automatically recalculated.
 
 ---
 
