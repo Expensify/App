@@ -17,9 +17,12 @@ import {
     submitMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
+import {buildOptimisticExportIntegrationAction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Card, ReportAction, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
@@ -40,6 +43,8 @@ jest.mock('@libs/actions/Export', () => ({
 jest.mock('@libs/actions/Search', () => ({
     // The hook and shouldShowDeleteOption resolve report actions through this helper, so the real implementation has to stay available
     getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
+    getReportFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportFromSearchSnapshot,
+    getPolicyFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getPolicyFromSearchSnapshot,
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(() => 'mock-export-id'),
@@ -1434,5 +1439,290 @@ describe('useSearchBulkActions - Submit under Select all', () => {
 
         // Then Submit is not offered, because submit is a report action and expense rows only offer View
         expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT)).toBe(false);
+    });
+});
+
+describe('useSearchBulkActions - Change workspace', () => {
+    const OTHER_SUBMITTER_EMAIL = 'other@example.com';
+
+    async function addDraftReport(reportID: string, ownerAccountID: number) {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            policyID: 'policy1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+    }
+
+    function hasChangeWorkspaceOption(options: Array<{value: unknown}>) {
+        return options.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE);
+    }
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockAreAllMatchingItemsSelected = true;
+        await Onyx.clear();
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: 'report1'})};
+        mockExcludedTransactions = {};
+        mockSelectedReports = [makeSelectedReport({reportID: 'report1'}), makeSelectedReport({reportID: 'report2'})];
+        mockCurrentSearchResults = undefined;
+        mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'test@example.com'},
+            [CURRENT_USER_ACCOUNT_ID + 1]: {accountID: CURRENT_USER_ACCOUNT_ID + 1, login: 'other@example.com'},
+        });
+        for (const policyID of ['policy1', 'policy2']) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, name: policyID, type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+        }
+        await addDraftReport('report1', CURRENT_USER_ACCOUNT_ID);
+        await addDraftReport('report2', CURRENT_USER_ACCOUNT_ID + 1);
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+    });
+
+    it('offers Change workspace under Select all when one loaded report can be moved', async () => {
+        // Given "Select all" on a reports search with the user's own draft and someone else's draft loaded
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // When the user picks Change workspace
+        await waitFor(() => {
+            expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(true);
+        });
+        const changeWorkspaceOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE);
+        await act(async () => {
+            await changeWorkspaceOption?.onSelected?.();
+        });
+
+        // Then the workspace list opens, since the backend skips the reports the user can't move
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_CHANGE_WORKSPACE_RHP);
+    });
+
+    it('offers Change workspace for hand-picked reports the user can all move', async () => {
+        // Given a hand-picked selection of two drafts the user owns
+        mockAreAllMatchingItemsSelected = false;
+        await addDraftReport('report2', CURRENT_USER_ACCOUNT_ID);
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then Change workspace is offered, the same as each report's own menu
+        await waitFor(() => {
+            expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(true);
+        });
+    });
+
+    it('hides Change workspace for a hand-picked report that was exported', async () => {
+        // Given a hand-picked draft of the user's that was exported, so its own menu has no Change workspace
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [makeSelectedReport({reportID: 'report2'})];
+        await addDraftReport('report2', CURRENT_USER_ACCOUNT_ID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report2`, {isExportedToIntegration: true});
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Change workspace is not offered, the same as the exported report's own menu
+        expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
+    });
+
+    it('hides Change workspace for a report whose export is only in its Onyx history', async () => {
+        // Given an older draft with no export flag, whose export is in Onyx but not in the actions the search returned
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [makeSelectedReport({reportID: 'report2'})];
+        await addDraftReport('report2', CURRENT_USER_ACCOUNT_ID);
+        const exportAction = buildOptimisticExportIntegrationAction(CONST.POLICY.CONNECTIONS.NAME.QBO, true);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}report2`, {[exportAction.reportActionID]: exportAction});
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+            data: {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}report2`]: {
+                    comment1: {reportActionID: 'comment1', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2025-01-02 00:00:00.000'},
+                },
+            },
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Change workspace is not offered, the same as the report's own menu
+        expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
+    });
+
+    it('hides Change workspace for a report with a commuter exclusion', async () => {
+        // Given a hand-picked draft of the user's with a distance expense that had a commuter exclusion applied
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [makeSelectedReport({reportID: 'report2'})];
+        await addDraftReport('report2', CURRENT_USER_ACCOUNT_ID);
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx9`]: {
+                    transactionID: 'tx9',
+                    reportID: 'report2',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    comment: {customUnit: {commuterExclusion: 10}},
+                },
+            },
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Change workspace is not offered, the same as the report's own Change workspace page
+        expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
+    });
+
+    it('hides Change workspace for a report exported after the search loaded', async () => {
+        // Given a hand-picked draft the search results still show as not exported, while Onyx has it exported
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [makeSelectedReport({reportID: 'report2'})];
+        await addDraftReport('report2', CURRENT_USER_ACCOUNT_ID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report2`, {isExportedToIntegration: true});
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+            data: {
+                [`${ONYXKEYS.COLLECTION.REPORT}report2`]: {
+                    reportID: 'report2',
+                    policyID: 'policy1',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    isExportedToIntegration: false,
+                },
+            },
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Change workspace is not offered, the same as the exported report's own menu
+        expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
+    });
+
+    it('offers Change workspace for hand-picked reports when one of them can be moved', async () => {
+        // Given a hand-picked selection of the user's draft and a draft they don't own
+        mockAreAllMatchingItemsSelected = false;
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then Change workspace is offered, the same as Select all, since the backend skips the draft the user can't move
+        await waitFor(() => {
+            expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(true);
+        });
+    });
+
+    it('hides Change workspace when none of the hand-picked reports can be moved', async () => {
+        // Given a hand-picked draft the user doesn't own
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [makeSelectedReport({reportID: 'report2'})];
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Change workspace is not offered, the same as the report's own menu
+        expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
+    });
+
+    it('hides Change workspace when the submitter is not on any other workspace', async () => {
+        // Given an admin hand-picks a draft whose submitter is only on the report's own workspace
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [makeSelectedReport({reportID: 'report2'})];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {[OTHER_SUBMITTER_EMAIL]: {email: OTHER_SUBMITTER_EMAIL, role: CONST.POLICY.ROLE.USER}},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, {role: CONST.POLICY.ROLE.ADMIN});
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Change workspace is not offered, since a bulk move can't invite the submitter to Workspace 2
+        expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
+    });
+
+    it('offers Change workspace when the submitter is on another workspace the admin can move to', async () => {
+        // Given an admin hand-picks a draft whose submitter is also on Workspace 2
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [makeSelectedReport({reportID: 'report2'})];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {[OTHER_SUBMITTER_EMAIL]: {email: OTHER_SUBMITTER_EMAIL, role: CONST.POLICY.ROLE.USER}},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, {
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {[OTHER_SUBMITTER_EMAIL]: {email: OTHER_SUBMITTER_EMAIL, role: CONST.POLICY.ROLE.USER}},
+        });
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then Change workspace is offered
+        await waitFor(() => {
+            expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(true);
+        });
+    });
+
+    it('hides Change workspace offline', async () => {
+        // Given the user is offline, so the backend can't move the reports now
+        mockIsOffline = true;
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Change workspace is not offered
+        expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
+    });
+
+    it('does not offer Change workspace on an expenses search', async () => {
+        // Given "Select all" on an expenses search, where the backend only moves reports
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Change workspace is not offered
+        expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
     });
 });

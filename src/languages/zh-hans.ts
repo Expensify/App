@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: '取消',
         dismiss: '关闭',
         resizeColumn: ({columnName}: {columnName: string}) => `调整${columnName}列宽`,
-        columnWidth: ({width}: {width: number}) => `${width} 像素`,
+        resizePanel: '调整面板宽度',
+        widthInPixels: ({width}: {width: number}) => `${width} 像素`,
         proceed: '继续',
         unshare: '取消共享',
         yes: '是',
@@ -1207,6 +1208,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: '查看全部',
         topExpenses: '最高花费',
         noExpensesInRange: '此范围内没有报销费用',
+        efficiency: '效率',
+        workflowEfficiency: '工作流程效率',
+        longestToSubmit: '提交所用时间最长',
+        slowestToApprove: '审批最慢',
+        mostTimeToPay: '最长付款时间',
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1358,6 +1364,10 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: '或将文件拖放到此处',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `第 ${page} 页，共 ${pageCount} 页`,
+        translate: '翻译',
+        viewOriginal: '查看原文',
+        translationDisclaimer: 'AI 可能会出错。请再次核对原文。',
+        translationError: {unreadable: '我们无法清晰读取此收据，因而无法对其进行翻译。', alreadyInLanguage: '该收据已经是你的语言了。', generic: '我们无法翻译此收据。请重试。'},
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -1965,6 +1975,12 @@ const translations: TranslationDeepObject<typeof en> = {
         tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
         undeletedExpense: '恢复了此报销单',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `已为新工作区更新里程报销标准 - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} 报告`,
+                other: (count: number) => `${formattedCount ?? count} 份报销单`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2210,6 +2226,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: '在每月的最后一个星期六',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: '在每月的最后一个星期日',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: '此报表将在最终批准后导出。',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: '当此报表支付后，可报销费用将被导出。',
         },
     },
     profilePage: {
@@ -3186,6 +3206,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         disablePaymentsPrompt: '这将删除您的所有付款设置。',
         businessBankAccountCountries: '企业银行账户国家',
         businessBankAccountCountriesDescription: '这些国家的员工需提供本地转账信息，其他员工需提供国际电汇信息。',
+        businessBankAccountCountriesError: '报销国家更新失败，请重试。',
         customApprovalWorkflowEnabled:
             '<muted-text-label>此工作区已启用自定义审批流程。若要查看或更改此流程，请联系您的<account-manager-link>客户经理</account-manager-link>或<concierge-link>Concierge</concierge-link>。</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6506,7 +6527,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     mastercard: '我们与 Mastercard 有全球集成，但资格条件会因银行和卡片项目而异。\n\n要开始使用，只需：',
                     vcf: `1. 请访问[此帮助文章](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP})，查看关于如何设置 Visa 商务卡的详细说明。
 
-2. 请[联系您的银行](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP})，确认他们是否为您的项目支持商业数据连接，并请求他们为您启用。
+2. 请联系您的银行，确认他们是否为您的项目支持商业数据连接，并请求他们为您启用。
 
 3. *启用数据连接并获取相关详细信息后，请继续前往下一屏。*`,
                     gl1025: `1. 访问[此帮助文章](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP})，了解 American Express 是否可以为您的项目启用商业数据连接。
@@ -6516,7 +6537,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
 3. *在获取数据连接信息后，继续前往下一屏。*`,
                     cdf: `1. 访问[此帮助文章](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS})，获取有关如何设置 Mastercard 商业卡的详细说明。
 
-2. [联系您的银行](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS})，确认他们是否支持您项目的商业数据流，并请他们为您启用。
+2. 联系您的银行，确认他们是否支持您项目的商业数据流，并请他们为您启用。
 
 3. *一旦数据流已启用并且您获得了相关详细信息，继续到下一屏。*`,
                     stripe: `1. 访问 Stripe 的控制面板，然后前往[设置](${CONST.COMPANY_CARDS_STRIPE_HELP})。
@@ -8880,6 +8901,8 @@ ${reportName}`,
                 describeRuleForConcierge: '描述你的规则，Concierge 会帮你创建',
                 gotIt: '知道了',
                 createRule: '创建规则',
+                saveAnyway: '仍然保存',
+                checkingRule: '正在检查你的规则...',
                 fallbackBanner: '这不是一条标准规则，所以我们起草了一条代理规则。代理规则会在报销或报表被创建或更新时运行。',
                 fallbackBannerWithExplanation: (explanation: string) => `这不是一条标准规则，所以我们起草了一条代理规则。代理规则会在报销或报表被创建或更新时运行。${explanation}`,
             },
@@ -9293,8 +9316,15 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: '实体',
             updateCurrencyTitle: '更新工作区货币？',
             updateCurrencyPrompt: 'Digits 目前仅适用于在美国运营且使用美元的公司。',
+            importDescription: '选择要导入的 Digits 配置。',
+            accountTypesDescription: '您的 Digits 账户将会导入为类别。',
+            enableNewAccountsTitle: '启用新导入的账户',
+            enableNewAccountsDescription: '新的 Digits 账户将可用作类别。',
+            dimensionsImport: '所有 Digits 维度都会作为标签导入。',
+            departments: '部门',
         },
         zohoBooks: {
             organization: 'Zoho Books 组织',
@@ -9658,6 +9688,25 @@ ${reportName}`,
             return `将“${categoryName}”类别的分项收据更改为 ${newValue}（之前为 ${oldValue}）`;
         },
         setCategoryName: (oldName: string, newName: string) => `已将类别“${oldName}”重命名为“${newName}”`,
+        setCategoryVisibility: (members: string, categories: string) => `已将${members}设置为仅可查看${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `已更改${members}为仅能看到${categories}`,
+        clearedCategoryVisibility: (members: string) => `已更改${members}为可查看所有类别`,
+        quotedCategoryName: (categoryName: string) => `“${categoryName}”`,
+        oneCategory: (categoryName: string) => `${categoryName} 类别`,
+        someCategories: (categoryList: string) => `类别${categoryList}`,
+        everyone: '所有人',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 个类别',
+            other: `${count} 个类别`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 名成员',
+            other: `${count} 名成员`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `类别：${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `成员：${memberList}`,
+        categoryVisibilityReasonDeleted: '，因为他们唯一的类别已被删除。如有需要，请更新其类别可见性。',
+        categoryVisibilityReasonDisabled: '，因为他们唯一的类别已被禁用。如有需要，请更新其类别可见性。',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `已从类别“${categoryName}”中移除描述提示“${oldValue}”`;
@@ -10352,6 +10401,12 @@ ${reportName}`,
         columns: '列',
         editColumns: '编辑列',
         resetColumns: '重置列',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `${columnName}列选项`,
+            sortAscending: '升序排序',
+            sortDescending: '降序排序',
+            hideColumn: '隐藏列',
+        },
         groupColumns: '分组列',
         expenseColumns: '报销列',
         saveView: '保存视图',
@@ -10491,6 +10546,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: '违规',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: '付款方',
             },
             feed: '动态',
             withdrawalType: {
@@ -10547,6 +10603,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
             [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: '违规',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: '付款方',
         },
         moneyRequestReport: {emptyStateTitle: '暂时没有报销费用', accessPlaceHolder: '展开查看详情'},
         noCategory: '无类别',
@@ -12299,6 +12356,7 @@ ${reportName}`,
         deletingTitle: '正在删除报表…',
         deletingExpensesTitle: '正在删除报销费用…',
         runningBody: '请稍等几分钟，或者由 Concierge 在完成后发送消息通知你。',
+        changingWorkspaceTitle: '正在移动报表…',
         sendFromConcierge: '完成后给我发消息',
         conciergeTitle: '当然！',
         conciergeBody: '完成后，Concierge 会给你发送消息。',
@@ -12334,6 +12392,10 @@ ${reportName}`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `已删除 ${count} 份报表中 ${doneCount} 份的报销费用`,
             other: `已删除 ${count} 份报表中 ${doneCount} 份的报销费用`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已在 ${count} 份报表中的 ${doneCount} 份上更改工作区`,
+            other: `已在 ${count} 份报表中的 ${doneCount} 份上更改工作区`,
         }),
         noReportsTitle: '没有匹配的报表',
         noReportsBody: '您选择的报表都不需要执行此操作。',
@@ -12371,6 +12433,10 @@ ${reportName}`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: '无法删除 1 份报表的报销费用。',
             other: `无法删除 ${count} 份报表的报销费用。`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法移动。',
+            other: `${count} 份报表无法移动。`,
         }),
     },
     earlyRenewal: {

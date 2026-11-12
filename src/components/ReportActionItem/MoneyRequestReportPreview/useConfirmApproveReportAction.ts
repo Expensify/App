@@ -35,6 +35,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const {startApprovedAnimation} = useReportPreviewActions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail, delegateAccountID} = actionButtonData;
 
@@ -63,6 +64,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                allTransactionViolations,
             });
         }
     };

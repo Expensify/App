@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {policyTimeTrackingSelector} from '@src/selectors/Policy';
@@ -36,7 +37,10 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID, canWriteMoreFeatures
             isCentralPane
         >
             <OfflineWithFeedback pendingAction={policy?.pendingFields?.timeTrackingDefaultRate}>
-                <MenuItemSectionRoot onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID)) : undefined}>
+                <MenuItemSectionRoot
+                    onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID)) : undefined}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TIME_TRACKING.DEFAULT_RATE}
+                >
                     <MenuItemField.Row
                         name={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
                         value={policy ? convertToDisplayString(getDefaultTimeTrackingRate(policy), policy.outputCurrency) : undefined}

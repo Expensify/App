@@ -50,6 +50,8 @@ function ReviewCardFraud({possibleFraud}: ReviewCardFraudProps) {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.REVIEW_CARD_FRAUD}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.REVIEW_CARD_FRAUD}
             icon={ExpensifyCardIcon}
             title={title}
             subtitle={translate('homePage.timeSensitiveSection.reviewCardFraud.subtitle')}

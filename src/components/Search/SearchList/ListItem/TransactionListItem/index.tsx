@@ -118,16 +118,15 @@ function TransactionListItemInner<TItem extends ListItem>({
     // so the screen does not re-render every row when the moving policy changes.
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
-    // Use report's policyID as fallback when transaction doesn't have policyID directly
     // Use moving-expense policy as final fallback for SelfDM tracking expenses.
     // NOTE: Using || instead of ?? to treat empty string "" as falsy
-    const explicitPolicyID = transactionItem.policyID || snapshotReport?.policyID;
+    const explicitPolicyID = snapshotReport?.policyID || transactionItem.report?.policyID;
     let policyID = explicitPolicyID || activePolicyIDFromOnyx;
     if (!policyID && transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         policyID = policyForMovingExpensesID;
     }
     const [parentPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
-    const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
+    const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID}`] ?? {}) as Policy;
 
     const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
     const reportActions = actionsData ? Object.values(actionsData) : [];
@@ -257,6 +256,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             hash: currentSearchHash,
             item: liveTransactionItem,
             goToItem: () => onSelectRow(item, transactionPreviewData, event),
+            policyID: explicitPolicyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin,

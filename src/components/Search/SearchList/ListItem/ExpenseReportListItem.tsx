@@ -51,7 +51,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
+import {autoReportedRejectedExpenseViolationsSelector, transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React from 'react';
 import {View} from 'react-native';
 // We need direct access to useOnyx to fetch live policy data at render time
@@ -251,6 +251,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [liveViolationsForSnapshotTransactions] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: transactionViolationsByIDsSelector(snapshotTransactionIDs),
     });
+    // Approving also recomputes the chat's hasOutstandingChildRequest, which checks sibling reports' transactions for auto-reported rejected expenses.
+    const [autoReportedRejectedExpenseViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: autoReportedRejectedExpenseViolationsSelector});
     const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
         useReportPaymentContext({
             chatReportPolicyID: chatReport?.policyID,
@@ -268,6 +270,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             hash: currentSearchHash,
             item: liveReportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
+            policyID: snapshotReport?.policyID || reportItem.policyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin,
@@ -297,8 +300,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             isTrackIntentUser,
             // Pass the row-scoped, live violations (keyed by this report's snapshot transactions) instead of the
             // whole TRANSACTION_VIOLATIONS collection, so the Approve action reads live data without re-rendering
-            // every row on unrelated violation changes.
-            allViolations: liveViolationsForSnapshotTransactions,
+            // every row on unrelated violation changes. Auto-reported rejected expense violations are merged in for the sibling reports'
+            // hasOutstandingChildRequest check.
+            allViolations: {...autoReportedRejectedExpenseViolations, ...liveViolationsForSnapshotTransactions},
             rules,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
             ...pressTimeInputs,

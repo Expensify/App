@@ -58,7 +58,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Δεν ήταν δυνατή η φόρτωση του γραφήματος. Ανανεώστε τη σελίδα και δοκιμάστε ξανά.',
         dismiss: 'Κλείσιμο',
         resizeColumn: ({columnName}: {columnName: string}) => `Αλλαγή μεγέθους της στήλης ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixel`,
+        resizePanel: 'Αλλαγή μεγέθους πλαισίου',
+        widthInPixels: ({width}: {width: number}) => `${width} pixel`,
         proceed: 'Συνέχεια',
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
@@ -1304,6 +1305,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Προβολή όλων',
         topExpenses: 'Κορυφαίες δαπάνες',
         noExpensesInRange: 'Δεν υπάρχουν δαπάνες σε αυτό το εύρος',
+        efficiency: 'Αποδοτικότητα',
+        workflowEfficiency: 'Αποδοτικότητα ροής εργασιών',
+        longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
+        slowestToApprove: 'Πιο αργοί στην έγκριση',
+        mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -1465,6 +1471,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'ή σύρετε και αποθέστε ένα εδώ',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Σελίδα ${page} από ${pageCount}`,
+        translate: 'Μετάφραση',
+        viewOriginal: 'Προβολή πρωτοτύπου',
+        translationDisclaimer: 'Η τεχνητή νοημοσύνη μπορεί να κάνει λάθη. Παρακαλούμε ελέγξτε ξανά το πρωτότυπο.',
+        translationError: {
+            unreadable: 'Δεν μπορέσαμε να διαβάσουμε αυτήν την απόδειξη αρκετά καθαρά ώστε να τη μεταφράσουμε.',
+            alreadyInLanguage: 'Αυτή η απόδειξη είναι ήδη στη γλώσσα σας.',
+            generic: 'Δεν μπορέσαμε να μεταφράσουμε αυτήν την απόδειξη. Δοκιμάστε ξανά.',
+        },
     },
     quickAction: {
         scanReceipt: 'Σαρώστε απόδειξη',
@@ -2102,6 +2116,12 @@ const translations: TranslationDeepObject<typeof en> = {
         unholdWhenReadyDM: 'Αποδεσμεύστε τις δαπάνες όταν είστε έτοιμοι να τις στείλετε.',
         undeletedExpense: 'ανέκτησε αυτή τη δαπάνη',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `οι τιμές αποζημίωσης χιλιομέτρων ενημερώθηκαν για το νέο χώρο εργασίας - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} αναφορά`,
+                other: (count: number) => `${formattedCount ?? count} αναφορές`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2354,6 +2374,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'το τελευταίο Σάββατο του μήνα',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'την τελευταία Κυριακή του μήνα',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Αυτή η αναφορά θα εξαχθεί μετά την τελική έγκριση.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Οι αποζημιώσιμες δαπάνες θα εξαχθούν όταν πληρωθεί αυτή η αναφορά.',
         },
     },
     profilePage: {
@@ -3380,6 +3404,7 @@ ${amount} για ${merchant} - ${date}`,
         disablePaymentsPrompt: 'Αυτό θα αφαιρέσει όλες τις ρυθμίσεις πληρωμής σας.',
         businessBankAccountCountries: 'Χώρες επαγγελματικών τραπεζικών λογαριασμών',
         businessBankAccountCountriesDescription: 'Οι υπάλληλοι σε αυτές τις χώρες δίνουν στοιχεία για τοπική μεταφορά. Όλοι οι υπόλοιποι δίνουν στοιχεία για διεθνές έμβασμα.',
+        businessBankAccountCountriesError: 'Η ενημέρωση των χωρών αποζημίωσης απέτυχε. Δοκιμάστε ξανά.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Μια προσαρμοσμένη ροή έγκρισης είναι ενεργοποιημένη σε αυτόν τον χώρο εργασίας. Για να ελέγξετε ή να αλλάξετε αυτήν τη ροή, επικοινωνήστε με τον/την <account-manager-link>Account Manager</account-manager-link> σας ή το <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6896,7 +6921,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     mastercard: 'Διαθέτουμε παγκόσμιες ενσωματώσεις με τη Mastercard, αν και η επιλεξιμότητα διαφέρει ανά τράπεζα και πρόγραμμα κάρτας.\n\nΓια να ξεκινήσετε, απλώς:',
                     vcf: `1. Επισκεφθείτε [αυτό το άρθρο βοήθειας](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) για αναλυτικές οδηγίες σχετικά με τη ρύθμιση των Visa Commercial Cards σας.
 
-2. [Επικοινωνήστε με την τράπεζά σας](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε τους να την ενεργοποιήσουν.
+2. Επικοινωνήστε με την τράπεζά σας για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε τους να την ενεργοποιήσουν.
 
 3. *Μόλις ενεργοποιηθεί η ροή και έχετε τα στοιχεία της, συνεχίστε στην επόμενη οθόνη.*`,
                     gl1025: `1. Επισκεφθείτε [αυτό το άρθρο βοήθειας](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) για να δείτε αν η American Express μπορεί να ενεργοποιήσει μια εμπορική ροή για το πρόγραμμά σας.
@@ -6906,7 +6931,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
 3. *Μόλις έχετε τις πληροφορίες της ροής, συνεχίστε στην επόμενη οθόνη.*`,
                     cdf: `1. Επισκεφτείτε [αυτό το άρθρο βοήθειας](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) για αναλυτικές οδηγίες σχετικά με τη ρύθμιση των Mastercard Commercial Cards σας.
 
-2. [Επικοινωνήστε με την τράπεζά σας](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε να την ενεργοποιήσει.
+2. Επικοινωνήστε με την τράπεζά σας για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε να την ενεργοποιήσει.
 
 3. *Μόλις ενεργοποιηθεί η ροή και έχετε τις σχετικές λεπτομέρειες, συνεχίστε στην επόμενη οθόνη.*`,
                     stripe: `1. Επισκεφτείτε τον πίνακα ελέγχου του Stripe και μεταβείτε στις [Ρυθμίσεις](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -9747,6 +9772,8 @@ ${reportName}`,
                 describeRuleHeadline: 'Περιγράψτε τον κανόνα σας',
                 describeRuleForConcierge: 'Περιγράψτε τον κανόνα σας και το Concierge θα τον δημιουργήσει',
                 createRule: 'Δημιουργία κανόνα',
+                saveAnyway: 'Αποθήκευση ούτως ή άλλως',
+                checkingRule: 'Γίνεται έλεγχος του κανόνα σας...',
                 fallbackBanner:
                     'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. Οι κανόνες πράκτορα εκτελούνται όταν δημιουργείται ή ενημερώνεται ένα έξοδο ή μια αναφορά.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9916,8 +9943,15 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: 'Οντότητα',
             updateCurrencyTitle: 'Ενημέρωση νομίσματος χώρου εργασίας;',
             updateCurrencyPrompt: 'Το Digits είναι προς το παρόν διαθέσιμο μόνο για εταιρείες με έδρα στις ΗΠΑ που λειτουργούν σε USD.',
+            importDescription: 'Επιλέξτε ποιες διαμορφώσεις Digits θέλετε να εισαγάγετε.',
+            accountTypesDescription: 'Οι λογαριασμοί σας στο Digits θα εισαχθούν ως κατηγορίες.',
+            enableNewAccountsTitle: 'Ενεργοποίηση νεοεισαγόμενων λογαριασμών',
+            enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Digits θα είναι διαθέσιμοι ως κατηγορίες.',
+            dimensionsImport: 'Όλες οι διαστάσεις Digits εισάγονται ως ετικέτες.',
+            departments: 'Τμήματα',
         },
         zohoBooks: {
             organization: 'Οργανισμός Zoho Books',
@@ -10295,6 +10329,25 @@ ${reportName}`,
             return `άλλαξε τις αναλυτικές αποδείξεις της κατηγορίας «${categoryName}» σε ${newValue} (προηγουμένως ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `μετονόμασε την κατηγορία «${oldName}» σε «${newName}»`,
+        setCategoryVisibility: (members: string, categories: string) => `όρισε ώστε ${members} να βλέπουν μόνο ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `άλλαξε ώστε ${members} να βλέπουν μόνο ${categories}`,
+        clearedCategoryVisibility: (members: string) => `άλλαξε τα δικαιώματα των ${members} ώστε να βλέπουν όλες τις κατηγορίες`,
+        quotedCategoryName: (categoryName: string) => `«${categoryName}»`,
+        oneCategory: (categoryName: string) => `την κατηγορία ${categoryName}`,
+        someCategories: (categoryList: string) => `τις κατηγορίες ${categoryList}`,
+        everyone: 'όλοι',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 κατηγορία',
+            other: `${count} κατηγορίες`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 μέλος',
+            other: `${count} μέλη`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Κατηγορίες: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Μέλη: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', επειδή η μοναδική τους κατηγορία διαγράφηκε. Ενημερώστε, αν χρειάζεται, την ορατότητα της κατηγορίας τους.',
+        categoryVisibilityReasonDisabled: ', καθώς η μοναδική τους κατηγορία ήταν απενεργοποιημένη. Ενημερώστε την ορατότητα της κατηγορίας τους, αν χρειάζεται.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `αφαίρεσε την υπόδειξη περιγραφής «${oldValue}» από την κατηγορία «${categoryName}»`;
@@ -11079,6 +11132,12 @@ ${reportName}`,
         columns: 'Στήλες',
         editColumns: 'Επεξεργασία στηλών',
         resetColumns: 'Επαναφορά στηλών',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Επιλογές στήλης ${columnName}`,
+            sortAscending: 'Αύξουσα ταξινόμηση',
+            sortDescending: 'Φθίνουσα ταξινόμηση',
+            hideColumn: 'Απόκρυψη στήλης',
+        },
         groupColumns: 'Ομαδοποίηση στηλών',
         expenseColumns: 'Στήλες εξόδων',
         saveView: 'Αποθήκευση προβολής',
@@ -11217,6 +11276,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνο',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνων',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Παράβαση',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Πληρώθηκε από',
             },
             feed: 'Ροή',
             withdrawalType: {
@@ -11283,6 +11343,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνα',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνοντες',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Παραβάσεις',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Πληρωτές',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Καμία δαπάνη ακόμη',
@@ -13105,6 +13166,7 @@ ${reportName}`,
         deletingTitle: 'Γίνεται διαγραφή αναφορών...',
         deletingExpensesTitle: 'Γίνεται διαγραφή εξόδων...',
         runningBody: 'Περιμένετε μερικά λεπτά ή αφήστε το Concierge να σας στείλει μήνυμα όταν ολοκληρωθεί.',
+        changingWorkspaceTitle: 'Γίνεται μετακίνηση αναφορών...',
         sendFromConcierge: 'Στείλτε μου μήνυμα όταν τελειώσει',
         conciergeTitle: 'Βεβαίως!',
         conciergeBody: 'Ο Concierge θα σας στείλει μήνυμα όταν ολοκληρωθεί.',
@@ -13140,6 +13202,10 @@ ${reportName}`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Διαγράφηκαν έξοδα σε ${doneCount} από ${count} αναφορά`,
             other: `Διαγράφηκαν έξοδα σε ${doneCount} από ${count} αναφορές`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Άλλαξε χώρο εργασίας σε ${doneCount} από ${count} αναφορά`,
+            other: `Άλλαξε χώρο εργασίας σε ${doneCount} από ${count} αναφορές`,
         }),
         noReportsTitle: 'Δεν υπάρχουν αντιστοιχίες αναφορών',
         noReportsBody: 'Καμία από τις αναφορές που επιλέξατε δεν χρειαζόταν αυτή την ενέργεια.',
@@ -13177,6 +13243,10 @@ ${reportName}`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να διαγραφούν.',
             other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να διαγραφούν.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 αναφορά δεν μπόρεσε να μετακινηθεί.',
+            other: `${count} αναφορές δεν ήταν δυνατό να μετακινηθούν.`,
         }),
     },
     emailIssuePage: {
