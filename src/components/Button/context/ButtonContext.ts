@@ -2,23 +2,30 @@ import CONST from '@src/CONST';
 
 import {createContext, useContext} from 'react';
 
-import type ButtonContextValue from './types';
+import type {ButtonActionsContextValue, ButtonStateContextValue} from './types';
 
 /** Fallback used when a Button primitive is rendered outside a `<Button>` wrapper — keeps consumers safe from `undefined` reads. */
-const defaultButtonContextValue: ButtonContextValue = {
+const defaultButtonStateContextValue: ButtonStateContextValue = {
     isHovered: false,
     variant: undefined,
     size: CONST.BUTTON_SIZE.MEDIUM,
-    onPress: () => {},
     isDisabled: false,
     isLoading: false,
 };
 
-const ButtonContext = createContext<ButtonContextValue>(defaultButtonContextValue);
+const defaultButtonActionsContextValue: ButtonActionsContextValue = {
+    onPress: () => {},
+};
 
-function useButtonContext(): ButtonContextValue {
-    return useContext(ButtonContext);
+const ButtonStateContext = createContext<ButtonStateContextValue>(defaultButtonStateContextValue);
+const ButtonActionsContext = createContext<ButtonActionsContextValue>(defaultButtonActionsContextValue);
+
+function useButtonState(): ButtonStateContextValue {
+    return useContext(ButtonStateContext);
 }
 
-export default ButtonContext;
-export {useButtonContext};
+function useButtonActions(): ButtonActionsContextValue {
+    return useContext(ButtonActionsContext);
+}
+
+export {ButtonStateContext, ButtonActionsContext, useButtonState, useButtonActions};

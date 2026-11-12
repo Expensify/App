@@ -67,6 +67,8 @@ jest.mock('@userActions/App', () => ({
 
 jest.mock('@libs/Navigation/helpers/useIsSidebarRouteActive', () => jest.fn(() => false));
 
+jest.mock('@hooks/useHasTabBeenShown', () => jest.fn(() => true));
+
 jest.mock('@hooks/useSubscriptionPlan', () => jest.fn(() => null));
 
 jest.mock('@components/AccountSwitcher', () => {
@@ -83,14 +85,6 @@ jest.mock('@components/AccountSwitcherSkeletonView', () => {
     }
     MockAccountSwitcherSkeletonView.displayName = 'AccountSwitcherSkeletonView';
     return MockAccountSwitcherSkeletonView;
-});
-
-jest.mock('@components/Navigation/TabBarBottomContent', () => {
-    function MockTabBarBottomContent() {
-        return null;
-    }
-    MockTabBarBottomContent.displayName = 'TabBarBottomContent';
-    return MockTabBarBottomContent;
 });
 
 jest.mock('@components/Navigation/TopBarWithLoadingBar', () => {
@@ -253,6 +247,7 @@ describe('InitialSettingsPage - agent account', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
                 id: '1',
                 name: 'Boulder Development',
+                areDistanceRatesEnabled: true,
                 commuterExclusions: {method: 'homeAndOffice'},
             });
         });
@@ -330,7 +325,7 @@ describe('InitialSettingsPage - agent account', () => {
                     errorFields: {revoke: {error: 'Unable to revoke device'}},
                 },
             });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 nameErrors: {error: 'Agent name error'},
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);

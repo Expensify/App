@@ -46,6 +46,7 @@ function ImTeacherUpdateEmailPage() {
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.UPDATE_EMAIL_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     accessibilityLabel={translate('teachersUnitePage.updateEmail')}

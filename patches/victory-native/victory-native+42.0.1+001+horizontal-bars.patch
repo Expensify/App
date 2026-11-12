@@ -1,0 +1,195 @@
+diff --git a/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts b/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts
+index 36915fe..0cb7746 100644
+--- a/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts
++++ b/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts
+@@ -16,6 +16,7 @@ type BarGroupProps = {
+         groupWidth: number;
+         gapWidth: number;
+     }) => void;
++    isHorizontal?: boolean;
+ };
+ export declare function BarGroup({ betweenGroupPadding, withinGroupPadding, chartBounds, roundedCorners, children, onBarSizeChange, barWidth: customBarWidth, barCount, }: BarGroupProps): React.JSX.Element | null;
+ export declare namespace BarGroup {
+diff --git a/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts b/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts
+index 63b69bc..75641b1 100644
+--- a/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts
++++ b/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts
+@@ -1,6 +1,6 @@
+ import type { ChartBounds, PointsArray } from "../../types";
+ import { type RoundedCorners } from "../../utils/createRoundedRectPath";
+-export declare const useBarGroupPaths: (points: PointsArray[], chartBounds: ChartBounds, betweenGroupPadding?: number, withinGroupPadding?: number, roundedCorners?: RoundedCorners, customBarWidth?: number, barCount?: number) => {
++export declare const useBarGroupPaths: (points: PointsArray[], chartBounds: ChartBounds, betweenGroupPadding?: number, withinGroupPadding?: number, roundedCorners?: RoundedCorners, customBarWidth?: number, barCount?: number, isHorizontal?: boolean) => {
+     barWidth: number;
+     groupWidth: number;
+     gapWidth: number;
+diff --git a/node_modules/victory-native/src/cartesian/components/BarGroup.tsx b/node_modules/victory-native/src/cartesian/components/BarGroup.tsx
+index f188ddc..526c5a7 100644
+--- a/node_modules/victory-native/src/cartesian/components/BarGroup.tsx
++++ b/node_modules/victory-native/src/cartesian/components/BarGroup.tsx
+@@ -20,6 +20,7 @@ type BarGroupProps = {
+     groupWidth: number;
+     gapWidth: number;
+   }) => void;
++  isHorizontal?: boolean;
+ };
+ 
+ export function BarGroup({
+@@ -31,6 +32,7 @@ export function BarGroup({
+   onBarSizeChange,
+   barWidth: customBarWidth,
+   barCount,
++  isHorizontal,
+ }: BarGroupProps) {
+   // Collect the bar props
+   const bars = [] as BarGroupBarProps[];
+@@ -49,6 +51,7 @@ export function BarGroup({
+     roundedCorners,
+     customBarWidth,
+     barCount,
++    isHorizontal,
+   );
+ 
+   // Handle bar size change
+diff --git a/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts b/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
+index fafab1a..07da62f 100644
+--- a/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
++++ b/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
+@@ -17,10 +17,11 @@ export const useBarGroupPaths = (
+   roundedCorners?: RoundedCorners,
+   customBarWidth?: number,
+   barCount?: number,
++  isHorizontal?: boolean,
+ ) => {
+   const numGroups = points[0]?.length || 0;
+ 
+-  const { yScale } = useCartesianChartContext();
++  const { xScale, yScale } = useCartesianChartContext();
+ 
+   const { barWidth, groupWidth, gapWidth } = getBarGroupDimensions({
+     chartBounds,
+@@ -30,9 +31,11 @@ export const useBarGroupPaths = (
+     barsPerGroup: points.length,
+     customBarWidth,
+     barCount,
++    isHorizontal,
+   });
+ 
+   const paths = React.useMemo(() => {
++    const baselineX = xScale(0);
+     const baselineY = yScale(0);
+ 
+     return points.map((pointSet, i) => {
+@@ -40,11 +43,13 @@ export const useBarGroupPaths = (
+       pointSet.forEach((point) => {
+         const rect = getVerticalBarGroupRect({
+           point,
++          baselineX,
+           baselineY,
+           barWidth,
+           groupWidth,
+           gapWidth,
+           barIndex: i,
++          isHorizontal,
+         });
+         if (!rect) return;
+ 
+@@ -54,7 +59,7 @@ export const useBarGroupPaths = (
+             rect.y,
+             rect.width,
+             rect.height,
+-            roundedCorners,
++            isHorizontal ? {topLeft: roundedCorners.bottomLeft, topRight: roundedCorners.topLeft, bottomLeft: roundedCorners.bottomRight, bottomRight: roundedCorners.topRight} : roundedCorners,
+             Number(point.yValue),
+           );
+           builder.addRRect(nonUniformRoundedRect);
+@@ -66,7 +71,7 @@ export const useBarGroupPaths = (
+       });
+       return builder.build();
+     });
+-  }, [barWidth, gapWidth, groupWidth, points, roundedCorners, yScale]);
++  }, [barWidth, gapWidth, groupWidth, points, roundedCorners, xScale, yScale, isHorizontal]);
+ 
+   return { barWidth, groupWidth, gapWidth, paths };
+ };
+diff --git a/node_modules/victory-native/src/cartesian/utils/getBarGroupDimensions.ts b/node_modules/victory-native/src/cartesian/utils/getBarGroupDimensions.ts
+index 8ff9f1f..1e6f160 100644
+--- a/node_modules/victory-native/src/cartesian/utils/getBarGroupDimensions.ts
++++ b/node_modules/victory-native/src/cartesian/utils/getBarGroupDimensions.ts
+@@ -2,13 +2,14 @@ import type { ChartBounds } from "../../types";
+ import { getBarGroupDimensionsForAxis } from "./getBarGroupDimensionsForAxis";
+ 
+ export type GetBarGroupDimensionsArgs = {
+-  chartBounds: Pick<ChartBounds, "left" | "right">;
++  chartBounds: ChartBounds;
+   betweenGroupPadding: number;
+   withinGroupPadding: number;
+   groupCount: number;
+   barsPerGroup: number;
+   customBarWidth?: number;
+   barCount?: number;
++  isHorizontal?: boolean,
+ };
+ 
+ export const getBarGroupDimensions = ({
+@@ -19,10 +20,11 @@ export const getBarGroupDimensions = ({
+   barsPerGroup,
+   customBarWidth,
+   barCount,
++  isHorizontal,
+ }: GetBarGroupDimensionsArgs) => {
+   return getBarGroupDimensionsForAxis({
+-    axisStart: chartBounds.left,
+-    axisEnd: chartBounds.right,
++    axisStart: isHorizontal ? chartBounds.bottom : chartBounds.left,
++    axisEnd: isHorizontal ? chartBounds.top : chartBounds.right,
+     betweenGroupPadding,
+     withinGroupPadding,
+     groupCount,
+diff --git a/node_modules/victory-native/src/cartesian/utils/getVerticalBarGroupRect.ts b/node_modules/victory-native/src/cartesian/utils/getVerticalBarGroupRect.ts
+index 37b9467..52f363d 100644
+--- a/node_modules/victory-native/src/cartesian/utils/getVerticalBarGroupRect.ts
++++ b/node_modules/victory-native/src/cartesian/utils/getVerticalBarGroupRect.ts
+@@ -6,18 +6,22 @@ type Point = PointsArray[number];
+ 
+ export const getVerticalBarGroupRect = ({
+   point,
++  baselineX,
+   baselineY,
+   barWidth,
+   groupWidth,
+   gapWidth,
+   barIndex,
++  isHorizontal,
+ }: {
+   point: Point;
++  baselineX: number;
+   baselineY: number;
+   barWidth: number;
+   groupWidth: number;
+   gapWidth: number;
+   barIndex: number;
++  isHorizontal?: boolean;
+ }): VerticalBarRect | null => {
+   const { x, y } = point;
+ 
+@@ -25,8 +29,19 @@ export const getVerticalBarGroupRect = ({
+     return null;
+   }
+ 
++  const offset = getBarGroupOffset({ groupWidth, barWidth, gapWidth, barIndex });
++
++  if (isHorizontal) {
++    return {
++      x: x,
++      y: y + offset,
++      width: baselineX - x,
++      height: barWidth,
++    }
++  }
++
+   return {
+-    x: x + getBarGroupOffset({ groupWidth, barWidth, gapWidth, barIndex }),
++    x: x + offset,
+     y,
+     width: barWidth,
+     height: baselineY - y,

@@ -1,3 +1,5 @@
+import type {ApiRequestCommandParameters} from '@libs/API/types';
+
 import HttpUtils from '@src/libs/HttpUtils';
 import LoadTest from '@src/libs/Middleware/LoadTest';
 import {setLoadTestParameters} from '@src/libs/Network/LoadTestState';
@@ -39,7 +41,7 @@ beforeEach(async () => {
     setLoadTestParameters(null);
 });
 
-function getMockCallsForTestUrl(): Array<Parameters<typeof fetch>> {
+function getMockCallsForTestUrl() {
     const calls = fetchMock.mock.calls;
     return calls.filter((call) => call[0] === TEST_URL);
 }
@@ -220,5 +222,210 @@ describe('LoadTest middleware', () => {
 
         // Then load testing is disabled (state cleared) and only the real request is sent (3 + 1 total)
         expect(getMockCallsForTestUrl()).toHaveLength(4);
+    });
+});
+
+// Jest's jsdom has no Request global. whatwg-fetch/fetch.js converts string inputs to a string url,
+// but defaults mode and referrer to null. Keep only its source-backed url view here.
+// createMock<Request> deliberately accepts this incomplete native fixture for identity and non-string handling.
+const {Request: FetchRequest} = jest.requireActual<{Request: new (input: string) => Pick<globalThis.Request, 'url'>}>('whatwg-fetch');
+
+describe.each([
+    {name: 'createGlobalFetchMock', createFetchMock: TestHelper.createGlobalFetchMock},
+    {name: 'getGlobalFetchMock', createFetchMock: TestHelper.getGlobalFetchMock},
+])('$name fetch contract', ({createFetchMock}) => {
+    it('captures native string, Request and URL inputs with optional request options', async () => {
+        // Given the actual polyfill instance is an incomplete Request fixture and options stay native
+        expect(typeof FetchRequest).toBe('function');
+        const polyfillRequest = new FetchRequest(TEST_URL);
+        const request = createMock<globalThis.Request>(polyfillRequest);
+        const url = new URL(TEST_URL);
+        const options: RequestInit = {method: 'POST', body: new FormData()};
+        const mockFetch = createFetchMock();
+
+        // When native inputs are passed with omitted, explicit undefined and present options
+        const stringResponse: Promise<Response> = mockFetch(TEST_URL);
+        const requestResponse: Promise<Response> = mockFetch(request, undefined);
+        const urlResponse: Promise<Response> = mockFetch(url, options);
+        await mockFetch(TEST_URL, options);
+        await mockFetch(request, options);
+        await mockFetch(url);
+
+        // Then the original inputs and options remain in call order and responses retain the success JSON
+        expect(request).toBe(polyfillRequest);
+        expect(mockFetch.mock.calls).toEqual([[TEST_URL], [request, undefined], [url, options], [TEST_URL, options], [request, options], [url]]);
+        expect(mockFetch.mock.calls.at(1)?.[0]).toBe(request);
+        expect(mockFetch.mock.calls.at(2)?.[0]).toBe(url);
+        expect(mockFetch.mock.calls.at(2)?.[1]).toBe(options);
+        for (const response of await Promise.all([stringResponse, requestResponse, urlResponse])) {
+            expect(response.ok).toBe(true);
+            await expect(response.json()).resolves.toEqual({jsonCode: 200});
+        }
+    });
+
+    it('matches API commands only for string inputs and extracts their FormData', async () => {
+        // Given the existing command handler reads native OpenReport parameters
+        const mockFetch = createFetchMock();
+        const responseHandler = jest.fn((params: ApiRequestCommandParameters[typeof TEST_COMMAND]) => ({jsonCode: 201, message: params.reportID}));
+        mockFetch.mockAPICommand(TEST_COMMAND, responseHandler);
+        const body = new FormData();
+        body.append('reportID', '99');
+        const options: RequestInit = {method: 'POST', body};
+
+        // When the same API URL is supplied as a string, Request and URL
+        const stringResponse = await mockFetch(TEST_URL, options);
+        const requestResponse = await mockFetch(createMock<globalThis.Request>(new FetchRequest(TEST_URL)), options);
+        const urlResponse = await mockFetch(new URL(TEST_URL), options);
+
+        // Then only the string uses the command handler and its JSON fields override the default success code
+        await expect(stringResponse.json()).resolves.toEqual({jsonCode: 201, message: '99'});
+        await expect(requestResponse.json()).resolves.toEqual({jsonCode: 200});
+        await expect(urlResponse.json()).resolves.toEqual({jsonCode: 200});
+        expect(responseHandler).toHaveBeenCalledTimes(1);
+        expect(responseHandler).toHaveBeenCalledWith({reportID: '99'});
+    });
+
+    it('preserves response override precedence and fail then succeed controls', async () => {
+        // Given response overrides replace success fields but failure has its own response
+        const json = jest.fn(() => Promise.resolve({jsonCode: 202}));
+        const mockFetch = createFetchMock({ok: false, json});
+
+        // When the mock succeeds, fails and succeeds again
+        const successResponse = await mockFetch(TEST_URL);
+        mockFetch.fail();
+        const failureResponse = await mockFetch(TEST_URL);
+        mockFetch.succeed();
+        const restoredResponse = await mockFetch(TEST_URL);
+
+        // Then overrides win only on success and the failure JSON remains unchanged
+        expect(successResponse.ok).toBe(false);
+        await expect(successResponse.json()).resolves.toEqual({jsonCode: 202});
+        expect(failureResponse.ok).toBe(true);
+        await expect(failureResponse.json()).resolves.toEqual({jsonCode: 400});
+        expect(restoredResponse.ok).toBe(false);
+        await expect(restoredResponse.json()).resolves.toEqual({jsonCode: 202});
+        expect(json).toHaveBeenCalledTimes(2);
+    });
+
+    it('creates independent mock identities and state', async () => {
+        // Given each factory call starts with its own history and failure state
+        const firstMock = createFetchMock();
+        const secondMock = createFetchMock();
+        firstMock.fail();
+
+        // When both mocks handle the same input
+        const firstResponse = await firstMock(TEST_URL);
+        const secondResponse = await secondMock(TEST_URL);
+        firstMock.mockClear();
+
+        // Then controls and clearing one mock cannot alter the other
+        expect(firstMock).not.toBe(secondMock);
+        await expect(firstResponse.json()).resolves.toEqual({jsonCode: 400});
+        await expect(secondResponse.json()).resolves.toEqual({jsonCode: 200});
+        expect(firstMock.mock.calls).toHaveLength(0);
+        expect(secondMock.mock.calls).toEqual([[TEST_URL]]);
+    });
+
+    it('resumes paused inputs in order while retaining the existing omission of queued options', async () => {
+        // Given command responses need FormData and pause delays every native input
+        const mockFetch = createFetchMock();
+        const responseHandler = jest.fn((params: ApiRequestCommandParameters[typeof TEST_COMMAND]) => ({message: params.reportID ?? 'missing'}));
+        mockFetch.mockAPICommand(TEST_COMMAND, responseHandler);
+        const body = new FormData();
+        body.append('reportID', '99');
+        const options: RequestInit = {method: 'POST', body};
+        const request = createMock<globalThis.Request>(new FetchRequest(TEST_URL));
+        const url = new URL(TEST_URL);
+        const resolvedInputs: Array<Parameters<typeof mockFetch>[0]> = [];
+        mockFetch.pause();
+
+        // When the inputs queue and the real batched-update helper runs before and during resume
+        const stringResponse = mockFetch(TEST_URL, options).then((response) => {
+            resolvedInputs.push(TEST_URL);
+            return response;
+        });
+        const requestResponse = mockFetch(request, options).then((response) => {
+            resolvedInputs.push(request);
+            return response;
+        });
+        const urlResponse = mockFetch(url, options).then((response) => {
+            resolvedInputs.push(url);
+            return response;
+        });
+        await waitForBatchedUpdates();
+        expect(resolvedInputs).toEqual([]);
+        await mockFetch.resume();
+
+        // Then resolution keeps queue order and string matching receives no queued FormData
+        expect(resolvedInputs).toEqual([TEST_URL, request, url]);
+        expect(mockFetch.mock.calls).toEqual([
+            [TEST_URL, options],
+            [request, options],
+            [url, options],
+        ]);
+        await expect((await stringResponse).json()).resolves.toEqual({jsonCode: 200, message: 'missing'});
+        await expect((await requestResponse).json()).resolves.toEqual({jsonCode: 200});
+        await expect((await urlResponse).json()).resolves.toEqual({jsonCode: 200});
+        expect(responseHandler).toHaveBeenCalledWith({});
+
+        // When a new call follows resume it receives its present options normally
+        await expect((await mockFetch(TEST_URL, options)).json()).resolves.toEqual({jsonCode: 200, message: '99'});
+        expect(responseHandler).toHaveBeenLastCalledWith({reportID: '99'});
+    });
+
+    it('retains the existing queue when resume is called again', async () => {
+        // Given a response getter that observes each response built from the existing queue
+        let responseCount = 0;
+        const mockFetch = createFetchMock({
+            get ok() {
+                responseCount += 1;
+                return true;
+            },
+        });
+        mockFetch.pause();
+        const response = mockFetch(TEST_URL);
+
+        // When resume runs twice without resetting the queue
+        await mockFetch.resume();
+        expect(responseCount).toBe(1);
+        await mockFetch.resume();
+
+        // Then the retained queue rebuilds a response without adding a fetch call or resolving twice
+        expect(responseCount).toBe(2);
+        expect((await response).ok).toBe(true);
+        expect(mockFetch.mock.calls).toEqual([[TEST_URL]]);
+    });
+
+    it('resets calls, implementation, queued requests, handlers and state flags', async () => {
+        // Given failure and pause are active and a registered command has a queued request
+        const mockFetch = createFetchMock();
+        const originalImplementation = mockFetch.getMockImplementation();
+        expect(originalImplementation).toBeDefined();
+        const responseHandler = jest.fn(() => ({message: 'registered'}));
+        mockFetch.mockAPICommand(TEST_COMMAND, responseHandler);
+        mockFetch.fail();
+        mockFetch.pause();
+        let queuedRequestResolved = false;
+        const queuedRequest = mockFetch(TEST_URL).then(() => {
+            queuedRequestResolved = true;
+        });
+        expect(queuedRequest).toBeInstanceOf(Promise);
+
+        // When reset clears the implementation as Jest specifies
+        expect(mockFetch.mockReset()).toBe(mockFetch);
+        expect(mockFetch.mock.calls).toEqual([]);
+        expect(mockFetch.getMockImplementation()).toBeUndefined();
+
+        // Then restoring the actual original implementation exposes cleared flags, queue and handlers
+        if (!originalImplementation) {
+            throw new Error('Expected the original fetch mock implementation');
+        }
+        mockFetch.mockImplementation(originalImplementation);
+        const response = await mockFetch(TEST_URL);
+        await expect(response.json()).resolves.toEqual({jsonCode: 200});
+        await mockFetch.resume();
+        expect(queuedRequestResolved).toBe(false);
+        expect(responseHandler).not.toHaveBeenCalled();
+        expect(mockFetch.mock.calls).toEqual([[TEST_URL]]);
     });
 });

@@ -18,7 +18,7 @@ import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES;
@@ -47,15 +47,12 @@ function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectio
         },
     ];
 
-    const selectDisplayedAs = useCallback(
-        (row: CardListItem) => {
-            if (row.value !== qbdConfig?.mappings?.customers) {
-                updateQuickbooksDesktopSyncCustomers(policyID, row.value, qbdConfig?.mappings?.customers);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS.getRoute(policyID));
-        },
-        [qbdConfig?.mappings?.customers, policyID],
-    );
+    const selectDisplayedAs = (row: CardListItem) => {
+        if (row.value !== qbdConfig?.mappings?.customers) {
+            updateQuickbooksDesktopSyncCustomers(policyID, row.value, qbdConfig?.mappings?.customers);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

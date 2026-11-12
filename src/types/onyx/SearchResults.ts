@@ -4,8 +4,9 @@ import type {
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionReportGroupListItemType,
+    TripListItemType,
 } from '@components/Search/SearchList/ListItem/types';
-import type {SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
+import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -34,9 +35,11 @@ type ListItemDataType<C extends SearchDataTypes, G extends SearchGroupBy | undef
       ? TaskListItemType[]
       : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
         ? TransactionReportGroupListItemType[]
-        : G extends SearchGroupBy
-          ? TransactionGroupListItemType[]
-          : TransactionListItemType[];
+        : C extends typeof CONST.SEARCH.DATA_TYPES.TRIP
+          ? TripListItemType[] | TransactionListItemType[]
+          : G extends SearchGroupBy
+            ? TransactionGroupListItemType[]
+            : TransactionListItemType[];
 
 /** Model of search result state */
 type SearchResultsInfo = {
@@ -47,6 +50,12 @@ type SearchResultsInfo = {
 
     /** The hash of the current search */
     hash: number;
+
+    /** Client-only query string this snapshot was searched with, used to add optimistic expenses to matching snapshots */
+    inputQuery?: string;
+
+    /** Client-only footer breakdown the snapshot's `total` answers. Written once a response lands, as it can replace `snapshot.search` */
+    footerTotal?: SearchFooterTotal;
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
@@ -84,6 +93,9 @@ type SearchResultsInfo = {
      * Distinct from `count`, which is the number of expenses; used to label "Select all matching" on the Reports tab. */
     reportCount?: number;
 
+    /** Expense reports a to-do search's responses held since its count. Those this device listed and no longer does come off `reportCount`. */
+    countedReportIDs?: Record<string, boolean>;
+
     /** The total spend */
     total?: number;
 
@@ -96,6 +108,21 @@ type SearchResultsInfo = {
 
 /** The action that can be performed for the transaction */
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+
+/** Model of a trip room returned by a trip search sent with shouldReturnTripRooms */
+type SearchTrip = Report & {
+    /** When the trip starts */
+    startDate?: string;
+
+    /** When the trip ends */
+    endDate?: string;
+
+    /** The trip's status, worked out by the backend */
+    status?: ValueOf<typeof CONST.SEARCH.TRIP_STATUS>;
+
+    /** The account ID of the traveler, who created the trip room */
+    travelerAccountID?: number;
+};
 
 /** Model of tasks search result */
 type SearchTask = {
@@ -152,6 +179,9 @@ type SearchGroupBase = {
 type SearchMemberGroup = SearchGroupBase & {
     /** Account ID */
     accountID: number;
+
+    /** Average time the member's reports spent in the charted workflow stage, in seconds. Only Insights returns it, and it is null when no report completed the stage. */
+    averageDuration?: number | null;
 };
 
 /** Model of card grouped search result */
@@ -214,6 +244,12 @@ type SearchWithdrawalIDGroup = SearchGroupBase & {
 
     /** Whether the current user may export this settlement as a statement PDF (set by the backend, which applies the same admin authorization it uses to generate the PDF) */
     canExportStatement?: boolean;
+
+    /** Whether this group is an ACH cash back credit rather than a card settlement withdrawal */
+    isCashBack?: boolean;
+
+    /** The feed a cash back credit was paid through; matches the fundID of that feed's settlements */
+    domainAccountID?: number;
 };
 
 /** Model of category grouped search result */
@@ -270,12 +306,41 @@ type SearchQuarterGroup = SearchGroupBase & {
     quarter: number;
 };
 
+/** Model of approver grouped search result */
+type SearchApproverGroup = SearchGroupBase & {
+    /** Account ID of the approver */
+    accountID: number;
+
+    /** Average time the approver's reports spent in the charted workflow stage, in seconds. Only Insights returns it, and it is null when no report completed the stage. */
+    averageDuration?: number | null;
+};
+
+/** Model of violation type grouped search result */
+type SearchViolationGroup = SearchGroupBase & {
+    /** Violation name, e.g. `missingComment` */
+    violation: string;
+};
+
+/** Model of an expense in the search results */
+type SearchTransaction = Transaction & {
+    /** Whether the expense was ever rejected, only returned when the Rejected column is shown or sorted by */
+    declined?: boolean;
+};
+
+/** Model of a report in the search results */
+type SearchReport = Report & {
+    /** Whether the expense report was ever rejected, only returned when the Rejected column is shown or sorted by */
+    declined?: boolean;
+};
+
 /** SearchResultDataType */
-type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
+type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
     Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
     Partial<PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_METADATA, ReportMetadata>> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
+    // Trip rooms returned by a trip search carry the trip's fields on top of the report
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchTrip> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
@@ -292,6 +357,8 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchWeekGroup
         | SearchYearGroup
         | SearchQuarterGroup
+        | SearchApproverGroup
+        | SearchViolationGroup
     >;
 
 /** Model of search results */
@@ -311,6 +378,9 @@ export default SearchResults;
 export type {
     ListItemDataType,
     SearchTask,
+    SearchTrip,
+    SearchTransaction,
+    SearchReport,
     SearchTransactionAction,
     SearchDataTypes,
     SearchResultsInfo,
@@ -327,4 +397,6 @@ export type {
     SearchWeekGroup,
     SearchYearGroup,
     SearchQuarterGroup,
+    SearchApproverGroup,
+    SearchViolationGroup,
 };

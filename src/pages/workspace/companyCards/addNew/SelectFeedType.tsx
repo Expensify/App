@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 function SelectFeedType() {
@@ -33,7 +33,7 @@ function SelectFeedType() {
     const defaultTypeSelected = addNewCard?.data?.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM);
     const typeSelected = localTypeSelected ?? defaultTypeSelected;
 
-    const submit = useCallback(() => {
+    const submit = () => {
         if (!typeSelected) {
             setHasError(true);
             return;
@@ -62,7 +62,7 @@ function SelectFeedType() {
             step,
             data: {selectedFeedType: typeSelected},
         });
-    }, [isUSCountry, typeSelected]);
+    };
 
     const handleBackButtonPress = () => {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
@@ -94,14 +94,11 @@ function SelectFeedType() {
 
     const finalData = doesCountrySupportPlaid ? [directFeedItem, commercialFeedItem, fileImportItem] : [commercialFeedItem, fileImportItem];
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.next'),
-            onConfirm: submit,
-        }),
-        [submit, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.next'),
+        onConfirm: submit,
+    };
 
     return (
         <ScreenWrapper

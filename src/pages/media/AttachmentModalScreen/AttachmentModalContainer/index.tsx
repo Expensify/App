@@ -9,7 +9,7 @@ import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen
 
 import CONST from '@src/CONST';
 
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 
 import type AttachmentModalContainerProps from './types';
 
@@ -17,16 +17,16 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
     const [isVisible, setIsVisible] = useState(true);
     const attachmentsContext = useContext(AttachmentModalContext);
 
-    const resetAttachmentModalAndClose = useCallback(() => {
+    const resetAttachmentModalAndClose = () => {
         attachmentsContext.setCurrentAttachment(undefined);
         setIsVisible(false);
         onClose?.();
-    }, [attachmentsContext, onClose]);
+    };
 
-    const closeModal = useCallback(() => {
+    const closeModal = () => {
         Navigation.dismissModal();
         resetAttachmentModalAndClose();
-    }, [resetAttachmentModalAndClose]);
+    };
 
     useEffect(() => {
         onShow?.();

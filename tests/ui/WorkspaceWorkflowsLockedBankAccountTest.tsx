@@ -17,12 +17,13 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import WorkspaceWorkflowsPageRevamp from '@pages/workspace/workflows/WorkspaceWorkflowsPageRevamp';
 
+import type * as ReimbursementAccountActionsModule from '@userActions/ReimbursementAccount';
 import type * as ReportUserActionsModule from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {BankAccountList, Policy} from '@src/types/onyx';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -57,6 +58,14 @@ jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActionsModule>('@userActions/Report'),
     navigateToConciergeChat: () => {
         mockNavigateToConciergeChat();
+    },
+}));
+
+const mockNavigateToBankAccountRoute = jest.fn();
+jest.mock('@userActions/ReimbursementAccount', () => ({
+    ...jest.requireActual<typeof ReimbursementAccountActionsModule>('@userActions/ReimbursementAccount'),
+    navigateToBankAccountRoute: () => {
+        mockNavigateToBankAccountRoute();
     },
 }));
 
@@ -118,18 +127,40 @@ const setUpLockedBankAccount = async (reimburser: string) => {
     });
 };
 
+const setUpIncompleteBankAccount = async () => {
+    await TestHelper.signInWithTestUser(1, CURRENT_USER_LOGIN);
+    await act(async () => {
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: CURRENT_USER_LOGIN});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...buildPolicyWithLockedBankAccount(CURRENT_USER_LOGIN), owner: CURRENT_USER_LOGIN, achAccount: undefined});
+        await Onyx.merge(
+            ONYXKEYS.BANK_ACCOUNT_LIST,
+            createMock<BankAccountList>({
+                [BANK_ACCOUNT_ID]: {
+                    methodID: BANK_ACCOUNT_ID,
+                    accountData: {
+                        bankAccountID: BANK_ACCOUNT_ID,
+                        addressName: 'Test Address',
+                        state: CONST.BANK_ACCOUNT.STATE.SETUP,
+                        additionalData: {policyID: POLICY_ID},
+                    },
+                },
+            }),
+        );
+    });
+};
+
 const getInitiatingBankAccountUnlock = () =>
     new Promise((resolve) => {
         const connection = Onyx.connect({
             key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });
     });
 
-describe('WorkspaceWorkflowsPageRevamp - locked bank account row', () => {
+describe('WorkspaceWorkflowsPageRevamp - bank account row', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -149,6 +180,7 @@ describe('WorkspaceWorkflowsPageRevamp - locked bank account row', () => {
     afterEach(async () => {
         setForceOffline(false);
         mockNavigateToConciergeChat.mockClear();
+        mockNavigateToBankAccountRoute.mockClear();
         await act(async () => {
             await Onyx.clear();
         });
@@ -179,5 +211,64 @@ describe('WorkspaceWorkflowsPageRevamp - locked bank account row', () => {
         // Only the reimburser can send the unlock request, so nobody else gets an Unlock button to press.
         expect(screen.queryByText(TestHelper.translateLocal('walletPage.bankAccountStatus.unlock'))).not.toBeOnTheScreen();
         await expect(getInitiatingBankAccountUnlock()).resolves.toBeUndefined();
+    });
+
+    it('lets the user continue an incomplete bank account setup while online', async () => {
+        // Given a workspace whose bank account setup was left incomplete
+        await setUpIncompleteBankAccount();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses Finish while online
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('walletPage.bankAccountStatus.finish')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the bank account flow opens so they can continue the setup
+        expect(mockNavigateToBankAccountRoute).toHaveBeenCalled();
+    });
+
+    it.each([true, false])('does not reconnect an incomplete bank account after toggling Payments off and on (offline: %s)', async (isOffline) => {
+        // Given an incomplete bank setup without an ACH account, so the row depends on the bank list association
+        await setUpIncompleteBankAccount();
+        setForceOffline(isOffline);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText('Test Address')).toBeOnTheScreen();
+        const toggleName = TestHelper.translateLocal('workflowsPage.makeOrTrackPaymentsDescription');
+
+        // When Payments is disabled and enabled again without refreshing or relinking the bank
+        fireEvent.press(screen.getByRole('switch', {name: toggleName}));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPage.disablePaymentsPrompt'))).toBeOnTheScreen();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.confirm')));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText('Test Address')).not.toBeOnTheScreen();
+        fireEvent.press(screen.getByRole('switch', {name: toggleName}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the stale setup cannot reappear, while the account remains available for explicit relinking
+        expect(screen.queryByText('Test Address')).not.toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('bankAccount.addBankAccount'))).toBeOnTheScreen();
+        const bankAccountList = await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST);
+        expect(bankAccountList?.[BANK_ACCOUNT_ID]).toBeDefined();
+        expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.policyID).toBeUndefined();
+    });
+
+    it('does not open an incomplete bank account offline, because the bank account flow needs a connection', async () => {
+        // Given a workspace whose bank account setup was left incomplete, and the user is offline
+        await setUpIncompleteBankAccount();
+        setForceOffline(true);
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses the bank account row and the Finish button
+        fireEvent.press(screen.getByText('Test Address'));
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('walletPage.bankAccountStatus.finish')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then neither press opens the bank account flow, which would only show the offline blocking view
+        expect(mockNavigateToBankAccountRoute).not.toHaveBeenCalled();
     });
 });

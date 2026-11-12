@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceAdminRestrictedActionProps = {
@@ -30,11 +30,11 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
 
-    const openAdminsReport = useCallback(() => {
+    const openAdminsReport = () => {
         const reportID = policy?.chatReportIDAdmins?.toString();
         Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    }, [policy?.chatReportIDAdmins]);
+    };
 
     return (
         <ScreenWrapper
@@ -60,6 +60,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
                     </Text>
                 </View>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.RESTRICTED_ACTION.ADMIN_CHAT_IN_ADMINS}
                     onPress={openAdminsReport}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}

@@ -1,4 +1,5 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
@@ -68,10 +69,11 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <TextWithTooltip
-                            shouldShowTooltip
-                            numberOfLines={1}
-                            text={item.name}
+                        <InlineTextEditCell
+                            value={item.name}
+                            accessibilityLabel={translate('common.name')}
+                            canEdit={item.canEditName && !item.disabled}
+                            onSave={item.onRenameName}
                         />
                     </View>
 
@@ -119,6 +121,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                             showLockIcon={item.isLocked}
                             disabled={item.disabled}
                             accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ROW_ENABLE_SWITCH}
                             onToggle={item.onToggleEnabled}
                         />
                     </View>

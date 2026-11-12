@@ -4,10 +4,11 @@ import BaseWidgetItem from '@components/BaseWidgetItem';
 
 import useLocalize from '@hooks/useLocalize';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
 
 import React from 'react';
@@ -21,11 +22,13 @@ function AddShippingAddress({card}: AddShippingAddressProps) {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.ADD_SHIPPING_ADDRESS}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.ADD_SHIPPING_ADDRESS}
             icon={ExpensifyCardIcon}
             title={translate('homePage.timeSensitiveSection.addShippingAddress.title')}
             subtitle={translate('homePage.timeSensitiveSection.addShippingAddress.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.addShippingAddress.cta')}
-            onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID)))}
+            onCtaPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(String(card.cardID))))}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
