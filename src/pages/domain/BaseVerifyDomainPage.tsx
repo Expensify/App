@@ -28,7 +28,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isAdminSelector} from '@src/selectors/Domain';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {PropsWithChildren} from 'react';
 
@@ -66,8 +65,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo, shouldDis
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
-    const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : '';
     const doesDomainExist = !!domain;
 
@@ -106,7 +104,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo, shouldDis
         resetDomainValidationError(domainAccountID);
     }, [domainAccountID, doesDomainExist]);
 
-    if (isLoadingDomain || isRedirecting) {
+    if (isRedirecting) {
         return <FullScreenLoadingIndicator />;
     }
 
