@@ -3785,14 +3785,9 @@ function getIOUReportActionWithBadge({
         }
 
         const iouReportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`];
-        let childTransactions: Transaction[];
-        if (reportsTransactions) {
-            childTransactions = reportsTransactions[iouReport.reportID] ?? [];
-        } else {
-            // Callers that do not pass a transaction snapshot still resolve holds from the transaction cache.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            childTransactions = getReportTransactions(iouReport.reportID);
-        }
+        // Hold checks read the caller snapshot when one was passed, and the transaction cache otherwise.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const childTransactions = getReportTransactions(iouReport.reportID, reportsTransactions);
 
         // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
         // still needs action from the current user.
@@ -3839,8 +3834,8 @@ function getIOUReportActionWithBadge({
         }
     }
 
-    // An Add action is a real action for the submitter, so a held sibling must not remove that chip. The approver
-    // never gets Add on someone else's expense report, so this still hides the approver's dot.
+    // A submitter who can add an expense to an empty report is not blocked only by held reports. An approver cannot
+    // add expenses to someone else's report, so that chat stays out of To-do when every submitted child is held.
     const isBlockedOnlyByHeldReports = !earliestAction && !earliestAddAction && hasHeldReport && !hasUnresolvedOutstandingReport;
     if (!earliestAction && earliestAddAction) {
         return {reportAction: earliestAddAction, actionBadge: CONST.REPORT.ACTION_BADGE.ADD, isBlockedOnlyByHeldReports};
@@ -5453,8 +5448,8 @@ function getReasonAndReportActionThatRequiresAttention({
     // This only has to run on the fallback path: when a candidate was found, getBadgeFromIOUReport has already applied
     // the same exclusion while picking it, so the chat is known to have an actionable child even when a sibling of that
     // child is fully held. The walk flag covers the case where that fallback id is a different report than the held child
-    // (the chat's open draft), so checking only that id would never see the held transactions. Add is not a selected
-    // candidate, and the flag is already false when the submitter has an Add action.
+    // (the chat's open draft), so checking only that id would never see the held transactions. Add is not the
+    // selected candidate, so this fallback check still runs for an empty report.
     const isFallbackReportExcludedForHeldExpenses =
         !dotCandidateAction && (isBlockedOnlyByHeldReports || isReportExcludedForHeldExpenses(iouReport, transactions, iouReportActions, currentUserAccountID));
 
