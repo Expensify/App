@@ -142,6 +142,33 @@ describe('TransactionPreviewUtils', () => {
             expect(result.RBRMessage.translationPath).toContain('iou.error.receiptFailureMessageShort');
         });
 
+        it('shows the server reason instead of the receipt upload copy when the server rejected the scan expense', () => {
+            // Given a scan expense whose write the server rejected; the receipt error carries the server's reason (HTML-encoded, as the server sends it)
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    errors: {
+                        error1: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'source.com',
+                            filename: 'file_name.png',
+                            message: 'New expenses can&#039;t be added to this report.',
+                        },
+                    },
+                },
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            // When the preview text is built
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            // Then the preview names the decoded server reason, because blaming the receipt upload would be wrong
+            expect(result.RBRMessage.text).toBe("New expenses can't be added to this report.");
+            expect(result.RBRMessage.translationPath).toBeUndefined();
+        });
+
         it('should handle missing iouReport and transaction correctly', () => {
             const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);

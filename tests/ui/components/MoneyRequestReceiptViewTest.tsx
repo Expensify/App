@@ -804,6 +804,80 @@ describe('MoneyRequestReceiptView', () => {
 
     // A report-creation failure sets report.errorFields.createChat. Because a receipt is present, the view synthesizes a
     // fallback receipt-upload error - but distance expenses only carry a generated map receipt, so they must not surface it.
+    // A scan expense the server rejected for a business rule (report closed, no permission) still carries a
+    // receipt error object, rewritten to hold the server's reason, so the receipt keeps its Save button and the
+    // row must state the reason rather than blaming the upload.
+    describe('server reason on a rejected scan expense', () => {
+        const SERVER_REASON = 'New expenses cannot be added to this report.';
+        const rejectedScanTransaction: Transaction = {
+            ...transactionWithReceipt,
+            receipt: {
+                state: CONST.IOU.RECEIPT_STATE.OPEN,
+                source: 'https://example.com/receipt.jpg',
+                filename: 'receipt.jpg',
+            },
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            errors: {
+                '1739520725165000': {
+                    error: CONST.IOU.RECEIPT_ERROR,
+                    source: 'https://example.com/receipt.jpg',
+                    filename: 'receipt.jpg',
+                    message: SERVER_REASON,
+                },
+            },
+        };
+        const threadReportWithCreationError: Report = {
+            ...testReport,
+            errorFields: {
+                createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage', 1739520725165000),
+            },
+        };
+
+        it('states the server reason instead of a receipt upload failure', async () => {
+            // Given a scan expense whose receipt error carries the server's reason, on a thread whose own
+            // creation also failed
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, rejectedScanTransaction);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={threadReportWithCreationError} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the reason is shown, the thread's creation failure does not build a generic receipt-upload
+            // error on top of it, and the receipt can still be saved
+            expect(screen.getByText(SERVER_REASON)).toBeTruthy();
+            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeNull();
+            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeNull();
+            expect(screen.getByText(translateLocal('common.save'))).toBeTruthy();
+        });
+
+        it('offers no dismiss control, so one tap cannot delete the uploaded receipt', async () => {
+            // Given the same rejected scan expense
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, rejectedScanTransaction);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={threadReportWithCreationError} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the row keeps no plain dismiss button. MessagesRow hides it while a receipt error is present,
+            // which is what stops a single tap from removing the expense and its only copy of the receipt without
+            // the "this will delete your uploaded receipt" confirmation. Flattening the rewritten error to a string
+            // would add this button back and lose the receipt silently.
+            expect(screen.queryByLabelText(translateLocal('common.dismiss'))).toBeNull();
+        });
+    });
+
     describe('fallback receipt-upload error on report-creation failure', () => {
         const reportWithCreationError: Report = {
             ...testReport,

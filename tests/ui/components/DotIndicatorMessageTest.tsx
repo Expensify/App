@@ -83,3 +83,28 @@ describe('DotIndicatorMessage selection override', () => {
         expect(screen.getByText(MESSAGE)).toHaveStyle({userSelect: 'text'});
     });
 });
+
+describe('DotIndicatorMessage receipt error with a server reason', () => {
+    beforeEach(() => {
+        mockShouldUseNarrowLayout = false;
+        mockedCanUseTouchScreen.mockReturnValue(false);
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+    });
+
+    it('decodes the server reason the same way as a plain server error', () => {
+        // Given a receipt error carrying the server's HTML-encoded reason for rejecting the expense
+        const receiptError = {error: CONST.IOU.RECEIPT_ERROR, source: 'source.com', filename: 'file_name.png', message: 'New expenses can&#039;t be added to this report.'};
+
+        // When the receipt error row renders
+        render(
+            <DotIndicatorMessage
+                messages={{error: receiptError}}
+                type="error"
+            />,
+        );
+
+        // Then the reason shows decoded, instead of the generic receipt upload copy
+        expect(screen.getByText("New expenses can't be added to this report.")).toBeTruthy();
+        expect(screen.queryByText('iou.error.receiptUploadFailedSaveOnlyMessage')).toBeNull();
+    });
+});

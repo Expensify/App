@@ -1,4 +1,5 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getExpenseCreateFailureData} from '@libs/ExpenseCreateErrorUtils';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
@@ -108,7 +109,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
                     requestData: request.data,
                 });
 
-                return updateHandler(request.failureData);
+                return updateHandler(getExpenseCreateFailureData({command: request.command, jsonCode: response.jsonCode, message: response.message, failureData: request.failureData}));
             }
             return Promise.resolve();
         })
