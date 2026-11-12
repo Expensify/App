@@ -91,7 +91,7 @@ import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/Billin
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 
 import {joinRoom} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -211,16 +211,15 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         ? getReportStatusTooltipTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
         : undefined;
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(
-        parentNavigationReport,
+    const parentNavigationSubtitleData = getParentNavigationSubtitle({
+        report: parentNavigationReport,
         policy,
         invoiceReceiverPolicy,
-        conciergeReportID,
         translate,
         formatPhoneNumber,
-        derivedParentReportName,
-        isParentReportHeaderDataArchived,
-    );
+        parentReportName: derivedParentReportName,
+        isParentReportArchived: isParentReportHeaderDataArchived,
+    });
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
     const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getReportDescription(report)));
@@ -312,7 +311,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         />
     );
 
-    const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID), false, session);
+    const join = callIfAuthenticated(() => joinRoom(report, currentUserAccountID), session);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 

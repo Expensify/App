@@ -6,7 +6,7 @@ import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,16 +30,12 @@ function ExpenseReportSearchHandler() {
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             () => {
-                callFunctionIfActionIsAllowed(
-                    () => {
-                        if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
-                            return;
-                        }
-                        openSearchRouter('type:expense-report report-id:');
-                    },
-                    false,
-                    sessionRef.current,
-                )();
+                callIfAuthenticated(() => {
+                    if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
+                        return;
+                    }
+                    openSearchRouter('type:expense-report report-id:');
+                }, sessionRef.current)();
             },
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,

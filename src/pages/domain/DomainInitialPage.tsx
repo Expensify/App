@@ -137,6 +137,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                             const {shouldShowBasicTitle, titleStyle, hoveredTitleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
                             return (
                                 <HighlightableMenuItem
+                                    sentryLabel={item.sentryLabel}
                                     key={item.translationKey}
                                     disabled={isExecuting && !isItemFocused}
                                     title={translate(item.translationKey)}
