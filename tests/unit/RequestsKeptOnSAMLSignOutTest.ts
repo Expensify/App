@@ -57,6 +57,22 @@ describe('requests kept on a SAML sign-out', () => {
         expect(await getOnyxValue(DRAFT_KEY)).toBe('Lunch with the team');
     });
 
+    it('deletes the typed comments when a different account signs in, even with nothing queued', async () => {
+        // Given a typed comment and nothing waiting in the queue
+        // When SAML signs the person out
+        await redirectToSignIn(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
+        await waitForBatchedUpdates();
+
+        // Then the account that typed the comment is still known, so a different account signing in deletes it
+        const requestsKeptOnSAMLSignOut = await getOnyxValue(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT);
+        expect(requestsKeptOnSAMLSignOut).toEqual({accountID: ACCOUNT_ID, requests: []});
+        if (requestsKeptOnSAMLSignOut) {
+            await sendOrDeleteRequestsKeptOnSAMLSignOut(requestsKeptOnSAMLSignOut, OTHER_ACCOUNT_ID);
+        }
+        await waitForBatchedUpdates();
+        expect(await getOnyxValue(DRAFT_KEY)).toBeUndefined();
+    });
+
     it('keeps the requests set aside while this tab is still signed in', async () => {
         // Given a signed in tab that sends kept requests again, with a comment waiting in the queue
         renderHook(() => useRequestsKeptOnSAMLSignOut());
