@@ -75,6 +75,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         selectedReportIDs,
         businessBankAccountOptions,
         confirmPayment,
+        showOfflineModal,
         isDuplicateOptionVisible,
         setDuplicateHandler,
         isDuplicateReportOptionVisible,
@@ -150,6 +151,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
             },
             currentUserAccountID: currentUserPersonalDetails.accountID,
             isOffline,
+            showOfflineModal,
+            areAllMatchingItemsSelected: !!areAllMatchingItemsSelected,
             verifyAccountAndResume,
         });
 
