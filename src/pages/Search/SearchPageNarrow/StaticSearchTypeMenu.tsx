@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {getSavedSearchIconName, getSuggestedSearches, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
+import {getSavedSearchIconName, getSearchTypeMenuTabSentryLabel, getSuggestedSearches, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import {SearchTypeMenuNarrowContent} from '@pages/Search/SearchTypeMenuNarrow';
 
@@ -48,12 +48,12 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const submitSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
 
     const tabs: Array<TabSelectorBaseItem<SearchKey>> = [
-        {key: reportsSearch.key, icon: expensifyIcons.Document, title: translate(reportsSearch.translationPath), sentryLabel: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB},
-        {key: expensesSearch.key, icon: expensifyIcons.Receipt, title: translate(expensesSearch.translationPath), sentryLabel: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB},
+        {key: reportsSearch.key, icon: expensifyIcons.Document, title: translate(reportsSearch.translationPath), sentryLabel: getSearchTypeMenuTabSentryLabel(reportsSearch.key)},
+        {key: expensesSearch.key, icon: expensifyIcons.Receipt, title: translate(expensesSearch.translationPath), sentryLabel: getSearchTypeMenuTabSentryLabel(expensesSearch.key)},
     ];
 
     if (hasGroupPolicy) {
-        tabs.push({key: submitSearch.key, icon: expensifyIcons.Pencil, title: translate(submitSearch.translationPath), sentryLabel: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB});
+        tabs.push({key: submitSearch.key, icon: expensifyIcons.Pencil, title: translate(submitSearch.translationPath), sentryLabel: getSearchTypeMenuTabSentryLabel(submitSearch.key)});
     }
 
     if (activeSavedSearch && currentSearchKey) {

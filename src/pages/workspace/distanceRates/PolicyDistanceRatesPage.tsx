@@ -338,7 +338,7 @@ function PolicyDistanceRatesPage({
             {
                 text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS_DELETE,
                 icon: icons.Trashcan,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
