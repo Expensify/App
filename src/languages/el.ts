@@ -23,7 +23,7 @@ import startCase from 'lodash/startCase';
 
 import type en from './en';
 import type {CompanyCardBalanceParams} from './params';
-import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
+import type {AllConnectionName, ReportNextStepMessageParams, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -32,6 +32,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `δημιούργησε αυτόν τον λογαριασμό εκ μέρους του ${sender}`,
+        billSubmitted: ({receiver}) => `έστειλε αυτόν τον λογαριασμό στον ${receiver}`,
+        invoiceCreated: ({sender}) => `δημιούργησε αυτό το τιμολόγιο εκ μέρους του ${sender}`,
+        invoiceSubmitted: ({receiver}) => `έστειλε αυτό το τιμολόγιο στον ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 ημέρα`,
@@ -52,7 +58,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Δεν ήταν δυνατή η φόρτωση του γραφήματος. Ανανεώστε τη σελίδα και δοκιμάστε ξανά.',
         dismiss: 'Κλείσιμο',
         resizeColumn: ({columnName}: {columnName: string}) => `Αλλαγή μεγέθους της στήλης ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixel`,
+        resizePanel: 'Αλλαγή μεγέθους πλαισίου',
+        widthInPixels: ({width}: {width: number}) => `${width} pixel`,
         proceed: 'Συνέχεια',
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
@@ -119,6 +126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Πληρωμή',
             fix: 'Διόρθωση',
             task: 'Εργασία',
+            add: 'Προσθήκη',
         },
         success: 'Επιτυχία',
         group: 'Ομάδα',
@@ -182,6 +190,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Ημερομηνία γέννησης',
         currentYear: 'Τρέχον έτος',
         currentMonth: 'Τρέχων μήνας',
+        todayDateLabel: (date: string) => `${date}, σήμερα`,
         ssnLast4: 'Τελευταία 4 ψηφία του SSN',
         ssnFull9: 'Ολόκληροι οι 9 αριθμοί του SSN',
         addressLine: (lineNumber: number) => `Γραμμή διεύθυνσης ${lineNumber}`,
@@ -1101,6 +1110,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'Δεν μπορούμε να σας στέλνουμε ειδοποιήσεις μέσω email', subtitle: 'Λογαρια​σμός'},
             upgradeNetSuiteConnection: {title: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite'},
+            verifyWiseBankAccount: {
+                title: 'Επαληθεύστε τον τραπεζικό λογαριασμό',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Τραπεζικός λογαριασμός που λήγει σε ${bankAccountLastFour}`,
+            },
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1277,6 +1290,26 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Συμμόρφωση',
         runningTotal: 'Τρέχον σύνολο',
+        upsellState: {
+            title: 'Αναβαθμίστε σε Control για περισσότερες πληροφορίες',
+            subtitle: 'Παρακολουθήστε τις τάσεις συμμόρφωσης με την πολιτική εξόδων και επισημάνετε τους επανειλημμένους παραβάτες.',
+            button: 'Αναβαθμίστε σε Control',
+        },
+        explain: 'Επεξήγηση',
+        explainChartPrompt: (chartTitle: string) => `Εξηγήστε τα δεδομένα στο ${chartTitle}.`,
+        violationsOverTime: 'Παραβάσεις με την πάροδο του χρόνου',
+        topViolations: 'Κορυφαίες παραβάσεις',
+        violationsBySubmitter: 'Παραβάσεις από τον υποβάλλοντα',
+        violationsByApprover: 'Παραβάσεις από εγκρίνοντα',
+        viewDetails: 'Προβολή λεπτομερειών',
+        viewAll: 'Προβολή όλων',
+        topExpenses: 'Κορυφαίες δαπάνες',
+        noExpensesInRange: 'Δεν υπάρχουν δαπάνες σε αυτό το εύρος',
+        efficiency: 'Αποδοτικότητα',
+        workflowEfficiency: 'Αποδοτικότητα ροής εργασιών',
+        longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
+        slowestToApprove: 'Πιο αργοί στην έγκριση',
+        mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -1438,6 +1471,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'ή σύρετε και αποθέστε ένα εδώ',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Σελίδα ${page} από ${pageCount}`,
+        translate: 'Μετάφραση',
+        viewOriginal: 'Προβολή πρωτοτύπου',
+        translationDisclaimer: 'Η τεχνητή νοημοσύνη μπορεί να κάνει λάθη. Παρακαλούμε ελέγξτε ξανά το πρωτότυπο.',
+        translationError: {
+            unreadable: 'Δεν μπορέσαμε να διαβάσουμε αυτήν την απόδειξη αρκετά καθαρά ώστε να τη μεταφράσουμε.',
+            alreadyInLanguage: 'Αυτή η απόδειξη είναι ήδη στη γλώσσα σας.',
+            generic: 'Δεν μπορέσαμε να μεταφράσουμε αυτήν την απόδειξη. Δοκιμάστε ξανά.',
+        },
     },
     quickAction: {
         scanReceipt: 'Σαρώστε απόδειξη',
@@ -1860,6 +1901,23 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Η αναφορά περιέχει δαπάνες σε αναμονή. Θέλετε να εγκρίνετε μόνο τις σύμφωνες δαπάνες ή ολόκληρη την αναφορά;',
         confirmApprovalAllHoldAmount: 'Όλες οι δαπάνες είναι σε αναμονή. Θέλετε να εγκρίνετε ούτως ή άλλως;',
         confirmPay: 'Επιβεβαιώστε το ποσό πληρωμής',
+        wisePaymentSummary: {
+            confirmPayment: 'Επιβεβαίωση πληρωμής',
+            reportTotal: 'Σύνολο αναφοράς',
+            unheldAmountBeingPaid: 'Ποσό εκτός αναμονής προς πληρωμή',
+            debitAmount: 'Ποσό χρέωσης',
+            employeeWillReceive: 'Ο υπάλληλος θα λάβει',
+            totalFees: 'Συνολικές χρεώσεις',
+            fxRate: 'Συναλλαγματική ισοτιμία',
+            paymentDetails: 'Στοιχεία πληρωμής',
+            debitedAmount: 'Χρεωμένο ποσό',
+            employeeReceived: 'Ο υπάλληλος έλαβε',
+            payAll: 'Πληρωμή όλων',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 αναφορά',
+                other: `${count} αναφορές`,
+            }),
+        },
         confirmPayAmount: 'Πληρώστε ό,τι δεν είναι σε αναμονή ή πληρώστε ολόκληρη την αναφορά.',
         confirmPayAllHoldAmount: () => ({
             one: 'Αυτή η δαπάνη έχει τεθεί σε αναμονή. Θέλετε να την πληρώσετε παρ’ όλα αυτά;',
@@ -2058,6 +2116,12 @@ const translations: TranslationDeepObject<typeof en> = {
         unholdWhenReadyDM: 'Αποδεσμεύστε τις δαπάνες όταν είστε έτοιμοι να τις στείλετε.',
         undeletedExpense: 'ανέκτησε αυτή τη δαπάνη',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `οι τιμές αποζημίωσης χιλιομέτρων ενημερώθηκαν για το νέο χώρο εργασίας - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} αναφορά`,
+                other: (count: number) => `${formattedCount ?? count} αναφορές`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2130,205 +2194,163 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     nextStep: {
         message: {
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Περιμένουμε από <strong>εσάς</strong> να προσθέσετε δαπάνες.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για τον/την <strong>${actor}</strong> να προσθέσει έξοδα.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για να προσθέσει διαχειριστής έξοδα.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Περιμένουμε από <strong>εσάς</strong> να προσθέσετε έξοδα.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να υποβάλετε δαπάνες.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για την/τον <strong>${actor}</strong> να υποβάλει έξοδα.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για διαχειριστή ώστε να υποβάλει δαπάνες.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Αναμονή για να προσθέσει ο/η <strong>${actor}</strong> δαπάνες.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Περιμένουμε να το σημειώσετε ως ολοκληρωμένο, <strong>εσείς</strong>.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για τον/την <strong>${actor}</strong> να το σημειώσει ως ολοκληρωμένο.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για έναν διαχειριστή να το σημειώσει ως ολοκληρωμένο.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Αναμονή για την προσθήκη εξόδων από διαχειριστή.`;
                 }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Δεν απαιτείται καμία περαιτέρω ενέργεια!`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Αλλάξτε τον χώρο εργασίας της αναφοράς για περαιτέρω ενέργειες.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-                requiredDepositCurrency?: string,
-            ) => {
-                const account = requiredDepositCurrency ? `τραπεζικό λογαριασμό σε ${requiredDepositCurrency}` : 'τραπεζικό λογαριασμό';
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να προσθέσετε έναν ${account}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για να προσθέσει ο/η <strong>${actor}</strong> έναν ${account}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για να προσθέσει ένας διαχειριστής έναν ${account}.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Αναμένουμε από <strong>εσάς</strong> να υποβάλετε έξοδα.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Αναμονή για να υποβάλει ο/η <strong>${actor}</strong> έξοδα.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Αναμονή να υποβάλει ένας διαχειριστής τις δαπάνες.`;
+                }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Αναμένεται από <strong>εσάς</strong> να το σημειώσετε ως ολοκληρωμένο.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Αναμένεται από τον/την <strong>${actor}</strong> να το σημειώσει ως ολοκληρωμένο.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Αναμονή για διαχειριστή να το σημειώσει ως ολοκληρωμένο.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (params: ReportNextStepMessageParams) => `Δεν απαιτείται καμία περαιτέρω ενέργεια!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (params: ReportNextStepMessageParams) => `Αλλάξτε τον χώρο εργασίας της αναφοράς για περαιτέρω ενέργειες.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (params: ReportNextStepMessageParams) =>
+                `Μπορείτε μόνο να εγκρίνετε σε αυτόν τον χώρο εργασίας. Μετακινήστε αυτήν την αναφορά σε έναν άλλο για να την υποβάλετε.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType, requiredDepositCurrency}: ReportNextStepMessageParams) => {
+                const account = requiredDepositCurrency ? `τραπεζικός λογαριασμός σε ${requiredDepositCurrency}` : 'τραπεζικός λογαριασμός';
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Αναμένονται ενέργειες από <strong>εσάς</strong> για να προσθέσετε έναν ${account}.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Αναμονή για να προσθέσει ο/η <strong>${actor}</strong> έναν/μία ${account}.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Αναμονή για διαχειριστή ώστε να προσθέσει έναν ${account}.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `στις ${eta} κάθε μήνα` : ` ${eta}`;
                 }
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένεται η αυτόματη υποβολή των εξόδων σας${formattedETA}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για τις δαπάνες του/της <strong>${actor}</strong> ώστε να υποβληθούν αυτόματα${formattedETA}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για την αυτόματη υποβολή των εξόδων ενός διαχειριστή${formattedETA}.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Αναμονή για την αυτόματη υποβολή των εξόδων σας${formattedETA}.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Περιμένουμε <strong>εσάς</strong> να διορθώσετε τα προβλήματα.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμένεται από τον/την <strong>${actor}</strong> να διορθώσει τα προβλήματα.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για διαχειριστή ώστε να διορθώσει τα προβλήματα.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Αναμονή για την αυτόματη υποβολή των εξόδων του/της <strong>${actor}</strong>${formattedETA}.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένονται από <strong>εσάς</strong> εγκρίσεις εξόδων.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για την έγκριση των εξόδων από τον/την <strong>${actor}</strong>.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για έγκριση εξόδων από διαχειριστή.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Αναμονή για αυτόματη υποβολή των εξόδων διαχειριστή${formattedETA}.`;
                 }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να εξαγάγετε αυτήν την αναφορά.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για τον/την <strong>${actor}</strong> να εξάγει αυτήν την αναφορά.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για διαχειριστή για εξαγωγή αυτής της αναφοράς.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Αναμένουμε από <strong>εσάς</strong> να διορθώσετε τα προβλήματα.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Σε αναμονή να αποπληρώσετε <strong>εσείς</strong> τα έξοδα.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για να πληρώσει ο/η <strong>${actor}</strong> τα έξοδα.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή διαχειριστή για την πληρωμή εξόδων.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Αναμονή για τον/την <strong>${actor}</strong> να διορθώσει τα προβλήματα.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Αναμονή για διαχειριστή για την επίλυση των προβλημάτων.`;
+                }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType, isBill}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return isBill ? `Αναμένουμε από <strong>εσάς</strong> να εγκρίνετε τον λογαριασμό.` : `Αναμονή για <strong>εσάς</strong> για να εγκρίνετε έξοδα.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return isBill
+                        ? `Αναμονή για την έγκριση του λογαριασμού από τον/την <strong>${actor}</strong>.`
+                        : `Αναμονή για την έγκριση των εξόδων από τον/την <strong>${actor}</strong>.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return isBill ? `Αναμονή για έγκριση του λογαριασμού από διαχειριστή.` : `Αναμονή για έγκριση εξόδων από διαχειριστή.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Αναμένουμε από <strong>εσάς</strong> να εξαγάγετε αυτήν την αναφορά.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Αναμένεται από τον/την <strong>${actor}</strong> να κάνει εξαγωγή αυτής της αναφοράς.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Αναμονή διαχειριστή για εξαγωγή αυτής της αναφοράς.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType, isBill}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return isBill ? `Αναμένεται από <strong>εσάς</strong> να πληρώσετε αυτόν τον λογαριασμό.` : `Αναμένεται από <strong>εσάς</strong> να πληρώσετε έξοδα.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return isBill
+                        ? `Αναμονή για να πληρώσει ο/η <strong>${actor}</strong> αυτόν τον λογαριασμό.`
+                        : `Αναμένεται από τον/την <strong>${actor}</strong> να πληρώσει τις δαπάνες.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return isBill ? `Αναμονή για διαχειριστή να πληρώσει αυτόν τον λογαριασμό.` : `Αναμονή για διαχειριστή να πληρώσει τις δαπάνες.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `έως ${eta}` : ` ${eta}`;
                 }
-                return `Αναμονή για την ολοκλήρωση της πληρωμής${formattedETA}.`;
+                return `Αναμονή έως ότου ολοκληρωθεί η πληρωμή${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` έως ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `έως ${eta}` : ` ${eta}`;
                 }
-                return `Αναμονή για την ολοκλήρωση της επεξεργασίας της ακυρωμένης πληρωμής${formattedETA}.`;
+                return `Αναμονή μέχρι να ολοκληρωθεί η επεξεργασία της ακυρωμένης πληρωμής${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) =>
-                `Ωχ! Φαίνεται ότι υποβάλλετε σε <strong>εσάς τον/την ίδιο/ίδια</strong>. Η έγκριση των δικών σας αναφορών είναι <strong>απαγορευμένη</strong> από τον χώρο εργασίας σας. Υποβάλετε αυτήν την αναφορά σε κάποιον άλλον ή επικοινωνήστε με τον/την διαχειριστή σας για να αλλάξετε το άτομο στο οποίο υποβάλλετε.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αυτή η αναφορά απορρίφθηκε. Περιμένουμε από <strong>εσάς</strong> να διορθώσετε τα ζητήματα και να την υποβάλετε ξανά χειροκίνητα.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αυτή η αναφορά απορρίφθηκε. Αναμένεται από τον/την <strong>${actor}</strong> να διορθώσει τα προβλήματα και να την υποβάλει ξανά χειροκίνητα.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αυτή η αναφορά απορρίφθηκε. Αναμένεται διαχειριστής για να διορθώσει τα προβλήματα και να την υποβάλει ξανά χειροκίνητα.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
+                `Ουπς! Φαίνεται ότι υποβάλλετε σε <strong>εσάς τον/την ίδιο/ίδια</strong>. Η έγκριση των δικών σας αναφορών είναι <strong>απαγορευμένη</strong> από τον χώρο εργασίας σας. Υποβάλετε αυτήν την αναφορά σε κάποιον άλλον ή επικοινωνήστε με τον διαχειριστή σας για να αλλάξετε το άτομο στο οποίο την υποβάλλετε.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Αυτή η αναφορά απορρίφθηκε. Περιμένουμε από <strong>εσάς</strong> να διορθώσετε τα προβλήματα και να την υποβάλετε ξανά χειροκίνητα.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Αυτή η αναφορά απορρίφθηκε. Αναμένεται από τον/την <strong>${actor}</strong> να διορθώσει τα προβλήματα και να την υποβάλει ξανά χειροκίνητα.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Η αναφορά αυτή απορρίφθηκε. Αναμένεται διαχειριστής για να διορθώσει τα προβλήματα και να την υποβάλει ξανά χειροκίνητα.`;
+                }
+                return '';
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.STRICT_POLICY_RULE_VIOLATIONS]: (params: ReportNextStepMessageParams) =>
+                `Αναμένουμε να διορθώσετε τα προβλήματα. Οι διαχειριστές σας έχουν περιορίσει την υποβολή εξόδων με παραβάσεις.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR]: (params: ReportNextStepMessageParams) =>
+                `<alert-text>Αυτή η αναφορά δεν μπορεί να υποβληθεί. Παρακαλούμε ελέγξτε τα σχόλια για να επιλύσετε το ζήτημα.</alert-text>`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR]: (params: ReportNextStepMessageParams) =>
+                `<alert-text>Δεν είναι δυνατή η έγκριση αυτής της αναφοράς. Παρακαλούμε ελέγξτε τα σχόλια για να επιλύσετε το πρόβλημα.</alert-text>`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE]: (params: ReportNextStepMessageParams) =>
+                `Περιμένουμε να επανέλθετε online για να καθορίσουμε τα επόμενα βήματα.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'σύντομα',
@@ -2352,6 +2374,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'το τελευταίο Σάββατο του μήνα',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'την τελευταία Κυριακή του μήνα',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Αυτή η αναφορά θα εξαχθεί μετά την τελική έγκριση.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Οι αποζημιώσιμες δαπάνες θα εξαχθούν όταν πληρωθεί αυτή η αναφορά.',
         },
     },
     profilePage: {
@@ -3180,14 +3206,26 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Αποδέχομαι τους <a href="${CONST.WISE.TERMS_URL}">όρους και προϋποθέσεις</a> και την <a href="${CONST.WISE.PRIVACY_URL}">πολιτική απορρήτου</a> της Wise.`,
                 wiseTermsAccessibilityLabel: 'Αποδέχομαι τους όρους και προϋποθέσεις και την πολιτική απορρήτου της Wise.',
                 error: 'Αποδεχτείτε όλους τους όρους για να συνεχίσετε.',
-                alreadySubmitted: 'Αυτή η επιχείρηση έχει ήδη υποβληθεί στη Wise για έλεγχο.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Απαιτούνται περισσότερες πληροφορίες',
                 title: 'Επαληθεύστε επιπλέον πληροφορίες',
                 subtitle: 'Ο συνεργάτης μας για τις πληρωμές χρειάζεται περισσότερες πληροφορίες απευθείας. Αυτό θα σας πάρει μόνο λίγα λεπτά.',
             },
+            inReview: {
+                title: 'Υπό εξέταση',
+                heading: 'Πήραμε ό,τι χρειαζόμαστε.\nΘα επικοινωνήσουμε μαζί σας!',
+                description: 'Οι περισσότερες αξιολογήσεις διαρκούν μία έως δύο ημέρες. Θα σας στείλουμε μήνυμα με μια ενημέρωση.',
+                chatWithConcierge: 'Συνομιλήστε με το Concierge',
+            },
+            approved: {title: 'Ο λογαριασμός εγκρίθηκε', heading: 'Εγκρίθηκε για πληρωμές παγκοσμίως', description: 'Πληρώστε τα μέλη όπου κι αν βρίσκονται.'},
+            rejected: {
+                title: 'Ο λογαριασμός τράπεζας απορρίφθηκε',
+                heading: 'Ο συνεργάτης μας απέρριψε τον τραπεζικό σας λογαριασμό',
+                description: 'Συνομιλήστε με το Concierge για περισσότερες πληροφορίες.',
+            },
         },
+        wiseSetupInProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.', continue: 'Συνέχεια.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',
             subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',
@@ -3196,6 +3234,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
+        wiseMoreInfoNeeded: 'Απαιτούνται περισσότερες πληροφορίες για την ενεργοποίηση των παγκόσμιων επιστροφών χρημάτων',
         globalReimbursementsEnabled: 'Έγινε ενεργοποίηση των παγκόσμιων αποζημιώσεων',
     },
     addCardToDigitalWallet: {
@@ -3359,10 +3398,13 @@ ${amount} για ${merchant} - ${date}`,
         manager: 'Διαχειριστής',
         makeOrTrackPaymentsTitle: 'Πληρωμές',
         makeOrTrackPaymentsDescription: 'Προσθέστε ένα εξουσιοδοτημένο πρόσωπο πληρωμής για πληρωμές που γίνονται στο Expensify ή παρακολουθήστε πληρωμές που έγιναν αλλού.',
-        collectEmployeeBankDetails: 'Συλλογή τραπεζικών στοιχείων υπαλλήλων',
-        collectEmployeeBankDetailsDescription: 'Συλλέξτε τα τραπεζικά στοιχεία των υπαλλήλων, ώστε να μπορείτε να τους αποζημιώνετε εκτός Expensify.',
+        collectEmployeeBankDetails: 'Συλλογή στοιχείων τραπεζικού λογαριασμού',
+        collectEmployeeBankDetailsDescription: 'Συλλέξτε τραπεζικά στοιχεία από τα μέλη του χώρου εργασίας, ώστε να μπορείτε να τα αποζημιώνετε εκτός Expensify.',
+        disablePaymentsTitle: 'Απενεργοποίηση πληρωμών;',
+        disablePaymentsPrompt: 'Αυτό θα αφαιρέσει όλες τις ρυθμίσεις πληρωμής σας.',
         businessBankAccountCountries: 'Χώρες επαγγελματικών τραπεζικών λογαριασμών',
         businessBankAccountCountriesDescription: 'Οι υπάλληλοι σε αυτές τις χώρες δίνουν στοιχεία για τοπική μεταφορά. Όλοι οι υπόλοιποι δίνουν στοιχεία για διεθνές έμβασμα.',
+        businessBankAccountCountriesError: 'Η ενημέρωση των χωρών αποζημίωσης απέτυχε. Δοκιμάστε ξανά.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Μια προσαρμοσμένη ροή έγκρισης είναι ενεργοποιημένη σε αυτόν τον χώρο εργασίας. Για να ελέγξετε ή να αλλάξετε αυτήν τη ροή, επικοινωνήστε με τον/την <account-manager-link>Account Manager</account-manager-link> σας ή το <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -3710,6 +3752,7 @@ ${amount} για ${merchant} - ${date}`,
         appSection: {
             title: 'Προτιμήσεις εφαρμογής',
         },
+        distanceSection: {title: 'Προτιμήσεις απόστασης'},
         testSection: {
             title: 'Προτιμήσεις δοκιμών',
             subtitle: 'Ρυθμίσεις για βοήθεια στον εντοπισμό σφαλμάτων και τη δοκιμή της εφαρμογής σε staging.',
@@ -4423,7 +4466,7 @@ ${amount} για ${merchant} - ${date}`,
         bankAccountPurposeTitle: 'Τι θέλετε να κάνετε με τον τραπεζικό σας λογαριασμό;',
         getReimbursed: 'Λάβετε αποζημίωση',
         getReimbursedDescription: 'Από τον εργοδότη ή άλλους',
-        makePayments: 'Πραγματοποιήστε πληρωμές',
+        makePayments: 'Κάντε επιχειρηματικές πληρωμές',
         makePaymentsDescription: 'Πληρώστε έξοδα ή εκδώστε Κάρτες Expensify',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Για να συνδέσετε έναν τραπεζικό λογαριασμό, παρακαλούμε <a href="${contactMethodRoute}">προσθέστε ένα email ως κύρια είσοδό σας</a> και δοκιμάστε ξανά. Μπορείτε να προσθέσετε τον αριθμό τηλεφώνου σας ως δευτερεύουσα είσοδο.`,
@@ -4524,6 +4567,8 @@ ${amount} για ${merchant} - ${date}`,
         updateSuccessTitle: 'Ο τραπεζικός λογαριασμός ενημερώθηκε!',
         updateSuccessHeader: 'Ο τραπεζικός λογαριασμός ενημερώθηκε',
         updateSuccessMessage: 'Συγχαρητήρια, ο τραπεζικός σας λογαριασμός έχει ρυθμιστεί και είναι έτοιμος να λαμβάνει αποζημιώσεις.',
+        bankDetails: 'Τραπεζικά στοιχεία',
+        accountHolderDetails: 'Στοιχεία κατόχου λογαριασμού',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Εισαγάγετε τον κωδικό Expensify',
@@ -4531,6 +4576,8 @@ ${amount} για ${merchant} - ${date}`,
         chooseAccountLabel: 'Λογαριασμός',
         successTitle: 'Προσωπικός τραπεζικός λογαριασμός προστέθηκε!',
         successMessage: 'Συγχαρητήρια, ο τραπεζικός σας λογαριασμός έχει ρυθμιστεί και είναι έτοιμος να λαμβάνει αποζημιώσεις.',
+        bankAccountAddedTitle: 'Ο τραπεζικός λογαριασμός προστέθηκε!',
+        bankAccountAddedMessage: 'Συγχαρητήρια, ο προσωπικός σας τραπεζικός λογαριασμός έχει ρυθμιστεί και είναι έτοιμος να λαμβάνει αποζημιώσεις.',
     },
     attachmentView: {
         unknownFilename: 'Άγνωστο όνομα αρχείου',
@@ -5274,6 +5321,13 @@ ${amount} για ${merchant} - ${date}`,
             message:
                 'Είστε μέλος ενός χώρου εργασίας με ενεργοποιημένα ταξίδια, αλλά δεν είναι ο προεπιλεγμένος χώρος εργασίας σας. Για να κάνετε κράτηση, ενεργοποιήστε τα ταξίδια στον προεπιλεγμένο χώρο εργασίας σας ή αλλάξτε τον προεπιλεγμένο χώρο εργασίας σας σε έναν με ενεργοποιημένα ταξίδια.',
         },
+        approval: {
+            status: {outstanding: 'Εκκρεμές', approved: 'Εγκρίθηκε', rejected: 'Απορρίφθηκε', canceled: 'Ακυρώθηκε'},
+            deadline: {
+                softApproval: (time: string) => `Αυτόματη έγκριση σε ${time}. Δυνατή η δωρεάν ακύρωση μέχρι τότε.`,
+                hardApproval: (time: string) => `Ακυρώνεται αυτόματα σε ${time} αν δεν εγκριθεί.`,
+            },
+        },
     },
     proactiveAppReview: {
         title: 'Σας αρέσει το νέο Expensify;',
@@ -5480,6 +5534,12 @@ ${amount} για ${merchant} - ${date}`,
             vendors: 'Προμηθευτές',
             noAccessActionPrompt: 'Ο ρόλος σας σε αυτόν τον χώρο εργασίας δεν έχει πρόσβαση σε αυτές τις ρυθμίσεις. Ζητήστε από έναν διαχειριστή να σας δώσει πρόσβαση, αν τη χρειάζεστε.',
             connections: 'Συνδέσεις',
+            newRoles: 'Νέοι ρόλοι',
+            adminRoles: 'Ρόλοι διαχειριστή',
+            otherRoles: 'Άλλοι ρόλοι',
+            roleSelectorDescription: `Αναθέστε έναν ρόλο για τη διαχείριση των δικαιωμάτων χώρου εργασίας ενός μέλους. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Συγκρίνετε ρόλους χώρου εργασίας</a>.`,
+            roleSelectorFeedback: 'Δεν βλέπετε τον ρόλο που χρειάζεστε;',
+            roleSelectorFeedbackLink: 'Ενημερώστε μας',
         },
         createdForClient: {
             title: 'Δημιουργήσατε έναν χώρο εργασίας για τον πελάτη σας!',
@@ -6304,7 +6364,11 @@ ${amount} για ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Παρακαλούμε προσθέστε μια θυγατρική στο NetSuite και συγχρονίστε ξανά τη σύνδεση',
             tokenInput: {
                 title: 'Ρύθμιση NetSuite',
-                connectWithTokenAuthentication: 'Συνδεθείτε με έλεγχο ταυτότητας βάσει διακριτικού (SOAP) αντ’ αυτού',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Ή συνδεθείτε με',
+                    link: 'έλεγχο ταυτότητας βάσει διακριτικού',
+                    afterLink: '(SOAP) αντ’ αυτού.',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Εγκαταστήστε το πακέτο Expensify',
@@ -6857,7 +6921,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     mastercard: 'Διαθέτουμε παγκόσμιες ενσωματώσεις με τη Mastercard, αν και η επιλεξιμότητα διαφέρει ανά τράπεζα και πρόγραμμα κάρτας.\n\nΓια να ξεκινήσετε, απλώς:',
                     vcf: `1. Επισκεφθείτε [αυτό το άρθρο βοήθειας](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) για αναλυτικές οδηγίες σχετικά με τη ρύθμιση των Visa Commercial Cards σας.
 
-2. [Επικοινωνήστε με την τράπεζά σας](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε τους να την ενεργοποιήσουν.
+2. Επικοινωνήστε με την τράπεζά σας για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε τους να την ενεργοποιήσουν.
 
 3. *Μόλις ενεργοποιηθεί η ροή και έχετε τα στοιχεία της, συνεχίστε στην επόμενη οθόνη.*`,
                     gl1025: `1. Επισκεφθείτε [αυτό το άρθρο βοήθειας](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) για να δείτε αν η American Express μπορεί να ενεργοποιήσει μια εμπορική ροή για το πρόγραμμά σας.
@@ -6867,7 +6931,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
 3. *Μόλις έχετε τις πληροφορίες της ροής, συνεχίστε στην επόμενη οθόνη.*`,
                     cdf: `1. Επισκεφτείτε [αυτό το άρθρο βοήθειας](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) για αναλυτικές οδηγίες σχετικά με τη ρύθμιση των Mastercard Commercial Cards σας.
 
-2. [Επικοινωνήστε με την τράπεζά σας](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε να την ενεργοποιήσει.
+2. Επικοινωνήστε με την τράπεζά σας για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε να την ενεργοποιήσει.
 
 3. *Μόλις ενεργοποιηθεί η ροή και έχετε τις σχετικές λεπτομέρειες, συνεχίστε στην επόμενη οθόνη.*`,
                     stripe: `1. Επισκεφτείτε τον πίνακα ελέγχου του Stripe και μεταβείτε στις [Ρυθμίσεις](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -7168,6 +7232,15 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Δεν μπορείτε να διαγράψετε ή να απενεργοποιήσετε όλες τις κατηγορίες',
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
+                bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',
+                description: ({count}: {count: number}) => ({
+                    one: '1 μέλος θα μείνει χωρίς κατηγορίες για να διαλέξει. Ενημερώστε την ορατότητα των κατηγοριών του και δοκιμάστε ξανά:',
+                    other: `${count} μέλη θα μείνουν χωρίς κατηγορίες για να επιλέξουν. Ενημερώστε την ορατότητα των κατηγοριών τους και δοκιμάστε ξανά:`,
+                }),
+                andMore: ({count}: {count: number}) => `και ${count} ακόμη`,
+            },
         },
         moreFeatures: {
             subtitle:
@@ -7351,12 +7424,15 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 unassignCard: 'Αποδέσμευση κάρτας',
                 unassignCards: 'Αποδέσμευση καρτών',
                 unassign: 'Κατάργηση ανάθεσης',
-                unassignCardDescription: 'Η αποδέσμευση αυτής της κάρτας θα διαγράψει όλες τις μη υποβληθείσες συναλλαγές.',
-                unassignCardsDescription: 'Η αποδέσμευση θα διαγράψει όλες τις μη υποβληθείσες συναλλαγές από τις επιλεγμένες κάρτες.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Η αποδέσμευση αυτής της κάρτας θα διαγράψει οριστικά όλες τις <a href="${transactionsUrl}">μη υποβληθείσες συναλλαγές</a> της, συμπεριλαμβανομένων των μη αναφερθεισών συναλλαγών και όσων βρίσκονται σε προσχέδια αναφορών. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Η αποδέσμευση θα διαγράψει οριστικά όλες τις <a href="${transactionsUrl}">μη υποβληθείσες συναλλαγές</a> από τις επιλεγμένες κάρτες, συμπεριλαμβανομένων των μη αναφερθεισών συναλλαγών και όσων βρίσκονται σε προσχέδια αναφορών. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.`,
                 assignCard: 'Ανάθεση κάρτας',
                 removeCard: 'Αφαίρεση κάρτας',
                 remove: 'Κατάργηση',
-                removeCardDescription: 'Η κατάργηση αυτής της κάρτας θα διαγράψει όλες τις μη υποβληθείσες συναλλαγές.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Η κατάργηση αυτής της κάρτας θα διαγράψει οριστικά όλες τις <a href="${transactionsUrl}">μη υποβληθείσες συναλλαγές</a> της, συμπεριλαμβανομένων των μη αναφερθεισών συναλλαγών και όσων βρίσκονται σε προσχέδια αναφορών. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.`,
                 cardFeedName: 'Όνομα ροής κάρτας',
                 cardFeedNameDescription: 'Δώστε στη ροή κάρτας ένα μοναδικό όνομα ώστε να μπορείτε να τη ξεχωρίζετε από τις άλλες.',
                 cardFeedTransaction: 'Διαγράψτε συναλλαγές',
@@ -7697,10 +7773,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             reimbursementAccount: 'λογαριασμός αποζημίωσης',
             welcomeNote: 'Παρακαλώ αρχίστε να χρησιμοποιείτε τον νέο χώρο εργασίας μου',
             delayedSubmission: 'καθυστερημένη υποβολή',
-            merchantRules: 'Προεπιλογές δαπανών',
+            merchantRules: 'Κανόνες εμπόρων',
             merchantRulesCount: () => ({
-                one: 'Προεπιλογή 1 δαπάνης',
-                other: (count: number) => `Προεπιλογές για ${count} δαπάνες`,
+                one: '1 κανόνας εμπόρου',
+                other: (count: number) => `${count} κανόνες εμπόρου`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Πρόκειται να δημιουργήσετε και να κοινοποιήσετε το ${newWorkspaceName ?? ''} με ${totalMembers ?? 0} μέλη από τον αρχικό χώρο εργασίας.`,
@@ -7897,9 +7973,24 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             officeLocation: 'Τοποθεσία γραφείου',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Ορατότητα κατηγορίας',
+            allCategories: 'Όλες οι κατηγορίες',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 κατηγορία',
+                other: `${count} κατηγορίες`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Τα μέλη πρέπει να έχουν τουλάχιστον μία κατηγορία',
+                description: 'Επιλέξτε τουλάχιστον μία κατηγορία που μπορεί να χρησιμοποιεί αυτό το μέλος.',
+            },
             changeOfficeLocation: 'Αλλαγή τοποθεσίας γραφείου',
             changeWorkArrangement: 'Αλλαγή ρύθμισης εργασίας',
             changeRole: 'Αλλαγή ρόλου',
+            newRolesBanner: {
+                title: 'Διαθέσιμοι νέοι ρόλοι',
+                subtitle:
+                    '<label-text>Δώστε στα μέλη ακριβώς το επίπεδο πρόσβασης που χρειάζονται με τους νέους ρόλους <strong>μόνο έγκρισης</strong> και <strong>επισκέπτη</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Ξεκινήστε εκδίδοντας την πρώτη σας εικονική ή φυσική κάρτα.',
@@ -8851,6 +8942,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Η ενοποίησή μας με το Campfire είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + Digits. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων με τη ρύθμιση Digits για πιο ξεκάθαρη οικονομική εικόνα.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Η ενοποίησή μας με το Digits είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
                 description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + Dynamics 365 Business Central. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση Dynamics 365 Business Central για πιο ξεκάθαρη οικονομική εικόνα.`,
@@ -9279,6 +9376,8 @@ ${reportName}`,
                     `Η αυτόματη πληρωμή είναι διαθέσιμη μόνο στο πλάνο Control. [Κάντε αναβάθμιση](${upgradeLink}) για να ξεκλειδώσετε αυτή τη λειτουργία.`,
                 autoPayReportsUnderTitle: 'Αυτόματη πληρωμή αναφορών κάτω από',
                 autoPayReportsUnderDescription: 'Πλήρως συμβατικές αναφορές εξόδων κάτω από αυτό το ποσό θα εξοφλούνται αυτόματα.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Οι διασυνοριακές πληρωμές χρησιμοποιούν τη μέση ισοτιμία της αγοράς τη στιγμή της πληρωμής. Μεταβλητή χρέωση 1% ισχύει για όλες τις διασυνοριακές πληρωμές, εκτός από τα ακόλουθα νομίσματα: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nΟι ακριβείς ισοτιμίες και χρεώσεις δεν μπορούν να προβληθούν πριν από την πληρωμή όταν μια αναφορά πληρώνεται αυτόματα. Πλήρης αναλυτική κατάσταση (συμπεριλαμβανομένων της ακριβούς ισοτιμίας, των χρεώσεων και του τελικού ποσού) είναι διαθέσιμη στην αναφορά αμέσως μετά την πληρωμή.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Προσθέστε ${featureName} για να ξεκλειδώσετε αυτήν τη δυνατότητα.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Μεταβείτε στις [περισσότερες δυνατότητες](${moreFeaturesLink}) και ενεργοποιήστε το ${featureName} για να ξεκλειδώσετε αυτήν τη λειτουργία.`,
@@ -9319,8 +9418,8 @@ ${reportName}`,
                 matchType: 'Τύπος αντιστοίχισης',
                 matchTypeContains: 'Περιέχει',
                 matchTypeExact: 'Ακριβής αντιστοιχία',
-                duplicateRuleTitle: 'Υπάρχει ήδη παρόμοιος κανόνας',
-                duplicateRulePrompt: (conditionName: string) => `Ο υπάρχων κανόνας σας για το «${conditionName}» θα έχει προτεραιότητα έναντι αυτού. Να γίνει αποθήκευση ούτως ή άλλως;`,
+                duplicateRuleTitle: 'Υπάρχει ήδη παρόμοιος κανόνας εμπόρου',
+                duplicateRulePrompt: (merchantName: string) => `Ο υπάρχων κανόνας σας για το «${merchantName}» θα έχει προτεραιότητα έναντι αυτού. Να γίνει αποθήκευση έτσι κι αλλιώς;`,
                 saveAnyway: 'Αποθήκευση ούτως ή άλλως',
                 applyToExistingUnsubmittedExpenses: 'Εφαρμογή σε υφιστάμενες μη υποβληθείσες δαπάνες',
                 expenseDefaultsTitle: 'Προεπιλογές εξόδων',
@@ -9339,8 +9438,20 @@ ${reportName}`,
                 importColumnUpdatedVendor: 'Ενημερώθηκε ο προμηθευτής',
                 vendorUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
                 confirmErrorCategory: 'Παρακαλώ επιλέξτε κατηγορία',
-                confirmErrorCondition: 'Παρακαλούμε προσθέστε τουλάχιστον μία συνθήκη',
-                confirmErrorConditionAndDefault: 'Προσθέστε τουλάχιστον μία συνθήκη και εφαρμόστε τουλάχιστον μία προεπιλογή',
+                confirmErrorCategoryTax: 'Επιλέξτε έναν φορολογικό συντελεστή',
+                confirmErrorCondition: 'Παρακαλούμε εισαγάγετε έναν έμπορο',
+                confirmErrorConditionAndDefault: 'Προσθέστε έναν έμπορο και ορίστε τουλάχιστον μία προεπιλογή',
+                turnOnTaxesFirstTitle: 'Ενεργοποιήστε πρώτα τους φόρους',
+                turnOnTaxesFirstPrompt:
+                    'Οι κανόνες κατηγορίας ορίζουν έναν προεπιλεγμένο φορολογικό συντελεστή. Ενεργοποιήστε τους φόρους στις ρυθμίσεις του χώρου εργασίας σας για να τους χρησιμοποιήσετε.',
+                categoryRulesApplyGoingForwardTitle: 'Οι κανόνες κατηγορίας ισχύουν από εδώ και στο εξής',
+                categoryRulesApplyGoingForwardPrompt:
+                    'Ένας προεπιλεγμένος φορολογικός συντελεστής εφαρμόζεται σε νέες δαπάνες σε αυτή την κατηγορία. Οι δαπάνες που υπάρχουν ήδη δεν θα αλλάξουν.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Ο επιλεγμένος φορολογικός συντελεστής είναι πλέον η προεπιλογή για τον χώρο εργασίας σας, επομένως αυτός ο κανόνας δεν είναι πλέον έγκυρος. Επιλέξτε έναν διαφορετικό φορολογικό συντελεστή.',
+                addTaxRateFirstTitle: 'Προσθέστε πρώτα έναν φορολογικό συντελεστή',
+                addTaxRateFirstPrompt:
+                    'Οι κανόνες κατηγορίας ορίζουν έναν προεπιλεγμένο φορολογικό συντελεστή. Προσθέστε έναν φορολογικό συντελεστή διαφορετικό από την προεπιλογή του χώρου εργασίας σας για να τους χρησιμοποιήσετε.',
                 createRuleFromExpenseAction: 'Δημιουργία κανόνα',
                 createRuleFromExpensePrompt: 'για να εφαρμόσετε τις αλλαγές σας σε όλες τις δαπάνες που ταιριάζουν με τα κριτήριά σας.',
             },
@@ -9387,11 +9498,9 @@ ${reportName}`,
                 findRule: 'Εύρεση κανόνα',
                 rename: 'Μετονομασία',
                 update: 'Ενημέρωση',
+                merchantIs: (merchant: string) => `Ο έμπορος είναι «${merchant}»`,
                 merchantTypeIs: (merchantType: string) => `Ο τύπος εμπόρου είναι «${merchantType}»`,
                 categoryIs: (category: string) => `Η κατηγορία είναι «${category}»`,
-                tagIs: (tag: string) => `Η ετικέτα είναι «${tag}»`,
-                merchantContains: (merchant: string) => `Ο έμπορος περιέχει «${merchant}»`,
-                merchantExactlyMatches: (merchant: string) => `Ο έμπορος ταιριάζει ακριβώς με «${merchant}»`,
             },
             merchantTypeRule: {
                 merchantType: 'Τύπος εμπόρου',
@@ -9641,8 +9750,6 @@ ${reportName}`,
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Ταξιδιωτικά πρακτορεία',
                 },
                 defaultRulesCannotBeDeleted: 'Οι προεπιλεγμένοι κανόνες δεν μπορούν να διαγραφούν',
-                tags: 'Ετικέτες',
-                multipleConditions: 'Πολλαπλές συνθήκες',
             },
             agentRules: {
                 title: 'Κανόνες αντιπροσώπου',
@@ -9665,8 +9772,12 @@ ${reportName}`,
                 describeRuleHeadline: 'Περιγράψτε τον κανόνα σας',
                 describeRuleForConcierge: 'Περιγράψτε τον κανόνα σας και το Concierge θα τον δημιουργήσει',
                 createRule: 'Δημιουργία κανόνα',
-                fallbackBanner: 'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα.',
-                fallbackBannerWithExplanation: (explanation: string) => `Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. ${explanation}`,
+                saveAnyway: 'Αποθήκευση ούτως ή άλλως',
+                checkingRule: 'Γίνεται έλεγχος του κανόνα σας...',
+                fallbackBanner:
+                    'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. Οι κανόνες πράκτορα εκτελούνται όταν δημιουργείται ή ενημερώνεται ένα έξοδο ή μια αναφορά.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. Οι κανόνες πράκτορα εκτελούνται όταν δημιουργείται ή ενημερώνεται ένα έξοδο ή μια αναφορά. ${explanation}`,
                 suggestionsTab: 'Προτεινόμενο',
                 writeTab: 'Προσαρμοσμένο',
                 findSuggestion: 'Βρείτε έναν κανόνα',
@@ -9690,6 +9801,14 @@ ${reportName}`,
                 title: 'Δεν προστέθηκαν κανόνες πράκτορα',
                 subtitle: 'Δημιουργήστε έναν κανόνα για την αυτοματοποίηση των πολιτικών του χώρου εργασίας σας.',
                 cta: 'Προσθήκη κανόνα AI',
+            },
+            expenseDefaultType: {
+                title: 'Εφαρμογή προεπιλογών εξόδων',
+                subtitle: 'Σε τι πρέπει να αντιστοιχεί αυτός ο κανόνας;',
+                merchant: 'Έμπορος',
+                merchantDescription: 'Ενημέρωση πεδίων σε δαπάνες από συγκεκριμένο έμπορο',
+                category: 'Κατηγορία',
+                categoryDescription: 'Ορίστε προεπιλεγμένο φορολογικό συντελεστή για μια συγκεκριμένη κατηγορία',
             },
             taxesDisabledEmptyState: {
                 title: 'Οι φόροι δεν είναι ενεργοποιημένοι',
@@ -9823,6 +9942,17 @@ ${reportName}`,
                 },
             },
         },
+        digits: {
+            entity: 'Οντότητα',
+            updateCurrencyTitle: 'Ενημέρωση νομίσματος χώρου εργασίας;',
+            updateCurrencyPrompt: 'Το Digits είναι προς το παρόν διαθέσιμο μόνο για εταιρείες με έδρα στις ΗΠΑ που λειτουργούν σε USD.',
+            importDescription: 'Επιλέξτε ποιες διαμορφώσεις Digits θέλετε να εισαγάγετε.',
+            accountTypesDescription: 'Οι λογαριασμοί σας στο Digits θα εισαχθούν ως κατηγορίες.',
+            enableNewAccountsTitle: 'Ενεργοποίηση νεοεισαγόμενων λογαριασμών',
+            enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Digits θα είναι διαθέσιμοι ως κατηγορίες.',
+            dimensionsImport: 'Όλες οι διαστάσεις Digits εισάγονται ως ετικέτες.',
+            departments: 'Τμήματα',
+        },
         zohoBooks: {
             organization: 'Οργανισμός Zoho Books',
             organizationSelectDescription: 'Επιλέξτε τον οργανισμό στο Zoho Books από τον οποίο θέλετε να εισαγάγετε δεδομένα.',
@@ -9851,10 +9981,66 @@ ${reportName}`,
                 description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή Zoho Books για δαπάνες που δεν αντιστοιχίζονται αυτόματα.',
             },
             companyCardAccount: {label: 'Λογαριασμός εταιρικής κάρτας', description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.'},
+            exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παρακάμψτε τον λογαριασμό χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα κάρτας.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    return {
+                        one: `${count} πρόγραμμα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} προγράμματα με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παρακάμψτε τον λογαριασμό προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    return {
+                        one: `${count} κάρτα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} κάρτες με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
+            },
             noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
             noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
             noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
             noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
+            autoSyncDescription: 'Συγχρονίστε αυτόματα κάθε μέρα το Zoho Books και το Expensify. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
+            accountingMethods: {
+                label: 'Μέθοδος εξαγωγής',
+                description: 'Επιλέξτε πότε να γίνεται η εξαγωγή των εξόδων.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Δεδουλευμένη βάση',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Μετρητά',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Τα έξοδα από την τσέπη θα εξαχθούν όταν εγκριθούν οριστικά',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Τα έξοδα από την τσέπη θα εξαχθούν όταν πληρωθούν',
+                },
+            },
+            syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργείται μια πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
+            billPaymentAccount: {
+                label: 'Λογαριασμός πληρωμής λογαριασμών',
+                description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης που πιστώνει το Zoho Books όταν το Expensify σημειώνει έναν λογαριασμό ως πληρωμένο.',
+            },
+            syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
+            settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο Zoho Books.'},
+            syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
+            travelBillingSettlementAccount: {
+                label: 'Λογαριασμός διακανονισμού ενοποιημένης χρέωσης ταξιδιών',
+                description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο Zoho Books.',
+            },
+            travelBillingPayableAccount: {label: 'Λογαριασμός πληρωτέων για ενοποιημένη χρέωση ταξιδιών'},
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -10007,7 +10193,7 @@ ${reportName}`,
         scheduleACall: 'Προγραμματίστε κλήση',
         questionMarkButtonTooltip: 'Λάβετε βοήθεια από την ομάδα μας',
         exploreHelpDocs: 'Δείτε τις οδηγίες βοήθειας',
-        registerForWebinar: 'Εγγραφείτε στο διαδικτυακό σεμινάριο',
+        registerForWebinar: 'Διαδικτυακό σεμινάριο',
         onboardingHelp: 'Βοήθεια εκκίνησης',
     },
     emojiPicker: {
@@ -10143,6 +10329,25 @@ ${reportName}`,
             return `άλλαξε τις αναλυτικές αποδείξεις της κατηγορίας «${categoryName}» σε ${newValue} (προηγουμένως ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `μετονόμασε την κατηγορία «${oldName}» σε «${newName}»`,
+        setCategoryVisibility: (members: string, categories: string) => `όρισε ώστε ${members} να βλέπουν μόνο ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `άλλαξε ώστε ${members} να βλέπουν μόνο ${categories}`,
+        clearedCategoryVisibility: (members: string) => `άλλαξε τα δικαιώματα των ${members} ώστε να βλέπουν όλες τις κατηγορίες`,
+        quotedCategoryName: (categoryName: string) => `«${categoryName}»`,
+        oneCategory: (categoryName: string) => `την κατηγορία ${categoryName}`,
+        someCategories: (categoryList: string) => `τις κατηγορίες ${categoryList}`,
+        everyone: 'όλοι',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 κατηγορία',
+            other: `${count} κατηγορίες`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 μέλος',
+            other: `${count} μέλη`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Κατηγορίες: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Μέλη: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', επειδή η μοναδική τους κατηγορία διαγράφηκε. Ενημερώστε, αν χρειάζεται, την ορατότητα της κατηγορίας τους.',
+        categoryVisibilityReasonDisabled: ', καθώς η μοναδική τους κατηγορία ήταν απενεργοποιημένη. Ενημερώστε την ορατότητα της κατηγορίας τους, αν χρειάζεται.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `αφαίρεσε την υπόδειξη περιγραφής «${oldValue}» από την κατηγορία «${categoryName}»`;
@@ -10836,11 +11041,14 @@ ${reportName}`,
                 upcoming: 'Επερχόμενο',
                 done: 'Ολοκληρώθηκε',
                 canceled: 'Ακυρώθηκε',
+                outstanding: 'Εκκρεμές',
+                rejected: 'Απορρίφθηκε',
             },
         },
         tabs: {
             expenseReports: 'Αναφορές εξόδων',
             reports: 'Αναφορές',
+            myReports: 'Οι αναφορές μου',
             expenses: 'Έξοδα',
             submit: 'Πρόχειρα',
             approve: 'Χρειάζεται έγκριση',
@@ -10924,6 +11132,12 @@ ${reportName}`,
         columns: 'Στήλες',
         editColumns: 'Επεξεργασία στηλών',
         resetColumns: 'Επαναφορά στηλών',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Επιλογές στήλης ${columnName}`,
+            sortAscending: 'Αύξουσα ταξινόμηση',
+            sortDescending: 'Φθίνουσα ταξινόμηση',
+            hideColumn: 'Απόκρυψη στήλης',
+        },
         groupColumns: 'Ομαδοποίηση στηλών',
         expenseColumns: 'Στήλες εξόδων',
         saveView: 'Αποθήκευση προβολής',
@@ -11061,6 +11275,8 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτος',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνο',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνων',
+                [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Παράβαση',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Πληρώθηκε από',
             },
             feed: 'Ροή',
             withdrawalType: {
@@ -11099,6 +11315,7 @@ ${reportName}`,
         },
         display: {
             label: 'Εμφάνιση',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Εμφάνιση (${count})` : 'Εμφάνιση'),
             sortBy: 'Ταξινόμηση κατά',
             sortOrder: 'Σειρά ταξινόμησης',
             groupBy: 'Ομαδοποίηση κατά',
@@ -11125,6 +11342,8 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτη',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνα',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνοντες',
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Παραβάσεις',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Πληρωτές',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Καμία δαπάνη ακόμη',
@@ -11755,6 +11974,7 @@ ${reportName}`,
         autoReportedRejectedExpense: 'Αυτή η δαπάνη απορρίφθηκε.',
         billableExpense: 'Χρεώσιμο, δεν ισχύει πλέον',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Απαιτείται απόδειξη${formattedLimit ? `πάνω από ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Η κατηγορία δεν επιτρέπεται',
         categoryOutOfPolicy: 'Η κατηγορία δεν είναι πλέον έγκυρη',
         conversionSurcharge: (surcharge: number) => `Εφαρμόστηκε προσαύξηση μετατροπής ${surcharge}%`,
         customUnitOutOfPolicy: 'Η τιμή δεν είναι έγκυρη για αυτόν τον χώρο εργασίας',
@@ -11951,6 +12171,7 @@ ${reportName}`,
             autoReportedRejectedExpense: 'Η δαπάνη απορρίφθηκε',
             billableExpense: 'Η χρέωση δεν ισχύει πλέον',
             cashExpenseWithNoReceipt: 'Απαιτείται απόδειξη',
+            categoryNotAllowed: 'Η κατηγορία δεν επιτρέπεται',
             categoryOutOfPolicy: 'Η κατηγορία δεν είναι πλέον έγκυρη',
             companyCardRequired: 'Απαιτείται εταιρική κάρτα',
             conversionSurcharge: 'Εφαρμόστηκε προσαύξηση μετατροπής',
@@ -12517,7 +12738,6 @@ ${reportName}`,
             isUnreadWithMention: 'Είναι μη αναγνωσμένο με αναφορά',
             isWaitingForAssigneeToCompleteAction: 'Αναμονή για την ολοκλήρωση ενέργειας από τον υπεύθυνο',
             hasChildReportAwaitingAction: 'Υπάρχει θυγατρική αναφορά σε αναμονή ενέργειας',
-            hasMissingInvoiceBankAccount: 'Έχει ελλιπή τραπεζικό λογαριασμό τιμολογίου',
             hasUnresolvedCardFraudAlert: 'Έχει μη επιλυμένη ειδοποίηση απάτης με κάρτα',
             hasDEWApproveFailed: 'Η έγκριση DEW απέτυχε',
         },
@@ -12946,6 +13166,7 @@ ${reportName}`,
         deletingTitle: 'Γίνεται διαγραφή αναφορών...',
         deletingExpensesTitle: 'Γίνεται διαγραφή εξόδων...',
         runningBody: 'Περιμένετε μερικά λεπτά ή αφήστε το Concierge να σας στείλει μήνυμα όταν ολοκληρωθεί.',
+        changingWorkspaceTitle: 'Γίνεται μετακίνηση αναφορών...',
         sendFromConcierge: 'Στείλτε μου μήνυμα όταν τελειώσει',
         conciergeTitle: 'Βεβαίως!',
         conciergeBody: 'Ο Concierge θα σας στείλει μήνυμα όταν ολοκληρωθεί.',
@@ -12981,6 +13202,10 @@ ${reportName}`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Διαγράφηκαν έξοδα σε ${doneCount} από ${count} αναφορά`,
             other: `Διαγράφηκαν έξοδα σε ${doneCount} από ${count} αναφορές`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Άλλαξε χώρο εργασίας σε ${doneCount} από ${count} αναφορά`,
+            other: `Άλλαξε χώρο εργασίας σε ${doneCount} από ${count} αναφορές`,
         }),
         noReportsTitle: 'Δεν υπάρχουν αντιστοιχίες αναφορών',
         noReportsBody: 'Καμία από τις αναφορές που επιλέξατε δεν χρειαζόταν αυτή την ενέργεια.',
@@ -13018,6 +13243,10 @@ ${reportName}`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να διαγραφούν.',
             other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να διαγραφούν.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 αναφορά δεν μπόρεσε να μετακινηθεί.',
+            other: `${count} αναφορές δεν ήταν δυνατό να μετακινηθούν.`,
         }),
     },
     emailIssuePage: {
@@ -13061,5 +13290,29 @@ ${reportName}`,
         mobileClaimPrompt: 'Επισκεφθείτε το Expensify στον φυλλομετρητή σας για να διεκδικήσετε την έκπτωση ανανέωσης.',
     },
     bulkActionBar: {label: 'Μαζικές ενέργειες', clearSelection: 'Καθαρισμός επιλογής', loadingSelection: 'Φόρτωση επιλογής'},
+    reportHistoryPage: {
+        title: 'Ιστορικό αναφοράς',
+        created: 'δημιούργησε αναφορά',
+        submitted: 'υπέβαλε',
+        approved: 'ενέκρινε',
+        paid: 'πλήρωσε',
+        toSubmit: 'να υποβάλει',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'να υποβάλει αυτόματα';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `να υποβάλει αυτόματα στις ${eta} κάθε μήνα` : `να υποβάλει αυτόματα ${eta}`;
+        },
+        toApprove: 'να εγκρίνει',
+        toPay: 'να πληρώσει',
+        minutesAgo: (count: number) => `πριν από ${count} λεπ.`,
+        hoursAgo: (count: number) => `πριν από ${count} ώρ.`,
+        daysAgo: () => ({
+            one: 'πριν από 1 ημ.',
+            other: (count: number) => `πριν από ${count} ημ.`,
+        }),
+        offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
+        toMarkAsDone: 'να επισημάνετε ως ολοκληρωμένο',
+    },
 };
 export default translations;

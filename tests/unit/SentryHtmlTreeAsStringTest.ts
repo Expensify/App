@@ -33,6 +33,22 @@ describe('Sentry htmlTreeAsString', () => {
         expect(selector).toBe('[data-sentry-label="SaveButton"]');
     });
 
+    it('returns only the label when the labelled wrapper has the exact flag', () => {
+        // Given a wrapper that is not a pressable and has the exact flag, like the one around the Concierge composer
+        document.body.innerHTML = `
+            <div data-sentry-label="ComposerWrapper" data-sentry-label-exact="true">
+                <div class="css-view">
+                    <textarea id="target"></textarea>
+                </div>
+            </div>`;
+
+        // When Sentry describes an interaction with the inner input
+        const selector = htmlTreeAsString(getElement('target'));
+
+        // Then the span is attributed to the wrapper's label alone, so clicks anywhere in the wrapper group under one selector
+        expect(selector).toBe('[data-sentry-label="ComposerWrapper"]');
+    });
+
     it('keeps the CSS path when the label is on an ancestor that is not the pressable', () => {
         // Given a label on a wrapper and an unlabelled pressable inside it
         document.body.innerHTML = `

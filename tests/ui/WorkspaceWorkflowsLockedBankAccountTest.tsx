@@ -154,7 +154,7 @@ const getInitiatingBankAccountUnlock = () =>
         const connection = Onyx.connect({
             key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });
@@ -226,6 +226,33 @@ describe('WorkspaceWorkflowsPageRevamp - bank account row', () => {
 
         // Then the bank account flow opens so they can continue the setup
         expect(mockNavigateToBankAccountRoute).toHaveBeenCalled();
+    });
+
+    it.each([true, false])('does not reconnect an incomplete bank account after toggling Payments off and on (offline: %s)', async (isOffline) => {
+        // Given an incomplete bank setup without an ACH account, so the row depends on the bank list association
+        await setUpIncompleteBankAccount();
+        setForceOffline(isOffline);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText('Test Address')).toBeOnTheScreen();
+        const toggleName = TestHelper.translateLocal('workflowsPage.makeOrTrackPaymentsDescription');
+
+        // When Payments is disabled and enabled again without refreshing or relinking the bank
+        fireEvent.press(screen.getByRole('switch', {name: toggleName}));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPage.disablePaymentsPrompt'))).toBeOnTheScreen();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.confirm')));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText('Test Address')).not.toBeOnTheScreen();
+        fireEvent.press(screen.getByRole('switch', {name: toggleName}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the stale setup cannot reappear, while the account remains available for explicit relinking
+        expect(screen.queryByText('Test Address')).not.toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('bankAccount.addBankAccount'))).toBeOnTheScreen();
+        const bankAccountList = await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST);
+        expect(bankAccountList?.[BANK_ACCOUNT_ID]).toBeDefined();
+        expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.policyID).toBeUndefined();
     });
 
     it('does not open an incomplete bank account offline, because the bank account flow needs a connection', async () => {
