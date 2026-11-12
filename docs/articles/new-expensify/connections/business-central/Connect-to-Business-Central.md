@@ -24,7 +24,6 @@ To connect Business Central, you must:
 - Have access to Microsoft Entra to register an application and create a client secret.
 - Have an admin account that can grant consent for the application.
 
-
 ## How to prepare Business Central with Expensify Assisted Setup
 
 Start with **Expensify Assisted Setup**, which appears after you install the Expensify app from Microsoft Marketplace. The wizard guides you through Microsoft Entra registration and registers the application in Business Central. You do not need to repeat the manual configuration steps after you complete the wizard.
@@ -109,7 +108,6 @@ Disconnecting stops syncing with Business Central and removes the connection fro
 ## How to create the Microsoft Entra app registration manually
 
 Use this alternative if you configure the connection without **Expensify Assisted Setup**. If you completed the wizard, skip both manual configuration sections.
-
 
 Use an account with the **Application Administrator**, **Cloud Application Administrator**, or **Global Administrator** role to grant admin consent for Business Central in Microsoft Entra.
 
