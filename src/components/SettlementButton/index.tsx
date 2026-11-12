@@ -51,9 +51,8 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type PaymentMethodModel from '@src/types/onyx/PaymentMethod';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
@@ -65,11 +64,6 @@ import Onyx from 'react-native-onyx';
 import type SettlementButtonProps from './types';
 
 type TriggerKYCFlow = (params: ContinueActionParams) => void;
-
-/** Debit-card account data has no `type`, and `accountType` is optional on every payment method, so the `type` field is the only way to tell bank account data apart. */
-function getBankAccountData(accountData: PaymentMethodModel['accountData']): AccountData | undefined {
-    return accountData && 'type' in accountData ? accountData : undefined;
-}
 
 function SettlementButton({
     addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -180,7 +174,7 @@ function SettlementButton({
     const isBankAccountLocked = canAccessPolicyBankAccount(policy, bankAccountList) && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
 
     function getLatestPersonalBankAccount() {
-        return formattedPaymentMethods.filter((ba) => getBankAccountData(ba.accountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
+        return formattedPaymentMethods.filter((ba) => ba.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && ba.accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     }
 
     // The guards checked after the account-validation gate. Also re-checked when a payment
@@ -373,7 +367,11 @@ function SettlementButton({
 
                 return formattedPaymentMethods
                     .filter((method) => {
-                        const accountData = getBankAccountData(method.accountData);
+                        // Business bank accounts also have the `bankAccount` account type, so this check only leaves out debit cards.
+                        if (method.accountType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+                            return false;
+                        }
+                        const accountData = method.accountData;
                         const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
                         return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
                     })
@@ -498,7 +496,9 @@ function SettlementButton({
                 }
                 onPress({
                     paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                    payAsBusiness: getBankAccountData(currentBankInformation.accountData)?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                    // Business bank accounts also have the `bankAccount` account type, so this check only leaves out debit cards.
+                    payAsBusiness:
+                        currentBankInformation.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && currentBankInformation.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS,
                     methodID: currentBankInformation.methodID,
                     paymentMethod: currentBankInformation.accountType,
                 });

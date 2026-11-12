@@ -24,9 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
-import {doesContainReservedWord, getAgeRequirementError, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
-
-import type {CountryZipRegex} from '@pages/MissingPersonalDetails/types';
+import {doesContainReservedWord, getAgeRequirementError, getCountryZipRegexDetails, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -40,8 +38,6 @@ import {subYears} from 'date-fns';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-
-const countryZipRegexData: Partial<Record<string, CountryZipRegex>> = COMMON_CONST.COUNTRY_ZIP_REGEX_DATA;
 
 function PrivatePersonalDetailsPage() {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS>>();
@@ -152,7 +148,7 @@ function PrivatePersonalDetailsPage() {
         }
 
         const zipValue = values[INPUT_IDS.ZIP_POST_CODE] ?? '';
-        const countryRegexDetails = effectiveCountry ? countryZipRegexData[effectiveCountry] : undefined;
+        const countryRegexDetails = getCountryZipRegexDetails(effectiveCountry);
         const countrySpecificZipRegex = countryRegexDetails?.regex;
         if (countrySpecificZipRegex) {
             if (!countrySpecificZipRegex.test(zipValue.trim().toUpperCase())) {

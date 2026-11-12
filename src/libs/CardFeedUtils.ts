@@ -476,7 +476,7 @@ function getVisibleCompanyCardFeedsForSelector(
         }
 
         for (const [key, feedData] of ObjectUtils.typedEntries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, numericFundID))) {
-            // As before, skip an entry without a feed key, because it has no feed to show.
+            // Skip an entry without a feed key, because it has no feed to show.
             if (!key) {
                 continue;
             }
