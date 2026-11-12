@@ -71,11 +71,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     forward(userActivity: userActivity)
   }
 
-  func sceneWillResignActive(_ scene: UIScene) {
+  func sceneDidEnterBackground(_ scene: UIScene) {
     appDelegate?.showPrivacyOverlay()
   }
 
-  func sceneDidBecomeActive(_ scene: UIScene) {
+  func sceneWillEnterForeground(_ scene: UIScene) {
     appDelegate?.hidePrivacyOverlay()
   }
 

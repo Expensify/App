@@ -7,7 +7,6 @@ import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -38,9 +37,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
+import {isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, isWiseOnboardingSubmitted, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getWiseOnboardingStatusRoute from '@libs/Navigation/helpers/getWiseOnboardingStatusRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
@@ -163,6 +163,7 @@ function WalletPage() {
     useRefreshPendingDigitalWalletApproval();
 
     const hasWallet = !isEmpty(userWallet);
+    const formattedWalletBalance = convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasAssignedCard = hasDisplayableAssignedCards(cardList);
     const shouldShowGBDisclaimer = countryByIp === CONST.COUNTRY.GB;
@@ -532,9 +533,15 @@ function WalletPage() {
                               return;
                           }
                           if (isWiseGlobalReimbursementsEnabled) {
-                              closeModal(() =>
-                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID))),
-                              );
+                              closeModal(() => {
+                                  const {bankAccountID} = paymentMethod.selectedPaymentMethod;
+                                  // The intro only starts the onboarding, so once it is submitted the status page opens instead
+                                  if (bankAccountID && isWiseOnboardingSubmitted(paymentMethod.selectedPaymentMethod)) {
+                                      Navigation.navigate(getWiseOnboardingStatusRoute(bankAccountID));
+                                      return;
+                                  }
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)));
+                              });
                               return;
                           }
                           closeModal(() =>
@@ -797,7 +804,14 @@ function WalletPage() {
                                 </MenuItem.Row>
                             </MenuItemSectionRoot>
                             {!hasAssignedCard && (
-                                <MenuItemSectionRoot onPress={openCompanyCardFlow}>
+                                <MenuItemSectionRoot
+                                    onPress={openCompanyCardFlow}
+                                    sentryLabel={
+                                        hasSinglePolicy
+                                            ? CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_COMPANY_CARDS.WORKSPACE
+                                            : CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_COMPANY_CARDS.WORKSPACES_LIST
+                                    }
+                                >
                                     <MenuItem.Row>
                                         <View style={[styles.popoverMenuIcon, StyleUtils.getAvatarWidthStyle(CONST.AVATAR_SIZE.DEFAULT)]}>
                                             <Icon
@@ -841,15 +855,17 @@ function WalletPage() {
                                             errorRowStyles={[styles.ml10, styles.mr2]}
                                             style={[styles.mb2]}
                                         >
-                                            <MenuItemWithTopDescription
-                                                description={translate('walletPage.balance')}
-                                                title={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
-                                                titleStyle={styles.textHeadlineH2}
-                                                interactive={false}
-                                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
-                                                copyable
-                                            />
+                                            <MenuItemSectionRoot>
+                                                <MenuItem.Row>
+                                                    <MenuItem.Content>
+                                                        <MenuItem.FieldName>{translate('walletPage.balance')}</MenuItem.FieldName>
+                                                        <MenuItem.FieldValue style={styles.textHeadlineH2}>{formattedWalletBalance}</MenuItem.FieldValue>
+                                                    </MenuItem.Content>
+                                                    <MenuItem.Trailing>
+                                                        <MenuItem.Copy value={formattedWalletBalance} />
+                                                    </MenuItem.Trailing>
+                                                </MenuItem.Row>
+                                            </MenuItemSectionRoot>
                                         </OfflineWithFeedback>
                                     )}
 

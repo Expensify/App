@@ -38,7 +38,7 @@ import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationS
 
 import {consumePreMountReplaceOutcome, getFocusedRouteFromNavigatorState, getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import {getPreservedNavigatorState} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {clearPreservedNavigatorStates, getPreservedNavigatorState} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveRoute from './helpers/getActiveRoute';
 import getActiveTabName from './helpers/getActiveTabName';
@@ -50,6 +50,7 @@ import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './he
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
+import {clearLastVisitedTabPaths} from './helpers/lastVisitedTabPathUtils';
 import linkTo from './helpers/linkTo';
 import getMinimalAction, {getNestedAction, isNamedActionPayload} from './helpers/linkTo/getMinimalAction';
 import {popAndRealignMfaMarker} from './helpers/mfaModalMarkerPreservation';
@@ -782,6 +783,12 @@ function resetToAppRoot() {
     navigationRef.current?.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
 }
 
+/** Called on every session boundary (sign-out, copilot switch), so add any new per-session navigation cache here. */
+function clearSessionNavigationState() {
+    clearPreservedNavigatorStates();
+    clearLastVisitedTabPaths();
+}
+
 /**
  * Reset the navigation state to Home page.
  */
@@ -1405,6 +1412,7 @@ export default {
     waitForProtectedRoutes,
     resetToHome,
     resetToAppRoot,
+    clearSessionNavigationState,
     goBackToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
