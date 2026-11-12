@@ -297,9 +297,7 @@ function DynamicIOURequestStepDestination({
                         ref={destinationSelectionListRef}
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
-                        onSubmit={(destination) => {
-                            updateDestination(destination);
-                        }}
+                        onSubmit={updateDestination}
                     />
                 )}
             </StepScreenWrapper>

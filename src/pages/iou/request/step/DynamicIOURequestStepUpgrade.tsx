@@ -383,9 +383,7 @@ function DynamicIOURequestStepUpgrade({
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     {!!isUpgraded && (
                         <UpgradeConfirmation
-                            afterUpgradeAcknowledged={() => {
-                                afterUpgradeAcknowledged();
-                            }}
+                            afterUpgradeAcknowledged={afterUpgradeAcknowledged}
                             confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_CONFIRMATION_GOT_IT}
                             policyName={createdPolicyName}
                             isCategorizing={isCategorizing}
@@ -396,9 +394,7 @@ function DynamicIOURequestStepUpgrade({
                     {!isUpgraded && (
                         <UpgradeIntro
                             feature={feature}
-                            onUpgrade={() => {
-                                onUpgrade();
-                            }}
+                            onUpgrade={onUpgrade}
                             upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_UPGRADE}
                             buttonDisabled={isOffline}
                             loading={false}

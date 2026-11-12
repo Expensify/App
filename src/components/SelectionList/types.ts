@@ -18,7 +18,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Component rendering each row. `NoInfer` keeps the row component from widening `TItem`, which is inferred from `data`/`sections` */
     ListItem: ListItemComponent<NoInfer<TItem>>;
     initiallyFocusedItemKey?: string;
-    onSelectRow: (item: TItem) => void;
+    onSelectRow: (item: TItem) => void | Promise<void>;
     canSelectMultiple?: boolean;
     footerContent?: React.ReactNode;
 
@@ -65,7 +65,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     shouldStopPropagation?: boolean;
 
     /** Called once when the scroll position gets within onEndReachedThreshold of the rendered content */
-    onEndReached?: () => void;
+    onEndReached?: () => void | Promise<void>;
 
     /** How far from the end the bottom edge of the list must be to trigger onEndReached */
     onEndReachedThreshold?: number;

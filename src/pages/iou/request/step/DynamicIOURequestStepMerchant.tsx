@@ -199,9 +199,7 @@ function DynamicIOURequestStepMerchant({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
-                onSubmit={(value) => {
-                    updateMerchant(value);
-                }}
+                onSubmit={updateMerchant}
                 validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline

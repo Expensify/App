@@ -225,9 +225,7 @@ function DynamicIOURequestStepWaypoint({
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
-                    onSubmit={(values) => {
-                        submit(values);
-                    }}
+                    onSubmit={submit}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
@@ -263,9 +261,7 @@ function DynamicIOURequestStepWaypoint({
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
-                            onPress={(values: Waypoint) => {
-                                selectWaypoint(values);
-                            }}
+                            onPress={selectWaypoint}
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             renamedInputKeys={{
                                 address: `waypoint${pageIndex}`,

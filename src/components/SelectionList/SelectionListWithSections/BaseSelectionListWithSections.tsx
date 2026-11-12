@@ -381,7 +381,12 @@ function BaseSelectionListWithSectionsImpl({
                     initialScrollIndex={targetScrollIndex}
                     overrideProps={FLASH_LIST_OVERRIDE_PROPS}
                     keyExtractor={keyExtractor}
-                    onEndReached={onEndReached}
+                    onEndReached={
+                        onEndReached &&
+                        (() => {
+                            onEndReached();
+                        })
+                    }
                     onEndReachedThreshold={onEndReachedThreshold}
                     onScrollBeginDrag={onScrollBeginDrag}
                     scrollEnabled={scrollEnabled}

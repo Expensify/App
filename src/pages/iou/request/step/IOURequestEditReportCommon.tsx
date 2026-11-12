@@ -490,9 +490,7 @@ function IOURequestEditReportCommon({
     const list = (
         <SelectionList
             data={reportOptions}
-            onSelectRow={(item) => {
-                handleSelectReport(item);
-            }}
+            onSelectRow={handleSelectReport}
             titleNumberOfLines={2}
             shouldShowTextInput={isSearchable}
             textInputOptions={{
@@ -528,9 +526,7 @@ function IOURequestEditReportCommon({
                 ) : undefined
             }
             listEmptyContent={listHeaderContent}
-            onEndReached={() => {
-                loadMoreOutstandingReports();
-            }}
+            onEndReached={loadMoreOutstandingReports}
             onEndReachedThreshold={0.75}
         />
     );
