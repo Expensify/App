@@ -126,6 +126,7 @@ function FieldsSettingsPage({
                     />
                     {isListFieldType && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.SETTINGS_LIST_VALUES}
                             name={translate('workspace.reportFields.listValues')}
                             onPress={canWrite ? () => Navigation.navigate(getListValuesRoute(policyID, reportFieldID)) : undefined}
                             value={listValues.join(', ')}
@@ -134,6 +135,7 @@ function FieldsSettingsPage({
                     )}
                     {!isListFieldEmpty && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.SETTINGS_INITIAL_VALUE}
                             value={getReportFieldInitialValue(reportField, translate)}
                             name={translate('common.initialValue')}
                             onPress={canWrite && !isDateFieldType ? () => Navigation.navigate(getInitialValueRoute(policyID, reportFieldID)) : undefined}
@@ -142,6 +144,7 @@ function FieldsSettingsPage({
                     {canWrite && !isImportedReportField && (
                         <View style={styles.flexGrow1}>
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.SETTINGS_DELETE}
                                 icon={icons.Trashcan}
                                 title={translate('common.delete')}
                                 onPress={showDeleteModal}
