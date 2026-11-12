@@ -72,7 +72,7 @@ function usePerDiemSubmission({
     backToReport,
     onExpenseWriteWillStart,
 }: UsePerDiemSubmissionParams): SubmissionHandle {
-    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -111,7 +111,7 @@ function usePerDiemSubmission({
         : undefined;
     const [perDiemExpensePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPerDiemExpensePolicyID}`);
 
-    function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
+    function createTransaction({shouldHandleNavigation, writeBarrier}: CreateTransactionParams) {
         if (!transaction) {
             markSubmitExpenseEnd();
             return false;
@@ -132,7 +132,6 @@ function usePerDiemSubmission({
                 const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
                 submitPerDiemExpenseForSelfDM({
-                    dateFnsLocale,
                     getCurrencyDecimals,
                     writeBarrier,
                     selfDMReport,
@@ -197,7 +196,6 @@ function usePerDiemSubmission({
 
         const result = submitPerDiemExpenseIOUActions({
             isVendorMatchingBetaEnabled,
-            dateFnsLocale,
             getCurrencyDecimals,
             writeBarrier,
             report,

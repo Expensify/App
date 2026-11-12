@@ -347,6 +347,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             searchData={undefined}
             onHandlerReady={setDuplicateHandler}
             onAfterDuplicate={() => clearSelectedTransactions(true)}
+            sourceReport={moneyRequestReport}
+            sourceChatReport={chatReport}
+            sourcePolicy={policy}
         />
     ) : null;
 
@@ -375,6 +378,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         <>
             {bulkDuplicateHandler}
             <ButtonWithDropdownMenu
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SELECTION_DROPDOWN}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => null}
                 options={selectedTransactionsOptions}

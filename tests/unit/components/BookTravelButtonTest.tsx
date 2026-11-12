@@ -54,7 +54,7 @@ jest.mock('@libs/actions/Travel', () => {
     return {
         ...actual,
         cleanupTravelProvisioningSession: jest.fn(),
-        requestTravelAccess: jest.fn(),
+        requestTravelAccess: jest.fn(() => Promise.resolve(false)),
         setTravelProvisioningNextStep: jest.fn(),
     };
 });
@@ -218,6 +218,41 @@ describe('BookTravelButton', () => {
             } else {
                 expect(mockShowConfirmModal).not.toHaveBeenCalled();
             }
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('sends an admin who can skip verification straight to enabling travel', async () => {
+            // Given an unprovisioned workspace and a validated admin whose account can skip the guide review
+            jest.mocked(requestTravelAccess).mockResolvedValueOnce(true);
+            await seedOnyx(true, unprovisionedPolicy);
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin presses the book travel button
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they go to the enablement stepper instead of being told their request is under review
+            expect(requestTravelAccess).toHaveBeenCalled();
+            expect(cleanupTravelProvisioningSession).toHaveBeenCalled();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
+        it('shows an error instead of the verify-company modal when the request fails', async () => {
+            // Given an unprovisioned workspace and a validated admin whose request cannot reach the server
+            jest.mocked(requestTravelAccess).mockRejectedValueOnce(new Error('Failed to fetch'));
+            await seedOnyx(true, unprovisionedPolicy);
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin presses the book travel button
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they see the generic error and are neither told their request is under review nor sent to enable travel
+            expect(screen.getByText(/something went wrong/)).toBeTruthy();
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 

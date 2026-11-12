@@ -100,6 +100,7 @@ function ThemePage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('themePage.highContrastMode')}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.HIGH_CONTRAST_MODE_SWITCH}
                                         isOn={currentIsHighContrast}
                                         onToggle={onToggleHighContrast}
                                     />

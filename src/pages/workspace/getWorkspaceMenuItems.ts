@@ -19,7 +19,7 @@ import {
     isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
@@ -81,6 +81,7 @@ type WorkspaceMenuItem = WithSentryLabel & {
     screenName: WorkspaceTopLevelScreens;
     badgeTranslationKey?: TranslationPaths;
     badgeText?: string;
+    isBadgeSuccess?: boolean;
     highlighted?: boolean;
 
     /** Other names the Search router also matches this item by */
@@ -120,6 +121,8 @@ type GetWorkspaceMenuItemsParams = {
     hasApprovalWorkflowWithNonMemberApprover?: boolean;
     /** Whether the vendor matching beta is enabled. */
     isVendorMatchingBetaEnabled?: boolean;
+    /** Whether the Members row promotes the Approve-only and Guest roles with a badge. */
+    shouldShowNewRolesBadge?: boolean;
     /** Formats the invoice account balance for its menu badge. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
@@ -139,6 +142,7 @@ function getWorkspaceMenuItems({
     shouldShowRBR = false,
     hasApprovalWorkflowWithNonMemberApprover = false,
     isVendorMatchingBetaEnabled = false,
+    shouldShowNewRolesBadge = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
     const isAgentAccount = currentUserPersonalDetails?.isCustomAgent;
@@ -166,7 +170,7 @@ function getWorkspaceMenuItems({
         !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] ?? {}) ||
         !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] ?? {});
     const getConnectionsBrickRoadIndicator = () => {
-        if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError || hasConnectionFeatureError) {
+        if (hasSyncError || shouldShowReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError || hasConnectionFeatureError) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
         if (isMergeHRCompleteSetupNeeded(policy) || isQBORefreshTokenExpiringSoonSelector(policy)) {
@@ -214,6 +218,8 @@ function getWorkspaceMenuItems({
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             screenName: SCREENS.WORKSPACE.MEMBERS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MEMBERS,
+            badgeTranslationKey: shouldShowNewRolesBadge ? 'workspace.common.newRoles' : undefined,
+            isBadgeSuccess: shouldShowNewRolesBadge,
         },
         {
             translationKey: 'workspace.common.rooms',
@@ -316,11 +322,13 @@ function getWorkspaceMenuItems({
         }
 
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.WORKFLOWS)) {
+            const hasWorkflowsError =
+                !isEmptyObject(policy?.errorFields?.reimburser ?? {}) || !isEmptyObject(policy?.errorFields?.reimbursementCountries ?? {}) || hasApprovalWorkflowWithNonMemberApprover;
             items.push({
                 translationKey: 'workspace.common.workflows',
                 icon: icons.Workflows,
                 getRoute: () => ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID),
-                brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) || hasApprovalWorkflowWithNonMemberApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasWorkflowsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.WORKFLOWS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.WORKFLOWS,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,

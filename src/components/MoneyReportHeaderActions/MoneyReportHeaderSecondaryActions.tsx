@@ -29,6 +29,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePaymentOptions from '@hooks/usePaymentOptions';
+import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
@@ -50,6 +51,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
@@ -69,7 +71,7 @@ import {
 } from '@libs/ReportUtils';
 import {isPending} from '@libs/TransactionUtils';
 
-import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {payInvoice} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -158,6 +160,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const {isBetaEnabled} = usePermissions();
+    const {payWithWiseQuote} = usePayWithWiseQuote();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
@@ -184,6 +187,21 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyReportTransactions);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
+
+    const refreshSearch = () => {
+        // Read at payment time, since the Wise quote can be confirmed after the network state changes
+        if (!currentSearchQueryJSON || getIsOffline()) {
+            return;
+        }
+        search({
+            searchKey: currentSearchKey,
+            shouldCalculateTotals,
+            offset: 0,
+            queryJSON: currentSearchQueryJSON,
+            isLoading: !!currentSearchResults?.search?.isLoading,
+            shouldReturnTripRooms,
+        });
+    };
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
@@ -237,7 +255,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 rules,
             });
         } else {
-            payMoneyRequest({
+            payWithWiseQuote({
                 bankAccountList,
                 getCurrencyDecimals,
                 isASAPSubmitBetaEnabled,
@@ -260,22 +278,13 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 onPaid: () => {
                     startAnimation();
                 },
+                onPaymentSent: refreshSearch,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
                 rules,
             });
-            if (currentSearchQueryJSON && !isOffline) {
-                search({
-                    searchKey: currentSearchKey,
-                    shouldCalculateTotals,
-                    offset: 0,
-                    queryJSON: currentSearchQueryJSON,
-                    isLoading: !!currentSearchResults?.search?.isLoading,
-                    shouldReturnTripRooms,
-                });
-            }
         }
     };
 
@@ -491,6 +500,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
                 delegateAccountID,
+                allTransactionViolations,
             });
 
         if (!isUserValidated && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -536,6 +546,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction, isDisabled
     return (
         <View style={wrapperStyle}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 innerStyles={innerStyles}
                 style={shouldTakeRemainingWidth ? styles.w100 : undefined}

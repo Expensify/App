@@ -7,6 +7,8 @@ import type {AvatarSizeName} from '@styles/utils/types';
 
 import CONST from '@src/CONST';
 
+import type {ColorValue} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -15,10 +17,13 @@ import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 type AvatarWithOptionalStatusProps = {
     emojiStatus?: string;
     isSelected?: boolean;
+
+    /** Stroke of the status badge in place of the default one */
+    badgeBorderColor?: ColorValue;
     size?: AvatarSizeName;
 };
 
-function AvatarWithOptionalStatus({emojiStatus = '', isSelected = false, size = CONST.AVATAR_SIZE.SMALL}: AvatarWithOptionalStatusProps) {
+function AvatarWithOptionalStatus({emojiStatus = '', isSelected = false, size = CONST.AVATAR_SIZE.SMALL, badgeBorderColor}: AvatarWithOptionalStatusProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -28,7 +33,7 @@ function AvatarWithOptionalStatus({emojiStatus = '', isSelected = false, size = 
                 isSelected={isSelected}
                 size={size}
             />
-            <View style={styles.sidebarStatusAvatar}>
+            <View style={[styles.sidebarStatusAvatar, !!badgeBorderColor && StyleUtils.getBorderColorStyle(badgeBorderColor)]}>
                 <View>
                     <Text
                         style={styles.emojiStatusLHN}

@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,6 +42,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
+import useNavigationBarWidth from './FlatNavigationBar/useNavigationBarWidth';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
 const FULL_WIDTH_TAB_ROOT_SCREENS = new Set<string>([SCREENS.WORKSPACES_LIST, SCREENS.DOMAINS_LIST]);
@@ -75,8 +77,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.theresAWorkspaceWithCustomUnitsErrors';
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAWorkspaceMember';
-        case CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR:
-            return 'debug.indicatorStatus.theresAProblemWithAWorkspaceQBOExport';
+        case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_EXPORT_ERROR:
+            return 'debug.indicatorStatus.theresAProblemWithAWorkspaceReimbursementExport';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAContactMethod';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
@@ -160,7 +162,9 @@ function DebugTabView({selectedTab}: Props) {
     const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
     const {shouldHideSidePanel} = useSidePanelDisplayStatus();
     const {windowWidth} = useWindowDimensions();
-    const sidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel ? variables.sidePanelWidth : 0;
+    const {sidePanelWidth} = useSidePanelState();
+    const navigationBarWidth = useNavigationBarWidth();
+    const sidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel ? sidePanelWidth : 0;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, indicatorPolicyID} = useIndicatorStatus();
@@ -228,10 +232,10 @@ function DebugTabView({selectedTab}: Props) {
     if (shouldUseNarrowLayout) {
         positionStyle = {bottom: 0, left: 0, right: 0};
     } else if (isOnFullWidthTabRoot) {
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize - sidePanelOffset};
+        positionStyle = {...verticalAnchor, left: navigationBarWidth, width: windowWidth - navigationBarWidth - sidePanelOffset};
     } else {
         const lhnWidth = selectedTab === NAVIGATION_TABS.INBOX ? variables.inboxSideBarWidth : variables.sideBarWithLHBWidth;
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: lhnWidth - variables.cropBorderWidth};
+        positionStyle = {...verticalAnchor, left: navigationBarWidth, width: lhnWidth - variables.cropBorderWidth};
     }
 
     // pAbsolute is only applied on wide layouts. On narrow layout the bar is placed by its parent
@@ -261,7 +265,10 @@ function DebugTabView({selectedTab}: Props) {
                     />
                     {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
                 </View>
-                <Button onPress={navigateTo}>
+                <Button
+                    onPress={navigateTo}
+                    sentryLabel={CONST.SENTRY_LABEL.DEBUG_TAB_VIEW.VIEW_BUTTON}
+                >
                     <Button.Text>{translate('common.view')}</Button.Text>
                 </Button>
             </View>

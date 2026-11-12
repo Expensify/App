@@ -4,7 +4,6 @@ on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths:
       [
         '**.js',
@@ -44,6 +43,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: '["server/victory-chart-renderer", "web/cloudflare-worker"]'
 
       # oxlint runs JS plugins on one thread (oxc#26621), so OxlintLinter splits them into 4 shards on this 8 vCPU runner.
       - name: Lint JavaScript and TypeScript with Oxlint
