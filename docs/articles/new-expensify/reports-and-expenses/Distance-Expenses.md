@@ -187,23 +187,14 @@ Review the excluded distance and reimbursement amount on the confirmation screen
 
 ## How to add a home address for distance expenses
 
-If your workspace uses **Exclude usual commute** and you are office-based, save your home address before creating a distance expense. If it is missing, a reminder appears under **Home > Time sensitive**, and Concierge can prompt you in your workspace chat. Distance expense creation is blocked until you add the address.
+If your workspace uses **Exclude usual commute** and you are office-based, add your home address to help calculate distance expenses.
 
-On web:
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile**.
+3. Under **Private**, select **Home address**.
+4. Enter your home address, then select **Save**.
 
-1. In the navigation tabs on the left, select **Account > Profile**.
-
-On mobile:
-
-1. Select your profile icon, then select **Profile**.
-
-On either platform:
-
-1. Under **Private**, select **Home address**.
-2. Enter your home address and select **Save**.
-3. Complete any verification requested, then return to your distance expense.
-
-You can also use the address prompt shown when you try to create a distance expense. Your home address is private account information, not a public profile field.
+Your home address is kept private and is not displayed on your profile. 
 
 ## How distance rates stay current automatically
 
