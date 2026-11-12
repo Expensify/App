@@ -1,4 +1,5 @@
 import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import AvatarPressSlot from '@components/Avatar/pressable/AvatarPressSlot';
 import AvatarNamesTooltip from '@components/Avatar/tooltips/AvatarNamesTooltip';
 import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import Text from '@components/Text';
@@ -35,6 +36,8 @@ function DiagonalAvatars({size, icons, isInReportAction, backdropColor, isHovere
 
     const primaryIcon = icons.at(0);
     const secondaryIcon = icons.at(1);
+    const primaryAvatar = primaryIcon ?? EMPTY_USER_ICON;
+    const secondaryAvatar = secondaryIcon ?? EMPTY_USER_ICON;
 
     const {avatarSize, singleAvatarStyleKey} = getDiagonalAvatarSizing(size);
     const secondaryAvatarContainerStyles = StyleUtils.getBackgroundAndBorderStyle(backdropColor ?? (isHovered ? theme.activeComponentBG : theme.componentBG));
@@ -54,12 +57,14 @@ function DiagonalAvatars({size, icons, isInReportAction, backdropColor, isHovere
                     avatar={primaryIcon}
                     fallbackDisplayName={fallbackDisplayName}
                 >
-                    <AvatarFromIcon
-                        icon={primaryIcon ?? EMPTY_USER_ICON}
-                        size={avatarSize}
-                        imageStyles={styles[singleAvatarStyleKey]}
-                        testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
-                    />
+                    <AvatarPressSlot avatar={primaryAvatar}>
+                        <AvatarFromIcon
+                            icon={primaryAvatar}
+                            size={avatarSize}
+                            imageStyles={styles[singleAvatarStyleKey]}
+                            testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
+                        />
+                    </AvatarPressSlot>
                 </AvatarTooltip>
             }
             secondary={
@@ -68,12 +73,14 @@ function DiagonalAvatars({size, icons, isInReportAction, backdropColor, isHovere
                         avatar={secondaryIcon}
                         fallbackDisplayName={fallbackDisplayName}
                     >
-                        <AvatarFromIcon
-                            icon={secondaryIcon ?? EMPTY_USER_ICON}
-                            size={avatarSize}
-                            imageStyles={styles[singleAvatarStyleKey]}
-                            testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
-                        />
+                        <AvatarPressSlot avatar={secondaryAvatar}>
+                            <AvatarFromIcon
+                                icon={secondaryAvatar}
+                                size={avatarSize}
+                                imageStyles={styles[singleAvatarStyleKey]}
+                                testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
+                            />
+                        </AvatarPressSlot>
                     </AvatarTooltip>
                 ) : (
                     <AvatarNamesTooltip avatars={icons.slice(1)}>

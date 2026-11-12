@@ -20,14 +20,22 @@ type UnreportedExpenseTableRowData = Transaction & TableData;
 
 type AddExistingExpenseTableProps = Pick<
     TableProps<UnreportedExpenseTableRowData, ExpenseTableColumnKey, ExpenseTableFilterKey>,
-    'onEndReached' | 'onEndReachedThreshold' | 'ListFooterComponent'
+    'onEndReached' | 'onEndReachedThreshold' | 'ListFooterComponent' | 'shouldFooterRenderAsLastRow'
 > & {
     data: UnreportedExpenseTableRowData[];
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-function AddExistingExpenseTable({data, selectedKeys, onRowSelectionChange, onEndReached, onEndReachedThreshold, ListFooterComponent}: AddExistingExpenseTableProps) {
+function AddExistingExpenseTable({
+    data,
+    selectedKeys,
+    onRowSelectionChange,
+    onEndReached,
+    onEndReachedThreshold,
+    ListFooterComponent,
+    shouldFooterRenderAsLastRow,
+}: AddExistingExpenseTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
@@ -123,8 +131,7 @@ function AddExistingExpenseTable({data, selectedKeys, onRowSelectionChange, onEn
             shouldAlwaysEnableSelection
             // Expenses are confirmed in one batch, so searching or filtering must not drop what is already picked.
             shouldPreserveSelectionOnSearchAndFilter
-            // The skeleton appended while the next page loads continues the rows, so it draws the bottom corners.
-            shouldFooterRenderAsLastRow
+            shouldFooterRenderAsLastRow={shouldFooterRenderAsLastRow}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
             initialSortColumn="date"

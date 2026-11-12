@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntactCredentialsForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_PREREQUISITES>;
@@ -32,29 +32,23 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
     const {inputCallbackRef} = useAutoFocusInput();
     const policyID: string = route.params.policyID;
 
-    const confirmCredentials = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
-            connectToSageIntacct(policyID, values);
-            Navigation.dismissModal();
-        },
-        [policyID],
-    );
+    const confirmCredentials = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
+        connectToSageIntacct(policyID, values);
+        Navigation.dismissModal();
+    };
 
     const formItems = Object.values(INPUT_IDS);
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM> = {};
 
-            for (const formItem of formItems) {
-                if (values[formItem]) {
-                    continue;
-                }
-                addErrorMessage(errors, formItem, translate('common.error.fieldRequired'));
+        for (const formItem of formItems) {
+            if (values[formItem]) {
+                continue;
             }
-            return errors;
-        },
-        [formItems, translate],
-    );
+            addErrorMessage(errors, formItem, translate('common.error.fieldRequired'));
+        }
+        return errors;
+    };
     return (
         <ScreenWrapper
             testID="EnterSageIntacctCredentialsPage"

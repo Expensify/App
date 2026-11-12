@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -144,7 +145,7 @@ const renderEditPage = (route = mockRoute) =>
             <Stack.Navigator>
                 <Stack.Screen name={SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT}>
                     {() => (
-                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                             <WorkspaceWorkflowsApprovalsEditPage
                                 // @ts-expect-error - route type from navigator
                                 route={route}
@@ -217,7 +218,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
                 key: ONYXKEYS.APPROVAL_WORKFLOW,
                 callback: (state) => {
                     resolve(state?.members ?? []);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });
@@ -234,7 +235,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
                 key: ONYXKEYS.APPROVAL_WORKFLOW,
                 callback: (state) => {
                     resolve(state?.availableMembers ?? []);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });
@@ -340,6 +341,28 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
             expect(updateApprovalWorkflowRules).toHaveBeenCalledTimes(1);
             expect(updateApprovalWorkflow).not.toHaveBeenCalled();
         });
+
+        it('keeps writing to employeeList under MULTIPLE_APPROVERS while a policy without rules has an over-limit approver', async () => {
+            // Given the beta is on, and the policy has no rules while Alice sends reports over her limit to Carol
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[ALICE_EMAIL]: {approvalLimit: 10000, overLimitForwardsTo: CAROL_EMAIL}}});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderEditPage();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin saves Alice's workflow
+            fireEvent.press(screen.getByText(translateLocal('common.save')));
+            await waitForBatchedUpdatesWithAct();
+            const [, options] = jest.mocked(Navigation.goBack).mock.calls.at(-1) ?? [];
+            options?.afterTransition?.();
+
+            // Then the save goes to employeeList rather than writing rules, which would change where reports over Alice's limit go
+            expect(updateApprovalWorkflow).toHaveBeenCalledTimes(1);
+            expect(updateApprovalWorkflowRules).not.toHaveBeenCalled();
+        });
     });
 
     describe('Delete', () => {
@@ -361,6 +384,31 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
             options?.afterTransition?.();
 
             expect(removeApprovalWorkflow).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('approver no longer on the workspace', () => {
+        it('flags the approver as soon as the editor opens and blocks saving', async () => {
+            // Given Bob still submits to someone who was removed from the workspace
+            const bobEmail = 'bob@example.com';
+            const removedEmail = 'removed@example.com';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[bobEmail]: {email: bobEmail, submitsTo: removedEmail}}});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the admin opens that workflow in the editor
+            renderEditPage({...mockRoute, params: {policyID: POLICY_ID, firstApproverEmail: removedEmail}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the approver shows the error right away, before any Save attempt
+            expect(await screen.findByText(translateLocal('workflowsPage.approverNotWorkspaceMember'))).toBeOnTheScreen();
+
+            // And saving is blocked until the admin picks a new approver or deletes the workflow
+            jest.mocked(Navigation.goBack).mockClear();
+            fireEvent.press(screen.getByText(translateLocal('common.save')));
+            await waitForBatchedUpdatesWithAct();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
         });
     });
 

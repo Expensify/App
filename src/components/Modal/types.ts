@@ -141,6 +141,12 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          * Defaults to true.
          */
         shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode?: boolean;
+
+        /**
+         * Whether a bottom docked modal in landscape mode is capped at part of the window height.
+         * Turn off for content that sizes itself to the window, so the cap doesn't clip it. Defaults to true.
+         */
+        shouldLimitHeightIfBottomDockedInLandscapeMode?: boolean;
     };
 
 export default BaseModalProps;

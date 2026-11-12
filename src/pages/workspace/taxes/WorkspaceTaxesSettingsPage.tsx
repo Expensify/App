@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceTaxesSettingsPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS>;
@@ -33,29 +33,29 @@ function WorkspaceTaxesSettingsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const menuItems = useMemo(
-        () => [
-            {
-                title: policy?.taxRates?.name,
-                description: translate('workspace.taxes.customTaxName'),
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME.getRoute(policyID)),
-                pendingAction: policy?.taxRates?.pendingFields?.name,
-            },
-            {
-                title: policy?.taxRates?.taxes?.[policy?.taxRates?.defaultExternalID]?.name,
-                description: translate('workspace.taxes.workspaceDefault'),
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT.getRoute(policyID)),
-                pendingAction: policy?.taxRates?.pendingFields?.defaultExternalID,
-            },
-            {
-                title: policy?.taxRates?.taxes?.[policy?.taxRates?.foreignTaxDefault]?.name,
-                description: translate('workspace.taxes.foreignDefault'),
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT.getRoute(policyID)),
-                pendingAction: policy?.taxRates?.pendingFields?.foreignTaxDefault,
-            },
-        ],
-        [policy?.taxRates, policyID, translate],
-    );
+    const menuItems = [
+        {
+            title: policy?.taxRates?.name,
+            description: translate('workspace.taxes.customTaxName'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAXES.SETTINGS_ROW.CUSTOM_TAX_NAME,
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME.getRoute(policyID)),
+            pendingAction: policy?.taxRates?.pendingFields?.name,
+        },
+        {
+            title: policy?.taxRates?.taxes?.[policy?.taxRates?.defaultExternalID]?.name,
+            description: translate('workspace.taxes.workspaceDefault'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAXES.SETTINGS_ROW.WORKSPACE_DEFAULT,
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT.getRoute(policyID)),
+            pendingAction: policy?.taxRates?.pendingFields?.defaultExternalID,
+        },
+        {
+            title: policy?.taxRates?.taxes?.[policy?.taxRates?.foreignTaxDefault]?.name,
+            description: translate('workspace.taxes.foreignDefault'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAXES.SETTINGS_ROW.FOREIGN_DEFAULT,
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT.getRoute(policyID)),
+            pendingAction: policy?.taxRates?.pendingFields?.foreignTaxDefault,
+        },
+    ];
 
     return (
         <AccessOrNotFoundWrapper
@@ -80,6 +80,7 @@ function WorkspaceTaxesSettingsPage({
                                 pendingAction={item.pendingAction}
                             >
                                 <MenuItemField
+                                    sentryLabel={item.sentryLabel}
                                     value={item.title}
                                     name={item.description}
                                     onPress={item.action}

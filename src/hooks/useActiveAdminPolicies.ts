@@ -5,14 +5,13 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import {useCallback} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
 function useActiveAdminPolicies() {
     const {login} = useCurrentUserPersonalDetails();
-    const selector = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
+    const selector = (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? '');
     const [activeAdminPolicies = getEmptyArray<Policy>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
 
     return activeAdminPolicies;

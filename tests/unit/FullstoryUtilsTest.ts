@@ -40,6 +40,8 @@ describe('FullstoryUtils', () => {
             userMetadata: {
                 freeTrialEndDate: '2099-05-31 23:59:59',
                 paidMember: true,
+                npsScore: 9,
+                npsResponseDate: '2026-05-03 09:30:00',
             },
         });
 
@@ -57,9 +59,11 @@ describe('FullstoryUtils', () => {
             free_trial_status: 'active',
             plan_type: 'collect',
             paid_member: true,
+            nps_score: 9,
         });
         expect(userVars.days_till_trial_end).toBeGreaterThan(0);
         expect(userVars.free_trial_end_date?.toISOString()).toBe('2099-05-31T23:59:59.000Z');
+        expect(userVars.nps_response_date?.toISOString()).toBe('2026-05-03T09:30:00.000Z');
     });
 
     it('builds page viewed event metadata', () => {
@@ -99,5 +103,49 @@ describe('FullstoryUtils', () => {
         });
 
         expect(role.user_role).toBe('member');
+    });
+
+    it('reports Guest as the lowest workspace role', () => {
+        const guestPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.GUEST};
+        const auditorPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.AUDITOR};
+        const memberPolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.USER};
+        const commonInput = {
+            account: {isFromPublicDomain: true},
+            activePolicy: guestPolicy,
+            introSelected: undefined,
+            onboarding: undefined,
+            onboardingCompanySize: undefined,
+            onboardingLastVisitedPath: undefined,
+            onboardingPurposeSelected: undefined,
+            session: {email: 'test@test.com'},
+            userMetadata: {},
+        };
+
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_1: guestPolicy}}).user_role).toBe('guest');
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_1: guestPolicy, policy_2: auditorPolicy}}).user_role).toBe('auditor');
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_1: guestPolicy, policy_3: memberPolicy}}).user_role).toBe('member');
+    });
+
+    it('ranks scoped admin roles above auditor and member', () => {
+        const paymentsAdminPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.PAYMENTS_ADMIN};
+        const cardAdminPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.CARD_ADMIN};
+        const peopleAdminPolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.PEOPLE_ADMIN};
+        const auditorPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.AUDITOR};
+        const memberPolicy = {...createRandomPolicy(5, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.USER};
+        const commonInput = {
+            account: {isFromPublicDomain: true},
+            activePolicy: memberPolicy,
+            introSelected: undefined,
+            onboarding: undefined,
+            onboardingCompanySize: undefined,
+            onboardingLastVisitedPath: undefined,
+            onboardingPurposeSelected: undefined,
+            session: {email: 'test@test.com'},
+            userMetadata: {},
+        };
+
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_5: memberPolicy, policy_4: auditorPolicy, policy_3: peopleAdminPolicy}}).user_role).toBe('peopleAdmin');
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_5: memberPolicy, policy_2: cardAdminPolicy, policy_3: peopleAdminPolicy}}).user_role).toBe('cardAdmin');
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_5: memberPolicy, policy_1: paymentsAdminPolicy, policy_2: cardAdminPolicy}}).user_role).toBe('paymentsAdmin');
     });
 });

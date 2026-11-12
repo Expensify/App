@@ -55,6 +55,9 @@ type AddressFormProps = ForwardedFSClassProps & {
     shouldSaveDraft?: boolean;
 
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles of the city input, which sits 24px below the street unless the caller spaces its inputs differently */
+    cityContainerStyles?: StyleProp<ViewStyle>;
     shouldDisplayCountrySelector?: boolean;
     shouldDisplayStateSelector?: boolean;
     stateSelectorLabel?: string;
@@ -64,17 +67,17 @@ type AddressFormProps = ForwardedFSClassProps & {
     shouldAllowCountryChange?: boolean;
 };
 
-const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce(
-    (acc, key) => {
-        acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
+const PROVINCES_LIST_OPTIONS = Object.values(COMMON_CONST.PROVINCES).reduce(
+    (acc, province) => {
+        acc[province.provinceISO] = province.provinceName;
         return acc;
     },
     {} as Record<string, string>,
 );
 
-const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce(
-    (acc, key) => {
-        acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
+const STATES_LIST_OPTIONS = Object.values(COMMON_CONST.STATES).reduce(
+    (acc, state) => {
+        acc[state.stateISO] = state.stateName;
         return acc;
     },
     {} as Record<string, string>,
@@ -92,6 +95,7 @@ function AddressFormFields({
     inputKeys,
     streetTranslationKey,
     containerStyles,
+    cityContainerStyles,
     shouldDisplayCountrySelector = false,
     shouldDisplayStateSelector = true,
     stateSelectorLabel,
@@ -124,7 +128,6 @@ function AddressFormFields({
                     inputID={inputKeys?.street}
                     shouldSaveDraft={shouldSaveDraft}
                     label={translate(streetTranslationKey)}
-                    containerStyles={styles.mt6}
                     value={values?.street}
                     defaultValue={defaultValues?.street}
                     errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
@@ -146,7 +149,7 @@ function AddressFormFields({
                 value={values?.city}
                 defaultValue={defaultValues?.city}
                 errorText={errors?.city ? translate('bankAccount.error.addressCity') : ''}
-                containerStyles={styles.mt6}
+                containerStyles={cityContainerStyles ?? styles.mt6}
                 forwardedFSClass={forwardedFSClass}
                 autoComplete="address-line2"
             />

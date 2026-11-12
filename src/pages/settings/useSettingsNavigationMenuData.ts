@@ -145,7 +145,7 @@ function useSettingsNavigationMenuData(): {accountMenuItemsData: MenuSection; ge
             icon: icons.Lock,
             screenName: SCREENS.SETTINGS.SECURITY,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SECURITY,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
+            action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY.getRoute()),
         },
     ];
 

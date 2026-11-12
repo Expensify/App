@@ -19,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
@@ -29,6 +30,7 @@ import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/acti
 import {isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
+import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
@@ -55,10 +57,11 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type SettlementButtonProps from './types';
 
@@ -114,7 +117,6 @@ function SettlementButton({
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyID, conciergeReportID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : (iouReport?.policyID ?? CONST.POLICY.ID_FAKE);
@@ -123,6 +125,7 @@ function SettlementButton({
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
@@ -151,15 +154,12 @@ function SettlementButton({
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
     const hasIntentToPay =
         ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) ||
-            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN ||
-            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
+            (canAccessPolicyBankAccount(policy, bankAccountList) &&
+                (policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED))) &&
         !lastPaymentMethod;
     const {isBetaEnabled} = usePermissions();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -175,7 +175,7 @@ function SettlementButton({
     const {showConfirmModal} = useConfirmModal();
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
-    const isBankAccountLocked = policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
+    const isBankAccountLocked = canAccessPolicyBankAccount(policy, bankAccountList) && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
 
     function getLatestPersonalBankAccount() {
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
@@ -198,15 +198,21 @@ function SettlementButton({
                     confirmText: translate('bankAccount.unlockBankAccount'),
                     cancelText: translate('common.cancel'),
                     shouldDisableConfirmButtonWhenOffline: true,
-                }).then(({action}) => {
+                }).then(async ({action}) => {
                     if (action !== ModalActions.CONFIRM) {
                         return;
                     }
                     if (policy?.achAccount?.bankAccountID === undefined) {
                         return;
                     }
+                    const [initiatingBankAccountUnlock, introSelected, onboarding] = await Onyx.multiGet([
+                        ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
+                        ONYXKEYS.NVP_INTRO_SELECTED,
+                        ONYXKEYS.NVP_ONBOARDING,
+                    ]);
                     pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID, delegateAccountID, initiatingBankAccountUnlock);
-                    navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed});
+                    const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
+                    navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails});
                 });
             }
             return true;
@@ -220,7 +226,7 @@ function SettlementButton({
         return false;
     };
 
-    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry?: () => void) => {
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry?: () => void | Promise<void>) => {
         // The validation gate returned before these guards could run, so apply them to the resumed.
         if (checkForPostValidationBlockers()) {
             return;
@@ -228,7 +234,7 @@ function SettlementButton({
         retry?.();
     });
 
-    const checkForNecessaryAction = (paymentMethodType?: PaymentMethodType, retry?: () => void) => {
+    const checkForNecessaryAction = (paymentMethodType?: PaymentMethodType, retry?: () => void | Promise<void>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -247,7 +253,7 @@ function SettlementButton({
         return checkForPostValidationBlockers();
     };
 
-    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void) => {
+    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>) => {
         if (checkForNecessaryAction(paymentMethodType, action)) {
             return;
         }
@@ -262,7 +268,7 @@ function SettlementButton({
     };
 
     const personalBankAccountList = getLatestPersonalBankAccount();
-    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency);
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency, policy?.achAccount?.bankAccountID);
     const businessBankAccountOptions =
         isExpenseReport && businessBankAccountOptionList.length
             ? businessBankAccountOptionList.map((account) => ({...account, value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT}))
@@ -390,30 +396,35 @@ function SettlementButton({
                     }));
             };
 
-            const getPolicyID = () => {
+            const navigateToBusinessBankAccountRoute = async () => {
                 if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
-                    return chatReport?.invoiceReceiver?.policyID;
+                    navigateToBankAccountRoute({policyID: chatReport?.invoiceReceiver?.policyID});
+                    return;
                 }
 
                 // Currency only decides whether direct reimbursement is offered, so it must not gate reuse here:
                 // the setup flow we navigate to next is what brings the workspace to a supported currency.
                 if (hasActivePolicyAsAdmin) {
-                    return activePolicy.id;
+                    navigateToBankAccountRoute({policyID: activePolicy.id});
+                    return;
                 }
 
-                return createWorkspace({
+                const [introSelected, onboarding] = await Onyx.multiGet([ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.NVP_ONBOARDING]);
+                const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+                const {policyID: createdPolicyID} = createWorkspace({
                     introSelected,
                     activePolicy,
                     conciergeChat,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: email,
                     currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-                    isSelfTourViewed,
+                    isSelfTourViewed: guidedSetupAndTourStatusSelector(onboarding).isSelfTourViewed,
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,
                     hasOwnedPaidPolicy,
                     policyName: generateDefaultWorkspaceName(email, displayName, lastWorkspaceNumber, translate),
                     delegateAccountID,
-                }).policyID;
+                });
+                navigateToBankAccountRoute({policyID: createdPolicyID});
             };
 
             const getInvoicesOptions = (payAsBusiness: boolean) => {
@@ -422,7 +433,7 @@ function SettlementButton({
                     icon: icons.Bank,
                     onSelected: () => {
                         if (payAsBusiness) {
-                            navigateToBankAccountRoute({policyID: getPolicyID()});
+                            navigateToBusinessBankAccountRoute();
                         } else {
                             clearPersonalBankAccount();
                             Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute());

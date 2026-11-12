@@ -1,16 +1,15 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getEffectiveDistance} from '@libs/GPSDraftDetailsUtils';
-
-import {fontScale} from '@styles/typography';
+import {formatDistanceToParts} from '@libs/NumberFormatUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -22,29 +21,37 @@ type DistanceCounterProps = {
 
 function DistanceCounter({unit}: DistanceCounterProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Crosshair']);
-    const StyleUtils = useStyleUtils();
 
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
-    const distance = DistanceRequestUtils.getRoundedDistanceInUnits(getEffectiveDistance(gpsDraftDetails), unit);
+    const distanceParts = formatDistanceToParts(preferredLocale, DistanceRequestUtils.convertDistanceUnit(getEffectiveDistance(gpsDraftDetails), unit), unit);
 
     return (
-        <MenuItemWithTopDescription
-            interactive={false}
-            description={translate('common.distance')}
-            titleComponent={
-                <Text style={[styles.iouAmountTextInput, styles.textXLarge, styles.colorMuted, styles.ml3]}>
-                    <Text style={[styles.iouAmountTextInput, styles.textXLarge]}>{distance}</Text>
-                    {` ${unit}`}
-                </Text>
-            }
-            style={[styles.ph0]}
-            icon={icons.Crosshair}
-            shouldIconUseAutoWidthStyle
-            descriptionTextStyle={StyleUtils.getFontSizeStyle(fontScale.label)}
-        />
+        <MenuItem.Root>
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <MenuItem.IconNarrow src={icons.Crosshair} />
+                </MenuItem.Leading>
+                <MenuItemField.Content name={translate('common.distance')}>
+                    <Text style={[styles.iouAmountTextInput, styles.textXLarge]}>
+                        {distanceParts.map((part) =>
+                            part.type === 'unit' ? (
+                                <Text
+                                    key="unit"
+                                    style={[styles.iouAmountTextInput, styles.textXLarge, styles.colorMuted]}
+                                >
+                                    {part.value}
+                                </Text>
+                            ) : (
+                                part.value
+                            ),
+                        )}
+                    </Text>
+                </MenuItemField.Content>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 }
 

@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import FSClassView from '@components/FSClassView';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -20,13 +21,12 @@ import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlace
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard, LogBox, StyleSheet, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 
@@ -153,15 +153,12 @@ function AddressSearch({
         searchValue,
     );
 
-    const query = useMemo(
-        () => ({
-            language: preferredLocale,
-            types: resultTypes,
-            components: limitSearchesToCountry ? `country:${limitSearchesToCountry.toLocaleLowerCase()}` : undefined,
-            ...(locationBias && {locationbias: locationBias}),
-        }),
-        [preferredLocale, resultTypes, limitSearchesToCountry, locationBias],
-    );
+    const query = {
+        language: preferredLocale,
+        types: resultTypes,
+        components: limitSearchesToCountry ? `country:${limitSearchesToCountry.toLocaleLowerCase()}` : undefined,
+        ...(locationBias && {locationbias: locationBias}),
+    };
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
     const saveLocationDetails = (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
         const addressComponents = details?.address_components;
@@ -223,7 +220,6 @@ function AddressSearch({
 
         const countryFallback = Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFallbackLongName);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const country = countryPrimary || countryFallback || '';
 
         const values = {
@@ -287,7 +283,7 @@ function AddressSearch({
 
         if (inputID) {
             for (const [key, inputValue] of Object.entries(values)) {
-                const inputKey = renamedInputKeys?.[key as keyof Omit<Address, 'current'>] ?? key;
+                const inputKey = renamedInputKeys?.[key] ?? key;
                 if (!inputKey) {
                     continue;
                 }
@@ -372,15 +368,12 @@ function AddressSearch({
         };
     }, []);
 
-    const filteredPredefinedPlaces = useMemo(() => {
-        if (!searchValue) {
-            return predefinedPlaces ?? [];
-        }
-        if (shouldHidePredefinedPlaces) {
-            return [];
-        }
-        return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
-    }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
+    let filteredPredefinedPlaces;
+    if (!searchValue) {
+        filteredPredefinedPlaces = predefinedPlaces ?? [];
+    } else {
+        filteredPredefinedPlaces = shouldHidePredefinedPlaces ? [] : (predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? []);
+    }
 
     const listEmptyComponent = isTyping ? (
         <AddressSearchListEmptyComponent
@@ -389,7 +382,7 @@ function AddressSearch({
         />
     ) : undefined;
 
-    const listLoader = useMemo(() => <AddressSearchListLoader onLoadingChange={setIsLoadingResults} />, []);
+    const listLoader = <AddressSearchListLoader onLoadingChange={setIsLoadingResults} />;
 
     return (
         /*
@@ -408,10 +401,10 @@ function AddressSearch({
                 // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
                 keyboardShouldPersistTaps="always"
             >
-                <View
+                <FSClassView
                     style={styles.w100}
                     ref={containerRef}
-                    fsClass={forwardedFSClass}
+                    forwardedFSClass={forwardedFSClass}
                 >
                     <GooglePlacesAutocomplete
                         disableScroll
@@ -528,7 +521,7 @@ function AddressSearch({
                             locationErrorCode={locationErrorCode}
                         />
                     </GooglePlacesAutocomplete>
-                </View>
+                </FSClassView>
             </ScrollView>
             {isFetchingCurrentLocation && (
                 <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>

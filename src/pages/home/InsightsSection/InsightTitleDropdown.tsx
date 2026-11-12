@@ -79,7 +79,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
                 onPress={openMenu}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}
-                sentryLabel="InsightTitleDropdown"
+                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.INSIGHT_TITLE_DROPDOWN}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
             >
                 <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{title}</Text>

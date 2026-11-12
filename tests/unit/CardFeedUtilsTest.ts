@@ -1,10 +1,19 @@
-import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy, getExpensifyCardFeedsForDisplay, getFeedInfo, getVisibleCompanyCardFeedsForSelector} from '@libs/CardFeedUtils';
+import {
+    getAssignedCardFeedAccess,
+    getCardFeedsForDisplay,
+    getCardFeedsForDisplayPerPolicy,
+    getExpensifyCardFeedsForDisplay,
+    getCombinedCardFeedsFromAllFeeds,
+    getFeedInfo,
+    getPolicyIDsNamedByCardFeeds,
+    getVisibleCompanyCardFeedsForSelector,
+} from '@libs/CardFeedUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, Domain, Policy} from '@src/types/onyx';
-import type {CardFeedWithNumber, CustomCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithNumber, CustomCardFeedData, FeedReimbursable} from '@src/types/onyx/CardFeeds';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
@@ -493,5 +502,205 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
 
         expect(result).toHaveLength(1);
         expect(result.at(0)?.linkedPolicyIDs).toEqual(['WS', 'WS2', 'WS3']);
+    });
+});
+
+describe('getAssignedCardFeedAccess', () => {
+    const fundID = 1234;
+    const currentUserLogin = 'admin@test.com';
+    const bank = cardFeedAmericaExpressMock;
+    const card = {bank, domainName: 'acme-corp.com', fundID: String(fundID)};
+
+    function createCompanyCardFeeds(companyCards: NonNullable<NonNullable<CardFeeds['settings']>['companyCards']>): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${fundID}`]: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards,
+                },
+            },
+        };
+    }
+
+    // A domain feed's fundID is the domain's account ID, so the workspace can only come from the feed itself.
+    it('resolves the workspace a feed links to', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    // A feed's policy IDs come from the back end in whatever case it sent them, while the Onyx key is upper case.
+    // Missing the workspace here reads as the cardholder not being able to fix the feed, which is the bug this resolves.
+    it('resolves a workspace the feed names in a different case', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['ws']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    it('falls back to the preferred policy when the feed links to none', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {preferredPolicy: 'WS'}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    // The link is only worth offering on a workspace the cardholder can act in, so one they can fix the feed on wins
+    // over one that would show them the same problem again.
+    it('prefers a linked workspace the user can fix the feed on', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['MEMBER', 'ADMIN']}});
+        const policies: OnyxCollection<Policy> = {
+            policy_MEMBER: createTestPolicy({id: 'MEMBER', role: CONST.POLICY.ROLE.USER}),
+            policy_ADMIN: createTestPolicy({id: 'ADMIN'}),
+        };
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'ADMIN', isAdmin: true});
+    });
+
+    // A card admin is not a workspace admin but is exactly who the Company cards page lets fix a feed, so the role
+    // alone would send them to ask somebody else to do what they can do themselves.
+    it('offers the link to a card admin who is not a workspace admin', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', role: CONST.POLICY.ROLE.CARD_ADMIN, type: CONST.POLICY.TYPE.CORPORATE})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    // The Company cards page is read-only for an auditor, so the link would open a page with the fix banner hidden.
+    it('does not offer the link to an auditor of the linked workspace', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', role: CONST.POLICY.ROLE.AUDITOR, type: CONST.POLICY.TYPE.CORPORATE})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: false});
+    });
+
+    // A member cannot open the page at all, so the link would land on Not Found.
+    it('does not offer the link to a member of the linked workspace', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', role: CONST.POLICY.ROLE.USER})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: false});
+    });
+
+    // An orphan feed names no workspace at all, so the fund is all that is left to go on.
+    it('falls back to the workspace backing the fund when the feed names none', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    // The personal details that hold the login load separately from the policies, so a row rendered before they
+    // arrive must still offer the link rather than telling an admin to ask themselves.
+    it('offers the link when the login has not loaded yet', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, undefined)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    it('returns nothing for a card without a fundID', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess({bank, domainName: '', fundID: undefined}, cardFeeds, policies, currentUserLogin)).toEqual({policyID: undefined, isAdmin: false});
+    });
+});
+
+describe('getPolicyIDsNamedByCardFeeds', () => {
+    const fundID = 1234;
+    const bank = cardFeedAmericaExpressMock;
+    const card = {bank, domainName: 'acme-corp.com', fundID: String(fundID)};
+
+    function createCompanyCardFeeds(companyCards: NonNullable<NonNullable<CardFeeds['settings']>['companyCards']>): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${fundID}`]: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards,
+                },
+            },
+        };
+    }
+
+    // These IDs decide which policies a consumer loads. Returning none leaves the workspace unresolved, which reads
+    // as the cardholder not being an admin of it.
+    it('collects every workspace a feed links to', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1', 'WS2']}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual(['WS1', 'WS2']);
+    });
+
+    it('collects the preferred policy as well as the linked ones', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1'], preferredPolicy: 'WS2'}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual(['WS1', 'WS2']);
+    });
+
+    it('lists a workspace two cards share only once', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1']}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card, {...card, bank}], cardFeeds)).toEqual(['WS1']);
+    });
+
+    it('skips the empty entries a feed can carry', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['', 'WS1'], preferredPolicy: ''}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual(['WS1']);
+    });
+
+    it('returns nothing for a feed that names no workspace', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual([]);
+    });
+
+    it('returns nothing for a card without a fundID', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1']}});
+
+        expect(getPolicyIDsNamedByCardFeeds([{bank, domainName: '', fundID: undefined}], cardFeeds)).toEqual([]);
+    });
+});
+
+describe('getCombinedCardFeedsFromAllFeeds forceReimbursable', () => {
+    const domainID = 1234;
+    const feed = cardFeedAmericaExpressMock;
+    const getFeed = (result: ReturnType<typeof getCombinedCardFeedsFromAllFeeds>) => Object.values(result).at(0);
+
+    function buildFeeds(companyCard: Partial<CustomCardFeedData>, oAuthForceReimbursable?: FeedReimbursable): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${domainID}`]: {
+                settings: {
+                    companyCards: {[feed]: companyCard},
+                    oAuthAccountDetails: {[feed]: {accountList: [], credentials: '', expiration: 0, ...(oAuthForceReimbursable ? {forceReimbursable: oAuthForceReimbursable} : {})}},
+                },
+            },
+        };
+    }
+
+    it('prefers the pending optimistic value over the stale OAuth value', () => {
+        const result = getCombinedCardFeedsFromAllFeeds(
+            buildFeeds({forceReimbursable: 'force_yes', pendingFields: {forceReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}, 'force_no'),
+        );
+        expect(getFeed(result)?.forceReimbursable).toBe('force_yes');
+        expect(getFeed(result)?.pendingFields?.forceReimbursable).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+    });
+
+    it('shows the rolled-back value and keeps the error after a failure', () => {
+        const errors = {1: 'error'};
+        const result = getCombinedCardFeedsFromAllFeeds(buildFeeds({forceReimbursable: 'force_no', errorFields: {forceReimbursable: errors}}, 'force_no'));
+        expect(getFeed(result)?.forceReimbursable).toBe('force_no');
+        expect(getFeed(result)?.errorFields?.forceReimbursable).toEqual(errors);
+    });
+
+    it('keeps the OAuth value when the local rollback cleared the setting', () => {
+        const result = getCombinedCardFeedsFromAllFeeds(buildFeeds({forceReimbursable: undefined, errorFields: {forceReimbursable: {1: 'error'}}}, 'default_yes'));
+        expect(getFeed(result)?.forceReimbursable).toBe('default_yes');
+    });
+
+    it('leaves OAuth data untouched when there is no local reimbursable change', () => {
+        const result = getCombinedCardFeedsFromAllFeeds(buildFeeds({forceReimbursable: 'force_yes'}, 'force_no'));
+        expect(getFeed(result)?.forceReimbursable).toBe('force_no');
     });
 });

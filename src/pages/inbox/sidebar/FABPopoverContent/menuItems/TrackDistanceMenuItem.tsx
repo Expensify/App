@@ -24,6 +24,7 @@ type TrackDistanceMenuItemProps = {
 };
 
 function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Location']);
@@ -40,6 +41,7 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.TRACK_DISTANCE}
             itemId={ITEM_ID}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.TRACK_DISTANCE}
             icon={icons.Location}
@@ -51,7 +53,7 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
                     }
                     // Start the flow to start tracking a distance request
                     startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, distanceExpenseType, undefined, undefined, true);
-                })
+                }, session)
             }
             shouldCallAfterModalHide={shouldUseNarrowLayout}
         />

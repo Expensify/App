@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 
 type AccountManagerLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
@@ -35,12 +35,12 @@ function AccountManagerLinkRenderer({tnode, style}: AccountManagerLinkRendererPr
         ];
     }
 
-    const navigateToAccountManager = useCallback(() => {
+    const navigateToAccountManager = () => {
         if (!accountManagerReportID) {
             return;
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
-    }, [accountManagerReportID]);
+    };
 
     const handleKeyDown = useEnterKeyHandler(navigateToAccountManager);
 

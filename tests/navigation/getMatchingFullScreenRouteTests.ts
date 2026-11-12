@@ -1,5 +1,5 @@
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
-import {getMatchingFullScreenRoute} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import getMatchingFullScreenRoute from '@libs/Navigation/helpers/getMatchingFullScreenRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -13,10 +13,6 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
     dynamicTabPatternToTabPaths: new Map(),
 }));
 
-jest.mock('@libs/ReportUtils', () => ({
-    getReportOrDraftReport: jest.fn(),
-}));
-
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard', () => jest.fn());
 
@@ -27,6 +23,7 @@ jest.mock('@libs/Navigation/linkingConfig/RELATIONS', () => {
     return {
         RHP_TO_DOMAIN: {},
         RHP_TO_HOME: {Home: 'home'},
+        RHP_TO_INSIGHTS: {},
         RHP_TO_SEARCH: {},
         // Deeplink-only mapping: create-flow entry points resolve to the Search fullscreen under the RHP.
         RHP_TO_SEARCH_DEEPLINK: {
@@ -207,6 +204,22 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
 
         const result = getMatchingFullScreenRoute(route);
 
+        expect(mockGetStateFromPath).not.toHaveBeenCalled();
+        expect(result).toBeUndefined();
+    });
+
+    it('should not treat a static screen as dynamic when its path ends like a dynamic suffix', () => {
+        // Given a static screen whose own path happens to end with a registered dynamic suffix, like `settings/card/:cardID` and `card/:cardID`
+        const route = {
+            name: 'StaticScreen',
+            path: '/settings/suffix-a',
+        };
+        mockGetStateFromPath.mockReturnValue({routes: [{name: 'BaseScreen'}, {name: SCREENS.HOME}], index: 1});
+
+        // When the full screen route under it is looked up during in-app navigation
+        const result = getMatchingFullScreenRoute(route);
+
+        // Then nothing is matched, so the page the user came from stays under the RHP instead of being swapped for the stripped base path
         expect(mockGetStateFromPath).not.toHaveBeenCalled();
         expect(result).toBeUndefined();
     });

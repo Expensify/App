@@ -1,50 +1,62 @@
-import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {CAROUSEL_SOURCE, clearActiveTransactionIDsForSource, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {navigationRef} from '@libs/Navigation/Navigation';
 
 import SCREENS from '@src/SCREENS';
 
 import {findFocusedRoute} from '@react-navigation/native';
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 /**
  * When this report is open in the super-wide RHP, seeds the transaction-thread carousel with the
  * transaction IDs in the order the user sees them, and clears them again on unmount.
  */
-function useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs: string[]) {
-    // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
-    // Other callers (e.g. TransactionDuplicateReview.onPreviewPressed) can write to the same
-    // Onyx key with a different ordering. Using the raw array reference would cause the effect
-    // to re-fire on every referential change and overwrite those IDs. The joined string ensures
-    // the effect only re-fires when the actual content changes.
+function useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs: string[], reportID: string | undefined) {
     const visualOrderTransactionIDsKey = visualOrderTransactionIDs.join(',');
+
+    const carouselSource = CAROUSEL_SOURCE.report(reportID);
+    const hasSeededCarouselRef = useRef(false);
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
-        // Don't take over a snapshot-backed carousel (identified by its sibling descriptors, e.g. the Home
-        // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
-        // Overwriting and then clearing it would drop that carousel when the user navigates back. Row presses
-        // still seed the correct siblings lazily via useNavigateToTransactionThread.
-        const {ids: activeIDs, descriptors: activeDescriptors} = getActiveTransactionIDs();
+
+        const {ids: activeIDs, descriptors: activeDescriptors, source: activeSource} = getActiveTransactionIDs();
         if (activeDescriptors) {
             return;
         }
+
+        if (visualOrderTransactionIDs.length === 0 || (visualOrderTransactionIDs.length < 2 && activeSource !== carouselSource)) {
+            return;
+        }
+
         // A report preview press seeds these arrows in the carousel's order, which can differ from this list's order.
         // Keep that seed while it still covers exactly these rows, and re-seed only when the rows themselves change.
-        if (activeIDs && activeIDs.length === visualOrderTransactionIDs.length) {
+        // A carousel this list already owns is exempt: sorting a column moves the rows the arrows walk without
+        // changing which rows they are, and freezing the seed at the order it was first written in would leave
+        // "next" jumping to a row that is no longer below the current one on screen.
+        if (activeSource !== carouselSource && activeIDs && activeIDs.length === visualOrderTransactionIDs.length) {
             const activeIDSet = new Set(activeIDs);
             if (visualOrderTransactionIDs.every((transactionID) => activeIDSet.has(transactionID))) {
                 return;
             }
         }
-        setActiveTransactionIDs(visualOrderTransactionIDs);
+
+        setActiveTransactionIDs(visualOrderTransactionIDs, {source: carouselSource});
+        hasSeededCarouselRef.current = true;
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is an order-sensitive proxy for the array
+    }, [visualOrderTransactionIDsKey, carouselSource]);
+
+    useEffect(() => {
         return () => {
-            clearActiveTransactionIDs();
+            if (!hasSeededCarouselRef.current) {
+                return;
+            }
+            hasSeededCarouselRef.current = false;
+            clearActiveTransactionIDsForSource(carouselSource);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
-    }, [visualOrderTransactionIDsKey]);
+    }, [carouselSource]);
 }
 
 export default useMoneyRequestReportActiveTransactionIDs;

@@ -1,11 +1,13 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ParticipantPickerOverlayHost from '@components/ParticipantPicker/OverlayHost';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+import type {TabSelectorProps} from '@components/TabSelector/types';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -20,7 +22,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {createOnyxTabNavigator, TabScreenWithFocusTrapWrapper} from '@libs/Navigation/OnyxTabNavigator';
 import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -37,7 +39,9 @@ import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import type {TupleToUnion} from 'type-fest';
+
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -51,12 +55,23 @@ import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspac
 import IOURequestStepScan from './step/IOURequestStepScan';
 import IOURequestStepTimeWorkspace from './step/IOURequestStepTimeWorkspace';
 
+const tabNames = [CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN, CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.PER_DIEM, CONST.TAB_REQUEST.TIME] as const;
+const {OnyxTabNavigator, TopTab} = createOnyxTabNavigator(tabNames);
+
 type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & {
-    defaultSelectedTab: SelectedTabRequest;
+    defaultSelectedTab: TupleToUnion<typeof tabNames>;
 };
 
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
+
+function CollapsibleTabSelector(props: TabSelectorProps) {
+    return (
+        <CollapsibleHeaderOnKeyboardGroupMember>
+            <TabSelector {...props} />
+        </CollapsibleHeaderOnKeyboardGroupMember>
+    );
+}
 
 function IOURequestStartPage({
     route,
@@ -117,10 +132,10 @@ function IOURequestStartPage({
         ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!iouRequestStartPolicies?.hasTimePolicy));
 
     // Mirrors the tabs rendered below so a stale persisted selectedTab that isn't valid for this iouType is rejected.
-    const availableTabs = useMemo<Set<SelectedTabRequest>>(() => {
-        if (!shouldUseTab) {
-            return new Set();
-        }
+    let availableTabs: Set<SelectedTabRequest>;
+    if (!shouldUseTab) {
+        availableTabs = new Set();
+    } else {
         const tabs = new Set<SelectedTabRequest>([CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]);
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             tabs.add(CONST.TAB_REQUEST.DISTANCE);
@@ -131,8 +146,8 @@ function IOURequestStartPage({
         if (shouldShowTimeOption) {
             tabs.add(CONST.TAB_REQUEST.TIME);
         }
-        return tabs;
-    }, [shouldUseTab, iouType, shouldShowPerDiemOption, shouldShowTimeOption]);
+        availableTabs = tabs;
+    }
 
     // A quick-action deeplink (e.g. iOS home-screen "Scan receipt") bypasses startMoneyRequest
     // and leaves the previous flow's draft in place under OPTIMISTIC_TRANSACTION_ID. Detect it
@@ -143,20 +158,18 @@ function IOURequestStartPage({
     }
     const isStaleTransactionDraft = latchedDraftStaleness?.isStale ?? false;
 
-    const transactionRequestType = useMemo(() => {
-        if (transaction?.iouRequestType && !isStaleTransactionDraft) {
-            return transaction.iouRequestType;
-        }
-        if (!shouldUseTab) {
-            return CONST.IOU.REQUEST_TYPE.MANUAL;
-        }
-        // selectedTab must be valid for the currently-rendered tab set; otherwise let
-        // OnyxTabNavigator.onTabSelected initialize from the URL (which is authoritative).
-        if (selectedTab && availableTabs.has(selectedTab)) {
-            return selectedTab;
-        }
-        return undefined;
-    }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTab, availableTabs]);
+    let transactionRequestType;
+    if (transaction?.iouRequestType && !isStaleTransactionDraft) {
+        transactionRequestType = transaction.iouRequestType;
+    } else if (!shouldUseTab) {
+        transactionRequestType = CONST.IOU.REQUEST_TYPE.MANUAL;
+    } else // selectedTab must be valid for the currently-rendered tab set; otherwise let
+    // OnyxTabNavigator.onTabSelected initialize from the URL (which is authoritative).
+    if (selectedTab && availableTabs.has(selectedTab)) {
+        transactionRequestType = selectedTab;
+    } else {
+        transactionRequestType = undefined;
+    }
 
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
@@ -191,17 +204,23 @@ function IOURequestStartPage({
         // REMOVE_FULLSCREEN_UNDER_RHP branch is used. Otherwise closeRHPFlow pops the RHP first and the
         // confirmation's unmount cleanup restores the original tab a frame later, briefly flashing the
         // pre-inserted Search/Spend tab. This is a no-op when nothing was pre-inserted.
+        const hadPreInsertedFullscreen = Navigation.getIsFullscreenPreInsertedUnderRHP();
         Navigation.removePreInsertedFullscreenIfNeeded();
-        Navigation.closeRHPFlow();
+        if (!hadPreInsertedFullscreen) {
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        // Close the RHP a frame later. Closed in the same update as the restore, Android dismisses it with the
+        // pre-insert's `none` animation instead of the restored slide.
+        requestAnimationFrame(() => Navigation.closeRHPFlow());
     };
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
 
-    const focusTrapContainerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
-    }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
+    const focusTrapContainerElements = [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
 
     const onBackButtonPress = () => {
         navigateBack();
@@ -284,22 +303,19 @@ function IOURequestStartPage({
             >
                 {/* The confirmation screen is shown on the start page for the manual tab, so we do not want to disable the drag and drop provider in that case */}
                 <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && selectedTab !== CONST.TAB_REQUEST.MANUAL}>
-                    {/*
-                        The embedded confirmation opens the participant picker, which on iOS is an overlay rather
-                        than a modal. Hosting it here is what lets the overlay cover this page's header and tab
-                        bar, instead of stopping at the top of the form it is declared in.
-                    */}
-                    <ParticipantPickerOverlayHost>
+                    <CollapsibleHeaderOnKeyboardGroup>
                         <View style={styles.flex1}>
-                            <FocusTrapContainerElement
-                                onContainerElementChanged={setHeaderWithBackButtonContainerElement}
-                                style={[styles.w100]}
-                            >
-                                <HeaderWithBackButton
-                                    title={tabTitles[iouType]}
-                                    onBackButtonPress={navigateBack}
-                                />
-                            </FocusTrapContainerElement>
+                            <CollapsibleHeaderOnKeyboardGroupMember>
+                                <FocusTrapContainerElement
+                                    onContainerElementChanged={setHeaderWithBackButtonContainerElement}
+                                    style={[styles.w100]}
+                                >
+                                    <HeaderWithBackButton
+                                        title={tabTitles[iouType]}
+                                        onBackButtonPress={navigateBack}
+                                    />
+                                </FocusTrapContainerElement>
+                            </CollapsibleHeaderOnKeyboardGroupMember>
 
                             {shouldUseTab ? (
                                 <OnyxTabNavigator
@@ -307,7 +323,7 @@ function IOURequestStartPage({
                                     defaultSelectedTab={defaultSelectedTab}
                                     onTabSelected={resetIOUTypeIfChanged}
                                     onTabSelect={onTabSelectFocusHandler}
-                                    tabBar={TabSelector}
+                                    tabBar={CollapsibleTabSelector}
                                     onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                     onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                                     lazyLoadEnabled
@@ -389,7 +405,7 @@ function IOURequestStartPage({
                                 </FocusTrapContainerElement>
                             )}
                         </View>
-                    </ParticipantPickerOverlayHost>
+                    </CollapsibleHeaderOnKeyboardGroup>
                 </DragAndDropProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -1,0 +1,62 @@
+diff --git a/node_modules/react-native-vision-camera/ios/Hybrid Objects/HybridCameraSession.swift b/node_modules/react-native-vision-camera/ios/Hybrid Objects/HybridCameraSession.swift
+index 761841f..4763d1f 100644
+--- a/node_modules/react-native-vision-camera/ios/Hybrid Objects/HybridCameraSession.swift	
++++ b/node_modules/react-native-vision-camera/ios/Hybrid Objects/HybridCameraSession.swift	
+@@ -7,6 +7,7 @@
+ import AVFoundation
+ import Foundation
+ import NitroModules
++import UIKit
+ 
+ final class HybridCameraSession: HybridCameraSessionSpec {
+   let session: AVCaptureSession
+@@ -21,6 +22,7 @@ final class HybridCameraSession: HybridCameraSessionSpec {
+   private var shouldBeRunning = false
+   private var lastRuntimeErrorRestart: Date?
+   private var runtimeErrorObserver: NSObjectProtocol?
++  private var isKeepingScreenAwake = false
+ 
+   init(enableMultiCam: Bool) {
+     if enableMultiCam {
+@@ -44,6 +46,11 @@ final class HybridCameraSession: HybridCameraSessionSpec {
+     if let runtimeErrorObserver {
+       NotificationCenter.default.removeObserver(runtimeErrorObserver)
+     }
++    if isKeepingScreenAwake {
++      DispatchQueue.main.async {
++        UIApplication.shared.isIdleTimerDisabled = false
++      }
++    }
+   }
+ 
+   var isRunning: Bool {
+@@ -231,6 +238,7 @@ final class HybridCameraSession: HybridCameraSessionSpec {
+   func start() -> Promise<Void> {
+     return Promise.parallel(Self.queue) {
+       self.shouldBeRunning = true
++      self.setKeepScreenAwake(true)
+       if self.session.isRunning {
+         return
+       }
+@@ -241,6 +249,7 @@ final class HybridCameraSession: HybridCameraSessionSpec {
+   func stop() -> Promise<Void> {
+     return Promise.parallel(Self.queue) {
+       self.shouldBeRunning = false
++      self.setKeepScreenAwake(false)
+       if !self.session.isRunning {
+         return
+       }
+@@ -248,6 +257,13 @@ final class HybridCameraSession: HybridCameraSessionSpec {
+     }
+   }
+ 
++  private func setKeepScreenAwake(_ keepAwake: Bool) {
++    isKeepingScreenAwake = keepAwake
++    DispatchQueue.main.async {
++      UIApplication.shared.isIdleTimerDisabled = keepAwake
++    }
++  }
++
+   private func restartAfterRuntimeError() {
+     Self.queue.async { [weak self] in
+       guard let self, self.shouldBeRunning, !self.session.isRunning else {

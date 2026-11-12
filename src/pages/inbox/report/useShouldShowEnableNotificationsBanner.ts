@@ -14,7 +14,8 @@ import {useEffect, useState} from 'react';
 function useShouldShowEnableNotificationsBanner(report: OnyxEntry<Report>): boolean {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [hasDismissed] = useOnyx(ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER);
-    const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus | undefined>();
+    // Reserve the banner's space before the report list makes its initial scroll-to-end measurement.
+    const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus>(() => NotificationPermission.getStatusSync());
 
     const isConcierge = isConciergeChatReport(report, conciergeReportID);
 

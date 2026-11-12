@@ -63,7 +63,7 @@ function buildRuleWithOverrides(overrides: Record<string, unknown>): ExpenseDefa
 
 describe('ExpenseDefaultRuleUtils', () => {
     describe('buildMerchantRule', () => {
-        it('builds the CreateTransaction trigger, the merchant filter and one Set action per field', () => {
+        it('builds both transaction triggers, the merchant filter and one Set action per field', () => {
             const rule = buildMerchantRule(
                 {
                     merchantToMatch: 'Starbucks',
@@ -81,7 +81,7 @@ describe('ExpenseDefaultRuleUtils', () => {
             );
 
             expect(rule).toEqual({
-                triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION]),
+                triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION, TRIGGER.UPDATE_TRANSACTION]),
                 filters: {left: FIELD.MERCHANT, operator: EQUAL_TO, right: 'Starbucks'},
                 actions: toIndexMap([
                     {name: ACTION.SET, field: FIELD.MERCHANT, value: 'Starbucks Coffee'},
@@ -221,6 +221,28 @@ describe('ExpenseDefaultRuleUtils', () => {
             const rule = asStoredRule(buildRuleWithOverrides({triggers: toIndexMap([CONST.RULES.TRIGGERS.REPORT_SUBMIT])}));
 
             expect(isExpenseDefaultRule(rule)).toBe(false);
+        });
+
+        it('is false for a rule that matches on something other than a merchant', () => {
+            // Given a category rule, which the merchant rule editor has no way to open
+            const rule = asStoredRule(buildRuleWithOverrides({filters: {left: FIELD.CATEGORY, operator: CONTAINS, right: 'Coffee'}}));
+
+            // When it is tested
+            // Then it is not an expense default, so a client that cannot edit it does not list it either
+            expect(isExpenseDefaultRule(rule)).toBe(false);
+        });
+
+        it('is true for a merchant condition nested inside a combination', () => {
+            // Given a rule whose merchant condition sits one level down, which is how two merchants are matched
+            const rule = asStoredRule(
+                buildRuleWithOverrides({
+                    filters: {left: merchantFilter, operator: CONST.SEARCH.SYNTAX_OPERATORS.OR, right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Costa'}},
+                }),
+            );
+
+            // When it is tested
+            // Then the nesting does not hide the merchant condition
+            expect(isExpenseDefaultRule(rule)).toBe(true);
         });
     });
 
@@ -418,7 +440,7 @@ describe('ExpenseDefaultRuleUtils', () => {
             const asReturned = buildRuleWithOverrides({actions: toIndexMap([setCategoryAction, setComment, setMerchant])});
 
             // When both are summarized
-            // Then the reindexing does not reshuffle the summary, so the row text does not jump when a save comes back
+            // Then the differing action keys do not reshuffle the summary, so the row text does not jump when a save comes back
             expect(getExpenseDefaultRuleSummaryFields(asReturned)).toEqual(getExpenseDefaultRuleSummaryFields(asWritten));
             expect(getExpenseDefaultRuleSummaryFields(asReturned)).toEqual([
                 {field: FIELD.MERCHANT, value: 'Starbucks'},

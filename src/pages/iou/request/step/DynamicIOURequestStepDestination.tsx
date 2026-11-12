@@ -253,8 +253,10 @@ function DynamicIOURequestStepDestination({
                             shouldStyleAsCard={false}
                             icon={illustrations.EmptyStateExpenses}
                             title={translate('workspace.perDiem.requestEmptyList.title')}
-                            subtitle={translate(isPolicyAdmin(policy) ? 'workspace.perDiem.requestEmptyList.adminSubtitle' : 'workspace.perDiem.requestEmptyList.subtitle')}
-                            containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                            subtitle={
+                                isPolicyAdmin(policy) ? translate('workspace.perDiem.requestEmptyList.adminSubtitle') : translate('workspace.perDiem.requestEmptyList.subtitle', policy?.name)
+                            }
+                            containerStyle={[styles.flex1, styles.justifyContentCenter, styles.alignSelfCenter]}
                         />
                         {isPolicyAdmin(policy) && (
                             <FixedFooter style={[styles.mtAuto, styles.pt5]}>

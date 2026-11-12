@@ -1,4 +1,4 @@
-import {getCountryCode, normalizeCountryCode} from '@libs/CountryUtils';
+import {getCountryCode, normalizeCountryCode, resolveStateCode} from '@libs/CountryUtils';
 
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
@@ -18,11 +18,18 @@ describe('CountryUtils', () => {
             expect(getCountryCode('Egypt')).toBe('EG');
         });
 
-        it('should return original value for invalid country names or codes', () => {
-            expect(getCountryCode('Invalid Country')).toBe('Invalid Country');
-            expect(getCountryCode('XX')).toBe('XX');
-            expect(getCountryCode('123')).toBe('123');
-            expect(getCountryCode('MISSING TRANSLATION')).toBe('MISSING TRANSLATION');
+        it('should return undefined for invalid country names or codes', () => {
+            // Given values that are neither a country code nor a country name
+            // When they are looked up
+            // Then no country is returned, so callers never receive an unknown value typed as a country
+            expect(getCountryCode('Invalid Country')).toBeUndefined();
+            expect(getCountryCode('XX')).toBeUndefined();
+            expect(getCountryCode('123')).toBeUndefined();
+            expect(getCountryCode('MISSING TRANSLATION')).toBeUndefined();
+            expect(getCountryCode('')).toBeUndefined();
+            expect(getCountryCode('constructor')).toBeUndefined();
+            expect(getCountryCode('toString')).toBeUndefined();
+            expect(getCountryCode(undefined)).toBeUndefined();
         });
 
         it('should handle edge cases with special characters', () => {
@@ -30,8 +37,8 @@ describe('CountryUtils', () => {
         });
 
         it('should be case sensitive for country names', () => {
-            expect(getCountryCode('united states')).toBe('united states');
-            expect(getCountryCode('UNITED STATES')).toBe('UNITED STATES');
+            expect(getCountryCode('united states')).toBeUndefined();
+            expect(getCountryCode('UNITED STATES')).toBeUndefined();
             expect(getCountryCode('United States')).toBe('US');
         });
 
@@ -158,6 +165,25 @@ describe('CountryUtils', () => {
             // @ts-expect-error - This deliberately exercises a missing translation value.
             const result = normalizeCountryCode(data);
             expect(result).toEqual({street: '789 Test St', city: 'Test City', country: 'MISSING TRANSLATION'});
+        });
+    });
+
+    describe('resolveStateCode', () => {
+        it('turns a full US state name into its code, whatever the case', () => {
+            // Given a stored address that names its state in full
+            // When the state is resolved for the state picker
+            // Then the picker gets the 2-letter code it lists states by
+            expect(resolveStateCode('California')).toBe('CA');
+            expect(resolveStateCode('new york')).toBe('NY');
+        });
+
+        it('keeps a code, an empty value and a name it does not know as they are', () => {
+            // Given states that are already codes, missing, or unknown
+            // When they are resolved
+            // Then they come back unchanged, so the caller decides what to do with an unknown name
+            expect(resolveStateCode('TX')).toBe('TX');
+            expect(resolveStateCode('')).toBe('');
+            expect(resolveStateCode('Ontario')).toBe('Ontario');
         });
     });
 });

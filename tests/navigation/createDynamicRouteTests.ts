@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getActiveRoute from '@libs/Navigation/helpers/getActiveRoute';
 
@@ -8,6 +9,7 @@ jest.mock('@libs/Navigation/helpers/getActiveRoute', () => ({
 
 jest.mock('@libs/Log', () => ({
     warn: jest.fn(),
+    alert: jest.fn(),
 }));
 
 jest.mock('@src/ROUTES', () => ({
@@ -18,6 +20,7 @@ jest.mock('@src/ROUTES', () => ({
         INVITE: {path: 'invite'},
         FILTERS: {path: 'filters'},
         ADDRESS_COUNTRY: {path: 'country', getRoute: (country: string) => `country?country=${country}`},
+        MONEY_REQUEST_STEP_CATEGORY: {path: 'expense-category'},
         FLAG_COMMENT: {path: 'flag/:reportID/:reportActionID'},
         MEMBER_DETAILS: {path: 'member-details/:accountID'},
         NETSUITE_EXPORT_EXPENSES_TEST: {path: 'expenses/:expenseType'},
@@ -26,6 +29,8 @@ jest.mock('@src/ROUTES', () => ({
 
 describe('createDynamicRoute', () => {
     const mockGetActiveRoute = jest.mocked(getActiveRoute);
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock doesn't rely on `this` binding
+    const mockLogAlert = jest.mocked(Log.alert);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -142,13 +147,66 @@ describe('createDynamicRoute', () => {
         expect(result).toBe(expectedPath);
     });
 
-    it('should throw an error when suffix query param collides with base path query param', () => {
+    it('should not throw when a money-request step is stacked on a sibling step that shares its query params', () => {
+        // Given the participants step is active, and like every money-request step it declares action/iouType/transactionID/reportID
+        const activeRoute = 'r/123/expense-participants?action=categorize&iouType=submit&transactionID=1&reportID=2';
+        const suffixWithQuery = 'expense-category?action=categorize&iouType=submit&transactionID=1&reportID=2';
+
+        mockGetActiveRoute.mockReturnValue(activeRoute);
+
+        // When the category step is built on top of it, which used to throw a fatal error from an onPress handler
+        const result = createDynamicRoute(suffixWithQuery);
+
+        // Then the route is built with each shared param once, and nothing is reported because the values match
+        expect(result).toBe('r/123/expense-participants/expense-category?action=categorize&iouType=submit&transactionID=1&reportID=2');
+        expect(mockLogAlert).not.toHaveBeenCalled();
+    });
+
+    it('should let the suffix query param win when it collides with a base path query param', () => {
+        // Given a base path and a suffix that carry the same param with different values
+        const activeRoute = 'settings/profile/address?country=GB';
+        const suffixWithQuery = 'country?country=US';
+        const expectedPath = 'settings/profile/address/country?country=US';
+
+        mockGetActiveRoute.mockReturnValue(activeRoute);
+
+        // When the dynamic route is created
+        const result = createDynamicRoute(suffixWithQuery);
+
+        // Then the suffix value is used, since the suffix is the destination of the navigation
+        expect(result).toBe(expectedPath);
+    });
+
+    it('should report the name of a colliding query param without its values', () => {
+        // Given a base path and a suffix that carry the same param with different values
         const activeRoute = 'settings/profile/address?country=GB';
         const suffixWithQuery = 'country?country=US';
 
         mockGetActiveRoute.mockReturnValue(activeRoute);
 
-        expect(() => createDynamicRoute(suffixWithQuery)).toThrow('[createDynamicRoute] Query param "country" exists in both base path and dynamic suffix. This is not allowed.');
+        // When the dynamic route is created
+        createDynamicRoute(suffixWithQuery);
+
+        // Then the collision is reported once with a `[createDynamicRoute]` prefix, which forwards it to Sentry (see FORWARDED_LOG_PREFIXES),
+        // and only the param name is logged because a query param value can carry private data
+        expect(mockLogAlert).toHaveBeenCalledTimes(1);
+        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('[createDynamicRoute]'), {key: 'country'});
+    });
+
+    it('should not report when a colliding query param has the same value in base and suffix', () => {
+        // Given a base path and a suffix that carry the same param with the same value
+        const activeRoute = 'settings/profile/address?country=US';
+        const suffixWithQuery = 'country?country=US';
+        const expectedPath = 'settings/profile/address/country?country=US';
+
+        mockGetActiveRoute.mockReturnValue(activeRoute);
+
+        // When the dynamic route is created
+        const result = createDynamicRoute(suffixWithQuery);
+
+        // Then the param appears once and nothing is reported, since an identical value is not a conflict
+        expect(result).toBe(expectedPath);
+        expect(mockLogAlert).not.toHaveBeenCalled();
     });
 
     it('should append parametric suffix with single param to path', () => {

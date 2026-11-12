@@ -32,9 +32,11 @@ type WorkspaceCategoryTableRowData = TableData & {
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     isLocked: boolean;
+    canEditName: boolean;
     action: () => void;
     dismissError: () => void;
     onToggleEnabled: (enabled: boolean) => void;
+    onRenameName: (newName: string) => void;
 };
 
 type WorkspaceCategoriesTableProps = {
@@ -71,6 +73,10 @@ export default function WorkspaceCategoriesTable({
             key: 'name',
             label: translate('common.name'),
             sortable: true,
+            styling: {
+                // editableCellHeader matches the padded name cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
         },
         ...(shouldShowGLCodeColumn
             ? [

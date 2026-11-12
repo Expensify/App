@@ -143,6 +143,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                 <View style={styles.flex1}>
                     <VideoPlayer
                         url={videoUrl}
+                        fileName={fileName}
                         onSourceLoaded={onSourceLoaded}
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls

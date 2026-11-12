@@ -35,12 +35,11 @@ type FieldsInitialListValuePageProps = {
 function FieldsInitialListValuePage({policyID, featureName, backPath, subtitleKey, testID}: FieldsInitialListValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [formDraft, formDraftMetadata] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const currentValue = formDraft?.[INPUT_IDS.INITIAL_VALUE] ?? '';
-    const isLoadingFormDraft = formDraftMetadata.status !== 'loaded';
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
-    const shouldRedirectToCreatePage = !isLoadingFormDraft && availableListValuesLength === 0;
+    const shouldRedirectToCreatePage = availableListValuesLength === 0;
 
     useEffect(() => {
         if (!shouldRedirectToCreatePage) {
@@ -71,11 +70,11 @@ function FieldsInitialListValuePage({policyID, featureName, backPath, subtitleKe
                     title={translate('common.initialValue')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
-                {isLoadingFormDraft || shouldRedirectToCreatePage ? (
+                {shouldRedirectToCreatePage ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator
                             size="large"
-                            extraLoadingContext={{context: testID, isLoadingFormDraft: !!isLoadingFormDraft}}
+                            extraLoadingContext={{context: testID}}
                         />
                     </View>
                 ) : (

@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {SafeString} from 'expensify-common';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type DocumentsProps = SubPageProps & {ownerBeingModifiedID: string};
@@ -58,16 +58,10 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const [uploadedAddressProof, setUploadedAddressProof] = useState<FileObject[]>(defaultValues[addressProofInputID]);
     const [uploadedCodiceFiscale, setUploadedCodiceFiscale] = useState<FileObject[]>(defaultValues[codiceFiscaleInputID]);
 
-    const STEP_FIELDS = useMemo(
-        () => [proofOfOwnershipInputID, addressProofInputID, copyOfIDInputID, codiceFiscaleInputID],
-        [addressProofInputID, codiceFiscaleInputID, copyOfIDInputID, proofOfOwnershipInputID],
-    );
+    const STEP_FIELDS = [proofOfOwnershipInputID, addressProofInputID, copyOfIDInputID, codiceFiscaleInputID];
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
-            getFieldRequiredErrors(values, STEP_FIELDS, translate),
-        [STEP_FIELDS, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
+        getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
     const handleSelectFile = (files: FileObject[], uploadedFiles: FileObject[], inputID: string, setFiles: React.Dispatch<React.SetStateAction<FileObject[]>>) => {
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: [...uploadedFiles, ...files]});

@@ -1,15 +1,19 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import SidePanelOverlay from '@components/SidePanel/SidePanelOverlay';
+import SidePanelResizeHandle from '@components/SidePanel/SidePanelResizeHandle';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+
+import {areAllModalsHidden} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +32,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom, paddingLeft, paddingRight} = useSafeAreaPaddings();
+    const {sidePanelWidth} = useSidePanelState();
 
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector});
     const uniqueModalId = ComposerFocusManager.getId();
@@ -44,8 +49,19 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
         closeSidePanel();
     };
 
-    // Close Side Panel on escape key press
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePanel(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
+    // Close Side Panel on escape key press. Stand down while any modal is open on top of it, otherwise the same Esc
+    // that closes the modal (whose handler bubbles) would also close the panel underneath. The open-modal registry is
+    // read when the key is pressed, so it stays correct for stacked modals and has no gap while Onyx writes are pending.
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
+        () => {
+            if (!areAllModalsHidden()) {
+                return;
+            }
+            closeSidePanel();
+        },
+        {isActive: !isExtraLargeScreenWidth, shouldBubble: false},
+    );
     // Close Side Panel on debug key press i.e. opening the TestTools modal
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.DEBUG, () => closeSidePanel(), {shouldBubble: true});
 
@@ -83,12 +99,13 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
                         <Animated.View
                             style={[
                                 styles.sidePanelContent,
-                                styles.sidePanelContentWidth(shouldUseNarrowLayout),
+                                styles.sidePanelContentWidth(shouldUseNarrowLayout, sidePanelWidth),
                                 styles.sidePanelContentBorderWidth(isExtraLargeScreenWidth),
                                 {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom, paddingLeft, paddingRight},
                             ]}
                         >
                             {children}
+                            <SidePanelResizeHandle />
                         </Animated.View>
                     </ColorSchemeWrapper>
                 </View>

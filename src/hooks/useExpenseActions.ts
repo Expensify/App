@@ -15,13 +15,13 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {isPolicyAccessible} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
+    canDuplicateExpenseIntoSourceReport,
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
-    getPolicyExpenseChat,
     isDM,
     isSelfDM,
     navigateOnDeleteExpense,
@@ -54,6 +54,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {ValueOf} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
@@ -100,7 +101,7 @@ type UseExpenseActionsReturn = {
 
 function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const theme = useTheme();
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -139,6 +140,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
 
     // Global collections
     const [personalDetails] = useAllPersonalDetails();
@@ -175,7 +177,21 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Default expense policy / chat
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
+
+    // Duplicate expense target: the viewed report when it can accept the copy, otherwise the default workspace chat
+    const canDuplicateIntoSourceReport = canDuplicateExpenseIntoSourceReport({
+        sourceReport: moneyRequestReport,
+        chatReport,
+        policy,
+        currentUserLogin: currentUserLogin ?? '',
+        isSourceReportArchived: isArchivedReport,
+        isChatReportArchived,
+        isASAPSubmitBetaEnabled,
+        rules,
+    });
+    const duplicateTargetPolicy = canDuplicateIntoSourceReport ? policy : defaultExpensePolicy;
+    const duplicateTargetReport = canDuplicateIntoSourceReport ? moneyRequestReport : activePolicyExpenseChat;
 
     // Duplicate detection
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
@@ -227,7 +243,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     // Duplicate expense: unsupported / shouldClose flags
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
-    const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
+    const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && duplicateTargetPolicy?.id !== policy?.id;
     const isDistanceExpenseUnsupportedForDuplicating = !!(
         isDistanceRequest(transaction) &&
         (isArchivedReport || isChatReportArchived || (activePolicyExpenseChat && (isDM(chatReport) || isSelfDM(chatReport))))
@@ -236,6 +252,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         isDistanceExpenseUnsupportedForDuplicating ||
         isPerDiemRequestOnNonDefaultWorkspace ||
         hasCustomUnitOutOfPolicyViolation ||
+        canDuplicateIntoSourceReport ||
         activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID;
 
     const handleDuplicateReset = () => {
@@ -246,10 +263,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     };
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState(handleDuplicateReset);
 
-    const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
+    const targetPolicyTags = duplicateTargetPolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${duplicateTargetPolicy.id}`] ?? {}) : {};
 
-    const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
-    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report: duplicateTargetReport, currentUserAccountID: accountID});
+    const participants = getMoneyRequestParticipantsFromReport(duplicateTargetReport, accountID);
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
@@ -258,7 +275,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         }
         const optimisticChatReportID = generateReportID();
         const optimisticIOUReportID = generateReportID();
-        const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
+        const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${duplicateTargetPolicy?.id}`] ?? {};
 
         for (const item of transactionList) {
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
@@ -266,7 +283,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
-                dateFnsLocale,
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -277,9 +293,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 isSelfTourViewed,
                 customUnitPolicyID: policy?.id,
-                targetPolicy: defaultExpensePolicy ?? undefined,
+                targetPolicy: duplicateTargetPolicy ?? undefined,
                 targetPolicyCategories: activePolicyCategories,
-                targetReport: activePolicyExpenseChat,
+                targetReport: duplicateTargetReport,
                 existingTransactionDraft,
                 personalDetails,
                 recentWaypoints,
@@ -305,6 +321,11 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const addExpenseDropdownOptions = getAddExpenseDropdownOptions({
         translate,
         icons: useMemoizedLazyExpensifyIcons(['Plus', 'ReceiptPlus', 'Location', 'Feed', 'ArrowRight']),
+        sentryLabels: {
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.CREATE_EXPENSE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.ADD_EXISTING_EXPENSE,
+        },
         iouReportID: moneyRequestReport?.reportID,
         policy,
         userBillingGracePeriodEnds,
@@ -364,7 +385,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (!currentTransaction) {
                     return;
                 }
-                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare, getCurrencyDecimals);
+                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare, translate, getCurrencyDecimals);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE]: {
@@ -373,9 +394,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
             onSelected: () => {
-                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                if (duplicateTargetPolicy && shouldRestrictUserBillableActions(duplicateTargetPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     onDuplicateReset?.();
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(duplicateTargetPolicy.id));
                     return;
                 }
 
@@ -431,7 +452,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     return;
                 }
 
-                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
+                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '') && canCreateExpensesOnPolicy(policy, currentUserLogin ?? '');
                 const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
 
                 if (targetPolicyForDuplicate && shouldRestrictUserBillableActions(targetPolicyForDuplicate, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
@@ -450,7 +471,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 duplicateReportAction({
                     isVendorMatchingBetaEnabled,
-                    dateFnsLocale,
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',
@@ -567,7 +587,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             chatIOUReport,
                             isChatIOUReportArchived,
                             getCurrencyDecimals,
+                            accountID,
                             false,
+                            chatIOUReportActions,
                         );
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
                         setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
@@ -590,7 +612,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     return;
                                 }
 
-                                removeTransaction(transaction.transactionID);
+                                removeTransaction(transaction.transactionID, {isDeleted: true});
                             }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
                         };
                         if (goBackRoute) {
@@ -604,7 +626,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.deleteReport', {count: 1}),
-                    prompt: translate('iou.deleteReportConfirmation', {count: 1}),
+                    prompt: moneyRequestReport?.type === CONST.REPORT.TYPE.EXPENSE ? translate('iou.deleteExpenseReportConfirmation') : translate('iou.deleteReportConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
                     buttonVariant: CONST.BUTTON_VARIANT.DANGER,

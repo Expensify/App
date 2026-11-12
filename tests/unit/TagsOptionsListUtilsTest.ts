@@ -1101,6 +1101,23 @@ describe('TagsOptionsListUtils', () => {
         });
     });
 
+    it('groups tags into Recent and All sections once the count reaches a custom searchInputThreshold', () => {
+        // Given fewer enabled tags than the default limit, but as many as the custom threshold
+        const tags = {
+            Alpha: {name: 'Alpha', enabled: true},
+            Beta: {name: 'Beta', enabled: true},
+            Gamma: {name: 'Gamma', enabled: true},
+        };
+
+        // When building sections with the default threshold and with a threshold matching the tag count
+        const defaultSections = getTagListSections({tags, recentlyUsedTags: ['Alpha'], localeCompare, translate: translateLocal});
+        const customSections = getTagListSections({tags, recentlyUsedTags: ['Alpha'], localeCompare, translate: translateLocal, searchInputThreshold: 3});
+
+        // Then the default keeps a single untitled list, while the custom threshold splits it so the list matches the visible search input
+        expect(defaultSections.map((section) => section.title)).toEqual(['']);
+        expect(customSections.map((section) => section.title)).toEqual([translateLocal('common.recent'), translateLocal('common.all')]);
+    });
+
     describe('getUpdatedTransactionTag', () => {
         const dependentPolicyTags: PolicyTagLists = {
             company: {
@@ -1186,6 +1203,54 @@ describe('TagsOptionsListUtils', () => {
             });
 
             expect(result).toBe('Acme Corp');
+        });
+
+        const independentPolicyTags: PolicyTagLists = {
+            departments: {
+                name: 'Departments',
+                required: false,
+                orderWeight: 0,
+                tags: {accounting: {name: '777 Accounting/Finance', enabled: true}},
+            },
+            locations: {
+                name: 'Locations',
+                required: false,
+                orderWeight: 1,
+                tags: {hq: {name: '200 HQ', enabled: true}},
+            },
+        };
+
+        const staleTagEditParams = {
+            hasDependentTags: false,
+            hasMultipleTagLists: true,
+            policyTags: independentPolicyTags,
+            transactionTag: '777 Accounting/Finance:150 CCI:150 CCI',
+            selectedTagName: '200 HQ',
+            currentTag: '150 CCI',
+            tagListIndex: 1,
+        };
+
+        it('drops values for removed tag lists when editing an independent multi-level tag', () => {
+            // Given an expense that kept a value from a tag list the policy removed, and the policy's tags have fully loaded,
+            // so the caller can pass a reliable count of 2 tag lists
+            const tagListCount = 2;
+
+            // When the user edits the Locations tag
+            const result = getUpdatedTransactionTag({...staleTagEditParams, tagListCount});
+
+            // Then the stale third value is dropped, so the "Tag no longer valid" violation can clear
+            expect(result).toBe('777 Accounting/Finance:200 HQ');
+        });
+
+        it('keeps every value when the tag list count is not passed', () => {
+            // Given the same expense, but the policy's tags have not finished loading, so the collection may be partial
+            // and the caller does not pass a tag list count
+
+            // When the user edits the Locations tag
+            const result = getUpdatedTransactionTag(staleTagEditParams);
+
+            // Then no value is dropped, because truncating against a partial collection could discard valid tags
+            expect(result).toBe('777 Accounting/Finance:200 HQ:150 CCI');
         });
     });
 

@@ -41,7 +41,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
 import {SafeString} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -88,7 +88,7 @@ function DynamicIOURequestStepSubrate({
     const styles = useThemeStyles();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
+    const policiesWithPerDiemEnabled = getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin);
     const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
     const iouPolicyID = getIOURequestPolicyID(transaction, report);
     const {policy} = usePolicyForTransaction({
@@ -116,12 +116,12 @@ function DynamicIOURequestStepSubrate({
     const [subrateValue, setSubrateValue] = useState(currentSubrate?.id);
     const [quantityValue, setQuantityValue] = useState(() => (currentSubrate?.quantity ? String(currentSubrate.quantity) : undefined));
 
-    const onChangeQuantity = useCallback((newValue: string) => {
+    const onChangeQuantity = (newValue: string) => {
         // replace all characters that are not spaces or digits
         let validQuantity = newValue.replaceAll(/[^0-9]/g, '');
         validQuantity = validQuantity.match(/(?:\d *){1,12}/)?.[0] ?? '';
         setQuantityValue(validQuantity);
-    }, []);
+    };
 
     useEffect(() => {
         setSubrateValue(currentSubrate?.id);

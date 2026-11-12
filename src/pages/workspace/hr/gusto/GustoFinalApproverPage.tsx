@@ -27,7 +27,7 @@ function GustoFinalApproverPage({
         testID: 'GustoFinalApproverPage',
         isConnected: isGustoConnected,
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-        backRoute: ROUTES.WORKSPACE_HR.getRoute(policyID),
+        backRoute: ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID),
         getCurrentFinalApprover: (policy) => policy?.connections?.gusto?.config?.finalApprover ?? null,
         getProviderName: () => translate('workspace.hr.gusto.title'),
         getHeaderTitle: () => translate('workspace.merge.finalApprover'),

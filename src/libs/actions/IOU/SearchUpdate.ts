@@ -1,9 +1,10 @@
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
-import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
+import {getTransactionDisplayAmount, isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchSuggestionUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
+import {getCurrency, getMerchant} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -11,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
@@ -18,7 +20,7 @@ import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {getAllSnapshots, getCurrentUserPersonalDetails, getSearchQueryByHash} from './index';
+import {getAllSnapshots, getCurrentUserPersonalDetails} from './index';
 
 type ExpenseReportStatusPredicate = (expenseReport: OnyxEntry<OnyxTypes.Report>, transactionReportID?: string) => boolean;
 
@@ -37,6 +39,7 @@ const expenseReportStatusFilterMapping: Record<string, ExpenseReportStatusPredic
 type GetSearchOnyxUpdateParams = {
     transaction: OnyxTypes.Transaction;
     participant?: Participant;
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
     iouReport?: OnyxEntry<OnyxTypes.Report>;
     iouAction?: OnyxEntry<OnyxTypes.ReportAction>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
@@ -83,6 +86,31 @@ function shouldOptimisticallyUpdateSearch(
         return false;
     }
 
+    // Merchant filters can be checked locally, so matching expenses must not wait for a server response, especially offline.
+    const merchantFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+    if (merchantFilters.length) {
+        if (!transaction) {
+            return false;
+        }
+        const merchant = getMerchant(transaction).toLowerCase();
+        const matchesMerchantFilters = merchantFilters.every(({filters}) => {
+            // Values in a positive clause are alternatives; a negated clause must exclude every listed value.
+            if (filters.at(0)?.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                return filters.every((filter) => merchant !== String(filter.value).toLowerCase());
+            }
+            return filters.some((filter) => {
+                const value = String(filter.value).toLowerCase();
+                if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS) {
+                    return merchant.includes(value);
+                }
+                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && merchant === value;
+            });
+        });
+        if (!matchesMerchantFilters) {
+            return false;
+        }
+    }
+
     const suggestedSearches = getSuggestedSearches(currentUserAccountID);
     const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
     const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
@@ -90,17 +118,23 @@ function shouldOptimisticallyUpdateSearch(
 
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE) ||
         (iouReport?.type === CONST.REPORT.TYPE.EXPENSE && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
+    // The Spend footer's selections restrict nothing — they pick which figures the footer prints — so the query is judged
+    // as if they were not there, and a new expense still lands on the list, which matters most offline.
+    const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+    ]);
+    const flatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key) && filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+
     // `status` and `policyID` are regular filters now, but they used to be root keys. They are already accounted for by the
     // status/policyID checks above, so they don't count as restrictive flat filters when deciding whether to optimistically update.
-    const hasNoFlatFilters = currentSearchQueryJSON.flatFilters.every(
-        (filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS || filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-    );
+    const hasNoFlatFilters = flatFilters.every((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS || filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
 
-    const onlyFromFilter = currentSearchQueryJSON.flatFilters.length === 1 ? currentSearchQueryJSON.flatFilters.at(0) : undefined;
+    const onlyFromFilter = flatFilters.length === 1 ? flatFilters.at(0) : undefined;
     const matchesFromQuery: boolean =
         onlyFromFilter?.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM &&
         onlyFromFilter.filters.some((f) => f.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && String(f.value) === String(currentUserAccountID));
@@ -124,9 +158,9 @@ function shouldOptimisticallyUpdateSearch(
 
 /**
  * The default Spend > Expenses and Reports pages render from the canned suggested-search snapshots
- * (`type:expense` / `type:expense_report`). Those hashes are normally added to SEARCH_QUERY_BY_HASH
- * only as a side effect of the `search()` action when the page is actually opened (see Search.ts).
- * If the user never opened the page before going offline, that hash is absent from the map, so the
+ * (`type:expense` / `type:expense_report`). Those snapshots normally get their `search.inputQuery`
+ * only from the `search()` action when the page is actually opened (see Search.ts).
+ * If the user never opened the page before going offline, that snapshot has no recorded query, so the
  * fan-out loop in `getSearchOnyxUpdate` never patches the snapshot the page reads and it stays empty.
  *
  * These canned queries are deterministic and don't depend on a visit, so we register their hashes here
@@ -156,10 +190,13 @@ function getSearchOnyxUpdate({
     isFromOneTransactionReport,
     isInvoice,
     previousMoneyRequestAction,
+    currentUserPersonalDetails: passedCurrentUserPersonalDetails,
 }: GetSearchOnyxUpdateParams): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
     const toAccountID = participant?.accountID;
-    const deprecatedCurrentUserPersonalDetails = getCurrentUserPersonalDetails();
-    const fromAccountID = deprecatedCurrentUserPersonalDetails?.accountID;
+    // Callers that already have the current user's details (e.g. read from the CurrentUserPersonalDetails context) pass them in.
+    // The rest fall back to the Onyx subscription until they are migrated.
+    const currentUserPersonalDetails = passedCurrentUserPersonalDetails ?? getCurrentUserPersonalDetails();
+    const fromAccountID = currentUserPersonalDetails?.accountID;
 
     if (toAccountID === undefined || fromAccountID === undefined) {
         return;
@@ -175,9 +212,9 @@ function getSearchOnyxUpdate({
         },
         [fromAccountID]: {
             accountID: fromAccountID,
-            avatar: deprecatedCurrentUserPersonalDetails?.avatar,
-            displayName: deprecatedCurrentUserPersonalDetails?.displayName,
-            login: deprecatedCurrentUserPersonalDetails?.login,
+            avatar: currentUserPersonalDetails?.avatar,
+            displayName: currentUserPersonalDetails?.displayName,
+            login: currentUserPersonalDetails?.login,
         },
     };
     const hasGenuineModifiedMerchant = !!transaction.modifiedMerchant && !isInvalidMerchantValue(transaction.modifiedMerchant);
@@ -187,8 +224,11 @@ function getSearchOnyxUpdate({
         ...transaction,
         // Onyx.merge can't clear a key by spreading `undefined`, so a stale snapshot `modifiedMerchant` (e.g. the
         // `(none)`/`Expense` placeholder a self-DM split inherits) would win over `merchant` in `isMerchantMissing`
-        // and show a false "Missing Merchant". Clear it with `null` unless it's a genuine user edit (#99500).
-        modifiedMerchant: hasGenuineModifiedMerchant ? transaction.modifiedMerchant : null,
+        // and show a false "Missing Merchant". Clear it with `''` unless it's a genuine user edit (#99500).
+        modifiedMerchant: hasGenuineModifiedMerchant ? transaction.modifiedMerchant : '',
+        modifiedAmount: transaction.modifiedAmount ?? '',
+        modifiedCurrency: transaction.modifiedCurrency ?? '',
+        modifiedCreated: transaction.modifiedCreated ?? transaction.created,
     };
     if (policy) {
         baseSnapshotData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
@@ -233,11 +273,15 @@ function getSearchOnyxUpdate({
         if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM && !alreadyInSnapshot) {
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${fromAccountID}` as const;
             const existingGroup = existingSnapshot?.data?.[groupKey];
+
+            // The group total is in the group's currency, so we can't add an amount in a different currency to it
+            const transactionCurrency = getCurrency(transaction);
+            const isSameCurrencyAsGroup = !existingGroup?.currency || transactionCurrency === existingGroup.currency;
             snapshotData[groupKey] = {
                 accountID: fromAccountID,
                 count: (existingGroup?.count ?? 0) + 1,
-                total: (existingGroup?.total ?? 0) + (transaction.amount ?? 0),
-                currency: existingGroup?.currency ?? transaction.currency ?? CONST.CURRENCY.USD,
+                total: (existingGroup?.total ?? 0) + (isSameCurrencyAsGroup ? getTransactionDisplayAmount(transaction, iouReport, policy) : 0),
+                currency: existingGroup?.currency ?? transactionCurrency,
             };
         }
 
@@ -339,13 +383,26 @@ function getSearchOnyxUpdate({
 
     // 2. Update every other loaded snapshot whose recorded query also matches this transaction.
     //    This catches cases like creating an expense from a chat while a `from:<me>` filter or
-    //    `groupBy:from` view is loaded but not the currently active search. The hash→query map is
-    //    stored in a dedicated Onyx key (not on the snapshot) so SEARCH API responses can't wipe it.
-    //    The deterministic default canned hashes (see getDefaultSearchQueriesByHash) are merged in so the
-    //    default Spend > Expenses / Reports pages are patched even when they were never visited. Onyx-recorded
+    //    `groupBy:from` view is loaded but not the currently active search. Each snapshot records the
+    //    query it was searched with in `search.inputQuery` (see Search.ts), so an evicted snapshot drops out on its own.
+    //    The deterministic default canned hashes (see getDefaultSearchQueriesByHash) are also patched so the
+    //    default Spend > Expenses / Reports pages are patched even when they were never visited. Recorded
     //    queries take precedence so a real visited entry is never shadowed by the canned default.
-    const queryByHash = {...getDefaultSearchQueriesByHash(), ...getSearchQueryByHash()};
-    for (const [hashString, queryString] of Object.entries(queryByHash)) {
+    const defaultQueriesByHash = getDefaultSearchQueriesByHash();
+    const snapshotPrefixLength = ONYXKEYS.COLLECTION.SNAPSHOT.length;
+    for (const [snapshotKey, snapshot] of Object.entries(allSnapshots)) {
+        const inputQuery = snapshot?.search?.inputQuery;
+        if (!inputQuery) {
+            continue;
+        }
+        delete defaultQueriesByHash[snapshotKey.slice(snapshotPrefixLength)];
+        const queryJSON = buildSearchQueryJSON(inputQuery);
+        if (!queryJSON) {
+            continue;
+        }
+        writeForQuery(queryJSON, snapshot);
+    }
+    for (const [hashString, queryString] of Object.entries(defaultQueriesByHash)) {
         if (!queryString) {
             continue;
         }

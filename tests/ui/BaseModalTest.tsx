@@ -1,14 +1,17 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import type BaseModalComponent from '@components/Modal/BaseModal';
 import type ModalContextType from '@components/Modal/ModalContext';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
+
+import type UseResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import type * as ModalActions from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
 describe('BaseModal', () => {
     afterEach(() => {
@@ -139,6 +142,59 @@ describe('BaseModal', () => {
             // Then children learn they are already inside a vertical scroller only when BaseModal actually adds its landscape ScrollView,
             // so they don't nest a second one that would fight it for the drag gesture
             expect(isContentWrappedInScrollView).toBe(expectedIsContentWrappedInScrollView);
+        },
+    );
+
+    it.each([
+        [true, true, false, true],
+        [true, false, false, false],
+        [true, true, true, false],
+        [false, true, false, false],
+    ])(
+        'shows the RHP resize handle on a right docked modal when visible=%s, resizable=%s, keeping its backdrop=%s',
+        (isVisible, isResizableSingleRHP, shouldKeepRightDockedBackdropInNarrowPane, shouldShowHandle) => {
+            // Given a wide window where the modal opens from inside the RHP, so it covers the RHP's card and its handle
+            jest.doMock('react', () => React);
+            jest.doMock('@hooks/useResponsiveLayout', () => {
+                const {default: useResponsiveLayout} = jest.requireActual<{default: typeof UseResponsiveLayout}>('@hooks/useResponsiveLayout');
+                return {
+                    __esModule: true,
+                    default: function useWideResponsiveLayoutInNarrowPaneModal() {
+                        return {...useResponsiveLayout(), isSmallScreenWidth: false, isInNarrowPaneModal: true};
+                    },
+                };
+            });
+            jest.doMock('@hooks/useIsResizableSingleRHP', () => ({
+                __esModule: true,
+                default: () => isResizableSingleRHP,
+            }));
+            jest.doMock('@hooks/useSingleRHPWidth', () => ({
+                __esModule: true,
+                default: () => ({width: 500, min: 380, max: 800}),
+            }));
+            jest.doMock('@components/RHPResizeHandle', () => ({
+                __esModule: true,
+                default: () => <View testID="RHPResizeHandle" />,
+            }));
+            jest.doMock('@components/Modal/ReanimatedModal', () => ({
+                __esModule: true,
+                default: ({children}: ReanimatedModalProps) => children,
+            }));
+            const {default: BaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
+
+            // When the modal renders
+            render(
+                <BaseModal
+                    isVisible={isVisible}
+                    type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+                    shouldKeepRightDockedBackdropInNarrowPane={shouldKeepRightDockedBackdropInNarrowPane}
+                >
+                    {null}
+                </BaseModal>,
+            );
+
+            // Then it brings its own handle only while it is open and stacked on a resizable RHP, so the RHP stays draggable under it
+            expect(screen.queryByTestId('RHPResizeHandle') !== null).toBe(shouldShowHandle);
         },
     );
 

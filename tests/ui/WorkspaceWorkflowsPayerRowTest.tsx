@@ -1,15 +1,18 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 
+import * as PolicyActions from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
@@ -71,7 +74,7 @@ const buildPolicy = (overrides: Partial<Policy> = {}): Policy =>
 
 const renderPage = (initialRouteName: keyof TestNavigatorParamList = SCREENS.WORKSPACE.WORKFLOWS) =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
                 <ModalProvider>
                     <NavigationContainer>
@@ -118,6 +121,110 @@ describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
         jest.restoreAllMocks();
     });
 
+    it('shows per-country pending styles only offline and hides pending deletions immediately online', async () => {
+        // Given saved, added and deleted countries remain pending in the same workspace.
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.COLLECT_DEPOSIT_ACCOUNTS]);
+            await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                    isCollectDepositAccountsEnabled: true,
+                    reimbursement: {
+                        countries: {
+                            AF: {},
+                            AX: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                            AL: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                        },
+                    },
+                }),
+            );
+        });
+        const {result} = renderHook(() => useThemeStyles());
+
+        // When the payments tab renders offline, only changed countries get pending styles.
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then saved countries stay normal, removals are struck through and additions are muted.
+        expect(screen.getByText('Afghanistan')).not.toHaveStyle(result.current.colorMuted);
+        expect(screen.getByText(TestHelper.translateLocal('allCountries.AX'))).toHaveStyle(result.current.colorMuted);
+        expect(screen.getByText(TestHelper.translateLocal('allCountries.AX'))).toHaveStyle(result.current.offlineFeedbackDeleted);
+        expect(screen.getByText('Albania')).toHaveStyle(result.current.colorMuted);
+
+        // When connectivity returns without clearing any pending actions, offline styling disappears immediately.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then pending deletions are hidden and both saved and added countries have normal styling.
+        expect(screen.queryByText(TestHelper.translateLocal('allCountries.AX'))).toBeNull();
+        expect(screen.getByText('Afghanistan')).not.toHaveStyle(result.current.colorMuted);
+        expect(screen.getByText('Albania')).not.toHaveStyle(result.current.colorMuted);
+    });
+
+    it.each(['bank account list', 'policy bank account', 'reimbursement countries'])('warns before disabling payments with %s', async (source) => {
+        // Given payment settings from each supported source, including an account not yet present in policy.achAccount
+        await TestHelper.signInWithTestUser();
+        const setReimbursementSpy = jest.spyOn(PolicyActions, 'setWorkspaceReimbursement').mockImplementation(() => {});
+        const bankAccountID = 123456;
+        await act(async () => {
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount:
+                        source === 'policy bank account'
+                            ? {
+                                  bankAccountID,
+                                  state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                                  accountNumber: '1234567890',
+                                  routingNumber: '011000015',
+                                  addressName: 'Test Address',
+                                  bankName: 'Test Bank',
+                                  reimburser: 'test@user.com',
+                              }
+                            : undefined,
+                    reimbursement: {countries: source === 'reimbursement countries' ? {US: {}} : {}},
+                }),
+            );
+            if (source === 'bank account list') {
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                    [bankAccountID]: {
+                        methodID: bankAccountID,
+                        bankCurrency: CONST.CURRENCY.USD,
+                        bankCountry: 'US',
+                        accountData: {
+                            additionalData: {policyID: POLICY_ID, bankName: CONST.BANK_NAMES.GENERIC_BANK},
+                            state: CONST.BANK_ACCOUNT.STATE.SETUP,
+                        },
+                    },
+                });
+            }
+        });
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin disables payments, the confirmation must appear before saving any settings
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workflowsPage.makeOrTrackPaymentsDescription')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then cancelling preserves settings, while confirming a second attempt saves the disabled choice
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPage.disablePaymentsPrompt'))).toBeOnTheScreen();
+        expect(setReimbursementSpy).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.cancel')));
+        await waitForBatchedUpdatesWithAct();
+        expect(setReimbursementSpy).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workflowsPage.makeOrTrackPaymentsDescription')));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.confirm')));
+        await waitForBatchedUpdatesWithAct();
+        expect(setReimbursementSpy).toHaveBeenCalledWith(expect.objectContaining({policyID: POLICY_ID, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}));
+    });
+
     it('shows the Payer row when reimbursementChoice is REIMBURSEMENT_YES and a bank account exists', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
@@ -133,6 +240,33 @@ describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
                         bankName: 'Test Bank',
                         addressName: 'Test Address',
                         state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    },
+                }),
+            );
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
+    });
+
+    it('keeps the Payer row when reimbursementChoice is REIMBURSEMENT_YES after the bank account is disconnected', async () => {
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            // Disconnecting the bank account clears the bank data (no open state, removed from BANK_ACCOUNT_LIST)
+            // but preserves the reimburser and leaves reimbursementChoice as REIMBURSEMENT_YES.
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        reimburser: 'test@user.com',
+                        bankAccountID: 0,
+                        accountNumber: '',
+                        routingNumber: '',
+                        addressName: '',
+                        bankName: '',
                     },
                 }),
             );

@@ -1,6 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
-import {setInsightsFilters} from '@libs/actions/Insights';
+import {saveInsightsFilters, setInsightsFilters} from '@libs/actions/Insights';
 import {getPolicyIDOrDefault} from '@libs/PolicyUtils';
 import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
@@ -13,6 +13,7 @@ import type {InsightsFilters} from './insightsFilters';
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
 import {parseInsightsFilters} from './insightsFilterParsing';
 import DEFAULT_INSIGHTS_FILTERS from './insightsFilters';
+import {getQueryGroupBy} from './insightsGroupByUtils';
 import {buildInsightsQueryString} from './insightsQueries';
 
 type UseInsightsFiltersResult = {
@@ -29,7 +30,10 @@ type UseInsightsFiltersResult = {
     setFilters: (update: Partial<InsightsFilters>) => void;
 };
 
-function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersResult {
+/**
+ * @param shouldSkipFetch - Whether the page won't call GetInsights for these filters, so a change to them has to be saved on its own
+ */
+function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (next: InsightsFilters) => boolean): UseInsightsFiltersResult {
     const {searchKey} = INSIGHTS_DASHBOARD_SPECS[dashboard];
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy, activePolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(activePolicyID)}`);
@@ -38,12 +42,23 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersR
 
     const defaultFilters: InsightsFilters = {
         ...DEFAULT_INSIGHTS_FILTERS,
+        date: dashboard === CONST.INSIGHTS.DASHBOARD.COMPLIANCE ? {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH} : DEFAULT_INSIGHTS_FILTERS.date,
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
     };
     const filters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedQuery)};
 
+    // What GetInsights fetches, so two selections that fetch the same thing can be told apart from ones that need a new request. Leaves out the display-only parts: the Compare mode every response already covers, and Running total, which resolves to its bucket here.
+    const fetchedQuery = (dashboardFilters: InsightsFilters) => buildInsightsQueryString({...dashboardFilters, groupBy: getQueryGroupBy(dashboardFilters), compare: undefined});
+
     const setFilters = (update: Partial<InsightsFilters>) => {
-        setInsightsFilters(searchKey, buildInsightsQueryString({...filters, ...update}));
+        const next = {...filters, ...update};
+        const query = buildInsightsQueryString(next);
+        // GetInsights persists the filters as a side effect, so a change it won't fetch for (Compare mode, a Running total toggle that keeps the same bucket, or any change the page skips fetching for) is saved on its own instead.
+        if (fetchedQuery(next) === fetchedQuery(filters) || shouldSkipFetch?.(next)) {
+            saveInsightsFilters(searchKey, query);
+            return;
+        }
+        setInsightsFilters(searchKey, query);
     };
 
     return {

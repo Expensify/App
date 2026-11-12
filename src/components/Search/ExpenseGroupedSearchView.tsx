@@ -193,7 +193,6 @@ function ExpenseGroupedSearchView({
         ownerBillingGracePeriodEnd,
         handleUndelete,
         onLongPressRow,
-        modal,
         handleSelectRow,
         scrollToListIndex,
     } = useSearchListViewState({data, listData, isMobileSelectionModeEnabled, onSelectRow});
@@ -235,7 +234,7 @@ function ExpenseGroupedSearchView({
 
     const stickyHeaderConfig = shouldSplit ? {hideRelatedCell: true, useNativeDriver: true, zIndex: 2} : undefined;
 
-    const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+    const renderItem = (item: SearchListItem, index: number, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         if (isGroupHeaderItem(item)) {
             const originalKey = item.groupKeyForList;
             return (
@@ -251,7 +250,6 @@ function ExpenseGroupedSearchView({
                     onCheckboxPress={toggle}
                     onLongPressRow={onLongPressRow}
                     onFocus={onFocus}
-                    isFocused={isItemFocused}
                     isFirstItem={index === firstVisibleIndex}
                     // A collapsed group's children container is mounted but empty, so the header has to paint the table's bottom radius itself.
                     // Split rows come in header/children pairs, which is why there is an offset. `>=` also covers a trailing container that isn't visible.
@@ -299,7 +297,6 @@ function ExpenseGroupedSearchView({
             >
                 <TransactionGroupListItem
                     showTooltip
-                    isFocused={isItemFocused}
                     onSelectRow={handleSelectRow}
                     onLongPressRow={onLongPressRow}
                     onSelectionButtonPress={toggle}
@@ -327,6 +324,21 @@ function ExpenseGroupedSearchView({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
 
+    const selectionTopBar = tableHeaderVisible ? (
+        <SelectionTopBar
+            isLargeScreenWidth={isLargeScreenWidth}
+            shouldSplitGroups={shouldSplit}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            selectedItemsLength={selectedItemsLength}
+            totalItems={totalItems}
+            hasLoadedAllTransactions={hasLoadedAllTransactions}
+            selectAllButtonVisible={selectAllButtonVisible}
+            onAllCheckboxPress={toggleAll}
+            SearchTableHeader={searchTableHeader}
+        />
+    ) : undefined;
+
     return (
         <SearchListViewLayout
             columns={columns}
@@ -339,21 +351,8 @@ function ExpenseGroupedSearchView({
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {tableHeaderVisible && (
-                <SelectionTopBar
-                    isLargeScreenWidth={isLargeScreenWidth}
-                    shouldSplitGroups={shouldSplit}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    selectAllButtonVisible={selectAllButtonVisible}
-                    onAllCheckboxPress={toggleAll}
-                    SearchTableHeader={searchTableHeader}
-                />
-            )}
             <BaseSearchList
+                selectionTopBar={selectionTopBar}
                 data={listData}
                 renderItem={renderItem}
                 onSelectRow={handleSelectRow}
@@ -379,7 +378,6 @@ function ExpenseGroupedSearchView({
                 disabledIndexes={shouldSplit ? childrenContainerIndices : undefined}
                 overrideItemLayout={shouldSplit ? overrideItemLayout : undefined}
             />
-            {modal}
         </SearchListViewLayout>
     );
 }

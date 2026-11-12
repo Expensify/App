@@ -1,5 +1,6 @@
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -51,6 +52,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const session = useSession();
     const personalDetails = usePersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -63,6 +65,8 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const [transactions] = useTransactionsByID(selectedIds);
     const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
@@ -95,6 +99,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         isTrackIntentUser,
                         formatPhoneNumber,
                         rules,
+                        chatReportActions,
                     });
                 } else {
                     changeTransactionsReport({
@@ -103,6 +108,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         email: session?.email ?? '',
+                        currentUserPersonalDetails,
                         newReport: reportToConfirm,
                         policy,
                         policyCategories,
@@ -111,6 +117,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         allTransactionViolation: transactionViolations,
                         reports,
                         rules,
+                        cardList,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                         selfDMReportActions,
@@ -133,6 +140,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                 />
             )}
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.ADD_EXISTING_EXPENSE.CONFIRM_BUTTON}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.justifyContentCenter]}

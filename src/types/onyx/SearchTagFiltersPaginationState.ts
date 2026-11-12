@@ -1,3 +1,5 @@
+import type {SearchTagFilterItem} from './PolicyTag';
+
 /**
  * Pagination state for tag filter search results.
  *
@@ -13,6 +15,18 @@ type SearchTagFiltersPaginationState = {
 
     /** The search query that produced this pagination state */
     searchQuery: string;
+
+    /** The policy IDs (comma-separated) that this pagination state and cached results belong to */
+    policyIDs?: string;
+
+    /** The cached base tags for the empty query ('') */
+    baseResults?: SearchTagFilterItem[];
+
+    /** Whether there are more pages of base tags */
+    baseHasMore?: boolean;
+
+    /** Cursor for fetching the next page of base tags */
+    baseCursor?: string;
 };
 
 export default SearchTagFiltersPaginationState;

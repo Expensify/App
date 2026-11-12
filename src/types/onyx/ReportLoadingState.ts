@@ -18,8 +18,14 @@ type ReportLoadingState = {
     /** Flag to check if the initial report actions fetch is in flight */
     isLoadingInitialReportActions?: boolean;
 
+    /** Whether a support-ticket creation request is in flight in this session */
+    isCreatingSupportTicket?: boolean;
+
     /** Whether participants private notes are being currently loaded */
     isLoadingPrivateNotes?: boolean;
+
+    /** Whether the report's history and upcoming steps are being loaded */
+    isLoadingReportStatus?: boolean;
 
     /** Whether a search-row action (hold/pay/approve) is in flight */
     isActionLoading?: boolean;

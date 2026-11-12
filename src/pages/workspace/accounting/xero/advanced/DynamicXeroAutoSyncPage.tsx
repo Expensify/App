@@ -25,7 +25,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -37,9 +37,9 @@ function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction = settingsPendingAction([CONST.XERO_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.XERO_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -62,6 +62,7 @@ function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
                     title={translate('workspace.accounting.autoSync')}
                     subtitle={translate('workspace.xero.advancedConfig.autoSyncDescription')}
                     switchAccessibilityLabel={translate('workspace.xero.advancedConfig.autoSyncDescription')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.AUTO_SYNC_SWITCH}
                     isActive={!!autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     shouldPlaceSubtitleBelowSwitch
@@ -81,6 +82,7 @@ function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
                 {!!autoSync?.enabled && (
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.ACCOUNTING_METHOD}
                             value={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                     ? translate(`workspace.xero.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)

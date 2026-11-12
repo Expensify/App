@@ -2,17 +2,19 @@ import FocusableMenuItem from '@components/FocusableMenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 
 import CONST from '@src/CONST';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
 import useFABMenuItem from './useFABMenuItem';
 
-type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wrapperStyle' | 'shouldCheckActionAllowedOnPress' | 'role' | 'onPress'> & {
-    itemId: string;
-    isVisible?: boolean;
-    onPress?: () => void;
-    shouldCallAfterModalHide?: boolean;
-};
+type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wrapperStyle' | 'shouldCheckActionAllowedOnPress' | 'role' | 'onPress'> &
+    WithRequiredSentryLabel & {
+        itemId: string;
+        isVisible?: boolean;
+        onPress?: () => void;
+        shouldCallAfterModalHide?: boolean;
+    };
 
 function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfterModalHide, ...props}: FABFocusableMenuItemProps) {
     const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(itemId, isVisible);

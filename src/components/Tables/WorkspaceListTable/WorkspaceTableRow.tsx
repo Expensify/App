@@ -6,6 +6,7 @@ import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import type {ThreeDotsMenuHandle} from '@components/ThreeDotsMenu/types';
 import Tooltip from '@components/Tooltip';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 
@@ -20,7 +21,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import type {WorkspaceRowData} from '.';
@@ -36,15 +37,19 @@ type WorkspaceRowProps = {
     /** Called when the user picks Delete in the row menu, so the page can mount the delete flow */
     onDeleteWorkspace: (policyID: string) => void;
 
+    /** Called when the user picks Archive in the row menu, so the page can mount the archive flow */
+    onArchiveWorkspace: (policyID: string) => void;
+
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
 };
 
-export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceRowProps) {
+export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'Hourglass']);
+    const threeDotsMenuRef = useRef<ThreeDotsMenuHandle>(null);
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
@@ -98,7 +103,9 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             <WorkspaceRowThreeDotsMenu
                 item={item}
                 onDeleteWorkspace={onDeleteWorkspace}
+                onArchiveWorkspace={onArchiveWorkspace}
                 pendingDeletePolicyID={pendingDeletePolicyID}
+                threeDotsMenuRef={threeDotsMenuRef}
             />
         </View>
     );
@@ -111,6 +118,9 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.ROW}
             onPress={item.action}
+            // On web, FlashList applies a new row width only after the window resize has re-rendered the menu,
+            // so the menu re-measures its anchor once the row has its new size.
+            onWrapperLayout={() => threeDotsMenuRef.current?.updateMenuPosition?.()}
             offlineWithFeedback={{
                 errors: item.errors,
                 shouldHideOnDelete: false,

@@ -8,6 +8,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 import type {PartialReportAction} from './ReportUtils';
 
+import {replaceAttachmentAnchorsWithText} from './AttachmentAnchorUtils';
 import Parser from './Parser';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 
@@ -37,13 +38,12 @@ function getReportActionHtml(reportAction: PartialReportAction): string {
 function getReportActionText(reportAction: PartialReportAction): string {
     const message = getReportActionMessage(reportAction);
     // Sometime html can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
     return text ? Parser.htmlToText(text) : '';
 }
 
-function getTextFromHtml(html?: string): string {
-    return html ? Parser.htmlToText(html) : '';
+function getTextFromHtml(html?: string, reportActionID?: string): string {
+    return html ? Parser.htmlToText(replaceAttachmentAnchorsWithText(html, reportActionID)) : '';
 }
 
 export {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml};

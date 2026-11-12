@@ -17,6 +17,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useCurrencyListActions} from './useCurrencyList';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 
@@ -51,6 +52,7 @@ function useMoneyRequestParticipantsPolicyTags({
     dateFnsLocale,
 }: UseMoneyRequestParticipantsPolicyTagsParams): UseMoneyRequestParticipantsPolicyTagsResult {
     const {convertToDisplayString} = useCurrencyListActions();
+    const {formatPhoneNumber} = useLocalize();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const participants = getMoneyRequestParticipantOptions({
         currentUserAccountID,
@@ -65,6 +67,7 @@ function useMoneyRequestParticipantsPolicyTags({
         translate,
         convertToDisplayString,
         dateFnsLocale,
+        formatPhoneNumber,
     });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 

@@ -151,6 +151,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Account ID of the actor that created the action */
     actorAccountID?: number;
 
+    /** Email of the report submitter. On a bill, this identifies the invoice sender rather than the bill owner. */
+    submitterEmail?: string;
+
     /** The account of the last message's actor */
     actor?: string;
 

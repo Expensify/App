@@ -151,4 +151,93 @@ describe('FloatingMessageCounter', () => {
         expect(screen.queryByText('Approve')).toBeNull();
         expect(screen.getByText('New messages')).toBeTruthy();
     });
+
+    it('keeps the action badge pill while it slides out instead of flashing the latest messages pill', () => {
+        // Given the action badge pill is shown in a read chat that is not scrolled past the threshold
+        const {rerender} = render(
+            <FloatingMessageCounter
+                hasNewMessages={false}
+                onClick={jest.fn()}
+                actionBadge={CONST.REPORT.ACTION_BADGE.SUBMIT}
+                actionBadgeBrickRoadStatus={CONST.BRICK_ROAD_INDICATOR_STATUS.INFO}
+                onActionBadgePress={jest.fn()}
+            />,
+        );
+
+        // When the action badge target scrolls into view, so the list stops passing the badge and the pill starts hiding
+        rerender(
+            <FloatingMessageCounter
+                hasNewMessages={false}
+                onClick={jest.fn()}
+                onActionBadgePress={jest.fn()}
+            />,
+        );
+
+        // Then the exiting pill keeps its action badge content, because swapping it would flash the latest messages pill during the exit animation
+        expect(screen.getByText('Submit')).toBeTruthy();
+        expect(screen.queryByText('Latest messages')).toBeNull();
+    });
+
+    it('switches to the latest messages pill when the action badge hides while the counter stays active', () => {
+        // Given the action badge pill is shown while the user is scrolled past the threshold
+        const {rerender} = render(
+            <FloatingMessageCounter
+                isActive
+                hasNewMessages={false}
+                onClick={jest.fn()}
+                actionBadge={CONST.REPORT.ACTION_BADGE.SUBMIT}
+                actionBadgeBrickRoadStatus={CONST.BRICK_ROAD_INDICATOR_STATUS.INFO}
+                onActionBadgePress={jest.fn()}
+            />,
+        );
+
+        // When the action badge target scrolls into view
+        rerender(
+            <FloatingMessageCounter
+                isActive
+                hasNewMessages={false}
+                onClick={jest.fn()}
+                onActionBadgePress={jest.fn()}
+            />,
+        );
+
+        // Then the pill stays visible, so it should immediately become the latest messages pill
+        expect(screen.getByText('Latest messages')).toBeTruthy();
+        expect(screen.queryByText('Submit')).toBeNull();
+    });
+
+    it('keeps the latest messages pill while it slides out instead of restoring a previously shown action badge', () => {
+        // Given an action badge pill that was replaced by the latest messages pill while the counter was active
+        const {rerender} = render(
+            <FloatingMessageCounter
+                isActive
+                hasNewMessages={false}
+                onClick={jest.fn()}
+                actionBadge={CONST.REPORT.ACTION_BADGE.SUBMIT}
+                actionBadgeBrickRoadStatus={CONST.BRICK_ROAD_INDICATOR_STATUS.INFO}
+                onActionBadgePress={jest.fn()}
+            />,
+        );
+        rerender(
+            <FloatingMessageCounter
+                isActive
+                hasNewMessages={false}
+                onClick={jest.fn()}
+                onActionBadgePress={jest.fn()}
+            />,
+        );
+
+        // When the user scrolls back below the threshold and the pill starts hiding
+        rerender(
+            <FloatingMessageCounter
+                hasNewMessages={false}
+                onClick={jest.fn()}
+                onActionBadgePress={jest.fn()}
+            />,
+        );
+
+        // Then the exiting pill keeps the latest messages content, because the frozen content must be the last shown pill, not the last action badge
+        expect(screen.getByText('Latest messages')).toBeTruthy();
+        expect(screen.queryByText('Submit')).toBeNull();
+    });
 });

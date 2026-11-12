@@ -43,7 +43,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import ExitSurveyOffline from './ExitSurveyOffline';
 
@@ -65,13 +65,13 @@ function DynamicExitSurveyReasonPage() {
     // When the keyboard is shown, the bottom inset doesn't affect the height, so we take it out from the calculation.
     const {top: safeAreaInsetsTop} = useSafeAreaInsets();
 
-    const goBackJustOnce = useCallback(() => {
+    const goBackJustOnce = () => {
         Log.info('[ExitSurvey] User chose Go back just once');
         Navigation.dismissModal();
         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-    }, []);
+    };
 
-    const switchToClassic = useCallback(() => {
+    const switchToClassic = () => {
         Log.info('[ExitSurvey] User chose Switch to Classic');
         if (!draftResponse.trim()) {
             setErrorFields(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
@@ -88,7 +88,7 @@ function DynamicExitSurveyReasonPage() {
         switchToOldDot(draftResponse);
         Navigation.dismissModal();
         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-    }, [draftResponse, translate]);
+    };
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, switchToClassic, {isActive: !isOffline});
 
     const formTopMarginsStyle = styles.mt3;
@@ -154,12 +154,14 @@ function DynamicExitSurveyReasonPage() {
             </FormProvider>
             <FixedFooter>
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.REASON_GO_TO_CLASSIC}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={switchToClassic}
                 >
                     <Button.Text>{translate('exitSurvey.goToExpensifyClassic')}</Button.Text>
                 </ButtonDisabledWhenOffline>
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.REASON_GO_BACK_JUST_ONCE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={goBackJustOnce}

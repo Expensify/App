@@ -1,7 +1,8 @@
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 
-import type {BottomTabNavigationOptions, BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
+import type {BottomTabNavigationOptions} from '@react-navigation/bottom-tabs';
+import type {NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
 import type {ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
 
 import React, {useLayoutEffect, useRef} from 'react';
@@ -26,18 +27,18 @@ function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBa
     );
 }
 
-// Same as screenLayoutWrapper above, but for bottom-tab navigators. No cast needed here - `navigation` is already
-// properly typed as BottomTabNavigationProp, and its `addListener` structurally satisfies TransitionAwareNavigation.
-function bottomTabScreenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBase, string, BottomTabNavigationOptions, BottomTabNavigationProp<ParamListBase>>) {
-    return (
-        <ScreenLayout
-            {...rest}
-            navigation={navigation}
-        />
-    );
+// Same as screenLayoutWrapper above, but for bottom-tab navigators, JS and native. No cast needed here - their
+// `navigation` props' `addListener` structurally satisfies TransitionAwareNavigation.
+function bottomTabScreenLayoutWrapper(props: ScreenLayoutProps) {
+    return <ScreenLayout {...props} />;
 }
 
-type ScreenLayoutProps = ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions | PlatformStackNavigationOptions | BottomTabNavigationOptions, TransitionAwareNavigation>;
+type ScreenLayoutProps = ScreenLayoutArgs<
+    ParamListBase,
+    string,
+    PlatformSpecificNavigationOptions | PlatformStackNavigationOptions | BottomTabNavigationOptions | NativeBottomTabNavigationOptions,
+    TransitionAwareNavigation
+>;
 
 function ScreenLayout({children, navigation}: ScreenLayoutProps) {
     const transitionHandleRef = useRef<TransitionHandle | null>(null);

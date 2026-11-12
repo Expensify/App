@@ -52,7 +52,17 @@ import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from './PolicyUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, isExpenseUnreported} from './TransactionUtils';
+import {
+    calculateTaxAmount,
+    getAmount,
+    getCurrency,
+    getDefaultTaxCode,
+    getIsFromGlobalCreate,
+    getTaxValue,
+    hasReceipt,
+    isExpenseUnreported,
+    isFailedScanAmountPlaceholder,
+} from './TransactionUtils';
 
 type SubmitAmountArgs = {
     dateFnsLocale: DateFnsLocale | undefined;
@@ -262,6 +272,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        formatPhoneNumber,
         rules,
     } = args;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
@@ -286,8 +297,11 @@ function buildReportParticipants(args: SubmitAmountArgs) {
                       translate,
                       dateFnsLocale,
                       convertToDisplayString,
+                      formatPhoneNumber,
                   },
                   rules,
+                  // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
+                  pendingDeleteMemberAccountIDs: undefined,
               });
     });
 }
@@ -375,7 +389,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);
     const draftTransactionIDsList = Object.keys(transactionDrafts ?? {});
-    const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
+    const isSelfTourViewed = hasSeenTourSelector(onboarding);
     const executeExpenseWrite = (overrides: WriteOverrides) => {
         if (isTrackExpenseSubmit) {
             trackExpense({
@@ -397,6 +411,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 },
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserAccountID, email: currentUserEmail},
+                currentUserPersonalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 introSelected,
                 conciergeChat,
@@ -645,7 +660,8 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
 
     // If the value hasn't changed, don't request to save changes on the server and just close the modal
     const transactionCurrency = getCurrency(currentTransaction);
-    if (newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(currentTransaction);
+    if (!hasFailedScanAmountPlaceholder && newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
         navigateBack();
         return;
     }
@@ -662,7 +678,13 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 
     if (isSplitBill) {
-        setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount}, getCurrencyDecimals, getCurrencySymbol);
+        setDraftSplitTransaction(
+            transactionID,
+            splitDraftTransaction ?? transaction,
+            {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount},
+            getCurrencyDecimals,
+            getCurrencySymbol,
+        );
         navigateBack();
         return;
     }

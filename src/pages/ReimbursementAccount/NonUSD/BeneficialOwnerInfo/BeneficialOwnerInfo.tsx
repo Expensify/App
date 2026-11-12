@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import {SafeString, Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import BeneficialOwnerDetailsFormPages from './BeneficialOwnerDetailsFormPages';
 import BeneficialOwnersList from './BeneficialOwnersList';
@@ -48,7 +48,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
 
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const isAnyoneElseOwner = reimbursementAccount?.achData?.corpay?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? reimbursementAccountDraft?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? false;
-    const savedBeneficialOwnerValues = useMemo(() => getDraftValuesForBeneficialOwners(reimbursementAccount), [reimbursementAccount]);
+    const savedBeneficialOwnerValues = getDraftValuesForBeneficialOwners(reimbursementAccount);
     const ownerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? savedBeneficialOwnerValues.beneficialOwnerKeys;
 
     // Populate the form draft with beneficial owner data from the server.
@@ -69,27 +69,24 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
 
     const isSubmittingRef = useRef(false);
 
-    const submit = useCallback(
-        ({anyIndividualOwn25PercentOrMore}: {anyIndividualOwn25PercentOrMore?: boolean} = {}) => {
-            const currentOwnerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
-            const {ownerDetails, ownerFiles} = getOwnerDetailsAndOwnerFilesForBeneficialOwners(currentOwnerKeys, reimbursementAccountDraft);
+    const submit = ({anyIndividualOwn25PercentOrMore}: {anyIndividualOwn25PercentOrMore?: boolean} = {}) => {
+        const currentOwnerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
+        const {ownerDetails, ownerFiles} = getOwnerDetailsAndOwnerFilesForBeneficialOwners(currentOwnerKeys, reimbursementAccountDraft);
 
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
-                [OWNS_MORE_THAN_25_PERCENT]: isUserOwner,
-                [ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: isAnyoneElseOwner,
-                [BENEFICIAL_OWNERS]: JSON.stringify(ownerDetails),
-            });
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+            [OWNS_MORE_THAN_25_PERCENT]: isUserOwner,
+            [ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: isAnyoneElseOwner,
+            [BENEFICIAL_OWNERS]: JSON.stringify(ownerDetails),
+        });
 
-            isSubmittingRef.current = true;
-            saveCorpayOnboardingBeneficialOwners({
-                inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore}),
-                ...ownerFiles,
-                beneficialOwnerIDs: currentOwnerKeys.length > 0 ? currentOwnerKeys.join(',') : undefined,
-                bankAccountID,
-            });
-        },
-        [bankAccountID, isAnyoneElseOwner, isUserOwner, reimbursementAccountDraft],
-    );
+        isSubmittingRef.current = true;
+        saveCorpayOnboardingBeneficialOwners({
+            inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore}),
+            ...ownerFiles,
+            beneficialOwnerIDs: currentOwnerKeys.length > 0 ? currentOwnerKeys.join(',') : undefined,
+            bankAccountID,
+        });
+    };
 
     useEffect(() => {
         if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields || !reimbursementAccount?.isSuccess) {
@@ -108,15 +105,12 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
         };
     }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields, reimbursementAccount?.isSuccess, onSubmit]);
 
-    const prepareOwnerDetailsForm = useCallback(
-        (ownerID: string) => {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: ownerID});
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
-        },
-        [policyID, backTo],
-    );
+    const prepareOwnerDetailsForm = (ownerID: string) => {
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: ownerID});
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
+    };
 
-    const handleOwnerDetailsFormFinished = useCallback(() => {
+    const handleOwnerDetailsFormFinished = () => {
         const ownerBeingModifiedID = reimbursementAccountDraft?.ownerBeingModifiedID ?? CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY;
         const currentOwnerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
         const isFreshOwner = !currentOwnerKeys.includes(ownerBeingModifiedID);
@@ -147,78 +141,66 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
                 ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.ARE_THERE_MORE_BENEFICIAL_OWNERS, backTo}),
             );
         }
-    }, [policyID, reimbursementAccountDraft, backTo]);
+    };
 
-    const handleOwnerEdit = useCallback(
-        (ownerID: string) => {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: ownerID, isEditingCreatedOwner: true});
+    const handleOwnerEdit = (ownerID: string) => {
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: ownerID, isEditingCreatedOwner: true});
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
+    };
+
+    const handleIsUserOwnerSelected = (value: boolean) => {
+        const currentOwnerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[OWNS_MORE_THAN_25_PERCENT]: value});
+
+        if (value) {
+            if (currentOwnerKeys.length >= 4) {
+                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: currentOwnerKeys.slice(0, 3)});
+            }
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY});
             Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
-        },
-        [policyID, backTo],
-    );
+        } else {
+            const filteredKeys = currentOwnerKeys.filter((key) => key !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: filteredKeys});
+            Navigation.navigate(
+                ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER, backTo}),
+            );
+        }
+    };
 
-    const handleIsUserOwnerSelected = useCallback(
-        (value: boolean) => {
-            const currentOwnerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[OWNS_MORE_THAN_25_PERCENT]: value});
+    const handleIsAnyoneElseOwnerSelected = (value: boolean) => {
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: value});
 
-            if (value) {
-                if (currentOwnerKeys.length >= 4) {
-                    setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: currentOwnerKeys.slice(0, 3)});
-                }
-                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY});
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
-            } else {
-                const filteredKeys = currentOwnerKeys.filter((key) => key !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
-                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: filteredKeys});
-                Navigation.navigate(
-                    ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER, backTo}),
-                );
-            }
-        },
-        [policyID, reimbursementAccountDraft?.beneficialOwnerKeys, backTo],
-    );
+        if (!value && !isUserOwner) {
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: []});
+            submit({anyIndividualOwn25PercentOrMore: false});
+            return;
+        }
 
-    const handleIsAnyoneElseOwnerSelected = useCallback(
-        (value: boolean) => {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: value});
+        if (!value && isUserOwner) {
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: [CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY]});
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
+            return;
+        }
 
-            if (!value && !isUserOwner) {
-                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: []});
-                submit({anyIndividualOwn25PercentOrMore: false});
-                return;
-            }
+        if (!canAddMoreOwners) {
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
+            return;
+        }
 
-            if (!value && isUserOwner) {
-                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: [CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY]});
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
-                return;
-            }
+        prepareOwnerDetailsForm(Str.guid());
+    };
 
-            if (!canAddMoreOwners) {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
-                return;
-            }
+    const handleAreThereMoreSelected = (value: boolean) => {
+        if (!value || !canAddMoreOwners) {
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
+            return;
+        }
 
-            prepareOwnerDetailsForm(Str.guid());
-        },
-        [canAddMoreOwners, isUserOwner, policyID, prepareOwnerDetailsForm, submit, backTo],
-    );
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: true});
+        prepareOwnerDetailsForm(Str.guid());
+    };
 
-    const handleAreThereMoreSelected = useCallback(
-        (value: boolean) => {
-            if (!value || !canAddMoreOwners) {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
-                return;
-            }
-
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: true});
-            prepareOwnerDetailsForm(Str.guid());
-        },
-        [canAddMoreOwners, policyID, prepareOwnerDetailsForm, backTo],
-    );
-
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (currentSubPage === SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER) {
             onBackButtonPress();
@@ -231,7 +213,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
         } else {
             Navigation.goBack();
         }
-    }, [backTo, currentSubPage, onBackButtonPress, policyID]);
+    };
 
     if (currentSubPage && !OUTER_SUB_PAGES.has(currentSubPage)) {
         return (

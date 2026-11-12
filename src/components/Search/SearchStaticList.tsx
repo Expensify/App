@@ -7,6 +7,7 @@ import TransactionItemRow from '@components/TransactionItemRow';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -23,6 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SearchResults} from '@src/types/onyx';
 
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
@@ -76,6 +78,7 @@ function SearchStaticList({
     columns = DEFAULT_COLUMNS,
 }: SearchStaticListProps) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -89,6 +92,7 @@ function SearchStaticList({
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
 
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingSearchWrite() || Navigation.getIsFullscreenPreInsertedUnderRHP());
 
@@ -158,6 +162,7 @@ function SearchStaticList({
                 delegateAccountID,
                 IOUTransactionID: item.reportAction?.childReportID,
                 shouldNavigate: shouldOpenTransactionThread,
+                fullPolicySnapshotLastModifiedByPolicyID,
             });
             if (shouldOpenTransactionThread) {
                 return;
@@ -198,14 +203,14 @@ function SearchStaticList({
 
         return (
             <PressableWithoutFeedback
-                sentryLabel="SearchStaticList-item"
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_ITEM}
                 accessibilityRole="button"
                 accessibilityLabel=""
                 onPress={() => onPressItem(item)}
             >
                 <View
                     style={[
-                        styles.mh5,
+                        pageGutterMargin,
                         styles.flex1,
                         styles.userSelectNone,
                         {backgroundColor: theme.highlightBG},
@@ -269,10 +274,17 @@ function SearchStaticList({
 
         return (
             <View
-                style={[styles.mh5, styles.flex1, {backgroundColor: theme.highlightBG}, styles.userSelectNone, isLastItem && styles.tableBottomRadius, isLastItem && styles.overflowHidden]}
+                style={[
+                    pageGutterMargin,
+                    styles.flex1,
+                    {backgroundColor: theme.highlightBG},
+                    styles.userSelectNone,
+                    isLastItem && styles.tableBottomRadius,
+                    isLastItem && styles.overflowHidden,
+                ]}
             >
                 <PressableWithoutFeedback
-                    sentryLabel="SearchStaticList-wide-item"
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_WIDE_ITEM}
                     accessibilityRole="button"
                     accessibilityLabel=""
                     onPress={() => onPressItem(item)}
@@ -346,39 +358,43 @@ function SearchStaticList({
             style={styles.flex1}
             onLayout={onLayout}
         >
-            {!shouldUseNarrowLayout && columns.length > 0 && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5]}>
-                    {canSelectMultiple && (
-                        <View
-                            accessibilityElementsHidden
-                            importantForAccessibility="no-hide-descendants"
-                        >
-                            <Checkbox
-                                accessibilityLabel={translate('workspace.people.selectAll')}
-                                isChecked={false}
-                                disabled
-                                containerStyle={styles.m0}
-                                onPress={() => {}}
+            {!shouldUseNarrowLayout &&
+                columns.length > 0 && (
+                    // The headings span the row's full height, so the checkbox carries the vertical padding instead.
+                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.pv0, styles.pb0, pageGutterMargin]}>
+                        {canSelectMultiple && (
+                            <View
+                                style={styles.pv2}
+                                accessibilityElementsHidden
+                                importantForAccessibility="no-hide-descendants"
+                            >
+                                <Checkbox
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
+                                    accessibilityLabel={translate('workspace.people.selectAll')}
+                                    isChecked={false}
+                                    disabled
+                                    containerStyle={styles.m0}
+                                    onPress={() => {}}
+                                />
+                            </View>
+                        )}
+                        <View style={[styles.pr9, styles.flex1, styles.alignSelfStretch]}>
+                            <SearchTableHeader
+                                canSelectMultiple={canSelectMultiple}
+                                columns={columns}
+                                type={type}
+                                onSortPress={() => {}}
+                                sortBy={sortBy}
+                                sortOrder={sortOrder}
+                                shouldShowYear={false}
+                                isAmountColumnWide={false}
+                                isTaxAmountColumnWide={false}
+                                shouldShowSorting={false}
+                                groupBy={validGroupBy}
                             />
                         </View>
-                    )}
-                    <View style={[styles.pr9, styles.flex1]}>
-                        <SearchTableHeader
-                            canSelectMultiple={canSelectMultiple}
-                            columns={columns}
-                            type={type}
-                            onSortPress={() => {}}
-                            sortBy={sortBy}
-                            sortOrder={sortOrder}
-                            shouldShowYear={false}
-                            isAmountColumnWide={false}
-                            isTaxAmountColumnWide={false}
-                            shouldShowSorting={false}
-                            groupBy={validGroupBy}
-                        />
                     </View>
-                </View>
-            )}
+                )}
             <FlatList
                 data={sortedData}
                 renderItem={shouldUseNarrowLayout ? renderItem : (info) => renderWideItem(info, sortedData.length)}

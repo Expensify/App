@@ -1,15 +1,24 @@
 import * as SentryReact from '@sentry/react';
 import * as Sentry from '@sentry/react-native';
 
+// cspell:ignore ketchcdn
 const shouldCreateSpanForRequest = (url: string): boolean => {
+    // Local file reads do not represent network payloads and should not trigger HTTP performance alerts.
+    if (url.startsWith('blob:')) {
+        return false;
+    }
+
     const filteredPhrases = [
         '/api/Log',
         'firebaselogging-pa.googleapis.com',
         'analytics.google.com',
         'rs.fullstory.com',
+        'edge.fullstory.com',
+        'global.ketchcdn.com',
         'api.github.com',
         'group-ib.com',
         'fp-api.expensify.com',
+        '/api/fl',
         '/api/Ping',
         'ccm/collect',
         'rmkt/collect',

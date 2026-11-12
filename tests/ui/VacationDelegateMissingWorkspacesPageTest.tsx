@@ -534,6 +534,92 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         expect(rows.at(1)).toHaveTextContent('Zebra Workspace');
     });
 
+    it('sends the clear after datetime picked on the form again and closes the flow', async () => {
+        // Given a 305 that parked a pick made with a clear after date, since the form step is gone by the time this step saves it
+        const clearAfter = '2026-10-02 06:59:59';
+        await seedVacationDelegate({adminPolicies: [], nonAdminPolicies: [MEMBER_POLICY_ID]});
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {pendingClearAfter: clearAfter});
+        });
+        const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When Confirm is pressed
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.confirm')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the date is saved with the delegate instead of being dropped, and the whole RHP closes back onto the profile page
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.SET_VACATION_DELEGATE,
+            expect.objectContaining({vacationDelegateEmail: DELEGATE_EMAIL, clearAfter, overridePolicyDiffWarning: true}),
+            expect.anything(),
+        );
+        expect(dismissModalSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the flow and clears the form draft when Skip is pressed', async () => {
+        // Given the admin-of step with a pick still in the form draft
+        await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID], nonAdminPolicies: []});
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT, {delegate: DELEGATE_EMAIL});
+        });
+        const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When Skip is pressed
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.skip')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the delegate is saved and the whole RHP closes, so the form and picker under this step don't linger, and the draft is gone
+        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_VACATION_DELEGATE, expect.objectContaining({overridePolicyDiffWarning: true}), expect.anything());
+        expect(dismissModalSpy).toHaveBeenCalledTimes(1);
+        const draft = await getOnyxValue(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT);
+        expect(draft?.delegate).toBeFalsy();
+    });
+
+    it('closes the flow and clears the form draft when Invite is pressed', async () => {
+        // Given the admin-of step with a pick still in the form draft
+        await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID], nonAdminPolicies: []});
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT, {delegate: DELEGATE_EMAIL});
+        });
+        const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When Invite is pressed
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.invite')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the delegate is invited and saved, the whole RHP closes, and the draft is gone
+        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.anything(), expect.anything());
+        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_VACATION_DELEGATE, expect.objectContaining({overridePolicyDiffWarning: true}), expect.anything());
+        expect(dismissModalSpy).toHaveBeenCalledTimes(1);
+        const draft = await getOnyxValue(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT);
+        expect(draft?.delegate).toBeFalsy();
+    });
+
+    it('replays the blocked action through the navigation container so a navigator above this stack can still apply it', async () => {
+        // Given the step is guarding its removal
+        await seedVacationDelegate({adminPolicies: [], nonAdminPolicies: [MEMBER_POLICY_ID]});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        const containerDispatchSpy = jest.spyOn(navigationRef, 'dispatch').mockImplementation(() => {});
+        const blockedAction = {type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL};
+
+        // When the guard lets a blocked action through, such as the one closing the whole RHP
+        await act(async () => {
+            mockPreventRemoveCallback?.({data: {action: blockedAction}});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then it is replayed as is through the container. Replaying it through this screen would stamp the screen's key on it as
+        // its source, and the root stack, which can't find that key among its own routes, would drop it and leave the RHP open
+        expect(containerDispatchSpy).toHaveBeenCalledWith(blockedAction);
+    });
+
     it('still asks the backend to email the non-admin workspaces when Skip is pressed on a mixed diff', async () => {
         // Given a mixed policy diff, since Skip only skips the invites the user controls: the owners of the
         // workspaces they don't administer are still emailed, matching Classic
@@ -584,9 +670,9 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
     });
 
     it('keeps rendering what was submitted when the flow state is cleared underneath it', async () => {
-        // Given Navigation.goBack stubbed out, so the screen stays mounted past submission the same way it does in
-        // the real app, where navigation only pops this screen once the transition finishes
-        jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        // Given Navigation.dismissModal stubbed out, so the screen stays mounted past submission the same way it does in
+        // the real app, where navigation only removes this screen once the transition finishes
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         await seedVacationDelegate({adminPolicies: [], nonAdminPolicies: [MEMBER_POLICY_ID]});
         renderPage();
         await waitForBatchedUpdatesWithAct();

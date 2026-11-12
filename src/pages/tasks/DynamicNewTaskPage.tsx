@@ -34,7 +34,7 @@ import Parser from '@libs/Parser';
 import {getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {isAllowedToComment} from '@libs/ReportUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +44,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -70,6 +71,7 @@ function TaskFieldAvatar({reportID}: {reportID?: string}) {
 }
 
 function DynamicNewTaskPage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.shareDestination}`);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${task?.shareDestination}`, {selector: pendingDeleteMemberAccountIDsSelector});
@@ -212,6 +214,7 @@ function DynamicNewTaskPage() {
                     <View style={styles.flex1}>
                         <View style={styles.mb5}>
                             <MenuItemFieldHTML
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.NEW_TASK_TITLE_FIELD}
                                 name={translate('task.title')}
                                 value={task?.title ? Parser.replace(task.title, {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]}) : undefined}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_TITLE.path))}
@@ -219,14 +222,16 @@ function DynamicNewTaskPage() {
                                 {!task?.title && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
                             </MenuItemFieldHTML>
                             <MenuItemFieldHTML
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.NEW_TASK_DESCRIPTION_FIELD}
                                 name={translate('task.description')}
                                 value={task?.description ? Parser.replace(task.description) : undefined}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path))}
                             />
                             {assignee?.displayName ? (
                                 <MenuItem.Root
+                                    sentryLabel={CONST.SENTRY_LABEL.TASK.NEW_TASK_ASSIGNEE_FIELD}
                                     accessibilityLabel={`${translate('task.assignee')}, ${assignee.displayName}`}
-                                    onPress={callFunctionIfActionIsAllowed(navigateToAssignee)}
+                                    onPress={callIfAuthenticated(navigateToAssignee, session)}
                                 >
                                     <MenuItem.Row>
                                         <MenuItem.Content>
@@ -246,12 +251,14 @@ function DynamicNewTaskPage() {
                                 </MenuItem.Root>
                             ) : (
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.TASK.NEW_TASK_ASSIGNEE_FIELD}
                                     name={translate('task.assignee')}
                                     onPress={navigateToAssignee}
                                 />
                             )}
                             {shareDestination?.displayName ? (
                                 <MenuItemWithLabel
+                                    sentryLabel={CONST.SENTRY_LABEL.TASK.NEW_TASK_SHARE_FIELD}
                                     label={translate('common.share')}
                                     onPress={navigateToShareDestination}
                                 >
@@ -283,6 +290,7 @@ function DynamicNewTaskPage() {
                                 </MenuItemWithLabel>
                             ) : (
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.TASK.NEW_TASK_SHARE_FIELD}
                                     name={translate('common.share')}
                                     onPress={navigateToShareDestination}
                                 >
@@ -293,6 +301,7 @@ function DynamicNewTaskPage() {
                     </View>
                     <View style={styles.flexShrink0}>
                         <FormAlertWithSubmitButton
+                            sentryLabel={CONST.SENTRY_LABEL.TASK.NEW_TASK_CONFIRM_BUTTON}
                             isAlertVisible={!!errorMessage}
                             message={errorMessage}
                             shouldShowLoadingImmediatelyOnPress={false}

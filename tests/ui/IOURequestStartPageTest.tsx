@@ -38,6 +38,8 @@ jest.mock('react-native-tab-view', () => ({
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
+    useCameraDevices: jest.fn(() => []),
+    usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
 
 describe('IOURequestStartPage', () => {
@@ -88,7 +90,7 @@ describe('IOURequestStartPage', () => {
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
                 callback: (val) => {
                     resolve(val?.iouRequestType);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });

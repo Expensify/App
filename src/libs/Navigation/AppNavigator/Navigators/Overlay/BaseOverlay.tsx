@@ -74,6 +74,7 @@ function BaseOverlay({
              we have 30px draggable ba at the top and the rest of the dimmed area is clickable. On other devices,
              everything behaves normally like one big pressable */}
                 <PressableWithoutFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_OVERLAY.CLOSE}
                     style={[styles.draggableTopBar, styles.boxShadowNone, styles.cursorAuto]}
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}
@@ -82,6 +83,7 @@ function BaseOverlay({
                     tabIndex={-1}
                 />
                 <PressableWithoutFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_OVERLAY.CLOSE}
                     style={[styles.flex1, styles.boxShadowNone, styles.cursorAuto]}
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}

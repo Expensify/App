@@ -8,6 +8,7 @@ export default {
     USER_IS_LEAVING_ROOM: 'client-userIsLeavingRoom',
     USER_IS_TYPING: 'client-userIsTyping',
     MULTIPLE_EVENTS: 'multipleEvents',
+    AGENT_ZERO_PROCESSING_STATUS: 'agentZeroProcessingStatus',
     CONCIERGE_REASONING: 'conciergeReasoning',
     CONCIERGE_DRAFT_EVENTS: 'conciergeDraftEvents',
     CONCIERGE_DRAFT_STARTED: 'conciergeDraftStarted',

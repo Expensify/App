@@ -8,6 +8,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {clearDomainSecurityGroupSettingError, updateDomainSecurityGroup} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
@@ -51,6 +52,7 @@ function ExpensifyCardPreferredWorkspaceToggle({domainAccountID, groupID}: Expen
                 title={translate('domain.groups.expensifyCardPreferredWorkspace')}
                 subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}
                 switchAccessibilityLabel={translate('domain.groups.expensifyCardPreferredWorkspace')}
+                switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.EXPENSIFY_CARD_PREFERRED_WORKSPACE_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 disabled={isDisabled}
                 disabledAction={() => {

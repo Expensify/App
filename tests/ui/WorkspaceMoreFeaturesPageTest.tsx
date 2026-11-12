@@ -6,7 +6,6 @@ import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
@@ -44,8 +43,6 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
     const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
     return MockReanimatedModal;
 });
-
-jest.mock('@hooks/useIsPolicyConnectedToUberReceiptPartner', () => ({__esModule: true, default: jest.fn(() => false)}));
 
 jest.mock('@libs/CardUtils', () => {
     const actual: typeof CardUtils = jest.requireActual('@libs/CardUtils');
@@ -121,7 +118,6 @@ const isSmartLimitEnabledMock = jest.mocked(CardUtils.isSmartLimitEnabled);
 const getCompanyFeedsMock = jest.mocked(CardUtils.getCompanyFeeds);
 const hasAccountingConnectionsMock = jest.mocked(PolicyUtils.hasAccountingConnections);
 const hasAccountingFeatureConnectionMock = jest.mocked(PolicyUtils.hasAccountingFeatureConnection);
-const useIsUberConnectedMock = jest.mocked(useIsPolicyConnectedToUberReceiptPartner);
 
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => undefined);
 const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => Promise.resolve());
@@ -159,7 +155,6 @@ describe('WorkspaceMoreFeaturesPage', () => {
         getCompanyFeedsMock.mockReturnValue({});
         hasAccountingConnectionsMock.mockReturnValue(false);
         hasAccountingFeatureConnectionMock.mockReturnValue(false);
-        useIsUberConnectedMock.mockReturnValue(false);
     });
 
     afterEach(async () => {
@@ -167,6 +162,51 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+    });
+
+    describe('Distance rates toggle', () => {
+        it('locks Distance rates and explains why while home and office commuter exclusions are enabled', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                    buildPolicy({
+                        id: POLICY_ID,
+                        areDistanceRatesEnabled: true,
+                        commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+                    }),
+                );
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.distanceRates.subtitle'));
+
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.distanceRates.commuterExclusionsOnTitle'))).toBeOnTheScreen();
+                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.distanceRates.disableLockedByCommuterExclusionsPrompt'))).toBeOnTheScreen();
+                expect(screen.getByText(TestHelper.translateLocal('common.buttonConfirm'))).toBeOnTheScreen();
+            });
+        });
+
+        it('keeps Distance rates available to re-enable when commuter exclusions remain active', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                    buildPolicy({
+                        id: POLICY_ID,
+                        areDistanceRatesEnabled: false,
+                        commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+                    }),
+                );
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+
+            await expect(findUnlockedSwitch('workspace.moreFeatures.distanceRates.subtitle')).resolves.toBeOnTheScreen();
+        });
     });
 
     describe('Workflows toggle', () => {
@@ -302,41 +342,6 @@ describe('WorkspaceMoreFeaturesPage', () => {
         });
     });
 
-    describe('Accounting toggle (locked when an integration is connected)', () => {
-        it('locks the Accounting switch when the policy has an active connection', async () => {
-            await TestHelper.signInWithTestUser();
-            hasAccountingConnectionsMock.mockReturnValue(true);
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
-            });
-
-            renderPage({policyID: POLICY_ID});
-            await waitForBatchedUpdatesWithAct();
-
-            await expect(findLockedSwitch('workspace.moreFeatures.connections.subtitle')).resolves.toBeOnTheScreen();
-        });
-
-        it('routes confirm to the accounting page', async () => {
-            await TestHelper.signInWithTestUser();
-            hasAccountingConnectionsMock.mockReturnValue(true);
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
-            });
-
-            renderPage({policyID: POLICY_ID});
-            await waitForBatchedUpdatesWithAct();
-            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.connections.subtitle'));
-
-            await waitFor(() => {
-                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.connectionsWarningModal.disconnectText'))).toBeOnTheScreen();
-            });
-            fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.connectionsWarningModal.manageSettings')));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING.getRoute(POLICY_ID));
-        });
-    });
-
     describe('Concierge-routed disable flows', () => {
         it('opens Concierge chat when the user confirms the Expensify Card disable warning', async () => {
             await TestHelper.signInWithTestUser();
@@ -383,31 +388,22 @@ describe('WorkspaceMoreFeaturesPage', () => {
         });
     });
 
-    describe('Receipt partners (informational warning, no confirm action)', () => {
-        it('opens the disconnect-Uber info modal without a Cancel button when locked', async () => {
+    describe('Integrate section', () => {
+        it('does not show the integration toggles', async () => {
+            // Given a workspace
             await TestHelper.signInWithTestUser();
-            useIsUberConnectedMock.mockReturnValue(true);
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
             });
 
+            // When More Features renders
             renderPage({policyID: POLICY_ID});
             await waitForBatchedUpdatesWithAct();
-            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.receiptPartners.subtitle'));
 
-            await waitFor(() => {
-                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText'))).toBeOnTheScreen();
-            });
-            expect(screen.queryByText(TestHelper.translateLocal('common.cancel'))).toBeNull();
-
-            fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.receiptPartnersWarningModal.confirmText')));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(navigateSpy).not.toHaveBeenCalled();
-            expect(navigateToConciergeChatSpy).not.toHaveBeenCalled();
+            // Then the Accounting toggle is gone, because Connections turns each feature on as its first integration connects
+            expect(screen.queryByRole(CONST.ROLE.SWITCH, {name: new RegExp(escapeRegExp(TestHelper.translateLocal('workspace.moreFeatures.connections.subtitle')), 'i')})).toBeNull();
         });
     });
-
     describe('Vendors row (visibility gated on a supported integration)', () => {
         const renderWithVendorMatching = async (connections: Record<string, unknown>, isBetaEnabled = true) => {
             await TestHelper.signInWithTestUser();
@@ -547,6 +543,50 @@ describe('WorkspaceMoreFeaturesPage', () => {
 
             // Then the Vendors row is still visible so admins can discover the feature
             await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it.each([
+            {isConfigured: true, isBetaEnabled: false, isVendorsActive: true},
+            {isConfigured: true, isBetaEnabled: true, isVendorsActive: true},
+            {isConfigured: false, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: false, isBetaEnabled: true, isVendorsActive: false},
+            {isConfigured: undefined, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: undefined, isBetaEnabled: true, isVendorsActive: false},
+        ])('shows the Campfire Vendors row with active=$isVendorsActive for configured=$isConfigured and beta=$isBetaEnabled', async ({isConfigured, isBetaEnabled, isVendorsActive}) => {
+            // Given a Campfire connection whose configuration determines whether vendor matching is active
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured}}};
+
+            // When the More features page renders with the selected beta state
+            await renderWithVendorMatching(connections, isBetaEnabled);
+
+            // Then the locked row shows without the beta so admins can discover it, and is only on once Campfire is configured
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            if (isVendorsActive) {
+                expect(vendorsSwitch).toBeChecked();
+            } else {
+                expect(vendorsSwitch).not.toBeChecked();
+            }
+        });
+
+        it.each([
+            {isConfigured: true, isBetaEnabled: false, isVendorsActive: true},
+            {isConfigured: true, isBetaEnabled: true, isVendorsActive: true},
+            {isConfigured: false, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: false, isBetaEnabled: true, isVendorsActive: false},
+        ])('shows the Zoho Books Vendors row with active=$isVendorsActive for configured=$isConfigured and beta=$isBetaEnabled', async ({isConfigured, isBetaEnabled, isVendorsActive}) => {
+            // Given a Zoho Books connection whose configuration determines whether vendor matching is active
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {config: {isConfigured}}};
+
+            // When the More features page renders with the selected beta state
+            await renderWithVendorMatching(connections, isBetaEnabled);
+
+            // Then the locked row shows without the beta, because Zoho Books vendor matching is GA, and is only on once Zoho Books is configured
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            if (isVendorsActive) {
+                expect(vendorsSwitch).toBeChecked();
+            } else {
+                expect(vendorsSwitch).not.toBeChecked();
+            }
         });
 
         // Business Central is still beta-gated, so it stays hidden when the beta is off.

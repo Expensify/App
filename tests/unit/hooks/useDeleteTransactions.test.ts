@@ -143,4 +143,97 @@ describe('useDeleteTransactions', () => {
         // And the expense is removed from Onyx once the request succeeds
         await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`)).resolves.toBeFalsy();
     });
+
+    it('finds the IOU action in the Onyx collection when the passed report actions miss it', async () => {
+        // Given an expense whose IOU action is in Onyx but not in the paginated report actions passed to the hook
+        const expenseReport = createExpenseReport(1);
+        const transactionID = 'transaction';
+        const transaction: Transaction = {
+            transactionID,
+            amount: -10000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Test comment'},
+            created: DateUtils.getDBTime(),
+            reportID: expenseReport.reportID,
+        };
+        const iouAction: ReportAction = {
+            ...buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 10000,
+                currency: 'USD',
+                comment: '',
+                participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
+                transactionID,
+                iouReportID: expenseReport.reportID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            }),
+            reportID: expenseReport.reportID,
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {[iouAction.reportActionID]: iouAction});
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDeleteTransactions({report: expenseReport, reportActions: []}), {wrapper: OnyxListItemProvider});
+        await waitForBatchedUpdates();
+
+        // When the expense is deleted
+        act(() => {
+            result.current.deleteTransactions([transactionID], {}, {});
+        });
+        await waitForBatchedUpdates();
+
+        // Then DeleteMoneyRequest is sent with the IOU action found in the collection, so its optimistic cleanup runs
+        expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.DELETE_MONEY_REQUEST, 0, {transactionID, reportActionID: iouAction.reportActionID});
+    });
+
+    it('finds the IOU action of an unreported expense under the self-DM report when the passed report actions miss it', async () => {
+        // Given an unreported expense whose IOU action lives in the self-DM chat, and no report actions passed to the hook
+        const selfDMReport = createSelfDM(2, RORY_ACCOUNT_ID);
+        const transactionID = 'unreported-transaction';
+        const transaction: Transaction = {
+            transactionID,
+            amount: -10000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Test comment'},
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+        };
+        const iouAction: ReportAction = {
+            ...buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                amount: 10000,
+                currency: 'USD',
+                comment: '',
+                participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
+                transactionID,
+                isPersonalTrackingExpense: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            }),
+            reportID: selfDMReport.reportID,
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReport.reportID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {[iouAction.reportActionID]: iouAction});
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDeleteTransactions({report: selfDMReport, reportActions: []}), {wrapper: OnyxListItemProvider});
+        await waitForBatchedUpdates();
+
+        // When the expense is deleted
+        act(() => {
+            result.current.deleteTransactions([transactionID], {}, {});
+        });
+        await waitForBatchedUpdates();
+
+        // Then the tracked-expense cleanup still empties the self-DM IOU action, because it was found under the self-DM report rather than under reportID '0'
+        const selfDMActions = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`)) as ReportActions | undefined;
+        const deletedAction = selfDMActions?.[iouAction.reportActionID];
+        expect(Array.isArray(deletedAction?.message) ? deletedAction?.message.at(0)?.html : undefined).toBe('');
+    });
 });

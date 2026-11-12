@@ -620,20 +620,16 @@ function Comparison() {
             />
 
             <Card
-                title="description, onPress, sentryLabel, title"
+                title="description, onPress, title"
                 legacy={
                     <MenuItemWithTopDescription
                         description="Display"
                         title="Comfortable"
-                        sentryLabel="menuItemComparisonStorySentryLabel"
                         onPress={noop}
                     />
                 }
                 composable={
-                    <MenuItem.Root
-                        onPress={noop}
-                        sentryLabel="menuItemComparisonStorySentryLabel"
-                    >
+                    <MenuItem.Root onPress={noop}>
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>Display</MenuItem.FieldName>
@@ -999,16 +995,17 @@ function Comparison() {
             <Card
                 title="Avatar + title + 1-line description"
                 legacy={
-                    <MenuItem
-                        title="John Doe"
-                        description="john.doe.with.a.very.long.email.address.for.truncation@example.com"
-                        avatarID={STORY_ACCOUNT_ID}
-                        icon={icons.FallbackAvatar}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        numberOfLinesDescription={1}
-                        containerStyle={[styles.pr2, styles.mt1]}
-                        interactive={false}
-                    />
+                    <View style={styles.mt1}>
+                        <MenuItem
+                            title="John Doe"
+                            description="john.doe.with.a.very.long.email.address.for.truncation@example.com"
+                            avatarID={STORY_ACCOUNT_ID}
+                            icon={icons.FallbackAvatar}
+                            iconType={CONST.ICON_TYPE_AVATAR}
+                            numberOfLinesDescription={1}
+                            interactive={false}
+                        />
+                    </View>
                 }
                 composable={
                     <View style={styles.mt1}>
