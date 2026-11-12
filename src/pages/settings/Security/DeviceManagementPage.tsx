@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -113,25 +114,27 @@ function DeviceManagementPage() {
                 title={translate('deviceManagementPage.title')}
                 onBackButtonPress={Navigation.goBack}
             />
-            <FlashList
-                data={logins}
-                renderItem={renderItem}
-                keyExtractor={getLoginKey}
-                maintainVisibleContentPosition={{disabled: true}}
-                contentContainerStyle={[styles.ph5]}
-                ListHeaderComponent={listHeader}
-                ListFooterComponent={
-                    <Button
-                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.SIGN_OUT_ALL_DEVICES}
-                        variant={CONST.BUTTON_VARIANT.DANGER}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        style={[styles.mt6, styles.mb5]}
-                        onPress={confirmSignOutAllDevices}
-                    >
-                        <Button.Text>{translate('deviceManagementPage.signOutAllDevices')}</Button.Text>
-                    </Button>
-                }
-            />
+            <View style={styles.flex1}>
+                <FlashList
+                    testID="DeviceManagementList"
+                    data={logins}
+                    renderItem={renderItem}
+                    keyExtractor={getLoginKey}
+                    maintainVisibleContentPosition={{disabled: true}}
+                    contentContainerStyle={[styles.ph5]}
+                    ListHeaderComponent={listHeader}
+                />
+            </View>
+            <FixedFooter style={styles.pt5}>
+                <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.SIGN_OUT_ALL_DEVICES}
+                    variant={CONST.BUTTON_VARIANT.DANGER}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    onPress={confirmSignOutAllDevices}
+                >
+                    <Button.Text>{translate('deviceManagementPage.signOutAllDevices')}</Button.Text>
+                </Button>
+            </FixedFooter>
         </ScreenWrapper>
     );
 }

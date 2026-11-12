@@ -107,17 +107,31 @@ describe('Device management sign out on all devices', () => {
         NetworkState.setHasRadio(true);
     });
 
-    it('places sign out after the device rows without changing individual revoke controls', async () => {
-        // Given a signed-in account with a device in the list
+    it.each([1, 30])('keeps sign out available outside the scrolling device rows with %i devices', async (deviceCount) => {
+        // Given an account whose device list may be taller than the available screen
+        const device = (await Onyx.get(ONYXKEYS.LOGINS))?.device;
+        if (!device) {
+            throw new Error('Expected a device login in the test account');
+        }
+        await Onyx.set(ONYXKEYS.LOGINS, Object.fromEntries(Array.from({length: deviceCount}, (_, index) => [`device${index}`, {...device, partnerUserID: `device${index}`}])));
         renderPage();
-
-        // When device management is displayed
         await waitForBatchedUpdatesWithAct();
 
-        // Then the bulk action follows the individual device action in reading order
-        const actions = screen.getAllByRole(CONST.ROLE.BUTTON);
-        expect(screen.getByText('Chrome (macOS 15)')).toBeOnTheScreen();
-        expect(actions.indexOf(screen.getByRole(CONST.ROLE.BUTTON, {name: SIGN_OUT_TEXT}))).toBeGreaterThan(actions.indexOf(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Revoke'})));
+        // When the device list is scrolled
+        const deviceList = screen.getByTestId('DeviceManagementList');
+        fireEvent.scroll(deviceList, {
+            nativeEvent: {
+                contentOffset: {x: 0, y: 1200},
+                contentSize: {width: 300, height: 2400},
+                layoutMeasurement: {width: 300, height: 400},
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the bulk action stays available independently of the scrolling rows, whose revoke controls remain intact
+        expect(within(deviceList).queryByRole(CONST.ROLE.BUTTON, {name: SIGN_OUT_TEXT})).not.toBeOnTheScreen();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: SIGN_OUT_TEXT})).toBeOnTheScreen();
+        expect(within(deviceList).getAllByRole(CONST.ROLE.BUTTON, {name: 'Revoke'}).length).toBeGreaterThan(0);
     });
 
     it('explains that this device is included and cancels without submitting', async () => {
