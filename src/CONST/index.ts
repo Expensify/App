@@ -7968,6 +7968,7 @@ const CONST = {
      * Constant for prefix of violations.
      */
     VIOLATIONS_PREFIX: 'violations.',
+    NON_DEFAULT_VIOLATION_PREFIX: 'nonDefault',
 
     /**
      * Constants with different types for the modifiedAmount violation

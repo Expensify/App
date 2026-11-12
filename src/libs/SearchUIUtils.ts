@@ -5670,10 +5670,10 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, con
     }
 }
 
-type SubmittedTransactionViolationShortName = Exclude<ValueOf<typeof CONST.VIOLATIONS>, typeof CONST.VIOLATIONS.RULE_VIOLATION | `nonDefault${string}`>;
+type SubmittedTransactionViolationShortName = Exclude<ValueOf<typeof CONST.VIOLATIONS>, typeof CONST.VIOLATIONS.RULE_VIOLATION | `${typeof CONST.NON_DEFAULT_VIOLATION_PREFIX}${string}`>;
 
 const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(
-    Object.values(CONST.VIOLATIONS).filter((name) => name !== CONST.VIOLATIONS.RULE_VIOLATION && !name.startsWith('nonDefault')),
+    Object.values(CONST.VIOLATIONS).filter((name) => name !== CONST.VIOLATIONS.RULE_VIOLATION && !name.startsWith(CONST.NON_DEFAULT_VIOLATION_PREFIX)),
 );
 
 function isSubmittedTransactionViolationShortName(name: string): name is SubmittedTransactionViolationShortName {
