@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, Domain, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedData, CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithDomainID, CardFeedWithNumber, CombinedCardFeed, CustomCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithDomainID, CardFeedWithNumber, CombinedCardFeed, CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -56,7 +56,7 @@ type CardFeedForDisplay = {
 
     /**
      * Supporting text in the Spend page feed filter and Add cards "From other workspaces" list so feeds
-     * of the same type can be told apart: the preferred workspace name or the domain backing the feed.
+     * of the same type can be told apart: the origin workspace name or the domain backing the feed.
      */
     subtitle?: string;
 };
@@ -199,27 +199,21 @@ function getExpensifyCardFeedsForDisplay(
 /**
  * Resolves the domain/workspace supporting text for company card feed filters and selectors.
  *
- * Workspace-level feeds show the origin workspace name via `preferredPolicy`. That is the workspace where the feed
- * was originally configured, even when it is shared to several workspaces. Domain-level feeds (no
- * `preferredPolicy`) fall back to the domain backing the feed's fund. Returns `undefined` when there is
- * nothing to disambiguate with.
+ * The fund identifies the feed's origin, independently of preferred or linked workspaces.
+ * Returns `undefined` when the origin's name is unavailable.
  */
 function getCompanyFeedSubtitle(
-    feedData: CardFeedData | undefined,
     fundID: string,
-    policies: OnyxCollection<Policy> | undefined,
+    policyNameByFundID: Map<number, string | undefined>,
     domains: OnyxCollection<Domain> | undefined,
 ): string | undefined {
-    const preferredPolicy = feedData && 'preferredPolicy' in feedData ? feedData.preferredPolicy : undefined;
-    if (preferredPolicy) {
-        const policyName = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy.toUpperCase()}`]?.name;
-        if (policyName) {
-            return policyName;
-        }
+    const numericFundID = Number(fundID);
+    const domain = getDomainByFundID(domains, numericFundID);
+    if (domain) {
+        return domain.email ? Str.extractEmailDomain(domain.email) : undefined;
     }
 
-    const domainEmail = getDomainByFundID(domains, Number(fundID))?.email;
-    return domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
+    return policyNameByFundID.get(numericFundID);
 }
 
 /**
@@ -239,6 +233,14 @@ function getCardFeedsForDisplay(
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardFeedsForDisplay {
     const cardFeedsForDisplay = {} as CardFeedsForDisplay;
+    // Index origins once because a fund can contain several feeds shared to other workspaces.
+    const policyNameByFundID = new Map<number, string | undefined>();
+    for (const policy of Object.values(policies ?? {})) {
+        if (policy?.policyAccountID === undefined || policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        policyNameByFundID.set(policy.policyAccountID, policy.name);
+    }
 
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
         // sharedNVP_private_domain_member_123456 -> 123456
@@ -247,7 +249,7 @@ function getCardFeedsForDisplay(
             continue;
         }
 
-        for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
+        for (const key of Object.keys(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
             const feed = key as CardFeedWithNumber;
             const id = `${fundID}_${feed}`;
 
@@ -260,7 +262,7 @@ function getCardFeedsForDisplay(
                 feed,
                 fundID,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
-                subtitle: getCompanyFeedSubtitle(feedData, fundID, policies, domains),
+                subtitle: getCompanyFeedSubtitle(fundID, policyNameByFundID, domains),
             };
         }
     }
@@ -507,7 +509,7 @@ function getVisibleCompanyCardFeedsForSelector(
                 fundID,
                 linkedPolicyIDs,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
-                subtitle: getCompanyFeedSubtitle(feedData, fundID, policies, domains) ?? adminPolicyNameByFundID.get(numericFundID),
+                subtitle: getCompanyFeedSubtitle(fundID, adminPolicyNameByFundID, domains),
             });
         }
     }

@@ -285,7 +285,7 @@ describe('useOtherFeedsForFeedSelector', () => {
 
     it('should use the resolved subtitle before the linked workspace name', () => {
         // Given a resolved subtitle and a different linked workspace name
-        const subtitle = 'Preferred workspace';
+        const subtitle = 'Origin workspace';
         mockVisibleFeeds([
             {
                 id: '999_visa',

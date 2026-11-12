@@ -121,29 +121,46 @@ describe('Card Feed Utils', () => {
         });
     });
 
-    it('adds the origin workspace name as the subtitle for workspace-level company feeds via preferredPolicy', () => {
+    it('uses the fund origin for Spend subtitles instead of preferred workspaces', () => {
+        // Given feeds sharing a fund but naming different preferred workspaces
         const policies: OnyxCollection<Policy> = {
-            [`${ONYXKEYS.COLLECTION.POLICY}AA1BB2CC3`]: createTestPolicy({id: 'AA1BB2CC3', name: 'Marketing'}),
+            [`${ONYXKEYS.COLLECTION.POLICY}AA1BB2CC3`]: createTestPolicy({id: 'AA1BB2CC3', name: 'Marketing', policyAccountID: 1234, role: CONST.POLICY.ROLE.USER}),
             [`${ONYXKEYS.COLLECTION.POLICY}XX1YY2ZZ3`]: createTestPolicy({id: 'XX1YY2ZZ3', name: 'Engineering'}),
         };
 
+        // When Spend builds the feed filter entries
         const result = getCardFeedsForDisplay(cardFeedsMock, {}, translateLocal, undefined, policies);
 
-        // Visa and Citibank both point at preferredPolicy AA1BB2CC3, Stripe at XX1YY2ZZ3.
+        // Then all feeds show their fund's workspace, including Stripe whose preferred workspace differs
         expect(result['1234_vcf']?.subtitle).toBe('Marketing');
         expect(result['1234_oauth.citibank.com']?.subtitle).toBe('Marketing');
-        expect(result['1234_stripe']?.subtitle).toBe('Engineering');
+        expect(result['1234_stripe']?.subtitle).toBe('Marketing');
     });
 
-    it('falls back to the domain name as the subtitle for domain-level company feeds without a preferredPolicy', () => {
-        // American Express has no preferredPolicy, so it resolves via the domain backing fundID 1234.
+    it('uses the domain origin for Spend subtitles even when a preferred workspace is loaded', () => {
+        // Given a domain fund whose feeds also name a loaded preferred workspace
+        const policies: OnyxCollection<Policy> = {policy_AA1BB2CC3: createTestPolicy({id: 'AA1BB2CC3', name: 'Not the origin'})};
         const domains: OnyxCollection<Domain> = {
             [`${ONYXKEYS.COLLECTION.DOMAIN}1234`]: createTestDomain({accountID: 1234, email: 'admin@acme.com'}),
         };
 
-        const result = getCardFeedsForDisplay(cardFeedsMock, {}, translateLocal, undefined, undefined, domains);
+        // When Spend resolves the fund's subtitle
+        const result = getCardFeedsForDisplay(cardFeedsMock, {}, translateLocal, undefined, policies, domains);
 
+        // Then domain ownership takes precedence over preferred-workspace metadata
         expect(result['1234_oauth.americanexpressfdx.com 1001']?.subtitle).toBe('acme.com');
+        expect(result['1234_vcf']?.subtitle).toBe('acme.com');
+    });
+
+    it('does not substitute a preferred workspace when the fund origin is unavailable', () => {
+        // Given loaded preferred workspace records that do not back the feed's fund
+        const policies: OnyxCollection<Policy> = {policy_AA1BB2CC3: createTestPolicy({id: 'AA1BB2CC3', name: 'Not the origin', policyAccountID: 9999})};
+
+        // When Spend cannot resolve the actual origin
+        const result = getCardFeedsForDisplay(cardFeedsMock, {}, translateLocal, undefined, policies);
+
+        // Then a preferred workspace is not mislabeled as the origin
+        expect(result['1234_vcf']?.subtitle).toBeUndefined();
     });
 
     it('returns numbered commercial card feed names for search display', () => {
@@ -504,12 +521,12 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
         expect(result.at(0)?.linkedPolicyIDs).toEqual(['WS', 'WS2', 'WS3']);
     });
 
-    it('distinguishes Mastercard feeds with only preferred workspaces by their subtitles', () => {
-        // Given two feeds with the same network name but different preferred workspaces and no domain or linked workspace metadata
+    it('distinguishes Mastercard feeds by their origin workspaces despite conflicting preferred workspaces', () => {
+        // Given two funds with the same network but preferred workspaces pointing at the other origin
         const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD;
         const cardFeeds: OnyxCollection<CardFeeds> = {
-            ...createCompanyCardFeeds({[feed]: {preferredPolicy: 'ws'}}),
-            sharedNVP_private_domain_member_5678: {settings: {companyCards: {[feed]: {preferredPolicy: 'WS2'}}}},
+            ...createCompanyCardFeeds({[feed]: {preferredPolicy: 'ws2'}}),
+            sharedNVP_private_domain_member_5678: {settings: {companyCards: {[feed]: {preferredPolicy: 'WS'}}}},
         };
         const policies: OnyxCollection<Policy> = {
             policy_WS: createTestPolicy({id: 'WS', name: 'Woo', policyAccountID: fundID}),
@@ -526,11 +543,36 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
         expect(result.map(({id}) => id)).toEqual(['1234_cdf', '5678_cdf']);
     });
 
+    it('uses feed nicknames before numbered slot titles in the selector', () => {
+        // Given numbered feeds, including an explicitly named feed and an empty nickname
+        const cardFeeds: OnyxCollection<CardFeeds> = {
+            sharedNVP_private_domain_member_1234: {
+                settings: {
+                    companyCards: createCompanyCardFeedsWithRawKeys(['cdf', 'cdf1', 'cdf2', 'vcf5', 'gl1025']),
+                    companyCardNicknames: {cdf1: 'Travel Mastercard', cdf2: ''},
+                },
+            },
+        };
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID})};
+
+        // When the selector resolves user-facing titles without changing feed identities
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
+
+        // Then the nickname wins and empty or missing nicknames preserve each slot's number
+        expect(result.map(({id, name}) => ({id, name}))).toEqual([
+            {id: '1234_cdf', name: 'Mastercard'},
+            {id: '1234_cdf1', name: 'Travel Mastercard'},
+            {id: '1234_cdf2', name: 'Mastercard 2'},
+            {id: '1234_vcf5', name: 'Visa 5'},
+            {id: '1234_gl1025', name: 'American Express'},
+        ]);
+    });
+
     it.each([
-        {preferredPolicy: 'WS', expectedSubtitle: 'Woo'},
+        {preferredPolicy: 'WS', expectedSubtitle: 'company.com'},
         {preferredPolicy: 'MISSING', expectedSubtitle: 'company.com'},
         {preferredPolicy: undefined, expectedSubtitle: 'company.com'},
-    ])('resolves the subtitle for preferredPolicy=$preferredPolicy before falling back to the domain', ({preferredPolicy, expectedSubtitle}) => {
+    ])('uses the domain origin regardless of preferredPolicy=$preferredPolicy', ({preferredPolicy, expectedSubtitle}) => {
         // Given a domain feed whose preferred workspace may or may not be loaded
         const cardFeeds = createCompanyCardFeeds({[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {preferredPolicy}});
         const policies: OnyxCollection<Policy> = {
@@ -542,7 +584,7 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
         // When the selector resolves supporting text using the fund's domain rather than its collection key
         const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, domains, currentUserAccountID);
 
-        // Then a loaded preferred workspace wins over the domain, which remains the fallback
+        // Then the domain, not either workspace, identifies the origin
         expect(result).toHaveLength(1);
         expect(result.at(0)?.subtitle).toBe(expectedSubtitle);
     });
@@ -550,8 +592,8 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
     it.each([
         {preferredPolicy: 'MISSING', expectedSubtitle: 'Test Workspace'},
         {preferredPolicy: undefined, expectedSubtitle: 'Test Workspace'},
-        {preferredPolicy: 'PREFERRED', expectedSubtitle: 'Preferred workspace'},
-    ])('uses the backing workspace only when preferredPolicy=$preferredPolicy cannot supply a name', ({preferredPolicy, expectedSubtitle}) => {
+        {preferredPolicy: 'PREFERRED', expectedSubtitle: 'Test Workspace'},
+    ])('uses the backing workspace regardless of preferredPolicy=$preferredPolicy', ({preferredPolicy, expectedSubtitle}) => {
         // Given a visible feed with no domain email and a loaded workspace backing its fund
         const cardFeeds = createCompanyCardFeeds({[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {preferredPolicy}});
         const policies: OnyxCollection<Policy> = {
@@ -562,7 +604,7 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
         // When the selector resolves the feed subtitle
         const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
 
-        // Then the backing workspace supplies the missing name without replacing a loaded preferred workspace
+        // Then the fund's workspace identifies the origin even when a different preferred workspace is loaded
         expect(result).toHaveLength(1);
         expect(result.at(0)?.subtitle).toBe(expectedSubtitle);
         expect(result.at(0)?.id).toBe('1234_cdf');
@@ -573,7 +615,7 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
         {role: CONST.POLICY.ROLE.USER, pendingAction: undefined, name: 'Member workspace'},
         {role: CONST.POLICY.ROLE.ADMIN, pendingAction: undefined, name: undefined},
     ])('does not use an unavailable backing workspace name for role=$role and pendingAction=$pendingAction', ({role, pendingAction, name}) => {
-        // Given domain-admin visibility without an email and a backing policy that is deleted, not administered, or unnamed
+        // Given domain-admin visibility without an email and a backing policy that must not substitute for the domain
         const cardFeeds = createCompanyCardFeeds({[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {preferredPolicy: 'MISSING'}});
         const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID, role, pendingAction, name})};
         const domains: OnyxCollection<Domain> = {domain_company: {...createAdminDomain(fundID, currentUserAccountID), email: ''}};
@@ -581,7 +623,7 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
         // When domain access admits the feed despite unavailable workspace metadata
         const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, domains, currentUserAccountID);
 
-        // Then the selector leaves existing linked-workspace fallbacks available instead of inventing a name
+        // Then workspace metadata cannot invent a name for this domain's origin
         expect(result).toHaveLength(1);
         expect(result.at(0)?.subtitle).toBeUndefined();
     });
