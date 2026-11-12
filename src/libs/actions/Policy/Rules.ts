@@ -203,9 +203,13 @@ function setRule(policyID: string, ruleBody: RuleBody | undefined, priority: num
     const targetRuleID = ruleID ?? rand64();
     const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${targetRuleID}` as const;
     const created = existingRule?.created ?? new Date().toISOString();
+    // A rule migrated from the old policy rules carries a higher priority than anything this editor creates, and
+    // priority is what decides which of two matching rules the engine applies last. Saving the editor's priority
+    // over it would change which tax an expense ends up with on an edit that never touched the tax.
+    const resolvedPriority = existingRule?.priority ?? priority;
 
     // Shared between the optimistic rule and the request so the rule shown while offline matches what the server saves.
-    const ruleScope = {scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, priority};
+    const ruleScope = {scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, priority: resolvedPriority};
 
     const optimisticRule: Rule = {
         ...ruleBody,

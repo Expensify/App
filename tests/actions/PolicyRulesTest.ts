@@ -544,6 +544,41 @@ describe('actions/PolicyRules', () => {
             await waitForBatchedUpdates();
         });
 
+        it('keeps a migrated rule at its own priority when it is edited', async () => {
+            // Given a category tax default migrated from the old policy rules, which carries the higher priority
+            // the migration gives it rather than the one the editor saves at
+            const fakePolicy = createRandomPolicy(0);
+            const ruleID = 'migratedRule1';
+            const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const;
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(ruleKey, {
+                ...buildExpenseDefaultRule({categoriesToMatch: ['Travel'], tax: 'id_TAX_RATE_1'}, fakePolicy),
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: fakePolicy.id,
+                priority: 40000,
+            });
+
+            // When the admin edits it
+            const existingRule = (await getRules())?.[ruleKey];
+            setRule(
+                fakePolicy.id,
+                buildExpenseDefaultRule({categoriesToMatch: ['Travel'], tax: 'id_TAX_RATE_1', comment: 'Mileage'}, fakePolicy),
+                CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
+                ruleID,
+                existingRule,
+            );
+            await waitForBatchedUpdates();
+
+            // Then it keeps the priority it had, because priority decides which of two matching rules the engine
+            // applies last, and an edit that never touched the tax would otherwise change which rate wins
+            expect((await getRules())?.[ruleKey]?.priority).toBe(40000);
+
+            // Drain the paused requests, otherwise they sit in the sequential queue and every later write in this file stalls behind them.
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        });
+
         it('does nothing when the editor produced no rule body', async () => {
             const fakePolicy = createRandomPolicy(0);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
