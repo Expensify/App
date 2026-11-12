@@ -19,6 +19,7 @@ import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import {SPEND_RULE_CATEGORIES} from '@src/types/form/SpendRuleForm';
 
@@ -136,6 +137,7 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
                 }
                 footerContent={
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_CATEGORIES_SAVE}
                         buttonText={translate('common.save')}
                         isAlertVisible={false}
                         onSubmit={handleSave}

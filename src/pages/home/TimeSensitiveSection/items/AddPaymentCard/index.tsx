@@ -15,6 +15,8 @@ function AddPaymentCard() {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.ADD_PAYMENT_CARD}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.ADD_PAYMENT_CARD}
             icon={icons.CreditCard}
             title={translate('homePage.timeSensitiveSection.addPaymentCard.title')}
             subtitle={translate('homePage.timeSensitiveSection.addPaymentCard.subtitle')}

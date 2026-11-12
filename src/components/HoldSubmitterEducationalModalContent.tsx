@@ -34,7 +34,9 @@ function HoldSubmitterEducationalModalContent({isDM}: HoldSubmitterEducationalMo
                     <FeatureTraining.Description>{translate(isDM ? 'iou.whatIsHoldExplainDM' : 'iou.whatIsHoldExplain')}</FeatureTraining.Description>
                     <HoldMenuSectionList isDM={isDM} />
                 </FeatureTraining.BodyText>
-                <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+                <FeatureTraining.ConfirmButton sentryLabel={CONST.SENTRY_LABEL.HOLD_SUBMITTER_EDUCATIONAL_MODAL.CONFIRM_BUTTON}>
+                    {translate('common.buttonConfirm')}
+                </FeatureTraining.ConfirmButton>
             </FeatureTraining.Body>
         </>
     );

@@ -21,7 +21,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
-import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
+import useReportTransactionsCollection from './useReportTransactionsCollection';
 
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
     const {originalTransactionID, source} = transaction.comment ?? {};
@@ -302,7 +302,7 @@ type UseReportPreviewTransactionsParams = {
 
 // React Compiler does not cache values computed between hook calls, so the filtering lives after this hook's only hook call.
 function useReportPreviewTransactions({shouldFetchData, childReportID, iouActions, activeMoneyRequestCount}: UseReportPreviewTransactionsParams): Transaction[] | undefined {
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(shouldFetchData ? childReportID : undefined);
+    const reportTransactions = useReportTransactionsCollection(shouldFetchData ? childReportID : undefined);
     if (!shouldFetchData) {
         return undefined;
     }

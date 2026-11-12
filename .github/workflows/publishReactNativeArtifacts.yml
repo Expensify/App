@@ -26,7 +26,7 @@ on:
         required: false
         default: ''
       reviewed_code:
-        description: I reviewed this pull request and verified that it does not contain any malicious code.
+        description: '⚠️ DANGER: I reviewed this pull request and verified that it does not contain any malicious code.'
         type: boolean
         required: true
         default: false
