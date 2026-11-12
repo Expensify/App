@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -21,7 +22,7 @@ type PushRowField<TFormID extends keyof OnyxFormValuesMapping> = {
     description: string;
     modalHeaderTitle: string;
     searchInputTitle: string;
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
 };
 
 type PushRowFieldsStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps & {
@@ -39,7 +40,7 @@ type PushRowFieldWidened = {
     description: string;
     modalHeaderTitle: string;
     searchInputTitle: string;
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
 };
 
 type PushRowFieldsStepPropsWidened = Omit<PushRowFieldsStepProps<keyof OnyxFormValuesMapping>, 'pushRowFields'> & {

@@ -14,4 +14,8 @@ function getSplitNavigatorSidebarWidth(sidebarScreenName?: string): number {
     return WIDTH_BY_SIDEBAR_SCREEN[sidebarScreenName ?? ''] ?? variables.sideBarWithLHBWidth;
 }
 
+/** The widest LHN any split navigator shows, so a layout sized against it fits beside every LHN. */
+const WIDEST_SPLIT_NAVIGATOR_SIDEBAR_WIDTH = Math.max(variables.sideBarWithLHBWidth, ...Object.values(WIDTH_BY_SIDEBAR_SCREEN));
+
 export default getSplitNavigatorSidebarWidth;
+export {WIDEST_SPLIT_NAVIGATOR_SIDEBAR_WIDTH};

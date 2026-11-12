@@ -105,6 +105,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
                 </View>
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <ButtonDisabledWhenOffline
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ADD_NEW_INSTRUCTIONS_SUBMIT}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100]}

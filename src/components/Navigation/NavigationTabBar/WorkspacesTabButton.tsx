@@ -12,6 +12,7 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
+import getTabAccessibilityLabel from './getTabAccessibilityLabel';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 
@@ -36,7 +37,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
             <PressableWithFeedback
                 onPress={navigateToWorkspaces}
                 role={CONST.ROLE.TAB}
-                accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesTabIndicatorStatus, translate)}
                 accessibilityState={workspacesAccessibilityState}
                 style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
@@ -59,7 +60,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
         <PressableWithFeedback
             onPress={navigateToWorkspaces}
             role={CONST.ROLE.TAB}
-            accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+            accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesTabIndicatorStatus, translate)}
             accessibilityState={workspacesAccessibilityState}
             wrapperStyle={styles.navigationTabBarSlot}
             style={styles.navigationTabBarItem}

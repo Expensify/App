@@ -1,4 +1,4 @@
-import {getOnboardingInitialPath, getOnboardingMessages, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
+import {getIntroSelectedCompanySize, getOnboardingInitialPath, getOnboardingMessages, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -326,6 +326,26 @@ describe('OnboardingFlow', () => {
 
             expect(emptyMessage.message).toBe("It doesn't look like your company has any joinable workspaces. Please reach out to your admin and have them invite you to their workspace.");
             expect(emptyMessage.tasks).toEqual([]);
+        });
+    });
+
+    describe('getIntroSelectedCompanySize', () => {
+        it('keeps current and legacy company sizes', () => {
+            // Given company sizes saved by the current onboarding UI and by an older one that the UI no longer offers
+            // When they are read back for the onboarding request
+            // Then both are sent, so users who onboarded with a legacy range keep their company size
+            expect(getIntroSelectedCompanySize({companySize: '5-9'})).toBe(CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM);
+            expect(getIntroSelectedCompanySize({companySize: '1-10'})).toBe(CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO);
+        });
+
+        it('drops a company size that is not a known size', () => {
+            // Given a stored value that is not one of the known sizes, and no saved value at all
+            // When they are read back for the onboarding request
+            // Then no company size is returned, so an unknown string is never sent as a company size
+            expect(getIntroSelectedCompanySize({companySize: '7-8'})).toBeUndefined();
+            expect(getIntroSelectedCompanySize({companySize: ''})).toBeUndefined();
+            expect(getIntroSelectedCompanySize({})).toBeUndefined();
+            expect(getIntroSelectedCompanySize(undefined)).toBeUndefined();
         });
     });
 

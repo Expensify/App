@@ -160,6 +160,7 @@ function SearchPageFooter({
     // wait inside the menu.
     const footerButton = (props: ButtonComponentProps) => (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_BUTTON}
             ref={props.ref}
             accessibilityLabel={footerAccessibilityLabel}
             innerStyles={[styles.bgTransparent, styles.mnh0, styles.ph0, styles.pv0]}

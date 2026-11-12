@@ -4,6 +4,8 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type AccountingIntegrationWaitlist from './AccountingIntegrationWaitlist';
+import type AccountingIntegrationWaitlistRequests from './AccountingIntegrationWaitlistRequests';
 import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
 import type AppReview from './AppReview';
@@ -94,6 +96,7 @@ import type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
@@ -126,7 +129,7 @@ import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
-import type {AIInsight, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
+import type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -135,6 +138,7 @@ import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
 import type LocallyProcessed3DSChallengeReviews from './LocallyProcessed3DSChallengeReviews';
+import type LocallyProcessedFraudTransactionReviews from './LocallyProcessedFraudTransactionReviews';
 import type LocalPasskeyCredentialsEntry from './LocalPasskeyCredentialsEntry';
 import type {PasskeyCredential, PasskeyTransport} from './LocalPasskeyCredentialsEntry';
 import type LockAccountDetails from './LockAccountDetails';
@@ -145,7 +149,9 @@ import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type MarketingAttribution from './MarketingAttribution';
 import type {StoredMarketingAttribution} from './MarketingAttribution';
+import type MembersNeedCategoryModal from './MembersNeedCategoryModal';
 import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
+import type {MerchantRuleSuggestionConfirmation} from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
@@ -184,6 +190,8 @@ import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
 import type {Purchases} from './PurchaseList';
 import type QuickAction from './QuickAction';
+import type ReceiptTranslation from './ReceiptTranslation';
+import type {ReceiptTranslationState, TranslatedReceiptRow} from './ReceiptTranslation';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
@@ -239,6 +247,7 @@ import type Task from './Task';
 import type Transaction from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
+import type TransactionsPendingFraudReview from './TransactionsPendingFraudReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type TravelBillingStatement from './TravelBillingStatement';
@@ -262,6 +271,7 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WiseQuote from './WiseQuote';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
@@ -274,9 +284,12 @@ export type {
     AvatarCropResult,
     Account,
     AccountData,
+    AccountingIntegrationWaitlist,
+    AccountingIntegrationWaitlistRequests,
     AssignCard,
     TransactionPending3DSReview,
     TransactionsPending3DSReview,
+    TransactionsPendingFraudReview,
     BankAccount,
     BankAccountList,
     Beta,
@@ -321,6 +334,7 @@ export type {
     GovernmentMileageRate,
     GpsDraftDetails,
     AIInsight,
+    AIInsightChip,
     InsightsDashboard,
     InsightsDashboardID,
     InsightsGraphKey,
@@ -427,6 +441,7 @@ export type {
     TaxRatesWithDefault,
     Transaction,
     MerchantRuleSuggestion,
+    MerchantRuleSuggestionConfirmation,
     MergeTransaction,
     TransactionViolation,
     TransactionViolations,
@@ -475,6 +490,9 @@ export type {
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
     CompanyCardsLoadingState,
+    ReceiptTranslation,
+    ReceiptTranslationState,
+    TranslatedReceiptRow,
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
@@ -495,6 +513,7 @@ export type {
     CorpayFields,
     WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
+    WiseQuote,
     CorpayFormField,
     DynamicFormAddressField,
     DynamicFormChoiceField,
@@ -504,6 +523,7 @@ export type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
@@ -517,6 +537,7 @@ export type {
     DismissedProductTraining,
     TravelProvisioning,
     EnableGlobalReimbursementsModal,
+    MembersNeedCategoryModal,
     SidePanel,
     SidePanelContext,
     InsightsScope,
@@ -554,6 +575,7 @@ export type {
     UserSecurityGroupData,
     DeviceBiometrics,
     LocallyProcessed3DSChallengeReviews,
+    LocallyProcessedFraudTransactionReviews,
     InitiatingBankAccountUnlock,
     AgentNewAvatarDraft,
     Agent,

@@ -122,6 +122,25 @@ describe('PushRowWithModal', () => {
         expect(onInputChange).toHaveBeenNthCalledWith(2, '', 'state');
     });
 
+    it('preserves the default Sentry label and disabled state when no custom label is passed', () => {
+        // Given a row that cannot be opened and has no onboarding-specific label.
+        // When the row is rendered.
+        render(
+            <PushRowWithModal
+                disabled
+                value="RETAIL"
+                optionsList={optionsList}
+                description="Industries"
+                modalHeaderTitle="Industries"
+                searchInputTitle="Industries"
+            />,
+        );
+
+        // Then the row keeps its shared label and remains disabled.
+        expect(getRow()?.sentryLabel).toBe(CONST.SENTRY_LABEL.PUSH_ROW_WITH_MODAL.OPEN);
+        expect(getRow()?.disabled).toBe(true);
+    });
+
     it('passes the onboarding Sentry label to the interactive row', () => {
         // Given a Corpay declaration row with a stable action label.
         const label = CONST.SENTRY_LABEL.CORPAY_ONBOARDING.US_CITIZEN_OWNERS;

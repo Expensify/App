@@ -17,11 +17,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
-import {canCreateCategoryFromSearch, getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionTree} from '@libs/OptionsListUtils/types';
 import StringUtils from '@libs/StringUtils';
+import {cancelSpan, endSpanWithAttributes} from '@libs/telemetry/activeSpans';
 
 import variables from '@styles/variables';
 
@@ -30,7 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useEffectEvent} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data (GL code flags are trimmed from the snapshot).
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
@@ -66,6 +67,13 @@ type CategoryPickerProps = {
     searchInputThreshold?: number;
 
     /**
+     * The account the expense belongs to, passed only when the current user owns it. The list is then limited to the
+     * categories they can use. Left out when someone else owns the expense, such as an admin recoding it, so the full
+     * list shows.
+     */
+    ownerAccountID?: number;
+
+    /**
      * Reports how many rows the unfiltered list renders, for a pop-over wrapper to size itself from. The category
      * count does not match: nested names add a row per parent, a selected out-of-policy category adds one, and
      * the `Recent` and `All` headings add one each. Only reported unfiltered, so searching never resizes it.
@@ -98,6 +106,7 @@ function CategoryPicker({
     shouldAlwaysShowGLCode = false,
     searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
     onRenderedRowCountChange,
+    ownerAccountID,
 }: CategoryPickerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -121,7 +130,8 @@ function CategoryPicker({
 
     const selectedOptions = getSelectedOptions(selectedCategory);
 
-    const categories = policyCategories ?? policyCategoriesDraft ?? {};
+    const allCategories = policyCategories ?? policyCategoriesDraft ?? {};
+    const categories = ownerAccountID === undefined ? allCategories : getVisibleCategories(allCategories, ownerAccountID);
     const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
     const sections = getCategoryListSections({
         searchValue: debouncedSearchValue,
@@ -135,14 +145,16 @@ function CategoryPicker({
     });
 
     const noneOption: OptionTree[] = shouldShowNoneOption
-        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map((option): OptionTree => ({
-              text: option.text,
-              keyForList: option.keyForList,
-              searchText: '',
-              tooltipText: option.text,
-              isDisabled: false,
-              isSelected: option.isSelected,
-          }))
+        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map(
+              (option): OptionTree => ({
+                  text: option.text,
+                  keyForList: option.keyForList,
+                  searchText: '',
+                  tooltipText: option.text,
+                  isDisabled: false,
+                  isSelected: option.isSelected,
+              }),
+          )
         : [];
     const noneOptionSection = {
         title: '',
@@ -171,8 +183,24 @@ function CategoryPicker({
     // fallback. A draft collection is a complete local list, so it renders immediately rather than waiting on the read.
     const isLoadingNewOptions = isLoadingPolicyCategories && policyCategoriesDraft === undefined;
 
+    // An effect event, so the owner is read when the list renders without making it a dependency: only the list
+    // rendering ends the span. Once ended, the span is gone, so later renders don't touch it.
+    const endOpenCategoryPickerSpan = useEffectEvent(() => {
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_PICKER, {[CONST.TELEMETRY.ATTRIBUTE_IS_FILTERED]: ownerAccountID !== undefined});
+    });
+
+    useEffect(() => {
+        if (isLoadingNewOptions) {
+            return;
+        }
+        endOpenCategoryPickerSpan();
+    }, [isLoadingNewOptions]);
+
+    // A no-op once the span has ended, so this only cancels it when the picker closes before its list renders.
+    useEffect(() => () => cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_PICKER), []);
+
     const createCategoryName = StringUtils.sanitizeName(debouncedSearchValue);
-    const shouldShowCreateCategoryRow = !!onCreateCategory && !isLoadingNewOptions && categoryData.length === 0 && canCreateCategoryFromSearch(categories, createCategoryName);
+    const shouldShowCreateCategoryRow = !!onCreateCategory && !isLoadingNewOptions && categoryData.length === 0 && canCreateCategoryFromSearch(allCategories, createCategoryName);
 
     // The create row has to be a list item: an empty list renders its empty state instead of the list, and a row can take keyboard focus.
     const buildCreateCategorySection = () => {

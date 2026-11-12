@@ -22,7 +22,6 @@ import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOUReques
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
-import MultiScanEducationalModal from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanEducationalModal';
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
@@ -238,6 +237,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: photo.height,
+                    [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_DURATION_MS]: photo.captureDurationMs,
+                    [CONST.TELEMETRY.ATTRIBUTE_SAVE_DURATION_MS]: photo.saveDurationMs,
                 });
                 if (!isMultiScanEnabled) {
                     startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.NATIVE);
@@ -372,7 +373,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     isCapturingPhoto={didCapturePhoto}
                 />
             )}
-            <MultiScanEducationalModal />
         </View>
     );
 }

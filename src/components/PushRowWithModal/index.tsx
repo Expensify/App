@@ -3,6 +3,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import toggleArrayItem from '@libs/toggleArrayItem';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -23,10 +24,15 @@ type PushRowWithModalBaseProps = {
 
     modalHeaderTitle: string;
     searchInputTitle: string;
-    sentryLabel?: string;
+
+    /** Defaults to the shared picker label when no flow-specific label is provided. */
+    sentryLabel?: SentryLabel;
 
     /** Whether the selected option is editable */
     shouldAllowChange?: boolean;
+
+    /** The row cannot be opened for now, such as offline, and shows as dimmed instead of as plain text like a row whose option never changes */
+    disabled?: boolean;
 
     /** Text to display on error message */
     errorText?: string;
@@ -59,7 +65,18 @@ type PushRowWithModalMultipleProps = {
 type PushRowWithModalProps = PushRowWithModalBaseProps & (PushRowWithModalSingleProps | PushRowWithModalMultipleProps);
 
 function PushRowWithModal(props: PushRowWithModalProps) {
-    const {optionsList, wrapperStyles, description, modalHeaderTitle, searchInputTitle, sentryLabel, shouldAllowChange = true, errorText, onBlur = () => {}} = props;
+    const {
+        optionsList,
+        wrapperStyles,
+        description,
+        modalHeaderTitle,
+        searchInputTitle,
+        sentryLabel = CONST.SENTRY_LABEL.PUSH_ROW_WITH_MODAL.OPEN,
+        shouldAllowChange = true,
+        disabled = false,
+        errorText,
+        onBlur = () => {},
+    } = props;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [pendingSelection, setPendingSelection] = useState<string[]>([]);
     const shouldBlurOnCloseRef = useRef(true);
@@ -120,6 +137,7 @@ function PushRowWithModal(props: PushRowWithModalProps) {
                 onPress={handleModalOpen}
                 wrapperStyle={wrapperStyles}
                 interactive={shouldAllowChange}
+                disabled={disabled}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
             />
