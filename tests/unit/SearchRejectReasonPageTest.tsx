@@ -89,7 +89,7 @@ describe('SearchRejectReasonPage', () => {
         await Onyx.clear();
     });
 
-    it('rejects an expense checked again inside a group deselected after Select all', async () => {
+    it('sends an expense checked again inside a group deselected after Select all with the bulk reject', async () => {
         // Given "Select all" with the Travel group deselected, then one of its expenses checked again
         const travelGroupKey = `${CONST.SEARCH.GROUP_PREFIX}travel`;
         mockSelectedTransactions = {
@@ -103,9 +103,10 @@ describe('SearchRejectReasonPage', () => {
         // When the user submits a reason
         mockSubmitRejectReason?.({comment: 'missing receipts'});
 
-        // Then the backend rejects the rest, and the expense checked again is rejected here since the query leaves its group out
-        expect(queueBulkExpenseAction).toHaveBeenCalledTimes(1);
-        expect(Object.keys(jest.mocked(rejectMoneyRequestsOnSearch).mock.calls.at(0)?.at(0)?.selectedTransactions ?? {})).toEqual(['tx3']);
+        // Then the expense checked again goes to the backend with the search, since the search leaves its group out
+        const [, , rowsCheckedInExcludedGroups] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
+        expect(Object.keys(rowsCheckedInExcludedGroups ?? {})).toEqual(['tx3']);
+        expect(rejectMoneyRequestsOnSearch).not.toHaveBeenCalled();
     });
 
     it('hands the search to the backend when Select all is checked', async () => {
@@ -117,7 +118,7 @@ describe('SearchRejectReasonPage', () => {
         mockSubmitRejectReason?.({comment: 'missing receipts'});
 
         // Then every matching expense is rejected by the backend, except the deselected one, and nothing is rejected from the app
-        const [action, allMatchingQuery, comment] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
+        const [action, allMatchingQuery, , comment] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
         expect(action).toBe(CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
         expect(allMatchingQuery?.excludedTransactionIDList).toEqual(['tx2']);
         expect(comment).toBe('missing receipts');

@@ -90,32 +90,6 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     // "Select all" can cover more expenses than are loaded, so the backend holds every match.
     const shouldQueueOnServer = !isBulkHold && areAllMatchingItemsSelected;
-    const holdTransactions = (transactionIDs: string[], comment: string) => {
-        for (const transactionID of transactionIDs) {
-            const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
-            const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-            const transaction = relevantTransactions.find((t) => t.transactionID === transactionID) ?? selectedTransactions[transactionID].transaction;
-            const transactionReportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`];
-
-            putOnHold({
-                transactionID,
-                transaction,
-                comment,
-                initialReportID: transactionThreadReportID,
-                initialReport: relevantReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`],
-                transactionReport: relevantReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
-                transactionReportActions,
-                isOffline,
-                currentUserLogin: currentUserLogin ?? '',
-                currentUserAccountID,
-                transactionViolations,
-                isTrackIntentUser,
-                delegateAccountID,
-                rules,
-                ancestors,
-            });
-        }
-    };
     const onSubmit = ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
@@ -125,12 +99,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             queueBulkExpenseAction(
                 CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
                 getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data, currentSearchKey),
-                comment,
-            );
-            // The query leaves out every expense in an excluded group, so the ones checked again inside it are held here.
-            const rowsCheckedInExcludedGroups = getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions);
-            holdTransactions(
-                Object.keys(rowsCheckedInExcludedGroups).filter((transactionID) => rowsCheckedInExcludedGroups[transactionID].canHold),
+                getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions),
                 comment,
             );
             clearSelectedTransactions();
@@ -153,7 +122,31 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             });
             clearSelectedTransactions(true);
         } else {
-            holdTransactions(Object.keys(selectedTransactions), comment);
+            const transactionIDs = Object.keys(selectedTransactions);
+            for (const transactionID of transactionIDs) {
+                const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
+                const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                const transaction = relevantTransactions.find((t) => t.transactionID === transactionID) ?? selectedTransactions[transactionID].transaction;
+                const transactionReportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`];
+
+                putOnHold({
+                    transactionID,
+                    transaction,
+                    comment,
+                    initialReportID: transactionThreadReportID,
+                    initialReport: relevantReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`],
+                    transactionReport: relevantReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                    transactionReportActions,
+                    isOffline,
+                    currentUserLogin: currentUserLogin ?? '',
+                    currentUserAccountID,
+                    transactionViolations,
+                    isTrackIntentUser,
+                    delegateAccountID,
+                    rules,
+                    ancestors,
+                });
+            }
             clearSelectedTransactions();
         }
 

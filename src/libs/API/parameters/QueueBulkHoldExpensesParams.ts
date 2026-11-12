@@ -12,6 +12,9 @@ type QueueBulkHoldExpensesParams = {
 
     /** Comma-separated expenses the user deselected after "Select all" */
     excludedTransactionIDList: string;
+
+    /** Comma-separated expenses checked again inside a group deselected after "Select all", which the search leaves out */
+    transactionIDList: string;
 };
 
 export default QueueBulkHoldExpensesParams;

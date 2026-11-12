@@ -1712,7 +1712,7 @@ describe('useSearchBulkActions - Hold, Unhold and Reject under Select all', () =
         expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)).toBe(true);
     });
 
-    it('takes an expense checked again inside a group deselected after Select all off hold', async () => {
+    it('sends an expense checked again inside a group deselected after Select all with the bulk unhold', async () => {
         // Given "Select all" on a merchant grouped search with the Airline group deselected, then one of its held expenses checked again
         const airlineGroupKey = `${CONST.SEARCH.GROUP_PREFIX}airline` as const;
         mockSelectedTransactions = {
@@ -1737,10 +1737,10 @@ describe('useSearchBulkActions - Hold, Unhold and Reject under Select all', () =
             await unholdOption?.onSelected?.();
         });
 
-        // Then the backend takes the rest off hold, and the expense checked again is unheld here since the query leaves its group out
-        expect(queueBulkExpenseAction).toHaveBeenCalledTimes(1);
-        expect(mockUnholdRequest).toHaveBeenCalledTimes(1);
-        expect(mockUnholdRequest.mock.calls.at(0)?.at(0)?.transactionID).toBe('tx3');
+        // Then the expense checked again goes to the backend with the search, since the search leaves its group out
+        const [, , rowsCheckedInExcludedGroups] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
+        expect(Object.keys(rowsCheckedInExcludedGroups ?? {})).toEqual(['tx3']);
+        expect(mockUnholdRequest).not.toHaveBeenCalled();
     });
 
     it('queues a server-side bulk unhold without the expenses the user deselected', async () => {

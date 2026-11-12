@@ -3044,19 +3044,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return;
                 }
 
-                let transactionIDsToUnhold = selectedTransactionsKeys;
                 if (areAllMatchingItemsSelected) {
                     queueBulkExpenseAction(
                         CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                         getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data, currentSearchKey),
+                        getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions),
                     );
-                    // The query leaves out every expense in an excluded group, so the ones checked again inside it are unheld here.
-                    transactionIDsToUnhold = Object.entries(getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions))
-                        .filter(([, transaction]) => transaction.canUnhold)
-                        .map(([transactionID]) => transactionID);
+                    clearSelectedTransactions();
+                    return;
                 }
 
-                for (const transactionID of transactionIDsToUnhold) {
+                for (const transactionID of selectedTransactionsKeys) {
                     const childReportID = selectedTransactions[transactionID].reportAction?.childReportID;
                     if (!childReportID) {
                         Log.info('[BulkUnhold] Skipping transaction: report action has no childReportID', false, {transactionID});

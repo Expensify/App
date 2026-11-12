@@ -108,7 +108,7 @@ describe('SearchHoldReasonPage', () => {
         expect(JSON.parse(allMatchingQuery?.jsonQuery ?? '{}')).toMatchObject({searchKey: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH});
     });
 
-    it('holds an expense checked again inside a group deselected after Select all', async () => {
+    it('sends an expense checked again inside a group deselected after Select all with the bulk hold', async () => {
         // Given "Select all" with the Travel group deselected, then one of its expenses checked again
         const travelGroupKey = `${CONST.SEARCH.GROUP_PREFIX}travel`;
         mockSelectedTransactions = {
@@ -122,10 +122,10 @@ describe('SearchHoldReasonPage', () => {
         // When the user submits a reason
         mockSubmitHoldReason?.({comment: 'needs a receipt'});
 
-        // Then the backend holds the rest, and the expense checked again is held here since the query leaves its group out
-        expect(queueBulkExpenseAction).toHaveBeenCalledTimes(1);
-        expect(putOnHold).toHaveBeenCalledTimes(1);
-        expect(jest.mocked(putOnHold).mock.calls.at(0)?.at(0)?.transactionID).toBe('tx3');
+        // Then the expense checked again goes to the backend with the search, since the search leaves its group out
+        const [, , rowsCheckedInExcludedGroups] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
+        expect(Object.keys(rowsCheckedInExcludedGroups ?? {})).toEqual(['tx3']);
+        expect(putOnHold).not.toHaveBeenCalled();
     });
 
     it('hands the search to the backend when Select all is checked', async () => {
@@ -137,7 +137,7 @@ describe('SearchHoldReasonPage', () => {
         mockSubmitHoldReason?.({comment: 'needs a receipt'});
 
         // Then every matching expense is held by the backend, except the deselected one, and nothing is held per expense
-        const [action, allMatchingQuery, comment] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
+        const [action, allMatchingQuery, , comment] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
         expect(action).toBe(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
         expect(allMatchingQuery?.excludedTransactionIDList).toEqual(['tx2']);
         expect(comment).toBe('needs a receipt');
