@@ -42,6 +42,7 @@ type InsightsDataTableProps = {
 
     isLoading?: boolean;
 
+    /** Defaults to `SKELETON_ROW_COUNT` */
     skeletonRowCount?: number;
 
     /** Called with the group whose row is pressed */
