@@ -104,6 +104,7 @@ function useBulkPayOptions({
         const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
         return formattedPaymentMethods
             .filter((method) => {
+                // Business bank accounts also have the `bankAccount` account type, so this check only leaves out debit cards.
                 if (method.accountType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                     return false;
                 }
