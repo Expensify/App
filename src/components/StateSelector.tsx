@@ -78,12 +78,12 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
 
     return (
         <MenuItemWithTopDescription
+            sentryLabel={CONST.SENTRY_LABEL.STATE_SELECTOR.OPEN}
             descriptionTextStyle={descStyle}
             ref={ref}
             shouldShowRightIcon
             title={title}
             // Label can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             description={label || translate('common.state')}
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}

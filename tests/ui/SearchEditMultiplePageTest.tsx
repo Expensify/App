@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -9,9 +9,15 @@ import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
+import {updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
+import type * as BulkEditActions from '@libs/actions/IOU/BulkEdit';
+import Navigation from '@libs/Navigation/Navigation';
+
 import SearchEditMultiplePage from '@pages/Search/SearchEditMultiple/SearchEditMultiplePage';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import {getPolicyCategories} from '@userActions/Policy/Category';
+import {openPolicyTagsPage} from '@userActions/Policy/Tag';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -24,6 +30,8 @@ import type {ValueOf} from 'type-fest';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {ActivityIndicator as RNActivityIndicator} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -31,6 +39,22 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+// Saving runs a heavy Onyx update, so it is stubbed to observe when it runs relative to the spinner.
+jest.mock('@libs/actions/IOU/BulkEdit', () => ({
+    ...jest.requireActual<typeof BulkEditActions>('@libs/actions/IOU/BulkEdit'),
+    updateMultipleMoneyRequests: jest.fn(),
+}));
+
+jest.mock('@userActions/Policy/Category', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/Policy/Category'),
+    getPolicyCategories: jest.fn(),
+}));
+
+jest.mock('@userActions/Policy/Tag', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/Policy/Tag'),
+    openPolicyTagsPage: jest.fn(),
+}));
 
 const CURRENT_USER_ACCOUNT_ID = 5;
 const CURRENT_USER_EMAIL = 'bjorn@vikings.net';
@@ -119,8 +143,9 @@ function renderPage() {
     );
 }
 
-async function selectTransactions(selectedTransactionIDs: string[]) {
+async function selectTransactions(selectedTransactionIDs: string[], draftChanges: Partial<Transaction> = {}) {
     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {
+        ...draftChanges,
         transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
         selectedTransactionIDs,
     });
@@ -136,6 +161,7 @@ describe('SearchEditMultiplePage', () => {
     });
 
     beforeEach(async () => {
+        jest.clearAllMocks();
         await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL}});
         await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
@@ -151,6 +177,8 @@ describe('SearchEditMultiplePage', () => {
     });
 
     afterEach(async () => {
+        jest.clearAllMocks();
+        jest.restoreAllMocks();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -171,6 +199,77 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+    });
+
+    it('shows the spinner before applying the changes on save, then applies them and dismisses the RHP', async () => {
+        // Given a bulk edit with a pending merchant change on an expense that is not finalized, so no confirm modal shows
+        const dismissSpy = jest.spyOn(Navigation, 'dismissToPreviousRHP').mockImplementation(() => {});
+        await selectTransactions([OPEN_TRANSACTION_ID], {merchant: 'New merchant'});
+        const renderResult = renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When Save is pressed
+        fireEvent.press(screen.getByText('Save'));
+
+        // Then the spinner is painted first and the heavy update has not run yet, which is what save hands to startWithLoading for
+        expect(renderResult.UNSAFE_queryByType(RNActivityIndicator)).not.toBeNull();
+        expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
+
+        // When the deferred macrotask fires
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the changes are applied to the selected expense and the RHP is dismissed
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledTimes(1);
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({transactionIDs: [OPEN_TRANSACTION_ID], changes: {merchant: 'New merchant'}}));
+        expect(dismissSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('fetches policy categories and tags when they are enabled but not loaded yet', async () => {
+        // Given a workspace with categories and tags enabled whose categories and tags were never loaded, as after a cache clear
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it fetches them itself, since the search snapshot doesn't include them and the Category/Tag rows depend on them
+        expect(getPolicyCategories).toHaveBeenCalledWith(POLICY_ID);
+        expect(openPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+    });
+
+    it('fetches policy categories and tags when only a partial set is in Onyx', async () => {
+        // Given a lazy-loaded account that only holds the category and tag already on its expenses, with no completed read
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: {name: 'Department', required: false, orderWeight: 0, tags: {Sales: {name: 'Sales', enabled: true}}}});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it still fetches them, because a partial collection can be missing other categories or whole tag lists
+        expect(getPolicyCategories).toHaveBeenCalledWith(POLICY_ID);
+        expect(openPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+    });
+
+    it('does not refetch policy categories and tags that are already loaded', async () => {
+        // Given a workspace with categories and tags enabled whose categories and tags were already fully loaded
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: {name: 'Department', required: false, orderWeight: 0, tags: {Sales: {name: 'Sales', enabled: true}}}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${POLICY_ID}`, {isLoading: false, hasOnceLoaded: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${POLICY_ID}`, {isLoading: false, hasOnceLoaded: true});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no extra request is made, so opening the page doesn't add network traffic when the data is already available
+        expect(getPolicyCategories).not.toHaveBeenCalled();
+        expect(openPolicyTagsPage).not.toHaveBeenCalled();
     });
 
     it('keeps Merchant editable when a selected expense on the open report has no IOU action', async () => {

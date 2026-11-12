@@ -218,8 +218,9 @@ function getHRCards({
             : [
                   {
                       field: 'finalApprover',
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_CONFIG_ROW.HR_FINAL_APPROVER,
                       description: translate('workspace.merge.finalApprover'),
-                      title: getMergeFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+                      title: getMergeFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber) ?? translate('workspace.merge.notSet'),
                       route: provider.finalApproverRoute.getRoute(policyID),
                       pendingAction: config?.pendingFields?.finalApprover,
                       errors: config?.errorFields?.finalApprover,
@@ -237,6 +238,7 @@ function getHRCards({
                     ? [
                           {
                               field: 'approvalMode',
+                              sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_CONFIG_ROW.HR_APPROVAL_MODE,
                               description: translate('workspace.merge.approvalMode'),
                               title: getApprovalModeLabel(policy, connectionName, translate),
                               route: provider.approvalModeRoute.getRoute(policyID),
@@ -267,8 +269,9 @@ function getHRCards({
             : [
                   {
                       field: 'finalApprover',
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_CONFIG_ROW.HR_FINAL_APPROVER,
                       description: translate('workspace.merge.finalApprover'),
-                      title: getMergeFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+                      title: getMergeFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber) ?? translate('workspace.merge.notSet'),
                       route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
                       pendingAction: mergeConfig?.pendingFields?.finalApprover,
                       errors: mergeConfig?.errorFields?.finalApprover,
@@ -280,6 +283,7 @@ function getHRCards({
                 ? [
                       {
                           field: 'groups',
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_CONFIG_ROW.HR_GROUPS,
                           description: translate('workspace.hr.mergeHR.groups.title'),
                           title: getMergeHRGroupsLabel(policy),
                           route: groupsRoute,
@@ -289,6 +293,7 @@ function getHRCards({
                       },
                       {
                           field: 'approvalMode',
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_CONFIG_ROW.HR_APPROVAL_MODE,
                           description: translate('workspace.merge.approvalMode'),
                           title: getApprovalModeLabel(policy, mergeConnectionName, translate),
                           route: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),

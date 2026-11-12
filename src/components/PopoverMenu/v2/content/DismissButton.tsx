@@ -20,7 +20,7 @@ function DismissButton({onPress}: DismissButtonProps): React.ReactElement {
             accessible
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('common.close')}
-            sentryLabel="PopoverMenu.DismissButton"
+            sentryLabel={CONST.SENTRY_LABEL.POPOVER_MENU.DISMISS_BUTTON}
             focusable={false}
             onPress={onPress}
             style={styles.screenReaderOnlyAnchor}

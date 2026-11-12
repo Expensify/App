@@ -10,35 +10,37 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
 import Button from './Button';
 
 type TaskHeaderActionButtonProps = {
-    report: OnyxTypes.Report;
+    reportID: string;
 };
 
-function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
+function TaskHeaderActionButton({reportID}: TaskHeaderActionButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const parentReport = useParentReport(report.reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const parentReport = useParentReport(reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const parentReportAction = useParentReportAction(report);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
 
-    if (!canWriteInReport(report)) {
+    if (!report || !canWriteInReport(report)) {
         return null;
     }
 
@@ -47,9 +49,9 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={!isTaskActionable}
-                onPress={callFunctionIfActionIsAllowed(() => {
+                onPress={callIfAuthenticated(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                    if (isActiveTaskEditRoute(report.reportID)) {
+                    if (isActiveTaskEditRoute(reportID)) {
                         return;
                     }
                     if (isCompletedTaskReport(report)) {
@@ -57,7 +59,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                     } else {
                         completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
                     }
-                })}
+                }, session)}
                 style={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.TASK.HEADER_ACTION_BUTTON}
             >

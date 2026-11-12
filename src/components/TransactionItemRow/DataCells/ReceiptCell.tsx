@@ -15,6 +15,7 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
 import type {ComponentRef} from 'react';
@@ -87,8 +88,10 @@ function ReceiptCell({
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
                 styles.overflowHidden,
                 backgroundStyles,
+                styles.userSelectNone,
                 style,
             ]}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={bind.onMouseLeave}
         >

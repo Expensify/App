@@ -51,11 +51,11 @@ function useReceiptThumbnailSource({transaction, receiptPath, receiptFilename}: 
         upgradeCount: 0,
     });
     if (isLocalFile && (initialLocalSource.source === undefined || initialLocalSource.resolvedImage !== resolvedReceiptImageStr || initialLocalSource.upgradeCount !== upgradeCount)) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty string fallback is intentional: we want to skip the empty-string case in the OR chain, not treat it as a valid source
+        // empty string fallback is intentional: we want to skip the empty-string case in the OR chain, not treat it as a valid source
         setInitialLocalSource({source: thumbnailUri || resolvedReceiptImageStr || '', resolvedImage: resolvedReceiptImageStr, upgradeCount});
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty string fallback is intentional: we want to skip the empty-string case in the OR chain, not treat it as a valid source
+    // empty string fallback is intentional: we want to skip the empty-string case in the OR chain, not treat it as a valid source
     const effectiveReceiptSource = isLocalFile ? initialLocalSource.source || '' : resolvedThumbnail || resolvedReceiptImage || '';
 
     const hasReceiptImageOrThumbnail = !!(receiptImage ?? receiptThumbnail);

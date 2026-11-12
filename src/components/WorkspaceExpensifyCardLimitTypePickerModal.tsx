@@ -58,6 +58,9 @@ type WorkspaceExpensifyCardLimitTypePickerModalProps = {
     selectedLimitType?: CardLimitType;
 
     onSelected?: (limitType: CardLimitType) => void;
+
+    /** Height of the picker. Defaults to the height its limit types need. */
+    popoverHeight?: number;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 /**
@@ -95,6 +98,8 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
+    shouldSwitchPositionIfOverflow = true,
+    popoverHeight,
 }: WorkspaceExpensifyCardLimitTypePickerModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -104,7 +109,8 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const anchorRef = useRef<View>(null);
-    const {popoverHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
+    const {popoverHeight: contentHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
+    const resolvedHeight = popoverHeight ?? contentHeight;
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const canReadWorkflows = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
@@ -174,19 +180,19 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={{
                 width: CONST.POPOVER_DROPDOWN_WIDTH,
-                height: popoverHeight,
+                height: resolvedHeight,
             }}
             anchorAlignment={anchorAlignment}
             innerContainerStyle={StyleUtils.getWidthStyle(CONST.POPOVER_DROPDOWN_WIDTH)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldEnableNewFocusManagement
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[StyleUtils.getHeight(popoverHeight), styles.flexColumn, styles.pv4]}>
+            <View style={[StyleUtils.getHeight(resolvedHeight), styles.flexColumn, styles.pv4]}>
                 <SelectionList
                     data={availableLimitTypeItems}
                     ListItem={SingleSelectListItem}

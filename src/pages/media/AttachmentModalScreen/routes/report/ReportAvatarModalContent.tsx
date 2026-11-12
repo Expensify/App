@@ -15,7 +15,7 @@ import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScree
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.REPORT_AVATAR>) {
     const {reportID, policyID} = route.params;
@@ -27,47 +27,57 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const derivedReportName = useDerivedReportNameByReportID(reportID);
 
-    const attachment: AttachmentModalBaseContentProps = useMemo(() => {
-        if (isGroupChat(report) && !isThread(report)) {
-            return {
-                source: report?.avatarUrl ? getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}) : getDefaultGroupAvatar(report?.reportID),
-                headerTitle: getReportName(report, derivedReportName),
-                isWorkspaceAvatar: false,
-            };
-        }
-        if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
-            return {
-                source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
-                headerTitle: getReportName(report, derivedReportName),
-                isWorkspaceAvatar: false,
-            };
-        }
-
-        return {
-            source: getFullSizeAvatar({avatarSource: getWorkspaceIcon(report, translate, policy).source, defaultAvatars}),
-            headerTitle: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
+    let attachment: AttachmentModalBaseContentProps;
+    if (isGroupChat(report) && !isThread(report)) {
+        attachment = {
+            source: report?.avatarUrl
+                ? getFullSizeAvatar({
+                      avatarSource: report.avatarUrl,
+                      defaultAvatars,
+                  })
+                : getDefaultGroupAvatar(report?.reportID),
+            headerTitle: getReportName(report, derivedReportName),
+            isWorkspaceAvatar: false,
+        };
+    } else if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
+        attachment = {
+            source: getFullSizeAvatar({
+                avatarSource: report.avatarUrl,
+                defaultAvatars,
+            }),
+            headerTitle: getReportName(report, derivedReportName),
+            isWorkspaceAvatar: false,
+        };
+    } else {
+        attachment = {
+            source: getFullSizeAvatar({
+                avatarSource: getWorkspaceIcon(report, translate, policy).source,
+                defaultAvatars,
+            }),
+            headerTitle: getPolicyName({
+                report,
+                policy,
+                unavailableTranslation: translate('workspace.common.unavailable'),
+            }),
             // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
-    }, [policy, report, defaultAvatars, derivedReportName, translate]);
+    }
 
     const onDownloadAttachment = useDownloadAttachment();
 
     const shouldShowNotFoundPage = !report?.reportID && !isLoadingApp;
     const isLoading = (!report?.reportID || !policy?.id) && !!isLoadingApp;
 
-    const contentProps = useMemo<AttachmentModalBaseContentProps>(
-        () => ({
-            ...attachment,
-            shouldShowNotFoundPage,
-            isLoading,
-            maybeIcon: true,
-            onDownloadAttachment,
-            shouldCloseOnSwipeDown: true,
-        }),
-        [attachment, shouldShowNotFoundPage, isLoading, onDownloadAttachment],
-    );
+    const contentProps: AttachmentModalBaseContentProps = {
+        ...attachment,
+        shouldShowNotFoundPage,
+        isLoading,
+        maybeIcon: true,
+        onDownloadAttachment,
+        shouldCloseOnSwipeDown: true,
+    };
 
     return (
         <AttachmentModalContainer

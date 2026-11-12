@@ -347,6 +347,51 @@ describe('useReviewFlaggedExpenses', () => {
         expect(result.current.count).toBe(2);
     });
 
+    /**
+     * Regression guard: eligibility depends on forwarding history, but the hook doesn't subscribe to every
+     * flagged report's full action history. A forward that lands via REPORT_ACTIONS alone (e.g. it hydrates
+     * after REPORT on startup), with no accompanying report write, must still clear the row.
+     */
+    it('clears the count once a forward lands, even when only REPORT_ACTIONS changes and the report itself does not', async () => {
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policyA`, {
+                id: 'policyA',
+                type: CONST.POLICY.TYPE.TEAM,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            });
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.REPORT}r1`,
+                createMockReport({
+                    reportID: 'r1',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: ACCOUNT_ID,
+                    policyID: 'policyA',
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                }),
+            );
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}t1`, {transactionID: 't1', reportID: 'r1', amount: 100, currency: 'USD', created: '2024-01-01', merchant: 'Test Merchant'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}t1`, [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.count).toBe(1);
+
+        // The forward lands on its own; r1 itself is never written again.
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}r1`, {
+                submitted: {reportActionID: 'submitted', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2024-01-01 00:00:00.000'},
+                forwarded: {reportActionID: 'forwarded', actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2024-01-02 00:00:00.000'},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.count).toBe(0);
+    });
+
     it('keeps reviewExpenses referentially stable across background Onyx writes while blurred', async () => {
         await act(async () => {
             await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});

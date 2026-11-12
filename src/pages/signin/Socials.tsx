@@ -14,6 +14,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -21,6 +23,7 @@ type Social = {
     iconURL: Extract<ExpensifyIconName, 'Podcast' | 'Twitter' | 'Instagram' | 'Facebook' | 'Linkedin'>;
     link: string;
     label: TranslationPaths;
+    sentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.SOCIALS>;
 };
 
 const socialList: Social[] = [
@@ -28,26 +31,31 @@ const socialList: Social[] = [
         iconURL: 'Podcast',
         link: CONST.SOCIALS.PODCAST,
         label: 'socials.podcast',
+        sentryLabel: CONST.SENTRY_LABEL.SOCIALS.PODCAST,
     },
     {
         iconURL: 'Twitter',
         link: CONST.SOCIALS.TWITTER,
         label: 'socials.twitter',
+        sentryLabel: CONST.SENTRY_LABEL.SOCIALS.TWITTER,
     },
     {
         iconURL: 'Instagram',
         link: CONST.SOCIALS.INSTAGRAM,
         label: 'socials.instagram',
+        sentryLabel: CONST.SENTRY_LABEL.SOCIALS.INSTAGRAM,
     },
     {
         iconURL: 'Facebook',
         link: CONST.SOCIALS.FACEBOOK,
         label: 'socials.facebook',
+        sentryLabel: CONST.SENTRY_LABEL.SOCIALS.FACEBOOK,
     },
     {
         iconURL: 'Linkedin',
         link: CONST.SOCIALS.LINKEDIN,
         label: 'socials.linkedin',
+        sentryLabel: CONST.SENTRY_LABEL.SOCIALS.LINKEDIN,
     },
 ];
 
@@ -72,7 +80,7 @@ function Socials() {
                     accessibilityLabel={translate(social.label)}
                     style={[styles.mr1, styles.mt1]}
                     shouldUseAutoHitSlop={false}
-                    sentryLabel={`${CONST.SENTRY_LABEL.SOCIALS.LINK}-${social.iconURL}`}
+                    sentryLabel={social.sentryLabel}
                 >
                     {({hovered, pressed}) => (
                         <Icon

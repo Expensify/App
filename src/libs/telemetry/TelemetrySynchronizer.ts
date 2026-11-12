@@ -1,5 +1,4 @@
-import {getActivePolicies} from '@libs/PolicyUtils';
-import getHighestPolicyRole from '@libs/PolicyUtils/getHighestPolicyRole';
+import {getActivePolicies, getHighestPolicyRole} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

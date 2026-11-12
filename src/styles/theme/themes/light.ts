@@ -58,6 +58,10 @@ const lightTheme = {
     signInSidebar: colors.green800,
     sidebar: colors.productLight100,
     sidebarHover: colors.productLight300,
+    floatingTabBarSelectedBG: 'rgba(230,225,218,0.50)',
+    // selectedOptionBG (green100) at 40%
+    androidTabBarActiveIndicatorBG: 'rgba(177,242,214,0.40)',
+    androidTabBarShadow: '0px -4px 12px 0px rgba(2,18,4,0.06)',
     heading: colors.productLight900,
     textLight: colors.white,
     textDark: colors.productLight900,
@@ -95,6 +99,8 @@ const lightTheme = {
     badgeDangerBG: colors.tangerine200,
     badgeSuccessText: colors.green700,
     badgeDangerText: colors.tangerine700,
+    badgeInfoBG: colors.blue200,
+    badgeInfoText: colors.blue700,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
     badgeOfferBG: colors.pink200,
@@ -205,6 +211,10 @@ const lightTheme = {
         unreported: {
             backgroundColor: colors.productLight400,
             textColor: colors.productLight900,
+        },
+        canceled: {
+            backgroundColor: colors.yellow200,
+            textColor: colors.yellow700,
         },
     },
 

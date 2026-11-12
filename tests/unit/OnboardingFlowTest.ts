@@ -1,4 +1,4 @@
-import {getOnboardingInitialPath, getOnboardingMessages, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
+import {getIntroSelectedCompanySize, getOnboardingInitialPath, getOnboardingMessages, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -6,6 +6,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type * as NativeNavigation from '@react-navigation/native';
@@ -21,6 +22,8 @@ describe('OnboardingFlow', () => {
     beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
 
     describe('getOnboardingInitialPath', () => {
+        const savedPrivateDomainPath = `/${ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(ROUTES.ONBOARDING_WORK_EMAIL.getRoute())}`;
+
         it('should return the onboarding fallback path when the last visited path is null', () => {
             const params: GetOnboardingInitialPathParamsType = {
                 isUserFromPublicDomain: false,
@@ -190,8 +193,7 @@ describe('OnboardingFlow', () => {
         });
 
         it('should not redirect away from a private-domain URL for a public-domain unvalidated user', () => {
-            // Mirrors the BaseOnboardingPrivateDomain screen-level guard: an unvalidated public-domain user who just
-            // submitted a work email may land here while isFromPublicDomain is stale. They must keep the private-domain step.
+            // Given an unvalidated user submitted a work email while isFromPublicDomain is still stale
             const params: GetOnboardingInitialPathParamsType = {
                 isUserFromPublicDomain: true,
                 hasAccessiblePolicies: true,
@@ -209,8 +211,73 @@ describe('OnboardingFlow', () => {
                 onboardingValues: undefined,
                 isAccountValidated: false,
             };
+
+            // When onboarding resumes after a refresh
             const path = getOnboardingInitialPath(params);
-            expect(path).not.toBe('/onboarding/purpose');
+
+            // Then it preserves the private-domain validation step
+            expect(path).toBe('/onboarding/private-domain');
+        });
+
+        it.each(
+            [savedPrivateDomainPath, `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()}`, `/${ROUTES.ONBOARDING_PURPOSE.getRoute()}`].flatMap((savedPath) => [
+                {savedPath, shouldValidate: false, isAccountValidated: false, expectedPath: savedPath},
+                {savedPath, shouldValidate: undefined, isAccountValidated: false, expectedPath: '/onboarding/work-email'},
+                {savedPath, shouldValidate: true, isAccountValidated: false, expectedPath: '/onboarding/work-email'},
+                {savedPath, shouldValidate: false, isAccountValidated: true, expectedPath: savedPath === savedPrivateDomainPath ? '/onboarding/purpose' : savedPath},
+            ]),
+        )(
+            'resumes $savedPath at $expectedPath after resetting merge flags with shouldValidate=$shouldValidate and validated=$isAccountValidated',
+            ({savedPath, shouldValidate, isAccountValidated, expectedPath}) => {
+                // Given a previously skipped work email was resubmitted, clearing its merge flags, while the domain flag is stale
+                const onboardingValues = {
+                    hasCompletedGuidedSetupFlow: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                    isMergeAccountStepCompleted: undefined,
+                    isMergeAccountStepSkipped: undefined,
+                    shouldValidate,
+                };
+                const params: GetOnboardingInitialPathParamsType = {
+                    isUserFromPublicDomain: true,
+                    isAccountValidated,
+                    hasAccessiblePolicies: false,
+                    onboardingValuesParam: onboardingValues,
+                    onboardingValues,
+                    currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                    currentOnboardingCompanySize: undefined,
+                    onboardingInitialPath: savedPath,
+                };
+
+                // When refreshing restores the saved onboarding route
+                const path = getOnboardingInitialPath(params);
+
+                // Then a successful direct add preserves validation and downstream progress, while pending retries still require work email
+                expect(path).toBe(expectedPath);
+            },
+        );
+
+        it.each(['/', '/r/123'])('does not bypass work email for a non-onboarding saved path %s after a direct add', (savedPath) => {
+            // Given a direct-add result with a stale public-domain flag, but no saved onboarding progress
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                isAccountValidated: false,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                    shouldValidate: false,
+                },
+                onboardingValues: undefined,
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                currentOnboardingCompanySize: undefined,
+                onboardingInitialPath: savedPath,
+            };
+
+            // When choosing the initial onboarding step
+            const path = getOnboardingInitialPath(params);
+
+            // Then unrelated routes do not count as saved onboarding progress
+            expect(path).toBe('/onboarding/work-email');
         });
 
         it('should not redirect away from a work-email-validation URL for a public-domain user', () => {
@@ -259,6 +326,26 @@ describe('OnboardingFlow', () => {
 
             expect(emptyMessage.message).toBe("It doesn't look like your company has any joinable workspaces. Please reach out to your admin and have them invite you to their workspace.");
             expect(emptyMessage.tasks).toEqual([]);
+        });
+    });
+
+    describe('getIntroSelectedCompanySize', () => {
+        it('keeps current and legacy company sizes', () => {
+            // Given company sizes saved by the current onboarding UI and by an older one that the UI no longer offers
+            // When they are read back for the onboarding request
+            // Then both are sent, so users who onboarded with a legacy range keep their company size
+            expect(getIntroSelectedCompanySize({companySize: '5-9'})).toBe(CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM);
+            expect(getIntroSelectedCompanySize({companySize: '1-10'})).toBe(CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO);
+        });
+
+        it('drops a company size that is not a known size', () => {
+            // Given a stored value that is not one of the known sizes, and no saved value at all
+            // When they are read back for the onboarding request
+            // Then no company size is returned, so an unknown string is never sent as a company size
+            expect(getIntroSelectedCompanySize({companySize: '7-8'})).toBeUndefined();
+            expect(getIntroSelectedCompanySize({companySize: ''})).toBeUndefined();
+            expect(getIntroSelectedCompanySize({})).toBeUndefined();
+            expect(getIntroSelectedCompanySize(undefined)).toBeUndefined();
         });
     });
 

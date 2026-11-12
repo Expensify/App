@@ -4,9 +4,10 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {
+    doesContainReservedWord,
     getCountryZipRegexDetails,
     isValidDate,
-    isValidLegalName,
+    isValidDisplayName,
     isValidPastDate,
     isValidPhoneInternational,
     isValidZipCodeForCountry,
@@ -14,21 +15,28 @@ import {
     meetsMinimumAgeRequirement,
 } from '@libs/ValidationUtils';
 
+import CONST from '@src/CONST';
 import type {
     DynamicFormAddressField,
     DynamicFormChoiceField,
     DynamicFormField,
     DynamicFormFieldType,
+    DynamicFormListField,
     DynamicFormNumberField,
     DynamicFormSchemaField,
     DynamicFormTextField,
 } from '@src/types/onyx';
 
 import getAddressInputKeys, {getAddressCountry, isStateAsked} from './getAddressInputKeys';
+import getAnswerKeys from './getAnswerKeys';
 import getFieldOptions from './getFieldOptions';
-import getVisibleFields, {getLoneField} from './getVisibleFields';
+import {getFieldLabel} from './getLocalizedText';
+import getVisibleFields from './getVisibleFields';
+import hasProvidedAnswer from './hasProvidedAnswer';
 import isSupportedField from './isSupportedField';
+import {getListItems, getListItemSensitiveAnswers} from './listItems';
 import logSchemaProblem from './logSchemaProblem';
+import summarizeListItem, {getListItemFallbackTitle} from './summarizeListItem';
 
 /** Checks a field the user has answered. Unanswered fields only get the required check. */
 type FieldValidator<TType extends DynamicFormFieldType> = (field: DynamicFormFieldOfType<TType>, values: DynamicFormValues, translate: LocalizedTranslate) => string[];
@@ -100,6 +108,42 @@ function getMultiChoiceErrors(field: DynamicFormFieldOfType<'multiselect' | 'cou
     return !hasNonStringEntry && keys.every((key) => offeredKeys.has(key)) ? [] : [translate('dynamicForm.error.invalidOption')];
 }
 
+/** The list shows one error, so the first entry with a problem gives it, prefixed by the entry title and the field so the user knows what to fix. The flow keeps sensitive answers in memory apart from their entry, so one lost with the memory is asked for again. */
+function getListErrors(field: DynamicFormListField, values: DynamicFormValues, translate: LocalizedTranslate): string[] {
+    const items = getListItems(values[field.key]);
+    const messages: string[] = [];
+    if (field.minItems !== undefined && items.length < field.minItems) {
+        messages.push(translate('dynamicForm.error.tooFewItems', {min: field.minItems}));
+    }
+    if (field.maxItems !== undefined && items.length > field.maxItems) {
+        messages.push(translate('dynamicForm.error.tooManyItems', {max: field.maxItems}));
+    }
+    for (const [index, item] of items.entries()) {
+        const [errorKey, error] = Object.entries(getDynamicFieldErrors(field.itemFields, {...item, ...getListItemSensitiveAnswers(field, item.id, values)}, translate)).at(0) ?? [];
+        const erroredField = field.itemFields.find((itemField) => errorKey !== undefined && getAnswerKeys(itemField).includes(errorKey));
+        if (error && erroredField) {
+            const itemTitle = summarizeListItem(item, field.itemFields, translate, getListItemFallbackTitle(field, index, translate)).title;
+            messages.push(translate('dynamicForm.error.itemError', {item: itemTitle, field: getFieldLabel(erroredField, translate), error}));
+            break;
+        }
+    }
+    return messages;
+}
+
+/** The rules of the profile legal name page, so a name accepted there is accepted here */
+function getLegalNameErrors(value: string, translate: LocalizedTranslate): string[] {
+    const messages: string[] = [];
+    if (!isValidDisplayName(value)) {
+        messages.push(translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon'));
+    } else if (value.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+        messages.push(translate('common.error.characterLimitExceedCounter', value.length, CONST.LEGAL_NAME.MAX_LENGTH));
+    }
+    if (doesContainReservedWord(value, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+        messages.push(translate('personalDetails.error.containsReservedWord'));
+    }
+    return messages;
+}
+
 /** For inputs that only accept valid answers: UploadFile checks type and count, AmountForm rejects invalid typing */
 const noChecks = () => [];
 
@@ -110,8 +154,8 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
     text: (field, values, translate) => {
         const value = getStringAnswer(field, values);
         const messages = getFormatErrors(field, value, translate);
-        if (field.rule === 'legalName' && !isValidLegalName(value)) {
-            messages.push(translate('privatePersonalDetails.error.hasInvalidCharacter'));
+        if (field.rule === 'legalName') {
+            messages.push(...getLegalNameErrors(value, translate));
         }
         if (field.rule === 'phone' && !isValidPhoneInternational(value)) {
             messages.push(translate('common.error.phoneNumber'));
@@ -153,6 +197,7 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         const percent = Number(getStringAnswer(field, values));
         return Number.isFinite(percent) && percent >= PERCENT_MIN && percent <= PERCENT_MAX ? [] : [translate('dynamicForm.error.outOfRange', {min: PERCENT_MIN, max: PERCENT_MAX})];
     },
+    list: getListErrors,
 };
 
 /** An optional address the user has started filling in is checked like a required one, so it is never submitted in part */
@@ -193,12 +238,11 @@ function validateField<TType extends DynamicFormFieldType>(field: DynamicFormFie
 
 /**
  * Errors for the fields the user can see, keyed by draft key, in the shape FormProvider's `validate` returns.
- * `fields` must be exactly one page's fields, since the lone-field check has to match what the page renders. Pass the whole form as `allFields` when a `showWhen` can name a field on another page.
+ * Pass the whole form as `allFields` when a `showWhen` can name a field on another page.
  */
 function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: DynamicFormValues, translate: LocalizedTranslate, allFields?: DynamicFormField[]): Record<string, string> {
     const errors: Record<string, string> = {};
     const visibleFields = getVisibleFields(fields.filter(isSupportedField), values, allFields);
-    const loneField = getLoneField(visibleFields);
     for (const field of visibleFields) {
         if (field.readonly) {
             continue;
@@ -208,7 +252,12 @@ function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: Dynamic
                 addErrorMessage(errors, inputID, message);
             }
         }
-        if (!isAnswered(values[field.key], field.type === 'boolean' && field === loneField)) {
+        if (!isAnswered(values[field.key], field.type === 'boolean' && field.presentation !== 'checkbox')) {
+            // A resumed sensitive field, such as an SSN, has no answer because the server never sends it back. The server keeps the saved answer when none is sent, so it is not an error.
+            // Once the user clears the mask, the input holds an empty answer, and a new one is required
+            if (hasProvidedAnswer(field, values) && values[field.key] === undefined) {
+                continue;
+            }
             if (field.type === 'address' ? isAddressRequired(field, values) : field.required) {
                 addErrorMessage(errors, field.key, translate('common.error.fieldRequired'));
             }

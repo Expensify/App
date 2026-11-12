@@ -47,7 +47,7 @@ The report history shows when the export starts and when it finishes.
 3. In the selection bar, select **Export**.
 4. Select **Campfire**.
 
-**Note:** You can only export reports together when their workspaces connect to the same Campfire subsidiary.
+**Note:** You can only export reports together when their workspaces connect to the same Campfire entity.
 
 ---
 

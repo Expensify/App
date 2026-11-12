@@ -25,6 +25,7 @@ import GPSDirection from './GPSDirection';
 import GPSWaypointLayer from './GPSWaypointLayer';
 import LayerOrderAnchors from './LayerOrderAnchors';
 import responder from './responder';
+import useMapboxLanguage from './useMapboxLanguage';
 import utils from './utils';
 
 const LOCATION_PUCK_PULSING = {
@@ -55,7 +56,8 @@ function GPSMapViewContent({
     // Fitting the camera to bounds around a single point zooms it in as far as it goes, so such a trip is centered at a fixed zoom instead
     const singlePointCoordinate = utils.getSinglePointCoordinate(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
 
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
+    useMapboxLanguage(preferredLocale);
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocationPuck', 'MapCurrentLocation']);
@@ -74,6 +76,8 @@ function GPSMapViewContent({
     // and the GPS trip is not active or the foreground location permissions are not granted.
     const shouldFollowUserLocation = !userInteractedWithMap && (noWaypoints || isTrackingGPS) && foregroundLocationPermissionsGranted;
 
+    const cameraPadding = utils.getCameraPadding(mapPadding);
+
     // When the route/waypoints are cleared (e.g. discarding a GPS trip),
     // resume following the user's current location.
     const prevWaypointsLength = useRef(waypoints?.length ?? 0);
@@ -87,7 +91,8 @@ function GPSMapViewContent({
             if (!foregroundLocationPermissionsGranted) {
                 cameraRef.current?.setCamera({
                     zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
-                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                    animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
                     centerCoordinate,
                 });
             }
@@ -97,32 +102,20 @@ function GPSMapViewContent({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [waypoints?.length]);
 
-    useFocusEffect(() => {
-        if (noWaypoints || shouldFollowUserLocation || !!lastLocation || userInteractedWithMap) {
-            return;
-        }
-
-        if (singlePointCoordinate) {
-            cameraRef.current?.setCamera({
-                zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
-                animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
-                centerCoordinate: singlePointCoordinate,
-            });
-            return;
-        }
-
-        const {southWest, northEast} = utils.getBounds(
-            waypoints.map((waypoint) => waypoint.coordinate),
-            directionCoordinates,
-        );
-        cameraRef.current?.fitBounds(northEast, southWest, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
-    });
+    // Coming back to the screen (e.g. tab change, Save and back) drops the manual pan, so the camera props frame the route again
+    // or resume following the user's location while tracking
+    useFocusEffect(() => setUserInteractedWithMap(false));
 
     const centerMap = () => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
         if (!isTrackingGPS && (waypointCoordinates.length > 1 || directionCoordinates?.length > 1)) {
             const {southWest, northEast} = utils.getBounds(waypointCoordinates, directionCoordinates);
-            cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
+            cameraRef.current?.setCamera({
+                bounds: {ne: northEast, sw: southWest},
+                padding: cameraPadding,
+                animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+            });
             return;
         }
         // Reset the user interaction state to allow the map to follow the user's location
@@ -132,7 +125,8 @@ function GPSMapViewContent({
         if (!foregroundLocationPermissionsGranted) {
             cameraRef.current?.setCamera({
                 zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
-                animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+                animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
                 centerCoordinate,
             });
         }
@@ -160,9 +154,6 @@ function GPSMapViewContent({
     };
 
     const shouldFollowFallbackLocation = noWaypoints && !foregroundLocationPermissionsGranted;
-
-    const cameraPadding: Mapbox.CameraPadding | undefined =
-        mapPadding !== undefined ? {paddingLeft: mapPadding, paddingRight: mapPadding, paddingTop: mapPadding, paddingBottom: mapPadding} : undefined;
 
     // defaultSettings with bounds ensures there is immediate snap to GPS trip on map load
     const defaultSettings: Mapbox.CameraStop | undefined = {
@@ -218,6 +209,8 @@ function GPSMapViewContent({
                     defaultSettings={defaultSettings}
                     centerCoordinate={shouldFollowFallbackLocation ? centerCoordinate : waypointsCenterCoordinate}
                     zoomLevel={waypointsZoomLevel}
+                    animationDuration={CONST.MAPBOX.ANIMATION_DURATION_DEFAULT}
+                    animationMode={CONST.MAPBOX.CAMERA_ANIMATION_MODE}
                 />
 
                 {/** Show fallback location if foreground location permissions are not granted */}
@@ -281,6 +274,7 @@ function GPSMapViewContent({
             />
             <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.MAP_VIEW.GPS_CENTER_BUTTON}
                     onPress={centerMap}
                     accessibilityLabel={translate('common.center')}
                 >

@@ -1,11 +1,16 @@
 import renderDynamicField from '@components/DynamicForm/renderDynamicField';
+import type {DynamicFieldContext} from '@components/DynamicForm/renderers/types';
 import formatDynamicFieldValue from '@components/DynamicForm/utils/formatDynamicFieldValue';
-import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {getListItems} from '@components/DynamicForm/utils/listItems';
+import summarizeListItem, {getListItemFallbackTitle} from '@components/DynamicForm/utils/summarizeListItem';
+import FSClassView from '@components/FSClassView';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -16,8 +21,12 @@ import {View} from 'react-native';
 
 import type {DynamicFormFieldsProps} from './DynamicFormFields';
 
-type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize' | 'onRefreshRequirements'> &
-    Required<Pick<DynamicFormFieldsProps, 'currency'>> & {
+type DynamicFormFieldRowProps = Pick<
+    DynamicFormFieldsProps,
+    'values' | 'maxFileSize' | 'onRefreshRequirements' | 'onOpenListItemEditor' | 'onListItemsChange' | 'isSensitive' | 'isRefreshingRequirements'
+> &
+    Required<Pick<DynamicFormFieldsProps, 'currency'>> &
+    Pick<DynamicFieldContext, 'renderFields'> & {
         field: DynamicFormField;
 
         /** The field is the page's only question, so a choice is drawn as the page itself instead of as a row */
@@ -31,18 +40,40 @@ type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'maxFile
 const TYPED_FIELD_TYPES = new Set<DynamicFormFieldType>(['text', 'number', 'amount', 'percent']);
 
 /** One field of a schema-driven form: its input, or its value when the field is readonly */
-function DynamicFormFieldRow({field, values, currency, maxFileSize, isLoneField, shouldHideLabel = false, onRefreshRequirements}: DynamicFormFieldRowProps) {
+function DynamicFormFieldRow({
+    field,
+    values,
+    currency,
+    maxFileSize,
+    isLoneField,
+    shouldHideLabel = false,
+    onRefreshRequirements,
+    onOpenListItemEditor,
+    onListItemsChange,
+    isSensitive = false,
+    isRefreshingRequirements = false,
+    renderFields,
+}: DynamicFormFieldRowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const label = getFieldLabel(field, translate);
 
     if (field.readonly) {
+        // A list's answer is its entries, which formatDynamicFieldValue cannot name, so they are listed by their titles
+        const readonlyValue =
+            field.type === 'list'
+                ? getListItems(values[field.key])
+                      .map((item, index) => summarizeListItem(item, field.itemFields, translate, getListItemFallbackTitle(field, index, translate)).title)
+                      .join(', ')
+                : formatDynamicFieldValue(field, values, translate);
+        // Only the value is masked, so the field name stays readable in session recordings
         return (
             <View style={[styles.mhn5, styles.pv1]}>
-                <MenuItemWithTopDescription
-                    interactive={false}
-                    description={label}
-                    title={formatDynamicFieldValue(field, values, translate)}
+                <MenuItemField
+                    name={label}
+                    value={readonlyValue}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             </View>
         );
@@ -60,13 +91,14 @@ function DynamicFormFieldRow({field, values, currency, maxFileSize, isLoneField,
     const shouldRefreshOnChange = !!field.refreshOnChange && !isTypedField;
     const {input, isMenuRow, labelAbove, showsDescription} = renderDynamicField(
         field,
-        {values, translate, styles, currency, maxFileSize, isLoneField},
+        {values, translate, styles, currency, maxFileSize, isLoneField, onOpenListItemEditor, onListItemsChange, isSensitive, renderFields},
         {
             inputID: field.key,
-            shouldSaveDraft: !isSensitiveField(field),
+            shouldSaveDraft: !isSensitive && !isSensitiveField(field),
             forwardedFSClass: CONST.FULLSTORY.CLASS.MASK,
             onValueChange: shouldRefreshOnChange ? (value, key) => onRefreshRequirements?.(key, value) : undefined,
             onBlur: shouldRefreshOnBlur ? refreshRequirements : undefined,
+            disabled: (isOffline || isRefreshingRequirements) && !!field.refreshOnChange,
         },
     );
     const description = showsDescription ? undefined : getLocalizedText(translate, field.descriptionKey, field.description);
@@ -75,14 +107,15 @@ function DynamicFormFieldRow({field, values, currency, maxFileSize, isLoneField,
         <View style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}>
             {!!labelAbove && !shouldHideLabel && (
                 <Text
-                    style={[labelAbove === 'prompt' ? styles.mt3 : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}
+                    style={[labelAbove === 'prompt' ? [styles.mt3, !isMenuRow && styles.mb3] : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}
                     role={labelAbove === 'heading' ? CONST.ROLE.HEADING : undefined}
+                    aria-level={labelAbove === 'heading' ? 3 : undefined}
                 >
-                    {label}
+                    {getInputLabel(field, translate)}
                 </Text>
             )}
             {!!description && <Text style={[styles.textSupporting, styles.mb3, isMenuRow && styles.ph5]}>{description}</Text>}
-            {input}
+            <FSClassView forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{input}</FSClassView>
         </View>
     );
 }

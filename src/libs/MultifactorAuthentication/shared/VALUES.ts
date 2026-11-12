@@ -157,6 +157,7 @@ const API_RESPONSE_MAP = {
 
     /** No custom error handling — all responses rely on category fallback reasons. */
     CHANGE_CARD_PIN: {},
+    CREATE_DIGITAL_WALLET: {},
 } as const;
 
 type DeepLeafValues<T> = T extends Record<string, unknown> ? DeepLeafValues<T[keyof T]> : T;

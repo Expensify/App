@@ -2,7 +2,6 @@
  * Builds the accounting listings for the Connections page and starts the accounting connect flows from them.
  * Must be rendered inside an AccountingContextProvider.
  */
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -11,9 +10,8 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration, getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getIntegrationLastSuccessfulDate, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 
 import {useAccountingActions, useAccountingState} from '@pages/workspace/accounting/AccountingContext';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';
@@ -38,7 +36,6 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     const styles = useThemeStyles();
     const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {startIntegrationFlow} = useAccountingActions();
     const {activeIntegration, popoverAnchorRefs} = useAccountingState();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
@@ -54,7 +51,9 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'BusinessCentralSquare',
+        'ZohoBooksSquare',
     ]);
 
     if (!policyID) {
@@ -62,9 +61,13 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     }
 
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
+    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+            return canUseDigitsIntegration;
         }
         return true;
     });
@@ -91,8 +94,8 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     };
 
     const getConnectedStatus = (name: ConnectionName, title: string | undefined): ConnectionStatus => {
-        const hasQBOExportError = name === CONST.POLICY.CONNECTIONS.NAME.QBO && shouldShowQBOReimbursableExportDestinationAccountError(policy);
-        if (hasQBOExportError || getSynchronizationErrorMessage(policy, name, isSyncInProgress, translate, styles)) {
+        const hasReimbursableExportDestinationAccountError = shouldShowReimbursableExportDestinationAccountError(policy);
+        if (hasReimbursableExportDestinationAccountError || getSynchronizationErrorMessage(policy, name, isSyncInProgress, translate, styles)) {
             return {isBroken: true, message: translate('workspace.connections.brokenConnection')};
         }
         // A new connection hasn't synced yet while its first sync runs, so the sync is checked first
@@ -121,11 +124,10 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         ...(name === CONST.POLICY.CONNECTIONS.NAME.QBO ? [{name, isIntuitEnterpriseSuite: true}] : []),
     ]);
 
-    return integrationOptions.flatMap(({name, isIntuitEnterpriseSuite}) => {
+    const listings: ConnectionListing[] = integrationOptions.flatMap(({name, isIntuitEnterpriseSuite}) => {
         const integrationData = getAccountingIntegrationData(name, policyID, translate, NO_REUSABLE_CONNECTIONS, {
             expensifyIcons: accountingIcons,
             isIntuitEnterpriseSuiteOverride: isIntuitEnterpriseSuite,
-            isUnifiedConnectionsBetaEnabled,
         });
         if (!integrationData) {
             return [];
@@ -147,6 +149,10 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                     : undefined,
             onConnect: () => connect(name, isIntuitEnterpriseSuite),
             onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID)),
+            // A connect flow that fails after leaving the app (e.g. Zoho Books OAuth) reports back through the policy.
+            // Once another accounting integration is connected the old failure no longer matters, so it's hidden.
+            // Intuit Enterprise Suite is a QBO alias, so only the QBO card shows a QBO error.
+            connectError: connectedIntegration || isIntuitEnterpriseSuite ? undefined : policy?.connectErrors?.[name],
             registerConnectButton: (button) => {
                 const anchorRef = popoverAnchorRefs?.current?.[key];
                 if (!anchorRef) {
@@ -156,6 +162,14 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             },
         };
     });
+
+    // The connector flow arrives in a later release, so beta users also see the waitlist for now.
+    listings.push({
+        key: CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE,
+        category: CONST.TAB.CONNECTIONS.ACCOUNTING,
+        title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline,
+    });
+    return listings;
 }
 
 export default useAccountingConnectionListings;
