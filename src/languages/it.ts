@@ -10955,7 +10955,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             completed: 'Completato',
             amount: {
                 lessThan: (amount?: string) => `Meno di ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Minore o uguale a ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maggiore di ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Maggiore o uguale a ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Tra ${greaterThan} e ${lessThan}`;
