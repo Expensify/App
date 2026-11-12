@@ -94,7 +94,7 @@ describe('Account settings Classic eligibility', () => {
 
     it('keeps the item hidden through reset and blocked-account hydration without tapping', () => {
         // Given an eligible nudged account whose Classic item is initially available
-        tryNewDot = createMock<TryNewDot>({nudgeMigration: true});
+        tryNewDot = createMock<TryNewDot>({nudgeMigration: {timestamp: new Date()}});
         isLoadingApp = false;
         const {result, rerender} = renderMenu();
         expect(findClassicItem(result.current)).toBeDefined();
@@ -104,7 +104,7 @@ describe('Account settings Classic eligibility', () => {
         isLoadingApp = true;
         rerender({});
         expect(findClassicItem(result.current)).toBeUndefined();
-        tryNewDot = createMock<TryNewDot>({nudgeMigration: true, isLockedToNewApp: true});
+        tryNewDot = createMock<TryNewDot>({nudgeMigration: {timestamp: new Date()}, isLockedToNewApp: true});
         isLoadingApp = false;
         rerender({});
 
@@ -115,7 +115,7 @@ describe('Account settings Classic eligibility', () => {
 
     it('shows the eligible nudged item after storage loads and preserves its exit action', () => {
         // Given an eligible nudged account whose storage subscription is still loading
-        tryNewDot = createMock<TryNewDot>({nudgeMigration: true});
+        tryNewDot = createMock<TryNewDot>({nudgeMigration: {timestamp: new Date()}});
         storageStatus = 'loading';
         isLoadingApp = false;
         const {result, rerender} = renderMenu();
@@ -148,7 +148,7 @@ describe('Account settings Classic eligibility', () => {
     it('preserves web availability and the existing exit survey action', () => {
         // Given a nudged web account with a mobile-only lock and loading storage
         jest.replaceProperty(CONFIG, 'IS_HYBRID_APP', false);
-        tryNewDot = createMock<TryNewDot>({nudgeMigration: true, isLockedToNewApp: true});
+        tryNewDot = createMock<TryNewDot>({nudgeMigration: {timestamp: new Date()}, isLockedToNewApp: true});
         storageStatus = 'loading';
 
         // When the user selects the web Classic item
