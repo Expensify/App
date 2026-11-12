@@ -76,9 +76,7 @@ function TestFlow() {
 }
 
 function configureStep(pageIndex: number = CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION, isEditing = false) {
-    jest.mocked(useSubPage).mockReturnValue(
-        createMock<ReturnType<typeof useSubPage>>({CurrentPage: mockStep, nextPage, prevPage, pageIndex, isEditing, isRedirecting: false}),
-    );
+    jest.mocked(useSubPage).mockReturnValue(createMock<ReturnType<typeof useSubPage>>({CurrentPage: mockStep, nextPage, prevPage, pageIndex, isEditing, isRedirecting: false}));
 }
 
 describe('InternationalDepositAccountContent completion navigation', () => {
