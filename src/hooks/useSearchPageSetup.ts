@@ -2,7 +2,8 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
-import {clearPageRequestedSearch, markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
+import {clearPageRequestedSearch, isFirstPageSearchInFlight, markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
@@ -70,6 +71,9 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // Hashes this page requested, so an error can be traced to the attempt that produced it.
     const requestedHashesRef = useRef<Set<number>>(new Set());
 
+    // The hash this page has shown since the user last came to Search. Its recent search was saved on arrival, so a later refetch need not save it again.
+    const shownHashRef = useRef<number | undefined>(undefined);
+
     // Clear selected transactions when navigating to a different search query
     function clearOnHashChange() {
         if (hash === undefined) {
@@ -121,6 +125,13 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         // Pagination must not restart page one.
         // First open of a preloaded tab refreshes its cached results and saves the recent search, with no loading state over them.
         if (isSnapshotDataLoaded && !isInitialSearchPending && !isFirstOpenOfPreloadedTab) {
+            shownHashRef.current = hash;
+            return;
+        }
+
+        // A refetch started elsewhere (auto-refetch, post-action refresh) marks the shown snapshot pending, which reopens the guard above.
+        // Requesting again would only re-fire that refetch with the save flag, which this visit already sent.
+        if (!isFirstOpenOfPreloadedTab && isSnapshotDataLoaded && shownHashRef.current === hash && isFirstPageSearchInFlight(queryJSON, shouldCalculateTotals, shouldReturnTripRooms)) {
             return;
         }
 
@@ -164,6 +175,18 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     ]);
 
     useFocusEffect(dropPageRequestOnBlur);
+
+    // An RHP over Search blurs the page while the user is still on it, so only leaving Search for another fullscreen page counts.
+    function forgetShownHashOnLeave() {
+        return () => {
+            if (isSearchTopmostFullScreenRoute()) {
+                return;
+            }
+            shownHashRef.current = undefined;
+        };
+    }
+
+    useFocusEffect(forgetShownHashOnLeave);
 
     // Stable callback: useFocusEffect re-subscribes on a new identity and would fire an extra request.
     useFocusEffect(

@@ -1284,6 +1284,25 @@ type InFlightSearchRequest = {
 // request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
 
+/**
+ * True when a running first-page request already returns what the caller wants, so the caller can skip its own request.
+ * Background refreshes (auto-refetch, post-action refresh, Home) may differ in totals, footer breakdown or trip rooms.
+ * A caller that needs any of those must still fire, or search() never re-fires the running request and that data never arrives.
+ */
+function isFirstPageSearchInFlight(queryJSON: Readonly<SearchQueryJSON>, shouldCalculateTotals: boolean, shouldReturnTripRooms: boolean) {
+    const inFlightRequest = inFlightSearchRequests.get(`${queryJSON.hash}_0`);
+    if (!inFlightRequest) {
+        return false;
+    }
+
+    const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
+    const isMissingTotals = shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
+    const hasDifferentFooterTotal = getFooterSelectionFromQuery(queryJSON).footerTotal !== inFlightRequest.footerTotal;
+    const hasDifferentTripRooms = isTripRoomsSearch !== inFlightRequest.shouldReturnTripRooms;
+
+    return !isMissingTotals && !hasDifferentFooterTotal && !hasDifferentTripRooms;
+}
+
 // Search mounts only after the page's request has finished, so the map above no longer holds it.
 // One slot, not a set: a new query replaces the old token, so a token left behind by an abandoned query cannot skip a later refresh of it.
 let pageRequestedSearch: {hash: number; shouldCalculateTotals: boolean} | undefined;
@@ -2864,6 +2883,7 @@ export {
     getReportActionsFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
     markPageRequestedSearch,
+    isFirstPageSearchInFlight,
     consumePageRequestedSearch,
     clearPageRequestedSearch,
 };

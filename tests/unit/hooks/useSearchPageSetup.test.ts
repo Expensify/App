@@ -12,6 +12,10 @@ import type * as NativeNavigation from '@react-navigation/native';
 const mockSearch = jest.fn<void, unknown[]>();
 let mockCurrentSearchResults: SearchResults | undefined;
 let mockShouldUseLiveData = false;
+const mockMarkPageRequestedSearch = jest.fn<void, unknown[]>();
+let mockIsSearchTopmostFullScreenRoute = true;
+let mockFocusEffects: Array<() => void | (() => void)> = [];
+const mockIsFirstPageSearchInFlight = jest.fn<boolean, unknown[]>(() => false);
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => ({currentSearchKey: 'expenses'}),
@@ -31,14 +35,26 @@ jest.mock('@libs/actions/ReportNavigation', () => ({
 jest.mock('@libs/actions/Search', () => ({
     openSearch: jest.fn(),
     search: (...args: unknown[]) => mockSearch(...args),
-    markPageRequestedSearch: jest.fn(),
+    markPageRequestedSearch: (...args: unknown[]) => mockMarkPageRequestedSearch(...args),
     clearPageRequestedSearch: jest.fn(),
+    isFirstPageSearchInFlight: (...args: unknown[]) => mockIsFirstPageSearchInFlight(...args),
 }));
+
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute);
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
-    useFocusEffect: jest.fn(),
+    useFocusEffect: (effect: () => void | (() => void)) => {
+        mockFocusEffects.push(effect);
+    },
 }));
+
+/** Runs the cleanups of the latest render's focus effects, like React Navigation does when the screen loses focus. */
+function blurScreen() {
+    for (const effect of mockFocusEffects) {
+        effect()?.();
+    }
+}
 
 function makeUnresolvedSearchResults(hash: number, isLoading: boolean): SearchResults {
     const searchResults: SearchResults = {
@@ -87,7 +103,12 @@ function getQueryJSON() {
 describe('useSearchPageSetup', () => {
     beforeEach(() => {
         mockSearch.mockClear();
+        mockMarkPageRequestedSearch.mockClear();
+        mockIsFirstPageSearchInFlight.mockClear();
+        mockIsSearchTopmostFullScreenRoute = true;
+        mockFocusEffects = [];
         mockShouldUseLiveData = false;
+        mockIsFirstPageSearchInFlight.mockReturnValue(false);
     });
 
     it('retries an unresolved search when temporary search prevention clears', async () => {
@@ -116,6 +137,103 @@ describe('useSearchPageSetup', () => {
 
         await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
         expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({isLoading: false}));
+    });
+
+    it('does not re-request a shown first page that another caller is already refetching', async () => {
+        // Given a page showing a settled snapshot, whose recent search was saved when the user arrived
+        const queryJSON = getQueryJSON();
+        const {rerender} = renderHook(
+            ({state}) => {
+                mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, false, state);
+                useSearchPageSetup(queryJSON);
+            },
+            {initialProps: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED as SearchResults['search']['state']}},
+        );
+        await Promise.resolve();
+        expect(mockSearch).not.toHaveBeenCalled();
+
+        // When an auto-refetch of the same first page starts and marks the snapshot pending
+        mockIsFirstPageSearchInFlight.mockReturnValue(true);
+        rerender({state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+
+        // Then the page leaves the running request alone instead of re-firing the same query with the save flag
+        await Promise.resolve();
+        expect(mockIsFirstPageSearchInFlight).toHaveBeenCalledWith(queryJSON, false, false);
+        expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('keeps skipping the refetch duplicate while an RHP covers the page', async () => {
+        // Given a page showing a settled snapshot
+        const queryJSON = getQueryJSON();
+        const {rerender} = renderHook(
+            ({state}) => {
+                mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, false, state);
+                useSearchPageSetup(queryJSON);
+            },
+            {initialProps: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED as SearchResults['search']['state']}},
+        );
+        await Promise.resolve();
+
+        // When the user opens an expense in the RHP, which blurs the page while Search stays the topmost fullscreen route,
+        // and the auto-refetch for the open query starts
+        blurScreen();
+        mockIsFirstPageSearchInFlight.mockReturnValue(true);
+        rerender({state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+
+        // Then the page still treats the query as shown and does not send a second request
+        await Promise.resolve();
+        expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('saves the recent search again after the user left Search and a refresh of the query is running', async () => {
+        // Given a page showing a settled snapshot
+        const queryJSON = getQueryJSON();
+        const {rerender} = renderHook(
+            ({state}) => {
+                mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, false, state);
+                useSearchPageSetup(queryJSON);
+            },
+            {initialProps: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED as SearchResults['search']['state']}},
+        );
+        await Promise.resolve();
+
+        // When the user leaves Search for another fullscreen page and a refresh of the same query starts
+        mockIsSearchTopmostFullScreenRoute = false;
+        blurScreen();
+        mockIsFirstPageSearchInFlight.mockReturnValue(true);
+        rerender({state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+
+        // Then the page sends its flagged request, because the next visit has not saved the recent search yet
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({shouldSaveRecentSearch: true}));
+    });
+
+    it('still saves the recent search when the user arrives while another caller refreshes the query', async () => {
+        // Given Home is refreshing the query behind one of its rows, so the cached snapshot is already pending
+        const queryJSON = getQueryJSON();
+        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, false, CONST.SEARCH.SNAPSHOT_STATE.LOADING);
+        mockIsFirstPageSearchInFlight.mockReturnValue(true);
+
+        // When the user opens that query on the Search page
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        // Then the page still sends its flagged request, because this visit has not saved the recent search yet
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({shouldSaveRecentSearch: true}));
+    });
+
+    it('still claims an unloaded first page whose request is already running', async () => {
+        // Given the user comes back to a query whose first request has not answered yet
+        const queryJSON = getQueryJSON();
+        mockCurrentSearchResults = makeUnresolvedSearchResults(queryJSON.hash, false);
+        mockIsFirstPageSearchInFlight.mockReturnValue(true);
+
+        // When the page sets up the query again
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        // Then it still claims the page and goes through search(), so Search does not request it a second time on mount
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
+        expect(mockMarkPageRequestedSearch).toHaveBeenCalledWith(queryJSON.hash, false);
     });
 
     it('does not restart the first page while a later page is loading', async () => {
