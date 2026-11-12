@@ -2096,7 +2096,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     },
                 })
                     // The skipped reports wait for the carousel to close, so the two modals never stack
-                    .then(() => promptToSetUpGlobalReimbursements(paidReportCount > 0 || hasConfirmedWiseQuotes));
+                    .then(() => {
+                        // Cancelling the carousel backs out of bulk pay, so don't follow it with the global reimbursements setup
+                        if (!hasConfirmedWiseQuotes) {
+                            return;
+                        }
+                        promptToSetUpGlobalReimbursements(true);
+                    });
             });
         },
         [
