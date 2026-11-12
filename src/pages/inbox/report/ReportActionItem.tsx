@@ -22,6 +22,7 @@ import useOriginalReportID from '@hooks/useOriginalReportID';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -220,6 +221,7 @@ function ReportActionItem({
         selector: isLinkedToBillSelector,
     });
     const isBillPayCreatedAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && isBillPayHistoryAction(action, report, isInvoiceLinkedToBill);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(isBillPayCreatedAction ? reportID : undefined);
     const IOUOriginalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(action) : undefined;
     const transactionID = isMoneyRequestAction(action) && IOUOriginalMessage?.IOUTransactionID;
     const isACHPaymentAction = IOUOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && IOUOriginalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
@@ -532,7 +534,8 @@ function ReportActionItem({
 
     // The table view renders its own report header. Other views still need the header above the creation history row.
     const shouldShowBillPayReportHeader =
-        isBillPayCreatedAction && !((isMoneyRequestReport(report) || isInvoiceReport(report)) && shouldDisplayReportTableView(report, transactionsOnReport));
+        isBillPayCreatedAction &&
+        !((isMoneyRequestReport(report) || isInvoiceReport(report)) && shouldDisplayReportTableView(report, transactionsOnReport, shouldUseTableViewForSingleExpense));
     const shouldShowCreatedAction =
         shouldShowBillPayReportHeader || (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isHarvestCreatedExpenseReport && !!parentReportActionForTransactionThread);
 
