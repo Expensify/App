@@ -728,6 +728,8 @@ function retractReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        // Retracted reports require manual submission, just like reopened reports.
+        isReopen: true,
         isTrackIntentUser,
         personalDetailsByLogins: undefined,
     });
