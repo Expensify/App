@@ -35,6 +35,7 @@ import {
     getWorkspaceCustomUnitRateUpdatedMessage,
     getApprovalLimitUpdateMessage,
     getOverLimitForwardsToUpdateMessage,
+    getLastVisibleAction,
 } from '@libs/ReportActionsUtils';
 import {
     getLastActorDisplayName,
@@ -533,7 +534,7 @@ describe('ReportAlternateTextUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[whisper.reportActionID]: whisper});
             await waitForBatchedUpdates();
 
-            // When the last message text is resolved without a precomputed last action
+            // When the last message text is resolved with the last action each account can see, as callers resolve it
             const getLastMessageFor = (currentUserAccountID: number) =>
                 getLastMessageTextForReport({
                     dateFnsLocale: undefined,
@@ -546,6 +547,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    lastAction: getLastVisibleAction(REPORT_ID, true, {}, undefined, undefined, currentUserAccountID),
                     formatPhoneNumber,
                     rules: undefined,
                 });
