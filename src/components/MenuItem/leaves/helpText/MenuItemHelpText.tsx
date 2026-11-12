@@ -1,3 +1,4 @@
+import {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibilityAnnouncement} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {useMenuItemConfig} from '@components/MenuItem/MenuItemContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,9 +12,10 @@ import type {MenuItemHelpTextProps} from './types';
 import BaseMenuItemHelpText from './BaseMenuItemHelpText';
 
 /** The help line of a `MenuItem.Root`, rendered under `MenuItem.Row` and inside the row's press target */
-function MenuItemHelpText({message, isError = false}: MenuItemHelpTextProps) {
+function MenuItemHelpText({message, isError = false, shouldReadErrorWithLabel = false}: MenuItemHelpTextProps) {
     const styles = useThemeStyles();
     const {shouldAllowTextSelection} = useMenuItemConfig();
+    useMenuItemAccessibilityAnnouncement(MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.ERROR, shouldReadErrorWithLabel && isError && typeof message === 'string' ? message : undefined);
 
     return (
         <BaseMenuItemHelpText

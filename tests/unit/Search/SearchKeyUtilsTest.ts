@@ -68,12 +68,13 @@ describe('SearchKeyUtils', () => {
             expect(getSearchKeyForDataType(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
         });
 
-        it.each([CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TASK, CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.DATA_TYPES.CHAT])(
-            'returns undefined for the "%s" type',
-            (type) => {
-                expect(getSearchKeyForDataType(type)).toBeUndefined();
-            },
-        );
+        it('maps the trip type to the Trips search', () => {
+            expect(getSearchKeyForDataType(CONST.SEARCH.DATA_TYPES.TRIP)).toBe(CONST.SEARCH.SEARCH_KEYS.TRIPS);
+        });
+
+        it.each([CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TASK, CONST.SEARCH.DATA_TYPES.CHAT])('returns undefined for the "%s" type', (type) => {
+            expect(getSearchKeyForDataType(type)).toBeUndefined();
+        });
 
         it('returns undefined when the type is undefined', () => {
             expect(getSearchKeyForDataType(undefined)).toBeUndefined();

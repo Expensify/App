@@ -1,4 +1,5 @@
 import {isDevelopment} from '@libs/Environment/Environment';
+import {BROWSER_EXTENSION_URL_PATTERNS} from '@libs/isBrowserExtensionError';
 import {
     breadcrumbsIntegration,
     browserProfilingIntegration,
@@ -10,7 +11,7 @@ import {
     thirdPartyErrorFilterIntegration,
     tracingIntegration,
 } from '@libs/telemetry/integrations';
-import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
+import {processBeforeSendLogs, processBeforeSendSpan, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
 import getAppVersion from '@libs/VersionUtils';
 
 import CONFIG from '@src/CONFIG';
@@ -20,12 +21,6 @@ import * as Sentry from '@sentry/react-native';
 
 import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
-
-/**
- * Schemes browser extensions inject code under. An error whose top stack frame lives at one of these
- * URLs was thrown inside extension code, not ours, so there is nothing for us to act on.
- */
-const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
 
 /**
  * Ordered list, not independent entries: Sentry runs each integration's `processEvent` in list order, and the
@@ -81,24 +76,19 @@ function setupSentry(): void {
             // that merely names the bridge in prose still reports.
             /webkit\.messageHandlers\./,
         ],
-        denyUrls: EXTENSION_DENY_URLS,
+        // An error whose top stack frame lives in extension code was not thrown by us, so there is nothing for us to act on
+        denyUrls: BROWSER_EXTENSION_URL_PATTERNS,
         beforeSendTransaction: processBeforeSendTransactions,
+        beforeSendSpan: processBeforeSendSpan,
         enableLogs: true,
         beforeSendLog: processBeforeSendLogs,
         // Native SDK is initialized early in Application.onCreate (Android) and AppDelegate (iOS)
         // via SentryNativeSDKManager so native code can report to Sentry before JS loads.
         autoInitializeNativeSdk: false,
-        // We set experimental lifecycle value to enable profiling for whole spans. Without this option profile often is dropped early and we haven't the whole picture
-        // See https://github.com/Expensify/App/issues/87489
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        _experiments: {
-            profilingOptions: {
-                // When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
-                // This option replaces `profilesSampleRate`
-                profileSessionSampleRate: 0.5,
-                lifecycle: 'trace',
-            },
-        },
+        // Do not set `_experiments.profilingOptions` here on its own. The native SDK is started by SentryNativeSDKManager
+        // without profiling options, so session sampling is never configured, and the UI profiling integration the SDK
+        // adds for these options would start the iOS continuous profiler whenever a root span starts. Enabling UI
+        // profiling needs the same options in the native init as well.
     });
 
     Sentry.setTag(CONST.TELEMETRY.TAGS.BUILD_TYPE, CONFIG.IS_HYBRID_APP ? CONST.TELEMETRY.BUILD_TYPE_HYBRID_APP : CONST.TELEMETRY.BUILD_TYPE_STANDALONE);

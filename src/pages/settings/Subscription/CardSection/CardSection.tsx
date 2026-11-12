@@ -13,14 +13,12 @@ import useLocalize from '@hooks/useLocalize';
 import useNavigateToCardAuthenticationOnLink from '@hooks/useNavigateToCardAuthenticationOnLink';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {requestRefund as requestRefundByUser} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import {
     canCancelSubscription,
     hasCardAuthenticatedError,
@@ -40,7 +38,7 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BillingStatusResult} from './utils';
@@ -63,7 +61,6 @@ function CardSection() {
     const route = useRoute();
     const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'Close']);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -82,7 +79,7 @@ function CardSection() {
     const [subscriptionRetryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL);
     const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
     const {isOffline} = useNetwork();
-    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
+    const defaultCard = Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING);
@@ -93,10 +90,10 @@ function CardSection() {
     const [ownerTravelBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isGrandfatheredFree] = useOnyx(ONYXKEYS.NVP_PRIVATE_GRANDFATHERED_FREE);
-    const requestRefund = useCallback(() => {
+    const requestRefund = () => {
         requestRefundByUser();
         Navigation.goBackToHome();
-    }, []);
+    };
 
     const {showConfirmModal} = useConfirmModal();
     const refundPrompt = <RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />;
@@ -113,32 +110,8 @@ function CardSection() {
         });
     };
 
-    const viewPurchases = () => {
-        const query = buildQueryStringFromFilterFormValues({
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            merchant: CONST.EXPENSIFY_MERCHANT,
-            from: session?.accountID ? [session.accountID.toString()] : undefined,
-            status: [
-                CONST.SEARCH.STATUS.EXPENSE.UNREPORTED,
-                CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
-                CONST.SEARCH.STATUS.EXPENSE.APPROVED,
-                CONST.SEARCH.STATUS.EXPENSE.DONE,
-                CONST.SEARCH.STATUS.EXPENSE.PAID,
-                CONST.SEARCH.STATUS.EXPENSE.DELETED,
-            ],
-        });
-
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
-    };
-
     const navigateToPaymentHistory = () => {
-        if (isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY)) {
-            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY);
-            return;
-        }
-
-        viewPurchases();
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY);
     };
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>

@@ -16,7 +16,7 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {removeFailedReport} from '@libs/actions/Report';
+import {clearReportErrors, removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
@@ -29,6 +29,7 @@ import {cancelSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 
 import {AgentZeroStatusProvider} from '@pages/inbox/AgentZeroStatusContext';
+import CollapsibleReportHeader from '@pages/inbox/report/CollapsibleReportHeader';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
 import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
@@ -124,8 +125,6 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     const isAppLoadPending = useIsAppLoadPending();
     const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
 
@@ -138,12 +137,17 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     const hasPendingDelete = transactions.some((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const visibleTransactions =
         isOffline || !hasPendingDelete ? transactions : transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportErrors = visibleTransactions.length === 1 && visibleTransactions.at(0)?.errors ? undefined : allReportErrors;
+    // Fall back to the report errors (e.g. a failed submit) so they can be shown and dismissed in the report
+    const reportErrors = visibleTransactions.length === 1 && visibleTransactions.at(0)?.errors ? undefined : (allReportErrors ?? report?.errors);
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
     const isReportLoadPending = useIsReportLoadPending(reportID);
     const dismissReportCreationError = () => {
+        if (!allReportErrors) {
+            clearReportErrors(reportID);
+            return;
+        }
         goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
     };
 
@@ -223,14 +227,17 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
 
     return (
         <View style={styles.flex1}>
-            <OfflineWithFeedback
-                pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
-                errors={reportErrors}
-                needsOffscreenAlphaCompositing
-                shouldShowErrorMessages={false}
-            >
-                <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
-            </OfflineWithFeedback>
+            {/* Outermost, so its wrapper is a sibling of the list's and the sliding header can stack above the list. */}
+            <CollapsibleReportHeader>
+                <OfflineWithFeedback
+                    pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
+                    errors={reportErrors}
+                    needsOffscreenAlphaCompositing
+                    shouldShowErrorMessages={false}
+                >
+                    <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
+                </OfflineWithFeedback>
+            </CollapsibleReportHeader>
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}
                 errors={reportErrors}
@@ -263,7 +270,6 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
                                 <>
                                     <ReportActionsList
                                         reportID={report.reportID}
-                                        conciergeChat={conciergeChat}
                                         onLayout={onLayout}
                                     />
                                     <UserTypingEventListener report={report} />

@@ -1,6 +1,15 @@
 import BAR_INNER_PADDING, {BAR_GAP, BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    ELLIPSIS,
+    LABEL_PADDING,
+    LABEL_ROTATIONS,
+    MAX_X_AXIS_LABEL_WIDTH,
+    SIN_45,
+    WRAPPED_LABEL_ELLIPSIS,
+} from '@components/Charts/VictoryTheme';
 
 import {isShareWorthDrawing} from '@libs/PercentageUtils';
 
@@ -8,9 +17,10 @@ import variables from '@styles/variables';
 
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 
-import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
+import {FontStyle, FontWeight, Skia, TextAlign} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
 
+import getLineRuns from './getLineRuns';
 import getPrimaryValue from './getPrimaryValue';
 
 /** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
@@ -38,6 +48,27 @@ function buildChartParagraph(text: string, fontManager: SkTypefaceFontProvider, 
             fontStyle: {weight: FontWeight.Normal},
             fontSize,
             ...(color !== undefined ? {color: Skia.Color(color)} : {}),
+        })
+        .addText(text)
+        .pop()
+        .build();
+}
+
+/**
+ * Builds a Skia paragraph that wraps at word breaks, centers each line, and truncates anything
+ * past `maxLines` with an ellipsis. Used for bar-name labels drawn under the Home chart bars.
+ *
+ * Unlike buildChartParagraph this does not reuse the shared builder cache: the wrap/ellipsis/align
+ * paragraph style is fixed when the builder is created, so it cannot share the single-line builder.
+ * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
+ */
+function buildWrappedChartParagraph(text: string, fontManager: SkTypefaceFontProvider, fontSize: number, color: string, maxLines: number): SkParagraph {
+    return Skia.ParagraphBuilder.Make({maxLines, ellipsis: WRAPPED_LABEL_ELLIPSIS, textAlign: TextAlign.Center}, fontManager)
+        .pushStyle({
+            fontFamilies: VictoryTheme.fontFamilies,
+            fontStyle: {weight: FontWeight.Normal},
+            fontSize,
+            color: Skia.Color(color),
         })
         .addText(text)
         .pop()
@@ -436,6 +467,14 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /**
+ * Tick count that keeps a Y axis on whole numbers, for charts plotting counts rather than amounts.
+ * A domain spanning fewer units than the default tick count is otherwise split into fractions, which repeat once the labels drop their decimals.
+ */
+function getWholeNumberTickCount(domain: [number, number], tickCount: number): number {
+    return Math.min(tickCount, Math.max(1, Math.floor(domain[1] - domain[0])));
+}
+
+/**
  * Bars fill the plot with BAR_GAP between them, up to BAR_MAX_WIDTH, and the gap shrinks when there are too many bars for it.
  * `edgeSpace` is the distance (px) from each plot edge to the nearest bar's center, and the x-domain lays the bars out with it.
  */
@@ -522,6 +561,7 @@ function getYAxisLabelWidth(
     fontManager: SkTypefaceFontProvider | null,
     fontSize: number,
     domainPadding: {top: number; bottom: number},
+    tickCount: number = VictoryTheme.axis.tickCount,
 ): number {
     if (!fontManager) {
         return 0;
@@ -531,14 +571,13 @@ function getYAxisLabelWidth(
     const rawDataMin = values.length ? Math.min(...values) : 0;
     return Math.max(
         0,
-        ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
-            measureTextWidth(formatValue(tick), fontManager, fontSize),
-        ),
+        ...getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount, domainPadding.top, domainPadding.bottom).map((tick) => measureTextWidth(formatValue(tick), fontManager, fontSize)),
     );
 }
 
 export {
     buildChartParagraph,
+    buildWrappedChartParagraph,
     canFontRenderText,
     getAdditionalOffset,
     measureTextWidth,
@@ -548,6 +587,7 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
+    getLineRuns,
     getPrimaryValue,
     processDataIntoSlices,
     getXAxisLabel,
@@ -561,6 +601,7 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
+    getWholeNumberTickCount,
     getYAxisLabelWidth,
     getCartesianPlotBounds,
     getBarLayout,

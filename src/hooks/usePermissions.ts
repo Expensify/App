@@ -23,11 +23,12 @@ export default function usePermissions(): UsePermissions {
 
     return useMemo(() => {
         const permissions: UsePermissions = {
-            isBetaEnabled: (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration, betaOverrides, environment),
+            isBetaEnabled: (beta: Beta) => Permissions.isBetaEnabled(beta, betas ?? undefined, betaConfiguration ?? undefined, betaOverrides ?? undefined, environment),
 
             // Prefer isBetaEnabled. This exists for the consumers that must tell "off" apart from "not loaded yet",
             // currently the inactive vendor violation and the approval mode next steps, reached from many components
-            isBetaEnabledOrUnknown: (beta: Beta) => (betas === undefined ? undefined : Permissions.isBetaEnabled(beta, betas, betaConfiguration, betaOverrides, environment)),
+            isBetaEnabledOrUnknown: (beta: Beta) =>
+                betas === undefined ? undefined : Permissions.isBetaEnabled(beta, betas ?? undefined, betaConfiguration ?? undefined, betaOverrides ?? undefined, environment),
         };
 
         for (permissionKey in Permissions) {

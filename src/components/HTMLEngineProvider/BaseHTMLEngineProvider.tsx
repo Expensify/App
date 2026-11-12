@@ -15,6 +15,7 @@ import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEng
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 import VICTORY_HTML_ELEMENT_MODELS from './HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
+import HTMLRenderersContext from './HTMLRenderersContext';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
     textSelectable?: boolean;
@@ -65,6 +66,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             tagName: 'edited',
             contentModel: HTMLContentModel.textual,
         }),
+        'attachment-block': HTMLElementModel.fromCustomModel({
+            tagName: 'attachment-block',
+            contentModel: HTMLContentModel.block,
+        }),
         'task-title': HTMLElementModel.fromCustomModel({
             tagName: 'task-title',
             contentModel: HTMLContentModel.block,
@@ -87,6 +92,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     return {...styles.formError, ...styles.mb0};
                 }
                 return {...styles.formError, ...styles.mb0, ...styles.textMicro};
+            },
+            contentModel: HTMLContentModel.block,
+        }),
+        gbr: HTMLElementModel.fromCustomModel({
+            tagName: 'gbr',
+            getMixedUAStyles: (tnode) => {
+                if (tnode.attributes.issmall === undefined) {
+                    return {...styles.formError, ...styles.mb0, ...styles.badgeSuccessText};
+                }
+                return {...styles.formError, ...styles.mb0, ...styles.textMicro, ...styles.badgeSuccessText};
             },
             contentModel: HTMLContentModel.block,
         }),
@@ -295,7 +310,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
                 enableExperimentalBRCollapsing={enableExperimentalBRCollapsing}
             >
-                {children}
+                <HTMLRenderersContext.Provider value={htmlRenderers}>{children}</HTMLRenderersContext.Provider>
             </RenderHTMLConfigProvider>
         </TRenderEngineProvider>
     );

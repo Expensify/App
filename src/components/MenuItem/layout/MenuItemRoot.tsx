@@ -5,6 +5,7 @@ import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@component
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
 import MenuItemSecondaryInteractionContext, {useMenuItemSecondaryInteractionRegistry} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import type Text from '@components/Text';
 
 import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,6 +16,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import getPlatform from '@libs/getPlatform';
+import mergeRefs from '@libs/mergeRefs';
 
 import variables from '@styles/variables';
 
@@ -22,7 +24,7 @@ import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
-import type {ComponentRef, PropsWithChildren} from 'react';
+import type {ComponentRef, PropsWithChildren, Ref} from 'react';
 import type {AccessibilityState, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -60,6 +62,9 @@ type MenuItemRootProps = PropsWithChildren &
          * buttons must stay reachable, since an accessible parent hides its children on iOS.
          */
         shouldBeAccessible?: boolean;
+
+        /** The pressable row, for a caller that moves focus to it */
+        ref?: Ref<ComponentRef<typeof View>>;
     };
 
 function MenuItemRoot({
@@ -73,6 +78,7 @@ function MenuItemRoot({
     shouldAllowTextSelection = false,
     accessibilityState,
     shouldBeAccessible = true,
+    ref,
 }: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -164,7 +170,7 @@ function MenuItemRoot({
                             ] as StyleProp<ViewStyle>
                         }
                         disabled={isDisabled}
-                        ref={pressableRef}
+                        ref={mergeRefs<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof Text> | undefined>(pressableRef, ref)}
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
                         accessibilityLabel={rowAccessibilityLabel}
                         accessibilityHint={accessibilityHint}

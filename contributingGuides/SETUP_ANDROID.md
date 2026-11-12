@@ -12,8 +12,8 @@ The following steps describe how to configure the project to fully utilize Rock.
 
 ### Running the mobile application 📱
 * To install project dependencies run: `npm install`
-* To start metro server run: `npm run start`
-**Note:** For now this is a required step — metro needs to be called manually in a separate terminal.
+* To start the dev server run: `npm run start`
+**Note:** For now this is a required step — the dev server needs to be started manually in a separate terminal.
 * To run application on a **Development Simulator**:
     - For standalone `npm run android-standalone`
     - For hybrid app `npm run android`
@@ -129,8 +129,8 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 
 ### Chrome Debugging Setup
 1. Navigate to `chrome://inspect`
-2. Use the `Configure...` button to add the Metro server address (typically `localhost:8081`, check your `Metro` output)
-3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running
+2. Use the `Configure...` button to add the dev server address (typically `localhost:8081`, check the dev server output)
+3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the dev server is running
 4. You can now use the Chrome debug tools. See [React Native Debugging Hermes](https://reactnative.dev/docs/hermes#debugging-hermes-using-google-chromes-devtools)
 
 ## Release Profiling

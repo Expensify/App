@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
+import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import SkeletonTextLine, {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
@@ -19,6 +19,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import {ICON_SLOT_SIZE, useWidgetSkeletonRowGeometry, WidgetSkeletonRowIcon} from './common/widgetSkeletonRow';
+import useInsightChartPaddingStyle from './InsightsSection/useInsightChartPaddingStyle';
 
 // The stacked pair of text lines the two-bar rows stand in for: a merchant line over a muted label line.
 const FIRST_LINE_HEIGHT = lineHeightScale.text;
@@ -27,10 +28,12 @@ const TITLE_LINE_HEIGHT = variables.widgetHeaderTitleLineHeight;
 const TRAILING_BAR_WIDTH = 68;
 const TRAILING_SUB_BAR_WIDTH = 40;
 const CARD_TITLE_WIDTH = 120;
+const SUBTITLE_LINE_HEIGHT = lineHeightScale.label;
+const CARD_SUBTITLE_WIDTH = 90;
 const LOWER_BAR_WIDTH = 80;
 
-// The chart this stands in for holds its own loading spinner at exactly this height.
-const SPINNER_CARD_HEIGHT = CHART_CONTENT_MIN_HEIGHT;
+// Home's first insight, spend over time, is a line chart, which holds its loading spinner at this height.
+const SPINNER_CARD_HEIGHT = getCartesianChartHeight();
 const ROWS_PER_LIST_CARD = 3;
 const ROWS_PER_TABLE_CARD = CONST.HOME.SECTION_VISIBLE_LIMIT;
 
@@ -108,9 +111,11 @@ function renderIconTwoBarWithTrailingRow(args: TrailingSkeletonRowArgs) {
 
 type HomePageSkeletonCardProps = {
     children: React.ReactNode;
+    hasBottomPadding?: boolean;
+    subtitle?: React.ReactNode;
 };
 
-function HomePageSkeletonCard({children}: HomePageSkeletonCardProps) {
+function HomePageSkeletonCard({children, hasBottomPadding = true, subtitle}: HomePageSkeletonCardProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -118,12 +123,15 @@ function HomePageSkeletonCard({children}: HomePageSkeletonCardProps) {
         <View testID={CARD_TEST_ID}>
             <WidgetContainer
                 titleContent={
-                    <SkeletonTextLine
-                        lineHeight={TITLE_LINE_HEIGHT}
-                        barWidth={CARD_TITLE_WIDTH}
-                    />
+                    <>
+                        <SkeletonTextLine
+                            lineHeight={TITLE_LINE_HEIGHT}
+                            barWidth={CARD_TITLE_WIDTH}
+                        />
+                        {subtitle}
+                    </>
                 }
-                containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
+                containerStyles={hasBottomPadding && styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
             >
                 {children}
             </WidgetContainer>
@@ -176,14 +184,25 @@ function HomePageSkeletonTableCard() {
 function HomePageSkeletonSpinnerCard() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const chartPaddingStyle = useInsightChartPaddingStyle();
 
     return (
-        <HomePageSkeletonCard>
-            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    testID={SPINNER_TEST_ID}
+        <HomePageSkeletonCard
+            hasBottomPadding={false}
+            subtitle={
+                <SkeletonTextLine
+                    lineHeight={SUBTITLE_LINE_HEIGHT}
+                    barWidth={CARD_SUBTITLE_WIDTH}
                 />
+            }
+        >
+            <View style={chartPaddingStyle}>
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        testID={SPINNER_TEST_ID}
+                    />
+                </View>
             </View>
         </HomePageSkeletonCard>
     );

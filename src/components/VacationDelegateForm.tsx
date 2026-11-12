@@ -17,6 +17,7 @@ import {
     isVacationDelegateClearDatePassed,
 } from '@libs/VacationDelegateUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/VacationDelegateForm';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -101,7 +102,7 @@ function VacationDelegateForm({
     const savedDelegateOnOpen = useInitialSelection(savedDelegate);
     const savedClearDateTime = savedDelegate ? getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, timezone) : '';
     const savedClearDate = savedDelegate ? getVacationDelegateClearDate(vacationDelegate?.clearAfter, timezone) : '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty draft means no member was picked yet
+    // an empty draft means no member was picked yet
     const delegate = draftValues?.[INPUT_IDS.DELEGATE] || savedDelegate;
     const clearDate = draftValues?.[INPUT_IDS.CLEAR_AFTER_DATE] ?? savedClearDate;
     const formattedClearDateTime = formatVacationDelegateClearDateTime(
@@ -156,6 +157,7 @@ function VacationDelegateForm({
                 pendingAction={pendingAction}
                 onCloseError={onCloseError}
                 onPress={onChangeDelegate}
+                sentryLabel={CONST.SENTRY_LABEL.VACATION_DELEGATE.CHOOSE_DELEGATE}
             />
             {/* The clear after date and time belong to the same pending save as the delegate, so they grey out with it */}
             <OfflineWithFeedback
@@ -195,6 +197,7 @@ function VacationDelegateForm({
             {!!savedDelegateOnOpen && !!savedDelegate && (
                 <View style={styles.mt4}>
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.VACATION_DELEGATE.REMOVE}
                         title={translate('statusPage.vacationDelegate.removeDelegate')}
                         icon={icons.Trashcan}
                         onPress={onRemove}

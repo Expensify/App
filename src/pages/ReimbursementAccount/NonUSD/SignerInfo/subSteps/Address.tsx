@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type NameProps = SubPageProps;
 
@@ -43,14 +43,8 @@ function Address({onNext, isEditing, onMove}: NameProps) {
     );
     const [shouldValidateZipCodeFormat, setShouldValidateZipCodeFormat] = useState<boolean>(defaultValues.country === CONST.COUNTRY.US);
 
-    const stepFieldsWithState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, inputKeys.country],
-        [inputKeys.country, inputKeys.city, inputKeys.state, inputKeys.street, inputKeys.zipCode],
-    );
-    const stepFieldsWithoutState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.zipCode, inputKeys.country],
-        [inputKeys.country, inputKeys.city, inputKeys.street, inputKeys.zipCode],
-    );
+    const stepFieldsWithState = [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, inputKeys.country];
+    const stepFieldsWithoutState = [inputKeys.street, inputKeys.city, inputKeys.zipCode, inputKeys.country];
 
     const stepFields = shouldDisplayStateSelector ? stepFieldsWithState : stepFieldsWithoutState;
 

@@ -60,11 +60,15 @@ jest.mock('@components/ScrollView', () => {
 });
 jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps', () => () => ({}));
 jest.mock('@components/Navigation/QuickCreationActionsBar', () => {
+    const ReactModule = require('react');
+    const {View: RNView} = require('react-native');
     function MockQuickCreationActionsBar() {
-        return null;
+        return ReactModule.createElement(RNView, {testID: 'quickCreationActionsBar'});
     }
     return MockQuickCreationActionsBar;
 });
+let mockShouldUseFlatNavigationBar = false;
+jest.mock('@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar', () => () => mockShouldUseFlatNavigationBar);
 // Rendered as a host View so `shouldShowLoadingBar` can be read back off the element's props.
 jest.mock('@components/Navigation/TopBar', () => {
     const ReactModule = require('react');
@@ -147,7 +151,7 @@ jest.mock('@pages/home/ForYouSection', () => {
     return MockForYouSection;
 });
 jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravelSection'));
-jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'), {virtual: true});
+jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'));
 jest.mock('@pages/home/YourSpendSection', () => mockSection('YourSpendSection'));
 jest.mock('@pages/home/InsightsSection', () => mockSection('InsightsSection'));
 
@@ -252,6 +256,7 @@ describe('HomePage', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockForYouSectionMountCount = 0;
+        mockShouldUseFlatNavigationBar = false;
         setNarrowLayout();
         setIsOffline(false);
         await Onyx.clear();
@@ -276,6 +281,33 @@ describe('HomePage', () => {
 
             // Then the suggestions portal host is on the page
             expect(screen.getByTestId('portal-host-suggestions')).toBeOnTheScreen();
+        });
+    });
+
+    describe('create row', () => {
+        it('shows the create row on wide without the flat navigation bar', async () => {
+            // Given a wide layout that keeps the icon bar
+            setWideLayout();
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then the create row stays, because only the flat bar has its own Create button
+            expect(screen.getByTestId('quickCreationActionsBar')).toBeOnTheScreen();
+        });
+
+        it('hides the create row on wide with the flat navigation bar', async () => {
+            // Given a wide layout showing the flat navigation bar
+            setWideLayout();
+            mockShouldUseFlatNavigationBar = true;
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then the row is gone, since the Create button below the bar's logo opens the same actions
+            expect(screen.queryByTestId('quickCreationActionsBar')).not.toBeOnTheScreen();
         });
     });
 

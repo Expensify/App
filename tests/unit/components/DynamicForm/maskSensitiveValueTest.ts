@@ -1,4 +1,4 @@
-import maskSensitiveValue from '@components/DynamicForm/utils/maskSensitiveValue';
+import maskSensitiveValue, {getVisibleEnding} from '@components/DynamicForm/utils/maskSensitiveValue';
 
 describe('maskSensitiveValue', () => {
     it('shows an SSN as •••-••-1234', () => {
@@ -6,6 +6,14 @@ describe('maskSensitiveValue', () => {
         // When it is masked
         // Then only the last four digits stay, in the usual SSN grouping, so the user can tell which number they entered
         expect(maskSensitiveValue('123451234')).toBe('•••-••-1234');
+    });
+
+    it('keeps the SSN grouping for an SSN starting with zeros', () => {
+        // Given nine digit SSNs that the SSN validator rejects but the form accepts
+        // When they are masked
+        // Then they keep the same grouping as any other SSN on the confirmation page
+        expect(maskSensitiveValue('000000000')).toBe('•••-••-0000');
+        expect(maskSensitiveValue('000012345')).toBe('•••-••-2345');
     });
 
     it('keeps the last four characters of any other value', () => {
@@ -22,5 +30,13 @@ describe('maskSensitiveValue', () => {
         expect(maskSensitiveValue('1234')).toBe('••34');
         expect(maskSensitiveValue('12')).toBe('•2');
         expect(maskSensitiveValue('1')).toBe('•');
+    });
+
+    it('gives the same ending the mask leaves visible', () => {
+        // Given an SSN and a value too short to show four characters
+        // When their visible endings are taken
+        // Then they match what the mask shows, so a screen reader names the same characters the user sees
+        expect(getVisibleEnding('123451234')).toBe('1234');
+        expect(getVisibleEnding('123')).toBe('3');
     });
 });

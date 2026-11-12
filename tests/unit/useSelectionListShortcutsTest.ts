@@ -59,15 +59,15 @@ describe('useSelectionListShortcuts', () => {
         expect(getRegistration(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER)?.isActive).toBe(true);
     });
 
-    it('still passes the real focused option to onConfirm when the focused index is gated to -1', () => {
-        const onConfirm = jest.fn();
+    it('still passes the real focused option to onConfirmFocusedOption when the focused index is gated to -1', () => {
+        const onConfirmFocusedOption = jest.fn();
         const focusedOption: ListItem = {text: 'Item 0', keyForList: '0'};
-        renderShortcuts({focusedIndex: -1, confirmButtonOptions: {onConfirm}, getFocusedOption: () => focusedOption});
+        renderShortcuts({focusedIndex: -1, confirmButtonOptions: {onConfirmFocusedOption}, getFocusedOption: () => focusedOption});
 
         const ctrlEnterCallback = mockUseKeyboardShortcut.mock.calls.findLast(([shortcut]) => shortcut === CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER)?.[1];
         ctrlEnterCallback?.();
 
-        expect(onConfirm).toHaveBeenCalledWith(undefined, focusedOption);
+        expect(onConfirmFocusedOption).toHaveBeenCalledWith(focusedOption);
     });
 
     it('disarms both shortcuts when keyboard shortcuts are disabled', () => {

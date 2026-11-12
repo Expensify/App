@@ -2,8 +2,6 @@ import {getSavedSearchIconName} from '@libs/SearchUIUtils';
 
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 
-import {useMemo} from 'react';
-
 type SavedSearchCollection = Record<string, SaveSearchItem>;
 
 /**
@@ -13,16 +11,14 @@ type SavedSearchCollection = Record<string, SaveSearchItem>;
  * every unrelated Onyx update or state change in the frequently-rerendering menus that consume this.
  */
 function useSavedSearchIcons(savedSearches: SavedSearchCollection | undefined): Map<string, ReturnType<typeof getSavedSearchIconName>> {
-    return useMemo(() => {
-        const iconNames = new Map<string, ReturnType<typeof getSavedSearchIconName>>();
-        for (const item of Object.values(savedSearches ?? {})) {
-            if (iconNames.has(item.query)) {
-                continue;
-            }
-            iconNames.set(item.query, getSavedSearchIconName(item.query));
+    const iconNames = new Map<string, ReturnType<typeof getSavedSearchIconName>>();
+    for (const item of Object.values(savedSearches ?? {})) {
+        if (iconNames.has(item.query)) {
+            continue;
         }
-        return iconNames;
-    }, [savedSearches]);
+        iconNames.set(item.query, getSavedSearchIconName(item.query));
+    }
+    return iconNames;
 }
 
 export default useSavedSearchIcons;

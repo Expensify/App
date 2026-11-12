@@ -13,8 +13,8 @@ import React from 'react';
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
+import AmountFormField from './AmountFormField';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
-import NumericField from './NumericField';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -105,10 +105,11 @@ function AmountForm({
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
     const symbol = getLocalizedCurrencySymbol(preferredLocale, currency) ?? '';
 
-    // Use NumericField for standard text input. Currency-button variants still use the legacy form.
-    if (displayAsTextInput && !shouldShowCurrencyButton) {
+    if (displayAsTextInput) {
+        const currencyButtonText = currencyButtonLabel ?? currency;
+
         return (
-            <NumericField
+            <AmountFormField
                 value={value ?? ''}
                 onInputChange={onInputChange}
                 decimals={decimals}
@@ -116,7 +117,7 @@ function AmountForm({
                 errorText={errorText}
                 ref={numberFormRef}
             >
-                <NumericField.TextInput
+                <AmountFormField.Input
                     prefixCharacter={hideCurrencySymbol ? '' : symbol}
                     accessibilityLabel={label}
                     label={label}
@@ -126,8 +127,17 @@ function AmountForm({
                     onBlur={onBlur}
                     onSubmitEditing={onSubmitEditing}
                     ref={ref}
-                />
-            </NumericField>
+                >
+                    {shouldShowCurrencyButton && !!currencyButtonText && (
+                        <AmountFormField.CurrencyPickerButton
+                            currency={currencyButtonText}
+                            accessibilityLabel={currencyButtonAccessibilityLabel}
+                            onPress={onCurrencyButtonPress}
+                            isDisabled={disabled}
+                        />
+                    )}
+                </AmountFormField.Input>
+            </AmountFormField>
         );
     }
 

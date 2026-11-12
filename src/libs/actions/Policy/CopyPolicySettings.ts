@@ -45,7 +45,17 @@ const PARTS_TO_POLICY_FIELDS = {
     taxes: ['tax', 'taxRates'],
     // achAccount is intentionally excluded — the backend remaps bankAccountID per-caller
     // (see Auth PR #21638). We rely on the server push for that field.
-    workflows: ['areWorkflowsEnabled', 'autoReportingFrequency', 'autoReporting', 'autoReportingOffset', 'harvesting', 'approvalMode', 'autoApproval', 'reimbursementChoice'],
+    workflows: [
+        'areWorkflowsEnabled',
+        'autoReportingFrequency',
+        'autoReporting',
+        'autoReportingOffset',
+        'autoReportingOffsetSecondSemiMonthly',
+        'harvesting',
+        'approvalMode',
+        'autoApproval',
+        'reimbursementChoice',
+    ],
     rules: [
         'areRulesEnabled',
         'maxExpenseAmount',
