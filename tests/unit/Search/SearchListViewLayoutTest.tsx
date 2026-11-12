@@ -15,6 +15,8 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => mockSearchQueryContext,
 }));
 
+jest.mock('@hooks/usePolicyForMovingExpenses', () => () => ({policyForMovingExpensesID: undefined}));
+
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => true}));
 
 jest.mock('@libs/measureTextWidth', () => ({

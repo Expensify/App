@@ -65,7 +65,10 @@ function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputCh
 
     return (
         <View style={wrapperStyle}>
-            <MenuItem.Root onPress={callIfAuthenticated(showPickerModal, session)}>
+            <MenuItem.Root
+                onPress={callIfAuthenticated(showPickerModal, session)}
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_TYPE_PICKER}
+            >
                 <MenuItemField.Row
                     name={label}
                     value={title}

@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsList, Session} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -28,6 +29,9 @@ import Button from './Button';
 
 type PromotedAction = {
     key: string;
+
+    /** Sentry label for the action button */
+    sentryLabel: SentryLabel;
 } & ThreeDotsMenuItem;
 
 type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
@@ -63,18 +67,21 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.PIN,
         icon: 'Pin',
         translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
+        sentryLabel: report.isPinned ? CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.UNPIN : CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.PIN,
         onSelected: callIfAuthenticated(() => togglePinnedState(report.reportID, !!report.isPinned), session),
     }),
     share: () => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
         icon: 'QrCode',
         translationKey: 'common.share',
+        sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.SHARE,
         onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path)),
     }),
     join: (report, currentUserAccountID, session) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: 'ChatBubbles',
         translationKey: 'common.join',
+        sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.JOIN,
         onSelected: callIfAuthenticated(() => {
             Navigation.dismissModal();
             joinRoom(report, currentUserAccountID);
@@ -97,6 +104,7 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
+        sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.MESSAGE,
         onSelected: () => {
             if (reportID && accountID === currentUserAccountID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
@@ -153,12 +161,15 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
-            {promotedActions.map(({key, onSelected, translationKey, icon}) => (
+            {promotedActions.map(({key, onSelected, translationKey, icon, sentryLabel}) => (
                 <View
                     style={[styles.flex1, styles.mw50]}
                     key={key}
                 >
-                    <Button onPress={onSelected}>
+                    <Button
+                        onPress={onSelected}
+                        sentryLabel={sentryLabel}
+                    >
                         <Button.Icon
                             src={typeof icon === 'string' ? icons[icon] : icon}
                             fill={theme.icon}
