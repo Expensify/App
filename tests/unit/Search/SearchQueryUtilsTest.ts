@@ -83,6 +83,51 @@ import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/Test
 const mockGetRootState = jest.fn();
 
 describe('currency-qualified amount filters', () => {
+    it.each([
+        {filterKey: 'amount', type: 'expense', lower: '50.00 AUD', upper: '100.00 AUD'},
+        {filterKey: 'purchaseAmount', type: 'expense', lower: '12.50 EUR', upper: '20.00 EUR'},
+        {filterKey: 'total', type: 'expense-report', lower: '5000', upper: '10000'},
+        {filterKey: 'amountDebited', type: 'expense-report', lower: '5000', upper: '10000'},
+        {filterKey: 'amountReimbursed', type: 'expense-report', lower: '5000', upper: '10000'},
+    ] as const)('preserves inclusive $filterKey bounds through the filter form', ({filterKey, type, lower, upper}) => {
+        // Given NL searches include both endpoints, unlike the existing strict Between editor.
+        const query = `type:${type} ${filterKey}>=${sanitizeSearchValue(lower)} ${filterKey}<=${sanitizeSearchValue(upper)}`;
+        const queryJSON = buildSearchQueryJSON(query);
+        if (!queryJSON) {
+            throw new Error('Expected the inclusive range to parse');
+        }
+
+        // When the query is opened in Filters and reapplied through the type-specific allowlist.
+        const form = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+        const savedQuery = buildFilterQueryWithSortDefaults(form, {}, queryJSON) ?? '';
+
+        // Then neither the currencies nor equality at the endpoints can be lost.
+        expect(form).toMatchObject({[`${filterKey}GreaterThanOrEqualTo`]: lower, [`${filterKey}LessThanOrEqualTo`]: upper});
+        expect(form[`${filterKey}GreaterThan`]).toBeUndefined();
+        expect(form[`${filterKey}LessThan`]).toBeUndefined();
+        expect(savedQuery).toContain(`${filterKey}>=${sanitizeSearchValue(lower)}`);
+        expect(savedQuery).toContain(`${filterKey}<=${sanitizeSearchValue(upper)}`);
+        expect(buildSearchQueryJSON(savedQuery)?.flatFilters).toEqual(expect.arrayContaining(queryJSON.flatFilters));
+    });
+
+    it.each(['amount>="50.00 AUD"', 'amount<="100.00 AUD"', 'amount>="50.00 AUD" amount<"100.00 AUD"', 'amount>5000 amount<=10000'])(
+        'preserves open-ended and mixed amount bounds: %s',
+        (query) => {
+            // Given a range may have one bound or mix inclusive and exclusive endpoints.
+            const queryJSON = buildSearchQueryJSON(query);
+            if (!queryJSON) {
+                throw new Error('Expected the amount comparison to parse');
+            }
+
+            // When another filter edit rebuilds the query from its form values.
+            const form = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+            const savedQuery = buildQueryStringFromFilterFormValues(form);
+
+            // Then the original comparisons survive rather than becoming strict or disappearing.
+            expect(buildSearchQueryJSON(savedQuery)?.flatFilters).toEqual(expect.arrayContaining(queryJSON.flatFilters));
+        },
+    );
+
     it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('round-trips Any currency for %s using the legacy request format', (filterKey) => {
         // Given an Any currency operand already expressed in legacy hundredths.
         const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '10'};

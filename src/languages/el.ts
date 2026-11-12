@@ -11216,7 +11216,9 @@ ${reportName}`,
             completed: 'Ολοκληρώθηκε',
             amount: {
                 lessThan: (amount?: string) => `Λιγότερο από ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Μικρότερο ή ίσο με ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Μεγαλύτερο από ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Μεγαλύτερο ή ίσο με ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Μεταξύ ${greaterThan} και ${lessThan}`;
