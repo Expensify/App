@@ -4,7 +4,6 @@ import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPop
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
@@ -49,7 +48,6 @@ type ReportFieldProps = {
 function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate, localeCompare} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
     const [ownerPersonalDetail] = usePersonalDetail(ownerAccountID);
 
@@ -124,7 +122,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const shouldReportBeEditable = (!mayHideListOptions || shouldReportFieldBeEditable(outstandingReports, selectedReportID, isUnreported)) && !isMoneyRequestReport(reportID);
     // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
     // the destination step when the workspace changes), so those keep the full page.
-    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;
+    const shouldOpenInDropdown = !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;
 
     const openReportPage = () => {
         if (!transactionID || !selectedReportID) {

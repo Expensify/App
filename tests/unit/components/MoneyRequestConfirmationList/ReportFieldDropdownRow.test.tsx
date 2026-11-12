@@ -23,11 +23,6 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, l
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), navigationRef: {getCurrentRoute: jest.fn(() => undefined)}}));
 jest.mock('@hooks/useReportAttributes', () => ({useDerivedReportNameByReportID: () => undefined}));
 
-let mockIsAnchoredDropdownsBetaEnabled = true;
-jest.mock('@hooks/usePermissions', () => () => ({
-    isBetaEnabled: (beta: string) => mockIsAnchoredDropdownsBetaEnabled && beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.ANCHORED_FIELD_DROPDOWNS,
-}));
-
 // The reports the user could move the expense to. The row only offers a choice when there is one.
 let mockOutstandingReports: Report[] = [];
 jest.mock('@hooks/useOutstandingReports', () => () => mockOutstandingReports);
@@ -103,7 +98,6 @@ describe('ReportField', () => {
     });
 
     beforeEach(async () => {
-        mockIsAnchoredDropdownsBetaEnabled = true;
         // Two reports the expense could go on, which leaves a choice to make whether or not the list offers a new report.
         mockOutstandingReports = [outstandingReport, otherOutstandingReport];
         mockShouldOpenInDropdown = undefined;
@@ -120,7 +114,7 @@ describe('ReportField', () => {
     });
 
     it('opens the report list in place while creating an expense', async () => {
-        // Given a workspace with two outstanding reports the expense could go on, and the anchored dropdowns beta on
+        // Given a workspace with two outstanding reports the expense could go on
         // When the expense form renders the report row
         renderReportRow();
 
@@ -129,19 +123,6 @@ describe('ReportField', () => {
             expect(mockShouldOpenInDropdown).toBe(true);
         });
         expect(mockDropdownTransactionID).toBe(TRANSACTION_ID);
-    });
-
-    it('keeps the full-page selector when the beta is off', async () => {
-        // Given the same workspace, for a user without the anchored dropdowns beta
-        mockIsAnchoredDropdownsBetaEnabled = false;
-
-        // When the form renders the report row
-        renderReportRow();
-
-        // Then the row opens the full-page selector as before
-        await waitFor(() => {
-            expect(mockShouldOpenInDropdown).toBe(false);
-        });
     });
 
     it('opens the list when the workspace has no report open yet', async () => {
@@ -170,21 +151,6 @@ describe('ReportField', () => {
             expect(mockShouldOpenInDropdown).toBe(true);
         });
         expect(mockIsInteractive).toBe(true);
-    });
-
-    it('opens the full-page selector when the workspace has only one report and the beta is off', async () => {
-        // Given a workspace with one outstanding report, for a user without the anchored dropdowns beta
-        mockIsAnchoredDropdownsBetaEnabled = false;
-        mockOutstandingReports = [outstandingReport];
-
-        // When the form renders the report row
-        renderReportRow();
-
-        // Then the row can be changed, so the user can pick a new report instead, through the full-page selector
-        await waitFor(() => {
-            expect(mockIsInteractive).toBe(true);
-        });
-        expect(mockShouldOpenInDropdown).toBe(false);
     });
 
     it('keeps the row locked when editing an expense on the only report it can go on', async () => {

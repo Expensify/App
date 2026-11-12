@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Abbrechen',
         dismiss: 'Schließen',
         resizeColumn: ({columnName}: {columnName: string}) => `Spalte ${columnName} in der Größe ändern`,
-        columnWidth: ({width}: {width: number}) => `${width} Pixel`,
+        resizePanel: 'Bereich in der Größe ändern',
+        widthInPixels: ({width}: {width: number}) => `${width} Pixel`,
         proceed: 'Weiter',
         unshare: 'Freigabe aufheben',
         yes: 'Ja',
@@ -1258,6 +1259,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Alle anzeigen',
         topExpenses: 'Top-Ausgaben',
         noExpensesInRange: 'Keine Ausgaben in diesem Bereich',
+        efficiency: 'Effizienz',
+        workflowEfficiency: 'Workflow-Effizienz',
+        longestToSubmit: 'Am längsten bis zur Einreichung',
+        slowestToApprove: 'Am langsamsten bei der Genehmigung',
+        mostTimeToPay: 'Längste Zahlungsfrist',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2064,6 +2070,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'Löschvorgang für diese Ausgabe rückgängig gemacht',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `Kilometersätze für den neuen Arbeitsbereich aktualisiert – ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} Bericht`,
+                other: (count: number) => `${formattedCount ?? count} Berichte`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -9774,6 +9786,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
         },
         digits: {
+            entity: 'Entität',
             updateCurrencyTitle: 'Arbeitsbereichswährung aktualisieren?',
             updateCurrencyPrompt: 'Digits ist derzeit nur für Unternehmen mit Sitz in den USA verfügbar, die in USD arbeiten.',
             importDescription: 'Wählen Sie, welche Digits-Konfigurationen importiert werden sollen.',
@@ -10157,6 +10170,25 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `hat die Positionenbelege der Kategorie „${categoryName}“ auf ${newValue} geändert (zuvor ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `hat die Kategorie „${oldName}“ in „${newName}“ umbenannt`,
+        setCategoryVisibility: (members: string, categories: string) => `hat ${members} so eingestellt, dass sie nur ${categories} sehen`,
+        changedCategoryVisibility: (members: string, categories: string) => `hat ${members} so geändert, dass sie nur noch ${categories} sehen`,
+        clearedCategoryVisibility: (members: string) => `${members} können jetzt alle Kategorien sehen`,
+        quotedCategoryName: (categoryName: string) => `„${categoryName}“`,
+        oneCategory: (categoryName: string) => `die Kategorie ${categoryName}`,
+        someCategories: (categoryList: string) => `die ${categoryList} Kategorien`,
+        everyone: 'alle',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 Kategorie',
+            other: `${count} Kategorien`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 Mitglied',
+            other: `${count} Mitglieder`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Kategorien: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Mitglieder: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', da ihre einzige Kategorie gelöscht wurde. Aktualisieren Sie bei Bedarf ihre Kategoriesichtbarkeit.',
+        categoryVisibilityReasonDisabled: ', da ihre einzige Kategorie deaktiviert war. Aktualisieren Sie bei Bedarf deren Kategoriesichtbarkeit.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `hat den Beschreibungshinweis „${oldValue}“ aus der Kategorie „${categoryName}“ entfernt`;
@@ -10973,7 +11005,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             completed: 'Abgeschlossen',
             amount: {
                 lessThan: (amount?: string) => `Weniger als ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Kleiner oder gleich ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Größer als ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Größer oder gleich ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Zwischen ${greaterThan} und ${lessThan}`;
@@ -11030,6 +11064,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartal',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Verstoß',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Bezahlt von',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -11092,6 +11127,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Verstöße',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Zahler',
         },
         moneyRequestReport: {emptyStateTitle: 'Noch keine Ausgaben', accessPlaceHolder: 'Für Details öffnen'},
         noCategory: 'Keine Kategorie',

@@ -27,6 +27,7 @@ import type {
     TransactionTagGroupListItemType,
     TransactionViolationGroupListItemType,
     TransactionWeekGroupListItemType,
+    TransactionPaidByGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
     TripListItemType,
@@ -267,7 +268,7 @@ import getFormattedPostedDate from './TransactionUtils/getFormattedPostedDate';
 import shouldShowTransactionPostedYear from './TransactionUtils/shouldShowTransactionPostedYear';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
-type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
+type ColumnSortMapping<T> = Partial<Record<SearchSortBy, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
 type PolicyCategoriesLookup = OnyxEntry<OnyxTypes.PolicyCategories> | OnyxCollection<OnyxTypes.PolicyCategories>;
 type PolicyTagsLookup = OnyxEntry<OnyxTypes.PolicyTagLists> | OnyxCollection<OnyxTypes.PolicyTagLists>;
@@ -304,6 +305,7 @@ type TransactionYearGroupSorting = ColumnSortMapping<TransactionYearGroupListIte
 type TransactionQuarterGroupSorting = ColumnSortMapping<TransactionQuarterGroupListItemType>;
 type TransactionApproverGroupSorting = ColumnSortMapping<TransactionApproverGroupListItemType>;
 type TransactionViolationGroupSorting = ColumnSortMapping<TransactionViolationGroupListItemType>;
+type TransactionPaidByGroupSorting = ColumnSortMapping<TransactionPaidByGroupListItemType>;
 
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
@@ -421,6 +423,7 @@ const transactionMemberGroupColumnNamesToSortingProperty: TransactionMemberGroup
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: 'formattedFrom' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
+    [CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME]: 'averageDuration' as const,
     ...transactionGroupBaseSortingProperties,
 };
 
@@ -492,6 +495,13 @@ const transactionQuarterGroupColumnNamesToSortingProperty: TransactionQuarterGro
 const transactionApproverGroupColumnNamesToSortingProperty: TransactionApproverGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER]: 'formattedApprover' as const,
+    [CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME]: 'averageDuration' as const,
+    ...transactionGroupBaseSortingProperties,
+};
+
+const transactionPaidByGroupColumnNamesToSortingProperty: TransactionPaidByGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
+    [CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME]: 'averageDuration' as const,
     ...transactionGroupBaseSortingProperties,
 };
 
@@ -3462,11 +3472,15 @@ function getMemberSections(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList,
-    groupBy: typeof CONST.SEARCH.GROUP_BY.FROM | typeof CONST.SEARCH.GROUP_BY.APPROVER = CONST.SEARCH.GROUP_BY.FROM,
-): [Array<TransactionMemberGroupListItemType | TransactionApproverGroupListItemType>, number, boolean] {
-    const memberSections: Record<string, TransactionMemberGroupListItemType | TransactionApproverGroupListItemType> = {};
-    const isApproverGroup = groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
-    const filterKey = isApproverGroup ? CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER : CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
+    groupBy: typeof CONST.SEARCH.GROUP_BY.FROM | typeof CONST.SEARCH.GROUP_BY.APPROVER | typeof CONST.SEARCH.GROUP_BY.PAID_BY = CONST.SEARCH.GROUP_BY.FROM,
+): [Array<TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionPaidByGroupListItemType>, number, boolean] {
+    const memberSections: Record<string, TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionPaidByGroupListItemType> = {};
+    const MEMBER_FILTER_KEYS = {
+        [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+        [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
+        [CONST.SEARCH.GROUP_BY.PAID_BY]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
+    } as const;
+    const filterKey = MEMBER_FILTER_KEYS[groupBy];
 
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -3483,9 +3497,13 @@ function getMemberSections(
                 keyForList: key,
             };
 
-            memberSections[key] = isApproverGroup
-                ? {...section, groupedBy: CONST.SEARCH.GROUP_BY.APPROVER, formattedApprover: formattedName}
-                : {...section, groupedBy: CONST.SEARCH.GROUP_BY.FROM, formattedFrom: formattedName};
+            if (groupBy === CONST.SEARCH.GROUP_BY.APPROVER) {
+                memberSections[key] = {...section, groupedBy: CONST.SEARCH.GROUP_BY.APPROVER, formattedApprover: formattedName};
+            } else if (groupBy === CONST.SEARCH.GROUP_BY.PAID_BY) {
+                memberSections[key] = {...section, groupedBy: CONST.SEARCH.GROUP_BY.PAID_BY, formattedPaidBy: formattedName};
+            } else {
+                memberSections[key] = {...section, groupedBy: CONST.SEARCH.GROUP_BY.FROM, formattedFrom: formattedName};
+            }
         }
     }
 
@@ -4104,6 +4122,8 @@ function getSections({
                 return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.APPROVER);
             case CONST.SEARCH.GROUP_BY.VIOLATION:
                 return getViolationSections(data, translate);
+            case CONST.SEARCH.GROUP_BY.PAID_BY:
+                return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.PAID_BY);
         }
     }
 
@@ -4169,6 +4189,9 @@ const groupBySortFunction: Record<SearchGroupBy, GroupBySortFunction> = {
     ),
     [CONST.SEARCH.GROUP_BY.VIOLATION]: createGroupSortFunction<TransactionViolationGroupListItemType>(transactionViolationGroupColumnNamesToSortingProperty, (a, b, lc) =>
         lc(a.formattedViolation, b.formattedViolation),
+    ),
+    [CONST.SEARCH.GROUP_BY.PAID_BY]: createGroupSortFunction<TransactionPaidByGroupListItemType>(transactionPaidByGroupColumnNamesToSortingProperty, (a, b, lc) =>
+        lc(a.formattedPaidBy ?? '', b.formattedPaidBy ?? ''),
     ),
 };
 
@@ -4286,7 +4309,7 @@ function getTransactionSortValue(transaction: TransactionListItemType, sortingPr
 }
 
 function getTransactionPolicyID(transaction: TransactionListItemType, fallbackPolicyID?: string): string | undefined {
-    const explicitPolicyID = [transaction.policyID, transaction.report?.policyID, transaction.policy?.id].find((policyID): policyID is string => !!policyID);
+    const explicitPolicyID = [transaction.report?.policyID, transaction.policy?.id].find((policyID): policyID is string => !!policyID);
     if (explicitPolicyID) {
         return explicitPolicyID;
     }
@@ -5530,11 +5553,15 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     return hasResolved && searchResults?.search?.type === queryJSON?.type && hasMatchingHash;
 }
 
-function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
+const GROUP_BY_VALUES = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
+
+function isSearchGroupBy(value: string): value is SearchGroupBy {
+    return GROUP_BY_VALUES.has(value);
+}
+
+function getValidGroupBy(groupBy: string | undefined): SearchGroupBy | undefined {
     // Insights-only group-bys are treated like unknown values because Search can't group by them yet (see https://github.com/Expensify/App/issues/105303)
-    return groupBy && isGroupBySupportedBySearch(groupBy) && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>)
-        ? (groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>)
-        : undefined;
+    return groupBy && isGroupBySupportedBySearch(groupBy) && isSearchGroupBy(groupBy) ? groupBy : undefined;
 }
 
 function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes, shouldReturnTripRooms = false) {
@@ -6081,22 +6108,32 @@ const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.AMOUNT_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
     [FILTER_KEYS.AMOUNT_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
     [FILTER_KEYS.AMOUNT_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+    [FILTER_KEYS.AMOUNT_GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+    [FILTER_KEYS.AMOUNT_LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
 
     [FILTER_KEYS.TOTAL_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
     [FILTER_KEYS.TOTAL_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
     [FILTER_KEYS.TOTAL_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
+    [FILTER_KEYS.TOTAL_GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
+    [FILTER_KEYS.TOTAL_LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
 
     [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
     [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
     [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
+    [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
+    [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
 
     [FILTER_KEYS.AMOUNT_DEBITED_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
     [FILTER_KEYS.AMOUNT_DEBITED_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
     [FILTER_KEYS.AMOUNT_DEBITED_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+    [FILTER_KEYS.AMOUNT_DEBITED_GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+    [FILTER_KEYS.AMOUNT_DEBITED_LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
 
     [FILTER_KEYS.AMOUNT_REIMBURSED_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
     [FILTER_KEYS.AMOUNT_REIMBURSED_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
     [FILTER_KEYS.AMOUNT_REIMBURSED_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
+    [FILTER_KEYS.AMOUNT_REIMBURSED_GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
+    [FILTER_KEYS.AMOUNT_REIMBURSED_LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
 };
 
 function isGroupedFilterKey(key: SearchAdvancedFiltersKey): key is keyof typeof FILTER_TO_SYNTAX_KEY {
@@ -6540,8 +6577,12 @@ function getAmountDisplayValue(
     translate: LocalizedTranslate,
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
 ): string | undefined {
-    const lessThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
-    const greaterThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
+    const lessThanOrEqualTo = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO}`];
+    const greaterThanOrEqualTo = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO}`];
+    const exclusiveLessThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
+    const exclusiveGreaterThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
+    const lessThan = exclusiveLessThan ?? lessThanOrEqualTo;
+    const greaterThan = exclusiveGreaterThan ?? greaterThanOrEqualTo;
     const equalTo = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
 
     const formatAmount = (val: string) => getAmountFilterDisplayValue(val, convertToDisplayStringWithoutCurrency);
@@ -6549,14 +6590,23 @@ function getAmountDisplayValue(
     if (equalTo) {
         return translate('search.filters.amount.equalTo', formatAmount(equalTo));
     }
+    if ((exclusiveLessThan && lessThanOrEqualTo) || (exclusiveGreaterThan && greaterThanOrEqualTo)) {
+        const comparisons = [
+            exclusiveGreaterThan && translate('search.filters.amount.greaterThan', formatAmount(exclusiveGreaterThan)),
+            greaterThanOrEqualTo && translate('search.filters.amount.greaterThanOrEqualTo', formatAmount(greaterThanOrEqualTo)),
+            exclusiveLessThan && translate('search.filters.amount.lessThan', formatAmount(exclusiveLessThan)),
+            lessThanOrEqualTo && translate('search.filters.amount.lessThanOrEqualTo', formatAmount(lessThanOrEqualTo)),
+        ];
+        return comparisons.filter(Boolean).join(', ');
+    }
     if (lessThan && greaterThan) {
         return translate('search.filters.amount.between', formatAmount(greaterThan), formatAmount(lessThan));
     }
     if (lessThan) {
-        return translate('search.filters.amount.lessThan', formatAmount(lessThan));
+        return translate(lessThanOrEqualTo ? 'search.filters.amount.lessThanOrEqualTo' : 'search.filters.amount.lessThan', formatAmount(lessThan));
     }
     if (greaterThan) {
-        return translate('search.filters.amount.greaterThan', formatAmount(greaterThan));
+        return translate(greaterThanOrEqualTo ? 'search.filters.amount.greaterThanOrEqualTo' : 'search.filters.amount.greaterThan', formatAmount(greaterThan));
     }
     return undefined;
 }
@@ -6779,7 +6829,7 @@ function hasFilterContentValuesChanged(
     }
 
     if (isAmountFilterKey(baseFilterKey)) {
-        const modifiers = [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN, CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
+        const modifiers = Object.values(CONST.SEARCH.AMOUNT_MODIFIERS);
         return modifiers.some((modifier) => previousValues?.[`${baseFilterKey}${modifier}`] !== values?.[`${baseFilterKey}${modifier}`]);
     }
 
@@ -7319,6 +7369,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER,
             [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER,
             [CONST.SEARCH.GROUP_BY.VIOLATION]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.VIOLATION,
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.PAID_BY,
         }[groupBy];
 
         const defaultCustomColumns = {
@@ -7335,6 +7386,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER,
             [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.APPROVER,
             [CONST.SEARCH.GROUP_BY.VIOLATION]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.VIOLATION,
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.PAID_BY,
         }[groupBy];
 
         const filteredVisibleColumns = customColumns ? visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>)) : [];
@@ -7495,9 +7547,9 @@ function getColumnsToShow({
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
     const updateColumns = (transaction: OnyxTypes.Transaction) => {
-        const transactionWithSearchFields = transaction as OnyxTypes.Transaction & {policyID?: string; policy?: OnyxTypes.Policy; report?: OnyxTypes.Report};
+        const transactionWithSearchFields = transaction as OnyxTypes.Transaction & {policy?: OnyxTypes.Policy; report?: OnyxTypes.Report};
         const transactionReport = transactionWithSearchFields.report ?? (Array.isArray(data) ? undefined : data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]);
-        const explicitTransactionPolicyID = [transactionWithSearchFields.policyID, transactionWithSearchFields.policy?.id, transactionReport?.policyID].find(Boolean);
+        const explicitTransactionPolicyID = [transactionReport?.policyID, transactionWithSearchFields.policy?.id].find(Boolean);
         let transactionPolicyID = explicitTransactionPolicyID;
         if (!transactionPolicyID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             transactionPolicyID = fallbackPolicyID;
@@ -8294,6 +8346,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    getTransactionPolicyID,
     canBulkMoveReportToPolicy,
     canChangeWorkspaceOfSearchReport,
     doesTransactionMatchFooterTotal,
