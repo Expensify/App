@@ -2362,7 +2362,6 @@ const SENTRY_LABEL = {
             BILLING_SETTLEMENT_FREQUENCY: 'WorkspaceTravel-BillingSettlementFrequency',
             BILLING_SET_UP_NEW_FEED: 'WorkspaceTravel-BillingSetUpNewFeed',
             BILLING_VIEW_ON_SPEND: 'WorkspaceTravel-BillingViewOnSpend',
-            BILLING_CURRENT_SPEND: 'WorkspaceTravel-BillingCurrentSpend',
             EXPORT: 'WorkspaceTravel-Export',
             MORE_DROPDOWN: 'WorkspaceTravel-MoreDropdown',
             GET_STARTED_BUTTON: 'WorkspaceTravel-GetStartedButton',

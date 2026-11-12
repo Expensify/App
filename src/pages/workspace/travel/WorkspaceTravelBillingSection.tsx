@@ -398,10 +398,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             )}
             <View style={[styles.dFlex, styles.mt6, shouldStackButtons ? [styles.flexColumn, styles.gap3, styles.mb2] : [styles.flexRow, styles.gap4, styles.alignItemsCenter]]}>
                 <View style={styles.flex1}>
-                    <MenuItemSectionRoot
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_CURRENT_SPEND}
-                        style={(hasPendingSettlement || hasPendingInvoice) && styles.pb1}
-                    >
+                    <MenuItemSectionRoot style={(hasPendingSettlement || hasPendingInvoice) && styles.pb1}>
                         <MenuItem.Row>
                             <MenuItemField.Content name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.currentTravelSpendLabel')}>
                                 <MenuItem.FieldValue style={[styles.textNormalThemeText, styles.headerAnonymousFooter]}>{formattedSpend}</MenuItem.FieldValue>
