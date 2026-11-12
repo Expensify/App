@@ -20,6 +20,9 @@ const SETTLE_DELAY_MS = 400;
 /** No keyboard by then (e.g. hardware keyboard), so scroll without it. */
 const NO_KEYBOARD_DELAY_MS = 500;
 
+/** Past the last re-apply, due by the lifetime plus one settle delay. The margin covers the UI thread starting later. */
+const WATCHER_STOP_DELAY_MS = TARGET_LIFETIME_MS + SETTLE_DELAY_MS + 100;
+
 const RESIZE_THRESHOLD = 1;
 
 /** No 'closing': the target is dropped when the keyboard starts closing. */
@@ -33,7 +36,7 @@ type FollowStart = {
 const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
     const animatedScrollableRef = useAnimatedRef<KeyboardScrollable>();
 
-    // Must run before useScrollOffset subscribes, so the offset is known by the first focus
+    // Attached on mount, so the offset is tracked before the first focus
     useEffect(() => {
         if (!scrollableRef?.current) {
             return;
@@ -97,11 +100,20 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         scrollTo(animatedScrollableRef, 0, Math.max(offset, 0), isAnimated);
     }
 
-    /** Scrolls now and again after Android's own scroll to the focused input. */
+    function isTargetExpired() {
+        'worklet';
+
+        return Date.now() - targetSetAt.get() > TARGET_LIFETIME_MS;
+    }
+
+    /** Scrolls now and again after Android's own scroll to the focused input. No new re-apply once expired. */
     function scrollAndSettle(target: KeyboardScrollTarget, isAnimated: boolean) {
         'worklet';
 
         scrollToOffset(target.offset, isAnimated);
+        if (isTargetExpired()) {
+            return;
+        }
         reapplyAt.set(Date.now() + SETTLE_DELAY_MS);
     }
 
@@ -114,12 +126,16 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         followStart.set(null);
     }
 
-    /** Drops the target once focus moves. Focus reaches the UI thread before the blur reaches JS. */
+    /** Drops the target once focus moves, or once expired with no re-apply pending. Focus reaches the UI thread before the blur reaches JS. */
     function getTargetOfFocusedInput() {
         'worklet';
 
         const target = pendingTarget.get();
         if (!target) {
+            return null;
+        }
+        if (isTargetExpired() && reapplyAt.get() === null) {
+            clearTarget();
             return null;
         }
         const focusedTag = focusedInput.get()?.target ?? null;
@@ -140,11 +156,7 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         'worklet';
 
         const target = getTargetOfFocusedInput();
-        const now = Date.now();
-        const reapplyTime = reapplyAt.get();
-        // A re-apply scheduled before expiry still runs
-        if (!target || (now - targetSetAt.get() > TARGET_LIFETIME_MS && reapplyTime === null)) {
-            clearTarget();
+        if (!target) {
             return;
         }
 
@@ -156,7 +168,8 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
             scrollAndSettle(target, false);
             return;
         }
-        if (reapplyTime !== null && now >= reapplyTime) {
+        const reapplyTime = reapplyAt.get();
+        if (reapplyTime !== null && Date.now() >= reapplyTime) {
             reapplyAt.set(null);
             scrollToOffset(target.offset, true);
         }
@@ -229,8 +242,10 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         if (!scrollable) {
             return true;
         }
-        // Callers don't need a second ref
-        animatedScrollableRef(scrollable);
+        // The scroll view can remount. Re-attaching re-subscribes the scroll offset, so only on a change.
+        if (animatedScrollableRef.current !== scrollable) {
+            animatedScrollableRef(scrollable);
+        }
 
         scheduleOnUI(() => {
             'worklet';
@@ -251,7 +266,7 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
             }
         });
 
-        // Every re-apply is due within the lifetime plus one settle delay. A late stop is harmless.
+        // A late stop is harmless
         targetWatcher.setActive(true);
         if (stopWatcherTimer.current) {
             clearTimeout(stopWatcherTimer.current);
@@ -259,7 +274,7 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         stopWatcherTimer.current = setTimeout(() => {
             targetWatcher.setActive(false);
             scheduleOnUI(clearTarget);
-        }, TARGET_LIFETIME_MS + SETTLE_DELAY_MS);
+        }, WATCHER_STOP_DELAY_MS);
         return true;
     };
 

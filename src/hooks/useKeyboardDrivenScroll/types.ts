@@ -9,7 +9,7 @@ type KeyboardScrollTarget = {
 
 type KeyboardScrollable = ComponentRef<typeof ScrollView>;
 
-/** Returns false on web, where the caller scrolls itself. */
+/** For a focused input only. On native it follows the keyboard and re-applies the target for 2 s or until focus moves. Returns false on web, where the caller scrolls itself. */
 type ScrollWithKeyboard = (target: KeyboardScrollTarget) => boolean;
 
 type UseKeyboardDrivenScroll = (scrollableRef: RefObject<KeyboardScrollable | null> | undefined) => ScrollWithKeyboard;

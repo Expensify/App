@@ -7,7 +7,6 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useKeyboardDrivenScroll from '@hooks/useKeyboardDrivenScroll';
-import type {ScrollWithKeyboard} from '@hooks/useKeyboardDrivenScroll/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -38,15 +37,6 @@ type AgentAIPromptSectionProps = {
     accountID: number;
     parentScrollViewRef?: RefObject<ComponentRef<typeof RNScrollView> | null>;
 };
-
-function scrollInputIntoView(scrollWithKeyboard: ScrollWithKeyboard) {
-    if (getPlatform() !== CONST.PLATFORM.IOS) {
-        return;
-    }
-
-    // Like scrollToEnd, as the scroll view stops at its end
-    scrollWithKeyboard({offset: Number.MAX_SAFE_INTEGER});
-}
 
 function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSectionProps) {
     const {translate} = useLocalize();
@@ -151,7 +141,11 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     };
 
     const handleInputFocus = () => {
-        scrollInputIntoView(scrollWithKeyboard);
+        if (getPlatform() !== CONST.PLATFORM.IOS) {
+            return;
+        }
+        // Like scrollToEnd, as the scroll view stops at its end
+        scrollWithKeyboard({offset: Number.MAX_SAFE_INTEGER});
     };
 
     const handleSave = () => {

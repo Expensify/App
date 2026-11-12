@@ -1,12 +1,10 @@
-import type {FormRef} from '@components/Form/types';
+import type {ScrollWithKeyboard} from '@hooks/useKeyboardDrivenScroll/types';
 
-import type {RefObject} from 'react';
-
-function scrollToMultilineInput(formRef: RefObject<FormRef | null>, shouldScrollToMultilineInput: boolean, inputTopOffset: number) {
-    if (!shouldScrollToMultilineInput || !formRef.current) {
+function scrollToMultilineInput(scrollWithKeyboard: ScrollWithKeyboard, shouldScrollToMultilineInput: boolean, inputTopOffset: number) {
+    if (!shouldScrollToMultilineInput) {
         return;
     }
-    formRef.current.scrollTo(inputTopOffset);
+    scrollWithKeyboard({offset: inputTopOffset});
 }
 
 export default scrollToMultilineInput;

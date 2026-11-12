@@ -1,7 +1,6 @@
 /**
  * Offset for a keyboard frame: the content moves by the share of the keyboard animation done so far, so it doesn't
- * jump to a reachable target on the first frame. A target past the end still follows the keyboard, as the scroll view
- * stops at its end.
+ * jump on the first frame. A target past the end is clamped to the current end by the scroll view, so it jumps there.
  */
 type FollowOffsetParams = {
     startOffset: number;
