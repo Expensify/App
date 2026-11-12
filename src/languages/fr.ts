@@ -7358,7 +7358,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 corporate: 'Restreindre la suppression des transactions',
                 personal: 'Autoriser les titulaires de carte à supprimer des transactions',
                 setFeedNameDescription: 'Donnez au flux de cartes un nom unique afin de pouvoir le distinguer des autres',
-                setTransactionLiabilityDescription: 'S’applique uniquement aux nouvelles transactions. Les administrateurs peuvent supprimer des transactions lorsque ce paramètre est désactivé.',
+                setTransactionLiabilityDescription:
+                    'S’applique uniquement aux nouvelles transactions. Les administrateurs peuvent supprimer des transactions lorsque ce paramètre est désactivé.',
                 emptyAddedFeedTitle: 'Aucune carte dans ce flux',
                 emptyAddedFeedDescription: 'Assurez-vous qu’il y a des cartes dans le flux de cartes de votre banque.',
                 pendingFeedTitle: `Nous examinons votre demande...`,
