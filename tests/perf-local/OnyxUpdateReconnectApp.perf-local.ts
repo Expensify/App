@@ -140,10 +140,16 @@ describe('Onyx.update with a ReconnectApp-sized response', () => {
     afterAll(() => Onyx.clear());
 
     test('[Onyx] update with 2.4k merges across 4 collections', async () => {
+        // Given an account with 3k reports already loaded
+        // When a ReconnectApp response merges 1k reports with a new action each, 300 expenses and 50 workspaces
         await measureUpdates(largeUpdateSets);
+        // Then reassure measures the update and the derived values it recomputes
     });
 
     test('[Onyx] update with 73 merges on an account with 3k reports', async () => {
+        // Given an account with 3k reports already loaded
+        // When a ReconnectApp response merges 30 reports with a new action each, 10 expenses and 2 workspaces
         await measureUpdates(smallUpdateSets);
+        // Then reassure measures the update and the derived values it recomputes
     });
 });
