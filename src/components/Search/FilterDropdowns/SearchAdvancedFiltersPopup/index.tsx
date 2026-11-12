@@ -208,10 +208,10 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
 
     // The direction comes from the last tracked position rather than the exit point, because `SafeTriangle` covers the
     // path to the content with an overlay and the cursor leaves the list above it as often as through its edge.
-    const stopTrackingPointer = (event: {clientX: number}) => {
+    const stopTrackingPointer = (event: {nativeEvent: {clientX: number}}) => {
         const lastMovement = stopTracking();
 
-        if (lastMovement && event.clientX <= lastMovement.x) {
+        if (lastMovement && event.nativeEvent.clientX <= lastMovement.x) {
             return;
         }
 
