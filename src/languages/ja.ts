@@ -103,7 +103,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: '変更を保存',
         submit: '送信',
         submitAnyway: 'とにかく送信',
-        approveAnyway: 'それでも承認',
+        approveAnyway: 'このまま承認する',
         markAsDone: '完了にする',
         markAsDoneAnyway: 'とにかく完了にする',
         submitted: '送信済み',
@@ -1521,7 +1521,7 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsCash: '現金としてマーク',
         confirmApproveReportViolations: {
             title: 'それでも承認しますか？',
-            description: 'このレポートにはポリシー違反があります。変更せずに承認してもよろしいですか？',
+            description: 'このレポートにはポリシー違反があります。変更を行わずに承認してもよろしいですか？',
         },
         confirmSubmitReportViolations: {
             title: 'レポートを送信しますか？',

@@ -1576,7 +1576,7 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsCash: 'Oznacz jako gotówkę',
         confirmApproveReportViolations: {
             title: 'Zatwierdzić mimo to?',
-            description: 'Ten raport zawiera naruszenia zasad. Czy na pewno chcesz go zatwierdzić bez wprowadzania zmian?',
+            description: 'Ten raport zawiera naruszenia zasad. Na pewno chcesz go zatwierdzić bez wprowadzania zmian?',
         },
         confirmSubmitReportViolations: {
             title: 'Wysłać raport?',

@@ -1474,7 +1474,7 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsCash: '标记为现金',
         confirmApproveReportViolations: {
             title: '仍然批准？',
-            description: '此报告存在违反政策的情况。确定要在不作更改的情况下批准吗？',
+            description: '此报表存在策略违规。确定要在不进行任何更改的情况下批准吗？',
         },
         confirmSubmitReportViolations: {
             title: '提交报告？',

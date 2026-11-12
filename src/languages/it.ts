@@ -1537,8 +1537,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Ricevuta in attesa di abbinamento con la transazione della carta. Contrassegna come contante per annullare.',
         markAsCash: 'Segna come contante',
         confirmApproveReportViolations: {
-            title: 'Approvare comunque?',
-            description: 'Questo report presenta violazioni delle regole. Vuoi davvero approvarlo senza apportare modifiche?',
+            title: 'Approvi comunque?',
+            description: 'Questo report presenta violazioni della policy. Vuoi davvero approvarlo senza apportare modifiche?',
         },
         confirmSubmitReportViolations: {
             title: 'Invia il rapporto?',

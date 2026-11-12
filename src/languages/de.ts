@@ -1539,7 +1539,7 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsCash: 'Als Bar markieren',
         confirmApproveReportViolations: {
             title: 'Trotzdem genehmigen?',
-            description: 'Dieser Bericht enthält Richtlinienverstöße. Möchtest du ihn wirklich ohne Änderungen genehmigen?',
+            description: 'Dieser Bericht enthält Richtlinienverstöße. Sind Sie sicher, dass Sie ihn ohne Änderungen genehmigen möchten?',
         },
         confirmSubmitReportViolations: {
             title: 'Bericht einreichen?',

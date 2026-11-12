@@ -1512,8 +1512,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
         confirmApproveReportViolations: {
-            title: '¿Aprobar de todos modos?',
-            description: 'Este informe tiene infracciones de la política. ¿Seguro que quieres aprobarlo sin realizar cambios?',
+            title: '¿Aprobar de todas formas?',
+            description: 'Este informe tiene infracciones de la política. ¿Seguro que quieres aprobarlo sin hacer cambios?',
         },
         confirmSubmitReportViolations: {
             title: '¿Enviar informe?',

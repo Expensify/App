@@ -1585,7 +1585,7 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsCash: 'Σήμανση ως μετρητά',
         confirmApproveReportViolations: {
             title: 'Έγκριση ούτως ή άλλως;',
-            description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Θέλετε σίγουρα να την εγκρίνετε χωρίς αλλαγές;',
+            description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε βέβαιοι ότι θέλετε να την εγκρίνετε χωρίς να κάνετε αλλαγές;',
         },
         confirmSubmitReportViolations: {
             title: 'Υποβολή αναφοράς;',

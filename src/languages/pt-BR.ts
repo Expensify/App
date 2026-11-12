@@ -1538,7 +1538,7 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsCash: 'Marcar como dinheiro',
         confirmApproveReportViolations: {
             title: 'Aprovar mesmo assim?',
-            description: 'Este relatório tem violações da política. Tem certeza de que deseja aprová-lo sem fazer alterações?',
+            description: 'Este relatório tem violações da política. Tem certeza de que quer aprová‑lo sem fazer alterações?',
         },
         confirmSubmitReportViolations: {
             title: 'Enviar relatório?',
