@@ -666,23 +666,27 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(navigateSpy).not.toHaveBeenCalled();
     });
 
-    it('saves a requirement page under its requirement key, which the server accepts as the step', async () => {
-        // Given the flow with the enhanced due diligence pages
+    it('saves the sources page under its requirement key with the daily operations answers it keeps', async () => {
+        // Given revenue funding daily operations, and the user adding grants from the confirmation page, which skips the daily operations page
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+        });
         await renderPage({reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}, subPage: 'business'});
         const flowProps = mockFlowProps.mock.lastCall?.[0];
-        const sourceOfFundsPage: DynamicFormPage = {key: 'business-source-of-wealth-info', content: []};
+        const sourcesPage: DynamicFormPage = {key: 'business-source-of-wealth-info', content: []};
         const answers = {businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS]};
 
-        // When the user leaves the source of funds page with Next, which the flow names by its URL key
-        act(() => flowProps?.onPageSubmit?.(sourceOfFundsPage, answers, {}));
+        // When the user leaves the sources page, which the flow names by its URL key
+        act(() => flowProps?.onPageSubmit?.(sourcesPage, answers, {}));
 
-        // Then the page is saved under Wise's requirement key with every source picked
+        // Then the page is saved under Wise's requirement key with every source picked and the kept daily operations answers, so every source gets a boolean
         expect(saveWiseOnboardingPage).toHaveBeenCalledWith(
             BANK_ACCOUNT_ID,
             expect.objectContaining({key: CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO}),
-            answers,
+            {...answers, sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE]},
             {},
-            undefined,
         );
     });
 
@@ -704,7 +708,6 @@ describe('WiseBusinessOnboardingPage', () => {
             expect.objectContaining({key: CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO}),
             {...answers, businessSourceOfWealthInfo: pickedSources},
             {},
-            undefined,
         );
     });
 });

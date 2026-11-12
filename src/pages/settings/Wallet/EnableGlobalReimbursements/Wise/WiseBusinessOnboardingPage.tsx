@@ -209,9 +209,6 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
 
     const draftValues = toDynamicFormValues(draft);
     const form = getWiseOnboardingForm(kycRequirements, draftValues);
-    const savedSourceOfWealthList = isBusinessAccountForThisBank
-        ? businessAccount?.data?.wise?.pages?.[CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_INFO]?.sourceOfWealthList
-        : undefined;
 
     /**
      * Saves a page to Wise as the user leaves it. The two source of wealth pages save one step, which the server replaces whole, so the daily operations page sends the picked sources too.
@@ -227,12 +224,13 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             if (CONST.WISE.SOURCE_OF_FUNDS_KEY in answers) {
                 stepAnswers = {...answers, [CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]: draftValues[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]};
             } else {
-                saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {
-                    [CONST.WISE.SOURCE_OF_FUNDS_KEY]: getKeptSourceOfFunds(answers[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY], draftValues[CONST.WISE.SOURCE_OF_FUNDS_KEY]),
-                });
+                // Editing from the confirmation page skips the daily operations page, so the sources page sends the kept answers, and a new source does not fund them until that page says so
+                const sourceOfFunds = getKeptSourceOfFunds(answers[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY], draftValues[CONST.WISE.SOURCE_OF_FUNDS_KEY]);
+                saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {[CONST.WISE.SOURCE_OF_FUNDS_KEY]: sourceOfFunds});
+                stepAnswers = {...answers, [CONST.WISE.SOURCE_OF_FUNDS_KEY]: sourceOfFunds};
             }
         }
-        saveWiseOnboardingPage(bankAccountID, stepPage, stepAnswers, sensitiveAnswers, savedSourceOfWealthList);
+        saveWiseOnboardingPage(bankAccountID, stepPage, stepAnswers, sensitiveAnswers);
     };
     const buildRoute = (pageName: string, action?: 'edit') => createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageName, action), introPath);
 

@@ -103,24 +103,19 @@ function getSourceOfWealthEntries(sourceOfWealthList: unknown): WiseSourceOfWeal
 }
 
 /**
- * The page's inputs as Wise takes them. Both source of wealth pages save Wise's whole `sourceOfWealthList`, since the server replaces the saved page on every save.
- * The daily operations page says which sources fund the business. The sources page keeps what was saved for a source still picked, and a lone source funds it.
+ * The page's inputs as Wise takes them. Both source of wealth pages save Wise's whole `sourceOfWealthList`, since the server replaces the saved page on every save,
+ * and every entry says whether the source funds daily operations, since Submit needs it for each one. A lone source funds them.
  */
-function toWiseInputs(step: WiseOnboardingStep, inputs: DynamicFormValues, savedSourceOfWealthList: unknown): Record<string, unknown> {
+function toWiseInputs(step: WiseOnboardingStep, inputs: DynamicFormValues): Record<string, unknown> {
     if (step !== CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_INFO) {
         return inputs;
     }
     const {[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]: sources, [CONST.WISE.SOURCE_OF_FUNDS_KEY]: fundingSources, ...otherInputs} = inputs;
     const pickedSources = getStrings(sources);
-    const sourceOfWealthList: WiseSourceOfWealthEntry[] = pickedSources.map((source) => {
-        if (pickedSources.length === 1) {
-            return {businessSourceOfWealthInfo: source, isSourceOfFund: true};
-        }
-        if (fundingSources !== undefined) {
-            return {businessSourceOfWealthInfo: source, isSourceOfFund: getStrings(fundingSources).includes(source)};
-        }
-        return getSourceOfWealthEntries(savedSourceOfWealthList).find((entry) => entry.businessSourceOfWealthInfo === source) ?? {businessSourceOfWealthInfo: source};
-    });
+    const sourceOfWealthList: WiseSourceOfWealthEntry[] = pickedSources.map((source) => ({
+        businessSourceOfWealthInfo: source,
+        isSourceOfFund: pickedSources.length === 1 || getStrings(fundingSources).includes(source),
+    }));
     return {...otherInputs, [CONST.WISE.SOURCE_OF_WEALTH_LIST_KEY]: sourceOfWealthList};
 }
 
@@ -153,14 +148,8 @@ function getFilesByKey(page: DynamicFormPage, answers: DynamicFormValues): Map<s
  * Files the server holds are listed in `documents`, new ones are sent as `<key>[<index>]`, and the rest of the answers go in `inputs`. A labelled field's files go under `<field>-<type>`.
  * Every file key of the page is listed in `documents`, so a file the user removed, or a field the answers now hide, is removed on the server too.
  * A page whose key is not a step the server accepts gets nothing, since the server would answer it with 400 Invalid step.
- * `savedSourceOfWealthList` is what the server holds for the source of wealth step.
  */
-function getWiseOnboardingPageParams(
-    bankAccountID: number,
-    page: DynamicFormPage,
-    answers: DynamicFormValues,
-    savedSourceOfWealthList?: unknown,
-): UpdateWiseOnboardingAdditionalDataParams | undefined {
+function getWiseOnboardingPageParams(bankAccountID: number, page: DynamicFormPage, answers: DynamicFormValues): UpdateWiseOnboardingAdditionalDataParams | undefined {
     const step = page.key;
     if (!isWiseOnboardingStep(step)) {
         return undefined;
@@ -193,7 +182,7 @@ function getWiseOnboardingPageParams(
         bankAccountID,
         step,
         // The server rejects `[]` as "Inputs is not a valid json object", while `{}` reads as no answers
-        inputs: Object.keys(inputs).length > 0 ? JSON.stringify(toWiseInputs(step, inputs, savedSourceOfWealthList)) : '{}',
+        inputs: Object.keys(inputs).length > 0 ? JSON.stringify(toWiseInputs(step, inputs)) : '{}',
         ...(fileFieldKeys.size > 0 ? {documents: JSON.stringify(documents)} : {}),
         ...newFiles,
     };

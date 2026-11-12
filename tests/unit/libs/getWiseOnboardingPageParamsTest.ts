@@ -149,23 +149,19 @@ describe('getWiseOnboardingPageParams', () => {
         expect(params.inputs).toBe('{}');
     });
 
-    it('sends the picked sources as the list Wise takes, keeping what the server holds for a source still picked', () => {
-        // Given the sources page answered with a loan, revenue and grants, after a save that said the loan funds daily operations and revenue does not
+    it('sends the picked sources as the list Wise takes, each with whether it funds daily operations', () => {
+        // Given the sources page answered with a loan, revenue and grants, after the daily operations page said only the loan funds them
         const page: DynamicFormPage = {key: 'BUSINESS_SOURCE_OF_WEALTH_INFO', content: [{key: 'businessSourceOfWealthInfo', type: 'multiselect', required: true}]};
-        const savedSourceOfWealthList = [
-            {businessSourceOfWealthInfo: 'BUSINESS_LOAN', isSourceOfFund: true},
-            {businessSourceOfWealthInfo: 'REVENUE', isSourceOfFund: false},
-        ];
 
         // When the page is turned into a save request
-        const params = getPageParams(BANK_ACCOUNT_ID, page, {businessSourceOfWealthInfo: ['BUSINESS_LOAN', 'REVENUE', 'GRANTS']}, savedSourceOfWealthList);
+        const params = getPageParams(BANK_ACCOUNT_ID, page, {businessSourceOfWealthInfo: ['BUSINESS_LOAN', 'REVENUE', 'GRANTS'], sourceOfFunds: ['BUSINESS_LOAN']});
 
-        // Then the inputs are Wise's sourceOfWealthList, one entry per picked source, since the server replaces the saved page on every save, and the new source waits for the daily operations page
+        // Then the inputs are Wise's sourceOfWealthList, one entry per picked source, since the server replaces the saved page on every save, and the new source has a boolean too, since Submit needs one on every entry
         expect(JSON.parse(params.inputs)).toEqual({
             sourceOfWealthList: [
                 {businessSourceOfWealthInfo: 'BUSINESS_LOAN', isSourceOfFund: true},
                 {businessSourceOfWealthInfo: 'REVENUE', isSourceOfFund: false},
-                {businessSourceOfWealthInfo: 'GRANTS'},
+                {businessSourceOfWealthInfo: 'GRANTS', isSourceOfFund: false},
             ],
         });
     });
@@ -175,9 +171,9 @@ describe('getWiseOnboardingPageParams', () => {
         const page: DynamicFormPage = {key: 'BUSINESS_SOURCE_OF_WEALTH_INFO', content: [{key: 'businessSourceOfWealthInfo', type: 'multiselect', required: true}]};
 
         // When the page is turned into a save request
-        const params = getPageParams(BANK_ACCOUNT_ID, page, {businessSourceOfWealthInfo: ['REVENUE']}, [{businessSourceOfWealthInfo: 'REVENUE', isSourceOfFund: false}]);
+        const params = getPageParams(BANK_ACCOUNT_ID, page, {businessSourceOfWealthInfo: ['REVENUE'], sourceOfFunds: []});
 
-        // Then revenue funds daily operations, whatever the server held
+        // Then revenue funds daily operations, whatever the daily operations page held
         expect(JSON.parse(params.inputs)).toEqual({sourceOfWealthList: [{businessSourceOfWealthInfo: 'REVENUE', isSourceOfFund: true}]});
     });
 
