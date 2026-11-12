@@ -45,7 +45,7 @@ const {getAvatarSize} = createStyleUtils(defaultTheme, createThemeStyles(default
 
 /** Digs the rendered width out of the (possibly nested) style array BaseImage received. */
 function getRenderedWidth(): number | undefined {
-    const {width} = StyleSheet.flatten(mockBaseImageStyleRef.current);
+    const {width}: ImageStyle = StyleSheet.flatten(mockBaseImageStyleRef.current) ?? {};
     return typeof width === 'number' ? width : undefined;
 }
 

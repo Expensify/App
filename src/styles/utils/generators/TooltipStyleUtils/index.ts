@@ -285,7 +285,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 borderTopWidth: pointerHeight,
                 borderLeftColor: theme.transparent,
                 borderRightColor: theme.transparent,
-                borderTopColor: customWrapperStyle.backgroundColor ?? theme.heading,
+                borderTopColor: customWrapperStyle?.backgroundColor ?? theme.heading,
                 ...pointerAdditionalStyle,
             },
         };

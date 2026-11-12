@@ -1,3 +1,5 @@
+import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
+
 import {isSafari} from '@libs/Browser';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -20,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
-import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -97,7 +98,7 @@ type UseReportActionsScrollResult = {
     trackVerticalScrolling: (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => void;
 
     /** Viewability handler that drives the floating counter and badge visibility */
-    onViewableItemsChanged: ViewableItemsChanged;
+    onViewableItemsChanged: ViewableItemsChangedHandler;
 
     /** Whether the floating "new messages" counter is visible */
     isFloatingMessageCounterVisible: boolean;

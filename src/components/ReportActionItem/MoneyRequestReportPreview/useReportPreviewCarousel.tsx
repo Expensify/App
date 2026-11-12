@@ -1,3 +1,4 @@
+import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -13,7 +14,6 @@ import {getCreated} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import {loginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
-import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -189,7 +189,7 @@ function useReportPreviewCarousel({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newTransactionIDs]);
 
-    const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChanged = ({viewableItems}: Parameters<ViewableItemsChangedHandler>[0]) => {
         const newIndex = viewableItems.at(0)?.index;
         if (typeof newIndex === 'number') {
             setCurrentIndex(newIndex);

@@ -1,4 +1,5 @@
 import FlashList from '@components/FlashList';
+import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -8,9 +9,8 @@ import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditi
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ViewableItemsChanged, ViewToken} from '@src/types/utils/ReactNativeCompat';
 
-import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
+import type {FlashListProps, ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -110,7 +110,7 @@ type MoneyRequestReportUnifiedListProps = {
     onScrollBeginDrag: () => void;
 
     onContentSizeChange: (width: number, height: number) => void;
-    onViewableItemsChanged: ViewableItemsChanged;
+    onViewableItemsChanged: ViewableItemsChangedHandler;
 
     /** Called when the end of the list is reached (older actions). */
     onEndReached: () => void;
@@ -189,7 +189,7 @@ function MoneyRequestReportUnifiedList({
     const reportActionIndexOffset = shouldInlineTransactions ? controller.transactionListItems.length + 1 : 0;
 
     // Latest viewable items, kept current from onViewableItemsChanged, so the new-transaction scroll can skip when the row is already on screen.
-    const viewableItemsRef = useRef<ViewToken[]>([]);
+    const viewableItemsRef = useRef<Array<ViewToken<unknown>>>([]);
 
     const expandedFocusIndex = focusRequestedReportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === focusRequestedReportActionID) : -1;
     useEffect(() => {
@@ -247,7 +247,7 @@ function MoneyRequestReportUnifiedList({
     // The hook compares unreadMarkerReportActionIndex (0-based within visibleReportActions) against
     // raw FlashList indices. When transactions are present, report actions start at reportActionIndexOffset,
     // so we shift all viewable indices down before forwarding so the comparison is apples-to-apples.
-    const onViewableItemsChangedAdjusted = (info: Parameters<ViewableItemsChanged>[0]) => {
+    const onViewableItemsChangedAdjusted = (info: Parameters<ViewableItemsChangedHandler>[0]) => {
         // Keep the raw array so the new-transaction effect can tell whether the new row is already on screen.
         viewableItemsRef.current = info.viewableItems;
         if (reportActionIndexOffset === 0) {

@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import type {EventListenerCallback, EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
 import type {ComponentRef, PropsWithChildren, ReactNode} from 'react';
 import type {GestureResponderEvent, View as RNViewType} from 'react-native';
+import type {Writable} from 'type-fest';
 
 import {NavigationContext} from '@react-navigation/core';
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
@@ -1420,7 +1421,7 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            const event = createMock<GestureResponderEvent>({
+            const event: Writable<GestureResponderEvent> = createMock<GestureResponderEvent>({
                 defaultPrevented: false,
                 preventDefault() {
                     event.defaultPrevented = true;

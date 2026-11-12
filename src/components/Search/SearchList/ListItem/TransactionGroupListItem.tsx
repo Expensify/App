@@ -591,7 +591,7 @@ function TransactionGroupListItemImpl({
                 ref={pressableRef}
                 onLongPress={onLongPress}
                 onPress={onPress}
-                disabled={isDisabled && !isItemSelected}
+                disabled={!!isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
                 role={isCashBackWithdrawal ? undefined : CONST.ROLE.BUTTON}

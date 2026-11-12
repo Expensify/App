@@ -1,3 +1,5 @@
+import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
+
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -13,7 +15,7 @@ import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditi
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useEffect, useRef} from 'react';
 
@@ -148,7 +150,7 @@ function useReportActionsListScroll({
         onScrolledOverThresholdChange(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
     };
 
-    const trackViewableRowIndexes = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const trackViewableRowIndexes = (info: Parameters<ViewableItemsChangedHandler>[0]) => {
         viewableRowIndexesRef.current = new Set(info.viewableItems.map((token) => token.index).filter((index) => index !== null));
         onViewableItemsChanged(info);
     };

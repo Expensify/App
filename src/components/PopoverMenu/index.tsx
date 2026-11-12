@@ -786,7 +786,7 @@ function BasePopoverMenu({
                 : [];
     } else {
         const stylesArray: ViewStyle[] = [
-            StyleSheet.flatten(styles.createMenuContainer),
+            styles.createMenuContainer,
             {
                 width: variables.compactPopoverMenuWidth,
             },

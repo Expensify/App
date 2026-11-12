@@ -15,6 +15,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
+import type {Writable} from 'type-fest';
 
 import React, {useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -59,7 +60,7 @@ function Text({
     const theme = useTheme();
     const customStyle = useContext(CustomStylesForChildrenContext);
 
-    const componentStyle: TextStyle = {
+    const componentStyle: Writable<TextStyle> = {
         color: color ?? theme.text,
         fontSize,
         textAlign,
