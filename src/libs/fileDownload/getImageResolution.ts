@@ -18,10 +18,10 @@ const getImageResolution: GetImageResolution = (file) => {
     return new Promise((resolve, reject) => {
         const image = new Image();
         const objectUrl = URL.createObjectURL(file);
-        image.onload = function () {
+        image.onload = () => {
             resolve({
-                width: (this as HTMLImageElement).naturalWidth,
-                height: (this as HTMLImageElement).naturalHeight,
+                width: image.naturalWidth,
+                height: image.naturalHeight,
             });
             URL.revokeObjectURL(objectUrl);
         };

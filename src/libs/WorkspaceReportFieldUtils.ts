@@ -11,9 +11,8 @@ import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Pol
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import type {FormulaPart} from './Formula';
-
 import {addErrorMessage} from './ErrorUtils';
+import {FORMULA_PART_TYPES, parse} from './FormulaParser';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 /**
@@ -103,11 +102,6 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
         return false;
     }
 
-    // Dynamically require to avoid circular dependency with ReportActionsUtils
-    const {parse, FORMULA_PART_TYPES} = require('./Formula') as {
-        parse: (formula?: string) => FormulaPart[];
-        FORMULA_PART_TYPES: {FREETEXT: string};
-    };
     return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
 }
 
@@ -187,12 +181,6 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
     if (!initialValue || typeof initialValue !== 'string') {
         return [];
     }
-
-    // Dynamically require to avoid circular dependency with ReportActionsUtils
-    const {parse, FORMULA_PART_TYPES} = require('./Formula') as {
-        parse: (formula?: string) => FormulaPart[];
-        FORMULA_PART_TYPES: {REPORT: string};
-    };
 
     // cspell:ignore oldid
     const supportedReportFields = new Set([
