@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import FeatureList from '@components/FeatureList';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -222,13 +222,13 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
                 isSplitButton={false}
-                style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
+                style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
                 isDisabled={!selectedMembers.length}
                 testID="DomainMembersPage-header-dropdown-menu-button"
                 wrapperStyle={shouldDisplayButtonsInSeparateLine && styles.flexGrow1}
             />
         ) : (
-            <View style={[styles.flexRow, styles.gap2]}>
+            <View style={[styles.flexRow, styles.gap2, !shouldDisplayButtonsInSeparateLine && styles.pr2]}>
                 <Button
                     sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.ADD_MEMBER}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -276,13 +276,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     shouldShowOfflineIndicatorInWideScreen
                     testID="DomainMembersPage"
                 >
-                    <HeaderWithBackButton
-                        title={translate('domain.domainMembers')}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        shouldUseHeadlineHeader
-                        shouldDisplayHelpButton
-                    />
+                    <HeaderCentralPane title={translate('domain.domainMembers')} />
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
                         addBottomSafeAreaPadding

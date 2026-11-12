@@ -85,10 +85,8 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
                         subtitle={connectionDetails?.connectionMessage}
                         titleStyles={[styles.textNormal, styles.lineHeightLarge]}
                     />
-                    <Header.Right>
-                        {!!connectionDetails && isSyncInProgress && <ActivityIndicator style={styles.popoverMenuIcon} />}
-                        {!!connectionDetails && canWriteAccounting && !isSyncInProgress && <Header.ThreeDotsMenu items={overflowMenu} />}
-                    </Header.Right>
+                    {!!connectionDetails && isSyncInProgress && <ActivityIndicator style={styles.popoverMenuIcon} />}
+                    {!!connectionDetails && canWriteAccounting && !isSyncInProgress && <Header.ThreeDotsMenu items={overflowMenu} />}
                 </Header>
                 <ScrollView
                     contentContainerStyle={styles.pt3}

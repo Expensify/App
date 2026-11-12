@@ -72,7 +72,7 @@ jest.mock(
         ({children}: PropsWithChildren) =>
             children,
 );
-jest.mock('@components/HeaderWithBackButton', () => () => null);
+jest.mock('@components/Header/composed/HeaderCentralPane', () => () => null);
 jest.mock('@pages/domain/BaseDomainMembersPage', () => () => null);
 
 function renderDomainPage(page: ReactElement) {

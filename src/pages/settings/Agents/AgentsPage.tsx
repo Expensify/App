@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import AgentsTable from '@components/Tables/AgentsTable';
@@ -51,6 +51,7 @@ function AgentsPage() {
             sentryLabel={CONST.SENTRY_LABEL.AGENTS.NEW_AGENT}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
+            style={!shouldDisplayButtonsInSeparateLine && styles.pr2}
         >
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
@@ -86,6 +87,7 @@ function AgentsPage() {
             options={bulkActionsButtonOptions}
             isSplitButton={false}
             isDisabled={!selectedAgentKeys.length}
+            wrapperStyle={!shouldDisplayButtonsInSeparateLine && styles.pr2}
         />
     ) : (
         newAgentButton
@@ -101,8 +103,6 @@ function AgentsPage() {
             )}
         </>
     );
-
-    const headerContent = shouldDisplayButtonsInSeparateLine ? undefined : headerButtons;
 
     const goBackOrClearSelection = () => {
         if (isMobileSelectionModeEnabled) {
@@ -123,16 +123,14 @@ function AgentsPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <CollapsibleHeaderOnKeyboard>
-                <HeaderWithBackButton
+                <HeaderCentralPane
                     onBackButtonPress={goBackOrClearSelection}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    shouldDisplaySearchRouter
-                    shouldDisplayHelpButton
+                    isHeadline={!selectionModeHeader}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
+                    shouldDisplaySearchRouter
                 >
-                    {headerContent}
-                </HeaderWithBackButton>
+                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
+                </HeaderCentralPane>
             </CollapsibleHeaderOnKeyboard>
             <AgentsTable
                 ref={tableRef}

@@ -5,13 +5,12 @@
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import ErrorMessageRow from '@components/ErrorMessageRow';
-import Header from '@components/Header';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
@@ -33,7 +32,6 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {openPolicyAccountingPage, openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -286,16 +284,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                     onDone={() => setMergeSetupFlow(undefined)}
                 />
             )}
-            <Header>
-                {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
-                <Header.Title
-                    title={translate('workspace.common.connections')}
-                    titleStyles={styles.textHeadlineH2}
-                />
-                <Header.Right>
-                    <SidePanelButton />
-                </Header.Right>
-            </Header>
+            <HeaderCentralPane title={translate('workspace.common.connections')} />
             <ScrollView
                 contentContainerStyle={[styles.flexGrow1, styles.pb5, styles.ph5]}
                 addBottomSafeAreaPadding

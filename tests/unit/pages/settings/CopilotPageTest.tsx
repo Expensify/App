@@ -121,13 +121,6 @@ jest.mock('@components/ScreenWrapper', () => {
     return MockScreenWrapper;
 });
 
-jest.mock('@components/HeaderWithBackButton', () => {
-    function MockHeader({title}: {title: string}) {
-        return title;
-    }
-    return MockHeader;
-});
-
 jest.mock('@components/ScrollView', () => {
     function MockScrollView({children}: {children: React.ReactNode}) {
         return children;

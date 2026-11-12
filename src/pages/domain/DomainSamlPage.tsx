@@ -1,7 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -73,13 +73,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
-                <HeaderWithBackButton
-                    title={translate('domain.saml')}
-                    shouldUseHeadlineHeader
-                    onBackButtonPress={Navigation.goBack}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                />
+                <HeaderCentralPane title={translate('domain.saml')} />
 
                 <ScrollView
                     keyboardShouldPersistTaps="handled"

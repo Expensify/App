@@ -3,7 +3,6 @@
  * nothing else don't have to compose the primitives by hand.
  */
 import Header from '@components/Header/Header';
-import HeaderRight from '@components/Header/layout/HeaderRight';
 import HeaderBackButton from '@components/Header/primitives/HeaderBackButton';
 import HeaderTitle from '@components/Header/primitives/HeaderTitle';
 
@@ -28,7 +27,7 @@ function HeaderWithBackButtonAndTitle({children, onBackButtonPress, title = '', 
                 titleStyles={titleStyles}
                 subtitle={subtitle}
             />
-            <HeaderRight>{children}</HeaderRight>
+            {children}
         </Header>
     );
 }

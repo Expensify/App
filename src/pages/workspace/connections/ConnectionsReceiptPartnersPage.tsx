@@ -93,11 +93,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                             subtitle={uberData?.description}
                             titleStyles={[styles.textNormal, styles.lineHeightLarge]}
                         />
-                        {!!uberData && canWriteMoreFeatures && (
-                            <Header.Right>
-                                <Header.ThreeDotsMenu items={getOverflowMenu(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)} />
-                            </Header.Right>
-                        )}
+                        {!!uberData && canWriteMoreFeatures && <Header.ThreeDotsMenu items={getOverflowMenu(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)} />}
                     </Header>
                     <ScrollView
                         contentContainerStyle={styles.pt3}

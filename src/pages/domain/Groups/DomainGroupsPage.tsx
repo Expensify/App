@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainGroupRowData} from '@components/Tables/DomainGroupsTable';
 import DomainGroupsTable from '@components/Tables/DomainGroupsTable';
@@ -10,7 +10,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -47,7 +46,6 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {pageGutter} = useLayoutSpacing();
     const {isOffline} = useNetwork();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -96,7 +94,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_GROUP_BUTTON}
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
             innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-            style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
+            style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
         >
             <Button.Icon src={icons.Plus} />
@@ -112,15 +110,12 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 testID="DomainGroupsPage"
             >
-                <HeaderWithBackButton
+                <HeaderCentralPane
                     title={translate('domain.groups.title')}
-                    shouldDisplayHelpButton
                     onBackButtonPress={Navigation.popToSidebar}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader
                 >
-                    {!shouldDisplayButtonsInSeparateLine && <View style={[styles.flexRow, styles.gap2]}>{createGroupHeaderButton}</View>}
-                </HeaderWithBackButton>
+                    {!shouldDisplayButtonsInSeparateLine && createGroupHeaderButton}
+                </HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{createGroupHeaderButton}</View>}
 
                 <DomainGroupsTable
