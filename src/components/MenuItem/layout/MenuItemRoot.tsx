@@ -21,7 +21,7 @@ import mergeRefs from '@libs/mergeRefs';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
 import type {ComponentRef, PropsWithChildren, Ref} from 'react';
@@ -31,7 +31,7 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type MenuItemRootProps = PropsWithChildren &
-    WithSentryLabel &
+    WithSentryLabelWhenPressable &
     WithTestID & {
         /** Function to fire when the row is pressed */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;

@@ -270,6 +270,7 @@ function WorkspaceConfirmationForm({
                                         onPress={() => {
                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION_PLAN_TYPE.path));
                                         }}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_PLAN_TYPE}
                                         value={userPlanType}
                                     />
                                 </View>
@@ -285,6 +286,7 @@ function WorkspaceConfirmationForm({
                                         onPress={() => {
                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.OWNER_SELECTOR.path));
                                         }}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_OWNER}
                                         value={userOwner}
                                     />
                                 </View>

@@ -8,6 +8,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 /** Test identifier given to the KeypadAmountEditor root, which the layout suffixes for each of its parts */
@@ -40,7 +42,14 @@ function renderLayout() {
         <KeypadAmountEditor
             value="12.5"
             testID={ROOT_TEST_ID}
-            footer={<Button onPress={jest.fn()}>Save</Button>}
+            footer={
+                <Button
+                    onPress={jest.fn()}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                >
+                    Save
+                </Button>
+            }
         >
             <KeypadAmountEditor.Input />
         </KeypadAmountEditor>,

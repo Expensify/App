@@ -4,7 +4,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
@@ -16,7 +16,7 @@ type ThreeDotsMenuHandle = {
     updateMenuPosition?: () => void;
 };
 
-type ThreeDotsMenuProps = WithSentryLabel & {
+type ThreeDotsMenuProps = WithRequiredSentryLabel & {
     /** Tooltip for the popup icon */
     iconTooltip?: TranslationPaths;
 

@@ -3,7 +3,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Shortcut} from '@libs/KeyboardShortcut';
 
 import type CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithExplicitSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -44,7 +44,7 @@ type RequiredAccessibilityLabel =
 type PressableProps = RNPressableProps &
     RequiredAccessibilityLabel &
     ForwardedFSClassProps &
-    WithSentryLabel & {
+    WithExplicitSentryLabel & {
         onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
         /**

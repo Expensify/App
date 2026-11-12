@@ -8,6 +8,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithExplicitSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -69,14 +70,16 @@ type BaseSelectionButtonProps = Partial<ChildrenProps> &
         accessible?: boolean;
     };
 
-type CheckboxProps = BaseSelectionButtonProps & {
-    /** Whether the button is in the indeterminate ("mixed") state */
-    isIndeterminate?: boolean;
+type CheckboxProps = BaseSelectionButtonProps &
+    WithExplicitSentryLabel & {
+        /** Whether the button is in the indeterminate ("mixed") state */
+        isIndeterminate?: boolean;
 
-    /** Whether the button is checked/selected */
-    isChecked?: boolean;
-};
+        /** Whether the button is checked/selected */
+        isChecked?: boolean;
+    };
 
+/** Radio buttons fall back to a default label, so they don't need one. */
 type RadioButtonProps = BaseSelectionButtonProps & {
     /** Not applicable for radio buttons */
     isIndeterminate?: never;

@@ -8,6 +8,8 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 
 import type * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
+import CONST from '@src/CONST';
+
 import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
@@ -78,7 +80,16 @@ function getLayout(inputRef?: React.Ref<BaseTextInputRef>, {hasFooter = true}: L
             value="12.5"
             decimals={2}
             testID={ROOT_TEST_ID}
-            footer={hasFooter ? <Button onPress={jest.fn()}>Save</Button> : undefined}
+            footer={
+                hasFooter ? (
+                    <Button
+                        onPress={jest.fn()}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    >
+                        Save
+                    </Button>
+                ) : undefined
+            }
         >
             <KeypadAmountEditor.Input
                 testID={INPUT_TEST_ID}

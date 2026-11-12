@@ -3,6 +3,7 @@ import {fireEvent, render, screen, within} from '@testing-library/react-native';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 
+import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import React from 'react';
@@ -82,6 +83,7 @@ describe('ReceiptEmptyState', () => {
                     <ReceiptEmptyState
                         isDisplayedInWideRHP={false}
                         onPress={onPress}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );

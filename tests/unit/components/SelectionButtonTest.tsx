@@ -80,6 +80,7 @@ describe('SelectionButton shift+mousedown', () => {
                 isChecked
                 onPress={jest.fn()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const event = makeMouseDownEvent(true);
@@ -96,6 +97,7 @@ describe('SelectionButton shift+mousedown', () => {
                 isChecked
                 onPress={jest.fn()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const event = makeMouseDownEvent(false);
@@ -113,6 +115,7 @@ describe('SelectionButton shift+mousedown', () => {
                 disabled
                 onPress={jest.fn()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const event = makeMouseDownEvent(true);
@@ -129,6 +132,7 @@ describe('SelectionButton shift+mousedown', () => {
                 isChecked
                 onPress={jest.fn()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const input = document.createElement('input');
@@ -150,6 +154,7 @@ describe('SelectionButton shift+mousedown', () => {
                 isChecked
                 onPress={jest.fn()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const text = document.createElement('p');
@@ -172,6 +177,7 @@ describe('SelectionButton shift+mousedown', () => {
                 onPress={jest.fn()}
                 onMouseDown={(e) => e.preventDefault()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const event = makeMouseDownEvent(true);

@@ -33,7 +33,7 @@ jest.mock('@components/PopoverWithMeasuredContent', () => ({
  */
 describe('PopoverMenu focus return', () => {
     const anchorRef = createRef<ComponentRef<typeof View>>();
-    const menuItems = [{text: 'Duplicate workspace', onSelected: jest.fn()}];
+    const menuItems = [{text: 'Duplicate workspace', onSelected: jest.fn(), sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}];
     const onClose = jest.fn();
     const onItemSelected = jest.fn();
 

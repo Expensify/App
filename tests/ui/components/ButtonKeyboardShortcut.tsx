@@ -3,6 +3,7 @@ import {render} from '@testing-library/react-native';
 import Button from '@src/components/Button/Button';
 import ButtonKeyboardShortcut from '@src/components/Button/primitives/ButtonKeyboardShortcut';
 import type {ButtonKeyboardShortcutProps, ButtonProps} from '@src/components/Button/types';
+import CONST from '@src/CONST';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -41,6 +42,7 @@ const renderShortcut = (props: Partial<ButtonKeyboardShortcutProps> = {}, button
         <NavigationContainer>
             <Button
                 accessibilityLabel="button"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 {...buttonProps}
             >
                 <ButtonKeyboardShortcut

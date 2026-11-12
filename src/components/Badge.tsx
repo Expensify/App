@@ -5,6 +5,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
@@ -15,7 +16,7 @@ import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
-type BadgeProps = {
+type BadgeProps = WithSentryLabelWhenPressable & {
     success?: boolean;
     error?: boolean;
 
@@ -72,6 +73,7 @@ function Badge({
     iconFill,
     style,
     shouldUseXXSmallIcon = false,
+    sentryLabel,
 }: BadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -100,6 +102,7 @@ function Badge({
         <Wrapper
             style={pressable ? wrapperStyles : wrapperStyles({focused: false, hovered: false, isDisabled: false, isScreenReaderActive: false, pressed: false})}
             onPress={onPress}
+            sentryLabel={sentryLabel}
             role={pressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
             accessibilityLabel={pressable ? text : undefined}
             // Deliberately no aria-label here for the non-pressable case: a global ARIA property makes the browser

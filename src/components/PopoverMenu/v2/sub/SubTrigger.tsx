@@ -8,6 +8,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent} from 'react-native';
 
@@ -25,10 +26,10 @@ type SubTriggerOwnProps = {
     onPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 };
 
-type SubTriggerProps = SubTriggerOwnProps & MenuItemForwardProps;
+type SubTriggerProps = SubTriggerOwnProps & MenuItemForwardProps & WithRequiredSentryLabel;
 
 /** For non-`MenuItem` shapes, call `useSubTrigger()` directly. */
-function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconHeight, onPress: consumerOnPress, ...rest}: SubTriggerProps): React.ReactElement | null {
+function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconHeight, onPress: consumerOnPress, sentryLabel, ...rest}: SubTriggerProps): React.ReactElement | null {
     useSubContext(SubTrigger.displayName);
     useContentSubActions(SubTrigger.displayName);
 
@@ -50,6 +51,7 @@ function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconH
     return (
         <MenuItem
             {...rest}
+            sentryLabel={sentryLabel}
             ref={ref}
             title={text}
             iconWidth={iconWidth ?? variables.iconSizeNormal}

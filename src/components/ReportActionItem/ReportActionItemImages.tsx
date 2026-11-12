@@ -33,9 +33,6 @@ type ReportActionItemImagesProps = {
     /** if the corresponding report action item is hovered */
     isHovered?: boolean;
 
-    /** Callback to be called on onPress */
-    onPress?: () => void;
-
     /** Whether we should use aspect ratio to decide the height of receipt previews. */
     shouldUseAspectRatio?: boolean;
 };
@@ -49,7 +46,7 @@ type ReportActionItemImagesProps = {
  * additional number when subtracted from size.
  */
 
-function ReportActionItemImages({images, size, total, isHovered = false, onPress, shouldUseAspectRatio = false}: ReportActionItemImagesProps) {
+function ReportActionItemImages({images, size, total, isHovered = false, shouldUseAspectRatio = false}: ReportActionItemImagesProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -102,7 +99,6 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                                     isThumbnail={isThumbnail}
                                     isSingleImage={numberOfShownImages === 1}
                                     shouldMapHaveBorderRadius={false}
-                                    onPress={onPress}
                                     shouldUseFullHeight={shouldUseAspectRatio}
                                     shouldUseThumbnailImage
                                 />

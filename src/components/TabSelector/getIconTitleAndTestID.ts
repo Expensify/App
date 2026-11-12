@@ -2,11 +2,11 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {TupleToUnion} from 'type-fest';
 
-type IconTitleAndTestID = WithSentryLabel & {
+type IconTitleAndTestID = WithRequiredSentryLabel & {
     icon?: IconAsset;
     title: string;
     testID?: string;
@@ -36,11 +36,11 @@ function getIconTitleAndTestID(
 ): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB.RECEIPT_PARTNERS.ALL:
-            return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
+            return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all', sentryLabel: CONST.SENTRY_LABEL.TAB_SELECTOR.RECEIPT_PARTNERS_ALL_TAB};
         case CONST.TAB.RECEIPT_PARTNERS.LINKED:
-            return {title: translate('workspace.receiptPartners.uber.linked'), testID: 'linked'};
+            return {title: translate('workspace.receiptPartners.uber.linked'), testID: 'linked', sentryLabel: CONST.SENTRY_LABEL.TAB_SELECTOR.RECEIPT_PARTNERS_LINKED_TAB};
         case CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING:
-            return {title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding'};
+            return {title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding', sentryLabel: CONST.SENTRY_LABEL.TAB_SELECTOR.RECEIPT_PARTNERS_OUTSTANDING_TAB};
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'manual', sentryLabel: CONST.SENTRY_LABEL.TAB_SELECTOR.MANUAL_TAB};
         case CONST.TAB_REQUEST.SCAN:

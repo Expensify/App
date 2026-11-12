@@ -48,16 +48,21 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const submitSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
 
     const tabs: Array<TabSelectorBaseItem<SearchKey>> = [
-        {key: reportsSearch.key, icon: expensifyIcons.Document, title: translate(reportsSearch.translationPath)},
-        {key: expensesSearch.key, icon: expensifyIcons.Receipt, title: translate(expensesSearch.translationPath)},
+        {key: reportsSearch.key, icon: expensifyIcons.Document, title: translate(reportsSearch.translationPath), sentryLabel: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB},
+        {key: expensesSearch.key, icon: expensifyIcons.Receipt, title: translate(expensesSearch.translationPath), sentryLabel: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB},
     ];
 
     if (hasGroupPolicy) {
-        tabs.push({key: submitSearch.key, icon: expensifyIcons.Pencil, title: translate(submitSearch.translationPath)});
+        tabs.push({key: submitSearch.key, icon: expensifyIcons.Pencil, title: translate(submitSearch.translationPath), sentryLabel: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB});
     }
 
     if (activeSavedSearch && currentSearchKey) {
-        tabs.push({key: currentSearchKey, icon: expensifyIcons[getSavedSearchIconName(activeSavedSearch.query)], title: activeSavedSearch.name});
+        tabs.push({
+            key: currentSearchKey,
+            icon: expensifyIcons[getSavedSearchIconName(activeSavedSearch.query)],
+            title: activeSavedSearch.name,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_TAB,
+        });
     }
 
     const activeKey = activeSavedSearch ? currentSearchKey : getActiveKey(queryJSON.similarSearchHash, hasGroupPolicy, suggestedSearches);

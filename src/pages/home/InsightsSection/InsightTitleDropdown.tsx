@@ -70,6 +70,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
         icon: icons[config.icon],
         isSelected: config.key === selectedKey,
         onSelected: () => onSelect(config.key),
+        sentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.INSIGHT_TITLE_DROPDOWN_ITEM,
     }));
 
     return (

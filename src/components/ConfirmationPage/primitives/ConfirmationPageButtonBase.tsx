@@ -4,11 +4,13 @@ import type {ButtonProps} from '@components/Button';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
-type ConfirmationPageButtonProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'sentryLabel'> & {
-    text: string;
-    onPress?: () => void;
-};
+type ConfirmationPageButtonProps = WithSentryLabelWhenPressable &
+    Pick<ButtonProps, 'isDisabled' | 'isLoading'> & {
+        text: string;
+        onPress?: () => void;
+    };
 
 type ConfirmationPageButtonBaseProps = ConfirmationPageButtonProps &
     Pick<ButtonProps, 'testID' | 'variant'> & {

@@ -83,9 +83,6 @@ type ReportActionItemImageProps = {
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
 
-    /** Callback to be called on pressing the image */
-    onPress?: () => void;
-
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
 
@@ -134,7 +131,6 @@ function ReportActionItemImage({
     readonly = false,
     shouldMapHaveBorderRadius,
     mergeTransactionID,
-    onPress,
     shouldUseFullHeight,
     report: reportProp,
     shouldUseThumbnailImage,
@@ -226,7 +222,6 @@ function ReportActionItemImage({
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
             isEmptyReceipt,
-            onPress,
         };
     }
 

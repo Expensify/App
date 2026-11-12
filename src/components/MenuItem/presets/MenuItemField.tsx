@@ -18,6 +18,7 @@ import {callIfAuthenticated} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {PropsWithChildren, ReactNode} from 'react';
+import type {DistributedOmit} from 'type-fest';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
@@ -38,7 +39,7 @@ type MenuItemFieldRowProps = PropsWithChildren<
     }
 >;
 
-type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & Omit<MenuItemFieldRowProps, 'children'>;
+type MenuItemFieldProps = DistributedOmit<MenuItemRootProps, 'accessibilityLabel'> & Omit<MenuItemFieldRowProps, 'children'>;
 
 type MenuItemFieldContentProps = {
     /** Name of the field */

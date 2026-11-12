@@ -46,6 +46,8 @@ jest.mock('@hooks/usePolicyData', () => {
     return jest.fn((policyID?: string) => ({policy: useRealPolicy(policyID)}));
 });
 
+const mockSentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
+
 jest.mock('@components/CategoryPicker/CategoryPickerModal', () => {
     const {default: Pressable} = jest.requireActual<{default: typeof PressableWithoutFeedback}>('@components/Pressable/PressableWithoutFeedback');
     const {default: Text} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
@@ -55,6 +57,7 @@ jest.mock('@components/CategoryPicker/CategoryPickerModal', () => {
                 <Pressable
                     accessibilityLabel="addCategory"
                     onPress={onAddCategory}
+                    sentryLabel={mockSentryLabel}
                 >
                     <Text>addCategory</Text>
                 </Pressable>
@@ -63,6 +66,7 @@ jest.mock('@components/CategoryPicker/CategoryPickerModal', () => {
                 <Pressable
                     accessibilityLabel="createCategory"
                     onPress={() => onCreateCategory('Training')}
+                    sentryLabel={mockSentryLabel}
                 >
                     <Text>createCategory</Text>
                 </Pressable>

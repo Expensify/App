@@ -25,7 +25,7 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactElement} from 'react';
 
@@ -36,7 +36,7 @@ import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import RenderHTML from './RenderHTML';
 
-type BookTravelButtonProps = WithSentryLabel & {
+type BookTravelButtonProps = WithRequiredSentryLabel & {
     text: string;
     activePolicyID?: string;
     shouldRenderErrorMessageBelowButton?: boolean;

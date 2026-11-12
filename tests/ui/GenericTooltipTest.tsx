@@ -32,6 +32,7 @@ const renderTooltipWithOverlay = () =>
                             }}
                             accessibilityLabel="Open tooltip"
                             role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         />
                     )}
                 </GenericTooltip>

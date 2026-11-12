@@ -27,12 +27,14 @@ function VideoPopoverMenu() {
                     text={translate('common.download')}
                     icon={icons.Download}
                     onSelect={downloadAttachment}
+                    sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MORE_MENU_DOWNLOAD}
                 />
             )}
             <Sub id="playbackSpeed">
                 <Sub.Trigger
                     text={playbackSpeedLabel}
                     icon={icons.Meter}
+                    sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MORE_MENU_PLAYBACK_SPEED}
                 />
                 <Sub.Content>
                     <Sub.BackButton text={playbackSpeedLabel} />
@@ -42,6 +44,7 @@ function VideoPopoverMenu() {
                             text={speed === 1 ? normalSpeedLabel : speed.toString()}
                             isSelected={currentPlaybackSpeed === speed}
                             onSelect={() => updatePlaybackSpeed(speed)}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.PLAYBACK_SPEED_OPTION}
                         />
                     ))}
                 </Sub.Content>

@@ -37,6 +37,8 @@ import type {AnchorPosition} from '@src/styles';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -47,65 +49,69 @@ import {StyleSheet, View} from 'react-native';
 
 import usePopoverMenuFocusManagement from './usePopoverMenuFocusManagement';
 
-type PopoverMenuItem = MenuItemProps & {
-    /** Text label */
-    text: string;
+/** A row that can't be pressed (`interactive: false`), such as a header, needs no label. */
+type PopoverMenuItemSentryLabel = WithRequiredSentryLabel | ({interactive: false} & WithSentryLabel);
 
-    /** Badge text to be shown near the right end. */
-    badgeText?: string;
+type PopoverMenuItem = MenuItemProps &
+    PopoverMenuItemSentryLabel & {
+        /** Text label */
+        text: string;
 
-    onSelected?: () => void;
-    subMenuItems?: PopoverMenuItem[];
+        /** Badge text to be shown near the right end. */
+        badgeText?: string;
 
-    /** Header text to be displayed when this item's sub menu is opened */
-    subMenuHeaderText?: string;
+        onSelected?: () => void;
+        subMenuItems?: PopoverMenuItem[];
 
-    /** Back button text to be shown if sub menu items are opened */
-    backButtonText?: string;
+        /** Header text to be displayed when this item's sub menu is opened */
+        subMenuHeaderText?: string;
 
-    /** Determines whether the menu item is disabled or not */
-    disabled?: boolean;
+        /** Back button text to be shown if sub menu items are opened */
+        backButtonText?: string;
 
-    /** Determines whether the menu item's onSelected() function is called after the modal is hidden
-     *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
-     */
-    shouldCallAfterModalHide?: boolean;
+        /** Determines whether the menu item is disabled or not */
+        disabled?: boolean;
 
-    shouldCloseAllModals?: boolean;
-    pendingAction?: PendingAction;
+        /** Determines whether the menu item's onSelected() function is called after the modal is hidden
+         *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
+         */
+        shouldCallAfterModalHide?: boolean;
 
-    /** Errors to display under the menu item (e.g. when an inline toggle's save fails) */
-    errors?: Errors | null;
+        shouldCloseAllModals?: boolean;
+        pendingAction?: PendingAction;
 
-    /** Callback to dismiss the item's errors */
-    onCloseError?: () => void;
+        /** Errors to display under the menu item (e.g. when an inline toggle's save fails) */
+        errors?: Errors | null;
 
-    rightIcon?: IconAsset;
+        /** Callback to dismiss the item's errors */
+        onCloseError?: () => void;
 
-    key?: string;
+        rightIcon?: IconAsset;
 
-    /** Whether to ignore key and use a fallback key for React rendering instead. */
-    shouldIgnoreKeyForRendering?: boolean;
+        key?: string;
 
-    /** Whether to keep the modal open after clicking on the menu item */
-    shouldKeepModalOpen?: boolean;
+        /** Whether to ignore key and use a fallback key for React rendering instead. */
+        shouldIgnoreKeyForRendering?: boolean;
 
-    testID?: string;
+        /** Whether to keep the modal open after clicking on the menu item */
+        shouldKeepModalOpen?: boolean;
 
-    /** Whether to show a loading spinner icon for the menu item */
-    shouldShowLoadingSpinnerIcon?: boolean;
+        testID?: string;
 
-    shouldCloseModalOnSelect?: boolean;
+        /** Whether to show a loading spinner icon for the menu item */
+        shouldShowLoadingSpinnerIcon?: boolean;
 
-    /** Whether selecting this item should avoid restoring focus to the popover before a follow-up modal opens on iOS */
-    shouldSkipFocusRestore?: boolean;
+        shouldCloseModalOnSelect?: boolean;
 
-    /** Whether to render a divider before this menu item */
-    addSeparatorBefore?: boolean;
+        /** Whether selecting this item should avoid restoring focus to the popover before a follow-up modal opens on iOS */
+        shouldSkipFocusRestore?: boolean;
 
-    /** Additional data for the menu item */
-    additionalData?: Record<string, unknown>;
-};
+        /** Whether to render a divider before this menu item */
+        addSeparatorBefore?: boolean;
+
+        /** Additional data for the menu item */
+        additionalData?: Record<string, unknown>;
+    };
 
 type ModalAnimationProps = Pick<ReanimatedModalProps, 'animationInDelay' | 'animationIn' | 'animationInTiming' | 'animationOut' | 'animationOutTiming'>;
 
@@ -592,6 +598,7 @@ function BasePopoverMenu({
             shouldShowLoadingSpinnerIcon,
             badgeText,
             addSeparatorBefore,
+            sentryLabel,
             ...menuItemProps
         } = item;
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
@@ -644,6 +651,7 @@ function BasePopoverMenu({
                         role={CONST.ROLE.BUTTON}
                         // Spread other props dynamically
                         {...menuItemProps}
+                        sentryLabel={sentryLabel}
                         shouldShowRadioButton={isRadioButtonMode}
                         hasSubMenuItems={!!subMenuItems?.length}
                         shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}

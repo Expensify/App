@@ -21,6 +21,7 @@ import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent, PressableStateCallbackType, ViewStyle} from 'react-native';
 
@@ -34,31 +35,32 @@ import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {TableActionsContext, useTableContext, useTableRowSemanticID} from './TableContext';
 
-type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
-    /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
-    accessible?: true;
+type TableRowProps = WithSentryLabelWhenPressable<'onPress' | 'onLongPress'> &
+    Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel' | 'sentryLabel'> & {
+        /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
+        accessible?: true;
 
-    /** Describes the row's content to assistive technology, e.g. `Workspace name: Acme, Owner: Jane Doe`. */
-    accessibilityLabel: string;
+        /** Describes the row's content to assistive technology, e.g. `Workspace name: Acme, Owner: Jane Doe`. */
+        accessibilityLabel: string;
 
-    /** Whether or not the table row is pressable or not */
-    interactive: boolean;
+        /** Whether or not the table row is pressable or not */
+        interactive: boolean;
 
-    disabled?: boolean;
-    rowIndex: number;
+        disabled?: boolean;
+        rowIndex: number;
 
-    /** Attributes for when the client is offline and there is an error related to the table row */
-    offlineWithFeedback?: OfflineWithFeedbackProps;
+        /** Attributes for when the client is offline and there is an error related to the table row */
+        offlineWithFeedback?: OfflineWithFeedbackProps;
 
-    /** Custom element to render in place of the selection checkbox (e.g. a lock icon for non-selectable rows) */
-    checkboxReplacementElement?: React.ReactNode;
+        /** Custom element to render in place of the selection checkbox (e.g. a lock icon for non-selectable rows) */
+        checkboxReplacementElement?: React.ReactNode;
 
-    /** Optional content rendered below the row grid */
-    rowFooter?: React.ReactNode;
+        /** Optional content rendered below the row grid */
+        rowFooter?: React.ReactNode;
 
-    /** Whether the row is a group header, i.e. a row that labels the rows below it instead of holding data */
-    isGroupHeader?: boolean;
-};
+        /** Whether the row is a group header, i.e. a row that labels the rows below it instead of holding data */
+        isGroupHeader?: boolean;
+    };
 
 export default function TableRow({
     children,

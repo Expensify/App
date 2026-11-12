@@ -21,6 +21,7 @@ const POLICY_ID = '123';
 const mockShowConfirmModal = jest.fn();
 const MockPressable = PressableWithoutFeedback;
 const MockText = Text;
+const mockSentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
 let mockPolicy: Policy;
 
 jest.mock('@hooks/useConfirmModal', () => () => ({showConfirmModal: mockShowConfirmModal}));
@@ -60,6 +61,7 @@ jest.mock('@pages/workspace/workflows/ToggleSettingsOptionRow', () => ({isActive
 
             onToggle(!isActive);
         }}
+        sentryLabel={mockSentryLabel}
     >
         <MockText>{switchAccessibilityLabel}</MockText>
     </MockPressable>

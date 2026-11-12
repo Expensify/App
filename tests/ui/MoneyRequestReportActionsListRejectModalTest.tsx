@@ -143,6 +143,8 @@ jest.mock('@components/MoneyRequestReportView/SearchMoneyRequestReportEmptyState
     return () => <View testID="MockSearchMoneyRequestReportEmptyState" />;
 });
 
+const mockSentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
+
 // The content mock skips the illustrations but keeps the real confirm button, so the flow test still renders the real
 // FeatureTrainingModal tree on the global modal stack
 jest.mock('@components/HoldOrRejectEducationalModalContent', () => {
@@ -152,7 +154,7 @@ jest.mock('@components/HoldOrRejectEducationalModalContent', () => {
     const {translateLocal: translate} = jest.requireActual<typeof TestHelper>('../utils/TestHelper');
     return () => (
         <View testID="HoldOrRejectEducationalModal">
-            <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+            <FeatureTraining.ConfirmButton sentryLabel={mockSentryLabel}>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
         </View>
     );
 });

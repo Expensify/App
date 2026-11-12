@@ -8,7 +8,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
@@ -28,7 +28,7 @@ type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
 type OnboardingHelpType = DeepValueOf<typeof CONST.ONBOARDING_HELP>;
 
-type DropdownOption<TValueType> = WithSentryLabel & {
+type DropdownOption<TValueType> = WithRequiredSentryLabel & {
     value: TValueType;
     text: string;
     icon?: IconAsset;
@@ -89,7 +89,7 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     subMenuHeaderText?: string;
 };
 
-type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
+type ButtonWithDropdownMenuProps<TValueType> = WithRequiredSentryLabel & {
     /** The custom text to display on the main button instead of selected option */
     customText?: string;
 

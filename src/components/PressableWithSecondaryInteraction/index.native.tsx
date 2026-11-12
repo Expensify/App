@@ -52,9 +52,6 @@ function PressableWithSecondaryInteraction({
 
     return (
         <PressableWithFeedback
-            // `{...rest}` already forwards the label, but the sentryLabel lint rule only sees a literal attribute, not what a spread contains.
-            // Remove this once `sentryLabel` is required in the props type and the lint rule is gone.
-            sentryLabel={rest.sentryLabel}
             {...rest}
             accessibilityState={accessibilityState}
             accessibilityHasPopup={accessibilityHasPopup}

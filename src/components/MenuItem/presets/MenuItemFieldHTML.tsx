@@ -14,13 +14,14 @@ import {callIfAuthenticated} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {PropsWithChildren} from 'react';
+import type {DistributedOmit} from 'type-fest';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import MenuItemField from './MenuItemField';
 
-type MenuItemFieldHTMLProps = Omit<MenuItemRootProps, 'accessibilityLabel'> &
+type MenuItemFieldHTMLProps = DistributedOmit<MenuItemRootProps, 'accessibilityLabel'> &
     PropsWithChildren<{
         /** Name of the field */
         name: string;
