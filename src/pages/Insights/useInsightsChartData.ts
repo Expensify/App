@@ -41,16 +41,7 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const theme = useTheme();
     const {isOffline} = useNetwork();
 
-    const {trackedFrom} = chart;
-    const getDateRange = queryJSON?.groupBy ? CHART_GROUP_BY_CONFIG[queryJSON.groupBy].getDateRange : undefined;
-    const keepTrackedBuckets = (items: GroupedItem[]) => (trackedFrom ? items.filter((item) => isBucketTracked(getDateRange?.(item), trackedFrom)) : items);
-
     const sortedData = useGroupedItems(normalizeInsightsSnapshot(snapshot, queryJSON?.groupBy), queryJSON);
-    const resolvedCurrent = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
-    const trackedData = keepTrackedBuckets(resolvedCurrent.data);
-    const current: InsightsChartData =
-        resolvedCurrent.state === INSIGHTS_CHART_STATE.READY && trackedData.length === 0 ? {data: [], state: INSIGHTS_CHART_STATE.EMPTY} : {...resolvedCurrent, data: trackedData};
-
     const compare = filters.compare;
     const isPreviousPeriod = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
     // Keeps every compared group, so each plotted group finds its own and not only the top ones.
@@ -58,6 +49,15 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
         isPreviousPeriod ? normalizeInsightsSnapshot(previousPeriodSnapshot, queryJSON?.groupBy) : undefined,
         queryJSON && {...queryJSON, limit: undefined},
     );
+
+    const {trackedFrom} = chart;
+    const getDateRange = queryJSON?.groupBy ? CHART_GROUP_BY_CONFIG[queryJSON.groupBy].getDateRange : undefined;
+    const keepTrackedBuckets = (items: GroupedItem[]) => (trackedFrom ? items.filter((item) => isBucketTracked(getDateRange?.(item), trackedFrom)) : items);
+
+    const resolvedCurrent = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
+    const trackedData = keepTrackedBuckets(resolvedCurrent.data);
+    const current: InsightsChartData =
+        resolvedCurrent.state === INSIGHTS_CHART_STATE.READY && trackedData.length === 0 ? {data: [], state: INSIGHTS_CHART_STATE.EMPTY} : {...resolvedCurrent, data: trackedData};
 
     if (current.state !== INSIGHTS_CHART_STATE.READY) {
         return current;

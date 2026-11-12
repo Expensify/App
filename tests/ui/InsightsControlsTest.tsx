@@ -239,8 +239,8 @@ describe('Insights controls', () => {
     });
 
     it('only offers the groupings that fit the date range', async () => {
-        // Given the headline chart grouped by week over this month, which is too short for Month, Quarter and Year
-        const date: InsightsFilters['date'] = {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH};
+        // Given the headline chart grouped by week over last month, which is too short for Month, Quarter and Year
+        const date: InsightsFilters['date'] = {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH};
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.WEEK}
