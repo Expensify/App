@@ -284,9 +284,10 @@ describe('WorkspaceMembers', () => {
             });
             expect(screen.getByText(TestHelper.translateLocal('workspace.common.otherRoles'))).toBeOnTheScreen();
 
-            // And Guest is badged as new, since admins are still learning that it exists
+            // And both newly promoted roles are badged while admins learn about them
+            expect(screen.getByText(roleName(CONST.POLICY.ROLE.APPROVE_ONLY))).toBeOnTheScreen();
             expect(screen.getByText(roleName(CONST.POLICY.ROLE.GUEST))).toBeOnTheScreen();
-            expect(screen.getByText(TestHelper.translateLocal('common.new'))).toBeOnTheScreen();
+            expect(screen.getAllByText(TestHelper.translateLocal('common.new'))).toHaveLength(2);
 
             unmount();
             await waitForBatchedUpdatesWithAct();

@@ -2441,7 +2441,6 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
     };
 }
 
-/** Writes a distance expense that planDistanceRequest built. */
 function commitDistanceRequest(plan: DistanceRequestPlan, writeBarrier?: WriteReadyBarrier) {
     if (plan.shouldPlaySound) {
         playSound(SOUNDS.DONE);
