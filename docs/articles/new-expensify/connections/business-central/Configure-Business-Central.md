@@ -4,8 +4,6 @@ description: Learn how to configure Dynamics 365 Business Central import, export
 keywords: [New Expensify, Dynamics 365 Business Central, Business Central, D365, Business Central import, Business Central export, general journal, purchase invoices, posting mode, default company card vendor, sync reimbursed reports, export to next open period]
 internalScope: Audience is workspace admins configuring an existing Dynamics 365 Business Central connection. Covers import, export, per-card vendor, and advanced settings. Does not cover the initial connection, credential setup, or vendor matching on individual expenses.
 order: 2
-noindex: true
-sitemap: false
 ---
 
 # Configure Dynamics 365 Business Central
