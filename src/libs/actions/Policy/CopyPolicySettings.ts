@@ -9,7 +9,7 @@ import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists, PolicyCategory, Rule} from '@src/types/onyx';
-import type {CustomUnit, PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
+import type {CustomUnit, PolicyFeatureName, Rate, ReimbursementCountryInfo} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
@@ -55,6 +55,7 @@ const PARTS_TO_POLICY_FIELDS = {
         'approvalMode',
         'autoApproval',
         'reimbursementChoice',
+        'isCollectDepositAccountsEnabled',
     ],
     rules: [
         'areRulesEnabled',
@@ -252,6 +253,34 @@ function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): P
 }
 
 /**
+ * Makes the target's countries match the source's, dropping each source bankAccountID (the backend remaps it per-caller).
+ * Keeps a target country that already has its own bank account.
+ */
+function buildReimbursementCountriesPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'reimbursement'> | undefined {
+    const sourceCountries = sourcePolicy.reimbursement?.countries ?? {};
+    const targetCountries = targetPolicy.reimbursement?.countries ?? {};
+    if (Object.keys(sourceCountries).length === 0 && Object.keys(targetCountries).length === 0) {
+        return undefined;
+    }
+
+    const result: Record<string, ReimbursementCountryInfo> = {};
+    for (const [countryISO, info] of Object.entries(targetCountries)) {
+        if (info?.bankAccountID) {
+            result[countryISO] = info;
+        }
+    }
+
+    for (const countryISO of Object.keys(sourceCountries)) {
+        if (result[countryISO]) {
+            continue;
+        }
+        result[countryISO] = {};
+    }
+
+    return {reimbursement: {...targetPolicy.reimbursement, countries: result}};
+}
+
+/**
  * The category fields the backend copies for Flag for review and Field requirements rules.
  */
 const CATEGORY_RULE_FIELDS = [
@@ -402,6 +431,7 @@ function buildCopyPolicySettingsData(
     const isCodingRulesSelected = parts.includes('codingRules');
     const isRulesSelected = parts.includes('rules');
     const isTravelSelected = parts.includes('travel');
+    const isWorkflowsSelected = parts.includes('workflows');
     const timeTrackingPendingFields = isTimeTrackingSelected
         ? {
               isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -416,6 +446,8 @@ function buildCopyPolicySettingsData(
         : {};
     const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
     const receiptPartnersClearedPendingFields = isReceiptPartnersSelected ? {receiptPartners: null} : {};
+    const reimbursementPendingFields = isWorkflowsSelected ? {reimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const reimbursementClearedPendingFields = isWorkflowsSelected ? {reimbursement: null} : {};
     // Merchant rules are only visible while Rules is on, so copying them turns Rules on for the target,
     // the same way the backend does. This keeps the target right while offline, before the server push lands.
     const codingRulesPatch = isCodingRulesSelected ? {areRulesEnabled: true} : {};
@@ -434,6 +466,7 @@ function buildCopyPolicySettingsData(
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
         const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
         const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
+        const reimbursementCountriesPatch = isWorkflowsSelected ? buildReimbursementCountriesPatch(sourcePolicy, targetPolicy) : undefined;
         // Merchant rules live in their own collection, so each target policy gets its own copies rather than
         // a shared blob on the policy object. The server mints its own IDs, so the optimistic copies are dropped on success.
         const copiedRules = isCodingRulesSelected ? buildCopiedExpenseDefaultRules(allRules, sourcePolicy.id, targetPolicy.id) : {};
@@ -464,8 +497,16 @@ function buildCopyPolicySettingsData(
                     : {}),
                 ...(travelSettingsPatch ?? {}),
                 ...(receiptPartnersPatch ? {receiptPartners: receiptPartnersPatch.receiptPartners} : {}),
+                ...(reimbursementCountriesPatch ?? {}),
                 ...codingRulesPatch,
-                pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields, ...codingRulesPendingFields},
+                pendingFields: {
+                    ...targetPolicy.pendingFields,
+                    ...pendingFields,
+                    ...timeTrackingPendingFields,
+                    ...receiptPartnersPendingFields,
+                    ...(reimbursementCountriesPatch ? reimbursementPendingFields : {}),
+                    ...codingRulesPendingFields,
+                },
             },
         });
 
@@ -474,7 +515,13 @@ function buildCopyPolicySettingsData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                pendingFields: {...clearedPendingFields, ...timeTrackingClearedPendingFields, ...receiptPartnersClearedPendingFields, ...codingRulesClearedPendingFields},
+                pendingFields: {
+                    ...clearedPendingFields,
+                    ...timeTrackingClearedPendingFields,
+                    ...receiptPartnersClearedPendingFields,
+                    ...reimbursementClearedPendingFields,
+                    ...codingRulesClearedPendingFields,
+                },
                 errors: null,
             },
         });
