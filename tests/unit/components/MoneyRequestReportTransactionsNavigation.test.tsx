@@ -103,6 +103,7 @@ jest.mock('@hooks/useSingleExpenseReportView', () => ({
 }));
 
 const mockIsOffline = {value: false};
+const mockIsFocused = {value: true};
 
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
@@ -112,7 +113,7 @@ jest.mock('@hooks/useNetwork', () => ({
 // Only useIsFocused is overridden; findFocusedRoute is the real one, since the teardown assertions depend on it.
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
-    useIsFocused: () => true,
+    useIsFocused: () => mockIsFocused.value,
 }));
 
 type ReactActual = {createElement: typeof React.createElement; Fragment: typeof React.Fragment};
@@ -202,6 +203,8 @@ const resetMockState = () => {
     mockKeyboardShortcuts.clear();
     mockGetRootState.mockReturnValue(makeRootState('testRoute'));
     mockIsOffline.value = false;
+    mockIsFocused.value = true;
+    jest.mocked(Navigation.getActiveRoute).mockReturnValue('active-route');
     mockShouldUseTableViewForSingleExpense.value = false;
 };
 
@@ -340,6 +343,78 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
             // Then its report opens, as it shows the expense itself
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rNext', anchorTransactionID: NEXT_ID}));
+        });
+    });
+
+    describe('uncached sent-money siblings', () => {
+        beforeEach(() => {
+            mockShouldUseTableViewForSingleExpense.value = true;
+            mockState.transactionsCollection = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${PREV_ID}`]: {transactionID: PREV_ID, reportID: 'rPrev'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${NEXT_ID}`]: {transactionID: NEXT_ID, reportID: 'rNext'},
+            };
+            mockState.reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rPrev`]: {reportID: 'rPrev', transactionCount: 1},
+                [`${ONYXKEYS.COLLECTION.REPORT}rNext`]: {reportID: 'rNext', transactionCount: 1},
+            };
+        });
+
+        const loadPayAction = (reportID: string, transactionID: string, legacy = false) => {
+            const payload = {IOUTransactionID: transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUDetails: {amount: 100}};
+            mockState.reportActionsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
+                    pay: {
+                        reportActionID: `pay_${transactionID}`,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        reportID,
+                        ...(legacy ? {originalMessage: payload, message: [{type: 'COMMENT', text: 'Paid'}]} : {message: payload}),
+                    },
+                },
+            };
+        };
+
+        it.each([
+            {button: 'next-button', reportID: 'rNext', transactionID: NEXT_ID, legacy: false},
+            {button: 'prev-button', reportID: 'rPrev', transactionID: PREV_ID, legacy: false},
+            {button: 'next-button', reportID: 'rNext', transactionID: NEXT_ID, legacy: true},
+            {button: 'prev-button', reportID: 'rPrev', transactionID: PREV_ID, legacy: true},
+        ])('replays one $button press after PAY actions load (legacy: $legacy)', ({button, reportID, transactionID, legacy}) => {
+            // Given the sibling's transaction and report are cached, but its actions are not.
+            const {rerender} = renderNavigation();
+            press(button);
+            expect(openReport).toHaveBeenCalledWith(expect.objectContaining({reportID}));
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+
+            // When the fetch supplies a PAY action rather than an expense-creation action.
+            loadPayAction(reportID, transactionID, legacy);
+            rerender(<MoneyRequestReportTransactionsNavigation currentTransactionID={CURRENT_ID} />);
+
+            // Then the original press opens the sent-money report without another click or fetch.
+            expect(Navigation.setParams).toHaveBeenCalledTimes(1);
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID, anchorTransactionID: transactionID}));
+            expect(openReport).toHaveBeenCalledTimes(1);
+        });
+
+        it.each(['focus', 'route'] as const)('does not replay after leaving the original %s', (changedContext) => {
+            // Given a press waiting for its sibling's actions to arrive.
+            const {rerender} = renderNavigation();
+            press('next-button');
+
+            // When the user leaves the original screen before the PAY action arrives.
+            if (changedContext === 'focus') {
+                mockIsFocused.value = false;
+            } else {
+                jest.mocked(Navigation.getActiveRoute).mockReturnValue('other-route');
+            }
+            loadPayAction('rNext', NEXT_ID);
+            rerender(<MoneyRequestReportTransactionsNavigation currentTransactionID={CURRENT_ID} />);
+            mockIsFocused.value = true;
+            jest.mocked(Navigation.getActiveRoute).mockReturnValue('active-route');
+            rerender(<MoneyRequestReportTransactionsNavigation currentTransactionID={CURRENT_ID} />);
+
+            // Then restoring focus or the route cannot revive the cancelled press.
+            expect(Navigation.setParams).not.toHaveBeenCalled();
         });
     });
 

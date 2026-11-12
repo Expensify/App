@@ -443,8 +443,9 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
         navigateToSibling(e, prevTransactionID, prevTransaction, prevParentReportAction, prevTransactionParentReport, prevThreadReport, hasPrevParentReportActions, isPrevSentMoneyReport);
 
-    // Replays a staged press once its parent action arrives, but only if the user is still where they pressed -
+    // Replays a staged press once its parent actions arrive, but only if the user is still where they pressed -
     // this screen stays mounted under a pushed RHP, and resuming from there would yank them out with a stale backTo.
+    // A fetched PAY report has no expense-creation action, but its loaded actions are enough to resolve the report.
     useEffect(() => {
         const pending = pendingSiblingRef.current;
         if (!pending) {
@@ -454,17 +455,17 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
             pendingSiblingRef.current = null;
             return;
         }
-        if (pending.transactionID === nextTransactionID && nextParentReportAction) {
+        if (pending.transactionID === nextTransactionID && (nextParentReportAction || hasNextParentReportActions)) {
             pendingSiblingRef.current = null;
             onNext(undefined);
             return;
         }
-        if (pending.transactionID === prevTransactionID && prevParentReportAction) {
+        if (pending.transactionID === prevTransactionID && (prevParentReportAction || hasPrevParentReportActions)) {
             pendingSiblingRef.current = null;
             onPrevious(undefined);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- onNext/onPrevious are rebuilt every render, so listing them would defeat the dependency list
-    }, [isFocused, nextTransactionID, nextParentReportAction, prevTransactionID, prevParentReportAction]);
+    }, [isFocused, nextTransactionID, nextParentReportAction, hasNextParentReportActions, prevTransactionID, prevParentReportAction, hasPrevParentReportActions]);
 
     const canNavigateToPrevious = canResolveSibling(prevTransactionID, prevTransaction, prevParentReportAction);
     const canNavigateToNext = canResolveSibling(nextTransactionID, nextTransaction, nextParentReportAction);
