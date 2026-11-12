@@ -301,10 +301,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         title={policyName}
                         titleStyles={[styles.textHeadlineH2, styles.noWrap]}
                     />
-                    <Header.Right>
-                        {shouldUseNarrowLayout && <SidePanelButton />}
-                        <AccountAvatarButton />
-                    </Header.Right>
+                    {shouldUseNarrowLayout && <SidePanelButton />}
+                    <AccountAvatarButton />
                 </Header>
 
                 <ScrollView
