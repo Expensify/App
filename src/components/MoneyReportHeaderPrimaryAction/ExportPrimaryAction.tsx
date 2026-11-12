@@ -20,9 +20,11 @@ import React from 'react';
 type ExportPrimaryActionProps = {
     reportID: string | undefined;
     onExportModalOpen: () => void;
+    /** Disables the Export button, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
-function ExportPrimaryAction({reportID, onExportModalOpen}: ExportPrimaryActionProps) {
+function ExportPrimaryAction({reportID, onExportModalOpen, isDisabled}: ExportPrimaryActionProps) {
     const {translate} = useLocalize();
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
@@ -35,7 +37,9 @@ function ExportPrimaryAction({reportID, onExportModalOpen}: ExportPrimaryActionP
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.EXPORT}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
+            isDisabled={isDisabled}
             onPress={() => {
                 if (!connectedIntegration || !moneyRequestReport) {
                     return;

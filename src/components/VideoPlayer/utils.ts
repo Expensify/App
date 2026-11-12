@@ -32,7 +32,7 @@ function addSkipTimeTagToURL(url: string, seconds: number) {
 }
 
 /**
- * Builds the playable video source URL. Remote attachments get an auth token.
+ * Builds the playable video source URL. Attachments on Expensify servers get an auth token.
  * All URLs get the skip-time tag when supported.
  */
 function buildVideoSourceURL(url: string, encryptedAuthToken: string) {
@@ -40,7 +40,7 @@ function buildVideoSourceURL(url: string, encryptedAuthToken: string) {
         return url;
     }
 
-    const sourceWithAuth = url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken);
+    const sourceWithAuth = addEncryptedAuthTokenToURL(url, encryptedAuthToken);
     return addSkipTimeTagToURL(sourceWithAuth, VIDEO_SKIP_TIME_SECONDS);
 }
 

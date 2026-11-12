@@ -5,10 +5,17 @@ import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
 import MenuItemFieldValueHTML from '@components/MenuItem/leaves/content/MenuItemFieldValueHTML';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import useOnyx from '@hooks/useOnyx';
+
+import hasRenderableChildren from '@libs/hasRenderableChildren';
+
+import {callIfAuthenticated} from '@userActions/Session';
+
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {PropsWithChildren} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import MenuItemField from './MenuItemField';
@@ -30,16 +37,17 @@ type MenuItemFieldHTMLProps = Omit<MenuItemRootProps, 'accessibilityLabel'> &
  * `children` land in the trailing cell, next to the chevron.
  */
 function MenuItemFieldHTML({name, value, characterLimit, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldHTMLProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
+            onPress={onPress ? callIfAuthenticated(onPress, session) : undefined}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}
         >
             <MenuItemRow>
                 <MenuItemField.Content name={name}>{!!value && <MenuItemFieldValueHTML characterLimit={characterLimit}>{value}</MenuItemFieldValueHTML>}</MenuItemField.Content>
-                {(!!children || !!onPress) && (
+                {(hasRenderableChildren(children) || !!onPress) && (
                     <MenuItemTrailing>
                         {children}
                         {!!onPress && <MenuItemChevron />}

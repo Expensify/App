@@ -9,6 +9,7 @@ import {
     getFooterConvertedAmounts,
     getPayOption,
     openSearch,
+    openSearchTagFiltersPage,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     rejectMoneyRequestsOnSearch,
@@ -16,25 +17,28 @@ import {
     search,
 } from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites, read, write} from '@libs/API';
+import type {OpenSearchTagFiltersPageResponse} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import fileDownload from '@libs/fileDownload';
 import {translate} from '@libs/Localize';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExportTemplate, Policy, Report} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, SearchTagFilterItem} from '@src/types/onyx';
 import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
 
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -42,6 +46,12 @@ const translateForTest: LocalizedTranslate = (path, ...parameters) => translate(
 
 jest.mock('@libs/API');
 jest.mock('@libs/fileDownload');
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
 jest.mock('@libs/Network/enhanceParameters', () => ({
     __esModule: true,
     default: (_: string, params: Record<string, unknown>) => params,
@@ -140,13 +150,42 @@ describe('SearchActions', () => {
                 }),
             );
         });
+
+        it('saves a year to date query with this year', () => {
+            // Given a query on the deprecated year to date preset
+            const yearToDateQueryJSON = getQueryJSON('type:expense date:year-to-date');
+
+            // When it's saved
+            saveSearch({id: savedSearchID, queryJSON: yearToDateQueryJSON, newName: 'My search'});
+
+            // Then the saved query uses this year, so the saved search opens with the preset the date picker lists
+            const savedQueryJSON = getQueryJSON(normalizeDatePresetsInQuery(yearToDateQueryJSON.inputQuery));
+            expect(savedQueryJSON.inputQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.THIS_YEAR}`);
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SAVE_SEARCH,
+                {jsonQuery: JSON.stringify(savedQueryJSON), savedSearchID, newName: 'My search'},
+                expect.objectContaining({
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.SAVED_SEARCHES,
+                            value: {[savedSearchID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, name: 'My search', query: savedQueryJSON.inputQuery}},
+                        },
+                    ],
+                }),
+            );
+        });
     });
 
     describe('deleteSavedSearch', () => {
-        it('sends the optimistic DELETE, failure revert, and success removal keyed by the savedSearchID', () => {
+        it('sends the optimistic DELETE, failure revert, and success removal of the search and its column widths', () => {
+            // Given a saved search
             const savedSearchID = '987654321';
+
+            // When it's deleted
             deleteSavedSearch(savedSearchID);
 
+            // Then once the server confirms, its column widths go too, for every data type its query could have had
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_SAVED_SEARCH,
                 {savedSearchID},
@@ -156,6 +195,18 @@ describe('SearchActions', () => {
                     successData: [
                         {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SAVED_SEARCHES, value: {[savedSearchID]: null}},
                         {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FILTERS, value: {[savedSearchIDToSearchKey(savedSearchID)]: null}},
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.TABLE_COLUMN_WIDTHS,
+                            value: {
+                                [`search:expense:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:expense-report:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:invoice:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:task:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:trip:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:chat:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                            },
+                        },
                     ],
                 },
             );
@@ -184,6 +235,25 @@ describe('SearchActions', () => {
     });
 
     describe('queueExportSearchItemsToCSV', () => {
+        it('passes the groups-only option to the queued export', () => {
+            // Given a summary-only export of a grouped search.
+            const parameters = {
+                jsonQuery: '{}',
+                reportIDList: [],
+                transactionIDList: [],
+                isBasicExport: false,
+                exportColumnLabels: '{}',
+                exportName: 'Current view (groups only)',
+                isGroupsOnly: true,
+            };
+
+            // When the export is queued.
+            queueExportSearchItemsToCSV(parameters);
+
+            // Then the worker receives the summary-only flag.
+            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, expect.objectContaining({isGroupsOnly: true}), expect.any(Object));
+        });
+
         it('sets optimistic Onyx data with state preparing and returns exportID', () => {
             const exportID = queueExportSearchItemsToCSV({
                 jsonQuery: '{}',
@@ -244,6 +314,31 @@ describe('SearchActions', () => {
 
     describe('exportSearchItemsToCSV', () => {
         beforeEach(() => jest.clearAllMocks());
+
+        it('passes the groups-only option in the direct CSV form payload', () => {
+            // Given a summary-only export of a grouped search.
+            const appendSpy = jest.spyOn(FormData.prototype, 'append');
+
+            // When the export is downloaded directly.
+            exportSearchItemsToCSV(
+                {
+                    jsonQuery: '{}',
+                    reportIDList: [],
+                    transactionIDList: [],
+                    isBasicExport: false,
+                    exportColumnLabels: '{}',
+                    exportName: 'Current view (groups only)',
+                    isGroupsOnly: true,
+                },
+                jest.fn(),
+                translateForTest,
+                undefined,
+            );
+
+            // Then the API receives the summary-only flag.
+            expect(appendSpy).toHaveBeenCalledWith('isGroupsOnly', 'true');
+            appendSpy.mockRestore();
+        });
 
         it('includes excluded transaction IDs in the direct CSV form payload', () => {
             const appendSpy = jest.spyOn(FormData.prototype, 'append');
@@ -762,5 +857,88 @@ describe('getPayOption', () => {
 
         // Then bulk pay stays disabled — scoping the type lookup to the snapshot must not drop the check itself
         expect(getShouldEnableBulkPayOption(selectedReports)).toBe(false);
+    });
+
+    describe('openSearchTagFiltersPage', () => {
+        beforeEach(async () => {
+            Onyx.init({keys: ONYXKEYS});
+            await Onyx.clear();
+        });
+
+        it('writes first-page tag results to scoped resultsKey for a non-empty search query', async () => {
+            const policyIDs = 'policy-1';
+            const tags: SearchTagFilterItem[] = [{tagName: 'Marketing', tagListName: 'Department'}];
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(
+                createMock<Response<never> & OpenSearchTagFiltersPageResponse>({
+                    hasMore: false,
+                    nextCursor: '',
+                    tags,
+                }),
+            );
+
+            await openSearchTagFiltersPage(
+                {
+                    searchQuery: 'Market',
+                    limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE,
+                    cursor: '',
+                    policyIDs,
+                },
+                true,
+            );
+
+            await waitForBatchedUpdates();
+
+            const resultsKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDs}`;
+            let storedResults: SearchTagFilterItem[] | null = null;
+            const connection = Onyx.connect({
+                key: resultsKey,
+                callback: (val) => {
+                    storedResults = val ?? null;
+                },
+            });
+            await waitForBatchedUpdates();
+            connection.unsubscribe();
+
+            expect(storedResults).toEqual(tags);
+        });
+
+        it('appends next-page tag results to existing results when cursor is provided', async () => {
+            const policyIDs = 'policy-1';
+            const existingTags: SearchTagFilterItem[] = [{tagName: 'Tag1', tagListName: 'Department'}];
+            const nextTags: SearchTagFilterItem[] = [{tagName: 'Tag2', tagListName: 'Department'}];
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(
+                createMock<Response<never> & OpenSearchTagFiltersPageResponse>({
+                    hasMore: false,
+                    nextCursor: '',
+                    tags: nextTags,
+                }),
+            );
+
+            await openSearchTagFiltersPage(
+                {
+                    searchQuery: 'Tag',
+                    limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE,
+                    cursor: 'cursor-1',
+                    policyIDs,
+                },
+                false,
+                existingTags,
+            );
+
+            await waitForBatchedUpdates();
+
+            const resultsKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDs}`;
+            let storedResults: SearchTagFilterItem[] | null = null;
+            const connection = Onyx.connect({
+                key: resultsKey,
+                callback: (val) => {
+                    storedResults = val ?? null;
+                },
+            });
+            await waitForBatchedUpdates();
+            connection.unsubscribe();
+
+            expect(storedResults).toEqual([...existingTags, ...nextTags]);
+        });
     });
 });

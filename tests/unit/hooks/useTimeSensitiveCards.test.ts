@@ -187,6 +187,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(1),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -215,6 +216,7 @@ describe('useTimeSensitiveCards', () => {
             ...baseFraudAction,
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
             originalMessage: {
+                cardID: 1,
                 resolution: CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED,
             },
         };
@@ -254,6 +256,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(2),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -334,6 +337,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(3),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -358,6 +362,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(10),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -382,6 +387,7 @@ describe('useTimeSensitiveCards', () => {
         const unresolvedFraudAction = {
             ...createRandomReportAction(11),
             actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {cardID: 1},
         };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);

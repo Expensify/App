@@ -2,15 +2,16 @@ import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -26,15 +27,18 @@ type HomeSectionExpandToggleProps = {
     /** Label rendered when the section is collapsed (e.g. "See 24 more") */
     collapsedLabel: string;
 
+    /** Label for Sentry tracking, from `CONST.SENTRY_LABEL`. Each section passes its own because expanding renders different rows. */
+    sentryLabel: SentryLabel;
+
     /** Optional override for the wrapper style. Defaults to the standard ph5/ph8 padding used by home sections. */
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function HomeSectionExpandToggle({isExpanded, onPress, collapsedLabel, wrapperStyle}: HomeSectionExpandToggleProps) {
+function HomeSectionExpandToggle({isExpanded, onPress, collapsedLabel, sentryLabel, wrapperStyle}: HomeSectionExpandToggleProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
 
     const label = isExpanded ? translate('common.showLess') : collapsedLabel;
@@ -44,8 +48,8 @@ function HomeSectionExpandToggle({isExpanded, onPress, collapsedLabel, wrapperSt
             onPress={onPress}
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={label}
-            sentryLabel="HomeSectionExpandToggle"
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, wrapperStyle]}
+            sentryLabel={sentryLabel}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, cardPaddingHorizontal, wrapperStyle]}
         >
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.componentSizeNormal, height: variables.componentSizeNormal}]}>
                 <Icon

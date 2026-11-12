@@ -1,4 +1,5 @@
-import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getLeaveWorkspaceConfirmationPrompt, getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
+import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
+import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 

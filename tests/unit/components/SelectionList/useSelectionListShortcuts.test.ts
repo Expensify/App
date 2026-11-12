@@ -99,7 +99,36 @@ describe('useSelectionListShortcuts', () => {
     });
 
     describe('Ctrl+Enter', () => {
-        it('delegates to confirmButtonOptions.onConfirm with the focused option', () => {
+        it('delegates to confirmButtonOptions.onConfirmFocusedOption with the focused option', () => {
+            const onConfirm = jest.fn();
+            const onConfirmFocusedOption = jest.fn();
+            const {selectFocusedItem} = renderShortcuts({confirmButtonOptions: {onConfirm, onConfirmFocusedOption}});
+            const {callback} = getShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER);
+            const event = new KeyboardEvent('keydown');
+
+            callback?.(event);
+
+            expect(onConfirmFocusedOption).toHaveBeenCalledWith(focusedOption);
+            expect(onConfirm).not.toHaveBeenCalled();
+            expect(selectFocusedItem).not.toHaveBeenCalled();
+        });
+
+        it('falls back to confirmButtonOptions.onConfirm when there is no focused option', () => {
+            const onConfirm = jest.fn();
+            const onConfirmFocusedOption = jest.fn();
+            const {selectFocusedItem, getFocusedOption} = renderShortcuts({confirmButtonOptions: {onConfirm, onConfirmFocusedOption}});
+            getFocusedOption.mockReturnValue(undefined);
+            const {callback} = getShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER);
+            const event = new KeyboardEvent('keydown');
+
+            callback?.(event);
+
+            expect(onConfirmFocusedOption).not.toHaveBeenCalled();
+            expect(onConfirm).toHaveBeenCalledWith(event);
+            expect(selectFocusedItem).not.toHaveBeenCalled();
+        });
+
+        it('delegates to confirmButtonOptions.onConfirm with the event when onConfirmFocusedOption is not provided', () => {
             const onConfirm = jest.fn();
             const {selectFocusedItem} = renderShortcuts({confirmButtonOptions: {onConfirm}});
             const {callback} = getShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER);
@@ -107,7 +136,7 @@ describe('useSelectionListShortcuts', () => {
 
             callback?.(event);
 
-            expect(onConfirm).toHaveBeenCalledWith(event, focusedOption);
+            expect(onConfirm).toHaveBeenCalledWith(event);
             expect(selectFocusedItem).not.toHaveBeenCalled();
         });
 

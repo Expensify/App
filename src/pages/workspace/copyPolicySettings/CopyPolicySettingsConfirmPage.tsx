@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -37,11 +38,13 @@ function CopyPolicySettingsConfirmPage() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [copyPolicySettingsState, copyPolicySettingsMetadata] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
@@ -91,7 +94,7 @@ function CopyPolicySettingsConfirmPage() {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }
-        copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags);
+        copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags, allRules, isOffline);
         Navigation.dismissModal();
     };
 
@@ -134,12 +137,14 @@ function CopyPolicySettingsConfirmPage() {
                     </View>
                     <View style={[styles.mt4]}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_CONFIRM_SETTINGS}
                             name={translate('common.settings')}
                             value={translatedParts}
                             numberOfLinesValue={0}
                             onPress={navigateToSelectFeatures}
                         />
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_CONFIRM_WORKSPACES}
                             name={translate('common.workspaces')}
                             value={targetPolicies.map((policy) => policy?.name).join(', ')}
                             numberOfLinesValue={0}
@@ -166,6 +171,7 @@ function CopyPolicySettingsConfirmPage() {
                         </>
                     )}
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_CONFIRM_SUBMIT}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleCopyPolicySettings}

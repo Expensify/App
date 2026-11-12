@@ -342,7 +342,7 @@ describe('useFilesValidation', () => {
 
             await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
             expect(getShowConfirmModalOption('title')).toBe('attachmentPicker.attachmentError');
-            expect(getShowConfirmModalOption('prompt')).toBe('attachmentPicker.errorWhileConvertingHeic');
+            expect(getShowConfirmModalOption('prompt')).toBe('attachmentPicker.errorWhileConvertingImage');
         });
 
         it('routes an oversized converted receipt image to resizing, then includes the resized result', async () => {
@@ -358,6 +358,40 @@ describe('useFilesValidation', () => {
 
             await waitFor(() => expect(onFilesValidated).toHaveBeenCalledWith([resizedFile], []));
             expect(mockResizeImageIfNeeded).toHaveBeenCalledWith(oversizedConvertedFile);
+        });
+    });
+
+    describe('DNG conversion', () => {
+        it('converts a DNG file and includes the converted JPEG', async () => {
+            // Given a DNG that validation flags for conversion, as it does on native (e.g. a ProRAW shared into the app)
+            const dngFile = createFile({uri: 'file-dng', name: 'IMG_0001.DNG'});
+            const convertedFile = createFile({uri: 'file-dng-converted', name: 'IMG_0001.jpg', size: 2048});
+            mockInvalid(CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE);
+            mockConvertHeicImage.mockImplementation((file, callbacks) => callbacks?.onSuccess?.(convertedFile));
+
+            // When the file is validated
+            const {result, onFilesValidated} = setup();
+            triggerValidation(result, [dngFile]);
+
+            // Then the JPEG is what gets passed on, never the DNG the backend would reject
+            await waitFor(() => expect(onFilesValidated).toHaveBeenCalledWith([convertedFile], []));
+            expect(mockConvertHeicImage).toHaveBeenCalledWith(dngFile, expect.anything());
+        });
+
+        it('blocks the file and shows an error when DNG conversion fails', async () => {
+            // Given a DNG the OS can't decode
+            const dngFile = createFile({uri: 'file-dng', name: 'IMG_0001.DNG'});
+            mockInvalid(CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE);
+            mockConvertHeicImage.mockImplementation((file, callbacks) => callbacks?.onError?.(new Error('conversion failed'), file));
+
+            // When the file is validated
+            const {result, onFilesValidated} = setup();
+            triggerValidation(result, [dngFile]);
+
+            // Then the user sees the conversion error and the unconverted DNG is not uploaded
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+            expect(getShowConfirmModalOption('prompt')).toBe('attachmentPicker.errorWhileConvertingImage');
+            expect(onFilesValidated).not.toHaveBeenCalled();
         });
     });
 

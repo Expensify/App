@@ -1,18 +1,22 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Section from '@components/Section';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useMemo} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
 
 type WorkspaceInvoicingDetailsSectionProps = {
     policyID: string;
@@ -24,41 +28,42 @@ type WorkspaceInvoicingDetailsSectionProps = {
 function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: WorkspaceInvoicingDetailsSectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-
-    const horizontalPadding = useMemo(() => (shouldUseNarrowLayout ? styles.ph5 : styles.ph8), [shouldUseNarrowLayout, styles]);
 
     return (
         <Section
             title={translate('workspace.invoices.invoicingDetails')}
             subtitle={translate('workspace.invoices.invoicingDetailsDescription')}
-            containerStyles={[styles.ph0, shouldUseNarrowLayout ? styles.pt5 : styles.pt8]}
-            subtitleStyles={horizontalPadding}
-            titleStyles={[styles.accountSettingsSectionTitle, horizontalPadding]}
+            isCentralPane
+            titleStyles={styles.accountSettingsSectionTitle}
             childrenStyles={styles.pt5}
             subtitleMuted
         >
-            <MenuItemWithTopDescription
+            <MenuItemSectionRoot
                 key={translate('workspace.invoices.companyName')}
-                shouldShowRightIcon={canWriteMoreFeatures}
-                title={policy?.invoice?.companyName}
-                description={translate('workspace.invoices.companyName')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_NAME}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID))}
-                interactive={canWriteMoreFeatures}
-                style={horizontalPadding}
-            />
-            <MenuItemWithTopDescription
+                onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID)), session) : undefined}
+            >
+                <MenuItemField.Row
+                    name={translate('workspace.invoices.companyName')}
+                    value={policy?.invoice?.companyName}
+                >
+                    {canWriteMoreFeatures && <MenuItem.Chevron />}
+                </MenuItemField.Row>
+            </MenuItemSectionRoot>
+            <MenuItemSectionRoot
                 key={translate('workspace.invoices.companyWebsite')}
-                shouldShowRightIcon={canWriteMoreFeatures}
-                title={policy?.invoice?.companyWebsite}
-                description={translate('workspace.invoices.companyWebsite')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_WEBSITE}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID))}
-                interactive={canWriteMoreFeatures}
-                style={horizontalPadding}
-            />
+                onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID)), session) : undefined}
+            >
+                <MenuItemField.Row
+                    name={translate('workspace.invoices.companyWebsite')}
+                    value={policy?.invoice?.companyWebsite}
+                >
+                    {canWriteMoreFeatures && <MenuItem.Chevron />}
+                </MenuItemField.Row>
+            </MenuItemSectionRoot>
         </Section>
     );
 }

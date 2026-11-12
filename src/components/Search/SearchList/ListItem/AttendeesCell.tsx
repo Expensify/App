@@ -63,8 +63,9 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
 
     return (
         <View
-            style={avatarContainerStyles}
+            style={[avatarContainerStyles, styles.userSelectNone]}
             testID="AttendeesCell-Row"
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
             {[...icons].splice(0, maxAvatarsPerRow).map((icon, index) => (
                 <UserDetailsTooltip
