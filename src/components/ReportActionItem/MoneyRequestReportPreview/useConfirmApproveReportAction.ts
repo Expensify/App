@@ -9,6 +9,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
@@ -24,12 +25,14 @@ import {useReportPreviewActions} from './MoneyRequestReportPreviewContext';
 function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useReportPreviewActionButtonData>, hasViolations: boolean) {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {startApprovedAnimation} = useReportPreviewActions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail, delegateAccountID} = actionButtonData;
 
@@ -38,6 +41,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
             showDelegateNoAccessModal();
         } else {
             approveMoneyRequest({
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 expenseReport: iouReport,
                 expenseReportPolicy: policy,
@@ -55,6 +59,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                allTransactionViolations,
             });
         }
     };

@@ -17,7 +17,7 @@ function TravelBillingSubtitleWrapper({htmlComponent}: TravelBillingSubtitleWrap
     return (
         <View style={[styles.mt2, styles.mr5]}>
             <Text style={[styles.mutedNormalTextLabel, styles.textLabelSupportingEmptyValue, styles.lh20]}>
-                {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subtitle')} {htmlComponent}
+                {translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subtitle')} {htmlComponent}
             </Text>
         </View>
     );

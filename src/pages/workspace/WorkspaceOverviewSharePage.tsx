@@ -30,7 +30,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ImageSourcePropType} from 'react-native';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
@@ -65,12 +65,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const logoBackgroundColor = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
     const svgLogoFillColor = !hasAvatar ? defaultWorkspaceAvatarColors.fill : undefined;
 
-    const adminRoomReportID = useMemo(() => {
-        if (!policy?.id) {
-            return undefined;
-        }
-        return getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id)?.reportID ?? String(policy?.chatReportIDAdmins);
-    }, [policy?.chatReportIDAdmins, policy?.id]);
+    const adminRoomReportID = !policy?.id ? undefined : (getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id)?.reportID ?? String(policy?.chatReportIDAdmins));
 
     const adminsRoomLink = adminRoomReportID ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(adminRoomReportID)}` : '';
 
@@ -115,6 +110,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                         </View>
                         <View style={[styles.mt3, styles.ph4]}>
                             <ContextMenuItem
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.SHARE_COPY}
                                 isAnonymousAction
                                 text={translate('qrCodes.copy')}
                                 icon={icons.Copy}
@@ -128,7 +124,10 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                             We shouldn't introduce platform specific code in our codebase.
                             This is a temporary solution while Web is not supported for the QR code download feature */}
                             {shouldAllowDownloadQRCode && (
-                                <MenuItemSectionRoot onPress={() => qrCodeRef.current?.download?.()}>
+                                <MenuItemSectionRoot
+                                    onPress={() => qrCodeRef.current?.download?.()}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.SHARE_DOWNLOAD_QR_CODE}
+                                >
                                     <MenuItem.Row>
                                         <MenuItem.Leading>
                                             <MenuItem.Icon src={icons.Download} />

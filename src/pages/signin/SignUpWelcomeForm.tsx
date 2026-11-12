@@ -15,8 +15,9 @@ import {clearSignInData, signUpUser} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeAndAccountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
@@ -29,7 +30,9 @@ function SignUpWelcomeForm() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [login] = useOnyx(ONYXKEYS.CREDENTIALS, {selector: (credentials) => credentials?.login});
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
+    const [marketingAttribution] = useOnyx(ONYXKEYS.MARKETING_ATTRIBUTION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeAndAccountIDSelector});
+    const serverErrorText = account ? getLatestErrorMessage(account) : '';
     const isPhoneSignup = Str.isSMSLogin(login ?? '');
     const [hasSMSMarketingConsent, setHasSMSMarketingConsent] = useState(false);
     const marketingSMSConsentLabel = translate('welcomeSignUpForm.marketingSMSConsent');
@@ -53,7 +56,7 @@ function SignUpWelcomeForm() {
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
-                        signUpUser(login, preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined);
+                        signUpUser(login, preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined, marketingAttribution, session);
                         setReadyToShowAuthScreens(true);
                     }}
                     style={[styles.mb2]}

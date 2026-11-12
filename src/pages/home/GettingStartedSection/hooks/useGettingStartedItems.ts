@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
@@ -35,13 +36,29 @@ import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
+import {createHasExpenseDefaultRulesSelector} from '@selectors/Rule';
 import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
+type GettingStartedItemKey =
+    | 'createWorkspace'
+    | 'createExpense'
+    | 'customizeExpenseCategories'
+    | 'customizeSpendCategories'
+    | 'customizeCategories'
+    | 'linkPersonalCard'
+    | 'linkCompanyCards'
+    | 'issueExpensifyCards'
+    | 'setupTravel'
+    | 'inviteAccountant'
+    | 'connectAccounting'
+    | 'configureApprovals'
+    | 'setupRules';
+
 type GettingStartedItem = {
-    key: string;
+    key: GettingStartedItemKey;
     label: string;
     subText: string;
     isComplete: boolean;
@@ -72,11 +89,15 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const intent = useOnboardingIntent();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [hasMerchantRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createHasExpenseDefaultRulesSelector(activePolicyID)});
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [reportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
+
+    // The checklist reads the rules collection, and nothing on Home opens a workspace to populate it.
+    useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
     const [allCardFeeds] = useCardFeeds(activePolicyID);
     const workspaceAccountID = useWorkspaceAccountID(activePolicyID);
 
@@ -290,7 +311,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
             subText: translate('homePage.gettingStartedSection.connectAccountingSubText'),
             isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
-            route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
+            route: ROUTES.WORKSPACE_CONNECTIONS.getRoute(activePolicyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING),
         });
     } else if (policy.areCategoriesEnabled) {
         items.push({
@@ -348,7 +369,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
             subText: translate('homePage.gettingStartedSection.setupRulesSubText'),
-            isComplete: hasConfiguredRules(policy, policyCategories),
+            isComplete: hasConfiguredRules(policy, policyCategories, hasMerchantRules ?? false),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
         });
     }
@@ -357,4 +378,4 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 }
 
 export default useGettingStartedItems;
-export type {GettingStartedItem};
+export type {GettingStartedItem, GettingStartedItemKey};

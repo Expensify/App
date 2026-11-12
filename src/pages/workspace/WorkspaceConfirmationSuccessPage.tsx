@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -7,14 +7,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 function WorkspaceConfirmationSuccessPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const closePage = useCallback(() => {
+    const closePage = () => {
         Navigation.closeRHPFlow();
-    }, []);
+    };
 
     return (
         <ScreenWrapper
@@ -25,11 +25,10 @@ function WorkspaceConfirmationSuccessPage() {
                 title={translate('workspace.new.confirmWorkspace')}
                 onBackButtonPress={closePage}
             />
-            <ConfirmationPage
+            <ConfirmationPageDefault
                 heading={translate('workspace.createdForClient.title')}
                 description={translate('workspace.createdForClient.description')}
                 descriptionStyle={[styles.ph5, styles.textSupporting]}
-                shouldShowButton
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={closePage}
             />

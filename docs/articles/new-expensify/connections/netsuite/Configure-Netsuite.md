@@ -22,8 +22,8 @@ Each Expensify Workspace has its own configuration with NetSuite.
 
 To access:
 
-1. From the navigation tabs, go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **NetSuite > Configure**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**.
+2. Select **Configure** next to NetSuite.
 
 ---
 
@@ -31,8 +31,10 @@ To access:
 
 To control what data is imported from NetSuite:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting > NetSuite > Import**
-2. Review and customize these options:
+1. Select **Workspaces > [workspace name] > Connections**.
+2. Select **Configure** next to NetSuite.
+3. Select **Import**.
+4. Review and customize these options:
 
 - **Categories** – NetSuite Expense Categories are imported automatically
 - **Departments, Classes, and Locations** – Import as:
@@ -41,13 +43,13 @@ To control what data is imported from NetSuite:
   - Employee Defaults
 - **Customers and Projects** – Import as Tags or Report Fields
   - To support **cross-subsidiary data**, enable **Intercompany Time and Expense** under **Setup > Company > Enable Features > Advanced Features**
-- **Tax** – Imports NetSuite Tax Groups into the **Taxes** tab
+- **Tax** – Imports Tax Groups from legacy tax accounts or individual Tax Codes from SuiteTax accounts
 - **Custom Segments and Records** – Import as Tags or Report Fields
   - Use Field IDs from NetSuite’s **Transactions** tab
   - Do not use the “Filtered by” feature in NetSuite Custom Segments
 - **Custom Lists** – Import as Tags or Report Fields
 
-3. Click the **three-dot icon** and choose **Sync Now** to apply changes
+5. Select **More (⋮)**, then select **Sync now** to apply changes.
 
 ---
 
@@ -55,8 +57,10 @@ To control what data is imported from NetSuite:
 
 To manage how reports are exported from Expensify to NetSuite:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting > NetSuite > Export**
-2. Configure the following:
+1. Select **Workspaces > [workspace name] > Connections**.
+2. Select **Configure** next to NetSuite.
+3. Select **Export**.
+4. Configure the following:
 
 - **Preferred Exporter** – Select the Workspace Admin who will handle exports
 - **Export Date Options** – Choose from:
@@ -75,12 +79,15 @@ To manage how reports are exported from Expensify to NetSuite:
 - **Export Invoices To** – Choose the Accounts Receivable account
 - **Invoice Item** – Select or create the item line for invoices
 - **Export Foreign Currency Amount** – Enable to export original currency values
-- **Export to next open period** – Enable to skip closed periods and use the next available NetSuite period
+- **Export to Next Open Period** – Enable to skip closed periods and use the next available NetSuite period
 - **Split exports by posting period** – Enable to export non-reimbursable expenses as one NetSuite transaction per calendar month, each dated in its own month. **Export to next open period** must be on first. While this toggle is on, **Export to next open period** stays locked on.
 - **Export Expensify Travel Payable To** – If Expensify Travel's Consolidated Travel Billing feature is enabled, configure where travel card expenses are exported:
+- **Consolidated Travel Billing** – If Expensify Travel's Consolidated Travel Billing feature is enabled, click this row to open the **Consolidated Travel Billing** page and configure where travel card expenses are exported:
   - **Non-reimbursable journal posting account** – Select the payable account for Expensify Travel expenses
+  - **Journal posting preference** – Choose how journal entries post
+  - **Sync Consolidated Travel Billing settlements** – Turn on this toggle to continuously reconcile settlements through NetSuite. Turning it on opens a picker where you choose the **Reconciliation account** that matches your settlement account, and that account then appears in a **Reconciliation account** row below the toggle. The toggle stays locked until you select a **Non-reimbursable journal posting account** and enable **Auto-sync** on the **Advanced** page.
 
-3. Click the **three-dot icon** > **Sync Now** to apply changes
+5. Select **More (⋮)**, then select **Sync now** to apply changes.
 
 ---
 
@@ -88,22 +95,29 @@ To manage how reports are exported from Expensify to NetSuite:
 
 For additional control:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting > NetSuite > Advanced**
-2. Configure the following options:
+1. Select **Workspaces > [workspace name] > Connections**.
+2. Select **Configure** next to NetSuite.
+3. Select **Advanced**.
+4. Configure the following options:
 
 - **Auto-sync** – Enable for daily syncing of NetSuite data
 - **Sync Reimbursed Reports** – Automatically updates status between systems
 - **Invite Employees & Set Approvals** – Imports employees and sets workflow
 - **Auto Create Employees/Vendors** – Automatically creates a NetSuite record if one doesn’t exist
 - **Enable Newly Imported Categories** – Activates newly synced Expense Categories
-- **Sync Consolidated Travel Billing settlements** – If Expensify Travel's [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) feature is enabled, turn on this toggle to continuously reconcile settlements through NetSuite. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
 - **Approval Levels** – Set approval levels for:
   - Expense Reports
   - Vendor Bills
   - Journal Entries
 - **Custom Form ID** – Use a specific NetSuite form instead of the default
+- **Currency conversion fee account** – Select the account for currency conversion (FX) fees. This setting appears under **Sync reimbursed reports** only when it is enabled, you reimburse through Expensify, and a business bank account is connected. If **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, each cross-border reimbursement exports a separate journal entry for the fee alongside the bill payment. This journal entry:
+  - Debits the selected currency conversion fee account and credits cash
+  - Uses the memo “Foreign Exchange Fees for Expensify report [reportID]”
+  - Only exports if this account is mapped
 
-3. Click the **three-dot icon** > **Sync Now** to apply changes
+**Sync Consolidated Travel Billing settlements** is not on this page. It is on the **Consolidated Travel Billing** page under **Export**. Learn more about [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/).
+
+5. Select **More (⋮)**, then select **Sync now** to apply changes.
 
 ---
 
@@ -177,4 +191,3 @@ When **Split exports by posting period** is on, a report with non-reimbursable e
 
 - The employee/vendor currency must match the subsidiary
 - The bank account currency must match the subsidiary for bill payments
-

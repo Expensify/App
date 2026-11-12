@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, renderHook, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -9,6 +9,8 @@ import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginPr
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import * as useSafeAreaInsetsModule from '@hooks/useSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
@@ -26,6 +28,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -260,5 +263,86 @@ describe('WorkspaceReceiptPartners', () => {
             expect(screen.getByText(TestHelper.translateLocal('workspace.receiptPartners.uber.centralBillingAccount'))).toBeOnTheScreen();
         });
         expect(screen.getByText(TestHelper.translateLocal('workspace.receiptPartners.uber.centralBillingAccount'))).toBeOnTheScreen();
+    });
+
+    describe('bottom safe area padding', () => {
+        // Larger than any regular spacing on these pages, so a view whose bottom padding reaches it can only be reserving room for the inset
+        const BOTTOM_INSET = 100;
+        const SCREEN_TEST_ID = 'DynamicInviteReceiptPartnerPolicyPage';
+        let useSafeAreaInsetsSpy: jest.SpyInstance;
+        let safeAreaPaddingBottom: number;
+
+        beforeEach(() => {
+            useSafeAreaInsetsSpy = jest.spyOn(useSafeAreaInsetsModule, 'default').mockReturnValue({top: 0, right: 0, bottom: BOTTOM_INSET, left: 0});
+            safeAreaPaddingBottom = renderHook(() => useSafeAreaPaddings(true)).result.current.paddingBottom;
+        });
+
+        afterEach(() => {
+            useSafeAreaInsetsSpy.mockRestore();
+        });
+
+        /** Finds every view on the invite page that reserves room for the bottom safe area inset and tells whether it holds the given button. */
+        const doViewsWithBottomSafeAreaPaddingHoldButton = (buttonText: string) =>
+            screen
+                .getByTestId(SCREEN_TEST_ID)
+                .findAll((node) => {
+                    if (typeof node.type !== 'string') {
+                        return false;
+                    }
+                    const style: unknown = StyleSheet.flatten(node.props.style);
+                    return !!style && typeof style === 'object' && 'paddingBottom' in style && typeof style.paddingBottom === 'number' && style.paddingBottom >= safeAreaPaddingBottom;
+                })
+                .map((view) => within(view).queryByText(buttonText) !== null);
+
+        it('lets only the confirm button footer add the bottom safe area padding on the send invites page', async () => {
+            // Given a workspace with members that can still be invited to Uber, so the page shows the member list with the confirm button footer
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, basePolicy);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, employeePersonalDetails);
+            });
+
+            // When the page is rendered on a device that has a bottom safe area inset
+            renderInvitePage({policyID, integration: UBER_INTEGRATION});
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.receiptPartners.uber.sendInvites'))).toBeOnTheScreen();
+            });
+
+            // Then the footer holding the confirm button should be the only view that reserves room for the inset, because ScreenWrapper adding its own spacer below it leaves an oversized gap under the button
+            expect(doViewsWithBottomSafeAreaPaddingHoldButton(TestHelper.translateLocal('workspace.receiptPartners.uber.confirm'))).toEqual([true]);
+        });
+
+        it('lets only ScreenWrapper add the bottom safe area padding on the all set page', async () => {
+            // Given a workspace where every member is already linked to Uber, so there is nobody left to invite and the page skips to the "All set" confirmation
+            await TestHelper.signInWithTestUser();
+            const linkedEmployee = {status: CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED};
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    ...basePolicy,
+                    receiptPartners: {
+                        ...basePolicy.receiptPartners,
+                        uber: {
+                            ...basePolicy.receiptPartners.uber,
+                            employees: {
+                                [EMPLOYEE_EMAIL]: linkedEmployee,
+                                [BILLING_EMAIL]: linkedEmployee,
+                            },
+                        },
+                    },
+                });
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, employeePersonalDetails);
+            });
+
+            // When the page is rendered on a device that has a bottom safe area inset
+            renderInvitePage({policyID, integration: UBER_INTEGRATION});
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.receiptPartners.uber.allSet'))).toBeOnTheScreen();
+            });
+
+            // Then the ScreenWrapper spacer below the page should be the only view that reserves room for the inset, because the confirmation footer does not add it and needs the spacer to keep the button above the home indicator
+            expect(doViewsWithBottomSafeAreaPaddingHoldButton(TestHelper.translateLocal('common.buttonConfirm'))).toEqual([false]);
+        });
     });
 });

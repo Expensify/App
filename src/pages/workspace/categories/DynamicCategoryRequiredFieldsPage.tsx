@@ -83,6 +83,7 @@ function DynamicCategoryRequiredFieldsPage({
                                 <Switch
                                     isOn={areCommentsRequired}
                                     accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.REQUIRE_DESCRIPTION_SWITCH}
                                     onToggle={() => {
                                         setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired, policyCategories);
                                     }}
@@ -104,6 +105,7 @@ function DynamicCategoryRequiredFieldsPage({
                                     <Switch
                                         isOn={areAttendeesRequired}
                                         accessibilityLabel={translate('workspace.rules.categoryRules.requireAttendees')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.REQUIRE_ATTENDEES_SWITCH}
                                         onToggle={() => {
                                             setPolicyCategoryAttendeesRequired(policyID, categoryName, !areAttendeesRequired, policyCategories);
                                         }}
