@@ -273,7 +273,14 @@ function ColumnsSettingsList({
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButtonAndTitle title={translate('search.columns')}>
-                {isResetColumnsVisible && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
+                {isResetColumnsVisible && (
+                    <TextLink
+                        onPress={resetColumns}
+                        style={styles.pr2}
+                    >
+                        {translate('search.resetColumns')}
+                    </TextLink>
+                )}
             </HeaderWithBackButtonAndTitle>
             <ListSearchBar
                 label={translate('common.search')}
