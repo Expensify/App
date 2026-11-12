@@ -114,6 +114,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                allTransactionViolations: transactionViolations,
             });
         } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
             if (currentMoneyRequestReport?.reportID) {

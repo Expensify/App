@@ -1257,6 +1257,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Alles bekijken',
         topExpenses: 'Belangrijkste uitgaven',
         noExpensesInRange: 'Geen uitgaven in dit bereik',
+        efficiency: 'Efficiëntie',
+        workflowEfficiency: 'Workflow-efficiëntie',
+        longestToSubmit: 'Langste om in te dienen',
+        slowestToApprove: 'Traagst om goed te keuren',
+        mostTimeToPay: 'Meeste tijd om te betalen',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1416,6 +1421,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'of sleep ze hier naartoe',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Pagina ${page} van ${pageCount}`,
+        translate: 'Vertalen',
+        viewOriginal: 'Origineel weergeven',
+        translationDisclaimer: 'AI kan fouten maken. Controleer alsjeblieft het origineel nog een keer.',
+        translationError: {
+            unreadable: 'We konden deze bon niet duidelijk genoeg lezen om hem te vertalen.',
+            alreadyInLanguage: 'Deze bon is al in jouw taal.',
+            generic: 'We konden deze bon niet vertalen. Probeer het opnieuw.',
+        },
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
@@ -2046,6 +2059,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'heeft deze uitgave teruggezet',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `kilometervergoedingen bijgewerkt voor de nieuwe workspace - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} rapport`,
+                other: (count: number) => `${formattedCount ?? count} rapporten`,
+            };
+        },
         payViaABA: 'Betalen via ABA',
         missingABADepositAccount: ({name}: {name: string}) => `${name} heeft geen AUD-bankrekening. Vraag hen om er een toe te voegen en probeer het opnieuw.`,
         submittersMissingABADepositAccount: 'Een of meer indieners hebben geen AUD-bankrekening. Vraag hen om er een toe te voegen en probeer het opnieuw.',
@@ -9685,6 +9704,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
         },
         digits: {
+            entity: 'Entiteit',
             updateCurrencyTitle: 'Werkruimtevaluta bijwerken?',
             updateCurrencyPrompt: 'Digits is momenteel alleen beschikbaar voor in de VS gevestigde bedrijven die in USD werken.',
             importDescription: 'Kies welke Digits-configuraties je wilt importeren.',
@@ -10071,6 +10091,25 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             return `heeft de categorie „${categoryName}” Itemized receipts gewijzigd naar ${newValue} (voorheen ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `heeft de categorie "${oldName}" hernoemd naar "${newName}"`,
+        setCategoryVisibility: (members: string, categories: string) => `heeft ${members} zo ingesteld dat ze alleen ${categories} zien`,
+        changedCategoryVisibility: (members: string, categories: string) => `heeft ${members} gewijzigd zodat ze alleen ${categories} zien`,
+        clearedCategoryVisibility: (members: string) => `heeft ${members} gewijzigd zodat ze alle categorieën kunnen zien`,
+        quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
+        oneCategory: (categoryName: string) => `de categorie ${categoryName}`,
+        someCategories: (categoryList: string) => `de ${categoryList} categorieën`,
+        everyone: 'iedereen',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 categorie',
+            other: `${count} categorieën`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 lid',
+            other: `${count} leden`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Categorieën: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Leden: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', omdat hun enige categorie is verwijderd. Werk hun categoriezichtbaarheid bij indien nodig.',
+        categoryVisibilityReasonDisabled: ', omdat hun enige categorie was uitgeschakeld. Werk indien nodig hun categoriezichtbaarheid bij.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `heeft de beschrijvingshint "${oldValue}" verwijderd uit de categorie "${categoryName}"`;
@@ -10945,6 +10984,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartaal',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Goedkeurder',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Overtreding',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Betaald door',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -11052,6 +11092,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartalen',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Goedkeurders',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Overtredingen',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Betalers',
         },
         spendOverTime: 'Uitgaven in de tijd',
         trip: {

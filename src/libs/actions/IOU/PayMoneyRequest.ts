@@ -12,13 +12,12 @@ import DateUtils from '@libs/DateUtils';
 import type HttpsError from '@libs/Errors/HttpsError';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getAllReportActions, getElsewherePaymentReportActionMessage, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getElsewherePaymentReportActionMessageBG, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
@@ -40,8 +39,7 @@ import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
-import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
-import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
+import {getIntroSelectedCompanySize, getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -242,7 +240,7 @@ function getPayMoneyRequestParams({
             introSelected,
             activePolicy,
             conciergeChat,
-            companySize: introSelected?.companySize as OnboardingCompanySize,
+            companySize: getIntroSelectedCompanySize(introSelected),
             isSelfTourViewed,
             delegateAccountID,
             // This workspace is created by the invoice payment command, which does not apply CreatePolicy's
@@ -900,7 +898,7 @@ function completePaymentOnboarding(
         onboardingPolicyID,
         paymentSelected,
         wasInvited: true,
-        companySize: introSelected?.companySize as OnboardingCompanySize,
+        companySize: getIntroSelectedCompanySize(introSelected),
         introSelected,
         isSelfTourViewed,
         conciergeChat,
@@ -1156,9 +1154,8 @@ function markReportPaymentReceived(
     // buildOptimisticIOUReportAction formats the action's `message` as "paid ... elsewhere", so override it with
     // the "received payment" copy here. Keeping the action's message in sync fixes the optimistic chat/report
     // preview, which derives lastMessageText/lastMessageHtml from this action.
-    // translateLocal is used because this runs outside a React component where the useLocalize hook is unavailable.
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const receivedPaymentMessage = getElsewherePaymentReportActionMessage(translateLocal, optimisticIOUReportAction.originalMessage);
+    const receivedPaymentMessage = getElsewherePaymentReportActionMessageBG(optimisticIOUReportAction.originalMessage);
     optimisticIOUReportAction.message = [{html: receivedPaymentMessage, text: receivedPaymentMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}];
 
     const reportPreviewAction = getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);

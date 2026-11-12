@@ -423,12 +423,14 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
  * Removes groupBy and limit from a query so a template export returns one row per expense.
  * ExportSearchWithTemplate has no isGroupExport flag, so with groupBy it would return one row per group.
  * Without groupBy, limit would cap the number of expenses, so we remove it as well.
+ * For card groupings, re-attaches `isCardGroupedExport: true` so the backend keeps card-group eligibility.
  */
-function getUngroupedTemplateExportQuery(queryJSON: SearchQueryJSON): SearchQueryJSON | undefined {
+function getUngroupedTemplateExportQuery(queryJSON: SearchQueryJSON): (SearchQueryJSON & {isCardGroupedExport?: boolean}) | undefined {
     if (!queryJSON.groupBy) {
         return queryJSON;
     }
-    return buildSearchQueryJSON(
+
+    const ungroupedQuery = buildSearchQueryJSON(
         buildSearchQueryString({
             ...queryJSON,
             groupBy: undefined,
@@ -437,6 +439,13 @@ function getUngroupedTemplateExportQuery(queryJSON: SearchQueryJSON): SearchQuer
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
         }),
     );
+
+    if (!ungroupedQuery || queryJSON.groupBy !== CONST.SEARCH.GROUP_BY.CARD) {
+        return ungroupedQuery;
+    }
+
+    // Card-group eligibility can't be encoded in the search text, so add it as metadata on the parsed query.
+    return {...ungroupedQuery, isCardGroupedExport: true};
 }
 
 /**
@@ -1546,6 +1555,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
                 isTrackIntentUser,
+                allTransactionViolations,
             });
 
             if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {
@@ -3516,7 +3526,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true, undefined),
+                        onSelected: () =>
+                            setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, translate, getCurrencyDecimals, reports, false, true, undefined),
                     });
                 }
             }
