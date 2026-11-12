@@ -129,7 +129,7 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         keysToPreserve.push(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
         // A request holding a file can't be stored on web, and it would fail the whole write
         const requests = getAllPersistedRequestsIncludingOngoing().filter(canPersistRequest);
-        if (currentSessionAccountID && requests.length > 0) {
+        if (currentSessionAccountID) {
             requestsKeptOnSAMLSignOut = {accountID: currentSessionAccountID, requests};
         }
     }
