@@ -21,6 +21,13 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
+const DIMENSION_ROW_SENTRY_LABELS = {
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION1]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_1,
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION2]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_2,
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION3]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_3,
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION4]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_4,
+};
+
 function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -52,10 +59,12 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         isActive
                         disabled
                         switchAccessibilityLabel={translate('workspace.certinia.import.expenseTypeGlaMappings')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPENSE_TYPE_GLA_MAPPINGS_SWITCH}
                         onToggle={() => {}}
                     />
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING], config?.pendingFields)}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.TAGS_MAPPED_TO}
                             name={translate('workspace.certinia.import.tagsMappedTo')}
                             onPress={() => {
                                 if (!policyID) {
@@ -77,6 +86,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         shouldPlaceSubtitleBelowSwitch
                         isActive={!!coding?.syncMilestones}
                         switchAccessibilityLabel={translate('workspace.certinia.import.milestones')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.MILESTONES_SWITCH}
                         onToggle={(isEnabled: boolean) => {
                             if (!policyID) {
                                 return;
@@ -98,6 +108,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         isActive
                         disabled
                         switchAccessibilityLabel={translate('workspace.certinia.import.chartOfAccounts')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.CHART_OF_ACCOUNTS_SWITCH}
                         onToggle={() => {}}
                     />
                     {CERTINIA_DIMENSION_PARAMS.map((dimension) => (
@@ -106,6 +117,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                             pendingAction={settingsPendingAction([dimension], config?.pendingFields)}
                         >
                             <MenuItemField
+                                sentryLabel={DIMENSION_ROW_SENTRY_LABELS[dimension]}
                                 name={getDimensionLabel(dimension, translate)}
                                 onPress={() => {
                                     if (!policyID) {
@@ -124,6 +136,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         title={translate('common.tax')}
                         isActive={!!coding?.syncTax}
                         switchAccessibilityLabel={translate('common.tax')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.TAX_SWITCH}
                         onToggle={(isEnabled: boolean) => {
                             if (!policyID) {
                                 return;

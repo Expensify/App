@@ -150,10 +150,6 @@ function hasAppliedCommuterExclusion(transaction: OnyxEntry<Transaction>): boole
     return isDistanceRequest(transaction) && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
 }
 
-function shouldUseCommuterExclusionForDisplay(transaction: OnyxEntry<Transaction>, isPolicyExpenseChat: boolean): boolean {
-    return hasAppliedCommuterExclusion(transaction) && isPolicyExpenseChat;
-}
-
 function getDisplayTransactionWithoutInvalidCommuterExclusion({
     transaction,
     isPolicyExpenseChat,
@@ -980,7 +976,7 @@ function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagI
 /**
  * Determine whether a transaction is made with an Expensify card.
  */
-function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isExpensifyCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'bank'>>): boolean {
     return transaction?.bank === CONST.EXPENSIFY_CARD.BANK;
 }
 
@@ -989,6 +985,23 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
  */
 function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>): boolean {
     return !!transaction?.managedCard;
+}
+
+/**
+ * Determine whether the reimbursable value of a transaction can be changed by the user.
+ * Company card transactions use the restriction saved at import so later feed changes don't affect existing expenses.
+ * A boolean locks the expense to that value; null or a missing value means "Do Not Force".
+ */
+function isCardTransactionReimbursableEditable(transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'bank' | 'comment'>>): boolean {
+    if (!isManagedCardTransaction(transaction)) {
+        return true;
+    }
+
+    if (isExpensifyCardTransaction(transaction)) {
+        return false;
+    }
+
+    return typeof transaction?.comment?.forceReimbursable !== 'boolean';
 }
 
 /**
@@ -1709,6 +1722,15 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
 }
 
 /**
+ * Whether every expense on the report is still scanning, is a pending card charge, or failed SmartScan with missing
+ * required fields, so there's nothing on the report that can be approved yet. A mixed report stays approvable so one
+ * expense that still needs fixing doesn't block approving the rest.
+ */
+function hasOnlyUnsettledExpenses(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
+    return transactions.length > 0 && transactions.every((transaction) => isScanning(transaction) || isPending(transaction) || hasSmartScanFailedWithMissingFields([transaction], report));
+}
+
+/**
  * Whether a scan-failed expense is one that the backend moves to its own report on payment. Auth only moves it when
  * both the merchant and the amount are unset, so anything with an amount has to stay put to keep the payment total in
  * sync with the server.
@@ -1857,7 +1879,6 @@ export {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     hasAppliedCommuterExclusion,
-    shouldUseCommuterExclusionForDisplay,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,
@@ -1865,6 +1886,7 @@ export {
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isCardTransactionReimbursableEditable,
     isDuplicate,
     isPending,
     hasOnlyPendingCardTransactions,
@@ -1974,6 +1996,7 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    hasOnlyUnsettledExpenses,
     isFailedScanAmountPlaceholder,
     isScanFailedTransactionMovedOnPayment,
     shouldSplitScanFailedTransactions,

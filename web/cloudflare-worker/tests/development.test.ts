@@ -166,6 +166,19 @@ describe('live development worker', () => {
         assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'|connect-src \*/);
     });
 
+    test('allows mock S3 avatar fetches only through connect-src', async () => {
+        // Given uploaded avatars served by the local S3 mock rather than CloudFront
+        const mockS3Origin = 'https://expensify.com.dev:7070';
+        // When the Worker serves the development policy used by PNG exports
+        const csp = (await server.fetch('/')).headers.get('Content-Security-Policy') ?? '';
+        const getSources = (directive: string) => new RegExp(`(?:^|; )${directive} ([^;]*)`).exec(csp)?.[1].split(' ') ?? [];
+        // Then exports can fetch those avatars without allowing scripts, frames or media from the mock
+        assert.ok(getSources('connect-src').includes(mockS3Origin));
+        for (const directive of ['script-src', 'frame-src', 'media-src']) {
+            assert.ok(!getSources(directive).includes(mockS3Origin));
+        }
+    });
+
     test('adds only configured backends and the OldDot origin the app hardcodes', async () => {
         // Given a backend from .env, and the app's hardcoded development OldDot URL (CONST.INTERNAL_DEV_EXPENSIFY_URL)
         // When the Worker serves a page

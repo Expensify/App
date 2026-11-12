@@ -1,7 +1,7 @@
 import {write} from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, SetApprovalWorkflowParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getDefaultApprover, isNonMemberApprover} from '@libs/PolicyUtils';
+import {getDefaultApprover, hasDynamicExternalWorkflow, isNonMemberApprover} from '@libs/PolicyUtils';
 import type {ApprovalWorkflowRulesDiff} from '@libs/RuleUtils';
 import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
 import {
@@ -38,6 +38,7 @@ import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import lodashDropRightWhile from 'lodash/dropRightWhile';
 import Onyx from 'react-native-onyx';
@@ -65,6 +66,13 @@ type ClearApprovalWorkflowApproverParams = {
     approverIndex: number;
     currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
 };
+
+/**
+ * Dynamic External Workflow policies keep their approval mode when workflows are edited, since the backend does not change it
+ */
+function getOptimisticApprovalMode(policy: Policy, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
+    return hasDynamicExternalWorkflow(policy) ? policy.approvalMode : approvalMode;
+}
 
 /**
  * Roll the policy's employees back to what they were before an approval workflow save.
@@ -112,7 +120,7 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: updatedEmployees,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approvalMode: getOptimisticApprovalMode(policy, CONST.POLICY.APPROVAL_MODE.ADVANCED),
                 ...(newDefaultApprover ? {approver: newDefaultApprover} : {}),
             },
         },
@@ -208,7 +216,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
     const shouldKeepAdvancedMode = hasMultipleWorkflows || hasForwardsToChain;
     const previousApprovalMode = policy.approvalMode;
 
-    const updatedApprovalMode = shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
+    const updatedApprovalMode = getOptimisticApprovalMode(policy, shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -284,6 +292,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     const defaultApproverEmployee = mergedEmployeeList[defaultApprover];
     const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo;
     const shouldKeepAdvancedMode = hasMoreThanOneWorkflow || hasForwardsToChain;
+    const previousApprovalMode = policy.approvalMode;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -296,7 +305,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: optimisticEmployees,
-                approvalMode: shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC,
+                approvalMode: getOptimisticApprovalMode(policy, shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC),
             },
         },
     ];
@@ -307,7 +316,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: getRolledBackEmployeeList(previousEmployeeList, updatedEmployees),
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approvalMode: previousApprovalMode,
             },
         },
     ];
@@ -762,17 +771,19 @@ type SaveFastEditApprovalWorkflowParams = {
     approvalWorkflow: ApprovalWorkflowOnyx;
     policy: OnyxEntry<Policy>;
     rules: OnyxCollection<Rule>;
-    isMultipleApproversBetaEnabled: boolean;
+
+    /** Whether the workflow is saved as approval workflow rules rather than on `employeeList` */
+    shouldUseApprovalWorkflowRules: boolean;
 };
 
 /** Saves the member changes made through the "+N more" shortcut and discards the draft, since no edit page will. */
-function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, isMultipleApproversBetaEnabled}: SaveFastEditApprovalWorkflowParams) {
+function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, shouldUseApprovalWorkflowRules}: SaveFastEditApprovalWorkflowParams) {
     // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
     const isDefault = approvalWorkflow.isDefault || includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList);
     const workflow: ApprovalWorkflow = {...approvalWorkflow, isDefault, approvers: approvalWorkflow.approvers.filter((approver): approver is Approver => !!approver)};
     const originalMembers = approvalWorkflow.originalMembers ?? [];
 
-    if (isMultipleApproversBetaEnabled) {
+    if (shouldUseApprovalWorkflowRules) {
         updateApprovalWorkflowRules({
             approvalWorkflow: workflow,
             initialApprovalWorkflow: {...workflow, members: originalMembers},
@@ -793,10 +804,10 @@ type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {
 /**
  * Validates the approval workflow and sets the errors on the approval workflow
  * @param approvalWorkflow the approval workflow to validate
- * @param isMultipleApproversBetaEnabled whether the `MULTIPLE_APPROVERS` beta is enabled, which saves the workflow as approval workflow rules
+ * @param shouldUseApprovalWorkflowRules whether the workflow is saved as approval workflow rules rather than on `employeeList`
  * @returns true if the approval workflow is valid, false otherwise
  */
-function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx, isMultipleApproversBetaEnabled: boolean): approvalWorkflow is ApprovalWorkflowOnyxValidated {
+function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx, shouldUseApprovalWorkflowRules: boolean): approvalWorkflow is ApprovalWorkflowOnyxValidated {
     const errors: Record<string, TranslationPaths> = {};
 
     for (const [approverIndex, approver] of approvalWorkflow.approvers.entries()) {
@@ -815,7 +826,7 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx, isMult
 
         // Someone who already approves in this workflow approves every report anyway, so the limit can't add them
         if (
-            isMultipleApproversBetaEnabled &&
+            shouldUseApprovalWorkflowRules &&
             approver?.overLimitForwardsTo &&
             approvalWorkflow.approvers.some((workflowApprover) => workflowApprover?.email === approver.overLimitForwardsTo)
         ) {

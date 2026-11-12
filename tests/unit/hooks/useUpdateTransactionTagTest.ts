@@ -117,7 +117,7 @@ describe('useUpdateTransactionTag', () => {
 
         // Then only the split draft is written
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
-        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, undefined, {tag: 'Engineering:Beta'}, expect.any(Function), expect.any(Function));
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, transaction, {tag: 'Engineering:Beta'}, expect.any(Function), expect.any(Function));
         expect(updateMoneyRequestTag).not.toHaveBeenCalled();
         expect(setMoneyRequestTag).not.toHaveBeenCalled();
     });

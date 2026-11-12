@@ -20,6 +20,11 @@ const SUPPORTED_FIELD_TYPES: Record<DynamicFormFieldType, true> = {
     list: true,
 };
 
+/** Whether a field has a key and a type this App version knows, without logging anything, for callers that look at a schema more than once */
+function hasSupportedShape(field: DynamicFormSchemaField): field is DynamicFormField {
+    return !!field.key && Object.hasOwn(SUPPORTED_FIELD_TYPES, field.type);
+}
+
 /** A field of a type this App version does not know, or with no key to store its answer under, is left out, so it neither renders nor blocks submission */
 function isSupportedField(field: DynamicFormSchemaField): field is DynamicFormField {
     if (!field.key) {
@@ -34,3 +39,4 @@ function isSupportedField(field: DynamicFormSchemaField): field is DynamicFormFi
 }
 
 export default isSupportedField;
+export {hasSupportedShape};

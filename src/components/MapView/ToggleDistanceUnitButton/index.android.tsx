@@ -9,7 +9,7 @@ import React, {useRef} from 'react';
  * This component is a workaround to resolve an issue for an Android issue where onPress does not trigger on Mapbox.MapView due to a PanResponder that captures touch events.
  * Related issue: https://github.com/Expensify/App/issues/56499
  */
-function ToggleDistanceUnitButton({onPress, children, ...rest}: PressableProps) {
+function ToggleDistanceUnitButton({onPress, children, sentryLabel, ...rest}: PressableProps) {
     const touchStartLocation = useRef<{x: number; y: number} | null>(null);
 
     const handleTouchStart = (event: GestureResponderEvent) => {
@@ -42,6 +42,7 @@ function ToggleDistanceUnitButton({onPress, children, ...rest}: PressableProps) 
 
     return (
         <PressableWithoutFeedback
+            sentryLabel={sentryLabel}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}

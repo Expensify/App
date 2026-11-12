@@ -1,4 +1,5 @@
 {
+    "include": ["nsExports", "nsTypes"],
     "ignoreIssues": {
         "src/hooks/usePersonalDetails.ts": ["exports"],
         "src/libs/PersonalDetailsUtils.ts": ["exports"]
@@ -12,6 +13,7 @@
                 "src/HybridAppHandler.tsx",
                 "scripts/**/*.{js,mjs,ts}",
                 "web/proxy.ts",
+                "web/service-worker.ts",
                 "config/rsbuild/**/*.{js,mjs,cjs,ts}",
                 "config/repack/**/*.{js,mjs,ts}",
                 ".github/scripts/**/*.ts",

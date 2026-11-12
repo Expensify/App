@@ -4,7 +4,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {ValueOf} from 'type-fest';
 
 import type {CardID} from './Card';
-import type {FeedReimbursable} from './CardFeeds';
+import type {CompanyCardFeedWithNumber, FeedReimbursable} from './CardFeeds';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
@@ -104,6 +104,18 @@ type OriginalMessageIOU = {
     /** Cross-border FX reimbursement: last 4 of the employee deposit account that was credited */
     creditBankAccountLast4?: string;
 
+    /** Wise payment: total fees, in cents of `currency` */
+    fee?: number;
+
+    /** Wise payment: units of `creditedCurrency` per one unit of `currency` */
+    rate?: number;
+
+    /** Wise payment: amount taken from the company's bank account, in cents of `currency` */
+    debitedAmount?: number;
+
+    /** Wise payment: tax Wise charges on the transfer in some corridors, in cents of `currency` */
+    tax?: number;
+
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
@@ -130,6 +142,26 @@ type OriginalMessageSmartScanFailed = {
 
     /** LLM-friendly explanation of the scan failure that activates the Explain button */
     reasoning?: string;
+};
+
+/** Fields common to all report action original messages */
+type OriginalMessageBase = {
+    /**
+     * Account IDs for whom this action is marked as important. Similar to `actionableForAccountIDs` except
+     * receiving an important message only triggers a push notification.
+     */
+    importantForAccountIDs?: number[];
+
+    /** Whether push notifications should be scoped to actionableForAccountIDs only */
+    shouldScopePushToActionableAccounts?: boolean;
+
+    /**
+     * Accounts IDs for whom this action is actionable. Receiving an actionable message will
+     * - Mark the report as unread
+     * - Trigger an email notification
+     * - Trigger a push notification (on web and mobile)
+     */
+    actionableForAccountIDs?: number[];
 };
 
 /** Model of `add comment` report action */
@@ -506,6 +538,19 @@ type OriginalMessagePolicyChangeLog = {
 
     connectionName?: AllConnectionName;
     categoryName?: string;
+
+    /** Categories the members can see after a category visibility change, empty when they can see all categories */
+    categoryNames?: string[];
+
+    /** Account IDs of the members whose category visibility changed, empty when it applies to everyone */
+    accountIDs?: number[];
+
+    /** Whether the members already had a category visibility restriction before the change */
+    hadRestriction?: boolean;
+
+    /** Why the category visibility changed */
+    reason?: ValueOf<typeof CONST.POLICY.CATEGORY_VISIBILITY.REASON>;
+
     taxName?: string;
     updatedField?: string;
     oldMaxExpenseAmountNoReceipt?: number;
@@ -1512,6 +1557,9 @@ type OriginalMessageCompanyCardConnectionBroken = {
 
     /** The feed name for which the company card connection was broken */
     feedName: string;
+
+    /** The feed's bank, used as the feed name when the feed has no custom name */
+    bank?: CompanyCardFeedWithNumber;
 };
 
 /**
@@ -1910,7 +1958,7 @@ type OriginalMessageMap = {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION]: OriginalMessageEmployeeOfficeLocationChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
-type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;
+type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageBase & OriginalMessageMap[T] : never;
 
 export default OriginalMessage;
 export type {

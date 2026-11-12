@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -128,6 +129,7 @@ function MoneyRequestReportPreview({
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(iouReportID);
 
     const widthsRef = useRef<{currentWidth: number | null; currentWrapperWidth: number | null}>({currentWidth: null, currentWrapperWidth: null});
     const [widths, setWidths] = useState({currentWidth: 0, currentWrapperWidth: 0});
@@ -159,6 +161,12 @@ function MoneyRequestReportPreview({
     const shouldShowPayerAndReceiver =
         !(!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
 
+    // The expenses a press on this preview can page through, in the order the preview shows them.
+    const getOpenableTransactionIDs = () =>
+        (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
+            .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
+            .map((pressedTransaction) => pressedTransaction.transactionID);
+
     const cancelPendingPress = () => {
         pendingExpenseTransactionRef.current = null;
         if (!cascadeTimerRef.current) {
@@ -188,6 +196,12 @@ function MoneyRequestReportPreview({
             name: 'MoneyRequestReportPreview',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
+
+        // Opening the report hands the carousel over to it. A one-expense report shows that expense directly, so a
+        // carousel left behind by another screen (e.g. the Spend page's results, still mounted under the RHP) would
+        // otherwise put arrows on it that page to expenses outside this report, such as one in the self DM.
+        setActiveTransactionIDs(getOpenableTransactionIDs(), {source: CAROUSEL_SOURCE.reportPreview(iouReportID)});
+
         // Small screens navigate to full report view since super wide RHP
         // is not available on narrow layouts and would break the navigation logic.
         if (isSmallScreenWidth) {
@@ -265,9 +279,7 @@ function MoneyRequestReportPreview({
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
 
-        const openableTransactionIDs = (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
-            .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
-            .map((pressedTransaction) => pressedTransaction.transactionID);
+        const openableTransactionIDs = getOpenableTransactionIDs();
 
         // This press owns the carousel it seeds. Without a source the list was unowned, so no screen could
         // release it and every other writer was free to overwrite it while the expense was still open.
@@ -342,7 +354,9 @@ function MoneyRequestReportPreview({
             cascadeTimerRef.current = null;
         }
 
-        if (transactions.length <= 1) {
+        // A single-expense report shows its expense inline, so the report is the expense's view. In the table view
+        // the expense is a row instead, so it opens like an expense on a multi-expense report.
+        if (transactions.length <= 1 && !shouldUseTableViewForSingleExpense) {
             openReportFromPreview();
             return;
         }
@@ -364,7 +378,14 @@ function MoneyRequestReportPreview({
                     openReportFromPreview();
                     return;
                 }
-                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
+                openReport({
+                    reportID: iouReportID,
+                    introSelected,
+                    conciergeChat,
+                    currentUserAccountID,
+                    hasReportActions: !!hasIOUReportActions,
+                    fullPolicySnapshot,
+                });
             }
             navigateToExpense(childReportID, routeAtPress);
             return;
@@ -460,7 +481,6 @@ function MoneyRequestReportPreview({
             lastTransactionViolations={lastTransactionViolations}
             renderTransactionItem={renderItem}
             onOrderedTransactionsChange={handleOrderedTransactionsChange}
-            onCancelPendingPress={cancelPendingPress}
             onCarouselLayout={onCarouselLayout}
             onWrapperLayout={onWrapperLayout}
             currentWidth={widths.currentWidth}

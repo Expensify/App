@@ -116,8 +116,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
-    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const isIndirectTagUploadsBetaEnabled = isBetaEnabled(CONST.BETAS.INDIRECT_TAG_UPLOADS);
     const {showConfirmModal} = useConfirmModal();
     const {showDownloadErrorModal} = useAlertModals();
     const {backTo, policyID} = route.params;
@@ -129,14 +127,44 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
+    const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
+    const fetchTags = () => {
+        openPolicyTagsPage(policyID);
+    };
+
+    const [selectedTagKeys, setSelectedTagKeys] = useState<string[]>([]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchTags});
+
+    useEffect(() => {
+        fetchTags();
+        // Fetch only on mount, useNetwork fetches again on reconnect
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const clearTableSelection = () => {
+        setSelectedTagKeys((prevSelectedTagKeys) => (prevSelectedTagKeys.length > 0 ? [] : prevSelectedTagKeys));
+    };
+
+    useCleanupSelectedOptions(clearTableSelection);
+
+    useSearchBackPress({
+        onClearSelection: clearTableSelection,
+        onNavigationCallBack: () => Navigation.goBack(backTo),
+    });
+
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
+    const isIndirectTagUploadsBetaEnabled = isBetaEnabled(CONST.BETAS.INDIRECT_TAG_UPLOADS);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((connectionName) => connectionName === connectionSyncProgress?.connectionName);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
     const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
-    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = [
         getTagLists(policyTags),
@@ -145,30 +173,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         hasIndependentTagsPolicyUtils(policy, policyTags),
     ];
 
-    const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     // Multi-level tag rows only ever offered the Required bulk actions, and those moved to Rules, so selecting them
     // would open a dropdown with nothing in it.
     const isSelectionEnabled = canWriteTags && !hasDependentTags && !isMultiLevelTags;
     const canSelectMultiple = isSelectionEnabled && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
-    const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
-    let tagApproverEmails;
-    const approverEmails: Record<string, string> = {};
-    if (isMultiLevelTags) {
-        tagApproverEmails = approverEmails;
-    } else {
-        for (const tag of Object.values(policyTagLists?.at(0)?.tags ?? {})) {
-            const approverEmail = getTagApproverRule(policy, tag.name)?.approver;
-            if (approverEmail) {
-                approverEmails[tag.name] = approverEmail;
-            }
-        }
-        tagApproverEmails = approverEmails;
-    }
-
-    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(tagApproverEmails).length > 0;
-    const fetchTags = () => {
-        openPolicyTagsPage(policyID);
-    };
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
 
     const tagsList = isMultiLevelTags
@@ -178,14 +186,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
           }, {})
         : policyTagLists?.at(0)?.tags;
 
-    const [selectedTagKeys, setSelectedTagKeys] = useState<string[]>([]);
+    const updateWorkspaceRequiresTag = (value: boolean, orderWeight: number) => {
+        if (!canWriteTags) {
+            showReadOnlyModal();
+            return;
+        }
 
-    const {isOffline} = useNetwork({onReconnect: fetchTags});
-
-    useEffect(() => {
-        fetchTags();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        setPolicyTagsRequired(policyData, value, orderWeight, isVendorMatchingBetaEnabled);
+    };
 
     useEffect(() => {
         if (selectedTagKeys.length === 0 || !canSelectMultiple) {
@@ -236,17 +244,35 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tagsList]);
 
-    const clearTableSelection = () => {
-        setSelectedTagKeys((prevSelectedTagKeys) => (prevSelectedTagKeys.length > 0 ? [] : prevSelectedTagKeys));
-    };
+    useEffect(() => {
+        if (!canWriteTags || !isMultiLevelTags || hasDependentTags) {
+            return;
+        }
 
-    useCleanupSelectedOptions(clearTableSelection);
+        for (const policyTagList of policyTagLists) {
+            const areTagsEnabled = !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled);
+            if (policyTagList.required && !areTagsEnabled) {
+                updateWorkspaceRequiresTag(false, policyTagList.orderWeight);
+            }
+        }
+    }, [canWriteTags, hasDependentTags, isMultiLevelTags, policyTagLists, updateWorkspaceRequiresTag]);
 
-    useSearchBackPress({
-        onClearSelection: clearTableSelection,
-        onNavigationCallBack: () => Navigation.goBack(backTo),
-    });
+    const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
+    let tagApproverEmails;
+    const approverEmails: Record<string, string> = {};
+    if (isMultiLevelTags) {
+        tagApproverEmails = approverEmails;
+    } else {
+        for (const tag of Object.values(policyTagLists?.at(0)?.tags ?? {})) {
+            const approverEmail = getTagApproverRule(policy, tag.name)?.approver;
+            if (approverEmail) {
+                approverEmails[tag.name] = approverEmail;
+            }
+        }
+        tagApproverEmails = approverEmails;
+    }
 
+    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(tagApproverEmails).length > 0;
     const updateWorkspaceTagEnabled = (value: boolean, tagName: string) => {
         if (!canWriteTags) {
             showReadOnlyModal();
@@ -256,14 +282,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0, isVendorMatchingBetaEnabled);
     };
 
-    const updateWorkspaceRequiresTag = (value: boolean, orderWeight: number) => {
-        if (!canWriteTags) {
-            showReadOnlyModal();
-            return;
-        }
-
-        setPolicyTagsRequired(policyData, value, orderWeight, isVendorMatchingBetaEnabled);
-    };
     const shouldShowGLCodeColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && Object.values(policyTagLists?.at(0)?.tags ?? {}).some((tag) => !!tag['GL Code']);
 
     const showAllTagsDisabledWarning = () => {
@@ -302,19 +320,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             );
         }
     };
-
-    useEffect(() => {
-        if (!canWriteTags || !isMultiLevelTags || hasDependentTags) {
-            return;
-        }
-
-        for (const policyTagList of policyTagLists) {
-            const areTagsEnabled = !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled);
-            if (policyTagList.required && !areTagsEnabled) {
-                updateWorkspaceRequiresTag(false, policyTagList.orderWeight);
-            }
-        }
-    }, [canWriteTags, hasDependentTags, isMultiLevelTags, policyTagLists, updateWorkspaceRequiresTag]);
 
     const isSelectionModeActive = selectedTagKeys.length > 0 || isMobileSelectionModeEnabled;
 
@@ -466,6 +471,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             // Match the design: the "Custom tag name" label is the small gray description on top, the tag list name is the regular-weight title below.
             text: policyTagLists.at(0)?.name ?? '',
             description: translate('workspace.tags.customTagName'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_MENU_CUSTOM_TAG_NAME,
             shouldShowDescriptionOnTop: true,
             titleStyle: styles.fontWeightNormal,
             onSelected: navigateToCustomTagName,
@@ -485,6 +491,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     if (canWriteTags && !!policy?.glCodes) {
         menuItems.push({
             text: translate('workspace.tags.showTagGLCodes'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_MENU_SHOW_GL_CODES,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             // Selecting the row (click or Enter) toggles it; the Switch is a display-only indicator. Keep the menu open on select.
             shouldCloseModalOnSelect: false,
@@ -500,6 +507,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             switchProps: {
                 isOn: policy?.showTagGLCodes ?? false,
                 accessibilityLabel: translate('workspace.tags.showTagGLCodes'),
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.SHOW_GL_CODES_SWITCH,
                 onToggle: (value: boolean) => setPolicyShowTagGLCodes(policyID, value, policy?.showTagGLCodes),
                 disabled: !policy?.areTagsEnabled,
             },
@@ -511,6 +519,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             text: translate('spreadsheet.importSpreadsheet'),
             onSelected: navigateToImportSpreadsheet,
             value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_MENU_IMPORT_SPREADSHEET,
             // Group the settings rows apart from the spreadsheet actions.
             addSeparatorBefore: true,
         });
@@ -521,6 +530,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             text: translate('workspace.tags.appendCustomTagList'),
             onSelected: navigateToAppendCustomTagList,
             value: CONST.POLICY.SECONDARY_ACTIONS.APPEND_CUSTOM_TAG_LIST,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_MENU_APPEND_CUSTOM_TAG_LIST,
         });
     }
     if (hasVisibleTags) {
@@ -547,11 +557,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 });
             },
             value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_MENU_DOWNLOAD_CSV,
         });
     }
     const secondaryActions = menuItems;
-
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const getHeaderButtons = () => {
         if (!canWriteTags && secondaryActions.length === 0) {
@@ -598,6 +607,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate(selectedTagKeys.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS_DELETE,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
@@ -649,6 +659,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS.DISABLE,
                 shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject),
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
@@ -673,6 +684,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Checkmark,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS.ENABLE,
                 onSelected: () => {
                     clearTableSelection();
                     setWorkspaceTagEnabled(policyData, tagsToEnable, 0, isVendorMatchingBetaEnabled);
@@ -762,10 +774,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                           icon: expensifyIcons.Table,
                           buttonText: translate('common.import'),
                           buttonAction: navigateToImportSpreadsheet,
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.EMPTY_STATE.IMPORT,
                       },
                       {
                           buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                           buttonAction: navigateToCreateTagPage,
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.EMPTY_STATE.ADD_TAG,
                           icon: expensifyIcons.Plus,
                           buttonText: translate('workspace.tags.addTag'),
                       },

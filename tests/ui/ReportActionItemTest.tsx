@@ -20,6 +20,7 @@ import type * as UrlType from '@libs/Url';
 
 import PaymentContent from '@pages/inbox/report/actionContents/PaymentContent';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+import ReportActionItemContentCreated from '@pages/inbox/report/ReportActionItemContentCreated';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import ReportActionItemParentAction from '@pages/inbox/report/ReportActionItemParentAction';
 
@@ -31,7 +32,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, DecisionName, Report, ReportAction} from '@src/types/onyx';
+import type {BankAccountList, DecisionName, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 
@@ -269,6 +270,44 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(isCreation ? 'created this invoice on behalf of Sender' : 'sent this invoice to Receiver')).toBeOnTheScreen();
             expect(screen.queryByText(isCreation ? 'sent this invoice to Receiver' : 'created this invoice on behalf of Sender')).not.toBeOnTheScreen();
             expect(screen.getByText(DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, action.created, CONST.DEFAULT_TIME_ZONE.selected))).toBeOnTheScreen();
+        });
+
+        it.each([
+            {betaEnabled: true, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, transactionCount: 1, showsHeader: false},
+            {betaEnabled: false, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, transactionCount: 1, showsHeader: true},
+            {betaEnabled: true, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE, transactionCount: 1, showsHeader: true},
+            {betaEnabled: true, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, transactionCount: 2, showsHeader: false},
+        ])('respects the single-expense invoice header preference: $view, beta: $betaEnabled, expenses: $transactionCount', async ({betaEnabled, view, transactionCount, showsHeader}) => {
+            // Given a linked invoice whose report surface uses the saved, beta-gated preference.
+            const senderAccountID = 321;
+            const invoice: Report = {reportID: '9884', type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: senderAccountID, managerID: ACTOR_ACCOUNT_ID, transactionCount};
+            const action = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {processor: processorAccountID}), reportID: invoice.reportID, actorAccountID: senderAccountID};
+            const transactions = Object.fromEntries(
+                Array.from({length: transactionCount}, (_, index) => {
+                    const transaction = createMock<Transaction>({transactionID: `invoice-expense-${index}`, reportID: invoice.reportID, amount: 100, currency: CONST.CURRENCY.USD});
+                    return [transaction.transactionID, transaction];
+                }),
+            );
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, betaEnabled ? [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW] : []);
+                await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, view);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9885});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[action.reportActionID]: action});
+                await Onyx.set(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {[invoice.reportID]: {transactions, violations: {}}});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'},
+                    [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones'},
+                });
+            });
+
+            // When the creation history row renders beneath the report surface.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then table layouts omit the extra expense header, but creation history remains visible in every layout.
+            expect(screen.getByText('created this invoice on behalf of Sender')).toBeOnTheScreen();
+            expect(screen.UNSAFE_queryByType(ReportActionItemContentCreated) !== null).toBe(showsHeader);
         });
 
         it.each([
@@ -1784,6 +1823,48 @@ describe('ReportActionItem', () => {
 
             expect(screen.getByText(/paid with Expensify/i)).toBeOnTheScreen();
         });
+
+        it('IOU PAY through Wise links to the payment details', async () => {
+            // Given a bank account payment that Wise has created the transfer for, so the backend added its final amounts
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                creditedAmount: 7743,
+                creditedCurrency: CONST.CURRENCY.GBP,
+                fee: 129,
+                rate: 0.7743,
+                debitedAmount: 10129,
+            });
+
+            // When the paid message is rendered in its report
+            renderItemWithAction(action, false, createMock<Report>({reportID: '1'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then View details follows it, since the payment details have every amount to show
+            expect(screen.getByText(translateLocal('iou.viewDetails'))).toBeOnTheScreen();
+        });
+
+        it('IOU PAY through Corpay has no link to the payment details', async () => {
+            // Given a cross-border payment with only the employee's amount and currency, as Corpay records it
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                creditedAmount: 7743,
+                creditedCurrency: CONST.CURRENCY.GBP,
+            });
+
+            // When the paid message is rendered in its report
+            renderItemWithAction(action, false, createMock<Report>({reportID: '1'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the message shows without View details, since there are no fees or rate to show behind it
+            expect(screen.getByText(/paid £77.43/i)).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('iou.viewDetails'))).toBeNull();
+        });
     });
 
     describe('Reimbursement actions', () => {
@@ -2133,6 +2214,23 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/Chase Visa connection has been broken for 30 days/)).toBeOnTheScreen();
+        });
+
+        it('COMPANY_CARD_CONNECTION_BROKEN_30_DAYS action shows the bank name when the feed has no custom name', async () => {
+            // Given a reminder for a feed that had no custom name, so the saved feed name is the bank itself
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
+                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                policyID: 'pol123',
+            });
+
+            // When the reminder is shown
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it names the feed the way the company cards page does, not by the bank
+            expect(screen.getByText(/The Chase connection has been broken for 30 days/)).toBeOnTheScreen();
+            expect(screen.queryByText(/oauth\.chase\.com/)).not.toBeOnTheScreen();
         });
 
         it('COMPANY_CARD_CONSENT_EXPIRING action', async () => {
@@ -2699,6 +2797,7 @@ describe('ReportActionItem', () => {
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <PaymentContent
                         action={action}
+                        reportID={undefined}
                         expectedDate={undefined}
                         policyID={undefined}
                     />

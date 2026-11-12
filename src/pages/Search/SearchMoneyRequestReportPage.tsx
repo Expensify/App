@@ -14,18 +14,21 @@ import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
 
+import {shouldHideBillReport} from '@libs/BillUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -72,6 +75,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {currentSearchResults: snapshot} = useSearchResultsContext();
 
@@ -132,6 +136,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -194,8 +199,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     }
     const {snapshotTransaction, snapshotViolations} = derivedValue;
 
-    // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
-    const shouldShowSuperWideRHP = visibleTransactions.length > 1;
+    // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP.
+    // A single-expense report in the table view also uses the Super Wide RHP.
+    const shouldShowSuperWideRHP = shouldUseMultiExpenseReportLayout(visibleTransactions.length, shouldUseTableViewForSingleExpense);
 
     useRHPWidth(shouldShowSuperWideRHP ? 'super-wide' : 'wide');
 
@@ -347,15 +353,17 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const hasAnyTransactions = reportTransactions.length > 0 || shouldUseSnapshotTransaction;
     const wereAllTransactionsDeleted = hasAnyTransactions && activeTransactionsCount === 0;
 
+    const isBillHidden = shouldHideBillReport(report?.type, isBetaEnabled(CONST.BETAS.NEW_DOT_BILL_PAY));
     const shouldShowAccessErrorPage: boolean =
-        !(isLoadingApp !== false) &&
-        !deleteTransactionNavigateBackUrl &&
-        ((!!reportID && !doesReportIDLookValid) ||
-            isReportPendingDeletion ||
-            wereAllTransactionsDeleted ||
-            wasParentActionDeleted ||
-            isThreadReportDeletedForReview ||
-            (!reportID && hasLoadedReportActionsForAccessError && !hasAnyTransactions));
+        isBillHidden ||
+        (!(isLoadingApp !== false) &&
+            !deleteTransactionNavigateBackUrl &&
+            ((!!reportID && !doesReportIDLookValid) ||
+                isReportPendingDeletion ||
+                wereAllTransactionsDeleted ||
+                wasParentActionDeleted ||
+                isThreadReportDeletedForReview ||
+                (!reportID && hasLoadedReportActionsForAccessError && !hasAnyTransactions)));
 
     useEffect(() => {
         if (!shouldShowAccessErrorPage) {
@@ -373,6 +381,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             wasParentActionDeleted,
             isThreadReportDeletedForReview,
             shouldUseSnapshotTransaction,
+            isBillHidden,
         });
     }, [
         shouldShowAccessErrorPage,
@@ -386,6 +395,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         wasParentActionDeleted,
         isThreadReportDeletedForReview,
         shouldUseSnapshotTransaction,
+        isBillHidden,
     ]);
 
     useClearReportActionDraftsOnReportChange(reportIDFromRoute);
