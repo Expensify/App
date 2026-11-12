@@ -173,15 +173,6 @@ function AgentZeroStatusGate({
         kickoffWaitingIndicator();
     }, [shouldKickoff, includeConcierge, kickoffWaitingIndicator]);
 
-    const candidateIDs = new Set<number>(isActive ? (serverAgentIDs ?? []) : []);
-    if (isActive && includeConcierge) {
-        candidateIDs.add(CONST.ACCOUNT_ID.CONCIERGE);
-    } else if (isActive && customAgentDMAccountID !== undefined) {
-        candidateIDs.add(customAgentDMAccountID);
-    }
-    if (currentUserAccountID !== undefined) {
-        candidateIDs.delete(currentUserAccountID);
-    }
     // Suppress an agent whose reply is already the newest action. The server's indicator-clear NVP
     // can arrive up to ~250ms after the reply Pusher event, leaving the bubble visible on top of
     // the completed response. Dropping the agent here as soon as their ADDCOMMENT lands prevents
@@ -207,14 +198,28 @@ function AgentZeroStatusGate({
     if (pendingFollowupReplyID && pendingFollowupReplyID !== followupReplyID) {
         setFollowupReplyID(pendingFollowupReplyID);
     }
+    let answeredAgentID: number | undefined;
     if (newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && newestReportAction.actorAccountID !== undefined) {
         const isLabelOn = (serverAgentIDs ?? []).includes(newestReportAction.actorAccountID);
         const isNewestFromBeforeLabel =
             labelBaseline.key === serverAgentIDsKey && labelBaseline.newestActionIDByAgent[newestReportAction.actorAccountID] === newestReportAction.reportActionID;
         const isFollowupReply = !!followupReplyID && followupReplyID === newestReportAction.reportActionID;
         if (!isLabelOn || (!isNewestFromBeforeLabel && !isFollowupReply)) {
-            candidateIDs.delete(newestReportAction.actorAccountID);
+            answeredAgentID = newestReportAction.actorAccountID;
         }
+    }
+
+    const candidateIDs = new Set<number>(isActive ? (serverAgentIDs ?? []) : []);
+    if (isActive && includeConcierge) {
+        candidateIDs.add(CONST.ACCOUNT_ID.CONCIERGE);
+    } else if (isActive && customAgentDMAccountID !== undefined) {
+        candidateIDs.add(customAgentDMAccountID);
+    }
+    if (currentUserAccountID !== undefined) {
+        candidateIDs.delete(currentUserAccountID);
+    }
+    if (answeredAgentID !== undefined) {
+        candidateIDs.delete(answeredAgentID);
     }
     // Render Concierge's bubble first, then any custom agents ascending by accountID — a stable,
     // intentional order instead of relying on Set insertion order.
