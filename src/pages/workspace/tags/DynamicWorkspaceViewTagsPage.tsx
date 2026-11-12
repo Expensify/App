@@ -201,6 +201,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 icon: icons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.VIEW_TAGS_BULK_ACTIONS.DELETE,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
@@ -244,6 +245,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 icon: icons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.VIEW_TAGS_BULK_ACTIONS.DISABLE,
                 shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledTag(currentPolicyTag, selectedTagsObject),
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, selectedTagsObject)) {
@@ -266,6 +268,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 icon: icons.Checkmark,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.VIEW_TAGS_BULK_ACTIONS.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
                     setWorkspaceTagEnabled(policyData, tagsToEnable, orderWeight, isVendorMatchingBetaEnabled);
