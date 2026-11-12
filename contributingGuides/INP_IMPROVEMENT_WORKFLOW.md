@@ -34,6 +34,8 @@ Project-specific notes:
 
 *Example of the importance of context for the INP interaction: an interaction that edits transaction details will produce very different work depending on where it's invoked: from the Search Page, it additionally triggers re-renders of the Search List; from a report view, it may re-render the report header and transaction list instead. Even though both interactions share the same `data-sentry-label`, their performance characteristics and the components contributing to the INP differ significantly.*
 
+For how labels are named, how they map to the `inp.category` attribute, and what they must not contain, see [The `data-sentry-label` schema](SENTRY_LABEL.md).
+
 ## Workflow for improving the INP metric
 
 > [!NOTE]

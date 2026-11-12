@@ -33,6 +33,7 @@ import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFrag
 
 import {clearPolicyRoomNameErrors} from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
@@ -155,6 +156,7 @@ function ReportDetailsNameSectionContent({report}: ReportDetailsNameSectionConte
         >
             <View style={[styles.flex1, canRename && styles.mt3]}>
                 <MenuItem.Root
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.NAME}
                     onPress={canRename ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path)) : undefined}
                     accessibilityLabel={isNameField ? `${fieldName}, ${name}` : name}
                 >

@@ -46,16 +46,21 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         travelSettings: policy.travelSettings,
     };
 
+// The draft IDs are only used by an empty state button, which needs a focused screen. An unfocused consumer ignores draft
+// writes, so starting a Create expense flow (which writes a draft) does not re-render a hidden tab.
+const noDraftTransactionIDsSelector = (): string[] => [];
+
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
+    authTokenType: session?.authTokenType,
 });
 
 /**
  * Get a list of all search groupings, along with their search items.
  *
- * `isScreenFocused` gates the reports-awaiting-approval watch so an off-screen consumer stops recomputing it. It
- * defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
+ * `isScreenFocused` gates the reports-awaiting-approval watch and the draft transaction IDs so an off-screen consumer stops
+ * recomputing them. It defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
  * reliably, so this hook never depends on a navigation context itself.
  */
 const useSearchTypeMenuSections = (isScreenFocused = true) => {
@@ -67,7 +72,9 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: isScreenFocused ? validTransactionDraftIDsSelector : noDraftTransactionIDsSelector,
+    });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     // Migrated Control workspaces leave `areRulesEnabled` undefined; Violations by submitter then depends on
     // Classic category rules stored on POLICY_CATEGORIES. No selector: mapping this collection would still be
@@ -118,6 +125,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
         isTrackIntentUser: isTrackIntentUser ?? false,
         hasReportAwaitingApproval,
         policyCategories: allPolicyCategories,
+        session: currentUserLoginAndAccountID,
     });
 
     return typeMenuSections;

@@ -40,6 +40,7 @@ import type {
     CompanyCardFeedWithNumber,
     CompanyFeeds,
     NonConnectableBankName,
+    SelectableFeedReimbursable,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -78,11 +79,6 @@ function getCardFeedColors(cardFeed: string | undefined): {background: string; t
         .sort((a, b) => b.length - a.length)
         .find((key) => cardFeed.startsWith(key));
     return feedKey !== undefined ? CARD_FEED_COLORS[feedKey] : GENERIC_CARD_COLORS;
-}
-
-/** Returns the background hex color for the card image shown for a given feed. */
-function getCardFeedBackgroundColor(cardFeed: string | undefined): string {
-    return getCardFeedColors(cardFeed).background;
 }
 
 /** Returns the WCAG-compliant overlay text color for a given feed's card artwork. */
@@ -2568,10 +2564,29 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
     });
 }
 
+function isSelectableFeedReimbursable(value: unknown): value is SelectableFeedReimbursable {
+    return Object.values(CONST.COMPANY_CARDS.FEED_REIMBURSABLE).some((option) => option === value);
+}
+
+/**
+ * Normalizes unset and legacy settings so they match the options available to admins.
+ * Undefined or an empty string means `force_no`, and legacy `none` means `default_no`.
+ * Unknown server values return undefined to avoid displaying an incorrect setting.
+ */
+function getEffectiveFeedReimbursable(value: string | undefined): SelectableFeedReimbursable | undefined {
+    if (!value) {
+        return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO;
+    }
+    if (value === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
+        return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO;
+    }
+    return isSelectableFeedReimbursable(value) ? value : undefined;
+}
+
 export {
+    getEffectiveFeedReimbursable,
     canResolveTransactionCard,
     getAssignedCardSortKey,
-    getCardFeedBackgroundColor,
     getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
     getDisplayedExpensifyCardLimitType,

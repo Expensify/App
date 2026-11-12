@@ -3,7 +3,6 @@ name: Check consistency of search parser files
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths:
       - 'src/libs/SearchParser/**'
 
