@@ -639,6 +639,7 @@ export type {default as GetWiseBankAccountFieldsParams} from './GetWiseBankAccou
 export type {default as CreateWiseBankAccountParams} from './CreateWiseBankAccountParams';
 export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
+export type {default as JoinAccountingIntegrationWaitlistParams} from './JoinAccountingIntegrationWaitlistParams';
 export type {default as AskToJoinPolicyParams} from './AskToJoinPolicyParams';
 export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';

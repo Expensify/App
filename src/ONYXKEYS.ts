@@ -197,6 +197,13 @@ const ONYXKEYS = {
     /** Agent templates for the add-agent Suggestions */
     AGENT_TEMPLATES: 'agentTemplates',
 
+    /**
+     * Accounting integration waitlist requests that are still pending or that failed, by workspace and integration.
+     * NVP_ACCOUNTING_INTEGRATION_WAITLIST is an array the server replaces as a whole on every response, so pending and
+     * error state is kept in this key instead, where one response can't wipe another workspace's pending request.
+     */
+    ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS: 'accountingIntegrationWaitlistRequests',
+
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
 
@@ -207,6 +214,9 @@ const ONYXKEYS = {
 
     /** UTC signup timestamp for the account's Exact Online waitlist membership */
     NVP_EXACT_ONLINE_WAITLIST: 'nvp_expensify_exactOnlineWaitlist',
+
+    /** Accounting integrations the user is waiting for, one entry per integration and workspace */
+    NVP_ACCOUNTING_INTEGRATION_WAITLIST: 'nvp_accountingIntegrationWaitlist',
 
     /** This NVP contains list of at most 5 recent attendees */
     NVP_RECENT_ATTENDEES: 'nvp_expensify_recentAttendees',
@@ -1858,6 +1868,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST]: string;
+    [ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST]: OnyxTypes.AccountingIntegrationWaitlist;
+    [ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS]: OnyxTypes.AccountingIntegrationWaitlistRequests;
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
