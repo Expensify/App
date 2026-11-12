@@ -56,6 +56,9 @@ const ONYXKEYS = {
     /** Whether the reimbursement countries needed by the collect deposit account flow are still loading */
     RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP: 'isLoadingDepositAccountSetup',
 
+    /** The Wise onboarding page saves still running, by save ID. RAM-only, since a page with an SSN skips the queue, so its save ends when the app closes and must not keep the flow saving after a reload. */
+    RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES: 'wiseOnboardingPendingSaves',
+
     /** Ordered reportIDs from the latest SearchForReports response, used to display server search results in the tier order Auth returned. */
     RAM_ONLY_SEARCH_RESULT_REPORT_IDS: 'searchResultReportIDs',
     /** Boolean flag set whenever we are searching for users in the server */
@@ -827,6 +830,9 @@ const ONYXKEYS = {
     /** Corpay fields to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
 
+    /** The employee bank-account form for one country and currency, as Wise defines it */
+    RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS: 'wiseBankAccountFields',
+
     /** A fresh link to Wise's embedded KYC page */
     RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK: 'wiseKYCReviewEmbeddedLink',
 
@@ -847,6 +853,9 @@ const ONYXKEYS = {
 
     /** Signals the UI to show the Enable Global Reimbursements modal when a pay attempt fails because the workspace USD VBBA is not set up on Corpay */
     RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL: 'enableGlobalReimbursementsModal',
+
+    /** Signals the UI to show the "Cannot disable category" modal when the backend rejects disabling categories some members can't do without */
+    RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL: 'membersNeedCategoryModal',
 
     /** Answers to sensitive DynamicForm fields, such as SSNs, carried between the pages of one visit to the form instead of saved to its draft */
     RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS: 'dynamicFormSensitiveAnswers',
@@ -959,6 +968,9 @@ const ONYXKEYS = {
     /** Width the user dragged the single RHP to. Per device, since the ideal width depends on window size. */
     SINGLE_RHP_WIDTH: 'singleRHPWidth',
 
+    /** Width the user dragged the Concierge side panel to. Per device, since the ideal width depends on window size. */
+    SIDE_PANEL_WIDTH: 'sidePanelWidth',
+
     /** Partial transaction data used for MFA authorize transaction preview */
     TRANSACTIONS_PENDING_3DS_REVIEW: 'transactionsPending3DSReview',
 
@@ -1025,12 +1037,16 @@ const ONYXKEYS = {
         // keys below (REPORT_LOADING_STATE, REPORT_PAGINATION_STATE, REPORT_LAST_VISIT_TIMES)
         // so they don't ripple to every subscriber of the report's business state.
         REPORT_METADATA: 'reportMetadata_',
+        REPORT_UPCOMING_STEPS: 'reportUpcomingSteps_',
         /** Session-scoped loading/error flags for a report's action list.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_REPORT_LOADING_STATE: 'reportLoadingState_',
         /** Session-scoped loading flags for company cards page and feeds.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
+        /** Session-scoped translate state for a transaction's receipt.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_RECEIPT_TRANSLATION_STATE: 'receiptTranslationState_',
         /** Session-scoped loading flags for the Expensify Card page, keyed by policyID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE: 'expensifyCardLoadingState_',
@@ -1071,6 +1087,8 @@ const ONYXKEYS = {
         TRANSACTION_DRAFT: 'transactionsDraft_',
         SKIP_CONFIRMATION: 'skipConfirmation_',
         TRANSACTION_BACKUP: 'transactionsBackup_',
+        /** Receipt translations keyed by transactionID, then by the viewer's locale */
+        RECEIPT_TRANSLATIONS: 'receiptTranslations_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         MERGE_TRANSACTION: 'mergeTransaction_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
@@ -1083,6 +1101,12 @@ const ONYXKEYS = {
 
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
+
+        /**
+         * Auth's verdict on an expense's edits, keyed by expense then by field. A field reads true once the same value
+         * has been given to the same merchant often enough for a merchant rule to be worth offering.
+         */
+        SUGGEST_NEW_RULE_CREATION: 'suggestNewRuleCreation_',
 
         // Search Page related
         SNAPSHOT: 'snapshot_',
@@ -1677,8 +1701,10 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
+    [ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS]: OnyxTypes.ReportUpcomingSteps;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE]: OnyxTypes.ReceiptTranslationState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE]: OnyxTypes.ExpensifyCardLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]: OnyxTypes.SearchTagFiltersPaginationState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS]: OnyxTypes.SearchTagFilterItem[];
@@ -1704,6 +1730,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.SKIP_CONFIRMATION]: boolean;
     [ONYXKEYS.COLLECTION.TRANSACTION_BACKUP]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.RECEIPT_TRANSLATIONS]: OnyxTypes.ReceiptTranslation;
     [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
     [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.MERGE_TRANSACTION]: OnyxTypes.MergeTransaction;
@@ -1745,6 +1772,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
     [ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS]: OnyxTypes.DomainHighlightItems;
     [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
+    [ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION]: OnyxTypes.MerchantRuleSuggestionConfirmation;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
     [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };
@@ -1948,6 +1976,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
+    [ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES]: Record<string, boolean>;
     [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;
@@ -2021,6 +2050,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
     [ONYXKEYS.VALIDATED_FILE_OBJECT]: OnyxTypes.FileObject | undefined;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
+    [ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS]: OnyxTypes.WiseBankAccountFields;
     [ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK]: OnyxTypes.WiseKYCReviewEmbeddedLink;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
@@ -2031,6 +2061,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
     [ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL]: OnyxTypes.EnableGlobalReimbursementsModal;
+    [ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL]: OnyxTypes.MembersNeedCategoryModal;
     [ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS]: OnyxTypes.DynamicFormSensitiveAnswers;
     [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean | undefined;
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
@@ -2072,6 +2103,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS]: string[];
     [ONYXKEYS.TABLE_COLUMN_WIDTHS]: OnyxTypes.TableColumnWidths;
     [ONYXKEYS.SINGLE_RHP_WIDTH]: number;
+    [ONYXKEYS.SIDE_PANEL_WIDTH]: number;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS]: Record<string, SearchDataTypes>;

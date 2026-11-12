@@ -31,8 +31,8 @@ To connect Rillet, you must:
 ## How to connect Rillet to Expensify
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. In the **Connections** section next to **Rillet**, select **Connect**.
+2. Select **Connections**.
+3. Select **Rillet**.
 4. In the **Rillet setup** page that opens, follow the on-screen instructions to generate an API key in Rillet, paste it into the **API key** field, and click **Confirm**.
 
 Expensify validates the API key, connects to your Rillet organization, and retrieves your available entities.
@@ -45,7 +45,7 @@ Expensify validates the API key, connects to your Rillet organization, and retri
 
 ## What happens after you connect to Rillet
 
-After the connection is established, the **Connections** section updates to show your connected Rillet integration, including:
+After the connection is established, Rillet appears as connected on the **Connections** page. Select **Configure** next to Rillet to see:
 
 - The connection status and last sync timestamp.
 - The selected entity.
@@ -61,8 +61,8 @@ After the initial sync completes, you can configure your import, export, and adv
 ## How to disconnect Rillet 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**
-2. Select **Accounting**.
-3. In the **Connections** section next to **Rillet**, select the three dots **(⋮)**.
+2. Select **Connections**, then select **Configure** next to Rillet.
+3. Select **More (⋮)**.
 4. Choose **Disconnect**.
 5. Confirm the disconnect.
 
@@ -86,4 +86,4 @@ Tax rates are only imported if your Rillet organization returns them. If no tax 
 
 ## Can I change which entity is used?
 
-Yes. If your Rillet organization has multiple entities, you can select a different entity at any time from the **Connections** section. Expensify will sync data from the newly selected entity, including its accounts, dimensions, and tax rates.
+Yes. If your Rillet organization has multiple entities, you can select a different entity at any time by selecting **Configure** next to Rillet on the **Connections** page. Expensify will sync data from the newly selected entity, including its accounts, dimensions, and tax rates.

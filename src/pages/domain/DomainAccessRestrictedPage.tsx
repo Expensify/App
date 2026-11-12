@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -75,12 +76,13 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
                         >
                             <ConfirmationPage.Illustration illustration={icons.EmptyStateSpyPigeon} />
                             <ConfirmationPage.Heading>{translate('domain.accessRestricted.title')}</ConfirmationPage.Heading>
-                            <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
+                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.w100]}>
                                 <RenderHTML html={translate('domain.accessRestricted.description', domainName)} />
                             </View>
                         </ConfirmationPage.Content>
                         <FixedFooter>
                             <ConfirmationPage.SecondaryButton
+                                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ACCESS_RESTRICTED_REQUEST_ADMIN_ACCESS}
                                 text={translate(hasPendingRequest ? 'domain.requestSent' : 'domain.accessRestricted.requestAdminAccess')}
                                 isLoading={isRequestPending}
                                 isDisabled={!isRequestPending && (!!hasPendingRequest || isOffline)}
@@ -92,6 +94,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
                                 }}
                             />
                             <ConfirmationPage.PrimaryButton
+                                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ACCESS_RESTRICTED_VERIFY_YOURSELF}
                                 text={translate('domain.accessRestricted.verifyYourself')}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(domainAccountID))}
                             />

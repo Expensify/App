@@ -70,7 +70,7 @@ If reimbursable expenses are exported as **Vendor bills**, confirm the reimbursa
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
 4. Review the **Reimbursable export option** setting.
 5. Confirm it is set to **Vendor bill** if the **Time & Expense** module is not used in Sage Intacct.
 6. Click **Save**.
@@ -87,8 +87,9 @@ If you see the error message **“No expense types found”** after the initial 
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Sync Now**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 If permissions and export configuration are correct, the sync should complete successfully.
 

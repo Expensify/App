@@ -1,6 +1,8 @@
 import type {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
+import type {SearchChartCountDimension} from '@components/Search/types';
 
 import type {SkParagraph} from '@shopify/react-native-skia';
+import type {ReactNode} from 'react';
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
 
 /** One plotted dataset: a line, or one bar of every group. */
@@ -43,8 +45,11 @@ type ChartDataPoint = {
     /** Color of each series' bar at the point, keyed by the series' key. Left out, `color` for the first series and each other series' own color. */
     seriesColors?: Partial<Record<string, string>>;
 
-    /** Number of expenses in this point */
+    /** Number of expenses or reports in this point, whichever the chart's `countDimension` names */
     count?: number;
+
+    /** The money each series' expenses total at this point, written out. Set when the plotted value isn't money, so the tooltip can name the spend behind it. */
+    seriesTotals?: Partial<Record<string, string>>;
 
     /** Marks a time-based point whose period hasn't ended yet, the current one or a later one, so its total is still changing. A line chart draws these points dashed. */
     isInProgress?: boolean;
@@ -59,13 +64,28 @@ type UnitWithFallback = {value: string; fallback: string};
 /** Position of the unit symbol relative to the formatted value. */
 type UnitPosition = 'left' | 'right';
 
+/** Formats a plotted value for display, in place of the chart's own number-and-unit formatting */
+type ChartValueFormatter = (value: number, options?: {shouldUseCompactNotation?: boolean}) => string;
+
 type ChartProps = {
     data: ChartDataPoint[];
 
     /** The datasets plotted, in drawing order. The first one is the chart's primary series. */
     series: NonEmptyTuple<ChartSeries>;
 
+    /** Formats every plotted value the chart writes out. Left out, values are numbers carrying the chart's unit. */
+    formatValue?: ChartValueFormatter;
+
+    /** What each point's `count` counts, which names it in the tooltip. Defaults to expenses. */
+    countDimension?: SearchChartCountDimension;
+
     isLoading?: boolean;
+
+    /** Called with the data point of a tooltip opened by a touch tap when that tooltip is pressed */
+    onTooltipPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** Shown at the end of a tooltip opened by a touch tap */
+    tooltipFooter?: ReactNode;
 };
 
 type CartesianChartProps = ChartProps & {
@@ -74,6 +94,9 @@ type CartesianChartProps = ChartProps & {
 
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     yAxisUnitPosition?: UnitPosition;
+
+    /** Keeps the Y-axis ticks on whole numbers, for charts plotting things that don't come in fractions, like a count of expenses. */
+    shouldUseWholeNumberTicks?: boolean;
 };
 
 type PieSlice = {
@@ -127,4 +150,16 @@ type WrappedLabelConfig = {
     canvasWidth: number;
 };
 
-export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartSeries, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback, WrappedLabelConfig};
+export type {
+    CartesianChartProps,
+    ChartDataPoint,
+    ChartProps,
+    ChartSeries,
+    ChartValueFormatter,
+    LabelRotation,
+    ParagraphWithWidth,
+    PieSlice,
+    UnitPosition,
+    UnitWithFallback,
+    WrappedLabelConfig,
+};

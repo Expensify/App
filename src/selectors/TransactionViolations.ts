@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 
@@ -14,5 +15,20 @@ const transactionViolationsByIDsSelector =
         return result;
     };
 
-// eslint-disable-next-line import/prefer-default-export -- this file will include more selectors, so we want don't want to export single selector as default
-export {transactionViolationsByIDsSelector};
+/**
+ * Keeps only the violation lists that flag an auto-reported rejected expense. That's the only violation `hasOutstandingChildRequest`
+ * reads for the sibling reports of a chat, so rows that only subscribe to their own transactions' violations can still pass it along
+ * without re-rendering on unrelated violation changes.
+ */
+const autoReportedRejectedExpenseViolationsSelector = (allViolations: OnyxCollection<TransactionViolations>): OnyxCollection<TransactionViolations> => {
+    const result: OnyxCollection<TransactionViolations> = {};
+    for (const [key, violations] of Object.entries(allViolations ?? {})) {
+        if (!violations?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)) {
+            continue;
+        }
+        result[key] = violations;
+    }
+    return result;
+};
+
+export {transactionViolationsByIDsSelector, autoReportedRejectedExpenseViolationsSelector};

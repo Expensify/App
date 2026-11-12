@@ -76,7 +76,9 @@ function HoldOrRejectEducationalModalContent() {
                         </View>
                     ))}
                 </FeatureTraining.BodyText>
-                <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+                <FeatureTraining.ConfirmButton sentryLabel={CONST.SENTRY_LABEL.HOLD_OR_REJECT_EDUCATIONAL_MODAL.CONFIRM_BUTTON}>
+                    {translate('common.buttonConfirm')}
+                </FeatureTraining.ConfirmButton>
             </FeatureTraining.Body>
         </>
     );
