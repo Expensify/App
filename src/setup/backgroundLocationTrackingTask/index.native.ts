@@ -12,6 +12,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import NetInfo from '@react-native-community/netinfo';
 import {defineTask} from 'expo-task-manager';
+import {Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 type BackgroundLocationTrackingTaskData = {locations: LocationObject[]};
@@ -35,6 +36,11 @@ defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK
     const {data, error} = body;
 
     if (error) {
+        // Core Location keeps trying after kCLErrorLocationUnknown (code 0), so the next location update can recover.
+        if (Platform.OS === 'ios' && error.code === 0) {
+            return;
+        }
+
         console.error('[GPS distance request] Long-running task error: ', {error, data});
         return;
     }
