@@ -11,7 +11,7 @@ import {getIsOffline} from '@libs/NetworkState';
 import {format, formatToParts} from '@libs/NumberFormatUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
-import {getLinkedTransactionID, isActionableCardFraudAlert, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getOriginalMessage, isActionableCardFraudAlert, isDeletedAction, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {
     generateIsEmptyReport,
     generateReportAttributes,
@@ -35,7 +35,18 @@ import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    CardList,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -169,6 +180,21 @@ const reportReferencesAccountIDs = (report: Report, accountIDs: Set<number>): bo
     return false;
 };
 
+// Keeps the first preview action for each child report, the one getReportPreviewReportAction finds.
+const getPreviewActionsByChildReportID = (chatReportActions: ReportActions) => {
+    const previewActions = new Map<string, ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>();
+    for (const reportAction of Object.values(chatReportActions)) {
+        if (!reportAction || !isReportPreviewAction(reportAction)) {
+            continue;
+        }
+        const linkedReportID = getOriginalMessage(reportAction)?.linkedReportID;
+        if (linkedReportID && !previewActions.has(linkedReportID)) {
+            previewActions.set(linkedReportID, reportAction);
+        }
+    }
+    return previewActions;
+};
+
 // Returns the report-preview action ID of the oldest child in `reportIDs` matching `predicate`
 // (oldest by preview-action creation time), or undefined when none match.
 const getOldestPreviewActionID = (
@@ -180,11 +206,18 @@ const getOldestPreviewActionID = (
 ) => {
     let oldestCreated: string | undefined;
     let targetReportActionID: string | undefined;
+    let previewActionsByChildReportID: Map<string, ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> | undefined;
     for (const childReportID of reportIDs ?? []) {
         if (predicate && !predicate(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`])) {
             continue;
         }
-        const reportPreviewAction = getReportPreviewReportAction(chatReportID, childReportID, chatReportActions);
+        // A busy chat has thousands of actions, so they're indexed once instead of searched again for every child.
+        if (chatReportActions && !previewActionsByChildReportID) {
+            previewActionsByChildReportID = getPreviewActionsByChildReportID(chatReportActions);
+        }
+        const reportPreviewAction = previewActionsByChildReportID
+            ? previewActionsByChildReportID.get(childReportID)
+            : getReportPreviewReportAction(chatReportID, childReportID, chatReportActions);
         if (!reportPreviewAction) {
             continue;
         }
