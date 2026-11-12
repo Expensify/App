@@ -13,7 +13,6 @@ import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isBankAccountEligibleForGlobalReimbursements, isWiseOnboardingPendingSubmit, isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isWiseGlobalReimbursementsIntroOverPayReportScreen} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
@@ -102,9 +101,6 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                             }
                             text={translate(isOnboardingSubmitted || isWiseOnboardingPendingSubmit(bankAccount) ? 'common.continue' : 'walletPage.wiseGlobalReimbursementsIntro.getStarted')}
                             onPress={() => {
-                                // Starting onboarding for any account retires both banners for good
-                                dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
-                                dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
                                 // A submitted business has nothing left to submit, so it sees where its onboarding stands instead of ending on the terms
                                 Navigation.navigate(
                                     createDynamicRoute(isOnboardingSubmitted ? DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path : DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute()),

@@ -1308,6 +1308,37 @@ describe('BankAccountUtils', () => {
             expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(2);
         });
 
+        it('returns undefined once Wise onboarding started for any account', () => {
+            // Given an eligible account and an older one whose first Wise onboarding page was saved
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-05-01 10:00:00'),
+                accountTwo: buildBankAccount(2, '2026-03-01 10:00:00', {
+                    additionalData: {currency: CONST.CURRENCY.USD, globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE},
+                }),
+            });
+
+            // When picking the account for the Wallet banner
+            // Then nothing is returned, because Wallet already offers to continue the started onboarding
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBeUndefined();
+        });
+
+        it('keeps the banner when the only started onboarding belongs to an account pending deletion', () => {
+            // Given an eligible account and an account with started Wise onboarding that was deleted offline
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-03-01 10:00:00'),
+                accountTwo: {
+                    ...buildBankAccount(2, '2026-05-01 10:00:00', {
+                        additionalData: {currency: CONST.CURRENCY.USD, globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE},
+                    }),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            });
+
+            // When picking the account for the Wallet banner
+            // Then the eligible account is returned, since Wallet no longer offers to continue the deleted account's onboarding
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(1);
+        });
+
         it('returns undefined when no account is eligible', () => {
             // Given only an account already set up for global reimbursements
             const bankAccountList = createMock<BankAccountList>({
@@ -1380,6 +1411,25 @@ describe('BankAccountUtils', () => {
 
             // When picking the account for the Workspace banner
             // Then nothing is returned, so the banner never points to an account queued for removal
+            expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
+        });
+
+        it('returns undefined once Wise onboarding started for any account', () => {
+            // Given an eligible connected account and another account whose first Wise onboarding page was saved
+            const otherBankAccountID = 2;
+            const bankAccountList = createMock<BankAccountList>({
+                [bankAccountID]: {accountData: eligibleAccountData},
+                [otherBankAccountID]: {
+                    accountData: {
+                        ...eligibleAccountData,
+                        bankAccountID: otherBankAccountID,
+                        additionalData: {currency: CONST.CURRENCY.USD, globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE},
+                    },
+                },
+            });
+
+            // When picking the account for the Workspace banner
+            // Then nothing is returned, because Wallet already offers to continue the started onboarding
             expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
         });
     });
