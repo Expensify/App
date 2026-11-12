@@ -487,6 +487,7 @@ describe('SettlementButton', () => {
             const bankAccountListWithPartial: BankAccountList = {
                 [openAccountID]: {
                     methodID: openAccountID,
+                    accountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                     bankCurrency: CONST.CURRENCY.USD,
                     bankCountry: 'US',
                     title: 'Open Business Account',
@@ -502,6 +503,7 @@ describe('SettlementButton', () => {
                 },
                 [setupAccountID]: {
                     methodID: setupAccountID,
+                    accountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                     bankCurrency: CONST.CURRENCY.USD,
                     bankCountry: 'US',
                     title: 'Setup Business Account',

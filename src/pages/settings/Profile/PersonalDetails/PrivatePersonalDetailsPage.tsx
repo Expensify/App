@@ -2,13 +2,13 @@ import AddressSearch from '@components/AddressSearch';
 import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {State} from '@components/StateSelector';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -24,7 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
-import {doesContainReservedWord, getAgeRequirementError, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
+import {doesContainReservedWord, getAgeRequirementError, getCountryZipRegexDetails, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -69,7 +69,7 @@ function PrivatePersonalDetailsPage() {
     // suggestion's country/state choices survive a back-navigation instead of reverting to geolocation defaults.
     const draftCountry = draftValues?.[INPUT_IDS.COUNTRY] ?? '';
     const draftState = draftValues?.[INPUT_IDS.STATE] ?? '';
-    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(draftCountry || country || ((defaultCountry as Country | undefined) ?? ''));
+    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(draftCountry || country || (defaultCountry && isCountryCode(defaultCountry) ? defaultCountry : ''));
     const [selectedState, setSelectedState] = useState(draftState || normalizedState);
 
     // The draft is what feeds the confirm-validate-code page; clearing it on every unmount wipes the submission
@@ -148,7 +148,7 @@ function PrivatePersonalDetailsPage() {
         }
 
         const zipValue = values[INPUT_IDS.ZIP_POST_CODE] ?? '';
-        const countryRegexDetails = effectiveCountry ? (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[effectiveCountry] as {regex?: RegExp; samples?: string}) : undefined;
+        const countryRegexDetails = getCountryZipRegexDetails(effectiveCountry);
         const countrySpecificZipRegex = countryRegexDetails?.regex;
         if (countrySpecificZipRegex) {
             if (!countrySpecificZipRegex.test(zipValue.trim().toUpperCase())) {
@@ -315,10 +315,11 @@ function PrivatePersonalDetailsPage() {
                                 country: INPUT_IDS.COUNTRY,
                             }}
                             onValueChange={(value: unknown, key: unknown) => {
+                                const stringValue = typeof value === 'string' ? value : '';
                                 if (key === INPUT_IDS.COUNTRY) {
-                                    setSelectedCountry((value ?? '') as Country | '');
+                                    setSelectedCountry(isCountryCode(stringValue) ? stringValue : '');
                                 } else if (key === INPUT_IDS.STATE) {
-                                    setSelectedState((value ?? '') as string);
+                                    setSelectedState(stringValue);
                                 }
                             }}
                         />
@@ -354,8 +355,8 @@ function PrivatePersonalDetailsPage() {
                             <InputWrapper
                                 InputComponent={StateSelector}
                                 inputID={INPUT_IDS.STATE}
-                                value={selectedState as State}
-                                onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
+                                value={selectedState}
+                                onValueChange={(value: unknown) => setSelectedState(typeof value === 'string' ? value : '')}
                                 shouldSaveDraft
                             />
                         </View>
@@ -368,7 +369,7 @@ function PrivatePersonalDetailsPage() {
                                 aria-label={translate('common.stateOrProvince')}
                                 role={CONST.ROLE.PRESENTATION}
                                 value={selectedState}
-                                onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
+                                onValueChange={(value: unknown) => setSelectedState(typeof value === 'string' ? value : '')}
                                 shouldSaveDraft
                                 spellCheck={false}
                             />
@@ -393,7 +394,7 @@ function PrivatePersonalDetailsPage() {
                             inputID={INPUT_IDS.COUNTRY}
                             value={selectedCountry}
                             onValueChange={(value: unknown) => {
-                                const newCountry = (value ?? '') as Country | '';
+                                const newCountry = typeof value === 'string' && isCountryCode(value) ? value : '';
                                 if (newCountry === selectedCountry) {
                                     return;
                                 }
