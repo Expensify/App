@@ -24,8 +24,8 @@ function useNextStep(reportID: string | undefined) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const {windowActions} = usePaginatedReportActions(report?.reportID);
+    const reportActions = getFilteredReportActionsForReportView(windowActions);
     const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
     const {transactions, violations} = useTransactionsAndViolationsForReport(report?.reportID);
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();

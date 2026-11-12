@@ -64,10 +64,10 @@ const mockUserTypingEventListener = jest.mocked(UserTypingEventListener);
 const mockMarkOpenReportEnd = jest.mocked(markOpenReportEnd);
 
 const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportActions> = {
-    reportActions: [],
+    windowActions: [],
     linkedAction: undefined,
     oldestUnreadReportAction: undefined,
-    sortedAllReportActions: undefined,
+    cachedActions: undefined,
     hasNewerActions: false,
     hasOlderActions: false,
     report: undefined,
@@ -141,7 +141,7 @@ function setupTransactions(transactions: OnyxTypes.Transaction[], reportActions:
     mockUseReportTransactionsCollection.mockReturnValue(
         Object.fromEntries(transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction])),
     );
-    mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions});
+    mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, windowActions: reportActions});
 }
 
 function restoreReportDataHooks() {
@@ -586,7 +586,7 @@ describe('ReportActions', () => {
         expect(screen.getByTestId(`chat-report-${REPORT_ID}`)).toBeTruthy();
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         expect(screen.queryByTestId('money-report-table')).toBeNull();
-        expect(mockUsePaginatedReportActions.mock.results.at(-1)?.value).toEqual(expect.objectContaining({reportActions: [action]}));
+        expect(mockUsePaginatedReportActions.mock.results.at(-1)?.value).toEqual(expect.objectContaining({windowActions: [action]}));
         unmount();
     });
 
@@ -641,7 +641,7 @@ describe('ReportActions', () => {
         expect(screen.getByTestId(`chat-report-${OTHER_REPORT_ID}`)).toBeTruthy();
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         expect(screen.queryByTestId('money-report-table')).toBeNull();
-        expect(mockUsePaginatedReportActions.mock.results.at(-1)?.value).toEqual(expect.objectContaining({reportActions: [destinationAction]}));
+        expect(mockUsePaginatedReportActions.mock.results.at(-1)?.value).toEqual(expect.objectContaining({windowActions: [destinationAction]}));
         expect(mockUseReportTransactionsCollection.mock.results.at(-1)?.value).toEqual({[destinationTransactions[0].transactionID]: destinationTransactions[0]});
 
         // When late report, action and transaction updates arrive for the source after navigation.
@@ -657,7 +657,7 @@ describe('ReportActions', () => {
         expect(screen.queryByTestId(`chat-report-${REPORT_ID}`)).toBeNull();
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         expect(screen.queryByTestId('money-report-table')).toBeNull();
-        expect(mockUsePaginatedReportActions.mock.results.at(-1)?.value).toEqual(expect.objectContaining({reportActions: [destinationAction]}));
+        expect(mockUsePaginatedReportActions.mock.results.at(-1)?.value).toEqual(expect.objectContaining({windowActions: [destinationAction]}));
         expect(mockUseReportTransactionsCollection.mock.results.at(-1)?.value).toEqual({[destinationTransactions[0].transactionID]: destinationTransactions[0]});
         unmount();
     });

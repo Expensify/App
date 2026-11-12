@@ -52,8 +52,8 @@ function WideRHPReceiptPanelGate() {
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const parentReportAction = useParentReportAction(report);
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID, routeParams?.reportActionID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const {windowActions} = usePaginatedReportActions(report?.reportID, routeParams?.reportActionID);
+    const reportActions = getFilteredReportActionsForReportView(windowActions);
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);

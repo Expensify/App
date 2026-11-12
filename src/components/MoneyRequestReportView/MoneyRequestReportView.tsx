@@ -125,9 +125,9 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
+    const {windowActions} = usePaginatedReportActions(reportID);
 
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const reportActions = getFilteredReportActionsForReportView(windowActions);
 
     const reportTransactions = useReportTransactionsCollection(reportID);
     const transactions = getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true);

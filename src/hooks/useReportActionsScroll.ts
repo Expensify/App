@@ -47,11 +47,11 @@ type UseReportActionsScrollParams = {
 
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** Sorted actions that should be visible to the user */
-    sortedVisibleReportActions: OnyxTypes.ReportAction[];
+    /** The report's visible actions, newest first, including support surveys the list hides: the server counts a hidden survey as the newest visible action. */
+    visibleActions: OnyxTypes.ReportAction[];
 
     /** Actions actually rendered by the list (may include a synthetic draft), used for mount scroll positioning */
-    renderedVisibleReportActions: OnyxTypes.ReportAction[];
+    listData: OnyxTypes.ReportAction[];
 
     /** Maps hidden canonical actions to the summary row used by the list. */
     reportActionIDToDisplayIndex?: ReadonlyMap<string, number>;
@@ -83,8 +83,8 @@ type UseReportActionsScrollParams = {
     /** The index of the action badge target in the rendered actions list (-1 if none) */
     actionBadgeTargetIndex: number;
 
-    /** Full sorted report actions for collapsing stale pagination after a live-tail jump */
-    sortedAllReportActionsForPagination: OnyxTypes.ReportAction[];
+    /** Every cached action of the report, newest first, for collapsing stale pagination after a live-tail jump */
+    cachedActions: OnyxTypes.ReportAction[];
 
     /** When true, the paginated hook ignores deep-link / unread anchors */
     treatAsNoPaginationAnchor: boolean;
@@ -140,8 +140,8 @@ function useReportActionsScroll({
     report,
     transactionThreadReport,
     parentReportAction,
-    sortedVisibleReportActions,
-    renderedVisibleReportActions,
+    visibleActions,
+    listData,
     reportActionIDToDisplayIndex,
     keyExtractor,
     hasScrolledOverThreshold,
@@ -152,7 +152,7 @@ function useReportActionsScroll({
     hasNewerActions,
     draftAutoScrollKey,
     actionBadgeTargetIndex,
-    sortedAllReportActionsForPagination,
+    cachedActions,
     treatAsNoPaginationAnchor,
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
@@ -170,12 +170,11 @@ function useReportActionsScroll({
 
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
 
-    const lastAction = sortedVisibleReportActions.at(0);
+    const lastAction = visibleActions.at(0);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction);
 
-    const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = Object.fromEntries(sortedVisibleReportActions.map((action) => [action.reportActionID, action]));
-    const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
+    const prevVisibleActions = usePrevious(visibleActions);
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
@@ -194,7 +193,7 @@ function useReportActionsScroll({
     }
 
     // The CREATED action is the top anchor of an aligned-to-top report; scrolling to it is handled by shouldFocusToTopOnMount instead.
-    if (shouldBeAlignedToTop && initialScrollKey && sortedVisibleReportActionsObjects[initialScrollKey]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+    if (shouldBeAlignedToTop && initialScrollKey && visibleActions.find((action) => action.reportActionID === initialScrollKey)?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         initialScrollKey = undefined;
     }
 
@@ -268,8 +267,8 @@ function useReportActionsScroll({
         hasNewerActions,
         linkedReportActionID,
         hasNewestReportAction,
-        sortedVisibleReportActions,
-        sortedAllReportActionsForPagination,
+        visibleActions,
+        cachedActions,
         reportActionPages,
         setTreatAsNoPaginationAnchor,
         treatAsNoPaginationAnchor,
@@ -281,7 +280,7 @@ function useReportActionsScroll({
         sizeChangeType: 'changed',
         scrollOffsetRef,
         lastActionID: lastAction?.reportActionID,
-        visibleActionsLength: sortedVisibleReportActions.length,
+        visibleActionsLength: visibleActions.length,
         hasNewestReportAction,
         setIsFloatingMessageCounterVisible,
         scrollToEnd: reportScrollManager.scrollToBottom,
@@ -345,7 +344,7 @@ function useReportActionsScroll({
         if (!isSafari()) {
             return;
         }
-        const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
+        const prevSorted = lastAction?.reportActionID ? prevVisibleActions.find((action) => action.reportActionID === lastAction.reportActionID) : null;
         if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER || prevSorted) {
             return;
         }
@@ -355,7 +354,7 @@ function useReportActionsScroll({
             },
         });
         return () => handle.cancel();
-    }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
+    }, [lastAction?.reportActionID, lastAction?.actionName, prevVisibleActions, reportScrollManager]);
 
     // Clear the highlighted report action after scrolling and highlighting
     useEffect(() => {
@@ -370,7 +369,7 @@ function useReportActionsScroll({
     }, [actionIdToHighlight]);
 
     // Only errors the user can actually see should pull the list down to them.
-    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => !isEmptyValueObject(getVisibleReportActionErrors(action)));
+    const lastIOUActionWithError = visibleActions.find((action) => !isEmptyValueObject(getVisibleReportActionErrors(action)));
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
     // Scroll to the bottom when a new errored action appears, so the user sees the failed money request. Re-checked
@@ -473,16 +472,14 @@ function useReportActionsScroll({
     //    of the viewport (viewPosition: 1) with a small offset so the message above is partly visible.
     // 2. Otherwise, if the report should be opened at top (ex: for transaction threads), scroll to the top message and offset by
     //    the window height so we land at top of the top message for sure.
-    const targetIndex = initialScrollKey
-        ? (reportActionIDToDisplayIndex?.get(initialScrollKey) ?? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey))
-        : -1;
+    const targetIndex = initialScrollKey ? (reportActionIDToDisplayIndex?.get(initialScrollKey) ?? listData.findIndex((item) => keyExtractor(item) === initialScrollKey)) : -1;
     let initialScrollIndex: number | undefined;
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
     if (targetIndex > 0) {
         initialScrollIndex = targetIndex;
         initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {
-        initialScrollIndex = renderedVisibleReportActions.length - 1;
+        initialScrollIndex = listData.length - 1;
         initialScrollIndexParams = {viewOffset: windowHeight};
     }
 

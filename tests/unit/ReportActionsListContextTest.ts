@@ -42,7 +42,7 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
         hasOnceLoadedReportActions: false,
         isLoadingInitialReportActions: false,
         isLoadingApp: false,
-        reportActionsLength: 0,
+        combinedActionsLength: 0,
         oldestReportActionID: undefined,
         hasOlderActions: false,
         hasNewerActions: false,
@@ -104,7 +104,7 @@ describe('computeReportActionsSkeletonState', () => {
             createReadinessSignals({
                 report: unreadReport,
                 isMissingReportActions: false,
-                reportActionsLength: 1,
+                combinedActionsLength: 1,
                 isReportLoadPending: false,
                 isLoadingInitialReportActions: false,
             }),
@@ -118,7 +118,7 @@ describe('computeReportActionsSkeletonState', () => {
             createReadinessSignals({
                 report: unreadReport,
                 isMissingReportActions: false,
-                reportActionsLength: 1,
+                combinedActionsLength: 1,
                 isReportLoadPending: false,
                 isLoadingInitialReportActions: undefined,
             }),
@@ -132,7 +132,7 @@ describe('computeReportActionsSkeletonState', () => {
             createReadinessSignals({
                 report: unreadReport,
                 isMissingReportActions: false,
-                reportActionsLength: 1,
+                combinedActionsLength: 1,
                 shouldBeAlignedToTop: true,
                 isReportLoadPending: false,
                 isLoadingInitialReportActions: undefined,
@@ -147,7 +147,7 @@ describe('computeReportActionsSkeletonState', () => {
             createReadinessSignals({
                 report: unreadReport,
                 isMissingReportActions: false,
-                reportActionsLength: 1,
+                combinedActionsLength: 1,
                 shouldBeAlignedToTop: true,
                 isReportLoadPending: false,
                 isLoadingInitialReportActions: false,
@@ -162,7 +162,7 @@ describe('computeReportActionsSkeletonState', () => {
             createReadinessSignals({
                 report: unreadReport,
                 isMissingReportActions: false,
-                reportActionsLength: 2,
+                combinedActionsLength: 2,
                 isReportLoadPending: true,
                 isLoadingInitialReportActions: false,
             }),
@@ -176,7 +176,7 @@ describe('computeReportActionsSkeletonState', () => {
             createReadinessSignals({
                 report: unreadReport,
                 isMissingReportActions: false,
-                reportActionsLength: 1,
+                combinedActionsLength: 1,
                 shouldBeAlignedToTop: true,
                 isReportLoadPending: true,
             }),
@@ -191,7 +191,7 @@ describe('computeReportActionsSkeletonState', () => {
                 report: readReport,
                 reportActionIDFromRoute: '5678',
                 isMissingReportActions: false,
-                reportActionsLength: 2,
+                combinedActionsLength: 2,
                 isReportLoadPending: false,
             }),
         );
@@ -205,7 +205,7 @@ describe('computeReportActionsSkeletonState', () => {
                 report: readReport,
                 reportActionIDFromRoute: '5678',
                 isMissingReportActions: false,
-                reportActionsLength: 2,
+                combinedActionsLength: 2,
                 isReportLoadPending: true,
             }),
         );

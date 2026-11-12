@@ -186,7 +186,7 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
         mockUseNetworkWithOfflineStatus.mockReturnValue({isOffline: false, lastOfflineAt: {current: undefined}, lastOnlineAt: {current: undefined}});
         jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         mockUsePaginatedReportActions.mockReturnValue({
-            reportActions: [
+            windowActions: [
                 makeAction('system-singleton', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, '2026-08-02 00:00:04.000'),
                 makeAction('chat-boundary', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:03.000'),
                 makeAction('legacy-system', CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD, '2026-08-02 00:00:02.000'),
@@ -194,7 +194,7 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
             ],
             linkedAction: undefined,
             oldestUnreadReportAction: undefined,
-            sortedAllReportActions: undefined,
+            cachedActions: undefined,
             hasNewerActions: false,
             hasOlderActions: false,
             report: undefined,
@@ -223,10 +223,10 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
             createdAction,
         ];
         mockUsePaginatedReportActions.mockReturnValue({
-            reportActions: actions,
+            windowActions: actions,
             linkedAction: undefined,
             oldestUnreadReportAction: undefined,
-            sortedAllReportActions: undefined,
+            cachedActions: undefined,
             hasNewerActions: false,
             hasOlderActions: false,
             report: undefined,
@@ -263,7 +263,7 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
             originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
         };
         mockUsePaginatedReportActions.mockReturnValue({
-            reportActions: [
+            windowActions: [
                 makeAction('system-singleton', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, '2026-08-02 00:00:04.000'),
                 makeAction('chat-boundary', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:03.000'),
                 makeAction('legacy-system', CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD, '2026-08-02 00:00:02.000'),
@@ -272,7 +272,7 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
             ],
             linkedAction: undefined,
             oldestUnreadReportAction: undefined,
-            sortedAllReportActions: undefined,
+            cachedActions: undefined,
             hasNewerActions: false,
             hasOlderActions: false,
             report: undefined,
@@ -324,10 +324,10 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
             makeAction('created', CONST.REPORT.ACTIONS.TYPE.CREATED, '2026-08-02 00:00:00.000'),
         ];
         mockUsePaginatedReportActions.mockReturnValue({
-            reportActions: actions.sort((a, b) => b.created.localeCompare(a.created)),
+            windowActions: actions.sort((a, b) => b.created.localeCompare(a.created)),
             linkedAction: undefined,
             oldestUnreadReportAction: undefined,
-            sortedAllReportActions: undefined,
+            cachedActions: undefined,
             hasNewerActions: false,
             hasOlderActions: false,
             report: undefined,

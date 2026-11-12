@@ -55,7 +55,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
         hasOnceLoadedReportActions,
         isLoadingInitialReportActions,
         isLoadingApp,
-        reportActionsLength,
+        combinedActionsLength,
         oldestUnreadReportAction,
         isSingleExpenseReport,
         isMissingReportActions,
@@ -72,7 +72,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     // When opening an unread report, it is very likely that the message we will open to is not the latest,
     // which is the only one we will have in cache.
-    const isInitiallyLoadingReport = isReportUnread && shouldKeepInitialReportLoadGated && reportActionsLength <= 1;
+    const isInitiallyLoadingReport = isReportUnread && shouldKeepInitialReportLoadGated && combinedActionsLength <= 1;
 
     // Same for unread messages, we need to wait for the results from the OpenReport API call
     // if the oldest unread report action is not available yet. Only applies during the *first* load
@@ -104,7 +104,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     const shouldShowInitialSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad || shouldShowSkeletonForLinkedMessageLoad;
 
-    const hasDerivedValueTimingIssue = reportActionsLength > 0 && isMissingReportActions;
+    const hasDerivedValueTimingIssue = combinedActionsLength > 0 && isMissingReportActions;
 
     const shouldShowLoadingSkeleton = isLoadingOnyxValue(reportResult) || !report || !isReportReady || shouldShowInitialSkeleton;
     const shouldShowDerivedTimingSkeleton = (hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions)) && !showConciergeSidePanelWelcome;

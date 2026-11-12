@@ -1938,6 +1938,12 @@ function isReportActionVisibleAsLastAction(
     );
 }
 
+/** Policy changelog actions with resolved URLs, keyed by the stored action they were built from. */
+const baseURLAdjustedReportActionCache = new WeakMap<ReportAction, ReportAction>();
+
+/** Synthetic workflow-routed actions, keyed by the submit or forward action they follow. */
+const dynamicExternalWorkflowRoutedActionCache = new WeakMap<ReportAction, ReportAction>();
+
 /**
  * For policy change logs, report URLs are generated in the server,
  * which includes a baseURL placeholder that's replaced in the client.
@@ -1947,20 +1953,23 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
         return reportAction;
     }
 
+    // Reuse the result for the same stored action, so sorting the report again keeps unchanged rows identical.
+    const cachedReportAction = baseURLAdjustedReportActionCache.get(reportAction);
+    if (cachedReportAction) {
+        return cachedReportAction;
+    }
+
     const updatedReportAction = clone(reportAction);
-
-    if (!updatedReportAction.message) {
-        return updatedReportAction;
+    const firstMessage = Array.isArray(reportAction.message) ? reportAction.message.at(0) : undefined;
+    if (Array.isArray(reportAction.message) && firstMessage) {
+        // `clone` is shallow, so replace the message instead of writing into the object Onyx still holds.
+        updatedReportAction.message = [{...firstMessage, html: getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL)}, ...reportAction.message.slice(1)];
     }
 
-    if (Array.isArray(updatedReportAction.message)) {
-        const message = updatedReportAction.message.at(0);
-
-        if (message) {
-            message.html = getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL);
-        }
+    // The environment URL resolves asynchronously, so a result built before that must not be kept.
+    if (environmentURL) {
+        baseURLAdjustedReportActionCache.set(reportAction, updatedReportAction);
     }
-
     return updatedReportAction;
 }
 
@@ -2128,7 +2137,13 @@ function getDynamicExternalWorkflowRoutedAction(
 function withDEWRoutedActionsArray(reportActions: ReportAction[]): ReportAction[] {
     return reportActions.flatMap((reportAction) => {
         if ((isDynamicExternalWorkflowSubmitAction(reportAction) || isDynamicExternalWorkflowForwardedAction(reportAction)) && getOriginalMessage(reportAction)?.to) {
-            return [reportAction, getDynamicExternalWorkflowRoutedAction(reportAction)];
+            // One routed action per stored action keeps the synthetic row identical across sorts.
+            let routedAction = dynamicExternalWorkflowRoutedActionCache.get(reportAction);
+            if (!routedAction) {
+                routedAction = getDynamicExternalWorkflowRoutedAction(reportAction);
+                dynamicExternalWorkflowRoutedActionCache.set(reportAction, routedAction);
+            }
+            return [reportAction, routedAction];
         }
         return reportAction;
     });
@@ -2147,6 +2162,9 @@ function withDEWRoutedActionsObject(reportActions: OnyxEntry<ReportActions>): On
     }, {} as ReportActions);
 }
 
+/** Sorted actions per Onyx `reportActions` value, including invisible ones. Callers must not change the returned arrays. */
+const sortedReportActionsWithInvisibleCache = new WeakMap<ReportActions, ReportAction[]>();
+
 /**
  * This method returns the report actions that are ready for display in the ReportActionsList.
  * The report actions need to be sorted by created timestamp first, and reportActionID second
@@ -2160,29 +2178,54 @@ function getSortedReportActionsForDisplay(
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     reportID?: string,
 ): ReportAction[] {
-    let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
     }
 
-    if (shouldIncludeInvisibleActions) {
-        filteredReportActions = Object.values(reportActions).filter(Boolean);
-    } else {
-        filteredReportActions = Object.entries(reportActions)
-            .filter(([collectionKey, reportAction]) => {
-                if (isReportActionDeprecated(reportAction, collectionKey)) {
-                    return false;
-                }
-                const actionReportID = reportAction?.reportID ?? reportID;
-                if (!actionReportID) {
-                    return false;
-                }
-                return isReportActionVisible(reportAction, actionReportID, canUserPerformWriteAction, visibleReportActionsData);
-            })
-            .map(([, reportAction]) => reportAction);
+    if (!shouldIncludeInvisibleActions) {
+        return sortForDisplay(getVisibleReportActionsForDisplay(reportActions, canUserPerformWriteAction, visibleReportActionsData, reportID));
     }
 
-    const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
+    // Arrays come from callers that may still change them, so only the Onyx value itself is cached.
+    if (Array.isArray(reportActions)) {
+        return sortForDisplay(reportActions.filter(Boolean));
+    }
+
+    // Every screen that shows a report sorts the same Onyx value, often from several components at once. Onyx replaces the
+    // value on each write, so one sort per value is enough and every caller gets the same array.
+    const cachedSortedReportActions = sortedReportActionsWithInvisibleCache.get(reportActions);
+    if (cachedSortedReportActions) {
+        return cachedSortedReportActions;
+    }
+    const sortedReportActions = sortForDisplay(Object.values(reportActions).filter(Boolean));
+    sortedReportActionsWithInvisibleCache.set(reportActions, sortedReportActions);
+    return sortedReportActions;
+}
+
+/** Report actions of one report that are visible to the current user, in no particular order. */
+function getVisibleReportActionsForDisplay(
+    reportActions: NonNullable<OnyxEntry<ReportActions>> | ReportAction[],
+    canUserPerformWriteAction?: boolean,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
+    reportID?: string,
+): ReportAction[] {
+    return Object.entries(reportActions)
+        .filter(([collectionKey, reportAction]) => {
+            if (isReportActionDeprecated(reportAction, collectionKey)) {
+                return false;
+            }
+            const actionReportID = reportAction?.reportID ?? reportID;
+            if (!actionReportID) {
+                return false;
+            }
+            return isReportActionVisible(reportAction, actionReportID, canUserPerformWriteAction, visibleReportActionsData);
+        })
+        .map(([, reportAction]) => reportAction);
+}
+
+/** Sorts actions newest first, after resolving policy changelog URLs and adding the synthetic workflow-routed actions. */
+function sortForDisplay(reportActions: ReportAction[]): ReportAction[] {
+    const baseURLAdjustedReportActions = reportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
     return getSortedReportActions(withDEWRoutedActionsArray(baseURLAdjustedReportActions), true);
 }
 
@@ -2589,7 +2632,7 @@ const isIOUActionTypeExcludedFromFiltering = (type: OriginalMessageIOU['type'] |
  */
 const isIOUActionMatchingTransactionList = (
     action: ReportAction,
-    reportTransactionIDs?: string[],
+    reportTransactionIDs?: string[] | ReadonlySet<string>,
     defaultToFalseForNonIOU = false,
 ): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
     if (!isMoneyRequestAction(action)) {
@@ -2601,7 +2644,11 @@ const isIOUActionMatchingTransactionList = (
     }
 
     const {IOUTransactionID} = getOriginalMessage(action) ?? {};
-    return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
+    if (!IOUTransactionID) {
+        return false;
+    }
+    // A Set keeps filtering a long list of IOU actions linear, instead of scanning every transaction ID per action.
+    return Array.isArray(reportTransactionIDs) ? reportTransactionIDs.includes(IOUTransactionID) : reportTransactionIDs.has(IOUTransactionID);
 };
 
 /**
@@ -6317,6 +6364,7 @@ export {
     getSystemMessageDisplayState,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
+    getVisibleReportActionsForDisplay,
     isCardBrokenConnectionAction,
     getCardConnectionBrokenMessage,
     getTextFromHtml,

@@ -11,11 +11,11 @@ type UseLoadReportActionsArguments = {
     /** The id of the current report */
     reportID: string | undefined;
 
-    /** The list of reportActions linked to the current report  */
+    /** The actions the list has loaded, newest first, including the one-expense thread's actions */
     reportActions: ReportAction[];
 
-    /** The IDs of all reportActions linked to the current report (may contain some extra actions) */
-    allReportActionIDs: string[];
+    /** The IDs of the actions that belong to the report itself, which tell them apart from its one-expense thread's actions */
+    parentReportActionIDs: string[];
 
     /** The transaction thread report ID associated with the current transaction, if any */
     transactionThreadReportID: string | undefined;
@@ -34,7 +34,7 @@ type UseLoadReportActionsArguments = {
 function useLoadReportActions({
     reportID,
     reportActions,
-    allReportActionIDs,
+    parentReportActionIDs,
     transactionThreadReportID,
     hasOlderActions,
     hasNewerActions,
@@ -52,11 +52,11 @@ function useLoadReportActions({
     let transactionThreadNewestAction = null;
     let transactionThreadOldestAction = null;
 
-    const allReportActionIDsSet = new Set(allReportActionIDs);
+    const parentReportActionIDsSet = new Set(parentReportActionIDs);
 
     for (const action of reportActions) {
         // Determine which report this action belongs to
-        const isCurrentReport = allReportActionIDsSet.has(action.reportActionID);
+        const isCurrentReport = parentReportActionIDsSet.has(action.reportActionID);
         const targetReportID = isCurrentReport ? reportID : transactionThreadReportID;
 
         // Track newest/oldest per report

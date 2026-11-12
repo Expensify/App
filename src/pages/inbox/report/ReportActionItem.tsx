@@ -110,7 +110,7 @@ import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuAct
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from './LinkPreviewer';
-import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
+import {useReportActionWithDraftID} from './ReportActionEditMessageContext';
 import {useReportActionItemState} from './ReportActionIndexContext';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
 import ReportActionItemFrame from './ReportActionItemFrame';
@@ -214,12 +214,16 @@ function ReportActionItem({
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactionsOnIOUReport = useReportTransactionsCollection(iouReport?.reportID);
-    const transactionsOnReportCollection = useReportTransactionsCollection(report?.reportID);
-    const transactionsOnReport = Object.values(transactionsOnReportCollection);
     const [isInvoiceLinkedToBill = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isInvoiceReport(report) ? reportID : undefined)}`, {
         selector: isLinkedToBillSelector,
     });
     const isBillPayCreatedAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && isBillPayHistoryAction(action, report, isInvoiceLinkedToBill);
+
+    // IOUDetails only exists when we are sending money
+    const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
+
+    // Only send money and bill pay rows read the report's transactions. Subscribing every row would re-render the whole list whenever one transaction changes.
+    const transactionsOnReportCollection = useReportTransactionsCollection(isSendingMoney || isBillPayCreatedAction ? report?.reportID : undefined);
     const IOUOriginalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(action) : undefined;
     const transactionID = isMoneyRequestAction(action) && IOUOriginalMessage?.IOUTransactionID;
     const isACHPaymentAction = IOUOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && IOUOriginalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
@@ -244,7 +248,7 @@ function ReportActionItem({
     });
     const isAgentProcessingInThread = !isOffline && !!action.childReportID && (threadProcessingAgentIDs?.length ?? 0) > 0;
 
-    const {editingMessage, editingReportAction} = useReportActionActiveEdit();
+    const reportActionWithDraftID = useReportActionWithDraftID();
 
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
@@ -278,12 +282,8 @@ function ReportActionItem({
     const highlightedBackgroundColorIfNeeded = isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
-    const draftMessage = editingReportAction && action && editingReportAction.reportActionID === action.reportActionID ? (editingMessage ?? undefined) : undefined;
-    const hasDraft = draftMessage !== undefined;
+    const hasDraft = reportActionWithDraftID === action.reportActionID;
     const isEditingInline = !shouldEditInComposer && hasDraft;
-
-    // IOUDetails only exists when we are sending money
-    const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
 
     // Only send money rows need the chat's actions. A comment on an expense report updates the report preview in that chat,
     // so subscribing on every row would re-render the whole list on each send.
@@ -302,65 +302,6 @@ function ReportActionItem({
     const isOnSearch = useIsOnSearch();
 
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const dismissError = () => {
-        const transactionIDToDismiss = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-        if (isSendingMoney && transactionIDToDismiss && reportID) {
-            cleanUpMoneyRequest({
-                transactionID: transactionIDToDismiss,
-                currentUserAccountID,
-                reportAction: action,
-                reportID,
-                transactionThreadReport,
-                iouReport: report,
-                iouReportTransactions: transactionsOnReport,
-                chatReport,
-                isChatIOUReportArchived: undefined,
-                originalReportID,
-                getCurrencyDecimals,
-                isOffline,
-                isSingleTransactionView: true,
-                policy: iouPolicy,
-                parentHierarchicalReports: reportsParentHierarchy,
-                chatReportActions: sendMoneyChatReportActions,
-            });
-            return;
-        }
-        if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {
-            navigation.setParams({reportActionID: ''});
-        }
-        if (transactionIDToDismiss) {
-            clearErrorWithOriginalTransactionError(transactionIDToDismiss, originalTransactionID, isOriginalTransactionSplitContainer);
-        }
-        clearAllRelatedReportActionErrors({reportID, reportAction: action, originalReportID, isOffline, reports: reportsParentHierarchy});
-    };
-
-    const showDismissReceiptErrorModal = async () => {
-        const result = await showConfirmModal({
-            title: translate('iou.dismissReceiptError'),
-            prompt: translate('iou.dismissReceiptErrorConfirmation'),
-            confirmText: translate('common.dismiss'),
-            cancelText: translate('common.cancel'),
-            shouldShowCancelButton: true,
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        });
-        if (result.action === ModalActions.CONFIRM) {
-            dismissError();
-        }
-    };
-
-    const onClose = () => {
-        const errors = linkedTransactionRouteError ?? getLatestErrorMessageField(action as OnyxDataWithErrors);
-        const errorEntries = Object.entries(errors ?? {});
-        const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
-        const hasReceiptError = Object.values(errorMessages).some((error) => isReceiptError(error));
-
-        if (hasReceiptError) {
-            showDismissReceiptErrorModal();
-        } else {
-            dismissError();
-        }
-    };
-
     useEffect(
         () => () => {
             // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
@@ -425,6 +366,67 @@ function ReportActionItem({
         }
         setIsHidden(false);
     }, [latestDecision, action, setIsHidden]);
+
+    // Defined after the effects, so React Compiler can keep these callbacks and the row subtree that receives them.
+    const transactionsOnReport = Object.values(transactionsOnReportCollection);
+    const dismissError = () => {
+        const transactionIDToDismiss = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+        if (isSendingMoney && transactionIDToDismiss && reportID) {
+            cleanUpMoneyRequest({
+                transactionID: transactionIDToDismiss,
+                currentUserAccountID,
+                reportAction: action,
+                reportID,
+                transactionThreadReport,
+                iouReport: report,
+                iouReportTransactions: transactionsOnReport,
+                chatReport,
+                isChatIOUReportArchived: undefined,
+                originalReportID,
+                getCurrencyDecimals,
+                isOffline,
+                isSingleTransactionView: true,
+                policy: iouPolicy,
+                parentHierarchicalReports: reportsParentHierarchy,
+                chatReportActions: sendMoneyChatReportActions,
+            });
+            return;
+        }
+        if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {
+            navigation.setParams({reportActionID: ''});
+        }
+        if (transactionIDToDismiss) {
+            clearErrorWithOriginalTransactionError(transactionIDToDismiss, originalTransactionID, isOriginalTransactionSplitContainer);
+        }
+        clearAllRelatedReportActionErrors({reportID, reportAction: action, originalReportID, isOffline, reports: reportsParentHierarchy});
+    };
+
+    const showDismissReceiptErrorModal = async () => {
+        const result = await showConfirmModal({
+            title: translate('iou.dismissReceiptError'),
+            prompt: translate('iou.dismissReceiptErrorConfirmation'),
+            confirmText: translate('common.dismiss'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        });
+        if (result.action === ModalActions.CONFIRM) {
+            dismissError();
+        }
+    };
+
+    const onClose = () => {
+        const errors = linkedTransactionRouteError ?? getLatestErrorMessageField(action as OnyxDataWithErrors);
+        const errorEntries = Object.entries(errors ?? {});
+        const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
+        const hasReceiptError = Object.values(errorMessages).some((error) => isReceiptError(error));
+
+        if (hasReceiptError) {
+            showDismissReceiptErrorModal();
+        } else {
+            dismissError();
+        }
+    };
 
     const toggleContextMenuFromActiveReportAction = () => {
         setIsContextMenuActive(isActiveReportAction(action.reportActionID));
@@ -522,7 +524,7 @@ function ReportActionItem({
                     <ReportActionItemContentCreated
                         parentReportAction={parentReportAction}
                         transactionID={createdTransactionID}
-                        draftMessage={draftMessage}
+                        hasDraft={hasDraft}
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     />
                 </ShowContextMenuActionsContext.Provider>
@@ -585,7 +587,7 @@ function ReportActionItem({
                         <ReportActionItemContentCreated
                             parentReportAction={parentReportAction}
                             transactionID={createdTransactionID}
-                            draftMessage={draftMessage}
+                            hasDraft={hasDraft}
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />
                     )}
@@ -698,7 +700,7 @@ function ReportActionItem({
                                                                 originalReportID={originalReportID}
                                                                 iouReport={iouReport}
                                                                 displayAsGroup={displayAsGroup}
-                                                                draftMessage={draftMessage}
+                                                                hasDraft={hasDraft}
                                                                 isWhisper={isWhisper}
                                                                 hovered={isHoveredOrActive}
                                                                 isHidden={isHidden}

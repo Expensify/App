@@ -22,13 +22,13 @@ type UseUnreadMarkerParams = {
     reportID: string;
 
     /** The visible actions (FlatList `data` domain) that the marker scan runs over. Newest-first, or oldest-first when `isReversed`. */
-    sortedVisibleReportActions: OnyxTypes.ReportAction[];
+    visibleActions: OnyxTypes.ReportAction[];
 
-    /** Whether `sortedVisibleReportActions` is oldest-first (non-inverted list, e.g. the money-request report view) */
+    /** Whether `visibleActions` is oldest-first (non-inverted list, e.g. the money-request report view) */
     isReversed?: boolean;
 
     /** All sorted actions (the full chain); used to find the earliest-received-while-offline message index */
-    sortedReportActions: OnyxTypes.ReportAction[];
+    listActions: OnyxTypes.ReportAction[];
 
     /** The oldest unread action id used as the pagination anchor for marker placement before actions have fully loaded */
     oldestUnreadReportActionID: string | undefined;
@@ -48,7 +48,7 @@ type UseUnreadMarkerResult = {
     /** The reportActionID the unread marker should render above, or `null` if none qualifies */
     unreadMarkerReportActionID: string | null;
 
-    /** Index of that action within `sortedVisibleReportActions`, or `-1` if none */
+    /** Index of that action within `visibleActions`, or `-1` if none */
     unreadMarkerReportActionIndex: number;
 };
 
@@ -57,9 +57,9 @@ const manuallyMarkedUnreadReportActionIDSelector = (report: OnyxTypes.Report | u
 
 function useUnreadMarker({
     reportID,
-    sortedVisibleReportActions,
+    visibleActions,
     isReversed = false,
-    sortedReportActions,
+    listActions,
     oldestUnreadReportActionID,
     isScrolledOverThreshold,
     hasOnceLoadedReportActions,
@@ -99,17 +99,17 @@ function useUnreadMarker({
         };
     }, [reportID, isAnonymousUser]);
 
-    const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = sortedVisibleReportActions.reduce<OnyxTypes.ReportActions>((actions, action) => {
+    const visibleActionsByID: OnyxTypes.ReportActions = visibleActions.reduce<OnyxTypes.ReportActions>((actions, action) => {
         // eslint-disable-next-line no-param-reassign
         actions[action.reportActionID] = action;
         return actions;
     }, {});
-    const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
+    const prevVisibleActionsByID = usePrevious(visibleActionsByID);
     const [prevUnreadMarkerReportActionID, setPrevUnreadMarkerReportActionID] = useState<string | null>(null);
 
     let earliestReceivedOfflineMessageIndex: number | undefined;
     // The money-report list is oldest-first and excludes hidden rows. Its offline boundary must use that same visible index domain.
-    const offlineBoundaryActions = isReversed ? sortedVisibleReportActions : sortedReportActions;
+    const offlineBoundaryActions = isReversed ? visibleActions : listActions;
     const offlineScanStartIndex = isReversed ? 0 : offlineBoundaryActions.length - 1;
     const offlineScanStep = isReversed ? 1 : -1;
     for (let i = offlineScanStartIndex; i >= 0 && i < offlineBoundaryActions.length; i += offlineScanStep) {
@@ -120,22 +120,22 @@ function useUnreadMarker({
         }
     }
 
-    // Index must be in the same domain as FlatList `data` (sortedVisibleReportActions), not the paginated full chain.
+    // Index must be in the same domain as FlatList `data` (visibleActions), not the paginated full chain.
     let oldestUnreadReportActionMarker: [string, number] | undefined;
     if (oldestUnreadReportActionID && !hasOnceLoadedReportActions) {
-        const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportActionID);
+        const visibleIndex = visibleActions.findIndex((action) => action.reportActionID === oldestUnreadReportActionID);
         // A stale lastReadTime can make a message sent by the current user on another device the pagination anchor.
         // Use the scan result instead when the current user authored that action.
-        if (visibleIndex >= 0 && !isReportActionFromCurrentUser(sortedVisibleReportActions.at(visibleIndex), currentUserAccountID)) {
+        if (visibleIndex >= 0 && !isReportActionFromCurrentUser(visibleActions.at(visibleIndex), currentUserAccountID)) {
             oldestUnreadReportActionMarker = [oldestUnreadReportActionID, visibleIndex];
         }
     }
 
     const scanned = getUnreadMarkerReportAction({
-        visibleReportActions: sortedVisibleReportActions,
+        visibleReportActions: visibleActions,
         earliestReceivedOfflineMessageIndex,
         currentUserAccountID,
-        prevSortedVisibleReportActionsObjects,
+        prevSortedVisibleReportActionsObjects: prevVisibleActionsByID,
         unreadMarkerTime,
         isScrolledOverThreshold,
         isOffline,
@@ -162,9 +162,9 @@ function useUnreadMarker({
     // synthetic greeting is not a valid push target either, because its `created` tracks
     // report.lastReadTime and would drag the watermark to "now".
     const isRealAction = (action: OnyxTypes.ReportAction) => action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID;
-    const newestVisibleReportActionCreated = sortedVisibleReportActions.at(isReversed ? -1 : 0)?.created ?? '';
+    const newestVisibleReportActionCreated = visibleActions.at(isReversed ? -1 : 0)?.created ?? '';
     const prevNewestVisibleReportActionCreated = usePrevious(newestVisibleReportActionCreated);
-    const mostRecentReportActionCreated = (isReversed ? sortedVisibleReportActions.findLast(isRealAction) : sortedVisibleReportActions.find(isRealAction))?.created ?? '';
+    const mostRecentReportActionCreated = (isReversed ? visibleActions.findLast(isRealAction) : visibleActions.find(isRealAction))?.created ?? '';
     if (!isAnonymousUser && !unreadMarkerReportActionID && mostRecentReportActionCreated > unreadMarkerTime && newestVisibleReportActionCreated > prevNewestVisibleReportActionCreated) {
         setUnreadMarkerTime(mostRecentReportActionCreated);
     }

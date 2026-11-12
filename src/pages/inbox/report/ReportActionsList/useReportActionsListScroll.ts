@@ -36,8 +36,8 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
 /** Owns initial positioning, pagination, unread tracking, and scroll events for the report-actions list. */
 function useReportActionsListScroll({
     reportID,
-    sortedVisibleReportActions,
-    renderedVisibleReportActions: listData,
+    visibleActionsWithHiddenSurveys,
+    listData,
     reportActionIDToDisplayIndex,
     hasScrolledOverThreshold,
     markNewestActionAsRead,
@@ -56,7 +56,7 @@ function useReportActionsListScroll({
         report,
         hasOnceLoadedReportActions,
         hasNewerActions,
-        sortedAllReportActions,
+        cachedActions,
         oldestUnreadReportAction,
         transactionThreadReport,
         parentReportAction,
@@ -126,8 +126,9 @@ function useReportActionsListScroll({
         report,
         transactionThreadReport,
         parentReportAction,
-        sortedVisibleReportActions,
-        renderedVisibleReportActions: listData,
+        // A hidden newest survey still proves that the loaded page holds the newest action.
+        visibleActions: visibleActionsWithHiddenSurveys,
+        listData,
         reportActionIDToDisplayIndex,
         keyExtractor,
         hasScrolledOverThreshold,
@@ -138,7 +139,7 @@ function useReportActionsListScroll({
         hasNewerActions,
         draftAutoScrollKey,
         actionBadgeTargetIndex,
-        sortedAllReportActionsForPagination: sortedAllReportActions ?? [],
+        cachedActions: cachedActions ?? [],
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
     });
@@ -177,7 +178,7 @@ function useReportActionsListScroll({
         reportID,
         actionTargetReportActionID: actionBadgeTargetID,
         actionBadgeTargetIndex,
-        renderedVisibleReportActions: listData,
+        listData,
         reportActionIDToDisplayIndex,
         scrollToActionBadgeTarget,
     });

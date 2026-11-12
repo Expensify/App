@@ -80,4 +80,71 @@ describe('visibleReportActions', () => {
         expect(result[reportID]?.[surveyActionID]).toBe(false);
         expect(result[unrelatedReportID]).toBe(currentValue[unrelatedReportID]);
     });
+
+    it('recomputes only the changed report when a report changes', () => {
+        // Given a closed report that turned into a support ticket, where the closed action shows only for support tickets
+        const reportID = 'ticketReportID';
+        const closedActionID = 'closedActionID';
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const unrelatedReportID = 'unrelatedReportID';
+        const ticketReport = {reportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET};
+        const allReportActions: OnyxCollection<ReportActions> = {
+            [reportActionsKey]: {
+                [closedActionID]: {
+                    reportActionID: closedActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                    created: '2026-11-11 12:00:00.000',
+                },
+            },
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${unrelatedReportID}`]: {},
+        };
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {[reportKey]: ticketReport}, {}];
+        const currentValue: VisibleReportActionsDerivedValue = {
+            [reportID]: {[closedActionID]: false},
+            [unrelatedReportID]: {},
+        };
+
+        // When only the report triggers a recompute
+        const result = visibleReportActionsConfig.compute(args, {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: ticketReport}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+        });
+
+        // Then the closed action shows, and the unrelated report keeps its previous value because it was not recomputed
+        expect(result[reportID]?.[closedActionID]).toBe(true);
+        expect(result[unrelatedReportID]).toBe(currentValue[unrelatedReportID]);
+    });
+
+    it('returns the previous value when a report write changes no visibility', () => {
+        // Given a chat whose only comment is visible
+        const reportID = 'chatReportID';
+        const commentID = 'commentID';
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const chatReport = {reportID, type: CONST.REPORT.TYPE.CHAT, lastReadTime: '2026-11-11 12:00:00.000'};
+        const allReportActions: OnyxCollection<ReportActions> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
+                [commentID]: {
+                    reportActionID: commentID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-11-11 11:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Hello', text: 'Hello'}],
+                },
+            },
+        };
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {[reportKey]: chatReport}, {}];
+        const currentValue = visibleReportActionsConfig.compute(args, {currentValue: undefined, sourceValues: undefined, triggeredKeys: new Set<OnyxKey>()});
+
+        // When reading the chat writes a new lastReadTime, which changes no action's visibility
+        const readReport = {...chatReport, lastReadTime: '2026-11-11 12:05:00.000'};
+        const result = visibleReportActionsConfig.compute([allReportActions, undefined, {[reportKey]: readReport}, {}], {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: readReport}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+        });
+
+        // Then the derived value is the same object, so Onyx skips the write and notifies no subscriber
+        expect(result).toBe(currentValue);
+    });
 });

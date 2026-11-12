@@ -35,9 +35,9 @@ function MoneyRequestReportActions({report}: MoneyRequestReportActionsProps) {
     const {isOffline} = useNetwork();
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`);
     const isReportLoadPending = useIsReportLoadPending(report.reportID);
-    const {reportActions} = usePaginatedReportActions(report.reportID);
+    const {windowActions} = usePaginatedReportActions(report.reportID);
     const allReportTransactions = useReportTransactionsCollection(report.reportID);
-    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
+    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, windowActions, isOffline, true);
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportLoadingState, isReportLoadPending, isOffline);
 
     if (shouldWaitForTransactions) {
