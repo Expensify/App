@@ -694,7 +694,7 @@ function getChatReportForBulkPay(
 type ExportMenuItem = DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'accessibilityLabel' | 'shouldCallAfterModalHide'>;
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -3280,6 +3280,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
                 // Current approvers can reassign without workspace admin access when strict policy rules are off.
                 const canReassignAsApprover =
+                    !isLoadingSecurityGroup &&
                     !areStrictPolicyRulesEnabled &&
                     report?.managerID === accountID &&
                     isExpenseReportUtil(report) &&
@@ -3644,6 +3645,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [
         selectedTransactionsKeys,
         areStrictPolicyRulesEnabled,
+        isLoadingSecurityGroup,
         showOfflineModal,
         showDownloadErrorModal,
         cardList,

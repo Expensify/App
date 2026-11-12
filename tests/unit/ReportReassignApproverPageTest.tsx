@@ -6,6 +6,7 @@ import SelectionList from '@components/SelectionList';
 
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 
+import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 
@@ -34,6 +35,7 @@ const SUBMITTER_EMAIL = 'submitter@test.com';
 const ELIGIBLE_APPROVER_EMAIL = 'eligible-approver@test.com';
 
 jest.mock('@components/ApproverSelectionList', () => jest.fn(() => null));
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({addReportApprover: jest.fn()}));
 jest.mock(
     '@components/ScreenWrapper',
     () =>
@@ -47,7 +49,7 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/withReportOrNotFound', () => () => (component: React.ComponentType) => component);
 jest.mock('@hooks/useDynamicBackPath', () => () => '');
 jest.mock('@hooks/useEnvironment', () => () => ({environmentURL: ''}));
-jest.mock('@hooks/useStrictPolicyRules', () => jest.fn(() => ({areStrictPolicyRulesEnabled: false})));
+jest.mock('@hooks/useStrictPolicyRules', () => jest.fn(() => ({areStrictPolicyRulesEnabled: false, isLoadingSecurityGroup: false})));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn(), dismissToPreviousRHP: jest.fn()}));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({
@@ -143,11 +145,14 @@ describe('ReportReassignApproverPage', () => {
         jest.clearAllMocks();
         mockUseStrictPolicyRules.mockReturnValue({
             areStrictPolicyRulesEnabled: false,
+            isLoadingSecurityGroup: false,
         });
         mockIsAllowedToApproveExpenseReport.mockImplementation((_report, accountID) => accountID !== SUBMITTER_ACCOUNT_ID);
     });
 
     it.each([
+        {role: CONST.POLICY.ROLE.USER, isCurrentApprover: true, strictRules: false, isLoadingSecurityGroup: true, isAllowed: false},
+        {role: CONST.POLICY.ROLE.ADMIN, isCurrentApprover: true, strictRules: false, isLoadingSecurityGroup: true, isAllowed: true},
         {
             role: CONST.POLICY.ROLE.USER,
             isCurrentApprover: true,
@@ -178,25 +183,77 @@ describe('ReportReassignApproverPage', () => {
             strictRules: true,
             isAllowed: true,
         },
-    ])('checks reassignment access for $role with current approver=$isCurrentApprover and strict rules=$strictRules', ({role, isCurrentApprover, strictRules, isAllowed}) => {
-        // Given the user's workspace role, report assignment, and domain restrictions
-        mockUseStrictPolicyRules.mockReturnValue({
-            areStrictPolicyRulesEnabled: strictRules,
-        });
-        const currentReport = {
-            ...report,
-            managerID: isCurrentApprover ? CURRENT_USER_ACCOUNT_ID : CURRENT_MANAGER_ACCOUNT_ID,
-        };
+    ])(
+        'checks reassignment access for $role with current approver=$isCurrentApprover and strict rules=$strictRules',
+        ({role, isCurrentApprover, strictRules, isLoadingSecurityGroup = false, isAllowed}) => {
+            // Given the user's workspace role, report assignment, and domain restrictions
+            mockUseStrictPolicyRules.mockReturnValue({
+                areStrictPolicyRulesEnabled: strictRules,
+                isLoadingSecurityGroup,
+            });
+            const currentReport = {
+                ...report,
+                managerID: isCurrentApprover ? CURRENT_USER_ACCOUNT_ID : CURRENT_MANAGER_ACCOUNT_ID,
+            };
 
-        // When the user opens the reassignment page directly
-        renderPage(buildPolicy(role), currentReport);
+            // When the user opens the reassignment page directly
+            renderPage(buildPolicy(role), currentReport);
 
-        // Then both the page and its shared list enforce the same permission
+            // Then both the page and its shared list enforce the same permission
+            const props = mockApproverSelectionList.mock.calls.at(-1)?.[0];
+            expect(props?.shouldShowNotFoundView).toBe(!isAllowed);
+            if (role === CONST.POLICY.ROLE.USER && isAllowed) {
+                expect(props?.shouldRequirePolicyAdmin).toBe(false);
+            }
+        },
+    );
+
+    it('does not queue reassignment while security-group data is loading', () => {
+        // Given a current approver whose domain permissions are unresolved
+        mockUseStrictPolicyRules.mockReturnValue({areStrictPolicyRulesEnabled: false, isLoadingSecurityGroup: true});
+        renderPage(buildPolicy(CONST.POLICY.ROLE.USER), {...report, managerID: CURRENT_USER_ACCOUNT_ID});
         const props = mockApproverSelectionList.mock.calls.at(-1)?.[0];
-        expect(props?.shouldShowNotFoundView).toBe(!isAllowed);
-        if (role === CONST.POLICY.ROLE.USER && isAllowed) {
-            expect(props?.shouldRequirePolicyAdmin).toBe(false);
+        const approver = props?.allApprovers.at(0);
+        if (!approver) {
+            throw new Error('Expected an eligible replacement approver');
         }
+
+        // When a selection and Save callback run before permissions resolve
+        act(() => props?.onSelectApprover?.([approver]));
+        const footer = mockApproverSelectionList.mock.calls.at(-1)?.[0].footerContent;
+        if (!React.isValidElement<{onSubmit: () => void}>(footer)) {
+            throw new Error('Expected a submit button');
+        }
+        act(() => footer.props.onSubmit());
+
+        // Then the action cannot enqueue an optimistic reassignment
+        expect(addReportApprover).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        {role: CONST.POLICY.ROLE.USER, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC, isAllowed: false},
+        {role: CONST.POLICY.ROLE.USER, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, isAllowed: false},
+        {role: CONST.POLICY.ROLE.ADMIN, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC, isAllowed: true},
+        {role: CONST.POLICY.ROLE.ADMIN, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, isAllowed: true},
+    ])('checks direct menu access for $role with status=$statusNum and approval mode=$approvalMode', ({role, statusNum, approvalMode, isAllowed}) => {
+        // Given a current approver opening a direct link after the report or policy changed
+        const currentReport = {...report, managerID: CURRENT_USER_ACCOUNT_ID, statusNum};
+        const policy = {...buildPolicy(role), approvalMode};
+
+        // When the Change approver page renders
+        render(
+            <DynamicReportChangeApproverPage
+                // @ts-expect-error Only report, policy, and loading state are used by the unwrapped page.
+                route={{params: {reportID: report.reportID}}}
+                report={currentReport}
+                policy={policy}
+                isLoadingReportData={false}
+            />,
+        );
+
+        // Then members cannot enter a destination that rejects the report, while admin behavior stays unchanged
+        expect(jest.mocked(SelectionList).mock.calls.length > 0).toBe(isAllowed);
+        expect(jest.mocked(NotFoundPage).mock.calls.length > 0).toBe(!isAllowed);
     });
 
     it.each([CONST.POLICY.ROLE.USER, CONST.POLICY.ROLE.ADMIN])('offers only permitted approver actions for %s', (role) => {

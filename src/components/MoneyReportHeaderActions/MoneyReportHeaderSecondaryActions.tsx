@@ -104,7 +104,7 @@ const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
 };
 
 function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef, isDisabled}: MoneyReportHeaderSecondaryActionsProps) {
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
@@ -419,6 +419,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const secondaryActions = moneyRequestReport
         ? getSecondaryReportActions({
               areStrictPolicyRulesEnabled,
+              isLoadingSecurityGroup,
               currentUserLogin: currentUserLogin ?? '',
               currentUserAccountID: accountID,
               submitterLogin,

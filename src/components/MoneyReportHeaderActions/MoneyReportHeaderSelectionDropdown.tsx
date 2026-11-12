@@ -57,7 +57,7 @@ type MoneyReportHeaderSelectionDropdownProps = {
 };
 
 function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportInSearch, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const route = useRoute();
     const {startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu: openHoldMenuAsync, openRejectModal} = useMoneyReportHeaderModals();
@@ -156,6 +156,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const computedSecondaryActions = moneyRequestReport
         ? getSecondaryReportActions({
               areStrictPolicyRulesEnabled,
+              isLoadingSecurityGroup,
               currentUserLogin: currentUserLogin ?? '',
               currentUserAccountID: accountID,
               submitterLogin,

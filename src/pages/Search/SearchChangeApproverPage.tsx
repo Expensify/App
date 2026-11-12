@@ -81,12 +81,14 @@ function canReassignAllReports({
     allPolicies,
     currentUserAccountID,
     areStrictPolicyRulesEnabled,
+    isLoadingSecurityGroup,
 }: {
     selectedReports: SelectedReportRef[];
     onyxReports: Record<string, Report> | undefined;
     allPolicies: OnyxCollection<Policy>;
     currentUserAccountID: number;
     areStrictPolicyRulesEnabled: boolean;
+    isLoadingSecurityGroup: boolean;
 }): boolean {
     return (
         selectedReports.length > 0 &&
@@ -94,7 +96,7 @@ function canReassignAllReports({
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
             const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-            const canReassignAsApprover = report?.managerID === currentUserAccountID && !areStrictPolicyRulesEnabled;
+            const canReassignAsApprover = !isLoadingSecurityGroup && report?.managerID === currentUserAccountID && !areStrictPolicyRulesEnabled;
 
             return (
                 !!policy &&
@@ -119,7 +121,7 @@ function SearchChangeApproverPage() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
     const {isBetaEnabled} = usePermissions();
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -252,7 +254,14 @@ function SearchChangeApproverPage() {
                 isSelected: approverType === APPROVER_TYPE.ADD_APPROVER,
             });
         }
-        const canReassign = canReassignAllReports({selectedReports, onyxReports, allPolicies, currentUserAccountID: currentUserDetails.accountID, areStrictPolicyRulesEnabled});
+        const canReassign = canReassignAllReports({
+            selectedReports,
+            onyxReports,
+            allPolicies,
+            currentUserAccountID: currentUserDetails.accountID,
+            areStrictPolicyRulesEnabled,
+            isLoadingSecurityGroup,
+        });
 
         const isAllowedToBypassApprovers =
             hasAdminPermission &&
@@ -289,7 +298,7 @@ function SearchChangeApproverPage() {
     // avoiding a single-frame flash of an empty list after reports are cleared.
     useLayoutEffect(() => {
         // An empty menu can mean permissions are still loading, so wait before closing the flow.
-        if (selectedReports.length && (isLoadingBulkChangeApproverPage || !areSelectedPoliciesLoaded || approverTypes.at(0))) {
+        if (selectedReports.length && (isLoadingBulkChangeApproverPage || !areSelectedPoliciesLoaded || (!hasAdminPermission && isLoadingSecurityGroup) || approverTypes.at(0))) {
             return;
         }
 
@@ -302,7 +311,7 @@ function SearchChangeApproverPage() {
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.closeRHPFlow();
         });
-    }, [approverTypes, selectedReports.length, isLoadingBulkChangeApproverPage, areSelectedPoliciesLoaded]);
+    }, [approverTypes, selectedReports.length, isLoadingBulkChangeApproverPage, areSelectedPoliciesLoaded, hasAdminPermission, isLoadingSecurityGroup]);
 
     const shouldAutoApply = shouldAutoApplyApprover({
         isLoadingBulkChangeApproverPage,

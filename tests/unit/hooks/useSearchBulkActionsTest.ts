@@ -125,9 +125,10 @@ jest.mock('@hooks/useTheme', () => ({
 }));
 
 let mockAreStrictPolicyRulesEnabled = false;
+let mockIsLoadingSecurityGroup = false;
 jest.mock('@hooks/useStrictPolicyRules', () => ({
     __esModule: true,
-    default: () => ({areStrictPolicyRulesEnabled: mockAreStrictPolicyRulesEnabled}),
+    default: () => ({areStrictPolicyRulesEnabled: mockAreStrictPolicyRulesEnabled, isLoadingSecurityGroup: mockIsLoadingSecurityGroup}),
 }));
 
 let mockIsOffline = false;
@@ -337,6 +338,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         jest.clearAllMocks();
         mockIsOffline = false;
         mockAreStrictPolicyRulesEnabled = false;
+        mockIsLoadingSecurityGroup = false;
         mockAreAllMatchingItemsSelected = false;
         await Onyx.clear();
         mockSelectedTransactions = {};
@@ -358,48 +360,54 @@ describe('useSearchBulkActions - CSV export flow', () => {
         [false, 2, false, CONST.REPORT.STATUS_NUM.SUBMITTED, false],
         [true, 2, true, CONST.REPORT.STATUS_NUM.SUBMITTED, true],
         [false, CURRENT_USER_ACCOUNT_ID, false, CONST.REPORT.STATUS_NUM.APPROVED, false],
-    ])('change approver visibility: enforcement=%s, manager=%s, admin capability=%s, status=%s', (enforcement, managerID, canChangeApprover, statusNum, expected) => {
-        // Given a selected report whose snapshot may not grant the admin-only capability.
-        mockAreStrictPolicyRulesEnabled = enforcement;
-        mockSelectedTransactions = {transaction1: makeSelectedTransaction()};
-        mockSelectedReports = [
-            {
-                reportID: 'report1',
-                policyID: 'policy1',
-                chatReportID: 'chat1',
-                action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                canPay: false,
-                canApprove: false,
-                canSubmit: false,
-                canChangeApprover,
-                managerID,
-                total: 100,
-            },
-        ];
-        mockCurrentSearchResults = {
-            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
-            data: {
-                [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
+        [false, CURRENT_USER_ACCOUNT_ID, false, CONST.REPORT.STATUS_NUM.SUBMITTED, false, true],
+        [false, CURRENT_USER_ACCOUNT_ID, true, CONST.REPORT.STATUS_NUM.SUBMITTED, true, true],
+    ])(
+        'change approver visibility: enforcement=%s, manager=%s, admin capability=%s, status=%s',
+        (enforcement, managerID, canChangeApprover, statusNum, expected, isLoadingSecurityGroup = false) => {
+            // Given a selected report whose snapshot may not grant the admin-only capability.
+            mockAreStrictPolicyRulesEnabled = enforcement;
+            mockIsLoadingSecurityGroup = isLoadingSecurityGroup;
+            mockSelectedTransactions = {transaction1: makeSelectedTransaction()};
+            mockSelectedReports = [
+                {
                     reportID: 'report1',
                     policyID: 'policy1',
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum,
+                    chatReportID: 'chat1',
+                    action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                    canPay: false,
+                    canApprove: false,
+                    canSubmit: false,
+                    canChangeApprover,
                     managerID,
+                    total: 100,
                 },
-                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
-                    id: 'policy1',
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            ];
+            mockCurrentSearchResults = {
+                search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
+                        reportID: 'report1',
+                        policyID: 'policy1',
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum,
+                        managerID,
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
+                        id: 'policy1',
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    },
                 },
-            },
-        };
+            };
 
-        // When the bulk action menu is rendered from search snapshot data.
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+            // When the bulk action menu is rendered from search snapshot data.
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
-        // Then the menu respects assignment and enforcement while preserving admin capabilities.
-        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER)).toBe(expected);
-    });
+            // Then the menu respects assignment and enforcement while preserving admin capabilities.
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER)).toBe(expected);
+        },
+    );
 
     it('uses the unreported-expenses warning for a single expense report', async () => {
         // Given a single selected expense report

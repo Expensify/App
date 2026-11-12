@@ -50,7 +50,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
     const {isLoading, startWithLoading} = usePressLoading();
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isLoadingReportData = selectedReports.some(
@@ -138,9 +138,16 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
     };
     const allApprovers = getAllApprovers();
 
+    const canReassignAllReports = selectedReports.every((selectedReport) => {
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+        const canReassignAsApprover = !isLoadingSecurityGroup && report?.managerID === currentUserDetails.accountID && !areStrictPolicyRulesEnabled;
+        return !!policy && (isPolicyAdmin(policy) || canReassignAsApprover) && !isPendingDeletePolicy(policy);
+    });
+
     const addApprover = () => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
-        if (!selectedApproverEmail || !employeeAccountID) {
+        if ((isReassignment && !canReassignAllReports) || !selectedApproverEmail || !employeeAccountID) {
             return;
         }
 
@@ -202,13 +209,6 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
             Navigation.closeRHPFlow();
         });
     }, [selectedReports.length]);
-
-    const canReassignAllReports = selectedReports.every((selectedReport) => {
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-        const canReassignAsApprover = report?.managerID === currentUserDetails.accountID && !areStrictPolicyRulesEnabled;
-        return !!policy && (isPolicyAdmin(policy) || canReassignAsApprover) && !isPendingDeletePolicy(policy);
-    });
 
     if (isLoading) {
         return <FullScreenLoadingIndicator />;

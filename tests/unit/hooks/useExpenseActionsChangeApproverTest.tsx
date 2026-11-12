@@ -25,7 +25,7 @@ const REPORT_ID = '910100';
 const POLICY_ID = 'approver-policy';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: CURRENT_USER_ACCOUNT_ID, email: 'approver@test.com', login: 'approver@test.com'}));
-jest.mock('@hooks/useStrictPolicyRules', () => jest.fn(() => ({areStrictPolicyRulesEnabled: false})));
+jest.mock('@hooks/useStrictPolicyRules', () => jest.fn(() => ({areStrictPolicyRulesEnabled: false, isLoadingSecurityGroup: false})));
 jest.mock('@hooks/useConfirmModal', () => () => ({showConfirmModal: jest.fn(), closeModal: jest.fn()}));
 jest.mock('@components/MoneyReportTransactionThreadContext', () => ({useMoneyReportTransactionThread: () => ({reportActions: []})}));
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => jest.fn(() => 'r/910100/change-approver'));
@@ -49,14 +49,15 @@ describe('useExpenseActions change approver navigation', () => {
     });
 
     it.each([
+        {role: CONST.POLICY.ROLE.USER, managerID: CURRENT_USER_ACCOUNT_ID, strictRules: false, isLoadingSecurityGroup: true, shouldSkipMenu: false},
         {role: CONST.POLICY.ROLE.USER, managerID: CURRENT_USER_ACCOUNT_ID, strictRules: false, shouldSkipMenu: true},
         {role: CONST.POLICY.ROLE.ADMIN, managerID: CURRENT_USER_ACCOUNT_ID, strictRules: false, shouldSkipMenu: false},
         {role: CONST.POLICY.ROLE.ADMIN, managerID: 456, strictRules: true, shouldSkipMenu: false},
         {role: CONST.POLICY.ROLE.USER, managerID: CURRENT_USER_ACCOUNT_ID, strictRules: true, shouldSkipMenu: false},
         {role: CONST.POLICY.ROLE.USER, managerID: 456, strictRules: false, shouldSkipMenu: false},
-    ])('routes $role with manager=$managerID and strict rules=$strictRules', async ({role, managerID, strictRules, shouldSkipMenu}) => {
+    ])('routes $role with manager=$managerID and strict rules=$strictRules', async ({role, managerID, strictRules, isLoadingSecurityGroup = false, shouldSkipMenu}) => {
         // Given a report with the user's workspace role and current approver assignment
-        jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: strictRules});
+        jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: strictRules, isLoadingSecurityGroup});
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createMock<Policy>({id: POLICY_ID, role}));
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMock<Report>({reportID: REPORT_ID, policyID: POLICY_ID, managerID, type: CONST.REPORT.TYPE.EXPENSE}));
         await waitForBatchedUpdatesWithAct();

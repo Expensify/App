@@ -1049,6 +1049,7 @@ function getSecondaryReportActions({
     rules,
     cardList,
     areStrictPolicyRulesEnabled = true,
+    isLoadingSecurityGroup = true,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1073,6 +1074,8 @@ function getSecondaryReportActions({
     rules: OnyxCollection<Rule>;
     cardList: OnyxEntry<CardList>;
     areStrictPolicyRulesEnabled?: boolean;
+    /** Defaults to loading so callers without security-group data cannot grant member reassignment. */
+    isLoadingSecurityGroup?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
     const reportNameValuePairs = moveExpenseReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
@@ -1238,7 +1241,7 @@ function getSecondaryReportActions({
     }
 
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    const canReassignAsApprover = report.managerID === currentUserAccountID && !areStrictPolicyRulesEnabled;
+    const canReassignAsApprover = !isLoadingSecurityGroup && report.managerID === currentUserAccountID && !areStrictPolicyRulesEnabled;
     if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && (isPolicyAdmin(policy) || canReassignAsApprover) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }

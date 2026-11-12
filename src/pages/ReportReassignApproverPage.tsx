@@ -61,8 +61,8 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '', undefined, reportTransactions);
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
-    const canMemberReassignApprover = currentUserDetails.accountID === report.managerID && !areStrictPolicyRulesEnabled;
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
+    const canMemberReassignApprover = !isLoadingSecurityGroup && currentUserDetails.accountID === report.managerID && !areStrictPolicyRulesEnabled;
 
     const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const shouldShowNotFoundView =
@@ -123,7 +123,7 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
 
     const save = () => {
         const newApproverAccountID = allApprovers.find((member) => member.login === selectedMemberEmail)?.value;
-        if (!selectedMemberEmail || !newApproverAccountID) {
+        if (shouldShowNotFoundView || !selectedMemberEmail || !newApproverAccountID) {
             return;
         }
         startWithLoading(() => {

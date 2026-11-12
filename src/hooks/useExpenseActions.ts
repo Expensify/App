@@ -110,7 +110,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const {currentSearchHash} = useSearchQueryContext();
     const {removeTransaction} = useSearchSelectionActions();
 
@@ -545,7 +545,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     Log.warn('Change approver secondary action triggered without moneyRequestReport data.');
                     return;
                 }
-                const canMemberReassignApprover = !isPolicyAdmin(policy) && moneyRequestReport.managerID === accountID && !areStrictPolicyRulesEnabled;
+                const canMemberReassignApprover = !isLoadingSecurityGroup && !isPolicyAdmin(policy) && moneyRequestReport.managerID === accountID && !areStrictPolicyRulesEnabled;
                 if (canMemberReassignApprover) {
                     Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(moneyRequestReport.reportID));
                     return;

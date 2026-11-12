@@ -34,7 +34,7 @@ let mockSelectedReports = [{reportID: SELECTED_REPORT_ID, policyID: POLICY_ID}];
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, formatPhoneNumber: mockFormatPhoneNumber}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: MANAGER_ACCOUNT_ID, email: 'manager@test.com'}));
-jest.mock('@hooks/useStrictPolicyRules', () => jest.fn(() => ({areStrictPolicyRulesEnabled: false})));
+jest.mock('@hooks/useStrictPolicyRules', () => jest.fn(() => ({areStrictPolicyRulesEnabled: false, isLoadingSecurityGroup: false})));
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => new Proxy({}, {get: (_, name) => String(name)}),
@@ -82,7 +82,7 @@ describe('SearchApproverPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: false});
+        jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: false, isLoadingSecurityGroup: false});
         mockSelectedReports = [{reportID: SELECTED_REPORT_ID, policyID: POLICY_ID}];
         const policy = createMock<Policy>({
             id: POLICY_ID,
@@ -191,20 +191,22 @@ describe('SearchApproverPage', () => {
     });
 
     it.each([
+        {secondRole: CONST.POLICY.ROLE.USER, strictRules: false, isCurrentApprover: true, isLoadingSecurityGroup: true, isAllowed: false},
+        {firstRole: CONST.POLICY.ROLE.ADMIN, secondRole: CONST.POLICY.ROLE.ADMIN, strictRules: false, isCurrentApprover: true, isLoadingSecurityGroup: true, isAllowed: true},
         {secondRole: CONST.POLICY.ROLE.USER, strictRules: false, isCurrentApprover: true, isAllowed: true},
         {secondRole: CONST.POLICY.ROLE.ADMIN, strictRules: false, isCurrentApprover: true, isAllowed: true},
         {secondRole: CONST.POLICY.ROLE.USER, strictRules: true, isCurrentApprover: true, isAllowed: false},
         {secondRole: CONST.POLICY.ROLE.USER, strictRules: false, isCurrentApprover: false, isAllowed: false},
     ])(
         'checks member reassignment with second role=$secondRole, strict rules=$strictRules, current approver=$isCurrentApprover',
-        async ({secondRole, strictRules, isCurrentApprover, isAllowed}) => {
+        async ({firstRole = CONST.POLICY.ROLE.USER, secondRole, strictRules, isCurrentApprover, isLoadingSecurityGroup = false, isAllowed}) => {
             // Given a member selecting reports across two workspaces
             mockSelectedReports = [
                 {reportID: SELECTED_REPORT_ID, policyID: POLICY_ID},
                 {reportID: SECOND_REPORT_ID, policyID: SECOND_POLICY_ID},
             ];
-            jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: strictRules});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.USER});
+            jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: strictRules, isLoadingSecurityGroup});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: firstRole});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, {role: secondRole});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SECOND_REPORT_ID}`, {managerID: isCurrentApprover ? MANAGER_ACCOUNT_ID : APPROVER_ACCOUNT_ID});
             await waitForBatchedUpdates();

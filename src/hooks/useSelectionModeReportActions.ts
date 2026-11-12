@@ -59,7 +59,7 @@ function useSelectionModeReportActions({
     transactions,
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -183,6 +183,7 @@ function useSelectionModeReportActions({
         }
         return getSecondaryReportActions({
             areStrictPolicyRulesEnabled,
+            isLoadingSecurityGroup,
             currentUserLogin: currentUserEmail,
             currentUserAccountID,
             submitterLogin,

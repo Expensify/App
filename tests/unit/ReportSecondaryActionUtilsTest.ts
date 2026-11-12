@@ -154,7 +154,9 @@ describe('getSecondaryAction', () => {
         [false, true, MANAGER_ACCOUNT_ID, false],
         [false, false, APPROVER_ACCOUNT_ID, false],
         [true, true, APPROVER_ACCOUNT_ID, true],
-    ])('change approver visibility: admin=%s, enforcement=%s, manager=%s', (isAdmin, areStrictPolicyRulesEnabled, managerID, expected) => {
+        [false, false, MANAGER_ACCOUNT_ID, false, true],
+        [true, false, MANAGER_ACCOUNT_ID, true, true],
+    ])('change approver visibility: admin=%s, enforcement=%s, manager=%s', (isAdmin, areStrictPolicyRulesEnabled, managerID, expected, isLoadingSecurityGroup = false) => {
         // Given an outstanding report and the caller's workspace enforcement setting.
         jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin).mockReturnValue(isAdmin);
         const report = createMock<Report>({
@@ -183,6 +185,7 @@ describe('getSecondaryAction', () => {
             rules: undefined,
             cardList: undefined,
             areStrictPolicyRulesEnabled,
+            isLoadingSecurityGroup,
         });
 
         // Then only admins and eligible current approvers can change the approver.

@@ -43,6 +43,7 @@ describe('SearchChangeApproverPage', () => {
                     allPolicies,
                     currentUserAccountID: 456,
                     areStrictPolicyRulesEnabled: true,
+                    isLoadingSecurityGroup: false,
                 }),
             ).toBe(true);
         });
@@ -58,6 +59,7 @@ describe('SearchChangeApproverPage', () => {
                 allPolicies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: memberPolicy},
                 currentUserAccountID: report.managerID ?? CONST.DEFAULT_NUMBER_ID,
                 areStrictPolicyRulesEnabled: false,
+                isLoadingSecurityGroup: false,
             });
 
             // Then the current approver can reassign the report
@@ -75,6 +77,7 @@ describe('SearchChangeApproverPage', () => {
                 allPolicies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: memberPolicy},
                 currentUserAccountID: report.managerID ?? CONST.DEFAULT_NUMBER_ID,
                 areStrictPolicyRulesEnabled: true,
+                isLoadingSecurityGroup: false,
             });
 
             // Then reassignment is unavailable to non-admins
@@ -89,6 +92,7 @@ describe('SearchChangeApproverPage', () => {
                     allPolicies,
                     currentUserAccountID: 456,
                     areStrictPolicyRulesEnabled: true,
+                    isLoadingSecurityGroup: false,
                 }),
             ).toBe(false);
         });
@@ -104,6 +108,7 @@ describe('SearchChangeApproverPage', () => {
                 allPolicies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: memberPolicy},
                 currentUserAccountID: 456,
                 areStrictPolicyRulesEnabled: false,
+                isLoadingSecurityGroup: false,
             });
 
             // Then reassignment is unavailable
@@ -118,6 +123,7 @@ describe('SearchChangeApproverPage', () => {
                     allPolicies,
                     currentUserAccountID: 456,
                     areStrictPolicyRulesEnabled: true,
+                    isLoadingSecurityGroup: false,
                 }),
             ).toBe(false);
         });

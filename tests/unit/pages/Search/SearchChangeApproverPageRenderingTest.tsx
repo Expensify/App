@@ -47,7 +47,7 @@ jest.mock('@hooks/useEnvironment', () => () => ({environmentURL: ''}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, formatPhoneNumber: (value: string) => value}));
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => false}));
-jest.mock('@hooks/useStrictPolicyRules', () => jest.fn(() => ({areStrictPolicyRulesEnabled: false})));
+jest.mock('@hooks/useStrictPolicyRules', () => jest.fn(() => ({areStrictPolicyRulesEnabled: false, isLoadingSecurityGroup: false})));
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     closeRHPFlow: jest.fn(),
@@ -82,7 +82,7 @@ describe('SearchChangeApproverPage permissions', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: false});
+        jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: false, isLoadingSecurityGroup: false});
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -100,7 +100,7 @@ describe('SearchChangeApproverPage permissions', () => {
         {roles: [CONST.POLICY.ROLE.USER, CONST.POLICY.ROLE.USER], strictRules: false, managerID: 456, options: []},
     ])('offers $options for roles=$roles, strict rules=$strictRules, manager=$managerID', async ({roles, strictRules, managerID, options}) => {
         // Given loaded reports with the user's workspace roles and domain restrictions
-        jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: strictRules});
+        jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: strictRules, isLoadingSecurityGroup: false});
         await loadReports(roles, managerID);
 
         // When the user opens the bulk change approver menu
@@ -115,6 +115,23 @@ describe('SearchChangeApproverPage permissions', () => {
             expect(props?.data?.at(0)?.isSelected).toBe(true);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP);
         }
+    });
+
+    it.each([true, false])('waits for security-group loading before applying strict rules=%s', async (strictRules) => {
+        // Given loaded reports whose member permissions are still unknown
+        await loadReports([CONST.POLICY.ROLE.USER, CONST.POLICY.ROLE.USER]);
+        jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: false, isLoadingSecurityGroup: true});
+        const {rerender} = render(<SearchChangeApproverPage />);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
+
+        // When the actual domain restriction arrives
+        jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: strictRules, isLoadingSecurityGroup: false});
+        rerender(<SearchChangeApproverPage />);
+
+        // Then only confirmed unrestricted members can enter reassignment
+        expect(Navigation.navigate).toHaveBeenCalledTimes(strictRules ? 0 : 1);
+        expect(Navigation.closeRHPFlow).toHaveBeenCalledTimes(strictRules ? 1 : 0);
     });
 
     it('waits for permissions before closing or automatically navigating', async () => {

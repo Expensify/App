@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isProcessingReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,7 +55,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
     const {isBetaEnabled} = usePermissions();
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -64,7 +64,10 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
 
-    const canMemberReassignApprover = !areStrictPolicyRulesEnabled && currentUserDetails.accountID === report?.managerID;
+    const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    // Members only have the reassignment action, so its destination must still be available.
+    const canMemberReassignApprover =
+        !isLoadingSecurityGroup && !areStrictPolicyRulesEnabled && currentUserDetails.accountID === report?.managerID && isProcessingReport(report) && isApprovalEnabled;
     const hasAdminPermission = isPolicyAdmin(policy);
     const approverType = hasAdminPermission ? selectedApproverType : APPROVER_TYPE.REASSIGN_APPROVER;
 
