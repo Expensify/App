@@ -28,6 +28,7 @@ import {check} from 'react-native-permissions';
 import type * as FileUtilsModule from '../../src/libs/fileDownload/FileUtils';
 import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
 
+import * as MoneyRequest from '../../src/libs/actions/IOU/MoneyRequest';
 import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import createMock from '../utils/createMock';
@@ -44,6 +45,16 @@ jest.mock('@libs/actions/IOU/TrackExpense', () => {
         ...actual,
         requestMoney: jest.fn(() => ({iouReport: undefined})),
         trackExpense: jest.fn(),
+    };
+});
+
+// Pass-through spies so a test can stop the page from re-seeding the draft transaction.
+jest.mock('@libs/actions/IOU/MoneyRequest', () => {
+    const actual = jest.requireActual<typeof MoneyRequest>('@libs/actions/IOU/MoneyRequest');
+    return {
+        ...actual,
+        initMoneyRequest: jest.fn(actual.initMoneyRequest),
+        setMoneyRequestParticipantsFromReport: jest.fn(actual.setMoneyRequestParticipantsFromReport),
     };
 });
 
@@ -322,6 +333,9 @@ describe('SubmitDetailsPage', () => {
         jest.mocked(check).mockResolvedValue('granted');
         const actualGetReportOrDraftReport = jest.requireActual<ReportUtilsActual>('@libs/ReportUtils').getReportOrDraftReport;
         jest.mocked(getReportOrDraftReport).mockImplementation(actualGetReportOrDraftReport);
+        const actualMoneyRequest = jest.requireActual<typeof MoneyRequest>('@libs/actions/IOU/MoneyRequest');
+        jest.mocked(MoneyRequest.initMoneyRequest).mockImplementation(actualMoneyRequest.initMoneyRequest);
+        jest.mocked(MoneyRequest.setMoneyRequestParticipantsFromReport).mockImplementation(actualMoneyRequest.setMoneyRequestParticipantsFromReport);
         resetNavigationMocksForSubmitDetailsPageTests();
         await Onyx.clear();
         await waitForBatchedUpdates();
@@ -714,6 +728,39 @@ describe('SubmitDetailsPage', () => {
             expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
             expect(mockConfirmationListProps.isConfirming).toBe(false);
         });
+    });
+
+    it('releases the confirm button and allows a retry when the draft transaction is missing once the receipt is read', async () => {
+        // Given the draft transaction is gone at confirm time and the page does not re-seed it, so onConfirm lets the upload
+        // start but finishRequestAndNavigate has nothing to submit
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(MoneyRequest.initMoneyRequest).mockImplementation(() => {});
+        jest.mocked(MoneyRequest.setMoneyRequestParticipantsFromReport).mockImplementation(() => Promise.resolve());
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, null);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user confirms and the receipt read reaches finishRequestAndNavigate
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the early return skips the submission and releases the button instead of leaving it spinning
+        expect(readFileAsync).toHaveBeenCalledTimes(1);
+        expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+        expect(mockConfirmationListProps.isConfirming).toBe(false);
+
+        // When the draft transaction is back and the user confirms again
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, createDraftTransaction());
+        });
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the retry is not blocked by the first attempt and the expense is submitted
+        expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
     });
 
     it('caches nothing and raises nothing when the permission check fails on open', async () => {
