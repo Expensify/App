@@ -187,6 +187,7 @@ const mockedOptions = createFilteredOptionList(
     EMPTY_PRIVATE_IS_ARCHIVED_MAP,
     undefined,
     {
+        lastActions: undefined,
         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
         dateFnsLocale: undefined,
         convertToDisplayString: TestHelper.convertToDisplayString,
@@ -484,6 +485,7 @@ describe('SearchAutocompleteList', () => {
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
                 {
+                    lastActions: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
                     convertToDisplayString: TestHelper.convertToDisplayString,
@@ -580,6 +582,7 @@ describe('SearchAutocompleteList', () => {
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
                 {
+                    lastActions: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
                     convertToDisplayString: TestHelper.convertToDisplayString,
