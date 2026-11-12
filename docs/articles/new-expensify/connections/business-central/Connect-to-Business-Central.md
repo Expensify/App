@@ -29,7 +29,7 @@ To connect Business Central, you must:
 
 Start with **Expensify Assisted Setup**, which appears after you install the Expensify app from Microsoft Marketplace. The wizard guides you through Microsoft Entra registration and registers the application in Business Central. You do not need to repeat the manual configuration steps after you complete the wizard.
 
-For a video walkthrough, watch [how to connect Business Central to Expensify](https://www.loom.com/share/4342e9e068424636914bd7872dec6937).
+For a video walkthrough, watch [how to connect Business Central to Expensify](https://www.loom.com/share/4342e9e068424636914bd7872dec6937). Recorded November 2026. The video shows the setup flow as of that date.
 
 1. Install the **Expensify** app published by **Expensify** from Microsoft Marketplace in your Business Central environment.
 2. In **Expensify Assisted Setup**, select **Next** to begin.
