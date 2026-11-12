@@ -72,6 +72,13 @@ type Response<TKey extends OnyxKey> = {
     /** Used to pass error title for error handling purposes */
     title?: string;
 
+    /**
+     * Identifies the Web-Expensify site that threw, which the ExpError handler copies onto every failed response. Unlike
+     * `message` it survives a rewording of that message, so behaviour that keys on the reason for a failure reads this
+     * instead of matching its text.
+     */
+    UUID?: string;
+
     /** Commands data */
     data?: Data;
 

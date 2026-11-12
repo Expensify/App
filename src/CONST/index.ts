@@ -3301,6 +3301,23 @@ const CONST = {
         SERVICE_UNAVAILABLE: 503,
         POLICY_DIFF_WARNING: 305,
     },
+    /**
+     * ExpError UUIDs of the Web-Expensify throw sites that reject a new expense because the report it was aimed at no
+     * longer accepts expenses: an IOU report that isn't submitted, an expense report past SUBMITTED, an instant-submit
+     * report that isn't open, and a money request aimed at a self-DM. They all answer 666 with the same English
+     * message, so the UUID is what tells them apart from the other 666s. A rewording of that message does not move a
+     * UUID, which is why the recovery keys on it rather than on `message`.
+     */
+    REPORT_NO_LONGER_ACCEPTS_EXPENSE_UUIDS: [
+        // 403 New request cannot be added to this IOU report
+        'D59B5F7D-38B3-4E68-B83A-2FB5DBDACD97',
+        // 403 New request cannot be added to this expense report
+        '9FC073E8-D25E-4D06-A8DD-50829801ED9A',
+        // 403 New request cannot be added to this report
+        'E46EEEA9-714C-4E31-A763-5BC9B38CA0B4',
+        // 403 New money request cannot be added to this report
+        'E9DABDCE-75CA-4728-92A8-6AEA557102E7',
+    ],
     HTTP_STATUS: {
         // Cloudflare Access rejects an expired bearer token at the HTTP layer, before any jsonCode body
         UNAUTHORIZED: 401,

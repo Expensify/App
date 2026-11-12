@@ -1,7 +1,7 @@
 /** Decides whether a failed receipt upload can be retried and rebuilds its `RequestMoney` call from Onyx. */
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import {getAllReportActions, isCreatedAction} from '@libs/ReportActionsUtils';
-import {getTransactionDetails, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getTransactionDetails, isExpenseReportRejected, isMoneyRequestReport} from '@libs/ReportUtils';
 import {getIsFromGlobalCreate, isDistanceRequest, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
 import {getAllPersonalDetails, getAllReports, getAllTransactionViolations} from '@userActions/IOU';
@@ -108,6 +108,15 @@ function canBuildRetryPayload(context: ReceiptRetryContext): boolean {
     if (receiptError.action !== CONST.IOU.ACTION_PARAMS.MONEY_REQUEST || wouldOverwriteReportWithExpense) {
         return false;
     }
+
+    // The report refused an expense, so the retry cannot reuse it, and a retry has nowhere else to go. Sending it at a
+    // freshly built report would rewrite the refused one: the builder is handed that report's ID as the optimistic ID,
+    // and a new report is written with SET. Re-targeting a refused expense needs a product decision about where the
+    // expense goes and what happens to the receipt, so this leaves the failure on screen instead of risking the report.
+    if (isExpenseReportRejected(iouReport?.reportID)) {
+        return false;
+    }
+
     return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport, currentUserPersonalDetails.accountID);
 }
 
