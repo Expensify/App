@@ -303,18 +303,45 @@ function buildApproversFromRoutes({firstEmail, approvalLimits = [], getNextAppro
     const [routeWithinLimits = [], ...routesOverLimits] = routes;
     const approvers: Approver[] = routeWithinLimits.map(({email, isCircularReference}) => ({...buildApprover(email), isCircularReference}));
     for (const [routeIndex, route] of routesOverLimits.entries()) {
-        for (const [position, {email}] of route.entries()) {
-            const previousEmail = route.at(position - 1)?.email;
-            if (position === 0 || approvers.some((approver) => approver.email === email)) {
+        // The same approver can approve at different steps for different amounts, so each step of the route is looked for
+        // after the approver before it rather than anywhere in the workflow
+        let previousIndex = 0;
+        const approvedEmails = new Set(route.slice(0, 1).map(({email}) => email));
+        for (const [position, {email, isCircularReference}] of route.entries()) {
+            if (position === 0) {
                 continue;
             }
-
-            // Optional over-limit approvers for higher limits go after the ones already after the same approver
-            let insertIndex = approvers.findIndex((approver) => approver.email === previousEmail) + 1;
-            while (isOptionalOverLimitApprover(approvers.at(insertIndex))) {
-                insertIndex++;
+            if (isCircularReference) {
+                break;
             }
-            approvers.splice(insertIndex, 0, {...buildApprover(email), isCircularReference: false, overLimitAmount: sortedLimits.at(routeIndex)});
+
+            // A report skips the optional over-limit approvers it isn't over, and any approver who already approved it
+            let index = previousIndex + 1;
+            while (index < approvers.length && approvers.at(index)?.email !== email) {
+                const approver = approvers.at(index);
+                if (!isOptionalOverLimitApprover(approver) && !approvedEmails.has(approver?.email ?? '')) {
+                    break;
+                }
+                index++;
+            }
+
+            // A route that skips an approver the workflow has, and never comes back to them, forks from the workflow, which only
+            // shows the route within every limit, so it goes on from the approver it skips to
+            const skippedEmail = approvers.at(index)?.email;
+            const laterIndex = skippedEmail === email ? -1 : approvers.findIndex((approver, approverIndex) => approverIndex > index && approver.email === email);
+            const isForkSkippingApprover = laterIndex !== -1 && !route.slice(position + 1).some((routeApprover) => routeApprover.email === skippedEmail);
+            if (isForkSkippingApprover) {
+                index = laterIndex;
+            } else if (skippedEmail !== email) {
+                // Optional over-limit approvers for higher limits go after the ones already after the same approver
+                index = previousIndex + 1;
+                while (isOptionalOverLimitApprover(approvers.at(index))) {
+                    index++;
+                }
+                approvers.splice(index, 0, {...buildApprover(email), isCircularReference: false, overLimitAmount: sortedLimits.at(routeIndex)});
+            }
+            previousIndex = index;
+            approvedEmails.add(email);
         }
     }
     return approvers;

@@ -2696,6 +2696,10 @@ describe('WorkflowUtils', () => {
                 ['an optional over-limit approver as the only other approver', [buildApprover(1), buildApprover(3, {overLimitAmount: 50000})]],
                 ['an optional over-limit approver between two approvers', [buildApprover(1), buildApprover(3, {overLimitAmount: 10000}), buildApprover(4)]],
                 ['optional over-limit approvers in a row', [buildApprover(1), buildApprover(2, {overLimitAmount: 10000}), buildApprover(3, {overLimitAmount: 50000}), buildApprover(4)]],
+                [
+                    'an optional over-limit approver at two steps, for a higher amount at the earlier one',
+                    [buildApprover(1), buildApprover(9, {overLimitAmount: 50000}), buildApprover(2), buildApprover(9, {overLimitAmount: 10000}), buildApprover(3)],
+                ],
             ])('Should read back %s from the rules saved for them', (_description, approvers) => {
                 // Given the rules saved for a workflow
                 const workflow: ApprovalWorkflow = {members: [buildMember(5)], approvers, isDefault: false};
