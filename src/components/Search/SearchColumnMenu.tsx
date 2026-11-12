@@ -191,12 +191,15 @@ function SearchColumnMenu({hidableColumns, hideColumn}: SearchColumnMenuProps) {
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_EDIT_COLUMNS}
                 />
                 {!!resetColumnWidths && (
-                    <PopoverMenu.Item
-                        text={translate('search.columnMenu.resetColumnSizes')}
-                        icon={icons.RotateLeft}
-                        onSelect={resetColumnWidths}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_RESET_COLUMN_SIZES}
-                    />
+                    <>
+                        <PopoverMenu.Separator />
+                        <PopoverMenu.Item
+                            text={translate('search.columnMenu.resetColumnSizes')}
+                            icon={icons.RotateLeft}
+                            onSelect={resetColumnWidths}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_RESET_COLUMN_SIZES}
+                        />
+                    </>
                 )}
             </PopoverMenu.Content>
         </PopoverMenu.Root>
