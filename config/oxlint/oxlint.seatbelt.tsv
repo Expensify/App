@@ -1117,7 +1117,6 @@
 "../../src/pages/DynamicReferralDetailsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/DynamicReportDetailsPage/ReportDetailsTitleSection.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportParticipantRoleSelectionPage.tsx"	"no-restricted-imports"	1
@@ -1154,7 +1153,6 @@
 "../../src/pages/home/UpcomingTravelSection/UpcomingTravelItem.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/home/UpcomingTravelSection/useUpcomingTravelReservations.ts"	"react-hooks/purity"	1
 "../../src/pages/home/YourSpendSection/CardRow.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
-"../../src/pages/home/YourSpendSection/SpendSummaryRow.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/home/YourSpendSection/useYourSpendData.ts"	"no-restricted-imports"	1
 "../../src/pages/inbox/cleanStaleReportActionBackToParam.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/inbox/conciergeDraftState.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1304,7 +1302,6 @@
 "../../src/pages/MultifactorAuthentication/PromptPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/MultifactorAuthentication/RevokePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/MultifactorAuthentication/ValidateCodePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/NewChatConfirmPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/NewChatConfirmPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/NewChatConfirmPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/NewChatPage/useGroupChatDraftParticipantSync.ts"	"rulesdir/no-onyx-loading-status"	1
@@ -1425,7 +1422,6 @@
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/settings/Profile/Contacts/DynamicContactMethodsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/Contacts/DynamicNewContactMethodPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/CustomStatus/SetDatePage.tsx"	"no-restricted-imports"	1
@@ -1786,7 +1782,6 @@
 "../../src/pages/workspace/archiveWorkspace/UnarchiveWorkspaceFlow.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/categories/CategoryGLCodePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/CategoryPayrollCodePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicCategoryApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicCategoryDefaultTaxRatePage.tsx"	"no-restricted-imports"	1
@@ -2037,7 +2032,7 @@
 "../../src/pages/workspace/WorkspaceOverviewClientIDPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceOverviewCurrencyPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceOverviewDescriptionPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	3
+"../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/WorkspaceOverviewSharePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
