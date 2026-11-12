@@ -14,4 +14,4 @@
 
 - Upstream PR/issue: None. Expensify plans to remove the Onfido SDK, so the types are patched here instead of fixed upstream.
 - E/App issue: https://github.com/Expensify/App/issues/101439
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/106730
