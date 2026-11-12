@@ -1,27 +1,41 @@
 import Icon from '@components/Icon';
+import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
-/** Horizontal Expensify wordmark shown at the top of the flat navigation bar, tinted to match body text. */
-function FlatNavLogo() {
+type FlatNavLogoProps = {
+    onPress: () => void;
+};
+
+/** Expensify wordmark at the top of the flat navigation bar, which leads Home like the logo in the icon bar. */
+function FlatNavLogo({onPress}: FlatNavLogoProps) {
     const theme = useTheme();
-    const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
 
     return (
-        <Icon
-            additionalStyles={styles.flatNavigationBarLogo}
-            src={icons.ExpensifyWordmark}
-            fill={theme.text}
-            width={variables.flatNavigationBarLogoWidth}
-            height={variables.flatNavigationBarLogoHeight}
-        />
+        <PressableWithFeedback
+            role={CONST.ROLE.LINK}
+            accessibilityLabel={translate('common.home')}
+            testID="ExpensifyLogoButton"
+            onPress={onPress}
+            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
+        >
+            <Icon
+                src={icons.ExpensifyWordmark}
+                fill={theme.text}
+                width={variables.flatNavigationBarLogoWidth}
+                height={variables.flatNavigationBarLogoHeight}
+            />
+        </PressableWithFeedback>
     );
 }
 

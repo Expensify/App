@@ -15,6 +15,7 @@ import {getLastSearchQuery} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -36,7 +37,7 @@ type CannedSearchTabButtonProps = {
     /** Every search this tab stands for. The tab reads as selected while any of them is the current search. */
     searchKeys: SearchKey[];
 
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
 };
 
 /** Bottom-bar tab that opens one of the Spend searches, such as Expenses or Reports. */
@@ -46,6 +47,7 @@ function CannedSearchTabButton({selectedTab, item, label, icon, searchKeys, sent
     const {currentSearchKey} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const isSelected = selectedTab === NAVIGATION_TABS.SEARCH && searchKeys.some((key) => key === currentSearchKey);
 
@@ -53,7 +55,7 @@ function CannedSearchTabButton({selectedTab, item, label, icon, searchKeys, sent
         clearSelectedText();
         interceptAnonymousUser(() => {
             navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions);
-        });
+        }, session);
     });
 
     return (

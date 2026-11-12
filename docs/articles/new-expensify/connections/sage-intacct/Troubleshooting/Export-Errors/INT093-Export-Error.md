@@ -33,7 +33,7 @@ Follow the steps below to update the expired credit card and retry the export.
 
 1. In Sage Intacct, go to **Applications > Cash Management > Credit Card**.
 2. Confirm the default expiration date is not in the past. If it is in the past, adjust the fields to a date well into the future and save your changes.
-3. In Expensify, go to **Settings > Workspaces**, select your Workspace, click **Accounting**, and click **Sync Now**.
+3. In Expensify, select **Workspaces > [workspace name] > Connections**, select **Configure** next to Sage Intacct, select **More (⋮)**, then select **Sync now**.
 4. Retry exporting the report.
 
 If the credit card's expiration date is current in Sage Intacct and the Workspace has synced, the export should complete successfully.

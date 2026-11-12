@@ -210,13 +210,14 @@ function ScheduleCallPage() {
                                 <Text style={[styles.mb5]}>
                                     <RenderHTML
                                         html={translate('scheduledCall.book.slots', {
-                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale}),
+                                            date: DateUtils.formatToLongDateInTimeZone(scheduleCallDraft.date, userTimezone, dateFnsLocale),
                                         })}
                                     />
                                 </Text>
                                 <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentStart, styles.gap2]}>
                                     {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
                                         <Button
+                                            sentryLabel={CONST.SENTRY_LABEL.SCHEDULE_CALL.TIME_SLOT}
                                             key={`time-slot-${timeSlot.startTime}`}
                                             size={CONST.BUTTON_SIZE.LARGE}
                                             variant={scheduleCallDraft?.timeSlot === timeSlot.startTime ? CONST.BUTTON_VARIANT.SUCCESS : undefined}

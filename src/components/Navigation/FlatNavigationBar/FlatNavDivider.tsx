@@ -7,11 +7,7 @@ import {View} from 'react-native';
 function FlatNavDivider() {
     const styles = useThemeStyles();
 
-    return (
-        <View style={styles.flatNavigationBarDividerContainer}>
-            <View style={styles.flatNavigationBarDivider} />
-        </View>
-    );
+    return <View style={styles.flatNavigationBarDivider} />;
 }
 
 export default FlatNavDivider;

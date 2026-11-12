@@ -52,7 +52,7 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import {fontScale, lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -215,10 +215,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether item is focused or active */
         focused?: boolean;
 
-        /** Styles the row as navigation: the shared selected/hover backgrounds, a supporting-colored label when it isn't
-         * the active route, and the smaller navigation icon size. */
-        shouldUseNavigationRowStyles?: boolean;
-
         /** Should we disable this menu item? */
         disabled?: boolean;
 
@@ -284,6 +280,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Should we remove the hover background color of the menu item */
         shouldRemoveHoverBackground?: boolean;
+
+        /** Background of the hovered item in place of the default hover background */
+        hoveredStyle?: StyleProp<ViewStyle>;
+
+        /** Added to the title's style while the item is hovered. Applies to plain text titles, not HTML or parsed ones. */
+        hoveredTitleStyle?: StyleProp<TextStyle>;
 
         rightIconAccountID?: number | string;
 
@@ -510,7 +512,6 @@ function MenuItem({
     success = false,
     iconReportID,
     focused = false,
-    shouldUseNavigationRowStyles = false,
     disabled = false,
     title,
     accessibilityLabel,
@@ -539,6 +540,8 @@ function MenuItem({
     shouldGreyOutWhenDisabled = true,
     shouldRemoveBackground = false,
     shouldRemoveHoverBackground = false,
+    hoveredStyle,
+    hoveredTitleStyle,
     shouldUseDefaultCursorWhenDisabled = false,
     shouldShowLoadingSpinnerIcon = false,
     isAnonymousAction = false,
@@ -649,9 +652,6 @@ function MenuItem({
         contextMenuHint,
     });
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
-    // Navigation rows carry the same icon size as the rows in the navigation bar beside them, on every layout.
-    const resolvedIconWidth = iconWidth ?? (shouldUseNavigationRowStyles ? variables.iconSizeNormal : undefined);
-    const resolvedIconHeight = iconHeight ?? (shouldUseNavigationRowStyles ? variables.iconSizeNormal : undefined);
 
     const hasIcon = (!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon);
     let iconLeftPadding;
@@ -665,10 +665,8 @@ function MenuItem({
         [
             styles.flexShrink1,
             styles.popoverMenuText,
-            shouldUseNavigationRowStyles && !focused ? styles.textSupporting : {},
             iconLeftPadding,
             shouldShowBasicTitle ? {} : styles.textStrong,
-            shouldUseNavigationRowStyles && !focused ? styles.textRegular : {},
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
@@ -709,6 +707,9 @@ function MenuItem({
                         style={descriptionTextStyles}
                         numberOfLines={numberOfLinesDescription}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: isTitleSelectable}}
+                        // A description on top labels the field, so it stays readable in session recordings even inside a masked container.
+                        // A description below the title can hold user data, like an email, so it keeps the class of its container
+                        fsClass={shouldShowDescriptionOnTop ? CONST.FULLSTORY.CLASS.UNMASK : undefined}
                     >
                         {description}
                     </Text>
@@ -868,7 +869,7 @@ function MenuItem({
                     >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction, session) : onPressAction}
+                                onPress={shouldCheckActionAllowedOnPress && !isAnonymousAction ? callIfAuthenticated(onPressAction, session) : onPressAction}
                                 onMouseDown={(event) => {
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
@@ -904,10 +905,13 @@ function MenuItem({
                                             ),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
-                                        // Listed last so they win over the generic button backgrounds above.
-                                        shouldUseNavigationRowStyles && focused && styles.navigationRowSelected,
-                                        shouldUseNavigationRowStyles && isHovered && interactive && !focused && !pressed && styles.navigationRowHovered,
+                                        isHovered &&
+                                            interactive &&
+                                            !focused &&
+                                            !pressed &&
+                                            !shouldRemoveBackground &&
+                                            !shouldRemoveHoverBackground &&
+                                            (hoveredStyle ?? styles.hoveredComponentBG),
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
@@ -985,8 +989,8 @@ function MenuItem({
                                                                         hovered={isHovered}
                                                                         pressed={pressed}
                                                                         src={icon}
-                                                                        width={resolvedIconWidth}
-                                                                        height={resolvedIconHeight}
+                                                                        width={iconWidth}
+                                                                        height={iconHeight}
                                                                         fill={
                                                                             // eslint-disable-next-line no-nested-ternary
                                                                             displayInDefaultIconColor
@@ -1036,8 +1040,8 @@ function MenuItem({
                                                             <Icon
                                                                 contentFit={contentFit}
                                                                 src={secondaryIcon}
-                                                                width={resolvedIconWidth}
-                                                                height={resolvedIconHeight}
+                                                                width={iconWidth}
+                                                                height={iconHeight}
                                                                 fill={
                                                                     secondaryIconFill ??
                                                                     StyleUtils.getIconFillColor({
@@ -1088,10 +1092,7 @@ function MenuItem({
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
                                                                     <Text
-                                                                        style={[
-                                                                            combinedTitleTextStyle,
-                                                                            shouldUseNavigationRowStyles && isHovered && interactive && !focused && styles.navigationRowHoveredText,
-                                                                        ]}
+                                                                        style={[combinedTitleTextStyle, isHovered && hoveredTitleStyle]}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
                                                                         dataSet={{
                                                                             [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
@@ -1203,8 +1204,6 @@ function MenuItem({
                                                         <Icon
                                                             src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
-                                                            width={variables.iconSizeSmall}
-                                                            height={variables.iconSizeSmall}
                                                         />
                                                     </View>
                                                 )}

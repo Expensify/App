@@ -5,6 +5,8 @@ import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/Wid
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import RHP_FLOATING_CARD_INSET, {RHP_FLOATING_CARD_BORDERS_WIDTH} from '@libs/Navigation/helpers/rhpFloatingCardInset';
+import {getSidePanelWidthStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import CONST from '@src/CONST';
@@ -451,6 +453,12 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: 14,
         },
 
+        navigationTabBarLabelBoldPlaceholder: {
+            ...visibility.hidden,
+            height: 0,
+            overflow: 'hidden',
+        },
+
         link: link(theme),
 
         emailLink: emailLink(theme),
@@ -564,11 +572,6 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: fontScale.label,
             lineHeight: lineHeightScale.label,
-        },
-
-        /** Gives every digit the same advance so a counter doesn't shift sideways as its digits change. */
-        tabularNums: {
-            fontVariant: ['tabular-nums'],
         },
 
         mutedNormalTextLabel: {
@@ -813,6 +816,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        navigationTabBarContainerLandscape: {
+            height: variables.floatingTabBarLandscapeHeight,
+        },
+
         // Only the navigator's own tab bar opts into this. Every preloaded screen renders its own bar at the same
         // spot, so applying it to all of them would stack one shadow per bar. The token's upward offset plus its
         // negative spread keep the shadow clear of the bar's bottom edge, and so out of the safe area below it.
@@ -910,6 +917,23 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
+        flatNavigationBarHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            height: variables.flatNavigationBarHeaderHeight,
+            paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+        },
+
+        flatNavigationBarCreateButtonContainer: {
+            marginHorizontal: variables.flatNavigationBarCreateButtonInset,
+            marginBottom: variables.flatNavigationBarCreateButtonGap,
+        },
+
+        flatNavigationBarCreateButton: {
+            height: variables.flatNavigationBarCreateButtonHeight,
+            minHeight: variables.flatNavigationBarCreateButtonHeight,
+        },
+
         // The wordmark's glyphs sit high in its viewBox, so a couple of pixels down optically centers it against the create button.
         // Nudges the wordmark down to sit optically centred against the collapse icon, without the offset
         // adding to the header's height.
@@ -938,17 +962,6 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: theme.shadow,
         },
 
-        flatNavigationBarHeader: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            overflow: 'hidden',
-            height: variables.flatNavigationBarHeaderHeight,
-            marginBottom: variables.flatNavigationBarHeaderMarginBottom,
-            paddingLeft: 20,
-            paddingRight: variables.flatNavigationBarHeaderPaddingRight,
-        },
-
         // Collapsed, the toggle is the header's only child: 20 + the 20px icon + 20 fills the 60px rail exactly.
         flatNavigationBarHeaderCollapsed: {
             paddingLeft: 20,
@@ -962,14 +975,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        // The create button sits in the list as its own row, lined up with the rows below it.
-        // Overrides the medium button's own 40px minimums, so the button is 32 tall and 32 square when icon-only.
-        flatNavigationBarCreateButton: {
-            height: variables.flatNavigationBarCreateButtonHeight,
-            minHeight: variables.flatNavigationBarCreateButtonHeight,
-            minWidth: variables.flatNavigationBarCreateButtonHeight,
-        },
-
         flatNavigationBarCreateRow: {
             marginHorizontal: variables.flatNavigationBarCreateRowMarginHorizontal,
             marginBottom: 16,
@@ -978,12 +983,15 @@ const staticStyles = (theme: ThemeColors) =>
         flatNavigationBarItem: {
             flexDirection: 'row',
             alignItems: 'center',
+            gap: 12,
             height: variables.flatNavigationBarItemHeight,
-            paddingHorizontal: navigationRowPaddingHorizontal,
+            paddingHorizontal: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
             borderRadius: variables.componentBorderRadiusNormal,
-            // Labels stay mounted while they fade, so a collapsed row has to clip what no longer fits.
-            overflow: 'hidden',
+        },
+
+        flatNavigationBarAccountItem: {
+            height: variables.flatNavigationBarAccountItemHeight,
         },
 
         /**
@@ -1081,18 +1089,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         flatNavigationBarDivider: {
             height: 1,
+            marginHorizontal: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+            marginVertical: 8,
             backgroundColor: theme.border,
         },
 
         flatNavigationBarFooter: {
             paddingBottom: 12,
-        },
-
-        // The account row is taller than a standard row so the 40px avatar keeps 8px of breathing room. The height is
-        // fixed so the row never resizes with its contents.
-        flatNavigationBarAccountItem: {
-            height: variables.flatNavigationBarAccountItemHeight,
-            paddingVertical: 8,
         },
 
         flatNavigationBarAccountAvatar: {
@@ -1793,6 +1796,16 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
         },
 
+        /**
+         * The secondary row reserves a fixed height so that the typing indicator appearing and disappearing never
+         * shifts the compose box. On mobile web in landscape that costs scarce vertical space for a row that is empty
+         * most of the time, so there it collapses to its content and accepts the shift instead.
+         */
+        chatItemComposeSecondaryRowCompact: {
+            marginTop: 0,
+            marginBottom: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
+        },
+
         chatItemComposeSecondaryRowSubText: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -2272,6 +2285,16 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: 'none',
         },
 
+        // The liquid glass behind the icon draws the button's surface and its own depth.
+        floatingActionButtonGlass: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+        },
+
+        floatingButtonGlass: {
+            borderRadius: variables.componentBorderRadiusCircle,
+        },
+
         floatingCameraButton: {
             position: 'absolute',
             // floatingActionButton top property value (componentSizeLarge + 16) +
@@ -2345,6 +2368,15 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 8,
             justifyContent: 'center',
             alignItems: 'flex-start',
+        },
+
+        onboardingStickyHeaderContainer: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+            backgroundColor: theme.componentBG,
         },
 
         createMenuContainer: {
@@ -3277,6 +3309,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerBarNarrowHeight: {
             height: variables.contentHeaderNarrowHeight,
+        },
+
+        headerBarCompactHeight: {
+            height: variables.contentHeaderCompactHeight,
         },
 
         imageViewContainer: {
@@ -4306,6 +4342,12 @@ const staticStyles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        // Lays a centered heading's label over the hidden copy that sizes its slot
+        searchColumnMenuLabelOverlay: {
+            ...StyleSheet.absoluteFill,
+            justifyContent: 'center',
+        },
+
         zIndex10: {
             zIndex: 10,
         },
@@ -4585,6 +4627,20 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: 20,
+        },
+
+        receiptScanningLine: {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderTopWidth: CONST.RECEIPT.TRANSLATION_SCAN_LINE_HEIGHT,
+            borderTopColor: theme.success,
+        },
+
+        translatedReceiptCard: {
+            width: '100%',
+            maxWidth: 400,
         },
 
         bgGreenSuccess: {
@@ -5232,24 +5288,6 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
-        linkPreviewWrapper: {
-            marginTop: 16,
-            borderLeftWidth: 4,
-            borderLeftColor: theme.border,
-            paddingLeft: 12,
-        },
-
-        linkPreviewImage: {
-            flex: 1,
-            borderRadius: 8,
-            marginTop: 8,
-        },
-
-        linkPreviewLogoImage: {
-            height: 16,
-            width: 16,
-        },
-
         contextMenuItemPopoverMaxWidth: {
             minWidth: variables.compactPopoverMenuWidth,
             maxWidth: variables.compactPopoverMenuWidth,
@@ -5321,6 +5359,11 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderColor: theme.borderFocus,
             borderWidth: 2,
+        },
+
+        shareCodeContainerWideLayout: {
+            maxWidth: variables.rhpWidth - spacing.ph5.paddingHorizontal * 2,
+            alignSelf: 'center',
         },
 
         shareCodeContainerDownloadPadding: {
@@ -6041,6 +6084,25 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerStatusBarContainer: {
             minHeight: variables.componentSizeSmall,
+        },
+
+        reportHistoryIconContainer: {
+            width: variables.iconSizeXLarge,
+            height: variables.iconSizeXLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        reportHistoryLabel: {
+            marginLeft: variables.reportHistoryLabelGap,
+        },
+
+        reportHistoryConnector: {
+            width: variables.borderTopWidth,
+            height: variables.reportHistoryConnectorHeight,
+            marginVertical: variables.reportHistoryConnectorMarginVertical,
+            marginLeft: variables.iconSizeXLarge / 2,
+            backgroundColor: theme.border,
         },
 
         // The layer BulkActionBar floats in. It covers its container so the bar can center itself over the table, and
@@ -7180,6 +7242,15 @@ const staticStyles = (theme: ThemeColors) =>
             right: -variables.sideBarWidth,
             backgroundColor: theme.overlay,
         },
+        // Straddles the side panel's left edge, so the line drawn at its centre runs just outside the panel's border.
+        sidePanelResizeHandle: {
+            ...positioning.pAbsolute,
+            top: 0,
+            bottom: 0,
+            left: -CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2,
+            width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
+        } satisfies ViewStyle,
+
         sidePanelContent: {
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             top: 0,
@@ -7384,8 +7455,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
         pieChartLegendDot: {
             borderRadius: '50%',
-            width: 12,
-            height: 12,
+            width: 8,
+            height: 8,
+        },
+        pieChartLegendLabel: {
+            fontSize: variables.iconSizeExtraSmall,
+            lineHeight: variables.lineHeightChartLabel,
         },
         // `getPieChartLoadingHeight` sizes the loading chart from the responsive legend styles below, so update it with them.
         pieChartResponsiveRow: {
@@ -7399,7 +7474,8 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
         pieChartLegendSide: {
-            width: VictoryTheme.pie.legendMinWidth,
+            minWidth: VictoryTheme.pie.legendMinWidth,
+            flexShrink: 1,
             justifyContent: 'center',
             rowGap: VictoryTheme.pie.legendRowGap,
         },
@@ -7414,7 +7490,7 @@ const staticStyles = (theme: ThemeColors) =>
             columnGap: 8,
         },
         pieChartLegendDotColumn: {
-            height: variables.lineHeightXLarge,
+            height: variables.lineHeightChartLabel,
             justifyContent: 'center',
         },
         chartInlineTable: {
@@ -7454,18 +7530,38 @@ const dynamicStyles = (theme: ThemeColors) =>
                   }
                 : flex.flex1) satisfies ViewStyle,
 
-        // Straddles the left edge of the single RHP card (RHPFloatingCard), which shares its containing block.
+        // Sized like the lone floating card, so a drag paints its width through the CSS variable and the handle sits on its left edge.
+        resizableSingleRHPExtendedCardInterpolatorStyles: (singleRHPWidth: number) =>
+            ({
+                ...getRHPExtendedCardFrame(theme),
+                // Border-box card, so the border is added back on top of the width or the content gets clipped.
+                width: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_BORDERS_WIDTH),
+            }) satisfies ViewStyle,
+
+        // Straddles the left edge of the single RHP card, whether floating alone (RHPFloatingCard) or stacked on a wide card, both flush with the same right margin.
         rhpResizeHandle: (singleRHPWidth: number) =>
             ({
                 ...positioning.pAbsolute,
                 top: variables.rhpFloatingCardMargin,
                 bottom: variables.rhpFloatingCardMargin,
-                width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
-                right: getSingleRHPWidthStyleValue(singleRHPWidth, variables.rhpFloatingCardMargin + 2 * variables.rhpFloatingCardBorderWidth - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+                width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
+            }) satisfies ViewStyle,
+
+        // Spans the single RHP card and the handle straddling its left edge, and shares their containing block's right, top and bottom edges.
+        rhpResizableDialog: (singleRHPWidth: number) =>
+            ({
+                ...positioning.pAbsolute,
+                ...pointerEventsBoxNone,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET + CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
             }) satisfies ViewStyle,
 
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
-        // content that runs under the footer.
+        // content that runs under the footer. Touches pass through to that content, so it still scrolls when the
+        // indicator covers all of it that is left on a short landscape screen.
         offlineIndicatorAboveFooter: (footerHeight: number) =>
             ({
                 position: 'absolute',
@@ -7474,10 +7570,11 @@ const dynamicStyles = (theme: ThemeColors) =>
                 left: 0,
                 zIndex: variables.searchFooterZIndex,
                 backgroundColor: theme.appBG,
+                ...pointerEventsNone,
             }) satisfies ViewStyle,
 
         // Fills the screen from the top of the tab bar down to the bottom edge, so no content shows between the
-        // offline indicator and the bar.
+        // offline indicator and the bar. Touches pass through to the content under it, as above a footer.
         tabBarOfflineIndicator: (tabBarCoveredHeight: number) =>
             ({
                 position: 'absolute',
@@ -7487,6 +7584,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 height: CONST.OFFLINE_INDICATOR_HEIGHT + tabBarCoveredHeight,
                 paddingBottom: tabBarCoveredHeight,
                 backgroundColor: theme.appBG,
+                ...pointerEventsNone,
             }) satisfies ViewStyle,
 
         // Runs a footer's background down under the tab bar that covers the bottom of a tab root screen, so the
@@ -7804,8 +7902,8 @@ const dynamicStyles = (theme: ThemeColors) =>
         sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
             opacity: isOverlayVisible ? variables.overlayOpacity : 0,
         }),
-        sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
-            width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
+        sidePanelContentWidth: (shouldUseNarrowLayout: boolean, sidePanelWidth: number): ViewStyle => ({
+            width: shouldUseNarrowLayout ? '100%' : getSidePanelWidthStyleValue(sidePanelWidth),
         }),
         sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
@@ -8245,6 +8343,10 @@ const plainStyles = (theme: ThemeColors) =>
             ({
                 gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
             }) satisfies ViewStyle,
+
+        insightsAICard: {
+            width: variables.insightsAICardWidth,
+        } satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {
             width: variables.insightsEmptyStateIllustrationSize,

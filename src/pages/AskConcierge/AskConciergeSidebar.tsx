@@ -7,8 +7,8 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -99,14 +99,9 @@ function AskConciergeRow({label, icon, reportID, isSelected, isUnread, onPress}:
         <PressableWithFeedback
             accessibilityLabel={label}
             role={CONST.ROLE.BUTTON}
-            sentryLabel="AskConcierge-Row"
+            sentryLabel={CONST.SENTRY_LABEL.ASK_CONCIERGE.ROW}
             onPress={onPress}
-            style={({hovered}) => [
-                styles.flatNavigationBarItem,
-                styles.mh0,
-                isSelected && styles.navigationRowSelected,
-                hovered && !isSelected && styles.navigationRowHovered,
-            ]}
+            style={({hovered}) => [styles.flatNavigationBarItem, styles.mh0, isSelected && styles.navigationRowSelected, hovered && !isSelected && styles.navigationRowHovered]}
         >
             {({hovered}) => (
                 <>
@@ -120,11 +115,7 @@ function AskConciergeRow({label, icon, reportID, isSelected, isUnread, onPress}:
                     </Animated.View>
                     <Text
                         numberOfLines={1}
-                        style={[
-                            styles.flatNavigationBarLabel,
-                            !isSelected && styles.flatNavigationBarLabelRegular,
-                            {color: isSelected || hovered ? theme.text : theme.textSupporting},
-                        ]}
+                        style={[styles.flatNavigationBarLabel, !isSelected && styles.flatNavigationBarLabelRegular, {color: isSelected || hovered ? theme.text : theme.textSupporting}]}
                     >
                         {label}
                     </Text>
@@ -152,7 +143,7 @@ function AskConciergeSidebar({threads, selectedReportID, onAskNewQuestion, onSel
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onAskNewQuestion}
-                        sentryLabel="AskConcierge-NewQuestion"
+                        sentryLabel={CONST.SENTRY_LABEL.ASK_CONCIERGE.NEW_QUESTION}
                     >
                         <Button.Icon src={icons.Plus} />
                         <Button.Text>New</Button.Text>

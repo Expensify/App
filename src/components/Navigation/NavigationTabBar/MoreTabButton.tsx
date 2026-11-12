@@ -48,6 +48,7 @@ function MoreTabButton({selectedTab}: MoreTabButtonProps) {
     const {currentSearchKey} = useSearchQueryContext();
     const {accounting} = useFlatNavSpendItems();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
@@ -72,7 +73,7 @@ function MoreTabButton({selectedTab}: MoreTabButtonProps) {
         clearSelectedText();
         interceptAnonymousUser(() => {
             navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions);
-        });
+        }, session);
         return true;
     };
 
@@ -90,7 +91,7 @@ function MoreTabButton({selectedTab}: MoreTabButtonProps) {
         interceptAnonymousUser(() => {
             setSearchContext(false);
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, name: savedSearch.name, searchKey}));
-        });
+        }, session);
         return true;
     };
 
@@ -98,7 +99,7 @@ function MoreTabButton({selectedTab}: MoreTabButtonProps) {
         clearSelectedText();
         interceptAnonymousUser(() => {
             Navigation.navigate(ROUTES.INSIGHTS.getRoute(getLastVisitedInsightsDashboard() ?? CONST.INSIGHTS.DASHBOARD.SPEND));
-        });
+        }, session);
         return true;
     };
 
@@ -108,7 +109,7 @@ function MoreTabButton({selectedTab}: MoreTabButtonProps) {
             clearLastVisitedMoreDestination();
             interceptAnonymousUser(() => {
                 Navigation.navigate(ROUTES.MORE);
-            });
+            }, session);
             return;
         }
 
@@ -141,7 +142,7 @@ function MoreTabButton({selectedTab}: MoreTabButtonProps) {
 
         interceptAnonymousUser(() => {
             Navigation.navigate(ROUTES.MORE);
-        });
+        }, session);
     };
 
     return (

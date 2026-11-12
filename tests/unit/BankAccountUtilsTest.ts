@@ -1,4 +1,7 @@
 import {
+    isWiseOnboardingPendingSubmit,
+    shouldConfirmWiseQuoteBeforePaying,
+    shouldGetWiseQuote,
     getBankAccountConnectionStatus,
     getBankAccountState,
     getCompletedStepsForBankAccount,
@@ -13,9 +16,14 @@ import {
     canLinkPlaid,
     isBankAccountPartiallySetup,
     isBankAccountEligibleForGlobalReimbursements,
+    isGlobalReimbursementsEnabled,
+    isWiseOnboardingSubmitted,
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
+    isWiseOnboardingAwaitingDecision,
+    isWiseOnboardingMoreInfoNeeded,
+    isWiseEnabledOrOnboarding,
     PERSONAL_INFO_STEP,
     shouldSetUpGlobalReimbursementsBeforePaying,
 } from '@libs/BankAccountUtils';
@@ -25,6 +33,9 @@ import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {Account, BankAccount, BankAccountList, Policy, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
+import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
+
+import type {ValueOf} from 'type-fest';
 
 import createMock from '../utils/createMock';
 
@@ -283,6 +294,20 @@ describe('BankAccountUtils', () => {
             expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, verifications: {corpay: {}}}})).toBe(false);
         });
 
+        it('returns false when global reimbursements are already enabled', () => {
+            // Given a verified USD business account the backend marks as set up for global reimbursements, e.g. after Wise approved it
+            // When checking eligibility
+            // Then it is not eligible, so the Wallet menu and banners stop offering a setup that is already done
+            expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, isGlobalReimbursementEnabled: true}})).toBe(false);
+        });
+
+        it('returns true when global reimbursements are explicitly disabled', () => {
+            // Given a verified USD business account the backend marks as not set up for global reimbursements
+            // When checking eligibility
+            // Then it is eligible, because that is exactly the account the setup is for
+            expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, isGlobalReimbursementEnabled: false}})).toBe(true);
+        });
+
         it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.PENDING, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.LOCKED])(
             'returns false for an account in the %s state',
             (state) => {
@@ -318,6 +343,247 @@ describe('BankAccountUtils', () => {
             // When checking it before paying
             // Then the payment goes ahead and the backend makes the final call
             expect(shouldSetUpGlobalReimbursementsBeforePaying(bankAccount)).toBe(false);
+        });
+    });
+
+    describe('Wise onboarding progress', () => {
+        type Overrides = {
+            provider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
+            pendingAction?: BankAccount['pendingAction'];
+            state?: AccountData['state'];
+        };
+        const buildBankAccount = (wise: BankAccountAdditionalData['wise'], overrides: Overrides = {}): BankAccount => ({
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
+            pendingAction: overrides.pendingAction,
+            accountData: {
+                bankAccountID: 9053192,
+                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                state: overrides.state ?? CONST.BANK_ACCOUNT.STATE.OPEN,
+                additionalData: {
+                    currency: CONST.CURRENCY.USD,
+                    globalReimbursementProvider: 'provider' in overrides ? overrides.provider : CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE,
+                    wise,
+                },
+            },
+        });
+
+        it('continues an onboarding left before Submit', () => {
+            // Given the admin saved a page of the onboarding, which makes Wise the provider, and left before Submit
+            const bankAccount = buildBankAccount(undefined);
+
+            // When the helpers evaluate the account
+            // Then the onboarding can continue, and Wise has nothing to decide on yet
+            expect(isWiseOnboardingPendingSubmit(bankAccount)).toBe(true);
+            expect(isWiseOnboardingAwaitingDecision(bankAccount)).toBe(false);
+        });
+
+        it('waits on Wise without reopening the onboarding while Wise reviews it', () => {
+            // Given a submitted onboarding Wise is reviewing
+            const bankAccount = buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW});
+
+            // When the helpers evaluate the account
+            // Then it waits on Wise, and the onboarding does not reopen, since its answers are already with Wise
+            expect(isWiseOnboardingPendingSubmit(bankAccount)).toBe(false);
+            expect(isWiseOnboardingAwaitingDecision(bankAccount)).toBe(true);
+            expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
+        });
+
+        it('asks the admin for more info instead of waiting when Wise needs it', () => {
+            // Given a submitted onboarding Wise sent back for more info
+            const bankAccount = buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED});
+
+            // When the helpers evaluate the account
+            // Then it needs the admin on Wise's form, not waiting on Wise, and the onboarding does not reopen
+            expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(true);
+            expect(isWiseOnboardingAwaitingDecision(bankAccount)).toBe(false);
+            expect(isWiseOnboardingPendingSubmit(bankAccount)).toBe(false);
+        });
+
+        it.each([
+            ['the onboarding has not started', buildBankAccount(undefined, {provider: undefined})],
+            ['the account goes through Corpay', buildBankAccount(undefined, {provider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY})],
+            ['Wise approved the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.APPROVED})],
+            ['Wise rejected the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED})],
+            ['the account was deleted offline', buildBankAccount(undefined, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})],
+            ['a submitted account was deleted offline', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})],
+            [
+                'an account Wise needs more info on was deleted offline',
+                buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+            ],
+            ['the account is no longer verified', buildBankAccount(undefined, {state: CONST.BANK_ACCOUNT.STATE.VERIFYING})],
+            ['the account is unknown', undefined],
+        ])('has nothing in progress when %s', (_label, bankAccount) => {
+            // Given an account with no onboarding the admin can continue or wait on
+            // When the helpers evaluate the account
+            // Then neither holds, since the onboarding opens only for an eligible account and ends once Wise decides
+            expect(isWiseOnboardingPendingSubmit(bankAccount)).toBe(false);
+            expect(isWiseOnboardingAwaitingDecision(bankAccount)).toBe(false);
+            expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
+        });
+
+        it.each([
+            ['the admin left the onboarding before Submit', buildBankAccount(undefined)],
+            ['Wise reviews the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW})],
+            ['Wise needs more info', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED})],
+            ['Wise approved the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.APPROVED})],
+        ])('counts the account as Wise enabled or onboarding when %s', (_label, bankAccount) => {
+            // Given an account that pays through Wise, or will once its onboarding finishes
+            // When checking whether Wise's fees apply to its payments
+            // Then they do, so the auto-pay page discloses them
+            expect(isWiseEnabledOrOnboarding(bankAccount)).toBe(true);
+        });
+
+        it.each([
+            ['the onboarding has not started', buildBankAccount(undefined, {provider: undefined})],
+            ['the account goes through Corpay', buildBankAccount(undefined, {provider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY})],
+            ['Wise rejected the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED})],
+            ['the account was deleted offline', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.APPROVED}, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})],
+            ['the account is unknown', undefined],
+        ])('does not count the account as Wise enabled or onboarding when %s', (_label, bankAccount) => {
+            // Given an account that will not pay through Wise
+            // When checking whether Wise's fees apply to its payments
+            // Then they don't, so the auto-pay page shows no Wise disclosure
+            expect(isWiseEnabledOrOnboarding(bankAccount)).toBe(false);
+        });
+    });
+
+    describe('Wise quotes', () => {
+        const wiseBankAccountID = 1;
+        const corpayBankAccountID = 2;
+        const buildBankAccount = (globalReimbursementProvider: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>): BankAccount => ({
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
+            accountData: {additionalData: {isGlobalReimbursementEnabled: true, globalReimbursementProvider}},
+        });
+        const bankAccountList: BankAccountList = {
+            [wiseBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE),
+            [corpayBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY),
+        };
+        const buildNextStep = (requiresGlobalReimbursement: boolean, depositCurrency?: string) => ({
+            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+            icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+            requiresGlobalReimbursement,
+            depositCurrency,
+        });
+        const crossCurrencyPayment = {
+            paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            methodID: wiseBankAccountID,
+            bankAccountList,
+            isWiseReimbursementsBetaEnabled: true,
+            iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(true, CONST.CURRENCY.EUR)},
+        };
+        const sameCurrencyPayment = {
+            ...crossCurrencyPayment,
+            iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(true, CONST.CURRENCY.USD)},
+        };
+
+        it('asks for a quote when Wise converts the report into another currency', () => {
+            // Given a report whose submitter is paid in EUR through a global provider, from a USD Wise account
+            // When deciding whether to get and show the quote first
+            // Then both hold, because Wise requires the admin to see its fees and rate before paying
+            expect(shouldGetWiseQuote(crossCurrencyPayment)).toBe(true);
+            expect(shouldConfirmWiseQuoteBeforePaying(crossCurrencyPayment)).toBe(true);
+        });
+
+        it('gets a quote without asking when the report is in the bank account currency', () => {
+            // Given a report whose submitter is paid in USD through a global provider, from a USD Wise account
+            // When deciding whether to get and show the quote first
+            // Then it gets the quote for the fees, but pays without asking since nothing is converted
+            expect(shouldGetWiseQuote(sameCurrencyPayment)).toBe(true);
+            expect(shouldConfirmWiseQuoteBeforePaying(sameCurrencyPayment)).toBe(false);
+        });
+
+        it.each([
+            ['the Wise beta is off', {isWiseReimbursementsBetaEnabled: false}],
+            ['the payment is made elsewhere', {paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}],
+            ['the account is set up through Corpay', {methodID: corpayBankAccountID}],
+            ['the account is unknown', {methodID: 3}],
+            ['the report does not go through a global provider', {iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(false, CONST.CURRENCY.EUR)}}],
+        ])('pays without a quote when %s', (_label, overrides) => {
+            // Given a payment that Wise does not price
+            // When deciding whether to get and show the quote first
+            // Then neither holds and it pays straight away
+            expect(shouldGetWiseQuote({...crossCurrencyPayment, ...overrides})).toBe(false);
+            expect(shouldConfirmWiseQuoteBeforePaying({...crossCurrencyPayment, ...overrides})).toBe(false);
+        });
+
+        it('asks for a quote when the payment uses the workspace account without choosing one', () => {
+            // Given a cross-currency payment with no chosen account, where the workspace pays from its Wise account
+            const payment = {
+                ...crossCurrencyPayment,
+                methodID: undefined,
+                policy: {achAccount: {bankAccountID: wiseBankAccountID, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''}},
+            };
+
+            // When deciding whether to get and show the quote first
+            // Then both hold, because the backend pays from the workspace account
+            expect(shouldGetWiseQuote(payment)).toBe(true);
+            expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(true);
+        });
+
+        it('asks for a quote when the deposit currency is unknown', () => {
+            // Given a payment through a global provider whose next step does not name the deposit currency
+            const payment = {...sameCurrencyPayment, iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(true)}};
+
+            // When deciding whether to show the quote first
+            // Then it asks, because the report currency is the workspace currency and can't tell whether Wise converts anything
+            expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(true);
+        });
+
+        it('does not ask again once the admin confirmed a quote', () => {
+            // Given a cross-currency payment that already carries the confirmed quote
+            // When deciding whether to show the quote first
+            // Then it pays with that quote instead of asking again
+            expect(shouldConfirmWiseQuoteBeforePaying({...crossCurrencyPayment, wiseQuoteID: 'quote'})).toBe(false);
+        });
+    });
+
+    describe('isGlobalReimbursementsEnabled', () => {
+        const buildBankAccount = (additionalData: AccountData['additionalData'], pendingAction?: BankAccount['pendingAction']): BankAccount => ({
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
+            pendingAction,
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.OPEN, additionalData: {currency: CONST.CURRENCY.USD, ...additionalData}},
+        });
+
+        it.each([
+            ['set up through Wise', buildBankAccount({isGlobalReimbursementEnabled: true, globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE})],
+            ['set up through Corpay', buildBankAccount({isGlobalReimbursementEnabled: true, verifications: {corpay: {}}})],
+        ])('returns true for an account %s', (_label, bankAccount) => {
+            // Given an account the backend marks as set up for global reimbursements
+            // When deciding whether its row shows the globe
+            // Then it does, whatever the provider, because the flag is what payments are gated on
+            expect(isGlobalReimbursementsEnabled(bankAccount)).toBe(true);
+        });
+
+        it.each([
+            ['global reimbursements are disabled', buildBankAccount({isGlobalReimbursementEnabled: false})],
+            ['the backend did not send the flag', buildBankAccount({})],
+            ['Wise approved the business but the backend has not enabled the account yet', buildBankAccount({wise: {status: CONST.WISE.ONBOARDING_STATUS.APPROVED}})],
+            ['the account is being deleted', buildBankAccount({isGlobalReimbursementEnabled: true}, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)],
+            ['the account is unknown', undefined],
+        ])('returns false when %s', (_label, bankAccount) => {
+            // Given an account the client can't show as able to pay worldwide
+            // When deciding whether its row shows the globe
+            // Then it doesn't, so the row never claims more than the backend allows
+            expect(isGlobalReimbursementsEnabled(bankAccount)).toBe(false);
+        });
+    });
+
+    describe('isWiseOnboardingSubmitted', () => {
+        it('returns true once Wise has a status for the business', () => {
+            // Given an account whose business Wise already reviews
+            // When checking whether its onboarding was submitted
+            // Then it was, because Wise only has a status for a submitted business
+            expect(isWiseOnboardingSubmitted({additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}})).toBe(true);
+        });
+
+        it('returns false when Wise has no status for the business', () => {
+            // Given an account whose business was never sent to Wise
+            // When checking whether its onboarding was submitted
+            // Then it wasn't, so the intro still starts the business onboarding
+            expect(isWiseOnboardingSubmitted({additionalData: {}})).toBe(false);
         });
     });
 
@@ -994,6 +1260,18 @@ describe('BankAccountUtils', () => {
             expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(1);
         });
 
+        it('skips accounts that already have global reimbursements enabled', () => {
+            // Given a newer account with global reimbursements enabled and an older one without
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-05-01 10:00:00', {additionalData: {currency: CONST.CURRENCY.USD, isGlobalReimbursementEnabled: true}}),
+                accountTwo: buildBankAccount(2, '2026-03-01 10:00:00'),
+            });
+
+            // When picking the account for the Wallet banner
+            // Then the older account wins, because the banner asks to enable something the newer account already has
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(2);
+        });
+
         it('skips accounts that are not eligible', () => {
             // Given a newer personal account and an older eligible business account
             const bankAccountList = createMock<BankAccountList>({
@@ -1103,6 +1381,44 @@ describe('BankAccountUtils', () => {
             // When picking the account for the Workspace banner
             // Then nothing is returned, so the banner never points to an account queued for removal
             expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
+        });
+    });
+
+    describe('isWiseOnboardingMoreInfoNeeded', () => {
+        const createBankAccount = (status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>, pendingAction?: BankAccount['pendingAction']) =>
+            createMock<BankAccount>({
+                accountData: {bankAccountID: 1, additionalData: {wise: {status}}},
+                pendingAction,
+            });
+
+        it('returns true when Wise asked for more info', () => {
+            // Given an account whose Wise onboarding is waiting on more info Wise asked for
+            const bankAccount = createBankAccount(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED);
+
+            // When checking whether the admin has to send Wise more info
+            // Then it does, so the Wallet row and the Home task prompt the admin
+            expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(true);
+        });
+
+        it.each([CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, CONST.WISE.ONBOARDING_STATUS.APPROVED, CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED, undefined])(
+            'returns false when the onboarding status is %s',
+            (status) => {
+                // Given an account whose Wise onboarding is not waiting on the admin
+                const bankAccount = createBankAccount(status);
+
+                // When checking whether the admin has to send Wise more info
+                // Then it does not, so the prompts go away once the admin sends the info
+                expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
+            },
+        );
+
+        it('returns false when the account is pending deletion', () => {
+            // Given an account Wise asked for more info on, deleted while offline
+            const bankAccount = createBankAccount(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+            // When checking whether the admin has to send Wise more info
+            // Then it does not, so nothing points to an account queued for removal
+            expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
         });
     });
 });

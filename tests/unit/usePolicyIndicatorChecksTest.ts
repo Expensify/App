@@ -14,6 +14,7 @@ import type {OnyxInputValue, OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const userID = 'admin@expensify.com';
@@ -48,6 +49,30 @@ describe('usePolicyIndicatorChecks', () => {
     });
 
     describe('policy error statuses', () => {
+        it.each([false, true])('returns the fuel VAT warning status unless dismissed: %s', async (isDismissed) => {
+            // Given an admin workspace with an invalid fuel-band tax mapping
+            const policy = createUKFuelRateTaxPolicy();
+            const attributes = policy.customUnits?.distance.attributes;
+            if (!attributes) {
+                throw new Error('Expected distance attributes');
+            }
+            attributes.isUKFuelRateTaxErrorDismissed = isDismissed;
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: userID},
+                    ...createPolicyCollectionDataSet(policy),
+                    [ONYXKEYS.CARD_LIST]: {},
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            // When the Workspaces tab checks policy indicators
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+            // Then the warning leads to this workspace, until it is dismissed
+            expect(result.current.policyErrorStatus).toBe(isDismissed ? undefined : CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR);
+            expect(result.current.indicatorPolicyID).toBe(isDismissed ? undefined : policy.id);
+        });
         it('returns HAS_POLICY_ERRORS when policy has errors', async () => {
             await act(async () => {
                 const policyCollectionDataSet = createPolicyCollectionDataSet(
@@ -168,7 +193,7 @@ describe('usePolicyIndicatorChecks', () => {
             expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
 
-        it('returns HAS_QBO_EXPORT_ERROR when QBO export has errors', async () => {
+        it('returns HAS_REIMBURSEMENT_EXPORT_ERROR when QBO export has errors', async () => {
             await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {email: userID},
@@ -196,7 +221,7 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR);
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_EXPORT_ERROR);
             expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
 

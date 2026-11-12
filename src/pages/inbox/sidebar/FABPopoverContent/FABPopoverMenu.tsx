@@ -41,10 +41,10 @@ type FABPopoverMenuProps = {
     animationInTiming?: number;
     animationOutTiming?: number;
 
-    /** Overrides the default placement above the bottom-left floating action button */
+    /** Replaces the default placement above a floating action button at the bottom of the sidebar */
     anchorPosition?: AnchorPosition;
 
-    /** Overrides how the menu lines up with its anchor position */
+    /** How the menu lines up with its anchor position */
     anchorAlignment?: AnchorAlignment;
 
     children: React.ReactNode;

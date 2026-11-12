@@ -36,16 +36,16 @@ First, refresh your QuickBooks Online connection.
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click the **three-dot icon** next to the QuickBooks Online connection.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
+4. Select **More (⋮)**.
 5. Select **Sync now**.
 
 ### On Mobile
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
-4. Tap the **three-dot icon** next to the QuickBooks Online connection.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
+4. Select **More (⋮)**.
 5. Tap **Sync now**.
 
 After the sync completes, open the report to review the tags.

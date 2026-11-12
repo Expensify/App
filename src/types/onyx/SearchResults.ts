@@ -179,6 +179,9 @@ type SearchGroupBase = {
 type SearchMemberGroup = SearchGroupBase & {
     /** Account ID */
     accountID: number;
+
+    /** Average time the member's reports spent in the charted workflow stage, in seconds. Only Insights returns it, and it is null when no report completed the stage. */
+    averageDuration?: number | null;
 };
 
 /** Model of card grouped search result */
@@ -307,6 +310,15 @@ type SearchQuarterGroup = SearchGroupBase & {
 type SearchApproverGroup = SearchGroupBase & {
     /** Account ID of the approver */
     accountID: number;
+
+    /** Average time the approver's reports spent in the charted workflow stage, in seconds. Only Insights returns it, and it is null when no report completed the stage. */
+    averageDuration?: number | null;
+};
+
+/** Model of violation type grouped search result */
+type SearchViolationGroup = SearchGroupBase & {
+    /** Violation name, e.g. `missingComment` */
+    violation: string;
 };
 
 /** Model of an expense in the search results */
@@ -346,6 +358,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchYearGroup
         | SearchQuarterGroup
         | SearchApproverGroup
+        | SearchViolationGroup
     >;
 
 /** Model of search results */
@@ -385,4 +398,5 @@ export type {
     SearchYearGroup,
     SearchQuarterGroup,
     SearchApproverGroup,
+    SearchViolationGroup,
 };

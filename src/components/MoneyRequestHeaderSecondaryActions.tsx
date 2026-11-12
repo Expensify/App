@@ -29,6 +29,7 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,8 +46,10 @@ import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getCentralPaneReportID from '@libs/Navigation/helpers/getCentralPaneReportID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {sortAndSectionPopoverMenuItems, TRANSACTION_MORE_MENU_SECTIONS} from '@libs/PopoverMenuSections';
@@ -56,12 +59,12 @@ import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionU
 import {
     canDuplicateExpenseIntoSourceReport,
     generateReportID,
-    getPolicyExpenseChat,
     isCurrentUserSubmitter,
     isDM,
     isExpenseReport,
     isOpenReport,
     isSelfDM,
+    navigateBackOnDeleteTransaction,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
 } from '@libs/ReportUtils';
@@ -75,6 +78,7 @@ import {
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 
+import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
@@ -84,6 +88,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {policyExpenseChatSelector} from '@src/selectors/Report';
 import type {Transaction} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -123,7 +128,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     >();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
     const {login: currentUserLogin, email: currentUserEmail, accountID, localCurrencyCode, displayName: currentUserDisplayName} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -162,6 +167,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromAction}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
     // Collection Onyx subscriptions (isolated here to prevent parent header re-renders)
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -208,6 +214,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(iouReport?.reportID);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -232,7 +239,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         transaction &&
         getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, parentOwnerLogin, transaction, transactionViolations, policy, false)
     );
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
 
     // Duplicate expense target: the expense's report when it can accept the copy, otherwise the default workspace chat
     const canDuplicateIntoSourceReport = canDuplicateExpenseIntoSourceReport({
@@ -294,7 +301,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
-                dateFnsLocale,
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -328,18 +334,20 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const dismissModalAndUpdateUseHold = () => {
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (parentReportAction) {
-            changeMoneyRequestHoldStatus(
-                parentReportAction,
-                transaction,
+            changeMoneyRequestHoldStatus({
+                reportAction: parentReportAction,
+                iouTransaction: transaction,
+                iouTransactionReport: transactionReport,
+                reportActionChildReport: report,
                 policy,
                 isOffline,
-                currentUserLogin ?? '',
-                accountID,
-                rawTransactionViolations,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
+                transactionViolations: rawTransactionViolations,
                 isTrackIntentUser,
                 delegateAccountID,
                 rules,
-            );
+            });
         }
     };
 
@@ -347,18 +355,20 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (parentReportAction) {
-                changeMoneyRequestHoldStatus(
-                    parentReportAction,
-                    transaction,
+                changeMoneyRequestHoldStatus({
+                    reportAction: parentReportAction,
+                    iouTransaction: transaction,
+                    iouTransactionReport: transactionReport,
+                    reportActionChildReport: report,
                     policy,
                     isOffline,
-                    currentUserLogin ?? '',
-                    accountID,
-                    rawTransactionViolations,
+                    currentUserLogin: currentUserLogin ?? '',
+                    currentUserAccountID: accountID,
+                    transactionViolations: rawTransactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             }
         } else {
             dismissRejectUseExplanation();
@@ -441,18 +451,20 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 const shouldShowHoldEducationalModal = isReportSubmitter || isParentChatReportDM;
                 const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
                 if (isDismissed) {
-                    changeMoneyRequestHoldStatus(
-                        parentReportAction,
-                        transaction,
+                    changeMoneyRequestHoldStatus({
+                        reportAction: parentReportAction,
+                        iouTransaction: transaction,
+                        iouTransactionReport: transactionReport,
+                        reportActionChildReport: report,
                         policy,
                         isOffline,
-                        currentUserLogin ?? '',
-                        accountID,
-                        rawTransactionViolations,
+                        currentUserLogin: currentUserLogin ?? '',
+                        currentUserAccountID: accountID,
+                        transactionViolations: rawTransactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
                         rules,
-                    );
+                    });
                 } else if (shouldShowHoldEducationalModal) {
                     showHoldSubmitterEducationalModal({isDM: isParentChatReportDM}).finally(dismissModalAndUpdateUseHold);
                 } else {
@@ -474,18 +486,20 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(
-                    parentReportAction,
-                    transaction,
+                changeMoneyRequestHoldStatus({
+                    reportAction: parentReportAction,
+                    iouTransaction: transaction,
+                    iouTransactionReport: transactionReport,
+                    reportActionChildReport: report,
                     policy,
                     isOffline,
-                    currentUserLogin ?? '',
-                    accountID,
-                    rawTransactionViolations,
+                    currentUserLogin: currentUserLogin ?? '',
+                    currentUserAccountID: accountID,
+                    transactionViolations: rawTransactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
@@ -504,7 +518,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 if (!transaction) {
                     return;
                 }
-                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, getCurrencyDecimals, [], false, isReportInSearch);
+                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, translate, getCurrencyDecimals, [], false, isReportInSearch);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE]: {
@@ -634,9 +648,37 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                                 return;
                             }
 
-                            removeTransaction(transaction.transactionID);
+                            removeTransaction(transaction.transactionID, {isDeleted: true});
                         };
                     }
+                    // Deleting a report's only expense deletes the report too. In the table view that expense opens on top of the
+                    // report, so going back to it would briefly show it empty. Go straight to the chat the report belongs to instead.
+                    const chatRouteAfterReportDeletion =
+                        isInNarrowPaneModal && afterDelete && shouldUseTableViewForSingleExpense
+                            ? getNavigationUrlOnMoneyRequestDelete(
+                                  transaction.transactionID,
+                                  parentReportAction,
+                                  report,
+                                  iouReport,
+                                  chatIOUReport,
+                                  isChatIOUReportArchived,
+                                  getCurrencyDecimals,
+                                  accountID,
+                              )
+                            : undefined;
+                    if (chatRouteAfterReportDeletion) {
+                        setDeleteTransactionNavigateBackUrl(chatRouteAfterReportDeletion);
+                        if (getCentralPaneReportID() === iouReport?.reportID) {
+                            // On narrow layouts, or when the report was opened from the inbox, it sits in the central pane under the RHP
+                            navigateBackOnDeleteTransaction(chatRouteAfterReportDeletion);
+                        } else {
+                            // Otherwise it sits in the super wide RHP, so closing the RHP reveals the screen it was opened from
+                            Navigation.dismissModal();
+                        }
+                        TransitionTracker.runAfterTransitions({callback: () => afterDelete?.(), waitForUpcomingTransition: true});
+                        return;
+                    }
+
                     if (isInNarrowPaneModal) {
                         // The super wide RHP close animation was changed, and because of that the report was deleted right after
                         // the animation finished, which caused flickering in the reports list. We want the user to see
@@ -743,6 +785,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
     return (
         <ButtonWithDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
             ref={dropdownMenuRef}
             onPress={() => {}}
             shouldAlwaysShowDropdownMenu

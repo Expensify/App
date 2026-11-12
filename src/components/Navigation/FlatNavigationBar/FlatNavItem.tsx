@@ -1,9 +1,9 @@
-import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import {fadeTransitionStyle, useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
+import getTabIconFill from '@components/Navigation/NavigationTabBar/getTabIconFill';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,15 +11,14 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {ColorValue} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 
 import FlatNavMarqueeLabel from './FlatNavMarqueeLabel';
-import FlatNavRowActionBackdrop from './FlatNavRowActionBackdrop';
 
 type FlatNavItemProps = {
     /** Translated row label */
@@ -27,95 +26,79 @@ type FlatNavItemProps = {
 
     icon?: IconAsset;
 
-    /** Rendered in place of the icon, e.g. the account avatar */
-    leftElement?: React.ReactNode;
+    /** Draws what goes in place of the icon, e.g. the account avatar. Gets the row's current background, undefined when the row shows the bar's own. */
+    renderLeftElement?: (rowState: {backgroundColor: ColorValue | undefined}) => React.ReactNode;
+
+    /** Drawn after the label, at the row's end */
+    rightElement?: React.ReactNode;
 
     isSelected: boolean;
 
-    /** Indents the row so it reads as a child of the row above it */
-    isSubItem?: boolean;
+    /** Draws the row taller than the destination rows, as the Account row is */
+    isTall?: boolean;
 
-    /** Optional count shown on the right, e.g. the number of reports needing approval */
-    badgeText?: string;
-
-    /** Small colored dot drawn on the icon when the row needs the user's attention */
+    /** Dot drawn on the icon when the destination needs the user's attention */
     statusIndicatorColor?: string;
 
-    /** Whether a collapsed row stands in for a badge with a dot. Kept apart from the badge's own text, which
-     * changes as the group expands, so the dot can fade rather than blink. */
-    hasCollapsedStatusIndicator?: boolean;
-
+    /** Spoken name of the row, defaults to label */
     accessibilityLabel?: string;
 
-    sentryLabel?: string;
+    sentryLabel: SentryLabel;
 
-    /** Applied after the row's own styles, for rows that need a different height or spacing */
-    additionalStyle?: StyleProp<ViewStyle>;
+    onPress: () => void;
 
-    /** Control shown in the row's leading indent, such as a saved search's overflow menu. Only visible on hover. */
-    hoverActionComponent?: React.ReactNode;
+    /** Called when the pointer moves onto the row */
+    onHoverIn?: () => void;
 
-    /** Collapsed rows keep only their icon, so the bar can narrow to an icon rail */
-    isCollapsed?: boolean;
+    /** Called when the pointer leaves the row */
+    onHoverOut?: () => void;
 
-    /** Ends of a group of sub-rows, where the rule down their left stops short of the rows outside the group */
+    /** Draws the row as a child of the group above it, indented against the group's shared rule */
+    isSubItem?: boolean;
+
+    /** Trims the rule above the first child so it starts inside the group rather than at the parent row */
     isFirstSubItem?: boolean;
+
+    /** Trims the rule below the last child so it stops inside the group */
     isLastSubItem?: boolean;
 
-    /** Whether a label too long for its row shows the full text in a tooltip. For rows the user named themselves. */
+    /** Scrolls a label too long for its row on hover, and names it in full in a tooltip. For rows the user named. */
     shouldShowTooltipWhenTruncated?: boolean;
 
-    onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    /** Control revealed at the row's end while it is hovered, such as a saved search's menu */
+    hoverActionComponent?: React.ReactNode;
 };
 
-function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<typeof useTheme>) {
-    if (isSelected) {
-        return theme.iconMenu;
-    }
-    if (isHovered) {
-        return theme.success;
-    }
-    return theme.icon;
-}
-
-function getStatusIndicatorBorderStyle(isSelected: boolean, isHovered: boolean, styles: ReturnType<typeof useThemeStyles>) {
-    if (isSelected) {
-        return {borderColor: styles.navigationRowSelected.backgroundColor};
-    }
-    if (isHovered) {
-        return {borderColor: styles.navigationRowHovered.backgroundColor};
-    }
-    return undefined;
-}
-
+/** Full-width row of the flat navigation bar: an icon or avatar, then the destination's label. */
 function FlatNavItem({
     label,
     icon,
-    leftElement,
+    renderLeftElement,
+    rightElement,
     isSelected,
-    isSubItem = false,
-    badgeText,
+    isTall = false,
     statusIndicatorColor,
-    hasCollapsedStatusIndicator = false,
     accessibilityLabel,
     sentryLabel,
-    additionalStyle,
-    hoverActionComponent,
-    isCollapsed = false,
+    onPress,
+    onHoverIn,
+    onHoverOut,
+    isSubItem = false,
     isFirstSubItem = false,
     isLastSubItem = false,
     shouldShowTooltipWhenTruncated = false,
-    onPress,
+    hoverActionComponent,
 }: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    // The label and badge stay mounted and fade, rather than disappearing the moment the bar starts narrowing.
-    const collapseFadeStyle = useSearchSidebarCollapseFadeStyle();
+    const StyleUtils = useStyleUtils();
 
-    // Collapsed rows have nowhere to put a badge, so a row that has one shows the same green dot the Inbox uses.
-    // The dot stays mounted either way and fades, rather than blinking in as the bar finishes narrowing.
-    const resolvedStatusIndicatorColor = statusIndicatorColor ?? (hasCollapsedStatusIndicator ? theme.iconSuccessFill : undefined);
-    const isStatusIndicatorVisible = !!statusIndicatorColor || (isCollapsed && hasCollapsedStatusIndicator);
+    const getRowBackgroundStyle = (isHovered: boolean) => {
+        if (isSelected) {
+            return styles.hoveredComponentBG;
+        }
+        return isHovered ? styles.highlightBG : undefined;
+    };
 
     return (
         <PressableWithFeedback
@@ -124,93 +107,66 @@ function FlatNavItem({
             accessibilityLabel={accessibilityLabel ?? label}
             accessibilityState={{selected: isSelected}}
             sentryLabel={sentryLabel}
-            style={({hovered}) => [
-                styles.flatNavigationBarItem,
-                isSubItem && !isCollapsed && styles.flatNavigationBarSubItem,
-                isSelected && !isSubItem && styles.navigationRowSelected,
-                hovered && !isSelected && !isSubItem && styles.navigationRowHovered,
-                additionalStyle,
-            ]}
+            onHoverIn={onHoverIn}
+            onHoverOut={onHoverOut}
+            style={({hovered}) => [styles.flatNavigationBarItem, isTall && styles.flatNavigationBarAccountItem, isSubItem && styles.flatNavigationBarSubItem, getRowBackgroundStyle(hovered)]}
         >
-            {({hovered}) => (
-                <>
-                    {isSubItem && !isCollapsed && (
-                        <View
-                            style={[
-                                styles.flatNavigationBarSubItemRule,
-                                isFirstSubItem && styles.flatNavigationBarSubItemRuleFirst,
-                                isLastSubItem && styles.flatNavigationBarSubItemRuleLast,
-                            ]}
-                        />
-                    )}
-                    {!!icon && (
-                        <View>
-                            <Icon
-                                src={icon}
-                                fill={getIconFill(isSelected, hovered, theme)}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
+            {({hovered}) => {
+                const rowBackgroundColor = getRowBackgroundStyle(hovered)?.backgroundColor;
+                return (
+                    <>
+                        {isSubItem && (
+                            <View
+                                style={[
+                                    styles.flatNavigationBarSubItemRule,
+                                    isFirstSubItem && styles.flatNavigationBarSubItemRuleFirst,
+                                    isLastSubItem && styles.flatNavigationBarSubItemRuleLast,
+                                ]}
                             />
-                            {!!resolvedStatusIndicatorColor && (
-                                <View
-                                    style={[
-                                        styles.navigationTabBarStatusIndicator,
-                                        styles.flatNavigationBarStatusIndicator,
-                                        styles.statusIndicatorColor(resolvedStatusIndicatorColor),
-                                        // The dot's stroke reads as a gap punched out of the row, so it has to track the row's background.
-                                        getStatusIndicatorBorderStyle(isSelected, hovered, styles),
-                                        fadeTransitionStyle,
-                                        {opacity: isStatusIndicatorVisible ? 1 : 0},
-                                    ]}
+                        )}
+                        {!!icon && (
+                            <View>
+                                <Icon
+                                    src={icon}
+                                    fill={getTabIconFill(isSelected, hovered, theme)}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
                                 />
-                            )}
-                        </View>
-                    )}
-                    {leftElement}
-                    <Animated.View style={[styles.flex1, collapseFadeStyle]}>
+                                {!!statusIndicatorColor && (
+                                    <View
+                                        testID="FlatNavItemStatusIndicator"
+                                        style={[
+                                            styles.navigationTabBarStatusIndicator,
+                                            styles.statusIndicatorColor(statusIndicatorColor),
+                                            // The dot's stroke reads as a gap cut out of the row, so it takes the row's background.
+                                            !!rowBackgroundColor && StyleUtils.getBorderColorStyle(rowBackgroundColor),
+                                        ]}
+                                    />
+                                )}
+                            </View>
+                        )}
+                        {renderLeftElement?.({backgroundColor: rowBackgroundColor})}
                         {shouldShowTooltipWhenTruncated ? (
                             <FlatNavMarqueeLabel
                                 text={label}
                                 isHovered={hovered}
-                                style={[
-                                    styles.flatNavigationBarLabel,
-                                    !isSelected && styles.flatNavigationBarLabelRegular,
-                                    {color: isSelected || hovered ? theme.text : theme.textSupporting},
-                                ]}
+                                style={[styles.flex1, !isSelected && styles.flatNavigationBarLabelRegular, {color: isSelected || hovered ? theme.text : theme.textSupporting}]}
                             />
                         ) : (
                             <Text
+                                variant={isSelected ? 'textStrong' : 'text'}
+                                color={isSelected || hovered ? theme.text : theme.textSupporting}
                                 numberOfLines={1}
-                                style={[
-                                    styles.flatNavigationBarLabel,
-                                    !isSelected && styles.flatNavigationBarLabelRegular,
-                                    {color: isSelected || hovered ? theme.text : theme.textSupporting},
-                                ]}
+                                style={styles.flex1}
                             >
                                 {label}
                             </Text>
                         )}
-                    </Animated.View>
-                    {!!badgeText && (
-                        <Animated.View style={collapseFadeStyle}>
-                            <Badge
-                                text={badgeText}
-                                // todoBadge is left off deliberately: it fixes a 28x24 box that would override condensed sizing.
-                                badgeStyles={styles.ml0}
-                                success
-                                isCondensed
-                            />
-                        </Animated.View>
-                    )}
-                    {/* Hidden rather than unmounted, so the menu it opens survives the pointer leaving the row. */}
-                    {!isCollapsed && !!hoverActionComponent && (
-                        <View style={[styles.flatNavigationBarRowAction, !hovered && styles.flatNavigationBarRowActionHidden]}>
-                            <FlatNavRowActionBackdrop />
-                            {hoverActionComponent}
-                        </View>
-                    )}
-                </>
-            )}
+                        {!!hoverActionComponent && <View style={hovered ? styles.flatNavigationBarRowAction : styles.flatNavigationBarRowActionHidden}>{hoverActionComponent}</View>}
+                        {rightElement}
+                    </>
+                );
+            }}
         </PressableWithFeedback>
     );
 }

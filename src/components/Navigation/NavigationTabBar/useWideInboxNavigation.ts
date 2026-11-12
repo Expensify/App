@@ -40,10 +40,8 @@ function makeDoesLastReportActionExistSelector(actionID: string | undefined) {
 }
 
 /**
- * Returns the wide-layout Inbox navigation handler, which reopens the last-viewed report instead of the
- * Inbox root. It subscribes to that report, so only call it from components that render in the wide layout.
- *
- * @param isInboxSelected whether the Inbox tab is the one currently showing
+ * Returns the wide-layout Inbox navigation handler, which reopens the last-viewed report instead of the Inbox root.
+ * It subscribes to that report and its actions, so only call it from components that render in the wide layout.
  */
 function useWideInboxNavigation(isInboxSelected: boolean) {
     const hasVisitedInboxTab = useRef(isInboxSelected);
@@ -73,13 +71,11 @@ function useWideInboxNavigation(isInboxSelected: boolean) {
 
     const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector});
 
-    const doesLastReportActionExistSelector = makeDoesLastReportActionExistSelector(lastReportRouteReportActionID);
-
     const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {
-        selector: doesLastReportActionExistSelector,
+        selector: makeDoesLastReportActionExistSelector(lastReportRouteReportActionID),
     });
 
-    return () => {
+    const navigateToInbox = () => {
         if (isInboxSelected) {
             return;
         }
@@ -160,6 +156,8 @@ function useWideInboxNavigation(isInboxSelected: boolean) {
 
         Navigation.navigate(ROUTES.INBOX);
     };
+
+    return navigateToInbox;
 }
 
 export default useWideInboxNavigation;

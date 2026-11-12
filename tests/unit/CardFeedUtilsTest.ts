@@ -3,6 +3,7 @@ import {
     getCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
     getExpensifyCardFeedsForDisplay,
+    getCombinedCardFeedsFromAllFeeds,
     getFeedInfo,
     getPolicyIDsNamedByCardFeeds,
     getVisibleCompanyCardFeedsForSelector,
@@ -12,7 +13,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, Domain, Policy} from '@src/types/onyx';
-import type {CardFeedWithNumber, CustomCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithNumber, CustomCardFeedData, FeedReimbursable} from '@src/types/onyx/CardFeeds';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
@@ -659,5 +660,47 @@ describe('getPolicyIDsNamedByCardFeeds', () => {
         const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1']}});
 
         expect(getPolicyIDsNamedByCardFeeds([{bank, domainName: '', fundID: undefined}], cardFeeds)).toEqual([]);
+    });
+});
+
+describe('getCombinedCardFeedsFromAllFeeds forceReimbursable', () => {
+    const domainID = 1234;
+    const feed = cardFeedAmericaExpressMock;
+    const getFeed = (result: ReturnType<typeof getCombinedCardFeedsFromAllFeeds>) => Object.values(result).at(0);
+
+    function buildFeeds(companyCard: Partial<CustomCardFeedData>, oAuthForceReimbursable?: FeedReimbursable): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${domainID}`]: {
+                settings: {
+                    companyCards: {[feed]: companyCard},
+                    oAuthAccountDetails: {[feed]: {accountList: [], credentials: '', expiration: 0, ...(oAuthForceReimbursable ? {forceReimbursable: oAuthForceReimbursable} : {})}},
+                },
+            },
+        };
+    }
+
+    it('prefers the pending optimistic value over the stale OAuth value', () => {
+        const result = getCombinedCardFeedsFromAllFeeds(
+            buildFeeds({forceReimbursable: 'force_yes', pendingFields: {forceReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}, 'force_no'),
+        );
+        expect(getFeed(result)?.forceReimbursable).toBe('force_yes');
+        expect(getFeed(result)?.pendingFields?.forceReimbursable).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+    });
+
+    it('shows the rolled-back value and keeps the error after a failure', () => {
+        const errors = {1: 'error'};
+        const result = getCombinedCardFeedsFromAllFeeds(buildFeeds({forceReimbursable: 'force_no', errorFields: {forceReimbursable: errors}}, 'force_no'));
+        expect(getFeed(result)?.forceReimbursable).toBe('force_no');
+        expect(getFeed(result)?.errorFields?.forceReimbursable).toEqual(errors);
+    });
+
+    it('keeps the OAuth value when the local rollback cleared the setting', () => {
+        const result = getCombinedCardFeedsFromAllFeeds(buildFeeds({forceReimbursable: undefined, errorFields: {forceReimbursable: {1: 'error'}}}, 'default_yes'));
+        expect(getFeed(result)?.forceReimbursable).toBe('default_yes');
+    });
+
+    it('leaves OAuth data untouched when there is no local reimbursable change', () => {
+        const result = getCombinedCardFeedsFromAllFeeds(buildFeeds({forceReimbursable: 'force_yes'}, 'force_no'));
+        expect(getFeed(result)?.forceReimbursable).toBe('force_no');
     });
 });

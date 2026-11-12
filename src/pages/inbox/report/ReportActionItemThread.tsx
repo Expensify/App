@@ -9,8 +9,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {navigateToAndOpenChildReport} from '@libs/actions/Report';
+import {navigateToAndOpenChildReport, navigateToSupportTicket} from '@libs/actions/Report';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
+import {isCreatedSupportTicketReportAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,6 +85,11 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
                         // The Concierge page shows a thread beside its own list, so it opens there rather than in the Inbox.
                         if (isInAskConcierge && openConciergeThread && reportAction.childReportID) {
                             openConciergeThread(reportAction.childReportID);
+                            return;
+                        }
+
+                        if (isCreatedSupportTicketReportAction(reportAction)) {
+                            navigateToSupportTicket(childReport?.reportID ?? reportAction.childReportID);
                             return;
                         }
                         const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);

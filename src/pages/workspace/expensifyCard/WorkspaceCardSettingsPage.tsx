@@ -25,7 +25,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,6 +99,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                             errorRowStyles={styles.mh5}
                         >
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.SETTINGS_SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.expensifyCard.settlementAccount')}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path))}
                                 value={bankAccountNumber ? `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(bankAccountNumber)}` : undefined}
@@ -106,10 +107,11 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                         </OfflineWithFeedback>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.SETTINGS_SETTLEMENT_FREQUENCY}
                                 onPress={
                                     isSettlementFrequencyBlocked
                                         ? undefined
-                                        : callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)), false, session)
+                                        : callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)), session)
                                 }
                             >
                                 <MenuItemField.Row
@@ -143,6 +145,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 title={translate('workspace.expensifyCard.applyCashbackToBill')}
                                 subtitle={translate('workspace.expensifyCard.applyCashbackToBillDescription')}
                                 switchAccessibilityLabel={translate('workspace.expensifyCard.applyCashbackToBill')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.APPLY_CASHBACK_TO_BILL_SWITCH}
                                 isActive={shouldApplyCashbackToBill}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={[styles.mv3, styles.mh5]}

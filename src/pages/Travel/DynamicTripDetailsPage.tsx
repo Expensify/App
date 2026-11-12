@@ -147,6 +147,7 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
                         />
                     )}
                     <MenuItem
+                        sentryLabel={CONST.SENTRY_LABEL.TRAVEL.TRIP_DETAILS_MODIFY_TRIP}
                         title={translate('travel.modifyTrip')}
                         icon={icons.Pencil}
                         iconRight={icons.NewWindow}
@@ -162,6 +163,7 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
                         disabled={isModifyTripLoading || isOffline}
                     />
                     <MenuItem
+                        sentryLabel={CONST.SENTRY_LABEL.TRAVEL.TRIP_DETAILS_TRIP_SUPPORT}
                         title={translate('travel.tripSupport')}
                         icon={icons.Phone}
                         iconRight={icons.NewWindow}

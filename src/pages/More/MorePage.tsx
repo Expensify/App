@@ -1,5 +1,6 @@
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
+import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 import useFlatNavSpendItems from '@components/Navigation/FlatNavigationBar/useFlatNavSpendItems';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -55,6 +56,7 @@ const PLACEHOLDER_DESTINATIONS = [
 
 function MorePage() {
     const styles = useThemeStyles();
+    const getFlatNavRowProps = useFlatNavSidebarRowProps();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -70,12 +72,13 @@ function MorePage() {
               iconWidth: variables.iconSizeExtraLarge,
               iconHeight: variables.iconSizeExtraLarge,
           }
-        : {shouldUseNavigationRowStyles: true};
+        : getFlatNavRowProps(false);
 
     useDocumentTitle(translate('common.more'));
 
     const {accounting} = useFlatNavSpendItems();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [shouldShowExtraNavItems = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS);
@@ -122,7 +125,7 @@ function MorePage() {
                 clearSelectedText();
                 interceptAnonymousUser(() => {
                     navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions);
-                });
+                }, session);
             },
         });
     }
@@ -160,7 +163,7 @@ function MorePage() {
                 interceptAnonymousUser(() => {
                     setSearchContext(false);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, name: savedSearch.name, searchKey}));
-                });
+                }, session);
             },
         });
     }
@@ -176,7 +179,7 @@ function MorePage() {
             clearSelectedText();
             interceptAnonymousUser(() => {
                 Navigation.navigate(ROUTES.INSIGHTS.getRoute(getLastVisitedInsightsDashboard() ?? CONST.INSIGHTS.DASHBOARD.SPEND));
-            });
+            }, session);
         },
     });
 
