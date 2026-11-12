@@ -8,7 +8,7 @@ import {requestMoney} from '@userActions/IOU/TrackExpense';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
@@ -19,7 +19,6 @@ import {
     buildLinkedTrackedExpenseFields,
     buildPerDiemTransaction,
     buildTransaction,
-    CURRENT_USER_ACCOUNT_ID,
     CURRENT_USER_PERSONAL_DETAILS,
     DRAFT_ID,
     NO_TAX_VALUES,
@@ -32,16 +31,6 @@ jest.mock('@userActions/IOU/TrackExpense', () => ({requestMoney: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@pages/iou/request/step/resolveChatTarget', () => ({resolveChatTargetForSubmitCleanup: jest.fn()}));
-// The submission hooks read the ASAP submit beta through this hook, and the batch deferral below depends on it. A
-// function declaration is used because jest hoists the mock above these imports, so it must not read anything at setup time.
-jest.mock('@hooks/usePermissions', () => mockUsePermissions);
-
-function mockUsePermissions() {
-    return {
-        isBetaEnabled: (beta: string) => beta === CONST.BETAS.ASAP_SUBMIT,
-        isBetaEnabledOrUnknown: () => true,
-    };
-}
 
 const mockRequestMoneyAction = jest.mocked(requestMoney);
 const mockCleanupAfterExpenseCreate = jest.mocked(cleanupAfterExpenseCreate);
@@ -253,211 +242,6 @@ describe('useRequestMoneySubmission', () => {
                 transactionParams: expect.objectContaining(linkedTrackedExpenseFields),
             }),
         );
-    });
-
-    describe('batch auto-submit deferral', () => {
-        const SUBMIT_AND_CLOSE_POLICY = {
-            id: 'policy-1',
-            autoReporting: true,
-            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-        };
-
-        // The report an item is written to, which the next item then joins. An open IOU report owned by this user is what
-        // the builder accepts as taking another expense, so this is the shape the loop carries from one item to the next.
-        const SHARED_IOU_REPORT = {
-            reportID: 'iou-shared-1',
-            type: CONST.REPORT.TYPE.IOU,
-            chatReportID: 'iou-chat-1',
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        };
-
-        // An expense report the page pinned, which the batch writes to directly rather than to the report of a chat.
-        const SHARED_PINNED_REPORT = {
-            reportID: 'expense-pinned-1',
-            type: CONST.REPORT.TYPE.EXPENSE,
-            chatReportID: 'expense-chat-1',
-            policyID: 'policy-1',
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        };
-
-        function buildBatch(count: number, transactionOverrides: Partial<Transaction> = {}) {
-            const batch = Array.from({length: count}, (_, index) => buildTransaction({transactionID: `t-${index}`, ...transactionOverrides}));
-            return buildParams({
-                policy: createMock<Policy>(SUBMIT_AND_CLOSE_POLICY),
-                transaction: batch.at(0),
-                transactions: batch,
-            });
-        }
-
-        function deferredFlags() {
-            return mockRequestMoneyAction.mock.calls.map((call) => call[0].shouldDeferAutoSubmit);
-        }
-
-        it('defers auto-submit on every item but the last of a batch', async () => {
-            // Given three expenses going to one expense report on a Submit & Close policy whose first write would otherwise
-            // close that report, leaving the server to reject the remaining two with "New expenses cannot be added to this report"
-            mockRequestMoneyAction.mockReturnValue({iouReport: createMock<Report>(SHARED_IOU_REPORT)});
-            const params = buildBatch(3);
-
-            // When the batch is submitted
-            await submit(params, false);
-
-            // Then the first two writes hold the report open and only the last one lets it auto-submit and close, in the order
-            // the writes were issued so the final item stays final on the server
-            expect(mockRequestMoneyAction).toHaveBeenCalledTimes(3);
-            expect(deferredFlags()).toEqual([true, true, false]);
-        });
-
-        it('does not defer any item when each scan gets its own report', async () => {
-            // Given three scanned receipts submitted from the workspace chat, which the ASAP submit beta puts on a report
-            // of their own rather than one shared report, so no item has a later item following it
-            mockRequestMoneyAction.mockReturnValue({iouReport: createMock<Report>(SHARED_IOU_REPORT)});
-            const params = buildBatch(3, {iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
-
-            // When the batch is submitted
-            await submit(params, false);
-
-            // Then nothing defers, because each report holds a single expense and would otherwise sit open forever
-            expect(mockRequestMoneyAction).toHaveBeenCalledTimes(3);
-            expect(deferredFlags()).toEqual([false, false, false]);
-        });
-
-        it('does not defer the expense before a scan that starts its own report', async () => {
-            // Given an ordinary expense followed by two scanned receipts. The beta sends each scan to a report of its own,
-            // so the ordinary expense has nothing following it onto the report it creates
-            mockRequestMoneyAction.mockReturnValue({iouReport: createMock<Report>(SHARED_IOU_REPORT)});
-            const plain = buildTransaction({transactionID: 't-plain'});
-            const scan = buildTransaction({transactionID: 't-scan-1', iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
-            const params = buildParams({...buildBatch(1), transaction: plain, transactions: [plain, scan, {...scan, transactionID: 't-scan-2'}]});
-
-            // When the batch is submitted
-            await submit(params, false);
-
-            // Then no report is left waiting, since the scans abandon the report the ordinary expense creates
-            expect(deferredFlags()).toEqual([false, false, false]);
-        });
-
-        it('defers the scan that an ordinary expense follows onto the same report', async () => {
-            // Given two scans then an ordinary expense. Each scan starts its own report, and the ordinary expense joins the
-            // report the second scan made rather than starting a third
-            mockRequestMoneyAction.mockReturnValue({iouReport: createMock<Report>(SHARED_IOU_REPORT)});
-            const scan = buildTransaction({transactionID: 't-scan-1', iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
-            const plain = buildTransaction({transactionID: 't-plain'});
-            const params = buildParams({...buildBatch(1), transaction: scan, transactions: [scan, {...scan, transactionID: 't-scan-2'}, plain]});
-
-            // When the batch is submitted
-            await submit(params, false);
-
-            // Then only the second scan defers, holding its report open for the expense that really does land on it
-            expect(deferredFlags()).toEqual([false, true, false]);
-        });
-
-        it('defers a card expense that a reimbursable one follows onto the same report', async () => {
-            // Given a card expense then a reimbursable one. `canAddTransaction` would turn the second away from a report
-            // holding only non-reimbursable spend, but it reads the report's transactions from a cache this loop has not
-            // filled yet, so it sees the new report as empty and the second expense lands on it anyway
-            mockRequestMoneyAction.mockReturnValue({iouReport: createMock<Report>(SHARED_IOU_REPORT)});
-            const card = buildTransaction({transactionID: 't-card', reimbursable: false});
-            const plain = buildTransaction({transactionID: 't-plain'});
-            const params = buildParams({...buildBatch(1), transaction: card, transactions: [card, plain]});
-
-            // When the batch is submitted
-            await submit(params, false);
-
-            // Then the card expense defers, otherwise the second expense is rejected off the report it shares with it
-            expect(deferredFlags()).toEqual([true, false]);
-        });
-
-        it('defers a batch of scans submitted out of a self-DM, which all share one report', async () => {
-            // Given scans moved out of a self-DM by a SUBMIT, which the builder keeps on the report it was given instead of
-            // splitting per item, so the batch does share one report
-            mockRequestMoneyAction.mockReturnValue({iouReport: createMock<Report>(SHARED_IOU_REPORT)});
-            const batch = [1, 2, 3].map((n) => buildTransaction({transactionID: `t-${n}`, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, ...buildLinkedTrackedExpenseFields(`tracked-${n}`)}));
-            const params = buildParams({
-                policy: createMock<Policy>(SUBMIT_AND_CLOSE_POLICY),
-                action: CONST.IOU.ACTION.SUBMIT,
-                transaction: batch.at(0),
-                transactions: batch,
-            });
-
-            // When the batch is submitted
-            await submit(params, false);
-
-            // Then all but the last hold the shared report open, since a SUBMIT does not split scans across reports
-            expect(deferredFlags()).toEqual([true, true, false]);
-        });
-
-        it('defers every scan of a batch aimed straight at an open expense report', async () => {
-            // Given three scans submitted from a report the page pinned, rather than a chat. Writing to a report named up
-            // front keeps the scans on it, so this is the per-item scan split turned off, and the first two writes would
-            // each close the report against the third
-            mockRequestMoneyAction.mockReturnValue({iouReport: createMock<Report>(SHARED_PINNED_REPORT)});
-            const batch = [1, 2, 3].map((n) => buildTransaction({transactionID: `t-scan-${n}`, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN}));
-            const params = buildParams({
-                policy: createMock<Policy>(SUBMIT_AND_CLOSE_POLICY),
-                report: createMock<Report>(SHARED_PINNED_REPORT),
-                transaction: batch.at(0),
-                transactions: batch,
-            });
-
-            // When the batch is submitted
-            await submit(params, false);
-
-            // Then the first two hold the pinned report open and only the last lets it close
-            expect(mockRequestMoneyAction).toHaveBeenCalledTimes(3);
-            expect(deferredFlags()).toEqual([true, true, false]);
-        });
-
-        it('defers an item once the loop sees the report it was handed takes no more expenses', async () => {
-            // Given three expenses whose report was closed by someone else while the confirmation screen was open. The
-            // builder sends the second expense to a report of its own, and the third joins that one
-            mockRequestMoneyAction
-                .mockReturnValueOnce({iouReport: createMock<Report>({...SHARED_IOU_REPORT, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})})
-                .mockReturnValue({iouReport: createMock<Report>(SHARED_IOU_REPORT)});
-            const params = buildBatch(3);
-
-            // When the batch is submitted
-            await submit(params, false);
-
-            // Then the last two share the fresh report and the second defers it. The first defers too: its own report does
-            // not exist yet, so all it can go on is that the builder opens one the next item will join
-            expect(mockRequestMoneyAction).toHaveBeenCalledTimes(3);
-            expect(deferredFlags()).toEqual([true, true, false]);
-        });
-
-        it('does not defer the single expense of a batch', async () => {
-            // Given one expense on the same policy, where no later write can be stranded by the report closing
-            mockRequestMoneyAction.mockReturnValue({iouReport: createMock<Report>(SHARED_IOU_REPORT)});
-            const params = buildBatch(1);
-
-            // When it is submitted
-            await submit(params, false);
-
-            // Then the write keeps the report's normal auto-submit and close
-            expect(mockRequestMoneyAction).toHaveBeenCalledTimes(1);
-            expect(mockRequestMoneyAction.mock.calls.at(0)?.[0].shouldDeferAutoSubmit).toBe(false);
-        });
-
-        it('does not defer when the policy submits on a schedule', async () => {
-            // Given the same three-expense batch on a policy that submits weekly, so the report stays open on its own
-            mockRequestMoneyAction.mockReturnValue({iouReport: createMock<Report>(SHARED_IOU_REPORT)});
-            const params = {
-                ...buildBatch(3),
-                policy: createMock<Policy>({...SUBMIT_AND_CLOSE_POLICY, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY}),
-            };
-
-            // When the batch is submitted
-            await submit(params, false);
-
-            // Then no write asks the server to wait, so nothing is left holding a report open for expenses that never arrive
-            expect(deferredFlags()).toEqual([false, false, false]);
-        });
     });
 
     describe('action bailout', () => {

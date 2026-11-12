@@ -179,10 +179,6 @@ function useRequestMoneySubmission({
         let allTransactionsCreated = true;
         let lastOptimisticTransactionID: string | undefined;
 
-        // An item defers the report's auto-submit only when the item after it really does land on that same report, so a
-        // report is never left waiting for an expense that is going to one of its own. The last item never defers, and so
-        // still lets the report auto-submit and close. Decided per item, inside the loop, because the shared report is only
-        // known once the previous item resolved it.
         for (const [index, item] of transactions.entries()) {
             lastOptimisticTransactionID = rand64();
             const receipt = receiptFiles[item.transactionID];
