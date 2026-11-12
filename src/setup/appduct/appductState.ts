@@ -10,7 +10,6 @@ import type {Connection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-// Read outside React, so rulesdir/no-onyx-connect requires connectWithoutView.
 const state: {
     session?: SessionOnyx;
     credentials?: Credentials;
@@ -34,9 +33,7 @@ Onyx.connectWithoutView({key: ONYXKEYS.NVP_INTRO_SELECTED, callback: (value) => 
 Onyx.connectWithoutView({key: ONYXKEYS.IS_LOADING_APP, callback: (value) => (state.isLoadingApp = value)});
 Onyx.connectWithoutView({key: ONYXKEYS.ONBOARDING_POLICY_ID, callback: (value) => (state.onboardingPolicyID = value)});
 Onyx.connectWithoutView({key: ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, callback: (value) => (state.onboardingAdminsChatReportID = value)});
-// The sequential queue moves its head request to PERSISTED_ONGOING_REQUESTS before the response lands, so the
-// request is pending while it sits in either key. Watching only the queue would report it as finished mid-flight,
-// when the onboarding flag is still optimistic and a rejection can revert it.
+// An in-flight request moves from PERSISTED_REQUESTS to PERSISTED_ONGOING_REQUESTS, so it is pending in either key.
 function hasGuidedSetupRequest(value: AnyRequest | AnyRequest[] | null | undefined): boolean {
     const requests = Array.isArray(value) ? value : [value];
     return requests.some((request) => request?.command === WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
@@ -48,7 +45,6 @@ function isGuidedSetupPending(): boolean {
     return !!state.completeGuidedSetupQueued || !!state.completeGuidedSetupOngoing;
 }
 
-// The Concierge report ID arrives from OpenApp after sign-in, so the report itself is connected late.
 let conciergeChatConnection: Connection | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
@@ -73,11 +69,9 @@ function getSessionLogin(): string | undefined {
     return state.session?.email ?? state.credentials?.login;
 }
 
-// beginSignIn applies its optimistic isLoading only once Device.getDeviceInfoWithID() resolves, so ACCOUNT still
-// holds the idle value seeded by src/setup/index.ts right after it is called. A caller that waits for the
-// response has to put the loading state in first, or its very first read passes on that stale value.
+// beginSignIn sets isLoading only after getDeviceInfoWithID() resolves; set it first so a waiter can't read the idle boot value.
 function markSignInAttemptLoading(): Promise<void> {
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data -- pre-applies beginSignIn's own optimistic ACCOUNT update, value for value, so the tool can wait for this attempt's response
+    // eslint-disable-next-line rulesdir/prefer-actions-set-data -- mirrors beginSignIn's own optimistic ACCOUNT update
     return Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true, loadingForm: CONST.FORMS.LOGIN_FORM});
 }
 
@@ -85,10 +79,10 @@ function isSignedIn(): boolean {
     return !!state.session?.authToken && !isAnonymousUser(state.session);
 }
 
-// Not hasCompletedGuidedSetupFlowSelector: it returns true for an empty or unloaded value.
+// Not hasCompletedGuidedSetupFlowSelector: it returns true for an unloaded value.
 function getOnboardingCompletedFlag(): boolean | null {
     const value = state.onboarding?.hasCompletedGuidedSetupFlow;
     return typeof value === 'boolean' ? value : null;
 }
 
-export {state, hasGuidedSetupRequest, getCurrentAccountID, getSessionLogin, isSignedIn, isGuidedSetupPending, markSignInAttemptLoading, getOnboardingCompletedFlag};
+export {state, getCurrentAccountID, getSessionLogin, isSignedIn, isGuidedSetupPending, markSignInAttemptLoading, getOnboardingCompletedFlag};
