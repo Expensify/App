@@ -111,6 +111,7 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
                 <View style={[styles.flex1]}>
                     <MenuItem.Root
                         sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TITLE}
+                        accessibilityLabel={[translate('task.title'), reportName].filter(Boolean).join(', ')}
                         onPress={
                             shouldShowEditableTitleField && !isFieldDisabled && report.policyID
                                 ? () => {
