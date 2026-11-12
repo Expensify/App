@@ -813,14 +813,14 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
     }
 
     it('pays the other reports and lists the ones that need global reimbursements in a modal', async () => {
-        // Given one selected report paid from an account without global reimbursements and one paid from an account that has them
+        // Given one flagged report of a workspace whose account has no global reimbursements, and one flagged report of a workspace whose account has them
 
         // When the user selects bulk Pay
         await selectBulkPay();
 
-        // Then only the second report is paid, because the backend would reject paying the first one
+        // Then only the second report is paid, from the first report's account, because bulk pay pays every report from one account and the backend would reject paying the first one
         expect(payMoneyRequest).toHaveBeenCalledTimes(1);
-        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '3'})}));
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '3'}), methodID: BANK_ACCOUNT_ID}));
 
         // And the selection is cleared, the same as after any bulk pay that paid at least one report
         expect(mockClearSelectedTransactions).toHaveBeenCalledTimes(1);
@@ -931,15 +931,18 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
     });
 
-    it('lists only the reports of the bank account the modal sets up when several accounts need global reimbursements', async () => {
-        // Given two selected reports paid from two different bank accounts that both need global reimbursements
+    it('pays a report of another workspace from the same bank account instead of skipping it', async () => {
+        // Given two flagged reports from workspaces linked to two different bank accounts without global reimbursements
         mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: '2'}), makeSelectedReport({reportID: '5', chatReportID: '6', policyID: 'policy3'})];
 
         // When the user selects bulk Pay
         await selectBulkPay();
 
-        // Then nothing is paid, and the modal names the first account and lists only its report, because Get started sets up that account alone
-        expect(payMoneyRequest).not.toHaveBeenCalled();
+        // Then the second report is paid from the first report's account, because bulk pay pays every report from one account and the flag describes the policy3 account only
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '5'}), methodID: BANK_ACCOUNT_ID}));
+
+        // And the modal lists the first report, which that account can't pay until it sets up global reimbursements
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({

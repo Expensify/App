@@ -1848,8 +1848,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             let paidReportCount = 0;
             const expensePayments: PayMoneyRequestFunctionParams[] = [];
-            // Reports skipped because their bank account needs global reimbursements, grouped by that bank account
-            const reportsNeedingGlobalReimbursementsByBankAccount = new Map<number, {bankAccount: BankAccount; reportNames: Map<string, string>}>();
+            // Bulk pay pays every expense report from one bank account: the one the user picked, or else the first one a report resolves to
+            let bulkPayBankAccountID = expenseReportBankAccountID;
+            // Reports skipped because the bank account needs global reimbursements
+            let reportsNeedingGlobalReimbursements: {bankAccountID: number; bankAccount: BankAccount; reportNames: Map<string, string>} | undefined;
             for (const item of itemsToPay) {
                 if (!item.reportID) {
                     Log.info('[BulkPay] Skipping report: item has no reportID');
@@ -1955,8 +1957,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     continue;
                 }
 
-                const methodID =
-                    paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined;
+                if (paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+                    bulkPayBankAccountID ??= workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID;
+                }
+                const methodID = paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? bulkPayBankAccountID : undefined;
 
                 // The backend rejects this payment until the account is set up for global reimbursements, so keep the report unpaid and list it in the modal after the loop
                 const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({
@@ -1969,10 +1973,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 });
 
                 if (methodID && bankAccountToSetUp) {
-                    const skippedReports = reportsNeedingGlobalReimbursementsByBankAccount.get(methodID) ?? {bankAccount: bankAccountToSetUp, reportNames: new Map<string, string>()};
+                    reportsNeedingGlobalReimbursements ??= {bankAccountID: methodID, bankAccount: bankAccountToSetUp, reportNames: new Map<string, string>()};
                     // Keyed by reportID because selecting several expenses of one report yields one item per expense
-                    skippedReports.reportNames.set(item.reportID, getReportName(iouReport) || translate('common.report'));
-                    reportsNeedingGlobalReimbursementsByBankAccount.set(methodID, skippedReports);
+                    reportsNeedingGlobalReimbursements.reportNames.set(item.reportID, getReportName(iouReport) || translate('common.report'));
                     continue;
                 }
 
@@ -2033,22 +2036,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 clearSelectedTransactions();
             }
 
-            // The modal sets up one bank account, so it lists only the reports paid from that account
             const promptToSetUpGlobalReimbursements = (hasPaidReports: boolean) => {
-                const [firstSkippedBankAccount, ...otherSkippedBankAccounts] = reportsNeedingGlobalReimbursementsByBankAccount.entries();
-                if (otherSkippedBankAccounts.length > 0) {
-                    Log.info('[BulkPay] Reports from more than one bank account need global reimbursements, prompting for the first one only', false, {
-                        bankAccountIDs: [...reportsNeedingGlobalReimbursementsByBankAccount.keys()],
-                    });
-                }
-                if (!firstSkippedBankAccount) {
+                if (!reportsNeedingGlobalReimbursements) {
                     return;
                 }
-                const [bankAccountID, {bankAccount, reportNames}] = firstSkippedBankAccount;
+                const {bankAccountID, bankAccount, reportNames} = reportsNeedingGlobalReimbursements;
                 const globalReimbursementsModalData = {bankAccountID, bankCountry: bankAccount.bankCountry, bankCurrency: bankAccount.bankCurrency};
 
                 // Nothing was paid, so there is nothing to list next to the skipped reports. Open the intro directly, the same way paying a single report does
-                if (!hasPaidReports && otherSkippedBankAccounts.length === 0) {
+                if (!hasPaidReports) {
                     showEnableGlobalReimbursementsModal({...globalReimbursementsModalData, isPayingMultipleReports: reportNames.size > 1});
                     return;
                 }
