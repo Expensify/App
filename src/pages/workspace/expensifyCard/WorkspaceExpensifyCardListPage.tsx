@@ -294,6 +294,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     translate,
                     formatPhoneNumber,
                 });
+
+                // Clear the selection now that the export has started, matching what Search and the report view do.
+                clearTableSelection();
             },
         },
     ];
@@ -328,7 +331,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const getHeaderButtons = () => {
         const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mb3];
 
-        const shouldShowBulkSelectionDropdown = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedCardIDs.length > 0;
+        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+        // page's own buttons no matter what is selected.
+        const shouldShowBulkSelectionDropdown = shouldUseNarrowLayout && isMobileSelectionModeEnabled;
 
         if (shouldShowBulkSelectionDropdown) {
             return (
@@ -483,6 +488,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         listFooterComponent={disclaimerFooter}
                         listFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
                         listContentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
+                        bulkActionOptions={bulkExportOptions}
                     />
                 </View>
             )}

@@ -17,6 +17,11 @@ const {setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLaun
     markActivePopoverLauncherDeactivated: (element?: HTMLElement) => void;
     resetLauncherStackForTests: () => void;
 }>('../../src/libs/LauncherStack.ts');
+const {setupHadTabNavigation, resetForTests: resetHadTabNavigation} = require<{
+    setupHadTabNavigation: () => void;
+    resetForTests: () => void;
+}>('../../src/libs/hadTabNavigation.ts');
+const {isProgrammaticFocus} = require<{isProgrammaticFocus: (element: Element | null) => boolean}>('../../src/libs/programmaticFocus.ts');
 
 function createButton(label: string) {
     const button = document.createElement('button');
@@ -30,8 +35,14 @@ function focus(element: HTMLElement) {
     act(() => element.focus());
 }
 
+beforeEach(() => {
+    setupHadTabNavigation();
+    resetHadTabNavigation();
+});
+
 afterEach(() => {
     resetLauncherStackForTests();
+    resetHadTabNavigation();
     document.body.innerHTML = '';
 });
 
@@ -181,5 +192,40 @@ describe('useBulkActionBarFocus', () => {
 
         // Then focus is back on the row, rather than aimed at a "More" button that left with the bar
         expect(document.activeElement).toBe(row);
+    });
+    it('suppresses the focus ring on a checkbox the selection was made with by mouse', () => {
+        // Given a select all checkbox clicked with the mouse, which leaves it focused without a ring
+        const checkbox = createButton('Select all');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+
+        const {result} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        act(() => document.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true})));
+        focus(checkbox);
+
+        // When Escape clears the selection, which is what would otherwise make the checkbox match `:focus-visible`
+        act(() => result.current.suppressStrayFocusRing());
+
+        // Then the checkbox is marked as holding programmatic focus, so the ring stays off
+        expect(isProgrammaticFocus(checkbox)).toBe(true);
+    });
+
+    it('leaves the focus ring alone on a checkbox the keyboard reached', () => {
+        // Given a select all checkbox tabbed to rather than clicked, so its ring is the user's own
+        const checkbox = createButton('Select all');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+
+        const {result} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        act(() => document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', bubbles: true})));
+        focus(checkbox);
+
+        // When Escape clears the selection
+        act(() => result.current.suppressStrayFocusRing());
+
+        // Then nothing is suppressed, because a keyboard user has to keep seeing where focus is
+        expect(isProgrammaticFocus(checkbox)).toBe(false);
     });
 });

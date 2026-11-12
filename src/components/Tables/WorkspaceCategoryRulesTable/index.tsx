@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableRenderRowProps} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
@@ -9,6 +10,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
+
+import type CONST from '@src/CONST';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -30,6 +34,9 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected rules support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
     emptyStateContent?: React.ReactElement;
     tableTitle: string;
     findRuleLabel: string;
@@ -59,6 +66,7 @@ function WorkspaceCategoryRulesTableImpl({
     emptyState,
     renderRow,
     typeColumnWidth = variables.tableTypeColumnWidth,
+    bulkActionOptions,
 }: WorkspaceCategoryRulesTableProps<CategoryRulesTableItem>) {
     const {localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -126,6 +134,7 @@ function WorkspaceCategoryRulesTableImpl({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

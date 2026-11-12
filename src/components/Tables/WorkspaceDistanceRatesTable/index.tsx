@@ -1,3 +1,4 @@
+import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 
@@ -39,6 +40,9 @@ type WorkspaceDistanceRatesTableProps = {
     isDistanceRateTaxEnabled: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected rates support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<WorkspaceDistanceRatesBulkActionType>>;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -58,6 +62,7 @@ function WorkspaceDistanceRatesTable({
     isDistanceRateTaxEnabled,
     onRowSelectionChange,
     headerComponent,
+    bulkActionOptions,
 }: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -223,6 +228,7 @@ function WorkspaceDistanceRatesTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

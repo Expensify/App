@@ -81,6 +81,8 @@ jest.mock('@components/Table', () => {
     MockTable.NoResultsState = () => <View testID="WorkspaceCompanyCardsTableNoResultsState" />;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.LoadingState = () => <View testID="WorkspaceCompanyCardsTableLoadingIndicator" />;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    MockTable.BulkActionBar = () => <View testID="WorkspaceCompanyCardsTableBulkActionBar" />;
     return {
         __esModule: true,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

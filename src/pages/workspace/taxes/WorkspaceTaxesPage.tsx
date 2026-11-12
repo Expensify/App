@@ -270,7 +270,9 @@ function WorkspaceTaxesPage({
     }
     const dropdownMenuOptions = options;
 
-    const shouldShowBulkActionsButton = canWriteTaxes && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedTaxesIDs.length > 0);
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const shouldShowBulkActionsButton = canWriteTaxes && shouldUseNarrowLayout && isMobileSelectionModeEnabled;
 
     const secondaryActions = [
         {
@@ -395,6 +397,7 @@ function WorkspaceTaxesPage({
                         shouldShowTaxCodeColumn={shouldShowTaxCodeColumn}
                         onRowSelectionChange={setSelectedTaxesIDs}
                         headerComponent={hasVisibleTaxes ? headerContent : undefined}
+                        bulkActionOptions={canWriteTaxes ? dropdownMenuOptions : undefined}
                     />
                 )}
             </ScreenWrapper>
