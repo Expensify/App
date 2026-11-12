@@ -4818,6 +4818,26 @@ function getRequiredSearchColumns(shouldRequireViolationsColumn: boolean): Set<S
     return requiredColumns;
 }
 
+/** Which shown columns of a table users can hide from their menu, and the columns to save when they hide one. */
+type ColumnHiding = {
+    hidableColumns: Set<SearchColumnType>;
+    getColumnsWithout: (column: SearchColumnType) => SearchCustomColumnIds[];
+};
+
+/**
+ * Hiding starts from the saved columns, because a table drops some of them, e.g. a column no row has a value in, and
+ * saving only the shown ones would lose those. The last saved column can't be hidden.
+ */
+function getColumnHiding(shownColumns: SearchCustomColumnIds[], savedColumns: SearchCustomColumnIds[], requiredColumns: ReadonlySet<SearchColumnType>): ColumnHiding {
+    const columnsToSave = savedColumns.length > 0 ? savedColumns : shownColumns;
+    const canHideAnyColumn = columnsToSave.length > 1;
+
+    return {
+        hidableColumns: new Set(canHideAnyColumn ? shownColumns.filter((column) => !requiredColumns.has(column)) : []),
+        getColumnsWithout: (column) => columnsToSave.filter((columnToSave) => columnToSave !== column),
+    };
+}
+
 function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -8418,6 +8438,7 @@ export {
     getCustomColumnDefault,
     canEditSearchColumns,
     getRequiredSearchColumns,
+    getColumnHiding,
     filterValidHasValues,
     navigateToSearchRHP,
     navigateToSearchWithColumns,

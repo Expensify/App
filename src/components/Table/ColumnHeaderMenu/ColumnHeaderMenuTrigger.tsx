@@ -1,4 +1,4 @@
-/** A Spend table heading that opens its column's menu when pressed: sorting, and hiding and editing the columns. */
+/** A column's heading that opens the column's menu when pressed, and reveals a caret on hover without moving its label. */
 import Icon from '@components/Icon';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -10,36 +10,34 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import getButtonState from '@libs/getButtonState';
 import {measureSearchHeaderLabelWidth} from '@libs/getSearchColumnContentToMeasure';
-import Navigation from '@libs/Navigation/Navigation';
 
+import type {SearchColumnAlignment} from '@styles/utils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import type {HideSearchColumn} from './hooks/useHideSearchColumn';
+type ColumnHeaderMenuTriggerProps = WithRequiredSentryLabel & {
+    /** The column's name, which names the trigger for assistive tech even when the heading shows only an icon. */
+    columnLabel: string;
 
-import {useSortableColumn} from './SortableColumnContext';
-import {SortableHeaderLabel} from './SortableHeaderText';
+    /** Where the column's cells place their content, which the heading follows. */
+    alignment: SearchColumnAlignment;
 
-const MENU_ANCHOR_ALIGNMENT: AnchorAlignment = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    /** Whether a resize handle sits over the heading's right edge. */
+    hasResizeHandle: boolean;
+
+    /** The heading's label. A centered column renders it twice, once hidden to size the label's slot. */
+    children: React.ReactNode;
 };
 
-type SearchColumnMenuProps = HideSearchColumn;
-
-/** The column's heading. Pressing it opens the column menu, which holds the sort options. */
-function SearchColumnMenuTrigger() {
-    const {label, alignment, hasResizeHandle, labelProps} = useSortableColumn();
+function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, sentryLabel, children}: ColumnHeaderMenuTriggerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -50,7 +48,7 @@ function SearchColumnMenuTrigger() {
     // An end-aligned label with no room for the caret before it is laid out as start-aligned, so hovering never moves it.
     const [hasRoomForCaretBeforeLabel, setHasRoomForCaretBeforeLabel] = useState(true);
     // Reserves the sort arrow, so sorting never flips the layout. `null` on native, which can't measure text.
-    const labelWidth = alignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END ? measureSearchHeaderLabelWidth(label, styles.gap1.gap) : null;
+    const labelWidth = alignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END ? measureSearchHeaderLabelWidth(columnLabel, styles.gap1.gap) : null;
     const updateCaretRoom =
         labelWidth === null
             ? undefined
@@ -65,9 +63,9 @@ function SearchColumnMenuTrigger() {
     return (
         <PopoverMenu.Trigger>
             <PressableWithFeedback
-                accessibilityLabel={translate('search.columnMenu.openMenu', {columnName: label})}
+                accessibilityLabel={translate('search.columnMenu.openMenu', {columnName: columnLabel})}
                 role={CONST.ROLE.BUTTON}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}
+                sentryLabel={sentryLabel}
                 wrapperStyle={[styles.flex1, styles.alignSelfStretch]}
                 onWrapperLayout={updateCaretRoom}
                 // Fills the cell, so the whole heading opens the menu.
@@ -96,9 +94,7 @@ function SearchColumnMenuTrigger() {
                             ]}
                         >
                             {isCaretBeforeLabel && caret}
-                            <View style={styles.flexShrink1}>
-                                <SortableHeaderLabel {...labelProps} />
-                            </View>
+                            <View style={styles.flexShrink1}>{children}</View>
                             {!isCaretBeforeLabel && caret}
                         </View>
                     );
@@ -119,7 +115,7 @@ function SearchColumnMenuTrigger() {
                                     aria-hidden
                                     style={[styles.opacity0, styles.pointerEventsNone]}
                                 >
-                                    <SortableHeaderLabel {...labelProps} />
+                                    {children}
                                 </View>
                                 <View style={styles.searchColumnMenuLabelOverlay}>{labelRow}</View>
                             </View>
@@ -131,66 +127,4 @@ function SearchColumnMenuTrigger() {
     );
 }
 
-/** A `SortableTableHeader` child that turns each column's heading into the column's menu. */
-function SearchColumnMenu({hidableColumns, hideColumn}: SearchColumnMenuProps) {
-    const {columnName, sorting} = useSortableColumn();
-    const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Checkmark', 'Columns', 'EyeDisabled']);
-
-    // `success` colors the checkmark of the active order, and would color the arrow beside it too. The arrow keeps its usual colors.
-    const getSortIconFill = (isHovered: boolean) => StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isHovered}), isMenuIcon: true, isPane: true});
-
-    const isAscendingActive = sorting?.activeSortOrder === CONST.SEARCH.SORT_ORDER.ASC;
-    const isDescendingActive = sorting?.activeSortOrder === CONST.SEARCH.SORT_ORDER.DESC;
-
-    return (
-        <PopoverMenu.Root>
-            <SearchColumnMenuTrigger />
-            <PopoverMenu.Content anchorAlignment={MENU_ANCHOR_ALIGNMENT}>
-                {!!sorting && (
-                    <>
-                        <PopoverMenu.Item
-                            text={translate('search.columnMenu.sortAscending')}
-                            icon={icons.ArrowUpLong}
-                            rightIcon={isAscendingActive ? icons.Checkmark : undefined}
-                            success={isAscendingActive}
-                            iconFill={getSortIconFill}
-                            // The checkmark only shows the active order visually.
-                            accessibilityState={{selected: isAscendingActive}}
-                            onSelect={() => sorting.onSort(CONST.SEARCH.SORT_ORDER.ASC)}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_SORT_ASCENDING}
-                        />
-                        <PopoverMenu.Item
-                            text={translate('search.columnMenu.sortDescending')}
-                            icon={icons.ArrowDownLong}
-                            rightIcon={isDescendingActive ? icons.Checkmark : undefined}
-                            success={isDescendingActive}
-                            iconFill={getSortIconFill}
-                            accessibilityState={{selected: isDescendingActive}}
-                            onSelect={() => sorting.onSort(CONST.SEARCH.SORT_ORDER.DESC)}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_SORT_DESCENDING}
-                        />
-                        <PopoverMenu.Separator />
-                    </>
-                )}
-                {hidableColumns.has(columnName) && (
-                    <PopoverMenu.Item
-                        text={translate('search.columnMenu.hideColumn')}
-                        icon={icons.EyeDisabled}
-                        onSelect={() => hideColumn(columnName)}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_HIDE_COLUMN}
-                    />
-                )}
-                <PopoverMenu.Item
-                    text={translate('search.editColumns')}
-                    icon={icons.Columns}
-                    onSelect={() => Navigation.navigate(ROUTES.SEARCH_COLUMNS)}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_EDIT_COLUMNS}
-                />
-            </PopoverMenu.Content>
-        </PopoverMenu.Root>
-    );
-}
-
-export default SearchColumnMenu;
+export default ColumnHeaderMenuTrigger;

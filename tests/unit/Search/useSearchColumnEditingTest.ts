@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useHideSearchColumn from '@components/Search/hooks/useHideSearchColumn';
+import useSearchColumnEditing from '@components/Search/hooks/useSearchColumnEditing';
 import type {SearchColumnType} from '@components/Search/types';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,7 +32,7 @@ function getQueryJSON(query: string) {
     return queryJSON;
 }
 
-describe('useHideSearchColumn', () => {
+describe('useSearchColumnEditing', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -49,7 +49,7 @@ describe('useHideSearchColumn', () => {
 
     it('hides a column by saving the shown columns without it, in the same order', () => {
         // Given an expense search showing a few columns
-        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense'), SHOWN_COLUMNS));
+        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense'), SHOWN_COLUMNS));
 
         // When Merchant is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.MERCHANT));
@@ -72,7 +72,7 @@ describe('useHideSearchColumn', () => {
         const queryJSON = getQueryJSON(
             `type:expense-report columns:${CONST.SEARCH.TABLE_COLUMNS.TO},${CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME},${CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED},${CONST.SEARCH.TABLE_COLUMNS.TOTAL}`,
         );
-        const {result} = renderHook(() => useHideSearchColumn(queryJSON, [CONST.SEARCH.TABLE_COLUMNS.TO, CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME, CONST.SEARCH.TABLE_COLUMNS.TOTAL]));
+        const {result} = renderHook(() => useSearchColumnEditing(queryJSON, [CONST.SEARCH.TABLE_COLUMNS.TO, CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME, CONST.SEARCH.TABLE_COLUMNS.TOTAL]));
 
         // When To is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.TO));
@@ -89,7 +89,7 @@ describe('useHideSearchColumn', () => {
 
     it('offers no hide for the total column, which the table needs to lay out', () => {
         // Given an expense search
-        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense'), SHOWN_COLUMNS));
+        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense'), SHOWN_COLUMNS));
 
         // When the column menus are built
         // Then the total column's menu can't hide it, the same as the Columns page, while the other columns' menus can
@@ -99,7 +99,7 @@ describe('useHideSearchColumn', () => {
 
     it('offers no hide on a grouped table, whose saved columns also cover the expenses its groups expand to', () => {
         // Given an expense search grouped by category
-        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense group-by:category'), SHOWN_COLUMNS));
+        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense group-by:category'), SHOWN_COLUMNS));
 
         // When the column menus are built
         // Then none of them can hide its column, since saving only the shown group columns would drop the expense columns
