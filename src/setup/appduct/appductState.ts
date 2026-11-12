@@ -10,6 +10,7 @@ import type {Connection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+// Tool handlers run outside React, between renders, so they read Onyx through module-level connectWithoutView subscriptions.
 const state: {
     session?: SessionOnyx;
     credentials?: Credentials;
