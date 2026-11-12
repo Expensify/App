@@ -131,9 +131,7 @@ function DynamicIOURequestStepAttendees({
             testID="DynamicIOURequestStepAttendees"
         >
             <MoneyRequestAttendeeSelector
-                onFinish={() => {
-                    saveAttendees();
-                }}
+                onFinish={saveAttendees}
                 onAttendeesAdded={(v) => setAttendees(v)}
                 attendees={attendees}
                 iouType={iouType}

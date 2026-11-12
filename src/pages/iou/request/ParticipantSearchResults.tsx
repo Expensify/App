@@ -586,9 +586,7 @@ function ParticipantSearchResults({
             ListItem={InviteMemberListItem}
             textInputOptions={textInputOptions}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onSelectRow={(option) => {
-                onSelectRow(option);
-            }}
+            onSelectRow={onSelectRow}
             shouldSingleExecuteRowSelect
             customListHeaderContent={importContactsButtonComponent}
             customHeaderContent={
