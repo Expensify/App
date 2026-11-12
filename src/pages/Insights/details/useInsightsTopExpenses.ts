@@ -17,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
+import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent} from 'react';
 
 const TOP_EXPENSES_STATE = {
@@ -41,6 +42,7 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
     const session = useSession();
     const queryJSON = query ? buildTopExpensesQueryJSON(query) : undefined;
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
@@ -54,11 +56,15 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
         search({queryJSON, searchKey: undefined, offset: 0, isLoading: false});
     };
 
-    const onQueryOrNetworkChange = useEffectEvent(retry);
+    const onQueryNetworkOrFocusChange = useEffectEvent(retry);
 
+    // Refetching on focus updates the list when an edit made from it changes which expenses match the query
     useEffect(() => {
-        onQueryOrNetworkChange();
-    }, [queryJSON?.hash, isOffline]);
+        if (!isFocused) {
+            return;
+        }
+        onQueryNetworkOrFocusChange();
+    }, [queryJSON?.hash, isOffline, isFocused]);
 
     const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
     const hasErrors = Object.keys(snapshot?.errors ?? {}).length > 0;

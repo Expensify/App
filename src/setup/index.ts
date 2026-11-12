@@ -73,7 +73,7 @@ export default function () {
             [ONYXKEYS.RECENT_SEARCHES]: {},
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
-        snapshotMergeKeys: ['pendingAction', 'pendingFields'],
+        snapshotMergeKeys: ['pendingAction', 'pendingFields', 'receipt'],
         ramOnlyKeys: [
             ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS,
             ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
