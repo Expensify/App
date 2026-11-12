@@ -12,6 +12,7 @@ import {
     getExportTemplates,
     queueBulkApproveReports,
     queueBulkSubmitReports,
+    queueBulkExpenseAction,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     submitMoneyRequestOnSearch,
@@ -51,6 +52,7 @@ jest.mock('@libs/actions/Search', () => ({
     queueExportSearchWithTemplate: jest.fn(() => 'mock-template-export-id'),
     queueBulkApproveReports: jest.fn(),
     queueBulkSubmitReports: jest.fn(),
+    queueBulkExpenseAction: jest.fn(),
     getSearchApproveOnyxData: jest.fn(() => ({})),
     getSearchPayOnyxData: jest.fn(() => ({})),
     bulkDeleteReports: jest.fn(),
@@ -1650,5 +1652,189 @@ describe('useSearchBulkActions - Change workspace', () => {
 
         // Then Change workspace is not offered
         expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
+    });
+});
+
+describe('useSearchBulkActions - Hold, Unhold and Reject under Select all', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockAreAllMatchingItemsSelected = true;
+        await Onyx.clear();
+        mockSelectedTransactions = {};
+        mockExcludedTransactions = {};
+        mockSelectedReports = [];
+        mockCurrentSearchResults = undefined;
+        mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+    });
+
+    it('hides Hold, Unhold and Reject when a deselected group cannot be left out of the query', async () => {
+        // Given "Select all" on a grouped expenses search, with a collapsed group deselected that has no filter to exclude it
+        const excludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({canHold: true, canUnhold: true, canReject: true})};
+        mockExcludedTransactions = {[excludedGroupKey]: makeSelectedTransaction()};
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then none of them are offered, since the backend would act on the deselected group too
+        const values = result.current.headerButtonsOptions.map((option) => option.value);
+        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
+        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
+        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
+    });
+
+    it('offers Hold when one loaded expense can be held, even if another cannot', async () => {
+        // Given "Select all" with one holdable expense and one that is already held, which hides Hold for a normal selection
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({canHold: true}), tx2: makeSelectedTransaction({canHold: false, canUnhold: true})};
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then both Hold and Unhold are offered, because the backend only acts on the expenses the user can act on
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.HOLD)).toBe(true);
+        });
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)).toBe(true);
+    });
+
+    it('sends an expense checked again inside a group deselected after Select all with the bulk unhold', async () => {
+        // Given "Select all" on a merchant grouped search with the Airline group deselected, then one of its held expenses checked again
+        const airlineGroupKey = `${CONST.SEARCH.GROUP_PREFIX}airline` as const;
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({canUnhold: true}),
+            tx3: makeSelectedTransaction({canUnhold: true, groupKey: airlineGroupKey, reportAction: createMock<ReportAction>({childReportID: 'thread3'})}),
+        };
+        mockExcludedTransactions = {[airlineGroupKey]: makeSelectedTransaction()};
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            data: {[airlineGroupKey]: {merchant: 'Airline', count: 2, total: 200, currency: 'USD'}},
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)).toBe(true);
+        });
+
+        // When the user selects Unhold
+        const unholdOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
+        await act(async () => {
+            await unholdOption?.onSelected?.();
+        });
+
+        // Then the expense checked again goes to the backend with the search, since the search leaves its group out
+        const [, , rowsCheckedInExcludedGroups] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
+        expect(Object.keys(rowsCheckedInExcludedGroups ?? {})).toEqual(['tx3']);
+        expect(mockUnholdRequest).not.toHaveBeenCalled();
+    });
+
+    it('queues a server-side bulk unhold without the expenses the user deselected', async () => {
+        // Given "Select all" on an expenses search with a held expense loaded, and one expense deselected afterwards
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({canUnhold: true})};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)).toBe(true);
+        });
+
+        // When the user selects Unhold
+        const unholdOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
+        await act(async () => {
+            await unholdOption?.onSelected?.();
+        });
+
+        // Then the search is handed to the backend with the deselected expense listed, so it stays held
+        expect(queueBulkExpenseAction).toHaveBeenCalledTimes(1);
+        const [action, allMatchingQuery] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
+        expect(action).toBe(CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
+        expect(allMatchingQuery?.excludedTransactionIDList).toEqual(['tx2']);
+        expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('does not offer the backend bulk actions on an invoice search', async () => {
+        // Given "Select all" on an invoice search with an expense that could be held, unheld, rejected or approved
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({canHold: true, canUnhold: true, canReject: true, action: CONST.SEARCH.ACTION_TYPES.APPROVE}),
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: {...baseQueryJSON, type: CONST.SEARCH.DATA_TYPES.INVOICE}}), {wrapper: OnyxListItemProvider});
+
+        // Then none of them is offered, because the backend only runs them on expense and report searches
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
+        });
+        const offeredValues = result.current.headerButtonsOptions.map((option) => option.value);
+        for (const value of [
+            CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
+            CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
+            CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+            CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
+            CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
+            CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
+        ]) {
+            expect(offeredValues).not.toContain(value);
+        }
+    });
+
+    it('offers Reject on an expenses search when one loaded expense can be rejected', async () => {
+        // Given "Select all" on an expenses search with one rejectable expense and one that is not, which hides Reject for a normal selection
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({canReject: true}), tx2: makeSelectedTransaction({canReject: false})};
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then Reject is offered, because the backend only rejects expenses on reports the user can reject
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.REJECT)).toBe(true);
+        });
+    });
+
+    it('does not offer Reject on a reports search', async () => {
+        // Given "Select all" on a reports search with a rejectable expense loaded
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({canReject: true})};
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Reject is not offered, the same as for a normal selection of reports
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.REJECT)).toBe(false);
+    });
+
+    it('hides Hold and Unhold when no loaded expense can be held or unheld', async () => {
+        // Given nothing on the loaded page can be held or unheld
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then neither is offered
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.HOLD)).toBe(false);
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)).toBe(false);
     });
 });

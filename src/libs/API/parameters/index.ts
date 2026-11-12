@@ -705,6 +705,9 @@ export type {default as QueueExportSearchWithTemplateParams} from './QueueExport
 export type {default as QueueBulkPayReportsParams} from './QueueBulkPayReportsParams';
 export type {default as QueueBulkApproveReportsParams} from './QueueBulkApproveReportsParams';
 export type {default as QueueBulkSubmitReportsParams} from './QueueBulkSubmitReportsParams';
+export type {default as QueueBulkHoldExpensesParams} from './QueueBulkHoldExpensesParams';
+export type {default as QueueBulkUnholdExpensesParams} from './QueueBulkUnholdExpensesParams';
+export type {default as QueueBulkRejectExpensesParams} from './QueueBulkRejectExpensesParams';
 export type {default as QueueBulkChangeReportPolicyParams} from './QueueBulkChangeReportPolicyParams';
 export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';

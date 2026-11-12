@@ -220,9 +220,12 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 }));
 
 jest.mock('@libs/SearchUIUtils', () => {
-    const {canChangeWorkspaceOfSearchReport, getColumnsToShow, getTransactionsByReportID} = jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
+    const {canChangeWorkspaceOfSearchReport, getAllMatchingExpenseActionQuery, getAllMatchingExportQueryAndExclusions, getColumnsToShow, getTransactionsByReportID} =
+        jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
     const actualCONSTForSearchUIUtils = jest.requireActual<{default: typeof CONSTType}>('@src/CONST').default;
     return {
+        getAllMatchingExpenseActionQuery,
+        getAllMatchingExportQueryAndExclusions,
         shouldShowDeleteOption: () => false,
         getSelectedGroupFilterEntry: jest.fn(),
         isGroupEntry: (key: string) => key.startsWith(actualCONSTForSearchUIUtils.SEARCH.GROUP_PREFIX),

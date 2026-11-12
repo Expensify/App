@@ -2349,6 +2349,38 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
+type BulkExpenseActionType = typeof CONST.SEARCH.BULK_ACTION_TYPES.HOLD | typeof CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD | typeof CONST.SEARCH.BULK_ACTION_TYPES.REJECT;
+
+/**
+ * Queues a Hold, Unhold or Reject, with the reason for Hold and Reject, for every expense matching a Select all search that the user can act on.
+ * The expenses checked again inside a deselected group are sent too, since the search leaves out their whole group.
+ */
+function queueBulkExpenseAction(
+    action: BulkExpenseActionType,
+    allMatchingQuery: {jsonQuery: string; excludedTransactionIDList: string[]} | undefined,
+    rowsCheckedInExcludedGroups: SelectedTransactions,
+    comment = '',
+) {
+    if (!allMatchingQuery) {
+        Log.info(`[BulkExpenseAction] Dropping bulk ${action}: an excluded row could not be resolved`);
+        return;
+    }
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(action);
+    const jsonQuery = allMatchingQuery.jsonQuery;
+    const excludedTransactionIDList = allMatchingQuery.excludedTransactionIDList.join(',');
+    const transactionIDList = Object.keys(rowsCheckedInExcludedGroups).join(',');
+    switch (action) {
+        case CONST.SEARCH.BULK_ACTION_TYPES.HOLD:
+            write(WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES, {jsonQuery, comment, bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+            break;
+        case CONST.SEARCH.BULK_ACTION_TYPES.REJECT:
+            write(WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES, {jsonQuery, comment: getParsedComment(comment), bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+            break;
+        default:
+            write(WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES, {jsonQuery, bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+    }
+}
+
 /** Moves every report matching the search query that the user can move to the given workspace. */
 function queueBulkChangeReportPolicy(jsonQuery: string, policyID: string) {
     const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE);
@@ -2814,6 +2846,7 @@ function setOptimisticDataForTransactionThreadPreview(
 }
 
 export {
+    queueBulkExpenseAction,
     parseExpenseFilters,
     saveSearch,
     seedMyExpensesSearch,

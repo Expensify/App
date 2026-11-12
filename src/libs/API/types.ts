@@ -693,6 +693,9 @@ const WRITE_COMMANDS = {
     QUEUE_BULK_PAY_REPORTS: 'QueueBulkPayReports',
     QUEUE_BULK_APPROVE_REPORTS: 'QueueBulkApproveReports',
     QUEUE_BULK_SUBMIT_REPORTS: 'QueueBulkSubmitReports',
+    QUEUE_BULK_HOLD_EXPENSES: 'QueueBulkHoldExpenses',
+    QUEUE_BULK_UNHOLD_EXPENSES: 'QueueBulkUnholdExpenses',
+    QUEUE_BULK_REJECT_EXPENSES: 'QueueBulkRejectExpenses',
     QUEUE_BULK_CHANGE_REPORT_POLICY: 'QueueBulkChangeReportPolicy',
     QUEUE_BULK_MARK_AS_EXPORTED: 'QueueBulkMarkAsExported',
     CREATE_WORKSPACE_APPROVAL: 'CreateWorkspaceApproval',
@@ -1582,6 +1585,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS]: Parameters.QueueBulkPayReportsParams;
     [WRITE_COMMANDS.QUEUE_BULK_APPROVE_REPORTS]: Parameters.QueueBulkApproveReportsParams;
     [WRITE_COMMANDS.QUEUE_BULK_SUBMIT_REPORTS]: Parameters.QueueBulkSubmitReportsParams;
+    [WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES]: Parameters.QueueBulkHoldExpensesParams;
+    [WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES]: Parameters.QueueBulkUnholdExpensesParams;
+    [WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES]: Parameters.QueueBulkRejectExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_CHANGE_REPORT_POLICY]: Parameters.QueueBulkChangeReportPolicyParams;
     [WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED]: Parameters.QueueBulkMarkAsExportedParams;
     [WRITE_COMMANDS.EXPORT_REPORT_TO_CSV]: Parameters.ExportReportCSVParams;
