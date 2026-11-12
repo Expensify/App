@@ -3278,13 +3278,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return true;
                 }
                 const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
-                if (
-                    areStrictPolicyRulesEnabled ||
-                    report?.managerID !== accountID ||
-                    !isExpenseReportUtil(report) ||
-                    !isProcessingReport(report) ||
-                    isMoneyRequestReportPendingDeletion(report)
-                ) {
+                // Current approvers can reassign without workspace admin access when strict policy rules are off.
+                const canReassignAsApprover =
+                    !areStrictPolicyRulesEnabled &&
+                    report?.managerID === accountID &&
+                    isExpenseReportUtil(report) &&
+                    isProcessingReport(report) &&
+                    !isMoneyRequestReportPendingDeletion(report);
+                if (!canReassignAsApprover) {
                     return false;
                 }
                 const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
