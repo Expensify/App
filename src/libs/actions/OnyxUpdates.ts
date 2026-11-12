@@ -105,6 +105,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
                     command: request.command,
                     jsonCode: response.jsonCode ?? 0,
                     message: response.message,
+                    errorUUID: response.UUID,
                     requestData: request.data,
                 });
 
