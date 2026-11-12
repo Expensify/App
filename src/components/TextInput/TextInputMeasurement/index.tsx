@@ -26,12 +26,8 @@ function TextInputMeasurement({
     autoGrowMeasurementStyles,
 }: TextInputMeasurementProps) {
     const styles = useThemeStyles();
-    // A web View takes only a CSS string color, but a TextStyle color can be a native color object. The View does not draw text, so it can drop such a color.
-    const flattenedInputStyle = StyleSheet.flatten(inputStyle);
-    const wrapperInputStyle = flattenedInputStyle && {
-        ...flattenedInputStyle,
-        color: typeof flattenedInputStyle.color === 'string' ? flattenedInputStyle.color : undefined,
-    };
+    // A TextStyle color is not a valid View style color. The hidden wrapper View only measures and draws no text, so it doesn't need the color.
+    const {color, ...wrapperInputStyle} = StyleSheet.flatten(inputStyle) ?? {};
 
     return (
         <>
