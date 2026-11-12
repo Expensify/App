@@ -642,6 +642,7 @@ const SENTRY_LABEL = {
         COLUMN_MENU_SORT_DESCENDING: 'Search-ColumnMenu-SortDescending',
         COLUMN_MENU_HIDE_COLUMN: 'Search-ColumnMenu-HideColumn',
         COLUMN_MENU_EDIT_COLUMNS: 'Search-ColumnMenu-EditColumns',
+        COLUMN_MENU_RESET_COLUMN_SIZES: 'Search-ColumnMenu-ResetColumnSizes',
         UNREPORTED_EXPENSE_LIST_ITEM: 'Search-UnreportedExpenseListItem',
         WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
         STATIC_LIST_ITEM: 'Search-StaticListItem',
