@@ -25,8 +25,12 @@ import useOnyx from './useOnyx';
  * Returns whether the collection is still on its way, which a screen that decides something from a rule's
  * absence has to wait for. Onyx hydrates the collection as empty long before the response lands, so without
  * this a deep linked screen reads "no such rule" for a rule that exists.
+ *
+ * Also returns whether the collection has actually arrived, which tells a settled wait that fetched the rules
+ * apart from one that failed. A screen that resolved something against no rules needs that to know a retry has
+ * given it something new to resolve against.
  */
-function useRulesPrefetch(enabled = true): {areRulesLoading: boolean} {
+function useRulesPrefetch(enabled = true): {areRulesLoading: boolean; haveRulesLoaded: boolean} {
     // Whether this mount has asked for the collection. A failed fetch leaves the fetched flag false, so without
     // this the hook would see a fetch as needed again the moment the in-flight flag cleared, on every render.
     const [hasAsked, setHasAsked] = useState(false);
@@ -59,7 +63,7 @@ function useRulesPrefetch(enabled = true): {areRulesLoading: boolean} {
     // guard reading the collection would otherwise resolve against nothing. Offline there is nothing to wait for.
     // A failed fetch settles the wait rather than holding every reader of the collection for the rest of the
     // session, which is what telling it apart from a fetch still to send buys.
-    return {areRulesLoading: enabled && !isOffline && (isFlagLoading || isFetchNeeded || isAwaitingResponse || !!isLoadingRules)};
+    return {areRulesLoading: enabled && !isOffline && (isFlagLoading || isFetchNeeded || isAwaitingResponse || !!isLoadingRules), haveRulesLoaded: !!hasBeenFetched};
 }
 
 export default useRulesPrefetch;

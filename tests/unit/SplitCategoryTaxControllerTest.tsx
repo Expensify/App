@@ -16,10 +16,11 @@ jest.mock('@libs/PolicyUtils', () => ({
 }));
 
 let mockAreRulesLoading = false;
+let mockHaveRulesLoaded = true;
 
 jest.mock('@hooks/useRulesPrefetch', () => ({
     __esModule: true,
-    default: () => ({areRulesLoading: mockAreRulesLoading}),
+    default: () => ({areRulesLoading: mockAreRulesLoading, haveRulesLoaded: mockHaveRulesLoaded}),
 }));
 
 jest.mock('@hooks/useOnyx', () => ({
@@ -59,6 +60,7 @@ describe('SplitCategoryTaxController', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockAreRulesLoading = false;
+        mockHaveRulesLoaded = true;
     });
 
     it('replays a category picked before the rules arrived', () => {
@@ -144,6 +146,35 @@ describe('SplitCategoryTaxController', () => {
             undefined,
             {},
         );
+    });
+
+    it('replays a category picked while the rules fetch had failed, once a retry lands them', () => {
+        // Given a `GetRules` that failed, which settles the wait with no rules
+        mockHaveRulesLoaded = false;
+        const {rerender} = render(<SplitCategoryTaxController {...withCategory(undefined)} />);
+
+        // When the user picks a category, which resolves its tax against an empty collection, and a reconnect
+        // then lands the rules
+        rerender(<SplitCategoryTaxController {...withCategory('Car')} />);
+        mockHaveRulesLoaded = true;
+        rerender(<SplitCategoryTaxController {...withCategory('Car')} />);
+
+        // Then the pick is written a second time, because the first one had no rule to resolve against and so
+        // left the previous category's tax in place
+        expect(mockSetDraftSplitTransaction).toHaveBeenCalledTimes(2);
+    });
+
+    it('leaves the category the screen opened with alone when a retry lands the rules', () => {
+        // Given a split draft that already carries a category, on a screen opened while the rules fetch had failed
+        mockHaveRulesLoaded = false;
+        const {rerender} = render(<SplitCategoryTaxController {...withCategory('Car')} />);
+
+        // When a reconnect lands the rules
+        mockHaveRulesLoaded = true;
+        rerender(<SplitCategoryTaxController {...withCategory('Car')} />);
+
+        // Then nothing is written, because a tax the user chose for that category would be overwritten
+        expect(mockSetDraftSplitTransaction).not.toHaveBeenCalled();
     });
 
     it('leaves the draft alone when a split is not being edited', () => {
