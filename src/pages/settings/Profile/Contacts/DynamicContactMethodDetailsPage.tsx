@@ -319,26 +319,24 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
             <Header>
                 <Header.BackButton onPress={() => Navigation.goBack(listPath)} />
                 <Header.Title title={formattedContactMethod} />
-                <Header.Right>
-                    {isValidateCodeFormVisible && !isDefaultContactMethod && (
-                        <Header.ThreeDotsMenu
-                            items={[
-                                {
-                                    icon: icons.Trashcan,
-                                    text: translate('common.remove'),
-                                    onSelected: () => close(turnOnDeleteModal),
-                                },
-                            ]}
-                            shouldOverlay
-                            onIconPress={() => {
-                                // Hide the keyboard when the user clicks the three-dot menu.
-                                // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
-                                blurActiveElement();
-                                KeyboardUtils.dismiss();
-                            }}
-                        />
-                    )}
-                </Header.Right>
+                {isValidateCodeFormVisible && !isDefaultContactMethod && (
+                    <Header.ThreeDotsMenu
+                        items={[
+                            {
+                                icon: icons.Trashcan,
+                                text: translate('common.remove'),
+                                onSelected: () => close(turnOnDeleteModal),
+                            },
+                        ]}
+                        shouldOverlay
+                        onIconPress={() => {
+                            // Hide the keyboard when the user clicks the three-dot menu.
+                            // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
+                            blurActiveElement();
+                            KeyboardUtils.dismiss();
+                        }}
+                    />
+                )}
             </Header>
             <ScrollView
                 keyboardShouldPersistTaps="handled"
