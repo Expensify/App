@@ -74,6 +74,7 @@ function ConnectionStatusMessage({
                 <View style={[styles.offlineFeedbackErrorDot, styles.mr2]}>
                     <Icon
                         src={icons.DotIndicator}
+                        size={CONST.ICON_SIZE.EXTRA_SMALL}
                         fill={isDangerStatus ? theme.danger : theme.iconSuccessFill}
                     />
                 </View>

@@ -80,8 +80,14 @@ type ExpenseFieldRowProps = WithRequiredSentryLabel & {
     /** Whether the row is pressed-through but visibly inert (e.g. while the expense is being confirmed) */
     isDisabled?: boolean;
 
-    /** Whether the field can be changed at all. A non-interactive row drops its border, caret and press handler */
+    /** Whether the field can be changed at all. A non-interactive row drops its caret and press handler, and its border takes the fill color */
     isInteractive?: boolean;
+
+    /** Whether an interactive row shows the caret. Off for a row that stands in for a text input rather than a list */
+    shouldShowDownCaret?: boolean;
+
+    /** Text a non-interactive row copies from the button it shows on hover. Also makes the value selectable. */
+    copyValue?: string;
 
     /**
      * Styles for the `Animated.View` wrapping the row, e.g. the highlight animation `useFieldRowHighlightStyle`
@@ -109,8 +115,8 @@ function ExpenseFieldRowReviewRequiredAnnouncement() {
  *
  * Tapping it opens the same selector the push row opened. The caret only says the row holds a value to pick.
  *
- * A field nobody can change stays a field: it keeps the border and reads as a disabled input, losing only the
- * caret and the press handler. That rule lives here rather than in each caller so every locked field on the form
+ * A field nobody can change stays a field: it keeps its shape and fill and reads as a disabled input, losing the
+ * caret and the press handler. Its border takes the fill color, and on hover it offers to copy its value. That rule lives here rather than in each caller so every locked field on the form
  * looks the same. The fields backed by a text input rather than by a selector — amount, description and date —
  * reach this row only once they are locked, which is what keeps that promise true for the whole form.
  */
@@ -132,6 +138,8 @@ function ExpenseFieldRow({
     isExpanded,
     isDisabled = false,
     isInteractive = true,
+    shouldShowDownCaret = true,
+    copyValue,
     backgroundStyle,
     sentryLabel,
     testID,
@@ -144,18 +152,21 @@ function ExpenseFieldRow({
     // `Required` answers "what goes here", so it goes once the field holds a value. A label that describes the value
     // itself has to stay, or a field the app filled in reads as one the user chose.
     const shouldShowRightLabel = !!rightLabel && (shouldKeepRightLabelWhenFilled || !hasValue);
-    const hasTrailing = shouldShowRightLabel || isInteractive;
+    const shouldShowCopy = !isInteractive && !!copyValue;
+    const shouldShowCaret = isInteractive && shouldShowDownCaret;
+    const hasTrailing = shouldShowRightLabel || shouldShowCaret || shouldShowCopy;
 
     const row = (
         <MenuItem.Row>
-            <MenuItem.Content>
+            {/* A text input stacks its label right on its value, so the row does too and the two kinds of field match */}
+            <MenuItem.Content style={styles.gap0}>
                 {hasValue ? (
                     <>
                         <MenuItem.FieldName numberOfLines={1}>{name}</MenuItem.FieldName>
                         {valueComponent ?? (
                             <MenuItem.FieldValue
                                 numberOfLines={numberOfLinesValue}
-                                isMuted={!isInteractive}
+                                isSelectable={shouldShowCopy}
                             >
                                 {value}
                             </MenuItem.FieldValue>
@@ -180,7 +191,13 @@ function ExpenseFieldRow({
                             <MenuItem.RightLabel>{rightLabel}</MenuItem.RightLabel>
                         </>
                     )}
-                    {isInteractive && <MenuItem.DownCaret />}
+                    {shouldShowCaret && <MenuItem.DownCaret />}
+                    {shouldShowCopy && (
+                        <MenuItem.Copy
+                            value={copyValue}
+                            shouldReserveSpace
+                        />
+                    )}
                 </MenuItem.Trailing>
             )}
         </MenuItem.Row>
@@ -203,12 +220,14 @@ function ExpenseFieldRow({
         <Animated.View style={[styles.moneyRequestFieldRowFill, backgroundStyle]}>
             <MenuItem.Root
                 style={[styles.moneyRequestFieldRow, !isInteractive && styles.moneyRequestFieldRowDisabled, !!errorText && styles.borderColorDanger]}
+                hoveredStyle={styles.highlightBG}
                 // A locked field has nothing to open, so it is handed no press handler at all: `MenuItem.Root`
                 // reads that as a non-interactive row and drops the button role and the focus stop with it.
                 // Otherwise the press is guarded like every other `MenuItem` preset, so an anonymous user gets
                 // the sign-in prompt rather than the field's selector.
                 onPress={isInteractive ? callIfAuthenticated(onPress, session) : undefined}
                 isDisabled={isDisabled}
+                shouldAllowTextSelection={shouldShowCopy}
                 accessibilityLabel={accessibilityLabel}
                 accessibilityState={isExpanded === undefined ? undefined : {expanded: isExpanded}}
                 sentryLabel={sentryLabel}
@@ -221,7 +240,7 @@ function ExpenseFieldRow({
     );
 
     return (
-        <View style={[styles.mh4, styles.mv2]}>
+        <View style={[styles.mh5, styles.mv2]}>
             {anchorRef || onLayout ? (
                 <View
                     ref={anchorRef}

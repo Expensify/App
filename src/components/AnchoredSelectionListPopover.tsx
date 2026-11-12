@@ -1,3 +1,4 @@
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectionListPopoverLayout from '@hooks/useSelectionListPopoverLayout';
 
 import CONST from '@src/CONST';
@@ -81,6 +82,11 @@ function AnchoredSelectionListPopover({
     children,
 }: AnchoredSelectionListPopoverProps) {
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision, which is on isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    // The bottom sheet always has a header. Anchored to its field the list needs no title of its own, so a wide layout
+    // only shows the header, title included, for the actions it holds.
+    const shouldRenderHeader = shouldShowHeader && (isSmallScreenWidth || !!headerActions);
 
     const {popoverDimensions, innerContainerStyle, outerStyle, avoidKeyboard, contentStyle} = useSelectionListPopoverLayout({
         optionCount,
@@ -88,7 +94,7 @@ function AnchoredSelectionListPopover({
         popoverWidth,
         popoverHeight,
         shouldFitContentHeight,
-        headerHeight: shouldShowHeader ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0,
+        headerHeight: shouldRenderHeader ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0,
     });
 
     return (
@@ -115,7 +121,7 @@ function AnchoredSelectionListPopover({
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
             <Animated.View style={contentStyle}>
-                {shouldShowHeader && (
+                {shouldRenderHeader && (
                     <SelectionListPopoverHeader
                         title={title}
                         onBackButtonPress={onClose}

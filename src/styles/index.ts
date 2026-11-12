@@ -2356,7 +2356,8 @@ const staticStyles = (theme: ThemeColors) =>
         // Sits flush against the right edge of a report field whose input has `noRightBorderRadius`, so the input's
         // right border reads as a divider and the two look like one segmented field.
         reportFieldDeleteButton: {
-            width: variables.componentSizeLarge,
+            // As wide as a text input's icon with its padding, so the trash icon sits where the input icons do
+            width: 44,
             // Matches the input beside it, whose height follows the device font scale
             height: variables.inputHeight,
             alignItems: 'center',
@@ -3724,6 +3725,8 @@ const staticStyles = (theme: ThemeColors) =>
         // the device font size.
         moneyRequestFieldRow: {
             minHeight: variables.inputHeight,
+            // With the caret's 4px margin this lines the caret up with a text input's icon nudged by
+            // `moneyRequestFieldInputIcon`, so every field's right icon sits the same distance from the border
             paddingHorizontal: 8,
             paddingVertical: 6,
             borderWidth: 1,
@@ -3732,12 +3735,16 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        // `moneyRequestFieldRow` for a field the user cannot change. Takes its fill and border straight from
-        // `textInputDisabledContainer`, so a locked row reads as the disabled input it is rather than as a field
-        // still waiting to be filled in.
+        // `moneyRequestFieldRow` for a field the user cannot change. The fill marks it as locked, and the border keeps
+        // it the same shape as the editable fields around it.
         moneyRequestFieldRowDisabled: {
             backgroundColor: theme.highlightBG,
-            borderColor: theme.borderLighter,
+            borderColor: theme.bordersBold,
+        },
+
+        // Moves a text input's right icon 8px toward the border, so it lines up with the caret of a bordered field row
+        moneyRequestFieldInputIcon: {
+            marginRight: -8,
         },
 
         // Fill behind `moneyRequestFieldRow`. The row's own background would cover anything drawn under it, so the
@@ -6632,7 +6639,7 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLabel,
         },
         offlineFeedbackErrorDot: {
-            marginRight: 12,
+            marginRight: 8,
         },
 
         workflowApprovalVerticalLine: {
@@ -6943,7 +6950,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         wideRHPMoneyRequestReceiptViewScrollViewContainer: {
-            ...spacing.pt3,
+            ...spacing.pt4,
             ...spacing.pb2,
             minHeight: '100%',
         },

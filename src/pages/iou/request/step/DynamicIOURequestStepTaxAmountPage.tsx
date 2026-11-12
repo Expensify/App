@@ -197,3 +197,4 @@ const DynamicIOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWrita
 const DynamicIOURequestStepTaxAmountPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepTaxAmountPageWithWritableReportOrNotFound);
 
 export default DynamicIOURequestStepTaxAmountPageWithFullTransactionOrNotFound;
+export {getTaxAmount};

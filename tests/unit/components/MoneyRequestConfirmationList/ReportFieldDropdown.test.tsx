@@ -91,6 +91,9 @@ const getDropdown = (onClose: jest.Mock, isVisible = true) => (
                 popoverWidth={CONST.POPOVER_DROPDOWN_WIDTH}
                 popoverHeight={CONST.POPOVER_DROPDOWN_MAX_HEIGHT}
                 transactionID={TRANSACTION_ID}
+                reportID={CHAT_REPORT_ID}
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
             />
         </ConfirmationFieldsProvider>
     </OnyxListItemProvider>

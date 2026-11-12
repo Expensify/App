@@ -1,0 +1,45 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
+@@ -60,12 +60,41 @@
+     }
+     updateProps(props) {
+         var _a, _b, _c;
++        const removedIndices = this.getRemovedIndices(this.propsRef, props);
+         this.propsRef = props;
++        // Layouts are stored by index, so drop the removed items' layouts before this render reads them. Otherwise the
++        // items after a removal take over their neighbours' sizes until they are measured again.
++        if (removedIndices.length > 0) {
++            this.layoutManager.deleteLayout(removedIndices);
++        }
+         this.engagedIndicesTracker.drawDistance =
+             (_a = props.drawDistance) !== null && _a !== void 0 ? _a : this.engagedIndicesTracker.drawDistance;
+         this.initialDrawBatchSize =
+             (_c = (_b = this.propsRef.overrideProps) === null || _b === void 0 ? void 0 : _b.initialDrawBatchSize) !== null && _c !== void 0 ? _c : this.initialDrawBatchSize;
+     }
++    getRemovedIndices(previousProps, nextProps) {
++        const previousData = previousProps.data;
++        const nextData = nextProps.data;
++        if (!this.layoutManager ||
++            !previousData ||
++            !nextData ||
++            previousData === nextData ||
++            !previousProps.keyExtractor ||
++            !nextProps.keyExtractor ||
++            nextData.length >= previousData.length) {
++            return [];
++        }
++        const nextKeys = new Set(nextData.map((item, index) => nextProps.keyExtractor(item, index)));
++        const layoutCount = this.layoutManager.layouts.length;
++        const removedIndices = [];
++        previousData.forEach((item, index) => {
++            if (index < layoutCount && !nextKeys.has(previousProps.keyExtractor(item, index))) {
++                removedIndices.push(index);
++            }
++        });
++        // Only pure removals can be mapped onto the stored layouts; anything else falls back to the default handling
++        return removedIndices.length === previousData.length - nextData.length ? removedIndices : [];
++    }
+     resetScrollbarOscillation() {
+         return this.layoutManager instanceof RVLinearLayoutManagerImpl &&
+             this.layoutManager.resetScrollbarOscillation();

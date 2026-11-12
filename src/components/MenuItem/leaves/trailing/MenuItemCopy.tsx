@@ -16,6 +16,9 @@ import {View} from 'react-native';
 type MenuItemCopyProps = {
     /** Text put on the clipboard */
     value: string;
+
+    /** Whether the button's space stays reserved while the row is not hovered, so the value does not reflow when it appears */
+    shouldReserveSpace?: boolean;
 };
 
 /**
@@ -23,7 +26,7 @@ type MenuItemCopyProps = {
  * where there is no hover and no dependable text selection. Right-click is left to the browser, whose
  * own menu already copies the value off the screen.
  */
-function MenuItemCopy({value}: MenuItemCopyProps) {
+function MenuItemCopy({value, shouldReserveSpace = false}: MenuItemCopyProps) {
     const styles = useThemeStyles();
     const {isInteractive} = useMenuItemConfig();
     const {isHovered} = useMenuItemInteraction();
@@ -42,12 +45,17 @@ function MenuItemCopy({value}: MenuItemCopyProps) {
     );
 
     // The button is a hover affordance, and it would compete with the press target of an interactive row
-    if (!deviceHasHoverSupport || isInteractive || !isHovered) {
+    if (!deviceHasHoverSupport || isInteractive || (!isHovered && !shouldReserveSpace)) {
         return null;
     }
 
+    const isHidden = !isHovered;
+
     return (
-        <View style={styles.justifyContentCenter}>
+        <View
+            style={[styles.justifyContentCenter, isHidden && [styles.opacity0, styles.pointerEventsNone]]}
+            aria-hidden={isHidden}
+        >
             <CopyTextToClipboard
                 urlToCopy={value}
                 shouldHaveActiveBackground

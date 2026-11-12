@@ -1,36 +1,25 @@
 import FSClassView from '@components/FSClassView';
 
-import useConciergeAskState from '@hooks/useConciergeAskState';
-import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
 
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import React from 'react';
 
-import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
-
 type ReportActionsListPaddingViewProps = ChildrenProps & {
     report: OnyxTypes.Report;
-    isReportArchived: boolean;
 };
 
-function ReportActionsListPaddingView({report, isReportArchived, children}: ReportActionsListPaddingViewProps) {
+function ReportActionsListPaddingView({report, children}: ReportActionsListPaddingViewProps) {
     const styles = useThemeStyles();
-    const canShowRecipientLocalTime = useReportRecipientLocalTime({report});
     const reportActionsListFSClass = FS.getChatFSClass(report);
-
-    const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
-    const {isHistoryExpanded: isConciergeHistoryExpanded} = useConciergeAskState(report.reportID);
-    const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
 
     return (
         <FSClassView
-            style={[styles.flex1, !canShowRecipientLocalTime && !hideComposer && !isConciergeHistoryExpanded ? styles.pb4 : {}]}
+            style={styles.flex1}
             forwardedFSClass={reportActionsListFSClass}
         >
             {children}

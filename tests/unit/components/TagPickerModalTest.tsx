@@ -272,8 +272,8 @@ describe('TagPickerModal', () => {
             />,
         );
 
-        // Then the header names the list but has no back button, as the category pop-over does
-        expect(screen.getByText('Project')).toBeOnTheScreen();
+        // Then there is no header at all, since the pop-over anchored to its field needs neither a back button nor a title
+        expect(screen.queryByText('Project')).not.toBeOnTheScreen();
         expect(screen.queryByLabelText('common.back')).not.toBeOnTheScreen();
     });
 

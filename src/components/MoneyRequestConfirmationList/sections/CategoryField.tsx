@@ -169,7 +169,7 @@ function CategoryField({
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
                 shouldOpenInDropdown={canOpenListInPlace}
-                listHeaderHeight={canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0}
+                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
                 renderDropdown={(dropdownProps) =>
                     !!transactionID && (
                         <CategoryFieldDropdown

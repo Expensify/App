@@ -149,6 +149,9 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
                         <ReportFieldDropdown
                             {...dropdownProps}
                             transactionID={transactionID}
+                            reportID={reportID}
+                            action={action}
+                            iouType={iouType}
                         />
                     )
                 }

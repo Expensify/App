@@ -237,7 +237,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 </MenuItem.Root>
             )}
             {canModifyTaxFields ? (
-                <View style={[styles.mh4, styles.mv2]}>
+                <View style={[styles.mh5, styles.mv2]}>
                     <NumberWithSymbolForm
                         numberFormRef={numberFormRef}
                         key={taxAmountInputKey}

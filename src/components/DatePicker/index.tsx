@@ -57,6 +57,7 @@ function DatePicker({
     icon,
     shouldEnableMonthYearBackdropInNarrowPane = false,
     textInputContainerStyles,
+    iconContainerStyle,
     shouldShowLabelTooltipWhenTruncated,
     clearButtonSentryLabel = CONST.SENTRY_LABEL.DATE_PICKER.CLEAR_BUTTON,
 }: DateInputWithPickerProps) {
@@ -240,7 +241,7 @@ function DatePicker({
                     // The icon, the clear button and any `rightHandSideComponent` share the right-hand slot. The icon
                     // gives way when the caller asks for the slot outright, or to a clear button that will actually render.
                     icon={shouldHideCalendarIcon || (selectedDate && !shouldHideClearButton) ? null : (icon ?? icons.Calendar)}
-                    iconContainerStyle={styles.pr0}
+                    iconContainerStyle={[styles.pr0, iconContainerStyle]}
                     label={label}
                     accessibilityLabel={label}
                     role={CONST.ROLE.COMBOBOX}
@@ -259,7 +260,7 @@ function DatePicker({
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     clearButtonSentryLabel={clearButtonSentryLabel}
-                    clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}]}
+                    clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}, iconContainerStyle]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
                     disableKeyboard

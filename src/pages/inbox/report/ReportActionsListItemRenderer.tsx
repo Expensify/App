@@ -150,6 +150,7 @@ function ReportActionsListItemRenderer({
     return (
         <ReportActionItem
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+            hasActionsAfterCreated={isCreatedAction && shouldDisplayReplyDivider}
             parentReportAction={parentReportActionForRow}
             report={report}
             transactionThreadReport={transactionThreadReport}

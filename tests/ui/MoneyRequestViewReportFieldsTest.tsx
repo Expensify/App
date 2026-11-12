@@ -134,7 +134,7 @@ const getRenderedStyles = (): unknown[] => {
 
 // `getTextInputIconContainerStyles` gives every icon container a full-height centred box, and `pr0` then strips the
 // right half of its padding. That one-sided padding identifies the caret container.
-const caretContainer = {height: '100%', paddingHorizontal: 11, paddingRight: 0};
+const caretContainer = {height: '100%', paddingHorizontal: 12, paddingRight: 0};
 
 const buildFieldList = (fieldCount: number): Record<string, OnyxTypes.PolicyReportField> => {
     const fieldList: Record<string, OnyxTypes.PolicyReportField> = {};

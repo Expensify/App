@@ -93,16 +93,16 @@ describe('ExpenseFieldDropdown', () => {
     describe('with a header above the list', () => {
         const HEADER_HEIGHT = variables.componentSizeNormal;
 
-        it('grows the container by the header so it still fits as many options', () => {
-            // Given a row with plenty of room below, whose list shows a header above its options
+        it('leaves the header out of the wide pop-over, which shows no title', () => {
+            // Given a wide layout and a row with plenty of room below, whose list has a header on a phone
             mockRowAt(ROW_TOP);
             renderField(true, jest.fn(), HEADER_HEIGHT);
 
             // When the row is pressed
             act(() => pressRow());
 
-            // Then the container is taller by the header, so the header doesn't take the place of an option
-            expect(renderedProps?.popoverHeight).toBe(getSelectionListPopoverContentHeight({optionCount: 4}) + HEADER_HEIGHT);
+            // Then the pop-over is sized for its options alone, since anchored to the field it leaves the header out
+            expect(renderedProps?.popoverHeight).toBe(getSelectionListPopoverContentHeight({optionCount: 4}));
         });
 
         it('grows the bottom sheet by the header too, so a long list loses no row to it on a phone', () => {
@@ -118,8 +118,8 @@ describe('ExpenseFieldDropdown', () => {
             expect(renderedProps?.popoverHeight).toBe(CONST.POPOVER_DROPDOWN_MAX_HEIGHT + HEADER_HEIGHT);
         });
 
-        it('falls back to the full page when the room left fits one option but not the header too', () => {
-            // Given a row with room below for one option, but not for one option and the header
+        it('still opens the wide pop-over when the room left fits one option but not the header too', () => {
+            // Given a wide layout and a row with room below for one option, but not for one option and the header
             const onPress = jest.fn();
             mockWindowHeight = ROW_TOP + ROW_HEIGHT + 6 + getSelectionListPopoverContentHeight({optionCount: 1}) + HEADER_HEIGHT / 2;
             mockRowAt(ROW_TOP);
@@ -128,9 +128,9 @@ describe('ExpenseFieldDropdown', () => {
             // When the row is pressed
             act(() => pressRow());
 
-            // Then it opens the page, rather than a container showing the header and no categories
-            expect(onPress).toHaveBeenCalledTimes(1);
-            expect(renderCount).toBe(0);
+            // Then the pop-over opens, since without its header one option fits
+            expect(onPress).not.toHaveBeenCalled();
+            expect(renderCount).toBeGreaterThan(0);
         });
     });
 

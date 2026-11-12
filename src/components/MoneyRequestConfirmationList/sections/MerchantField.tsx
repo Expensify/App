@@ -128,7 +128,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
 
     if (!isReadOnly) {
         return (
-            <View style={[styles.mh4, styles.mv2]}>
+            <View style={[styles.mh5, styles.mv2]}>
                 <TextInput
                     value={merchantInput}
                     readOnly={didConfirm}

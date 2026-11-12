@@ -42,6 +42,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
             <View style={styles.offlineFeedbackErrorDot}>
                 <Icon
                     src={icons.DotIndicator}
+                    size={CONST.ICON_SIZE.EXTRA_SMALL}
                     fill={colors.red}
                 />
             </View>

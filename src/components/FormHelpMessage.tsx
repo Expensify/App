@@ -143,6 +143,7 @@ function FormHelpMessage({
                 >
                     <Icon
                         src={icons.DotIndicator}
+                        size={CONST.ICON_SIZE.EXTRA_SMALL}
                         fill={theme.danger}
                     />
                 </View>

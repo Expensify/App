@@ -120,7 +120,7 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TIME_FIELD}
             />
 
-            {badgeElements.length > 0 && <View style={[styles.flexRow, styles.gap1, styles.justifyContentStart, styles.mh4, styles.flexWrap]}>{badgeElements}</View>}
+            {badgeElements.length > 0 && <View style={[styles.flexRow, styles.gap1, styles.justifyContentStart, styles.mh5, styles.flexWrap]}>{badgeElements}</View>}
 
             {subRateFields}
         </>

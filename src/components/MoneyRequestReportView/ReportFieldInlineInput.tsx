@@ -10,6 +10,7 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {FilterPopupButtonProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import SelectionListPopoverHeader, {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -69,7 +70,9 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {isInNarrowPaneModal} = useResponsiveLayout();
+    // The options open as a bottom sheet only on a small screen, which is where they need a title and a back button
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isInNarrowPaneModal, isSmallScreenWidth} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'Trashcan']);
 
     const [draftValue, setDraftValue] = useState(value);
@@ -182,6 +185,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 wrapperStyle={styles.mv0}
                 shouldDeferShowUntilPositioned
                 shouldHideClearButton
+                iconContainerStyle={styles.moneyRequestFieldInputIcon}
                 // The Month/Year pickers are right-docked, and a right-docked modal opened from the RHP drops its
                 // backdrop by default, so the report behind them would not be dimmed.
                 shouldEnableMonthYearBackdropInNarrowPane={isInNarrowPaneModal}
@@ -215,8 +219,20 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                     isSearchable: shouldShowSearchInput,
                     // Selecting an option submits straight away, so there is no apply button to leave room for.
                     hasButton: false,
+                    extraHeight: isSmallScreenWidth ? SELECTION_LIST_POPOVER_HEADER_HEIGHT + styles.pt4.paddingTop : 0,
                 })}
             >
+                {isSmallScreenWidth && (
+                    // This sheet has no padding of its own, so the header takes the 16px every other selection sheet
+                    // pads its top with, which puts its title 20px from the top edge
+                    <View style={styles.pt4}>
+                        <SelectionListPopoverHeader
+                            title={label}
+                            onBackButtonPress={closeOverlay}
+                            backButtonSentryLabel={CONST.SENTRY_LABEL.REPORT_FIELD_OPTIONS_POPOVER.BACK_BUTTON}
+                        />
+                    </View>
+                )}
                 <EditReportFieldDropdown
                     fieldKey={fieldKey}
                     fieldValue={value}
@@ -265,7 +281,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                                 icon={icons.DownArrow}
                                 // `pr0` makes the icon container's padding asymmetric, so it has to flip in place.
                                 // `flipUpsideDown` would rotate that padding too and shift the caret left when open.
-                                iconContainerStyle={[styles.pr0, isExpanded && styles.flipUpsideDownInPlace]}
+                                iconContainerStyle={[styles.pr0, styles.moneyRequestFieldInputIcon, isExpanded && styles.flipUpsideDownInPlace]}
                                 onPress={openOptions}
                                 onSubmitEditing={onPress}
                                 disableKeyboard

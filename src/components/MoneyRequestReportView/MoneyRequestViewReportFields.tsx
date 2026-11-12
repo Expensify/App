@@ -193,7 +193,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
     }
 
     return (
-        <View style={[styles.ph5, styles.mb3, styles.gap3, style]}>
+        <View style={[styles.ph5, styles.mb3, columnCount === 1 ? styles.gap4 : styles.gap3, style]}>
             {fieldRows.map((fieldRow) => {
                 const rowKey = `reportFieldRow-${fieldRow.at(0)?.fieldKey}`;
 

@@ -133,7 +133,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     if (!isReadOnly) {
         return (
             // The bordered rows carry their own vertical margin, so an extra bottom margin here would stack with it.
-            <View style={[styles.mh4, !shouldUseDropdownRows && styles.mb2]}>
+            <View style={[styles.mh5, !shouldUseDropdownRows && styles.mb2]}>
                 <DatePicker
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     value={shouldShowEmptyDate ? '' : iouCreated}
@@ -152,6 +152,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     // The calendar icon and the hint share the right-hand side, so the field shows one or the other.
                     // The icon comes back once the user opens the picker, the same way the amount field's buttons do.
                     shouldHideCalendarIcon={shouldShowAutomaticHint}
+                    iconContainerStyle={styles.moneyRequestFieldInputIcon}
                     onPickerVisibilityChange={setIsDatePickerOpen}
                 />
             </View>

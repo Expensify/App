@@ -338,7 +338,7 @@ function editTransactionCategoryInline(params: TransactionInlineEditParams, newC
 }
 
 /** Updates the amount and currency of an expense from the Search results table or the Expense Report page. */
-function editTransactionAmountInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newAmount: number): string | undefined {
+function editTransactionAmountInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newAmount: number, newCurrency?: string): string | undefined {
     // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
     // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
     // thread report for an edit we're about to discard, so validate against params directly first.
@@ -352,12 +352,12 @@ function editTransactionAmountInline(translate: LocalizedTranslate, params: Tran
 
     const iouParams = getIouParamsForTransaction(params);
 
-    // Keep the existing currency — only the amount is changing from the search table
-    const currency = getCurrency(iouParams.transaction);
+    // The search table only changes the amount, so it keeps the existing currency
+    const currency = newCurrency ?? getCurrency(iouParams.transaction);
     // Recalculate tax from the existing tax code and the new amount
     const taxCode = resolveCurrentTaxCode(iouParams.policy, iouParams.transaction?.taxCode ?? '');
     const taxPercentage = getTaxValue(iouParams.policy, iouParams.transaction, taxCode) ?? '';
-    const decimals = params.getCurrencyDecimals(getCurrency(iouParams.transaction));
+    const decimals = params.getCurrencyDecimals(currency);
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
     updateMoneyRequestAmountAndCurrency({
         isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,

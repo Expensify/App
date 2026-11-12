@@ -1038,6 +1038,7 @@ const SENTRY_LABEL = {
         TAX_RATE_FIELD: 'MoneyRequestView-TaxRateField',
         TAX_AMOUNT_FIELD: 'MoneyRequestView-TaxAmountField',
         ATTENDEES_FIELD: 'MoneyRequestView-AttendeesField',
+        CARD_FIELD: 'MoneyRequestView-CardField',
         REPORT_FIELD: 'MoneyRequestView-ReportField',
         TRIP_FIELD: 'MoneyRequestView-TripField',
         VIEW_TRIP_DETAILS_BUTTON: 'MoneyRequestView-ViewTripDetailsButton',
@@ -1259,8 +1260,14 @@ const SENTRY_LABEL = {
     TAG_PICKER_MODAL: {
         BACK_BUTTON: 'TagPickerModal-BackButton',
     },
+    REPORT_FIELD_OPTIONS_POPOVER: {
+        BACK_BUTTON: 'ReportFieldOptionsPopover-BackButton',
+    },
     TAX_PICKER_MODAL: {
         BACK_BUTTON: 'TaxPickerModal-BackButton',
+    },
+    DISTANCE_RATE_PICKER_MODAL: {
+        BACK_BUTTON: 'DistanceRatePickerModal-BackButton',
     },
     REPORT_PICKER_MODAL: {
         BACK_BUTTON: 'ReportPickerModal-BackButton',
@@ -1318,6 +1325,7 @@ const SENTRY_LABEL = {
         CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
         CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
         GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
+        ADD_CATEGORY_BUTTON: 'MoneyRequest-AddCategoryButton',
         REIMBURSABLE_SWITCH: 'MoneyRequest-ReimbursableSwitch',
         BILLABLE_SWITCH: 'MoneyRequest-BillableSwitch',
     },

@@ -110,7 +110,7 @@ function CategoryPickerModal({
             isSearchable={categoriesCount >= searchInputThreshold}
             title={translate('common.category')}
             backButtonSentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
-            shouldShowHeader={!!onAddCategory}
+            shouldShowHeader
             headerActions={
                 !!onAddCategory && (
                     <Tooltip text={translate('workspace.categories.addCategory')}>

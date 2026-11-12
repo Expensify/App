@@ -115,7 +115,7 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
     const readOnlyDescription = shouldUseDropdownRows ? (
         <ExpenseFieldRow
             name={translate('common.description')}
-            valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML isMuted>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
+            valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
             hasValueComponent={!!descriptionHTML}
             accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML)}` : undefined}
             rightLabel={isDescriptionRequired ? translate('common.required') : ''}
@@ -143,7 +143,7 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
                         {!isReadOnly ? (
                             <View
                                 ref={fieldContainerRef}
-                                style={[styles.mh4, styles.mv2]}
+                                style={[styles.mh5, styles.mv2]}
                             >
                                 <TextInput
                                     value={iouComment ?? ''}

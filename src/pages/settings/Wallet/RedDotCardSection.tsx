@@ -5,6 +5,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -20,9 +22,11 @@ function RedDotCardSection({title, description}: RedDotCardSectionProps) {
 
     return (
         <View style={[styles.p5, styles.flexRow, styles.alignItemsStart]}>
-            <View style={styles.offlineFeedbackErrorDot}>
+            {/* The top margin centers the dot on the title's first line */}
+            <View style={[styles.offlineFeedbackErrorDot, styles.mt1]}>
                 <Icon
                     src={icons.DotIndicator}
+                    size={CONST.ICON_SIZE.EXTRA_SMALL}
                     fill={theme.danger}
                 />
             </View>

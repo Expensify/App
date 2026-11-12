@@ -1862,7 +1862,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      * Applies horizontal padding if requested, and sets the top margin based on padding difference.
      */
     getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true, verticalPaddingDiff = 0): ViewStyle => {
-        const paddingStyle = includePadding ? {paddingHorizontal: 11} : {};
+        const paddingStyle = includePadding ? {paddingHorizontal: 12} : {};
         return {
             ...paddingStyle,
             marginTop: -(verticalPaddingDiff / 2),

@@ -364,7 +364,7 @@ function AmountField({
                 launcherRef={currencyButtonRef}
             />
             {!isAmountFieldDisabled ? (
-                <View style={[styles.mh4, styles.mv2, styles.flexRow, styles.gap2]}>
+                <View style={[styles.mh5, styles.mv2, styles.flexRow, styles.gap2]}>
                     <View style={styles.flex1}>
                         <NumberWithSymbolForm
                             key={transactionID}
@@ -432,10 +432,9 @@ function AmountField({
                             />
                         )}
                     </View>
-                    {/* The push row carries its own 20px of horizontal padding, so the button is inset to the 16px
-                        the bordered fields below it sit at. The bordered row is already at 16px and takes its own
+                    {/* The button is inset to the 20px the fields around it sit at. The bordered row takes its own
                         vertical margin with it, which is why only the push row needs the top margin above. */}
-                    {!!amountTrailingAction && <View style={styles.mr4}>{amountTrailingAction}</View>}
+                    {!!amountTrailingAction && <View style={styles.mr5}>{amountTrailingAction}</View>}
                 </View>
             )}
         </>

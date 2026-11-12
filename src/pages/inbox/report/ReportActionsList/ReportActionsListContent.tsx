@@ -29,6 +29,7 @@ import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistory
 import {useReportActionsListActions, useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import ReportActionsListHeader from '@pages/inbox/report/ReportActionsListHeader';
 import ReportActionsListPaddingView from '@pages/inbox/report/ReportActionsListPaddingView';
+import useShouldPadReportActionsListBottom from '@pages/inbox/report/useShouldPadReportActionsListBottom';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -109,6 +110,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         reportNameValuePairs,
     });
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
+    const shouldPadListBottom = useShouldPadReportActionsListBottom(report, isReportArchived);
 
     const reportAttributesSelector = (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
         const attrs = value?.reports?.[reportID];
@@ -246,10 +248,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
                 onActionBadgePress={scrollToActionBadgeTarget}
             />
-            <ReportActionsListPaddingView
-                report={report}
-                isReportArchived={isReportArchived}
-            >
+            <ReportActionsListPaddingView report={report}>
                 <InvertedFlashList
                     {...listProps}
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
@@ -259,7 +258,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     renderItem={renderItem}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    // The list is inverted, so its top padding is the space below the newest message
+                    contentContainerStyle={[styles.chatContentScrollView, shouldPadListBottom && styles.pt4]}
                     ListHeaderComponent={listHeaderComponent}
                     ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     ListFooterComponent={listFooterComponent}
