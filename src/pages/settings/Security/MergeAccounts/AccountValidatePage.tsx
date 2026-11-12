@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -162,7 +162,7 @@ function AccountValidatePage() {
             testID="AccountValidatePage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('mergeAccountsPage.mergeAccount')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());

@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemRootProps} from '@components/MenuItem/layout/MenuItemRoot';
@@ -220,7 +220,7 @@ function StatusClearAfterPage() {
             shouldEnableMaxHeight
             testID="StatusClearAfterPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('statusPage.clearAfter')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
             />

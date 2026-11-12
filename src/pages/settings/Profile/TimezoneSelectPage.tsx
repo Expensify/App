@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TimezoneSelectionList from '@components/TimezoneSelectionList';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -40,7 +40,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
             enableEdgeToEdgeBottomSafeAreaPadding
             testID="TimezoneSelectPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />

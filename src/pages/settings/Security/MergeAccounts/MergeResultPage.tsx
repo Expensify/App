@@ -1,6 +1,6 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -53,13 +53,16 @@ function MergeResultPage() {
             includeSafeAreaPaddingBottom
             testID="MergeResultPage"
         >
-            <HeaderWithBackButton
-                title={translate('mergeAccountsPage.mergeAccount')}
-                shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
-                onBackButtonPress={() => {
-                    Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
-                }}
-            />
+            <Header>
+                {result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS && (
+                    <Header.BackButton
+                        onPress={() => {
+                            Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
+                        }}
+                    />
+                )}
+                <Header.Title title={translate('mergeAccountsPage.mergeAccount')} />
+            </Header>
             <ConfirmationPage style={styles.mt3}>
                 <ConfirmationPage.Content>
                     <ConfirmationPage.Illustration
