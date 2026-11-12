@@ -909,6 +909,12 @@ const SENTRY_LABEL = {
     },
     TABLE_HEADER: {
         SORTABLE_COLUMN: 'TableHeader-SortableColumn',
+        COLUMN_MENU: 'TableHeader-ColumnMenu',
+        COLUMN_MENU_ITEM: {
+            SORT_ASCENDING: 'TableHeader-ColumnMenu-SortAscending',
+            SORT_DESCENDING: 'TableHeader-ColumnMenu-SortDescending',
+            CLEAR_SORT: 'TableHeader-ColumnMenu-ClearSort',
+        },
     },
     SELECTION_LIST: {
         BASE_LIST_ITEM: 'SelectionList-BaseListItem',

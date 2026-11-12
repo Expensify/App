@@ -10956,6 +10956,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             sortAscending: 'Trier par ordre croissant',
             sortDescending: 'Trier par ordre décroissant',
             hideColumn: 'Masquer la colonne',
+            clearSort: 'Effacer le tri',
         },
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',

@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -23,6 +24,7 @@ import {StyleSheet, View} from 'react-native';
 import type {TableColumn, TableData} from './types';
 
 import {rendersColumnHeaderInListHeader} from './buildTableListData';
+import * as ColumnHeaderMenu from './ColumnHeaderMenu';
 import {useColumnResizeController} from './columnResize/ColumnResizeContext';
 import ColumnResizeHandle from './columnResize/ColumnResizeHandle';
 import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
@@ -94,6 +96,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         tableListMetadata,
     } = useTableContext<DataType, ColumnKey>();
     const columnResize = useColumnResizeController();
+    const {isBetaEnabled} = usePermissions();
+    const isColumnMenuEnabled = isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS);
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
@@ -217,6 +221,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                                 column={column}
                                 isTableSemanticsEnabled={isTableSemanticsEnabled}
                                 isAccessibilityHidden={isAccessibilityHidden}
+                                isColumnMenuEnabled={isColumnMenuEnabled}
                                 // 1-based, and offset by the leading selection column (column 1) when present, so it
                                 // aligns with the matching data cell's aria-colindex.
                                 columnIndex={index + 1 + (isSelectionCheckboxVisible ? 1 : 0)}
@@ -254,17 +259,22 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     column,
     isTableSemanticsEnabled,
     isAccessibilityHidden,
+    isColumnMenuEnabled,
     columnIndex,
 }: {
     column: TableColumn<ColumnKey, DataType>;
     isTableSemanticsEnabled: boolean;
     isAccessibilityHidden: boolean;
+
+    /** Whether a sortable column's heading opens a menu of sort options instead of cycling the sort when pressed. */
+    isColumnMenuEnabled: boolean;
     columnIndex: number;
 }) {
     const theme = useTheme();
     const toggleCount = useRef(0);
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
+    const columnResize = useColumnResizeController();
 
     const {
         activeSorting,
@@ -301,7 +311,14 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     // Base sort-button styles shared by both paths. The column's `containerStyles` are horizontal-alignment styles for
     // the header row, so they belong on this `flexRow` button rather than the column-direction cell wrapper below. Flex
     // sizing is appended per path since it differs.
-    const tableHeaderStyles = [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, column.styling?.containerStyles, !column.sortable && styles.cursorDefault];
+    const alignment = column.styling?.alignment ?? CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START;
+    const alignmentStyle = {
+        [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START]: undefined,
+        [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER]: styles.justifyContentCenter,
+        [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END]: styles.justifyContentEnd,
+    }[alignment];
+    const labelRowStyles = [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, alignmentStyle, column.styling?.containerStyles];
+    const tableHeaderStyles = [...labelRowStyles, !column.sortable && styles.cursorDefault];
 
     const label = (
         <>
@@ -351,8 +368,41 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         </PressableWithFeedback>
     );
 
+    // The sticky header's hidden twin keeps the disabled button, so it never opens a second menu.
+    const shouldShowColumnMenu = isColumnMenuEnabled && column.sortable && !isAccessibilityHidden;
+    const columnMenu = shouldShowColumnMenu ? (
+        <ColumnHeaderMenu.Root>
+            <ColumnHeaderMenu.Trigger
+                columnLabel={column.label}
+                alignment={alignment}
+                hasResizeHandle={!!columnResize?.hasHandle(column.key)}
+                sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU}
+            >
+                <View style={labelRowStyles}>{label}</View>
+            </ColumnHeaderMenu.Trigger>
+            <ColumnHeaderMenu.Content>
+                <ColumnHeaderMenu.SortItems
+                    sorting={{
+                        activeSortOrder: isSortingByColumn ? activeSorting.order : undefined,
+                        onSort: (order) => updateSorting({columnKey: column.key, order}),
+                    }}
+                    sentryLabels={{
+                        ascending: CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU_ITEM.SORT_ASCENDING,
+                        descending: CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU_ITEM.SORT_DESCENDING,
+                    }}
+                />
+                {isSortingByColumn && (
+                    <ColumnHeaderMenu.ClearSortItem
+                        onSelect={() => updateSorting({columnKey: undefined, order: CONST.SEARCH.SORT_ORDER.ASC})}
+                        sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU_ITEM.CLEAR_SORT}
+                    />
+                )}
+            </ColumnHeaderMenu.Content>
+        </ColumnHeaderMenu.Root>
+    ) : undefined;
+
     if (!isTableSemanticsEnabled) {
-        return sortButton;
+        return columnMenu ? <View style={[columnFlexStyle, styles.justifyContentCenter]}>{columnMenu}</View> : sortButton;
     }
 
     // Table semantics: the columnheader cell carries the ARIA role, sort state and column index, and it wraps a focusable
@@ -363,7 +413,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             style={[columnFlexStyle, columnCellSizingStyle, styles.pv2]}
             {...getColumnHeaderAccessibilityProps(true, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
         >
-            {sortButton}
+            {columnMenu ?? sortButton}
 
             {/* Skipped in the sticky header's hidden twin to avoid duplicate handles. */}
             {!isAccessibilityHidden && (

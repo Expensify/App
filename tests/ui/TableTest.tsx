@@ -3054,6 +3054,105 @@ describe('Table', () => {
         });
     });
 
+    describe('column menu', () => {
+        const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+
+        // The menu's popover needs the real modal, navigation and portal providers.
+        function ColumnMenuTable({tableRef}: {tableRef: React.RefObject<TableHandle<TestItem, TestColumnKey> | null>}) {
+            const props = createDefaultProps();
+            return (
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+                    <PortalProvider>
+                        <ModalProvider>
+                            <NavigationContainer>
+                                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                                    <Table<TestItem, TestColumnKey>
+                                        ref={tableRef}
+                                        data={props.data}
+                                        columns={props.columns}
+                                        renderItem={props.renderItem}
+                                        keyExtractor={props.keyExtractor}
+                                        compareItems={props.compareItems}
+                                    >
+                                        <Table.Header />
+                                        <Table.Body />
+                                    </Table>
+                                </ScreenWrapperStatusContext.Provider>
+                            </NavigationContainer>
+                        </ModalProvider>
+                    </PortalProvider>
+                </ComposeProviders>
+            );
+        }
+
+        // The menu's rows render through `MenuItem`, which jest renders without its text, so they're found by their title.
+        const pressMenuItem = async (title: string) => {
+            fireEvent.press(screen.UNSAFE_getByProps({role: CONST.ROLE.MENUITEM, title}));
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        const openNameColumnMenu = async () => {
+            const [nameColumnMenu] = screen.getAllByLabelText('search.columnMenu.openMenu');
+            fireEvent.press(nameColumnMenu);
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+            // Opening the menu measures its trigger, which jest's View doesn't support.
+            View.prototype.getBoundingClientRect = () => ({x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0, toJSON: () => ({})});
+        });
+
+        afterAll(() => {
+            Reflect.deleteProperty(View.prototype, 'getBoundingClientRect');
+        });
+
+        afterEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+        });
+
+        it('sorts by the chosen order and clears the sort from the menu when the beta is on', async () => {
+            // Given the column menu beta is on
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.PINNABLE_TABLE_COLUMNS]);
+            });
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(<ColumnMenuTable tableRef={tableRef} />);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user picks Sort descending from the Name column's menu
+            await openNameColumnMenu();
+            await pressMenuItem('search.columnMenu.sortDescending');
+
+            // Then the table sorts by that column in that order, rather than cycling the sort as a plain press does
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Eggplant', 'Date', 'Carrot', 'Banana', 'Apple']);
+
+            // When the user picks Clear sort from the same menu
+            await openNameColumnMenu();
+            await pressMenuItem('search.columnMenu.clearSort');
+
+            // Then the table goes back to being unsorted
+            expect(tableRef.current?.getActiveSorting().columnKey).toBeUndefined();
+        });
+
+        it('keeps pressing a heading to cycle the sort when the beta is off', async () => {
+            // Given the column menu beta is off
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(<ColumnMenuTable tableRef={tableRef} />);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user presses the Name heading
+            fireEvent.press(screen.getByLabelText('Name'));
+
+            // Then no menu opens, and the press sorts the column as before
+            expect(screen.queryByLabelText('search.columnMenu.openMenu')).toBeNull();
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
+        });
+    });
+
     describe('sorting functionality', () => {
         it('should render sortable column headers', () => {
             const props = createDefaultProps();

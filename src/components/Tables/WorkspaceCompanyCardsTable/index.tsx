@@ -275,7 +275,8 @@ function WorkspaceCompanyCardsTable({
             label: '',
             sortable: false,
             styling: {
-                containerStyles: [styles.justifyContentEnd, styles.pr3],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
+                containerStyles: [styles.pr3],
             },
             // A fixed width would reserve the Assign button's space even when no row can show it, so only measure
             // content while at least one row can render the button.

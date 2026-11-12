@@ -109,7 +109,13 @@ function WorkspaceRoomsTable({
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
         {key: 'name', label: translate('common.name'), sortable: true},
         {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth, sortable: true},
-        {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
+        {
+            key: 'actions',
+            label: '',
+            width: variables.workspaceRoomsActionsColumnWidth,
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END, containerStyles: [styles.pr3]},
+            sortable: false,
+        },
     ];
 
     const compareItems: CompareItemsCallback<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey> = (a, b, activeSorting) => {

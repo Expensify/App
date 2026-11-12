@@ -11235,6 +11235,7 @@ const translations = {
             sortAscending: 'Sort ascending',
             sortDescending: 'Sort descending',
             hideColumn: 'Hide column',
+            clearSort: 'Clear sort',
         },
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',

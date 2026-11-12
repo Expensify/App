@@ -4,7 +4,6 @@ import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTab
 import WorkspaceTagsTableRow from '@components/Tables/WorkspaceTagsTable/WorkspaceTagsTableRow';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -39,7 +38,6 @@ type WorkspaceViewTagsTableProps = {
 };
 
 export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectionEnabled, selectedKeys, headerComponent, onRowSelectionChange}: WorkspaceViewTagsTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
     const shouldShowEnabledColumn = !hasDependentTags;
@@ -58,7 +56,7 @@ export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectio
                       sortable: true,
                       width: variables.tableSwitchColumnWidth,
                       styling: {
-                          containerStyles: [styles.justifyContentEnd],
+                          alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
                       },
                   },
               ]
