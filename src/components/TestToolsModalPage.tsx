@@ -1,9 +1,9 @@
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestToolsModalModalNavigatorParamList} from '@libs/Navigation/types';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -13,13 +13,11 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ScrollView from './ScrollView';
 import TestToolMenu from './TestToolMenu';
 import TestToolsScreenWrapper from './TestToolsScreenWrapper';
-import Text from './Text';
 
 type TestToolsModalPageProps = PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, typeof SCREENS.TEST_TOOLS_MODAL.ROOT>;
 
 function TestToolsModalPage({route}: TestToolsModalPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
 
     return (
         <TestToolsScreenWrapper>
@@ -29,15 +27,9 @@ function TestToolsModalPage({route}: TestToolsModalPageProps) {
             >
                 <PressableWithoutFeedback
                     accessible={false}
-                    style={[styles.cursorDefault]}
-                    sentryLabel="TestToolsModalPage-ReleaseOptions"
+                    style={[styles.cursorDefault, styles.mt5]}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_TOOLS_MODAL_PAGE.RELEASE_OPTIONS}
                 >
-                    <Text
-                        style={[styles.textLabelSupporting, styles.mt5, styles.mb3]}
-                        numberOfLines={1}
-                    >
-                        {translate('initialSettingsPage.troubleshoot.releaseOptions')}
-                    </Text>
                     <TestToolMenu serverPageRoute={ROUTES.TEST_TOOLS_SERVER.getRoute(route.params?.backTo)} />
                 </PressableWithoutFeedback>
             </ScrollView>

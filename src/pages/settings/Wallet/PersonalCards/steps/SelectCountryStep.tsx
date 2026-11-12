@@ -50,7 +50,6 @@ function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
     };
 
     const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialSelectedValue = useInitialSelection(currentCountry || undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
     const [hasError, setHasError] = useState(false);
@@ -83,6 +82,7 @@ function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
 
     const onSelectionChange = (country: Option) => {
         setCurrentCountry(country.value);
+        setHasError(false);
     };
 
     const getCountries = () =>

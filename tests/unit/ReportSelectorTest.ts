@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createMoveExpenseReportNVPSelector, getStableReportSelector, policyChatRoomsSelector} from '@src/selectors/Report';
+import {createMoveExpenseReportNVPSelector, getReportHasParentAccess, getStableReportSelector, policyChatRoomsSelector, policyExpenseChatSelector} from '@src/selectors/Report';
 import type {Report} from '@src/types/onyx';
 
 describe('policyChatRoomsSelector', () => {
@@ -155,5 +155,99 @@ describe('getStableReportSelector', () => {
 
     it('passes undefined permissions through', () => {
         expect(getStableReportSelector({reportID: '1'} as Report)?.permissions).toBeUndefined();
+    });
+});
+
+describe('policyExpenseChatSelector', () => {
+    const REPORT_KEY_PREFIX = ONYXKEYS.COLLECTION.REPORT;
+    const ownerAccountID = 1;
+    const policyID = 'policy1';
+
+    const policyExpenseChat = {
+        reportID: '1',
+        policyID,
+        ownerAccountID,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        type: CONST.REPORT.TYPE.CHAT,
+    } as Report;
+
+    it('returns undefined when ownerAccountID is undefined', () => {
+        const reports = {[`${REPORT_KEY_PREFIX}1`]: policyExpenseChat};
+        expect(policyExpenseChatSelector(undefined, policyID)(reports)).toBeUndefined();
+    });
+
+    it('returns undefined when policyID is undefined', () => {
+        const reports = {[`${REPORT_KEY_PREFIX}1`]: policyExpenseChat};
+        expect(policyExpenseChatSelector(ownerAccountID, undefined)(reports)).toBeUndefined();
+    });
+
+    it('returns the matching policy expense chat', () => {
+        const reports = {[`${REPORT_KEY_PREFIX}1`]: policyExpenseChat};
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(reports)?.reportID).toBe('1');
+    });
+
+    it('skips thread reports', () => {
+        const threadReport = {
+            ...policyExpenseChat,
+            reportID: '2',
+            parentReportID: '1',
+            parentReportActionID: 'action1',
+        } as Report;
+        const reports = {[`${REPORT_KEY_PREFIX}2`]: threadReport};
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(reports)).toBeUndefined();
+    });
+
+    it('skips reports with different ownerAccountID', () => {
+        const otherOwnerReport = {...policyExpenseChat, reportID: '3', ownerAccountID: 999} as Report;
+        const reports = {[`${REPORT_KEY_PREFIX}3`]: otherOwnerReport};
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(reports)).toBeUndefined();
+    });
+
+    it('skips reports with different policyID', () => {
+        const otherPolicyReport = {...policyExpenseChat, reportID: '4', policyID: 'other'} as Report;
+        const reports = {[`${REPORT_KEY_PREFIX}4`]: otherPolicyReport};
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(reports)).toBeUndefined();
+    });
+
+    it('returns the policy expense chat even when mixed with task reports', () => {
+        const taskReport = {
+            ...policyExpenseChat,
+            reportID: '10',
+            type: CONST.REPORT.TYPE.TASK,
+            parentReportID: '1',
+            parentReportActionID: 'action1',
+        } as Report;
+        const reports = {
+            [`${REPORT_KEY_PREFIX}10`]: taskReport,
+            [`${REPORT_KEY_PREFIX}1`]: policyExpenseChat,
+        };
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(reports)?.reportID).toBe('1');
+    });
+
+    it('returns undefined when reports is undefined', () => {
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(undefined)).toBeUndefined();
+    });
+});
+
+describe('getReportHasParentAccess', () => {
+    it('returns the hasParentAccess value of the report', () => {
+        // Given reports with and without parent access
+        const reportWithAccess = {reportID: '1', hasParentAccess: true} as Report;
+        const reportWithoutAccess = {reportID: '2', hasParentAccess: false} as Report;
+
+        // When the selector reads them
+        // Then it returns the raw flag, so callers can tell an explicit `false` apart from a missing value
+        expect(getReportHasParentAccess(reportWithAccess)).toBe(true);
+        expect(getReportHasParentAccess(reportWithoutAccess)).toBe(false);
+    });
+
+    it('returns undefined when the report or the flag is missing', () => {
+        // Given a missing report and a report without the hasParentAccess field
+        const reportWithoutFlag = {reportID: '1'} as Report;
+
+        // When the selector reads them
+        // Then it returns undefined, which ParentNavigationSubtitle treats as having access
+        expect(getReportHasParentAccess(undefined)).toBeUndefined();
+        expect(getReportHasParentAccess(reportWithoutFlag)).toBeUndefined();
     });
 });

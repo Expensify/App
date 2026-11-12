@@ -4,12 +4,14 @@ import CONST from '@src/CONST';
 
 import type {EmptyObject} from 'type-fest';
 
+import type {Payload as AddToDigitalWalletPayload} from './AddToDigitalWallet';
 import type {Payload as AuthorizeTransactionPayload} from './AuthorizeTransaction';
 import type {Payload as ChangePINPayload} from './ChangePIN';
 import type {Payload as RevealPINPayload} from './RevealPIN';
 import type {Payload as SetPersonalDetailsAndRevealCardDetailsPayload} from './SetPersonalDetailsAndRevealCardDetails';
 import type {Payload as SetPINOrderCardPayload} from './SetPINOrderCard';
 
+import AddToDigitalWallet from './AddToDigitalWallet';
 import AuthorizeTransaction from './AuthorizeTransaction';
 import BiometricsTest from './BiometricsTest';
 import ChangePIN from './ChangePIN';
@@ -23,6 +25,7 @@ import SetPINOrderCard from './SetPINOrderCard';
  * Each scenario that requires additional parameters should have its payload type defined here.
  */
 type Payloads = {
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.ADD_TO_DIGITAL_WALLET]: AddToDigitalWalletPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: EmptyObject;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: SetPINOrderCardPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: AuthorizeTransactionPayload;
@@ -35,6 +38,7 @@ type Payloads = {
  * Configuration records for all multifactor authentication scenarios.
  */
 const Configs = {
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.ADD_TO_DIGITAL_WALLET]: customConfig(AddToDigitalWallet),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: customConfig(BiometricsTest),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: customConfig(SetPINOrderCard),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: customConfig(AuthorizeTransaction),

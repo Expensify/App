@@ -19,7 +19,7 @@ import * as PopoverMenu from '@components/PopoverMenu/v2';
         <PressableWithFeedback
             onPress={() => {}}
             accessibilityLabel="Open menu"
-            sentryLabel="MyTrigger"
+            sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU_TRIGGER}
         >
             <Icon />
         </PressableWithFeedback>
@@ -59,7 +59,7 @@ Owns visibility state. `defaultOpen` seeds the initial open state; there is no `
 | `<PressableWithFeedback>` | `onPress`, `ref`, `accessibilityState`, `accessibilityHasPopup`, `nativeID`, `accessibilityControls` |
 | `<PressableWithSecondaryInteraction>` | `onSecondaryInteraction` (its inner `<PressableWithFeedback>` independently consumes the remaining props from the same context) |
 
-Raw RN `<Pressable>` / `<TouchableOpacity>` do **not** consume the responder — wrap them in one of the above or call `usePressResponderProps` / `useResponderRef` directly in a custom pressable. Without a consumer, the trigger renders but pressing does nothing (the published `onPress` reaches no descendant).
+Raw RN `<Pressable>` / `<TouchableOpacity>` do **not** consume the responder — wrap them in one of the above or call `usePressResponderProps` / `useResponderRef` (import them from `@components/Pressable/PressResponder/usePressResponderProps` and `@components/Pressable/PressResponder/useResponderRef`) directly in a custom pressable. Without a consumer, the trigger renders but pressing does nothing (the published `onPress` reaches no descendant).
 
 ### Rows
 

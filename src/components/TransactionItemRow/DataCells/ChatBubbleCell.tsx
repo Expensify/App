@@ -14,6 +14,7 @@ import {isChatThread} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -21,7 +22,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
@@ -45,13 +46,10 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
 
     const transactionReport = isInSingleTransactionReport ? parentReport : childReport;
 
-    const threadMessages = useMemo(
-        () => ({
-            count: iouReportAction?.childVisibleActionCount ?? 0,
-            isUnread: isChatThread(transactionReport) && isReportUnread(transactionReport),
-        }),
-        [iouReportAction?.childVisibleActionCount, transactionReport],
-    );
+    const threadMessages = {
+        count: iouReportAction?.childVisibleActionCount ?? 0,
+        isUnread: isChatThread(transactionReport) && isReportUnread(transactionReport),
+    };
 
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleCounter']);
@@ -61,7 +59,18 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
 
     return (
         threadMessages.count > 0 && (
-            <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, StyleUtils.getWidthAndHeightStyle(iconSize), containerStyles]}>
+            <View
+                style={[
+                    styles.dFlex,
+                    styles.alignItemsCenter,
+                    styles.justifyContentCenter,
+                    styles.textAlignCenter,
+                    styles.userSelectNone,
+                    StyleUtils.getWidthAndHeightStyle(iconSize),
+                    containerStyles,
+                ]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
                 <Icon
                     src={icons.ChatBubbleCounter}
                     additionalStyles={[styles.pAbsolute]}

@@ -19,8 +19,14 @@ type TagFieldRowProps = {
     /** Tag entry to render (carries name, index, and required flag) */
     entry: TagEntry;
 
+    /** Policy the tags belong to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+
     /** Tag lists configured on the policy (used to look up the list at the entry's index) */
     policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
+
+    /** Whether each tag level's options depend on the level above */
+    hasDependentTags: boolean;
 
     /** Previous render's per-tag-list `shouldShow` projection (drives transition styling) */
     previousTagsVisibility: boolean[];
@@ -29,7 +35,7 @@ type TagFieldRowProps = {
     formError: string;
 };
 
-function TagFieldRow({entry: {index, isTagRequired}, policyTagLists, previousTagsVisibility, formError}: TagFieldRowProps) {
+function TagFieldRow({entry: {index, isTagRequired}, policy, policyTagLists, hasDependentTags, previousTagsVisibility, formError}: TagFieldRowProps) {
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm} = useConfirmationFields();
     const policyTagList = policyTagLists.at(index);
     if (!policyTagList) {
@@ -38,6 +44,8 @@ function TagFieldRow({entry: {index, isTagRequired}, policyTagLists, previousTag
     return (
         <TagFields
             tagIndex={index}
+            policy={policy}
+            hasDependentTags={hasDependentTags}
             policyTagList={policyTagList}
             isTagRequired={isTagRequired}
             previousShouldShow={previousTagsVisibility.at(index) ?? false}
@@ -62,6 +70,9 @@ type ClassificationFieldsProps = {
 
     /** Tag lists configured on the policy (used to look up the list at each tag entry's index) */
     policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
+
+    /** Whether each tag level's options depend on the level above */
+    hasDependentTags: boolean;
 
     /** Previous render's per-tag-list `shouldShow` projection (drives `TagFields` transitions) */
     previousTagsVisibility: boolean[];
@@ -98,6 +109,7 @@ function ClassificationFields({
     policy,
     policyForMovingExpenses,
     policyTagLists,
+    hasDependentTags,
     previousTagsVisibility,
     isCategoryRequired,
     canModifyTaxFields,
@@ -148,7 +160,9 @@ function ClassificationFields({
                 <TagFieldRow
                     key={`tag_${entry.name}`}
                     entry={entry}
+                    policy={policy}
                     policyTagLists={policyTagLists}
+                    hasDependentTags={hasDependentTags}
                     previousTagsVisibility={previousTagsVisibility}
                     formError={errorState.formError}
                 />
@@ -159,7 +173,9 @@ function ClassificationFields({
                     <TagFieldRow
                         key={`tag_${entry.name}`}
                         entry={entry}
+                        policy={policy}
                         policyTagLists={policyTagLists}
+                        hasDependentTags={hasDependentTags}
                         previousTagsVisibility={previousTagsVisibility}
                         formError={errorState.formError}
                     />

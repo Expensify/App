@@ -103,7 +103,6 @@ jest.mock('@libs/CardUtils', () => ({
 }));
 jest.mock('@libs/OptionsListUtils', () => ({getHeaderMessage: () => ''}));
 jest.mock('@libs/PersonalDetailsUtils', () => ({temporaryGetDisplayNameOrDefault: () => ''}));
-jest.mock('@libs/SpendRulesUtils', () => ({getSpendRuleFormValuesFromCardRule: () => ({cardIDs: []})}));
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/actions/User', () => ({updateDraftSpendRule: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({openPolicyExpensifyCardsPage: jest.fn()}));

@@ -80,6 +80,17 @@ const REACT_COMPILER_CONFIG_KEY = JSON.stringify(oxcReactCompilerConfig());
 
 const REACT_COMPILER_OPTIONS = oxcReactCompilerConfig();
 
+const COVERAGE_PACKAGES = ['@babel/core', 'babel-plugin-istanbul', '@babel/plugin-transform-modules-commonjs', '@babel/plugin-transform-dynamic-import'];
+
+let coverageVersionsKey;
+// The coverage pass output depends on these packages, so a bump must miss the Jest cache.
+function getCoverageVersionsKey() {
+    if (!coverageVersionsKey) {
+        coverageVersionsKey = COVERAGE_PACKAGES.map((name) => `${name}@${require(`${name}/package.json`).version}`).join(',');
+    }
+    return coverageVersionsKey;
+}
+
 function getLang(filename) {
     const ext = path.extname(filename).slice(1);
     if (ext === 'tsx') {
@@ -91,19 +102,13 @@ function getLang(filename) {
     return 'jsx';
 }
 
-/**
- * Coverage runs stay on babel-jest: it adds coverage in the pass it already makes, while the OXC path
- * would need a third pass (OXC, esbuild, then istanbul). On CI that was slower and used more memory.
- */
-function shouldUseOxc(filename, transformOptions) {
-    if (transformOptions?.instrument) {
-        return false;
-    }
+function shouldUseOxc(filename) {
     return !NODE_MODULES_RE.test(filename) && !TESTS_RE.test(filename) && !JEST_SETUP_RE.test(filename) && !MOCKS_RE.test(filename) && !TEST_FILE_RE.test(filename);
 }
 
-function processWithOxc(sourceText, sourcePath) {
-    const {esbuild, transformSync} = getOxcPipeline();
+/** Compile with OXC (TS, JSX and React Compiler). Returns null on a fatal error so the caller falls back to babel-jest. */
+function compileWithOxc(sourceText, sourcePath) {
+    const {transformSync} = getOxcPipeline();
     const oxcResult = transformSync(sourcePath, sourceText, {
         lang: getLang(sourcePath),
         sourcemap: true,
@@ -114,7 +119,44 @@ function processWithOxc(sourceText, sourcePath) {
     if (oxcResult.fatal || !oxcResult.code) {
         return null;
     }
+    return oxcResult;
+}
 
+/**
+ * Coverage runs: OXC compiles as usual, then one light Babel pass converts to CommonJS and adds the
+ * istanbul counters, reading OXC's source map so coverage points at the original lines. That replaces
+ * esbuild rather than adding a third pass after it.
+ */
+function processWithOxcForCoverage(sourceText, sourcePath, transformOptions) {
+    const oxcResult = compileWithOxc(sourceText, sourcePath);
+    if (!oxcResult) {
+        return null;
+    }
+
+    const result = require('@babel/core').transformSync(oxcResult.code, {
+        filename: sourcePath,
+        configFile: false,
+        babelrc: false,
+        inputSourceMap: oxcResult.map,
+        sourceMaps: true,
+        auxiliaryCommentBefore: ' istanbul ignore next ',
+        plugins: [
+            [require.resolve('babel-plugin-istanbul'), {cwd: transformOptions.config.cwd, exclude: []}],
+            [require.resolve('@babel/plugin-transform-modules-commonjs'), {strictMode: false}],
+            require.resolve('@babel/plugin-transform-dynamic-import'),
+        ],
+    });
+
+    return result?.code ? {code: result.code, map: result.map} : null;
+}
+
+function processWithOxc(sourceText, sourcePath) {
+    const oxcResult = compileWithOxc(sourceText, sourcePath);
+    if (!oxcResult) {
+        return null;
+    }
+
+    const {esbuild} = getOxcPipeline();
     // esbuild chains an inline input map, so its output maps straight back to the original file.
     const inputMap = Buffer.from(JSON.stringify(oxcResult.map)).toString('base64');
     const cjs = esbuild.transformSync(`${oxcResult.code}\n//# sourceMappingURL=data:application/json;base64,${inputMap}`, {
@@ -129,10 +171,10 @@ function processWithOxc(sourceText, sourcePath) {
 }
 
 module.exports = {
-    // Coverage runs go to babel-jest, which instruments them itself, so Jest must not instrument again.
+    // Coverage is instrumented here (istanbul plugin in the OXC coverage pass), so Jest must not instrument again.
     canInstrument: true,
     getCacheKey(sourceText, sourcePath, transformOptions) {
-        if (!shouldUseOxc(sourcePath, transformOptions)) {
+        if (!shouldUseOxc(sourcePath)) {
             return babelTransformer.getCacheKey(sourceText, sourcePath, transformOptions);
         }
 
@@ -147,11 +189,12 @@ module.exports = {
             .update(REACT_COMPILER_CONFIG_KEY)
             .update(esbuild.version)
             .update(oxcVersion)
+            .update(transformOptions?.instrument ? `instrument:${getCoverageVersionsKey()}` : '')
             .digest('hex');
     },
     process(sourceText, sourcePath, transformOptions) {
-        if (shouldUseOxc(sourcePath, transformOptions)) {
-            const result = processWithOxc(sourceText, sourcePath);
+        if (shouldUseOxc(sourcePath)) {
+            const result = transformOptions?.instrument ? processWithOxcForCoverage(sourceText, sourcePath, transformOptions) : processWithOxc(sourceText, sourcePath);
             if (result) {
                 return result;
             }

@@ -3,11 +3,11 @@ import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleS
 import SingleSelect from '@components/Search/FilterComponents/SingleSelect';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
-import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 import BasePopup from './BasePopup';
 
@@ -43,6 +43,9 @@ type SingleSelectPopupProps<T> = {
 
     /** Whether the popover should keep a fixed height while filtering results. */
     shouldUseFixedPopoverHeight?: boolean;
+
+    applySentryLabel: SentryLabel;
+    resetSentryLabel: SentryLabel;
 };
 
 function SingleSelectPopup<T extends string>({
@@ -61,18 +64,20 @@ function SingleSelectPopup<T extends string>({
     showLabel,
     shouldShowList = true,
     shouldUseFixedPopoverHeight,
+    applySentryLabel,
+    resetSentryLabel,
 }: SingleSelectPopupProps<T>) {
     const [selectedItem, setSelectedItem] = useState(value);
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         onChange(selectedItem);
         closeOverlay();
-    }, [closeOverlay, onChange, selectedItem]);
+    };
 
-    const resetChanges = useCallback(() => {
+    const resetChanges = () => {
         onChange(items.find((item) => item.value === defaultValue));
         closeOverlay();
-    }, [closeOverlay, onChange, defaultValue, items]);
+    };
 
     return (
         <BasePopup
@@ -81,8 +86,8 @@ function SingleSelectPopup<T extends string>({
             onReset={resetChanges}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+            resetSentryLabel={resetSentryLabel}
+            applySentryLabel={applySentryLabel}
             style={[style]}
         >
             <ListFilterHeightContextProvider>
