@@ -875,8 +875,8 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
         return typeof paddingValue === 'number' ? paddingValue : 0;
     };
 
-    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle.padding);
-    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle.padding);
+    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle?.padding);
+    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle?.padding);
     return paddingTop - paddingBottom;
 }
 

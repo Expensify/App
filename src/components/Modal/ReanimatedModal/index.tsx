@@ -227,7 +227,10 @@ function ReanimatedModal({
                 transparent
                 animationType="none"
                 visible={modalVisibility}
-                onRequestClose={onBackButtonPressHandler}
+                // The handler's return value only matters to BackHandler, Modal expects a callback that returns nothing
+                onRequestClose={() => {
+                    onBackButtonPressHandler();
+                }}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
                 onDismiss={() => {

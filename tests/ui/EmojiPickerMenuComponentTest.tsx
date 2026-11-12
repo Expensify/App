@@ -120,6 +120,11 @@ function renderEmojiMenu(Menu: typeof WebEmojiPickerMenu, onEmojiSelected: Emoji
     );
 }
 
+/** `instanceof View` alone narrows to `{}` under the React Native Strict TypeScript API, where `View` is a function component */
+function isViewInstance(instance: unknown): instance is ComponentRef<typeof View> {
+    return instance instanceof View;
+}
+
 // The renderer erases instance. Constructor identity narrows only that actual host, without relabeling its props.
 function getEmojiHeaderHost(index: number, platform: string) {
     const item = mockEmojiListProps.data?.at(index);
@@ -138,7 +143,7 @@ function getEmojiHeaderHost(index: number, platform: string) {
     }
     const instance: unknown = heading.instance;
     expect(instance).toBeInstanceOf(View);
-    if (!(instance instanceof View)) {
+    if (!isViewInstance(instance)) {
         throw new Error('Expected the rendered native View instance');
     }
     return {heading, host: instance};
