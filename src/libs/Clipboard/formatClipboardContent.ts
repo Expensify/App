@@ -32,5 +32,4 @@ function formatClipboardContent(source: ClipboardSource, extras?: ClipboardConte
     };
 }
 
-export type {ClipboardContent, ClipboardContentExtras, ClipboardSource};
 export default formatClipboardContent;

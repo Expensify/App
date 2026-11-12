@@ -17,5 +17,4 @@ function resolveComposerPaste(html: string, toMarkdown: (value: string) => strin
     return {kind: 'html', markdown};
 }
 
-export type {ComposerPaste};
 export default resolveComposerPaste;
