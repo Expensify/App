@@ -34,7 +34,7 @@ import React, {useEffect, useState} from 'react';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
-    onFinish: (value?: string) => void;
+    onFinish: (value?: string) => void | Promise<void>;
 
     /** Callback to add participants in MoneyRequestModal */
     onAttendeesAdded: (value: Attendee[]) => void;

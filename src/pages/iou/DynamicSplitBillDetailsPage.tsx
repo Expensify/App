@@ -204,9 +204,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                 reportID={reportID}
                                 reportActionID={reportAction?.reportActionID}
                                 transaction={isEditingSplitBill && draftTransaction ? draftTransaction : transaction}
-                                onConfirm={() => {
-                                    onConfirm();
-                                }}
+                                onConfirm={onConfirm}
                                 isPolicyExpenseChat={isPolicyExpenseChat(report)}
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}

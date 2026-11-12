@@ -100,9 +100,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     return (
         <RejectReasonFormView
-            onSubmit={(values) => {
-                onSubmit(values);
-            }}
+            onSubmit={onSubmit}
             validate={validate}
             backTo={backTo}
         />

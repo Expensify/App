@@ -106,9 +106,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
             <SelectionList
                 key={initiallyFocusedKey}
                 data={filteredWorkspaceOptions}
-                onSelectRow={(item) => {
-                    selectWorkspace(item);
-                }}
+                onSelectRow={selectWorkspace}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
                 initiallyFocusedItemKey={initiallyFocusedKey}

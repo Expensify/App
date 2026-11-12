@@ -205,9 +205,7 @@ function DynamicIOURequestStepDate({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
-                onSubmit={(value) => {
-                    updateDate(value);
-                }}
+                onSubmit={updateDate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert

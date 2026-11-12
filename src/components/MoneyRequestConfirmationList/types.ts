@@ -15,7 +15,7 @@ type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | O
 
 type MoneyRequestConfirmationListProps = {
     /** Runs validation and submits. */
-    onConfirm?: () => void;
+    onConfirm?: () => void | Promise<void>;
 
     /** Opens the participant picker owned by the page. */
     onOpenParticipantPicker: () => void;

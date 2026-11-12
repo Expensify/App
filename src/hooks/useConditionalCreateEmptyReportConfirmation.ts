@@ -7,7 +7,7 @@ type UseConditionalCreateEmptyReportConfirmationParams = {
     /** The display name of the policy/workspace */
     policyName?: string;
     /** Callback executed after the user confirms report creation */
-    onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void;
+    onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void | Promise<void>;
     /** Optional callback executed when the confirmation modal is cancelled */
     onCancel?: () => void;
     /** Whether the confirmation modal should be bypassed even if an empty report exists */

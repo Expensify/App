@@ -18,7 +18,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Component rendering each row. `NoInfer` keeps the row component from widening `TItem`, which is inferred from `data`/`sections` */
     ListItem: ListItemComponent<NoInfer<TItem>>;
     initiallyFocusedItemKey?: string;
-    onSelectRow: (item: TItem) => void;
+    onSelectRow: (item: TItem) => void | Promise<void>;
     canSelectMultiple?: boolean;
     footerContent?: React.ReactNode;
 

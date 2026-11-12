@@ -70,12 +70,12 @@ type IOURequestEditReportCommonProps = {
     selectedPolicyID?: string;
     transactionPolicyID?: string;
     targetOwnerAccountID?: number;
-    selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
-    removeFromReport?: () => void;
+    selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void | Promise<void>;
+    removeFromReport?: () => void | Promise<void>;
     isEditing?: boolean;
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
-    createReport?: () => void;
+    createReport?: () => void | Promise<void>;
 
     /** Leaves a new expense off any report. Offered next to the new report option when passed */
     selectNoReport?: () => void;

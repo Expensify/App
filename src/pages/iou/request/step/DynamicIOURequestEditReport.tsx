@@ -215,9 +215,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
-        onCreateReport: (shouldDismissEmptyReportsConfirmation) => {
-            createReportForPolicy(shouldDismissEmptyReportsConfirmation);
-        },
+        onCreateReport: createReportForPolicy,
         shouldBypassConfirmation: true,
     });
 
@@ -256,20 +254,10 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
             isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
             isDistanceRequest={transactions.some(isDistanceRequestUtil)}
-            selectReport={(item, report) => {
-                selectReport(item, report);
-            }}
-            removeFromReport={() => {
-                removeFromReport();
-            }}
+            selectReport={selectReport}
+            removeFromReport={removeFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}
-            createReport={
-                canCreateReport
-                    ? () => {
-                          createReport();
-                      }
-                    : undefined
-            }
+            createReport={canCreateReport ? createReport : undefined}
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
             transactionPolicyID={targetExpensePolicyID}
