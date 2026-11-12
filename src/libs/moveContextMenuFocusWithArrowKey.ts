@@ -18,7 +18,8 @@ type ToolbarKeyModifiers = {
 type ToolbarKeyDownEvent = ToolbarKeyModifiers & {
     key?: string;
     nativeEvent?: ToolbarKeyModifiers & {key?: string};
-    currentTarget?: EventTarget | null;
+    // A DOM node on web. React Native's key events type it as a host instance or a native tag, which can't be queried.
+    currentTarget?: unknown;
     preventDefault: () => void;
 };
 
@@ -52,8 +53,8 @@ function getAdjacentHorizontalIndex(currentIndex: number, key: string, lastIndex
     return currentIndex;
 }
 
-function canQueryToolbarButtons(node: EventTarget | null | undefined): node is Node & ParentNode {
-    return !!node && 'querySelectorAll' in node && typeof node.querySelectorAll === 'function';
+function canQueryToolbarButtons(node: unknown): node is Node & ParentNode {
+    return typeof node === 'object' && !!node && 'querySelectorAll' in node && typeof node.querySelectorAll === 'function';
 }
 
 function hasModifierKey(event: ToolbarKeyDownEvent): boolean {
@@ -74,7 +75,7 @@ function isActiveToolbarButton(button: Element, activeElement: Element | null): 
     return button === activeElement || button.contains(activeElement);
 }
 
-function getReactionRow(root: EventTarget | null | undefined, activeElement: Element): (Node & ParentNode) | null {
+function getReactionRow(root: unknown, activeElement: Element): (Node & ParentNode) | null {
     if (!canQueryToolbarButtons(root) || !root.contains(activeElement)) {
         return null;
     }
@@ -90,7 +91,7 @@ function getReactionRow(root: EventTarget | null | undefined, activeElement: Ele
     return null;
 }
 
-function moveToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent, toolbar: EventTarget | null | undefined): void {
+function moveToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent, toolbar: unknown): void {
     const key = getPressedKey(event);
     // Arrow shortcuts have empty modifier lists. Alt+Arrow is browser history, so do not steal it.
     if (!isHorizontalArrowKey(key) || hasModifierKey(event)) {
