@@ -229,6 +229,48 @@ describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
         expect(countWorkflowCards()).toBe(11);
     });
 
+    it.each(['read-only', 'integration-locked'])('preserves workflow order and pagination for %s viewers', async (viewer) => {
+        // Given a broken workflow beyond the first batch whose errors this viewer cannot act on
+        const removedApproverEmail = 'approver9@example.com';
+        const {employeeList, personalDetails} = buildWorkflowData(10);
+        delete employeeList[removedApproverEmail];
+        const policy = buildPolicy(employeeList);
+        if (viewer === 'read-only') {
+            policy.role = CONST.POLICY.ROLE.AUDITOR;
+            employeeList[OWNER_EMAIL] = {...employeeList[OWNER_EMAIL], role: CONST.POLICY.ROLE.AUDITOR};
+        } else {
+            policy.connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.MANAGER, groups: [], finalApprover: null}},
+            };
+        }
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+
+        // When the viewer opens Approvals without expanding the list
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then hidden errors do not promote workflows into the initial batch
+        const initialCards = screen.UNSAFE_getAllByType(ApprovalWorkflowSection);
+        expect(initialCards).toHaveLength(BATCH);
+        expect(initialCards.every((card) => card.props.isDisabled)).toBe(true);
+        expect(within(initialCards[0]).getByText(TestHelper.translateLocal('workspace.common.everyone'))).toBeOnTheScreen();
+        expect(screen.queryByText('Member 9 User')).not.toBeOnTheScreen();
+
+        // When Load more reveals the rest
+        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: loadMoreLabel(11 - BATCH)}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the broken workflow remains in its original position and its error stays hidden
+        const allCards = screen.UNSAFE_getAllByType(ApprovalWorkflowSection);
+        expect(allCards).toHaveLength(11);
+        expect(within(allCards[9]).getByText('Member 9 User')).toBeOnTheScreen();
+        expect(screen.queryByText(TestHelper.translateLocal('workflowsPage.approverNotWorkspaceMember'))).not.toBeOnTheScreen();
+        expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: /load .* more/i})).not.toBeOnTheScreen();
+    });
+
     it('reveals all remaining workflows in a single press and hides the button', async () => {
         await setupPolicy(10); // 11 total
         renderPage();

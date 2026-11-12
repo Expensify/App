@@ -240,7 +240,8 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         return tokenizedSearch([workflow], searchInput, () => searchableTexts).length > 0;
     };
 
-    const sortedApprovalWorkflows = sortApprovalWorkflowsByErrors(filteredApprovalWorkflows);
+    const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
+    const sortedApprovalWorkflows = canWriteApprovals && !shouldBlockApprovalWorkflowEditing ? sortApprovalWorkflowsByErrors(filteredApprovalWorkflows) : filteredApprovalWorkflows;
     const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows] = useSearchResults(sortedApprovalWorkflows, filterWorkflow);
     const [isWorkflowListExpanded, setIsWorkflowListExpanded] = useState(false);
 
@@ -272,7 +273,6 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // A Dynamic External Workflow can be configured to keep the approval workflow out of the customer's hands entirely.
     // The info banner below still explains why the section is empty, but nothing else about the workflows is rendered.
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
-    const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
     const approvalSubtitle = !isWorkflowFromIntegration ? (
         translate('workflowsPage.addApprovalsDescription')
     ) : (
