@@ -185,9 +185,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 }}
                 // onCurrencyButtonPress is intentionally left empty as currency selection is not allowed on this page
                 onCurrencyButtonPress={() => {}}
-                onSubmitButtonPress={(currentAmount) => {
-                    updateTaxAmount(currentAmount);
-                }}
+                onSubmitButtonPress={updateTaxAmount}
                 isCurrencyPressable={false}
                 chatReportID={reportID}
             />
