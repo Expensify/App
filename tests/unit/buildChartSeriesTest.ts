@@ -920,8 +920,9 @@ describe('buildChartSeries with a compared period', () => {
     const PERIODS = {primary: {start: '2026-01-01', end: '2026-12-31'}, comparison: {start: '2025-01-01', end: '2025-12-31'}};
 
     /** Builds the model of a chart plotting one period against the one before it. */
-    function buildComparison(rows: GroupedItem[], previousRows: GroupedItem[], groupBy: SearchGroupBy) {
+    function buildComparison(rows: GroupedItem[], previousRows: GroupedItem[], groupBy: SearchGroupBy, trackedFrom?: string) {
         return buildChartSeries({
+            trackedFrom,
             data: rows,
             comparison: {data: previousRows, color: themeColors.green200, periods: PERIODS},
             view: CONST.SEARCH.VIEW.BAR,
@@ -948,6 +949,78 @@ describe('buildChartSeries with a compared period', () => {
             {[CHART_SERIES_KEY.COMPARISON]: 200},
             {[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300},
         ]);
+    });
+
+    it('plots nothing for a compared bucket that ends before the data was tracked', () => {
+        // Given this year against last year, where last year's data only starts on June 1 and has no row for Q1
+        const rows = [quarterGroup(1, 100000), quarterGroup(2, 200000)];
+        const previousRows = [quarterGroup(2, 20000, 2025)];
+
+        // When the two periods are plotted against each other
+        const model = buildComparison(rows, previousRows, CONST.SEARCH.GROUP_BY.QUARTER, '2025-06-01');
+
+        // Then last year's Q1 is left blank rather than drawn as 0, since nothing was recorded then
+        expect(model.rows.map((row) => row.point.values)).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: undefined},
+            {[CHART_SERIES_KEY.PRIMARY]: 2000, [CHART_SERIES_KEY.COMPARISON]: 200},
+        ]);
+    });
+
+    it('plots 0 for a compared bucket that runs into the first tracked day without a row', () => {
+        // Given this year against last year, where last year's data starts on June 1 and has no row for Q2, which ends after it
+        const rows = [quarterGroup(2, 200000), quarterGroup(3, 300000)];
+        const previousRows = [quarterGroup(3, 30000, 2025)];
+
+        // When the two periods are plotted against each other
+        const model = buildComparison(rows, previousRows, CONST.SEARCH.GROUP_BY.QUARTER, '2025-06-01');
+
+        // Then last year's Q2 is drawn as 0, since its tracked days had no expenses
+        expect(model.rows.map((row) => row.point.values)).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: 2000, [CHART_SERIES_KEY.COMPARISON]: 0},
+            {[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300},
+        ]);
+    });
+
+    it('plots 0 for a compared bucket without a row when the data has no first tracked day', () => {
+        // Given this year against last year, where last year has no row for Q1 and every day was tracked
+        const rows = [quarterGroup(1, 100000), quarterGroup(2, 200000)];
+        const previousRows = [quarterGroup(2, 20000, 2025)];
+
+        // When the two periods are plotted against each other
+        const model = buildComparison(rows, previousRows, CONST.SEARCH.GROUP_BY.QUARTER);
+
+        // Then last year's Q1 is drawn as 0, since it had no expenses
+        expect(model.rows.map((row) => row.point.values)).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0},
+            {[CHART_SERIES_KEY.PRIMARY]: 2000, [CHART_SERIES_KEY.COMPARISON]: 200},
+        ]);
+    });
+});
+
+describe('buildChartSeries without a compared period', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+    });
+
+    it('ends the chart at the last period so far, dropping the empty periods still to come', () => {
+        // Given this year in its second quarter, with Q3 and Q4 still to come and no expenses dated in them
+        const rows = [quarterGroup(1, 100000), quarterGroup(2, 200000), {...quarterGroup(3, 0), count: 0}, {...quarterGroup(4, 0), count: 0}];
+
+        // When the series is built with nothing to compare against
+        const model = buildChartSeries({
+            data: rows,
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.QUARTER].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            isEmptyLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2 && !item.count,
+        });
+
+        // Then the chart stops at Q2 instead of drawing $0 through the quarters that haven't come yet
+        expect(model.rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000}, {[CHART_SERIES_KEY.PRIMARY]: 2000}]);
     });
 });
 

@@ -5,7 +5,7 @@ import {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy} from '@pa
 import CONST from '@src/CONST';
 
 const {DAY, WEEK, MONTH, QUARTER, YEAR} = CONST.SEARCH.GROUP_BY;
-const {THIS_MONTH, LAST_MONTH, THIS_YEAR, YEAR_TO_DATE, LAST_12_MONTHS} = CONST.SEARCH.DATE_PRESETS;
+const {THIS_WEEK, THIS_MONTH, LAST_MONTH, THIS_QUARTER, THIS_YEAR, YEAR_TO_DATE, LAST_12_MONTHS} = CONST.SEARCH.DATE_PRESETS;
 
 describe('insightsGroupByUtils', () => {
     beforeEach(() => {
@@ -19,7 +19,9 @@ describe('insightsGroupByUtils', () => {
 
     describe('getInsightsGroupByOptions', () => {
         it.each<[string, InsightsFilters['date'], Array<InsightsFilters['groupBy']>]>([
+            ['this week', {preset: THIS_WEEK}, [DAY]],
             ['this month', {preset: THIS_MONTH}, [DAY]],
+            ['this quarter', {preset: THIS_QUARTER}, [WEEK]],
             ['last month', {preset: LAST_MONTH}, [DAY, WEEK]],
             ['this year', {preset: THIS_YEAR}, [WEEK, MONTH]],
             ['last 12 months', {preset: LAST_12_MONTHS}, [WEEK, MONTH, QUARTER]],
@@ -127,6 +129,50 @@ describe('insightsGroupByUtils', () => {
 
             // Then the line accumulates from daily buckets, and the backend never sees the running total value itself
             expect(groupBy).toBe(DAY);
+        });
+
+        it('queries running total by week when the range offers neither daily nor monthly points', () => {
+            // Given a running total dashboard over this quarter, which only offers Week
+            const filters: InsightsFilters = {date: {preset: THIS_QUARTER}, policyIDs: [], groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY, groupCurrency: 'USD'};
+
+            // When the Group by to query with is picked
+            const groupBy = getQueryGroupBy(filters);
+
+            // Then it accumulates from weekly buckets, the only grouping the quarter offers
+            expect(groupBy).toBe(WEEK);
+        });
+
+        it('queries running total by day for this month', () => {
+            // Given a running total dashboard over this month, which only offers Day
+            const filters: InsightsFilters = {date: {preset: THIS_MONTH}, policyIDs: [], groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY, groupCurrency: 'USD'};
+
+            // When the Group by to query with is picked
+            const groupBy = getQueryGroupBy(filters);
+
+            // Then it accumulates from daily buckets
+            expect(groupBy).toBe(DAY);
+        });
+
+        it('queries running total by month for this year', () => {
+            // Given a running total dashboard over this year, which offers Week and Month
+            const filters: InsightsFilters = {date: {preset: THIS_YEAR}, policyIDs: [], groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY, groupCurrency: 'USD'};
+
+            // When the Group by to query with is picked
+            const groupBy = getQueryGroupBy(filters);
+
+            // Then it accumulates from monthly buckets rather than weekly ones
+            expect(groupBy).toBe(MONTH);
+        });
+
+        it('queries a quarterly dashboard over this year by month, since this year no longer offers Quarter', () => {
+            // Given a quarterly dashboard moved to this year
+            const filters: InsightsFilters = {date: {preset: THIS_YEAR}, policyIDs: [], groupBy: QUARTER, groupCurrency: 'USD'};
+
+            // When the Group by to query with is picked
+            const groupBy = getQueryGroupBy(filters);
+
+            // Then Month is queried, the closest grouping to Quarter that this year offers
+            expect(groupBy).toBe(MONTH);
         });
 
         it('queries running total by month when the range is too long for daily points', () => {

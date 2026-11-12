@@ -6,7 +6,7 @@ import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import type {InsightsQuery} from '@pages/Insights/insightsQueries';
-import buildInsightsJsonQuery, {applyInsightsFilters, buildInsightsQueryString, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
+import buildInsightsJsonQuery, {applyInsightsFilters, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -482,6 +482,98 @@ describe('insightsQueries', () => {
 
             // Then the range bounds the approval date
             expect(approverQuery).toContain('anyApproval>=2026-11-01 anyApproval<=2026-11-07');
+        });
+    });
+
+    describe('applyInsightsFilters stopping at today', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date(2026, 9, 8));
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('leaves out expenses dated after today when the date range runs past it', () => {
+            // Given it's October 8 and the page covers this year, which runs to December 31
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}};
+
+            // When the headline chart's query is built to stop at today
+            const chartQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters, undefined, true);
+
+            // Then it keeps the date range and only takes expenses dated before tomorrow
+            expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}:${CONST.SEARCH.DATE_PRESETS.THIS_YEAR}`);
+            expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<2026-10-09`);
+        });
+
+        it('adds nothing when the date range already ends by today', () => {
+            // Given the page covers last month, which ended before today
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}};
+
+            // When the headline chart's query is built to stop at today
+            const chartQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters, undefined, true);
+
+            // Then the query is the same as one that doesn't stop at today
+            expect(chartQuery).toBe(applyInsightsFilters(SPEND_SPEC.headlineChart, filters));
+        });
+
+        it('keeps expenses dated after today unless asked to stop at today', () => {
+            // Given the page covers this year, which runs past today
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}};
+
+            // When the headline chart's query is built without stopping at today
+            const chartQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters);
+
+            // Then no upper bound is added to the date range
+            expect(chartQuery).not.toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<`);
+        });
+
+        it('adds nothing to charts that filter on a date other than the expense date', () => {
+            // Given the chart of violations kept at submission, which filters on the submission date, over this year
+            const chart = getComplianceChart(CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER);
+            expect(chart.dateFilterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED);
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}};
+
+            // When its query is built to stop at today
+            const chartQuery = applyInsightsFilters(chart, filters, undefined, true);
+
+            // Then the query is the same as one that doesn't stop at today, since expense dates don't bound that chart
+            expect(chartQuery).toBe(applyInsightsFilters(chart, filters));
+        });
+    });
+
+    describe('buildFutureExpensesQueryString', () => {
+        it('lists the expenses dated after the as-of day through the end of the date range', () => {
+            // Given a dashboard over October in two workspaces, counted through October 8
+            const filters: InsightsFilters = {...FILTERS, date: {from: '2026-10-01', to: '2026-10-31'}, policyIDs: ['policyA', 'policyB']};
+
+            // When the Spend page query for the left-out expenses is built
+            const query = buildFutureExpensesQueryString(filters, '2026-10-08');
+
+            // Then it lists expenses dated after October 8 up to and including October 31, in the same workspaces
+            const queryJSON = buildSearchQueryJSON(query);
+            expect(queryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>2026-10-08`);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<2026-11-01`);
+            expect(query).toContain('policyA');
+            expect(query).toContain('policyB');
+
+            // And the page's own date range isn't added on top
+            expect(query).not.toContain('2026-10-01');
+            expect(query).not.toContain('2026-10-31');
+        });
+
+        it('has no upper bound when the date range has no end', () => {
+            // Given a dashboard on a preset with no fixed range
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.NEVER}};
+
+            // When the Spend page query for the left-out expenses is built
+            const query = buildFutureExpensesQueryString(filters, '2026-10-08');
+
+            // Then it lists every expense dated after the as-of day
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>2026-10-08`);
+            expect(query).not.toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<`);
         });
     });
 
