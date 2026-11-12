@@ -30,6 +30,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const dismissedViaBackdropRef = useRef(false);
     const onGrantRef = useRef(onGrant);
     const onDenyRef = useRef(onDeny);
+    const resetPermissionFlowRef = useRef(resetPermissionFlow);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -42,7 +43,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     useEffect(() => {
         onGrantRef.current = onGrant;
         onDenyRef.current = onDeny;
-    }, [onGrant, onDeny]);
+        resetPermissionFlowRef.current = resetPermissionFlow;
+    }, [onGrant, onDeny, resetPermissionFlow]);
 
     const grantPermission = () => {
         isGrantedExternallyRef.current = true;
@@ -70,16 +72,14 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
         let ignore = false;
 
-        // Stops the permission polling and hides the prompt without reporting an outcome to the caller.
         const closePrompt = () => {
             isModalActiveRef.current = false;
             setShowModal(false);
         };
 
-        // The flow ended without a decision, so the caller is only told to reset. It is never fired together with onGrant or onDeny.
         const abortPermissionFlow = () => {
             closePrompt();
-            resetPermissionFlow();
+            resetPermissionFlowRef.current();
         };
 
         const handlePermissionFlow = async () => {
