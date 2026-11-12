@@ -207,7 +207,7 @@ function getBulkActionSkippedNotice(appliedCount: number, selectedCount: number,
     if (skippedWorkspaceNames.length === 0) {
         return '';
     }
-    return `${translate('workspace.common.bulkActionAppliesTo', appliedCount, selectedCount)} ${translate('workspace.common.bulkActionSkippedWorkspaces', skippedWorkspaceNames.join(', '))}`;
+    return `${translate('workspace.common.bulkActionAppliesTo', appliedCount, selectedCount)} ${translate('workspace.common.bulkActionSkippedWorkspaces', {count: skippedWorkspaceNames.length, workspaceNames: skippedWorkspaceNames.join(', ')})}`;
 }
 
 type BulkArchiveWorkspace = {

@@ -356,21 +356,28 @@ describe('WorkspacesSettingsUtils', () => {
     });
 
     describe('getBulkActionSkippedNotice', () => {
-        const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => [path, ...parameters].join(':');
-
         it('names the skipped workspaces and how many the action applies to', () => {
             // Given an action that applies to one of three selected workspaces
             // When the notice is built
-            const notice = getBulkActionSkippedNotice(1, 3, ['Skipped 1', 'Skipped 2'], translate);
+            const notice = getBulkActionSkippedNotice(1, 3, ['Skipped 1', 'Skipped 2'], TestHelper.translateLocal);
 
             // Then it says how many workspaces the action covers and lists the ones it leaves out
-            expect(notice).toBe('workspace.common.bulkActionAppliesTo:1:3 workspace.common.bulkActionSkippedWorkspaces:Skipped 1, Skipped 2');
+            expect(notice).toBe('This applies to 1 of the 3 selected workspaces. These will be skipped: Skipped 1, Skipped 2.');
+        });
+
+        it('names a single skipped workspace in the singular', () => {
+            // Given an action that applies to one of two selected workspaces
+            // When the notice is built
+            const notice = getBulkActionSkippedNotice(1, 2, ['Acme'], TestHelper.translateLocal);
+
+            // Then the sentence is worded for one workspace
+            expect(notice).toBe('This applies to 1 of the 2 selected workspaces. This will be skipped: Acme.');
         });
 
         it('is empty when the action applies to every selected workspace', () => {
             // Given an action that skips none of the selected workspaces
             // When the notice is built
-            const notice = getBulkActionSkippedNotice(2, 2, [], translate);
+            const notice = getBulkActionSkippedNotice(2, 2, [], TestHelper.translateLocal);
 
             // Then there is nothing to tell the user
             expect(notice).toBe('');
