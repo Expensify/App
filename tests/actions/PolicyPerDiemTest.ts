@@ -103,9 +103,7 @@ describe('actions/Policy/PerDiem', () => {
                             customUnits: {
                                 [customUnitID]: {
                                     rates: {
-                                        [rateID]: expect.objectContaining({
-                                            name: 'Updated Destination',
-                                        }),
+                                        [rateID]: expect.objectContaining({name: 'Updated Destination'}),
                                     },
                                 },
                             },
@@ -133,11 +131,7 @@ describe('actions/Policy/PerDiem', () => {
         };
         expect(writeSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT,
-            {
-                policyID: 'policy',
-                customUnitID,
-                customUnitRate: JSON.stringify(updatedRate),
-            },
+            {policyID: 'policy', customUnitID, customUnitRate: JSON.stringify(updatedRate)},
             expect.any(Object),
         );
     });
@@ -159,11 +153,7 @@ describe('actions/Policy/PerDiem', () => {
         };
         expect(writeSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT,
-            {
-                policyID: 'policy',
-                customUnitID,
-                customUnitRate: JSON.stringify(updatedRate),
-            },
+            {policyID: 'policy', customUnitID, customUnitRate: JSON.stringify(updatedRate)},
             expect.any(Object),
         );
     });
@@ -179,11 +169,7 @@ describe('actions/Policy/PerDiem', () => {
         const updatedRate = {...currentRate, currency: 'EUR'};
         expect(writeSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT,
-            {
-                policyID: 'policy',
-                customUnitID,
-                customUnitRate: JSON.stringify(updatedRate),
-            },
+            {policyID: 'policy', customUnitID, customUnitRate: JSON.stringify(updatedRate)},
             expect.any(Object),
         );
     });
