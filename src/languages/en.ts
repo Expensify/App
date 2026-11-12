@@ -11637,7 +11637,7 @@ const translations = {
                 reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `couldn't process the payment: ${returnReason}`,
                 reimbursementACHCancelled: `canceled the payment`,
                 reimbursementAccountChanged: `couldn’t process the payment, as the payer changed bank accounts`,
-                reimbursementDelayed: `processed the payment but it’s delayed by 1-2 more business days`,
+                reimbursementDelayed: `Processed the payment but it’s delayed by 1-2 more business days.`,
                 reimbursementEstimateUpdated: ({expectedDate}: {expectedDate: string}) => `Funds are now expected to arrive by ${expectedDate}.`,
                 reimbursementEstimateSooner: ({expectedDate}: {expectedDate: string}) => `Great news, funds are now expected to arrive by ${expectedDate}.`,
                 reimbursementArrived: ({arrivalDate}: {arrivalDate: string}) => `Funds arrived on ${arrivalDate}.`,

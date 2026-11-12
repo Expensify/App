@@ -2112,7 +2112,7 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
             // Then it keeps the existing delay copy, because this path did not change
-            expect(message).toBe('processed the payment but it’s delayed by 1-2 more business days');
+            expect(message).toBe('Processed the payment but it’s delayed by 1-2 more business days.');
         });
 
         it('should show the new delivery estimate when Wise changes it', () => {
@@ -2229,7 +2229,7 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
             // Then it never shows "arrive by ." with an empty date
-            expect(message).toBe('processed the payment but it’s delayed by 1-2 more business days');
+            expect(message).toBe('Processed the payment but it’s delayed by 1-2 more business days.');
         });
 
         it('should say when the funds arrived once a delayed or failed deposit completes', () => {
