@@ -28275,9 +28275,9 @@ describe('ReportUtils', () => {
             const noVendorTransaction = createMockTransaction();
 
             // When getting their sort values for the Vendor column
-            const renamedVendorSortValue = getTransactionSortValue(renamedVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
-            const unsyncedVendorSortValue = getTransactionSortValue(unsyncedVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
-            const noVendorSortValue = getTransactionSortValue(noVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+            const renamedVendorSortValue = getTransactionSortValue(translateLocal, renamedVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+            const unsyncedVendorSortValue = getTransactionSortValue(translateLocal, unsyncedVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+            const noVendorSortValue = getTransactionSortValue(translateLocal, noVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
 
             // Then each expense sorts by the name the column shows, which prefers the synced name and falls back to the stored one
             expect(renamedVendorSortValue).toBe('Acme Co');
