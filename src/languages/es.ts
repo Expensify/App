@@ -47,7 +47,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'No se pudo cargar el gráfico. Actualiza la página e inténtalo de nuevo.',
         dismiss: 'Descartar',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionar la columna ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} píxeles`,
+        resizePanel: 'Redimensionar el panel',
+        widthInPixels: ({width}: {width: number}) => `${width} píxeles`,
         proceed: 'Proceder',
         unshare: 'Dejar de compartir',
         yes: 'Sí',
@@ -1252,6 +1253,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Ver todo',
         topExpenses: 'Gastos principales',
         noExpensesInRange: 'No hay gastos en este intervalo',
+        efficiency: 'Eficiencia',
+        workflowEfficiency: 'Eficiencia del flujo de trabajo',
+        longestToSubmit: 'Más lento en enviar',
+        slowestToApprove: 'Más lento en aprobar',
+        mostTimeToPay: 'Más tiempo para pagar',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1411,6 +1417,14 @@ const translations: TranslationDeepObject<typeof en> = {
         addAReceipt: {
             phrase1: 'Añade un recibo',
             phrase2: 'o arrastra y suelta uno aquí',
+        },
+        translate: 'Traducir',
+        viewOriginal: 'Ver original',
+        translationDisclaimer: 'La IA puede cometer errores. Por favor, comprueba el original.',
+        translationError: {
+            unreadable: 'No hemos podido leer este recibo con la suficiente claridad como para traducirlo.',
+            alreadyInLanguage: 'Este recibo ya está en tu idioma.',
+            generic: 'No pudimos traducir este recibo. Por favor, inténtalo de nuevo.',
         },
     },
     quickAction: {
@@ -2039,6 +2053,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'restauró este gasto',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `se han actualizado las tarifas de kilometraje para el nuevo espacio de trabajo: ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} informe`,
+                other: (count: number) => `${formattedCount ?? count} informes`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -9659,6 +9679,7 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: 'Entidad',
             updateCurrencyTitle: '¿Actualizar la moneda del espacio de trabajo?',
             updateCurrencyPrompt: 'Digits actualmente solo está disponible para empresas con sede en EE. UU. que operan en USD.',
             importDescription: 'Elige qué configuraciones de Digits quieres importar.',
@@ -10047,6 +10068,25 @@ ${reportName}`,
             return `cambió los Recibos detallados de la categoría "${categoryName}" a ${newValue} (previamente ${oldValue})`;
         },
         setCategoryName: (oldName, newName) => `renombró la categoría "${oldName}" a "${newName}"`,
+        setCategoryVisibility: (members, categories) => `configuró a ${members} para que solo vean ${categories}`,
+        changedCategoryVisibility: (members, categories) => `cambió a ${members} para que solo vean ${categories}`,
+        clearedCategoryVisibility: (members) => `cambió a ${members} para que vean todas las categorías`,
+        quotedCategoryName: (categoryName) => `"${categoryName}"`,
+        oneCategory: (categoryName) => `la categoría ${categoryName}`,
+        someCategories: (categoryList) => `las categorías ${categoryList}`,
+        everyone: 'todos',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 categoría',
+            other: `${count} categorías`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 miembro',
+            other: `${count} miembros`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList) => `Categorías: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList) => `Miembros: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', ya que su única categoría se eliminó. Actualiza la visibilidad de su categoría si es necesario.',
+        categoryVisibilityReasonDisabled: ', ya que su única categoría estaba deshabilitada. Actualiza la visibilidad de su categoría si es necesario.',
         updateCategories: (count) => `actualizó ${count} categorías`,
         updateTagListName: (oldName, newName) => `cambió el nombre de la lista de etiquetas a "${newName}" (previamente "${oldName}")`,
         updateTagList: (tagListName) => `actualizó las etiquetas de la lista "${tagListName}"`,
@@ -10802,6 +10842,12 @@ ${reportName}`,
         columns: 'Columnas',
         editColumns: 'Editar columnas',
         resetColumns: 'Restablecer columnas',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Opciones de la columna ${columnName}`,
+            sortAscending: 'Ordenar ascendente',
+            sortDescending: 'Ordenar descendente',
+            hideColumn: 'Ocultar columna',
+        },
         groupColumns: 'Columnas de grupo',
         expenseColumns: 'Columnas de gastos',
         display: {
@@ -10906,7 +10952,9 @@ ${reportName}`,
             workspace: {active: 'Activo', archived: 'Archivado', selectAll: 'Seleccionar todo'},
             amount: {
                 lessThan: (amount) => `Menos de ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Menor o igual que ${amount ?? ''}`,
                 greaterThan: (amount) => `Más que ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Mayor o igual que ${amount ?? ''}`,
                 between: (greaterThan, lessThan) => {
                     if (greaterThan && lessThan) {
                         return `Entre ${greaterThan} y ${lessThan}`;
@@ -10950,6 +10998,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprobador',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infracción',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pagado por',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10997,6 +11046,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprobadores',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infracciones',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pagadores',
         },
         moneyRequestReport: {emptyStateTitle: 'Aún no hay gastos', accessPlaceHolder: 'Abrir para ver detalles'},
         noCategory: 'Sin categoría',

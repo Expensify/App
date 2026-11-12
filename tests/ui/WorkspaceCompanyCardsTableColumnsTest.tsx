@@ -10,6 +10,7 @@ import type {WorkspaceCompanyCardTableItemData} from '@components/Tables/Workspa
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
@@ -22,6 +23,7 @@ import Onyx from 'react-native-onyx';
 import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 TestHelper.setupApp();
 
@@ -400,5 +402,153 @@ describe('WorkspaceCompanyCardsTable row feedback', () => {
 
         // Then the feed-level prompt owns the root error while the independent field failure remains actionable on the row
         expect(capturedData.at(0)?.errors).toEqual({[START_DATE_ERROR_KEY]: 'Start date update failed'});
+    });
+});
+
+describe('WorkspaceCompanyCardsTable Last updated column', () => {
+    beforeEach(async () => {
+        mockCardFeedErrors = {};
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+
+        // Pins "now" so the current year check is stable. The viewer has no timezone set, so the default Los Angeles one applies.
+        jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick']});
+        jest.setSystemTime(new Date('2026-07-20T19:00:00Z'));
+    });
+
+    afterEach(async () => {
+        jest.useRealTimers();
+        // The locale is global, so a Spanish run must not leak into later tests.
+        await IntlStore.load(CONST.LOCALES.EN);
+    });
+
+    async function renderWithCard(card?: Card) {
+        renderTable(buildCompanyCards(card));
+        await waitForBatchedUpdatesWithAct();
+        return capturedData.at(0);
+    }
+
+    function buildSortRow(keyForList: string, cardName: string, lastScrape?: string) {
+        return createMock<WorkspaceCompanyCardTableItemData>({
+            keyForList,
+            cardName,
+            isAssigned: true,
+            isCardDeleted: false,
+            assignedCard: buildAssignedCard({lastScrape}),
+        });
+    }
+
+    it('adds a sortable Last updated column', async () => {
+        // Given any company card feed
+        // When the table renders
+        await renderWithCard(buildAssignedCard());
+
+        // Then the column uses the details page label and can be sorted
+        const column = capturedColumns.find((tableColumn) => tableColumn.key === 'lastUpdated');
+        expect(column?.label).toBe(TestHelper.translateLocal('workspace.moreFeatures.companyCards.lastUpdated'));
+        expect(column?.sortable).toBe(true);
+    });
+
+    it('shows the sync day in the viewer timezone with the full timestamp in the tooltip', async () => {
+        // Given a sync at 03:00 UTC on July 11, which is still July 10 in Los Angeles
+        // When the table builds the row
+        const row = await renderWithCard(buildAssignedCard({lastScrape: '2026-07-11 03:00:00'}));
+
+        // Then the cell shows the local day like Spend, and the tooltip matches the details page value
+        expect(row?.lastUpdatedText).toBe('Jul 10');
+        expect(row?.lastUpdatedTooltip).toBe('2026-07-10 20:00:00');
+    });
+
+    it('adds the year for a sync in a past year', async () => {
+        // Given a card that last synced the year before
+        // When the table builds the row
+        const row = await renderWithCard(buildAssignedCard({lastScrape: '2025-07-10 20:00:00'}));
+
+        // Then the year is shown so the date is not read as this year
+        expect(row?.lastUpdatedText).toBe('Jul 10, 2025');
+    });
+
+    it('shows Updating... while an update runs, without a tooltip', async () => {
+        // Given a card whose "Update card" request is in flight
+        // When the table builds the row
+        const row = await renderWithCard(buildAssignedCard({lastScrape: '2026-07-11 03:00:00', isLoadingLastUpdated: true}));
+
+        // Then the cell matches the details page, which also shows Updating...
+        expect(row?.lastUpdatedText).toBe(TestHelper.translateLocal('workspace.moreFeatures.companyCards.updating'));
+        expect(row?.lastUpdatedTooltip).toBeUndefined();
+    });
+
+    it('shows Never for an assigned card that never synced', async () => {
+        // Given an assigned card without a lastScrape
+        // When the table builds the row
+        const row = await renderWithCard(buildAssignedCard());
+
+        // Then the cell says Never, like the details page, and has no tooltip
+        expect(row?.lastUpdatedText).toBe(TestHelper.translateLocal('workspace.moreFeatures.companyCards.neverUpdated'));
+        expect(row?.lastUpdatedTooltip).toBeUndefined();
+    });
+
+    it('shows Never instead of crashing for a malformed lastScrape', async () => {
+        // Given a card whose lastScrape cannot be parsed, which would make date-fns format throw
+        // When the table builds the row
+        const row = await renderWithCard(buildAssignedCard({lastScrape: 'not-a-date'}));
+
+        // Then the table still renders and the card reads as never synced
+        expect(screen.getByTestId('WorkspaceCompanyCardsTable')).toBeTruthy();
+        expect(row?.lastUpdatedText).toBe(TestHelper.translateLocal('workspace.moreFeatures.companyCards.neverUpdated'));
+    });
+
+    it('leaves the cell empty for an unassigned card', async () => {
+        // Given an unassigned card, which has no sync history
+        // When the table builds the row
+        const row = await renderWithCard(undefined);
+
+        // Then there is no text and no tooltip
+        expect(row?.isAssigned).toBe(false);
+        expect(row?.lastUpdatedText).toBeUndefined();
+        expect(row?.lastUpdatedTooltip).toBeUndefined();
+    });
+
+    it('orders the month and day by the app language', async () => {
+        // Given the app language is Spanish
+        await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the table builds the row for a card synced this year
+        const row = await renderWithCard(buildAssignedCard({lastScrape: '2026-07-11 03:00:00'}));
+
+        // Then the day comes first like Spend dates in Spanish, and the tooltip keeps the details page format
+        expect(row?.lastUpdatedText).toBe('10 jul');
+        expect(row?.lastUpdatedTooltip).toBe('2026-07-10 20:00:00');
+    });
+
+    it('sorts by sync time with never synced cards as the oldest', async () => {
+        // Given the table compare function
+        await renderWithCard(buildAssignedCard());
+        expect(capturedCompareItems).toBeDefined();
+
+        const older = buildSortRow('older', '2222', '2026-07-01 10:00:00');
+        const newer = buildSortRow('newer', '1111', '2026-07-15 10:00:00');
+        const never = buildSortRow('never', '3333');
+
+        // When rows are compared by Last updated
+        // Then ascending puts older syncs first, never synced ones before all of them, and descending flips both
+        expect(capturedCompareItems?.(older, newer, {columnKey: 'lastUpdated', order: CONST.SEARCH.SORT_ORDER.ASC})).toBeLessThan(0);
+        expect(capturedCompareItems?.(never, older, {columnKey: 'lastUpdated', order: CONST.SEARCH.SORT_ORDER.ASC})).toBeLessThan(0);
+        expect(capturedCompareItems?.(older, newer, {columnKey: 'lastUpdated', order: CONST.SEARCH.SORT_ORDER.DESC})).toBeGreaterThan(0);
+        expect(capturedCompareItems?.(never, older, {columnKey: 'lastUpdated', order: CONST.SEARCH.SORT_ORDER.DESC})).toBeGreaterThan(0);
+    });
+
+    it('falls back to the card name when two cards synced at the same time', async () => {
+        // Given two cards with the same lastScrape
+        await renderWithCard(buildAssignedCard());
+        const first = buildSortRow('first', '1111', '2026-07-01 10:00:00');
+        const second = buildSortRow('second', '2222', '2026-07-01 10:00:00');
+
+        // When they are compared by Last updated
+        const result = capturedCompareItems?.(first, second, {columnKey: 'lastUpdated', order: CONST.SEARCH.SORT_ORDER.ASC});
+
+        // Then the card name decides, so the order stays stable
+        expect(result).toBeLessThan(0);
     });
 });

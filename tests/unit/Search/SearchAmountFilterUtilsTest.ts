@@ -1,8 +1,36 @@
-import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterInputValue, parseAmountFilterValue, supportsAmountFilterCurrency} from '@libs/SearchAmountFilterUtils';
+import {
+    formatAmountFilterValue,
+    getAmountFilterDisplayValue,
+    getAmountFilterFormValues,
+    getAmountFilterInputValue,
+    getAmountFilterValues,
+    parseAmountFilterValue,
+    supportsAmountFilterCurrency,
+} from '@libs/SearchAmountFilterUtils';
 
 import CONST from '@src/CONST';
 
 describe('SearchAmountFilterUtils', () => {
+    it('passes inclusive bounds to editors and clears them when removing the filter', () => {
+        // Given hydrated form values include the inclusive operators used by NL ranges.
+        const form = {amountGreaterThanOrEqualTo: '50.00 AUD', amountLessThanOrEqualTo: '100.00 AUD'};
+
+        // When an editor reads the operands or the user removes the amount chip.
+        const values = getAmountFilterValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, form);
+        const cleared = getAmountFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT);
+
+        // Then both currencies reach the editor, and removing the chip clears every comparison.
+        expect(values).toMatchObject({GreaterThanOrEqualTo: '50.00 AUD', LessThanOrEqualTo: '100.00 AUD'});
+        expect(getAmountFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, values)).toEqual(expect.objectContaining(form));
+        expect(cleared).toStrictEqual({
+            amountEqualTo: undefined,
+            amountGreaterThan: undefined,
+            amountLessThan: undefined,
+            amountGreaterThanOrEqualTo: undefined,
+            amountLessThanOrEqualTo: undefined,
+        });
+    });
+
     it.each([
         {amount: '12', currency: undefined, expected: '1200'},
         {amount: '12', currency: 'USD', expected: '12.00 USD'},
