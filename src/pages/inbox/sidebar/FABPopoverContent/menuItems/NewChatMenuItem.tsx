@@ -27,6 +27,7 @@ function NewChatMenuItem() {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.START_CHAT}
             itemId={ITEM_ID}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.START_CHAT}
             icon={icons.ChatBubble}

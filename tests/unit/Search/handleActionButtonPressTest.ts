@@ -351,6 +351,7 @@ describe('handleActionButtonPress', () => {
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem,
+            policyID: snapshotReport.policyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin: undefined,
@@ -388,6 +389,7 @@ describe('handleActionButtonPress', () => {
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem,
+            policyID: snapshotReport.policyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin: undefined,
@@ -428,6 +430,7 @@ describe('handleActionButtonPress', () => {
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem: jest.fn(),
+            policyID: snapshotReport.policyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin: undefined,
@@ -452,9 +455,9 @@ describe('handleActionButtonPress', () => {
         });
 
         // Then: hasViolations is evaluated against the passed collection, proving the deprecated global getter is no longer used,
-        // and the resulting value is forwarded to approveMoneyRequest.
+        // and the resulting value is forwarded to approveMoneyRequest along with the same collection, so it doesn't read violations from Onyx itself.
         expect(hasViolationsMock).toHaveBeenCalledWith(updatedMockReportItem.reportID, allViolations, 1206, '');
-        expect(approveMoneyRequestMock).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
+        expect(approveMoneyRequestMock).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true, allTransactionViolations: allViolations}));
 
         hasViolationsMock.mockRestore();
         approveMoneyRequestMock.mockRestore();

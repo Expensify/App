@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy, Report, ReportMetadata, Rule, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -40,7 +41,14 @@ import {
     isSettled,
     shouldShowAddExpenseAction,
 } from './ReportUtils';
-import {hasOnlyPendingCardTransactions, hasOnlyUnsettledExpenses, hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isScanning} from './TransactionUtils';
+import {
+    getVisibleTransactionViolations,
+    hasOnlyPendingCardTransactions,
+    hasSmartScanFailedWithMissingFields,
+    hasSubmissionBlockingViolations,
+    isScanning,
+    hasOnlyUnsettledExpenses,
+} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
@@ -207,7 +215,11 @@ function canPay(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, currentUserLogin: string, policy?: Policy, transactions?: Transaction[]) {
+function canExport(report: Report, currentUserLogin: string, policy?: Policy, transactions?: Transaction[], isExportInProgress = false) {
+    if (isExportInProgress) {
+        return false;
+    }
+
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPreferredExporter(policy, currentUserLogin) : false;
     const isReimbursed = isSettled(report);
@@ -256,6 +268,7 @@ function getReportPreviewAction({
     isDEWSubmitPending,
     violationsData,
     reportMetadata,
+    isExportInProgress,
     ownerLogin,
     rules,
 }: {
@@ -273,6 +286,7 @@ function getReportPreviewAction({
     isDEWSubmitPending?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
     reportMetadata: OnyxEntry<ReportMetadata>;
+    isExportInProgress?: boolean;
     ownerLogin: string | undefined;
     rules: OnyxCollection<Rule>;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
@@ -301,12 +315,27 @@ function getReportPreviewAction({
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, reportMetadata, policy, transactions)) {
+        const hasVisibleViolations = transactions.some(
+            (transaction) =>
+                getVisibleTransactionViolations(
+                    transaction,
+                    violationsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [],
+                    currentUserLogin,
+                    currentUserAccountID,
+                    report,
+                    ownerLogin,
+                    policy,
+                ).length > 0,
+        );
+        if (hasVisibleViolations) {
+            return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
+        }
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
     if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, bankAccountList, transactions, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, currentUserLogin, policy, transactions)) {
+    if (canExport(report, currentUserLogin, policy, transactions, isExportInProgress)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

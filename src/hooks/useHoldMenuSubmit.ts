@@ -118,6 +118,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                     delegateEmail,
                     delegateAccountID,
                     isTrackIntentUser,
+                    allTransactionViolations: transactionViolations,
                 });
             }, full);
         } else if (currentChatReport && paymentType) {

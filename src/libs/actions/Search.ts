@@ -69,7 +69,7 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {isReportEntry, savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
+import {getSearchColumnResizingID, isReportEntry, savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, normalizeDatePresetsInQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -260,6 +260,7 @@ type HandleActionButtonPressParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
     goToItem: () => void;
+    policyID: string | undefined;
     snapshotReport: Report;
     snapshotPolicy: Policy;
     submitterLogin: string | undefined;
@@ -310,6 +311,7 @@ function handleActionButtonPress({
     hash,
     item,
     goToItem,
+    policyID,
     snapshotReport,
     snapshotPolicy,
     submitterLogin,
@@ -373,6 +375,7 @@ function handleActionButtonPress({
                 hash,
                 item,
                 goToItem,
+                policyID,
                 snapshotReport,
                 snapshotPolicy,
                 lastPaymentMethod,
@@ -501,7 +504,7 @@ function handleActionButtonPress({
             const connectedIntegration = getValidConnectedIntegration(exportPolicy);
 
             if (!connectedIntegration) {
-                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID: item?.policyID});
+                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID});
                 return;
             }
 
@@ -621,6 +624,7 @@ type GetPayActionCallbackParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
     goToItem: () => void;
+    policyID: string | undefined;
     snapshotReport: Report;
     snapshotPolicy: Policy;
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
@@ -654,6 +658,7 @@ function getPayActionCallback({
     hash,
     item,
     goToItem,
+    policyID,
     snapshotReport,
     snapshotPolicy,
     lastPaymentMethod,
@@ -686,7 +691,7 @@ function getPayActionCallback({
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
         return;
     }
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
@@ -828,6 +833,7 @@ function getApproveActionCallback({
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
         getCurrencyDecimals,
+        allTransactionViolations: allViolations,
         personalDetailsByLogins,
     });
 }
@@ -1034,7 +1040,10 @@ function deleteSavedSearch(savedSearchID: string) {
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.SEARCH_FILTERS>> = [
+    const searchKey = savedSearchIDToSearchKey(savedSearchID);
+    // The saved query may have been edited across data types, and each type keeps its own widths.
+    const tableColumnWidths = Object.fromEntries(Object.values(CONST.SEARCH.DATA_TYPES).map((type) => [getSearchColumnResizingID(type, searchKey), null]));
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.SEARCH_FILTERS | typeof ONYXKEYS.TABLE_COLUMN_WIDTHS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SAVED_SEARCHES,
@@ -1046,8 +1055,13 @@ function deleteSavedSearch(savedSearchID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SEARCH_FILTERS,
             value: {
-                [savedSearchIDToSearchKey(savedSearchID)]: null,
+                [searchKey]: null,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.TABLE_COLUMN_WIDTHS,
+            value: tableColumnWidths,
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
@@ -2340,6 +2354,12 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
+/** Moves every report matching the search query that the user can move to the given workspace. */
+function queueBulkChangeReportPolicy(jsonQuery: string, policyID: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE);
+    write(WRITE_COMMANDS.QUEUE_BULK_CHANGE_REPORT_POLICY, {jsonQuery, policyID, bulkActionID}, onyxData);
+}
+
 /**
  * Queues a bulk approval for every report matching the given search query. The backend pages through all matches itself,
  * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
@@ -2739,7 +2759,8 @@ function setOptimisticDataForTransactionThreadPreview(
     delegateAccountID: number | undefined,
     IOUTransactionID?: string,
 ) {
-    const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
+    const {reportID, report, amount, currency, transactionID, created, from} = item;
+    const policyID = report?.policyID;
     const moneyRequestReportActionID = item?.reportAction?.reportActionID;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
     const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
@@ -2811,6 +2832,7 @@ export {
     queueBulkPayReports,
     queueBulkApproveReports,
     queueBulkSubmitReports,
+    queueBulkChangeReportPolicy,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
