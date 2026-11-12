@@ -76,17 +76,13 @@ function DynamicIOURequestStepDistanceRate({
     const [reportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {
         selector: policyTypeSelector,
     });
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalPolicy = usePersonalPolicy();
     const [currentTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
@@ -240,7 +236,13 @@ function DynamicIOURequestStepDistanceRate({
             }
 
             if (isEditing && transaction?.transactionID) {
-                const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
+                const [rules, policyCategories, policyTags, reportPolicyTags, introSelected] = await Onyx.multiGet([
+                    ONYXKEYS.COLLECTION.RULE,
+                    `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+                    ONYXKEYS.NVP_INTRO_SELECTED,
+                ]);
                 // Persist preference so the default stays in sync across the workspace (the same way as in the setMoneyRequestDistanceRate)
                 setLastSelectedDistanceRate(policy, customUnitRateID);
                 updateMoneyRequestDistanceRate({
@@ -263,7 +265,7 @@ function DynamicIOURequestStepDistanceRate({
                     isOffline,
                     currentTransactionViolations,
                     reportPolicyTags,
-                    isTrackIntentUser,
+                    isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     getCurrencyDecimals,
                     getCurrencySymbol,

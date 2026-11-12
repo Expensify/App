@@ -78,7 +78,6 @@ function DynamicIOURequestStepUpgrade({
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
 
     const isTrack = iouType === CONST.IOU.TYPE.TRACK;
     const [isUpgraded, setIsUpgraded] = useState(false);
@@ -92,10 +91,6 @@ function DynamicIOURequestStepUpgrade({
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
@@ -108,7 +103,6 @@ function DynamicIOURequestStepUpgrade({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
@@ -143,12 +137,14 @@ function DynamicIOURequestStepUpgrade({
 
         // Bulk move expenses
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
-            const [allPolicyCategories, allPolicyTags, rules, cardList] = await Onyx.multiGet([
+            const [allPolicyCategories, allPolicyTags, rules, cardList, introSelected] = await Onyx.multiGet([
                 ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
                 ONYXKEYS.COLLECTION.POLICY_TAGS,
                 ONYXKEYS.COLLECTION.RULE,
                 ONYXKEYS.CARD_LIST,
+                ONYXKEYS.NVP_INTRO_SELECTED,
             ]);
+            const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
             const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, isTrackIntentUser, getCurrencyDecimals, rules);
@@ -280,7 +276,18 @@ function DynamicIOURequestStepUpgrade({
             ? {participant: getParticipantsOption(participant, personalDetails, translate), doesPersonalDetailExist: !!personalDetails?.[participant.accountID]}
             : undefined;
 
-    const onUpgrade = () => {
+    const getWorkspaceCreationOnyxData = async () => {
+        const [introSelected, onboardingPurposeSelected, onboarding, conciergeReportID] = await Onyx.multiGet([
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.CONCIERGE_REPORT_ID,
+        ]);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        return {introSelected, onboardingPurposeSelected, isSelfTourViewed: hasSeenTourSelector(onboarding), conciergeChat};
+    };
+
+    const onUpgrade = async () => {
         if (isRestrictedPolicyCreation) {
             showConfirmModal({
                 title: translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarning'),
@@ -297,6 +304,7 @@ function DynamicIOURequestStepUpgrade({
         }
 
         const email = currentUserPersonalDetails?.email ?? '';
+        const {introSelected, onboardingPurposeSelected, isSelfTourViewed, conciergeChat} = await getWorkspaceCreationOnyxData();
 
         // In the split-expense flow inherit the user's chosen default currency (personal policy
         // `outputCurrency`) rather than the geo-derived `localCurrencyCode`.
@@ -331,7 +339,8 @@ function DynamicIOURequestStepUpgrade({
         policyDataRef.current = policyData;
     };
 
-    const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
+    const onWorkspaceConfirmationSubmit = async (params: WorkspaceConfirmationSubmitFunctionParams) => {
+        const {introSelected, onboardingPurposeSelected, isSelfTourViewed, conciergeChat} = await getWorkspaceCreationOnyxData();
         const policyData = Policy.createWorkspace({
             policyOwner: params.owner,
             makeMeAdmin: params.makeMeAdmin,
@@ -387,7 +396,9 @@ function DynamicIOURequestStepUpgrade({
                     {!isUpgraded && (
                         <UpgradeIntro
                             feature={feature}
-                            onUpgrade={onUpgrade}
+                            onUpgrade={() => {
+                                onUpgrade();
+                            }}
                             upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_UPGRADE}
                             buttonDisabled={isOffline}
                             loading={false}
