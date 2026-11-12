@@ -63,7 +63,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Anuluj',
         dismiss: 'Zamknij',
         resizeColumn: ({columnName}: {columnName: string}) => `Zmień szerokość kolumny ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pikseli`,
+        resizePanel: 'Zmień szerokość panelu',
+        widthInPixels: ({width}: {width: number}) => `${width} pikseli`,
         proceed: 'Kontynuuj',
         unshare: 'Cofnij udostępnianie',
         yes: 'Tak',
@@ -7954,6 +7955,13 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 onWaitlist: 'Jesteś na liście oczekujących',
                 waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Wkrótce dostępne',
+                joinWaitlist: 'Dołącz do listy oczekujących',
+                onWaitlist: 'Jesteś na liście oczekujących',
+                onTheList: 'Jesteś na liście!',
+                waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
+            },
             setup: 'Połącz',
             connectToSandbox: 'Połącz z sandboxem',
             lastSync: (relativeDate: string) => `Ostatnia synchronizacja ${relativeDate}`,
@@ -8360,6 +8368,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             statusExpired: 'Wygasła',
             statusInactive: 'Nieaktywna',
             unit: 'Jednostka',
+            ukFuelRateTaxError: 'Dodaj stawkę podatku 20%, aby śledzić podatek dla brytyjskich zalecanych stawek paliwowych.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Dodaj stawkę podatku 20% w ${integrationName}, aby śledzić podatek dla brytyjskich zalecanych stawek paliwowych.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Aby korzystać z tej funkcji, włącz podatki w przestrzeni roboczej. Przejdź do sekcji <a href="#">Więcej funkcji</a>, aby to zmienić.</muted-text>',
             deleteDistanceRate: 'Usuń stawkę za dystans',
@@ -10958,7 +10969,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             completed: 'Zakończono',
             amount: {
                 lessThan: (amount?: string) => `Mniej niż ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Mniejszy lub równy ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Większe niż ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Większe niż lub równe ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Między ${greaterThan} a ${lessThan}`;
