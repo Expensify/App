@@ -42,7 +42,7 @@ import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from '
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {SafeString, Str} from 'expensify-common';
-import React, {memo, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import AttachmentViewImage from './AttachmentViewImage';
@@ -411,6 +411,7 @@ function AttachmentView({
         return (
             <AttachmentViewVideo
                 source={source}
+                fileName={file?.name}
                 shouldUseSharedVideoElement={!CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix))}
                 isHovered={isHovered}
                 duration={duration}
@@ -424,7 +425,6 @@ function AttachmentView({
         <DefaultAttachmentView
             fileName={file?.name}
             shouldShowDownloadIcon={shouldShowDownloadIcon}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon || isUploading}
             containerStyles={containerStyles}
             isDeleted={isDeleted}
@@ -433,7 +433,7 @@ function AttachmentView({
     );
 }
 
-export default memo(AttachmentView);
+export default AttachmentView;
 
 export {checkIsFileImage};
 export type {AttachmentViewProps};

@@ -50,7 +50,7 @@ function RuleTaxesDisabledEmptyState({policyID}: RuleTaxesDisabledEmptyStateProp
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING));
             return;
         }
 
@@ -69,6 +69,7 @@ function RuleTaxesDisabledEmptyState({policyID}: RuleTaxesDisabledEmptyStateProp
             </ScrollView>
             <FixedFooter style={[styles.pt5]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ENABLE_TAXES}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}

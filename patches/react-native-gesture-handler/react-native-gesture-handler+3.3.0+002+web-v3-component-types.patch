@@ -1,0 +1,30 @@
+diff --git a/node_modules/react-native-gesture-handler/lib/typescript/v3/components/GestureComponents.web.d.ts b/node_modules/react-native-gesture-handler/lib/typescript/v3/components/GestureComponents.web.d.ts
+index 23d00f1..9d98034 100644
+--- a/node_modules/react-native-gesture-handler/lib/typescript/v3/components/GestureComponents.web.d.ts
++++ b/node_modules/react-native-gesture-handler/lib/typescript/v3/components/GestureComponents.web.d.ts
+@@ -1,5 +1,5 @@
+ import * as React from 'react';
+-import type { FlatListProps } from 'react-native';
++import type { FlatList as RNFlatList, FlatListProps, TextInput as RNTextInput } from 'react-native';
+ export declare const ScrollView: {
+     (props: Omit<import("react-native").ScrollViewProps, "ref"> & {
+         ref?: React.Ref<import("react-native").ScrollViewInstance> | undefined;
+@@ -117,6 +117,7 @@ export declare const TextInput: {
+     } & import("../types").GestureCallbacks<import("../hooks/gestures/native/NativeTypes").NativeHandlerData> & import("../hooks/gestures/native/NativeTypes").NativeGestureNativeProperties & import("../types").ExternalRelations & import("../types/NativeWrapperType").WrapperSpecificProperties<unknown>): React.JSX.Element;
+     displayName: any;
+ };
++export type TextInput = typeof TextInput & RNTextInput;
+ export declare const DrawerLayoutAndroid: () => React.JSX.Element;
+ export declare const RefreshControl: {
+     (props: Omit<import("react-native").ViewProps, "ref"> & {
+@@ -157,5 +158,8 @@ export declare const RefreshControl: {
+     } & import("../types").GestureCallbacks<import("../hooks/gestures/native/NativeTypes").NativeHandlerData> & import("../hooks/gestures/native/NativeTypes").NativeGestureNativeProperties & import("../types").ExternalRelations & import("../types/NativeWrapperType").WrapperSpecificProperties<unknown>): React.JSX.Element;
+     displayName: any;
+ };
+-export declare const FlatList: <ItemT>(props: FlatListProps<ItemT>) => React.JSX.Element;
++export declare const FlatList: <ItemT>(props: FlatListProps<ItemT> & {
++    ref?: React.Ref<RNFlatList<ItemT> | null>;
++}) => React.JSX.Element;
++export type FlatList<ItemT = any> = typeof FlatList & RNFlatList<ItemT>;
+ //# sourceMappingURL=GestureComponents.web.d.ts.map
+\ No newline at end of file

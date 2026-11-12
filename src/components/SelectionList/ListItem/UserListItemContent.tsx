@@ -39,13 +39,13 @@ function UserListItemContent<TItem extends ListItem>({item, forwardedFSClass}: U
     const {translate, formatPhoneNumber} = useLocalize();
     const {shouldShowTooltip, shouldDisableAccessibleGrouping} = useListItemContext();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- some utils that are used to get reportID return empty string "", which would make subscription to the whole collection with nullish coalescing operator, example of this could be found in NewChatPage.tsx where some hooks return reportID as empty strings
+    // some utils that are used to get reportID return empty string "", which would make subscription to the whole collection with nullish coalescing operator, example of this could be found in NewChatPage.tsx where some hooks return reportID as empty strings
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID || undefined}`, {
         selector: reportExistsSelector,
     });
 
     const reportExists = isReportInOnyx && !!item.reportID;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- accountID being 0 is also not valid, so we prefer to use the icon ID if it exists
+    // accountID being 0 is also not valid, so we prefer to use the icon ID if it exists
     const itemAccountID = Number(item.accountID || item.icons?.at(1)?.id) || 0;
 
     const isThereOnlyWorkspaceIcon = item.icons?.length === 1 && item.icons?.at(0)?.type === CONST.ICON_TYPE_WORKSPACE;

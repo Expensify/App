@@ -17,7 +17,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
+import {callIfAuthenticated} from '@libs/actions/Session';
 import {canActionTask, completeTask} from '@libs/actions/Task';
 
 import variables from '@styles/variables';
@@ -63,6 +63,7 @@ function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
             shouldShowTooltip={showTooltip}
             numberOfLines={2}
             style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.preWrap, styles.justifyContentCenter]}
+            isSelectable
         />
     );
 }
@@ -76,6 +77,7 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
             text={taskItem.description}
             numberOfLines={2}
             style={[styles.lineHeightLarge, styles.preWrap, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+            isSelectable
         />
     );
 }
@@ -114,13 +116,14 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.TASK_ACTION_BUTTON}
             size={CONST.BUTTON_SIZE.SMALL}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             style={[styles.w100]}
             isDisabled={!isTaskActionable}
-            onPress={callFunctionIfActionIsAllowed(() => {
+            onPress={callIfAuthenticated(() => {
                 completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskItem.reportID);
-            })}
+            }, session)}
         >
             <Button.Text>{translate('task.action')}</Button.Text>
         </Button>
@@ -134,8 +137,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldDisplayCompactArrowIcon = !!(item.parentReportIcon || item.parentReportName);
+    const shouldDisplayCompactArrowIcon = !!(item.parentReportIcon ?? item.parentReportName);
 
     if (!isLargeScreenWidth) {
         return (
@@ -165,6 +167,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                                 reportName={item?.parentReportName}
                                 icon={item?.parentReportIcon}
                                 isLargeScreenWidth={isLargeScreenWidth}
+                                isSelectable
                             />
                         </View>
                     </View>
@@ -194,12 +197,17 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
 
                     <View style={[styles.gap2, styles.alignItemsEnd]}>
                         {!!item.assignee.accountID && (
-                            <UserAvatar
-                                imageStyles={styles.alignSelfCenter}
-                                size={CONST.AVATAR_SIZE.XXX_SMALL}
-                                source={item.assignee.avatar}
-                                accountID={item.assignee.accountID}
-                            />
+                            <View
+                                style={styles.userSelectNone}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            >
+                                <UserAvatar
+                                    imageStyles={styles.alignSelfCenter}
+                                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                                    source={item.assignee.avatar}
+                                    accountID={item.assignee.accountID}
+                                />
+                            </View>
                         )}
 
                         <DateCell
@@ -250,6 +258,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         reportName={item?.parentReportName}
                         icon={item?.parentReportIcon}
                         isLargeScreenWidth={isLargeScreenWidth}
+                        isSelectable
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE)]}>

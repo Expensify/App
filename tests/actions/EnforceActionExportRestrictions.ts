@@ -37,11 +37,6 @@ describe('ReportUtils', () => {
         expect(ReportUtils.getInvoiceReceiverIcons).toBeUndefined();
     });
 
-    it('does not export getParticipantIcon', () => {
-        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.getParticipantIcon).toBeUndefined();
-    });
-
     it('does not export getIconsForExpenseRequest', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getIconsForExpenseRequest).toBeUndefined();

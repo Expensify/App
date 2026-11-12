@@ -4,7 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,7 +20,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {buildOOOCommand, computeDurationDays, computeEndDate, parseDate} from '@libs/ChronosUtils';
+import {buildOOOCommand, computeDurationDays, computeEndDate} from '@libs/ChronosUtils';
+import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {replaceCommasWithPeriod} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -80,7 +81,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const selectedLeaveTypeItem = leaveTypeItems.find((item) => item.value === selectedLeaveType);
     const shouldShowReason = selectedLeaveType === CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL;
 
-    const startDateAsDate = parseDate(startDate);
+    const startDateAsDate = DateUtils.parseCalendarDate(startDate);
     const isHourDuration = selectedDurationUnit === CONST.CHRONOS.OOO_DURATION_UNITS.HOUR;
 
     const applyDurationDays = (days: number) => {
@@ -173,8 +174,8 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             addErrorMessage(errors, INPUT_IDS.DATE, translate('chronos.dateRequired'));
         }
 
-        const start = parseDate(values[INPUT_IDS.DATE] ?? '');
-        const end = parseDate(values[INPUT_IDS.END_DATE] ?? '');
+        const start = DateUtils.parseCalendarDate(values[INPUT_IDS.DATE]);
+        const end = DateUtils.parseCalendarDate(values[INPUT_IDS.END_DATE]);
         if (start && end && differenceInCalendarDays(end, start) < 0) {
             addErrorMessage(errors, INPUT_IDS.END_DATE, translate('chronos.endDateBeforeStart'));
         }
@@ -228,7 +229,10 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             includeSafeAreaPaddingBottom
             testID="ChronosScheduleOOOPage"
         >
-            <HeaderWithBackButtonAndTitle title={translate('chronos.scheduleOOOTitle')} />
+            <HeaderWithBackButtonAndTitle
+                title={translate('chronos.scheduleOOOTitle')}
+                onBackButtonPress={Navigation.goBack}
+            />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM}
@@ -265,7 +269,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                             valueType="string"
                             label={translate('chronos.endDate')}
                             value={endDate}
-                            minDate={startDateAsDate ?? undefined}
+                            minDate={startDateAsDate}
                             onValueChange={applyEndDate}
                         />
                     </View>
@@ -313,13 +317,14 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                     </View>
                 )}
                 <View style={styles.mb4}>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        outerWrapperStyle={styles.mhn5}
-                        title={selectedLeaveTypeItem?.label ?? ''}
-                        description={translate('chronos.leaveType')}
-                        onPress={() => setIsLeaveTypeModalVisible(true)}
-                    />
+                    <View style={styles.mhn5}>
+                        <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.CHRONOS_OOO_LEAVE_TYPE_FIELD}
+                            name={translate('chronos.leaveType')}
+                            value={selectedLeaveTypeItem?.label ?? ''}
+                            onPress={() => setIsLeaveTypeModalVisible(true)}
+                        />
+                    </View>
                     <ValueSelectorModal
                         isVisible={isLeaveTypeModalVisible}
                         label={translate('chronos.leaveType')}

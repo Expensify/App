@@ -57,6 +57,7 @@ function QuickbooksCustomDimensionPage({policy, route}: QuickbooksCustomDimensio
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={dimension?.label ?? translate('workspace.accounting.import')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_CUSTOM_DIMENSION_SWITCH}
                 isActive={isSwitchOn}
                 onToggle={(isEnabled) =>
                     updateQuickbooksOnlineSyncCustomDimensions(

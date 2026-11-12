@@ -18,15 +18,18 @@ import SidebarLinks from './SidebarLinks';
 type SidebarLinksDataProps = {
     /** Safe area insets required for mobile devices margins */
     insets: EdgeInsets;
+
+    /** Header to render as the report list's first item */
+    listHeaderComponent?: React.ReactNode;
 };
 
-function SidebarLinksData({insets}: SidebarLinksDataProps) {
+function SidebarLinksData({insets, listHeaderComponent}: SidebarLinksDataProps) {
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
-    const {filteredReports, orderedReportIDs} = useSidebarOrderedReportsState();
+    const {filteredReportIDs, orderedReportIDs} = useSidebarOrderedReportsState();
 
     const onLayout = useInboxTabSpanLifecycle();
 
@@ -41,9 +44,10 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
             <SidebarLinks
                 // Forwarded props:
                 insets={insets}
+                listHeaderComponent={listHeaderComponent}
                 priorityMode={priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}
                 // Data props:
-                optionListItems={filteredReports}
+                reportIDs={filteredReportIDs}
                 hasReportData={orderedReportIDs.length > 0}
             />
         </View>

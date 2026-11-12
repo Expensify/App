@@ -117,7 +117,6 @@ function SearchTypeMenuWide() {
         <ScrollView
             onScroll={onScroll}
             ref={scrollViewRef}
-            showsVerticalScrollIndicator={false}
         >
             <View style={[styles.pb4, styles.mh3, styles.gap4]}>
                 {!!expenseReportsSection && (

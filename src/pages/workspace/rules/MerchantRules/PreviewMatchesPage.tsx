@@ -83,6 +83,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
         <UnreportedExpenseListItem
             readOnly
             showTooltip
+            policyID={policyID}
             item={{...item, keyForList: item.transactionID, errors: undefined}}
             onSelectRow={() => {}}
         />
