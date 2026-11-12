@@ -376,6 +376,15 @@ const SENTRY_LABEL = {
     },
     SEARCH: {
         SEARCH_BUTTON: 'Search-SearchButton',
+        SAVED_SEARCH_THREE_DOT_MENU_RENAME: 'Search-SavedSearchThreeDotMenuRename',
+        SAVED_SEARCH_THREE_DOT_MENU_SHARE: 'Search-SavedSearchThreeDotMenuShare',
+        SAVED_SEARCH_THREE_DOT_MENU_DELETE: 'Search-SavedSearchThreeDotMenuDelete',
+        SAVED_SEARCH_TAB_MENU_RENAME: 'Search-SavedSearchTabMenuRename',
+        SAVED_SEARCH_TAB_MENU_SHARE: 'Search-SavedSearchTabMenuShare',
+        SAVED_SEARCH_TAB_MENU_DELETE: 'Search-SavedSearchTabMenuDelete',
+        TYPE_MENU_TAB: 'Search-TypeMenuTab',
+        SAVED_SEARCH_TAB: 'Search-SavedSearchTab',
+        UNREPORTED_EXPENSE_LIST_ITEM_CHECKBOX: 'Search-UnreportedExpenseListItemCheckbox',
         TRANSACTION_GROUP_LIST_ITEM: 'Search-TransactionGroupListItem',
         TRANSACTION_LIST_ITEM: 'Search-TransactionListItem',
         REPORT_EXPAND_COLLAPSE: 'Search-ReportExpandCollapse',
@@ -685,6 +694,10 @@ const SENTRY_LABEL = {
     },
     INSIGHTS: {
         CONTROL_DATE: 'Insights-ControlDate',
+        CHART_MENU_VIEW_ON_SPEND: 'Insights-ChartMenuViewOnSpend',
+        CHART_MENU_DOWNLOAD_CSV: 'Insights-ChartMenuDownloadCSV',
+        NO_EXPENSES_CREATE_EXPENSE: 'Insights-NoExpensesCreateExpense',
+        UPSELL_UPGRADE: 'Insights-UpsellUpgrade',
         CONTROL_EXPORT: 'Insights-ControlExport',
         CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
         CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
@@ -744,6 +757,14 @@ const SENTRY_LABEL = {
     },
     REPORT: {
         FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
+        ADD_EXISTING_EXPENSE_EMPTY_STATE_CREATE_EXPENSE: 'Report-AddExistingExpenseEmptyStateCreateExpense',
+        EDIT_REPORT_FIELD_DELETE: 'Report-EditReportFieldDelete',
+        PARTICIPANTS_SELECTION_MENU: {
+            REMOVE: 'Report-ParticipantsSelectionMenu-Remove',
+            MAKE_MEMBER: 'Report-ParticipantsSelectionMenu-MakeMember',
+            MAKE_ADMIN: 'Report-ParticipantsSelectionMenu-MakeAdmin',
+        },
+        ROOM_MEMBERS_SELECTION_REMOVE: 'Report-RoomMembersSelectionRemove',
         SEND_BUTTON: 'Report-SendButton',
         ATTACHMENT_PICKER_CREATE_BUTTON: 'Report-AttachmentPickerCreateButton',
         ATTACHMENT_PICKER_EXPAND_BUTTON: 'Report-AttachmentPickerExpandButton',
@@ -894,6 +915,12 @@ const SENTRY_LABEL = {
     },
     LHN: {
         OPTION_ROW: 'LHN-OptionRow',
+        INBOX_TAB: {
+            ALL: 'LHN-InboxTab-All',
+            UNREAD: 'LHN-InboxTab-Unread',
+            TODO: 'LHN-InboxTab-Todo',
+        },
+        INBOX_TAB_MARK_ALL_AS_READ: 'LHN-InboxTabMarkAllAsRead',
     },
     OPTION_ROW: {
         BASE_LIST_ITEM: 'OptionRow-BaseListItem',
@@ -1064,6 +1091,7 @@ const SENTRY_LABEL = {
     },
     PAYMENT_METHOD_LIST_ITEM: {
         THREE_DOTS_MENU: 'PaymentMethodListItem-ThreeDotsMenu',
+        ROW: 'PaymentMethodListItem-Row',
         CHASE_ACCOUNT_HELP: 'PaymentMethodListItem-ChaseAccountHelp',
         GLOBAL_REIMBURSEMENTS_ENABLED: 'PaymentMethodListItem-GlobalReimbursementsEnabled',
     },
@@ -1120,6 +1148,9 @@ const SENTRY_LABEL = {
     },
     HOME_PAGE: {
         SECTION_EXPAND_TOGGLE_TIME_SENSITIVE: 'HomePage-SectionExpandToggle-TimeSensitive',
+        INSIGHTS_OVERFLOW_MENU_VIEW: 'HomePage-InsightsOverflowMenuView',
+        INSIGHT_TITLE_DROPDOWN_ITEM: 'HomePage-InsightTitleDropdownItem',
+        RECENTLY_ADDED_OVERFLOW_MENU_VIEW_ALL: 'HomePage-RecentlyAddedOverflowMenuViewAll',
         SECTION_EXPAND_TOGGLE_TO_DOS: 'HomePage-SectionExpandToggle-ToDos',
         SECTION_EXPAND_TOGGLE_YOUR_SPEND: 'HomePage-SectionExpandToggle-YourSpend',
         INSIGHTS_OVERFLOW_MENU: 'HomePage-InsightsOverflowMenu',
@@ -1250,6 +1281,7 @@ const SENTRY_LABEL = {
     },
     CONCIERGE_PROMPT_BOX: {
         ADD_ATTACHMENT: 'ConciergePromptBox-AddAttachment',
+        ADD_ATTACHMENT_MENU_ITEM: 'ConciergePromptBox-AddAttachmentMenuItem',
         INPUT: 'ConciergePromptBox-Input',
         SEND: 'ConciergePromptBox-Send',
     },
@@ -1354,6 +1386,8 @@ const SENTRY_LABEL = {
     },
     IOU_REQUEST_STEP: {
         DISTANCE_MAP_NEXT_BUTTON: 'IOURequestStep-DistanceMapNextButton',
+        CATEGORY_ADD_CATEGORY: 'IOURequestStep-CategoryAddCategory',
+        SUBRATE_DELETE: 'IOURequestStep-SubrateDelete',
         DISTANCE_MANUAL_NEXT_BUTTON: 'IOURequestStep-DistanceManualNextButton',
         DISTANCE_ODOMETER_NEXT_BUTTON: 'IOURequestStep-DistanceOdometerNextButton',
         DISTANCE_ODOMETER_SAVE_FOR_LATER_BUTTON: 'IOURequestStep-DistanceOdometerSaveForLaterButton',
@@ -2727,6 +2761,7 @@ const SENTRY_LABEL = {
     },
     SETTINGS_PROFILE: {
         AVATAR: 'SettingsProfile-Avatar',
+        CONTACT_METHOD_THREE_DOTS_REMOVE: 'SettingsProfile-ContactMethodThreeDotsRemove',
         DISPLAY_NAME: 'SettingsProfile-DisplayName',
         CONTACT_METHODS: 'SettingsProfile-ContactMethods',
         STATUS: 'SettingsProfile-Status',
@@ -2787,6 +2822,15 @@ const SENTRY_LABEL = {
             WORKSPACE: 'SettingsWallet-AddCompanyCards-Workspace',
             WORKSPACES_LIST: 'SettingsWallet-AddCompanyCards-WorkspacesList',
         },
+        BANK_ACCOUNT_MENU_MAKE_DEFAULT: 'SettingsWallet-BankAccountMenuMakeDefault',
+        BANK_ACCOUNT_MENU_ENABLE_GLOBAL_REIMBURSEMENTS: 'SettingsWallet-BankAccountMenuEnableGlobalReimbursements',
+        BANK_ACCOUNT_MENU_EDIT_NICKNAME: 'SettingsWallet-BankAccountMenuEditNickname',
+        BANK_ACCOUNT_MENU_SHARE: 'SettingsWallet-BankAccountMenuShare',
+        BANK_ACCOUNT_MENU_UNSHARE: 'SettingsWallet-BankAccountMenuUnshare',
+        BANK_ACCOUNT_MENU_DELETE: 'SettingsWallet-BankAccountMenuDelete',
+        CARD_MENU_VIEW_TRANSACTIONS: 'SettingsWallet-CardMenuViewTransactions',
+        CARD_MENU_IMPORT_SPREADSHEET: 'SettingsWallet-CardMenuImportSpreadsheet',
+        CARD_MENU_DELETE: 'SettingsWallet-CardMenuDelete',
         ADD_TRANSFER_BANK_ACCOUNT: 'SettingsWallet-AddTransferBankAccount',
         ADD_TRANSFER_DEBIT_CARD: 'SettingsWallet-AddTransferDebitCard',
         BANK_ACCOUNT_COUNTRY_NEXT: 'SettingsWallet-BankAccountCountryNext',
@@ -2836,6 +2880,8 @@ const SENTRY_LABEL = {
     },
     SETTINGS_RULES: {
         BULK_ACTIONS: 'SettingsRules-BulkActions',
+        BULK_ACTIONS_MENU_EDIT: 'SettingsRules-BulkActionsMenuEdit',
+        BULK_ACTIONS_MENU_DELETE: 'SettingsRules-BulkActionsMenuDelete',
         ADD_TO_REPORT: 'SettingsRules-AddToReport',
         BILLABLE: 'SettingsRules-Billable',
         CATEGORY: 'SettingsRules-Category',
@@ -2858,6 +2904,10 @@ const SENTRY_LABEL = {
     },
     SETTINGS_SUBSCRIPTION: {
         EXPLORE_PLANS: 'SettingsSubscription-ExplorePlans',
+        PAYMENT_CARD_MENU_ITEM: {
+            CHANGE_CARD: 'SettingsSubscription-PaymentCardMenuItem-ChangeCard',
+            CHANGE_CURRENCY: 'SettingsSubscription-PaymentCardMenuItem-ChangeCurrency',
+        },
         SAVE_WITH_EXPENSIFY: 'SettingsSubscription-SaveWithExpensify',
         RETRY_PAYMENT: 'SettingsSubscription-RetryPayment',
         AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
@@ -3090,6 +3140,8 @@ const SENTRY_LABEL = {
     },
     AGENTS: {
         BULK_ACTIONS: 'Agents-BulkActions',
+        BULK_ACTIONS_DELETE: 'Agents-BulkActionsDelete',
+        EMPTY_STATE_NEW_AGENT: 'Agents-EmptyStateNewAgent',
         NEW_AGENT: 'Agents-NewAgent',
         TABLE_ROW: 'Agents-TableRow',
         CHAT: 'Agents-Chat',
@@ -3151,6 +3203,10 @@ const SENTRY_LABEL = {
         },
         MEMBERS: {
             VACATION_DELEGATE: 'DomainMembers-VacationDelegate',
+            BULK_ACTIONS_MENU_CLOSE_ACCOUNT: 'DomainMembers-BulkActionsMenuCloseAccount',
+            BULK_ACTIONS_MENU_MOVE_TO_GROUP: 'DomainMembers-BulkActionsMenuMoveToGroup',
+            MORE_MENU_SETTINGS: 'DomainMembers-MoreMenuSettings',
+            MORE_MENU_DOWNLOAD_CSV: 'DomainMembers-MoreMenuDownloadCSV',
             ROW: 'DomainMembers-Row',
             ADD_MEMBER: 'DomainMembers-AddMember',
             BULK_ACTIONS_DROPDOWN: 'DomainMembers-BulkActionsDropdown',

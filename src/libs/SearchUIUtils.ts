@@ -5094,9 +5094,11 @@ function getOverflowMenu(
     closeMenu?: () => void,
     shareProps?: ShareProps,
 ) {
+    // The mobile menu opens on long-press of a saved search tab, the other one from the saved search's three-dot button
     return [
         {
             text: translate('common.rename'),
+            sentryLabel: isMobileMenu ? CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_TAB_MENU_RENAME : CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU_RENAME,
             onSelected: () => {
                 if (isMobileMenu && closeMenu) {
                     closeMenu();
@@ -5110,6 +5112,7 @@ function getOverflowMenu(
         },
         {
             text: shareProps?.isCopied ? translate('search.urlCopied') : translate('common.share'),
+            sentryLabel: isMobileMenu ? CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_TAB_MENU_SHARE : CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU_SHARE,
             onSelected: () => {
                 shareProps?.onShare();
             },
@@ -5123,6 +5126,7 @@ function getOverflowMenu(
         },
         {
             text: translate('common.delete'),
+            sentryLabel: isMobileMenu ? CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_TAB_MENU_DELETE : CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU_DELETE,
             onSelected: () => {
                 if (isMobileMenu && closeMenu) {
                     closeMenu();
@@ -5278,6 +5282,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                                   {
                                       buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       buttonText: 'report.newReport.createExpense',
+                                      sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.CREATE_EXPENSE,
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
                                               startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);

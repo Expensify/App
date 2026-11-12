@@ -163,6 +163,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   return {
                       key: savedSearchKey,
+                      sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_TAB,
                       icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? SAVED_SEARCH_FALLBACK_ICON_NAME],
                       title,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -185,6 +186,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                 tabItems.push({
                     key: item.key,
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB,
                     icon: expensifyIcons[item.icon],
                     title,
                     badgeText,
