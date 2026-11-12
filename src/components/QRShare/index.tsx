@@ -41,9 +41,11 @@ function QRShare({
 }: QRShareProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    // The box is sized to the RHP's default width, so it has to tell full-screen mobile apart from an RHP, which shouldUseNarrowLayout lumps together
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.rhpWidth;
+    const qrCodeContainerWidth = isSmallScreenWidth ? windowWidth : variables.rhpWidth;
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
 
     const landscapeQrCodeSize = isInLandscapeMode ? Math.min(QR_CODE_LANDSCAPE_SIZE_RATIO * windowHeight, MAX_QR_CODE_LANDSCAPE_SIZE) : undefined;
@@ -68,7 +70,7 @@ function QRShare({
 
     return (
         <View
-            style={[styles.shareCodeContainer, additionalStyles]}
+            style={[styles.shareCodeContainer, !isSmallScreenWidth && styles.shareCodeContainerWideLayout, additionalStyles]}
             onLayout={onLayout}
         >
             {shouldShowExpensifyLogo && (

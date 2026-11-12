@@ -5,7 +5,7 @@ import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/Wid
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
-import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
+import RHP_FLOATING_CARD_INSET, {RHP_FLOATING_CARD_BORDERS_WIDTH} from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import {getSidePanelWidthStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
@@ -5192,6 +5192,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 2,
         },
 
+        shareCodeContainerWideLayout: {
+            maxWidth: variables.rhpWidth - spacing.ph5.paddingHorizontal * 2,
+            alignSelf: 'center',
+        },
+
         shareCodeContainerDownloadPadding: {
             paddingHorizontal: 12,
             paddingVertical: 12,
@@ -7337,7 +7342,15 @@ const dynamicStyles = (theme: ThemeColors) =>
                   }
                 : flex.flex1) satisfies ViewStyle,
 
-        // Straddles the left edge of the single RHP card (RHPFloatingCard), which shares its containing block.
+        // Sized like the lone floating card, so a drag paints its width through the CSS variable and the handle sits on its left edge.
+        resizableSingleRHPExtendedCardInterpolatorStyles: (singleRHPWidth: number) =>
+            ({
+                ...getRHPExtendedCardFrame(theme),
+                // Border-box card, so the border is added back on top of the width or the content gets clipped.
+                width: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_BORDERS_WIDTH),
+            }) satisfies ViewStyle,
+
+        // Straddles the left edge of the single RHP card, whether floating alone (RHPFloatingCard) or stacked on a wide card, both flush with the same right margin.
         rhpResizeHandle: (singleRHPWidth: number) =>
             ({
                 ...positioning.pAbsolute,
