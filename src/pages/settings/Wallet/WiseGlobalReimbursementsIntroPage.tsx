@@ -32,13 +32,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 
-function getSubtitleTranslationKey(isPayingReport: boolean, isPayingMultipleReports: boolean) {
-    if (isPayingMultipleReports) {
-        return 'walletPage.wiseGlobalReimbursementsIntro.payingMultipleReportsSubtitle';
-    }
-    return isPayingReport ? 'walletPage.wiseGlobalReimbursementsIntro.payingReportSubtitle' : 'walletPage.wiseGlobalReimbursementsIntro.subtitle';
-}
-
 type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO>;
 
 function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntroPageProps) {
@@ -93,7 +86,9 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                         />
                         <ConfirmationPage.Heading>{translate('walletPage.wiseGlobalReimbursementsIntro.title')}</ConfirmationPage.Heading>
                         <ConfirmationPage.Description style={styles.textSupporting}>
-                            {translate(getSubtitleTranslationKey(isPayingReport, isPayingMultipleReports))}
+                            {isPayingMultipleReports
+                                ? translate('walletPage.wiseGlobalReimbursementsIntro.payingMultipleReportsSubtitle')
+                                : translate(isPayingReport ? 'walletPage.wiseGlobalReimbursementsIntro.payingReportSubtitle' : 'walletPage.wiseGlobalReimbursementsIntro.subtitle')}
                         </ConfirmationPage.Description>
                     </ConfirmationPage.Content>
                     <FixedFooter>
