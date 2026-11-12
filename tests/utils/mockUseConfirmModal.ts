@@ -101,16 +101,8 @@ function createMockModalContextModule() {
     };
 }
 
+/** @public Read only through `jest.requireActual` in tests, which knip cannot see. Remove this tag together with the last such call. */
 export default createMockUseConfirmModalModule();
-export {
-    createMockUseConfirmModalModule,
-    createMockModalContextModule,
-    mockShowConfirmModal,
-    mockCloseModal,
-    mockCloseModalByID,
-    getShowConfirmModalOption,
-    resetMockConfirmModal,
-    resolveShowConfirmModal,
-    MockModalActions,
-};
-export type {ShowConfirmModalOptions, ShowConfirmModalResult};
+/** @public Read only through `jest.requireActual` in tests, which knip cannot see. Remove this tag together with the last such call. */
+export {createMockModalContextModule};
+export {mockShowConfirmModal, mockCloseModal, mockCloseModalByID, getShowConfirmModalOption, resetMockConfirmModal, resolveShowConfirmModal, MockModalActions};
