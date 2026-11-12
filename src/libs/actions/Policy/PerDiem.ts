@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {QuickAction} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
-import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -229,7 +229,7 @@ function isEverySubRateSelected(customUnit: CustomUnit, subRatesToBeDeleted: Sub
  * Builds the targeted updates for deleting a subset of subrates: the changed parent rates to send, the destination IDs
  * to remove, and the matching optimistic and failure Onyx data.
  */
-function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[]) {
+function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[], error: Errors) {
     const mappedDeletedSubRatesToRate = subRatesToBeDeleted.reduce(
         (acc, subRate) => {
             if (subRate.rateID in acc) {
@@ -246,7 +246,6 @@ function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDelete
     const failureRates: Record<string, NullishDeep<Rate>> = {};
     const customUnitRateUpdates: Record<string, Rate> = {};
     const customUnitRateIDs: string[] = [];
-    const error = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
     for (const [rateID, subRates] of Object.entries(mappedDeletedSubRatesToRate)) {
         const currentRate = customUnit.rates[rateID];
         if (!currentRate) {
@@ -297,6 +296,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
     if (!policyID || isEmptyObject(customUnit) || !subRatesToBeDeleted.length) {
         return;
     }
+    const error = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
     let parameters: UpdateWorkspaceCustomUnitParams;
     let optimisticRates: Record<string, NullishDeep<Rate> | null>;
     let failureRates: Record<string, NullishDeep<Rate>>;
@@ -314,13 +314,13 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
         if (firstSelectedSubRate && firstSelectedRate) {
             failureRates[firstSelectedSubRate.rateID] = {
                 ...firstSelectedRate,
-                errors: undefined,
-                errorFields: {[firstSelectedSubRate.subRateID]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                errors: null,
+                errorFields: {[firstSelectedSubRate.subRateID]: error},
                 pendingAction: null,
             };
         }
     } else {
-        const targetedUpdates = prepareCustomUnitRateUpdates(customUnit, subRatesToBeDeleted);
+        const targetedUpdates = prepareCustomUnitRateUpdates(customUnit, subRatesToBeDeleted, error);
         if (!Object.keys(targetedUpdates.optimisticRates).length) {
             return;
         }
