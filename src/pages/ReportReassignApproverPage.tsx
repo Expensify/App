@@ -14,6 +14,7 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePressLoading from '@hooks/usePressLoading';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
@@ -60,11 +61,13 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '', undefined, reportTransactions);
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const canMemberReassignApprover = currentUserDetails.accountID === report.managerID && !areStrictPolicyRulesEnabled;
 
     const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) ||
-        !isPolicyAdmin(policy) ||
+        (!isPolicyAdmin(policy) && !canMemberReassignApprover) ||
         isPendingDeletePolicy(policy) ||
         !isMoneyRequestReport(report) ||
         isMoneyRequestReportPendingDeletion(report) ||
@@ -178,6 +181,7 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
             shouldShowNotFoundViewLink={false}
             shouldShowNotFoundView={shouldShowNotFoundView}
             allApprovers={allApprovers}
+            shouldRequirePolicyAdmin={!canMemberReassignApprover}
             listEmptyContentSubtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
             allowMultipleSelection={false}
             onSelectApprover={toggleApprover}

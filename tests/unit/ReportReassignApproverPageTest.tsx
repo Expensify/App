@@ -2,13 +2,20 @@ import {act, render} from '@testing-library/react-native';
 
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
+import SelectionList from '@components/SelectionList';
 
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
+
+import Navigation from '@libs/Navigation/Navigation';
 import {isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 
+import DynamicReportChangeApproverPage from '@pages/DynamicReportChangeApproverPage';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {ReportReassignApproverPage} from '@pages/ReportReassignApproverPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 
 import React from 'react';
@@ -27,6 +34,21 @@ const SUBMITTER_EMAIL = 'submitter@test.com';
 const ELIGIBLE_APPROVER_EMAIL = 'eligible-approver@test.com';
 
 jest.mock('@components/ApproverSelectionList', () => jest.fn(() => null));
+jest.mock(
+    '@components/ScreenWrapper',
+    () =>
+        ({children}: {children: React.ReactNode}) =>
+            children,
+);
+jest.mock('@components/HeaderWithBackButton', () => () => null);
+jest.mock('@components/RenderHTML', () => () => null);
+jest.mock('@components/SelectionList', () => jest.fn(() => null));
+jest.mock('@pages/ErrorPage/NotFoundPage', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/withReportOrNotFound', () => () => (component: React.ComponentType) => component);
+jest.mock('@hooks/useDynamicBackPath', () => () => '');
+jest.mock('@hooks/useEnvironment', () => () => ({environmentURL: ''}));
+jest.mock('@hooks/useStrictPolicyRules', () => jest.fn(() => ({areStrictPolicyRulesEnabled: false})));
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({
     accountID: CURRENT_USER_ACCOUNT_ID,
@@ -59,6 +81,7 @@ jest.mock('@libs/ReportUtils', () => {
 
 const mockApproverSelectionList = jest.mocked(ApproverSelectionList);
 const mockIsAllowedToApproveExpenseReport = jest.mocked(isAllowedToApproveExpenseReport);
+const mockUseStrictPolicyRules = jest.mocked(useStrictPolicyRules);
 
 const report = createMock<Report>({
     reportID: '910100',
@@ -67,6 +90,7 @@ const report = createMock<Report>({
     managerID: CURRENT_MANAGER_ACCOUNT_ID,
     ownerAccountID: SUBMITTER_ACCOUNT_ID,
     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
 });
 
 function buildPolicy(role: Policy['role'] = CONST.POLICY.ROLE.ADMIN): Policy {
@@ -117,7 +141,88 @@ describe('ReportReassignApproverPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseStrictPolicyRules.mockReturnValue({
+            areStrictPolicyRulesEnabled: false,
+        });
         mockIsAllowedToApproveExpenseReport.mockImplementation((_report, accountID) => accountID !== SUBMITTER_ACCOUNT_ID);
+    });
+
+    it.each([
+        {
+            role: CONST.POLICY.ROLE.USER,
+            isCurrentApprover: true,
+            strictRules: false,
+            isAllowed: true,
+        },
+        {
+            role: CONST.POLICY.ROLE.USER,
+            isCurrentApprover: true,
+            strictRules: true,
+            isAllowed: false,
+        },
+        {
+            role: CONST.POLICY.ROLE.USER,
+            isCurrentApprover: false,
+            strictRules: false,
+            isAllowed: false,
+        },
+        {
+            role: CONST.POLICY.ROLE.ADMIN,
+            isCurrentApprover: false,
+            strictRules: false,
+            isAllowed: true,
+        },
+        {
+            role: CONST.POLICY.ROLE.ADMIN,
+            isCurrentApprover: true,
+            strictRules: true,
+            isAllowed: true,
+        },
+    ])('checks reassignment access for $role with current approver=$isCurrentApprover and strict rules=$strictRules', ({role, isCurrentApprover, strictRules, isAllowed}) => {
+        // Given the user's workspace role, report assignment, and domain restrictions
+        mockUseStrictPolicyRules.mockReturnValue({
+            areStrictPolicyRulesEnabled: strictRules,
+        });
+        const currentReport = {
+            ...report,
+            managerID: isCurrentApprover ? CURRENT_USER_ACCOUNT_ID : CURRENT_MANAGER_ACCOUNT_ID,
+        };
+
+        // When the user opens the reassignment page directly
+        renderPage(buildPolicy(role), currentReport);
+
+        // Then both the page and its shared list enforce the same permission
+        const props = mockApproverSelectionList.mock.calls.at(-1)?.[0];
+        expect(props?.shouldShowNotFoundView).toBe(!isAllowed);
+        if (role === CONST.POLICY.ROLE.USER && isAllowed) {
+            expect(props?.shouldRequirePolicyAdmin).toBe(false);
+        }
+    });
+
+    it.each([CONST.POLICY.ROLE.USER, CONST.POLICY.ROLE.ADMIN])('offers only permitted approver actions for %s', (role) => {
+        // Given a current approver whose domain does not enforce strict rules
+        const currentReport = {...report, managerID: CURRENT_USER_ACCOUNT_ID};
+
+        // When they open the change approver menu
+        render(
+            <DynamicReportChangeApproverPage
+                // @ts-expect-error Only the report, policy, and loading state are read by the unwrapped page.
+                route={{params: {reportID: report.reportID}}}
+                report={currentReport}
+                policy={buildPolicy(role)}
+                isLoadingReportData={false}
+            />,
+        );
+
+        // Then members can only reassign, while admins retain all three actions
+        expect(NotFoundPage).not.toHaveBeenCalled();
+        const props = jest.mocked(SelectionList).mock.calls.at(-1)?.[0];
+        expect(props?.data?.map((option) => option.keyForList)).toEqual(role === CONST.POLICY.ROLE.ADMIN ? ['addApprover', 'bypassApprover', 'reassignApprover'] : ['reassignApprover']);
+        if (role === CONST.POLICY.ROLE.USER) {
+            expect(props?.data?.at(0)?.isSelected).toBe(true);
+            act(() => props?.confirmButtonOptions?.onConfirm?.());
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(report.reportID));
+        }
     });
 
     it('only lists members who can replace the current approver', () => {
