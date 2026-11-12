@@ -3904,7 +3904,7 @@ function getWeekSections(
                 continue;
             }
             const rawRange = getGroupDateRange(CONST.SEARCH.GROUP_BY.WEEK, weekGroup);
-            // The week's dates are also its label, so a group without a valid week has nothing to show
+            // The week's dates are also its label, so a group without a week has nothing to show
             if (!rawRange) {
                 continue;
             }
