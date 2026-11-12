@@ -79,7 +79,7 @@ type UseSearchSelectorConfig<TSelected extends Option = OptionData> = {
     onSingleSelect?: (option: SelectedOption<TSelected>) => void;
 
     /** Initial selected options */
-    initialSelected?: TSelected[];
+    initialSelected?: readonly TSelected[];
 
     shouldInitialize?: boolean;
 
@@ -200,7 +200,7 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
     const {isBetaEnabled} = usePermissions();
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<Array<SelectedOption<TSelected>>>(initialSelected ?? []);
+    const [selectedOptions, setSelectedOptions] = useState<Array<SelectedOption<TSelected>>>(() => [...(initialSelected ?? [])]);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});

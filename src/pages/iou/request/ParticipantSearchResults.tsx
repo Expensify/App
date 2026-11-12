@@ -203,7 +203,7 @@ function ParticipantSearchResults({
     const includeOwnedWorkspaceChats = !shouldExcludeWorkspaces && canUseWorkspaceChats;
 
     const getValidOptionsConfig = {
-        selectedOptions: [...participants],
+        selectedOptions: participants,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeOwnedWorkspaceChats,
         excludeWorkspacesWithoutCreateExpensePermission: canUseWorkspaceChats,
@@ -273,7 +273,7 @@ function ParticipantSearchResults({
             shouldInitialize: didScreenTransitionEnd,
             enablePhoneContacts: isNative,
             contactOptions: contacts,
-            initialSelected: [...participants],
+            initialSelected: participants,
             onSelectionChange: handleSelectionChange,
             onSingleSelect: (option: Participant | OptionData) => {
                 if (isIOUSplit) {
@@ -318,7 +318,7 @@ function ParticipantSearchResults({
     let header = '';
     if (areOptionsInitialized && didScreenTransitionEnd) {
         const selectedParticipantKeys = new Set(participants.map((participant) => getParticipantOptionKey(participant)).filter(Boolean));
-        const formatResults = formatSelectedParticipantsFromSearchTerm(searchTerm, [...participants], {
+        const formatResults = formatSelectedParticipantsFromSearchTerm(searchTerm, participants, {
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,

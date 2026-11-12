@@ -936,7 +936,7 @@ function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
  * @param selectedOptions - Array of selected options to compare with.
  * @returns true if the report option matches any of the selected options by accountID or reportID, false otherwise.
  */
-function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array<Partial<SearchOptionData>>) {
+function isReportSelected(reportOption: SearchOptionData, selectedOptions: ReadonlyArray<Partial<SearchOptionData>>) {
     if (!selectedOptions || selectedOptions.length === 0) {
         return false;
     }
@@ -3018,13 +3018,13 @@ type SelectedOptionDetailsParams = {
  * If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
  * This will add them to the list of options, deduping them if they already exist in the other lists
  */
-function getSelectedOptionsForSearchTerm<TOption extends Participant | SearchOptionData>(
+function getSelectedOptionsForSearchTerm<TOptions extends ReadonlyArray<Participant | SearchOptionData>>(
     searchTerm: string,
-    selectedOptions: TOption[],
+    selectedOptions: TOptions,
     listedOptions: SearchOptionData[],
     currentUserAccountID: number,
     translate: LocalizedTranslate,
-): TOption[] {
+): TOptions | Array<TOptions[number]> {
     if (searchTerm === '') {
         return selectedOptions;
     }
@@ -3129,7 +3129,7 @@ function formatSectionsFromSearchTerm(
 /**
  * Returns the section of selected IOU participants for the search term, each with its option details
  */
-function formatSelectedParticipantsFromSearchTerm(searchTerm: string, participants: Participant[], params: SelectedOptionDetailsParams): SectionForSearchTerm {
+function formatSelectedParticipantsFromSearchTerm(searchTerm: string, participants: readonly Participant[], params: SelectedOptionDetailsParams): SectionForSearchTerm {
     const options = getSelectedOptionsForSearchTerm(searchTerm, participants, [], params.currentUserAccountID, params.translate);
     return {
         section: {
