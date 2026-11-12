@@ -1,4 +1,5 @@
-/** Keep chat effects unmounted during app loading, except for the Concierge welcome screen. */
+/** Keep chat effects unmounted during the initial app load, except for the Concierge welcome screen. */
+
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useInitial from '@hooks/useInitial';
 import useNetwork from '@hooks/useNetwork';

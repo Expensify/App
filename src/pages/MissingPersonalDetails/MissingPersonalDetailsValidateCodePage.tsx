@@ -29,7 +29,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsForm} from '@src/types/form';
 import type {CardList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -94,7 +93,7 @@ function MissingPersonalDetailsValidateCodePage({
         clearPersonalDetailsErrors();
     };
 
-    const values = normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm;
+    const values = normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues));
 
     const handleSubmitForm = (validateCode: string) => {
         if (isVirtualCard) {

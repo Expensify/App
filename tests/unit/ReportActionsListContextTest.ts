@@ -59,6 +59,24 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
 }
 
 describe('computeReportActionsSkeletonState', () => {
+    it('keeps a displayed unread action visible while its report refreshes', () => {
+        // Given a cached unread action has already been displayed before reconnecting.
+        const signals = createReadinessSignals({
+            report: unreadReport,
+            hasOnceLoadedReportActions: true,
+            reportActionsLength: 1,
+            isMissingReportActions: false,
+            isReportLoadPending: true,
+            isLoadingInitialReportActions: true,
+        });
+
+        // When OpenReport refreshes that report after reconnecting.
+        const state = computeReportActionsSkeletonState(signals);
+
+        // Then the existing list keeps its viewport instead of remounting behind a skeleton.
+        expect(state.shouldShowLoadingSkeleton).toBe(false);
+    });
+
     it('shows the loading skeleton while OpenReport is pending for actions without a loaded page', () => {
         // Given a read chat whose only cached actions came without a page, e.g. from OpenApp after a cache clear
         const signals = createReadinessSignals({
