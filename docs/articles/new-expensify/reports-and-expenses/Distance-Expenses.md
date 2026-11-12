@@ -176,7 +176,7 @@ When **Exclude commutes** is set to **Remove fixed distance**:
 - The fixed distance is subtracted separately from each distance expense, even if you create multiple expenses on the same day.
 - On each distance expense, you'll see a message confirming the portion that was removed, such as "removed 3.6 commute miles".
 
-When **Exclude commutes** is set to **Exclude usual commute**, your home address, the workspace's office reference, and your work arrangement determine the exclusion:
+When **Exclude commutes** is set to **Exclude usual commute**, your home address, the workspace's company address, and your work arrangement determine the exclusion:
 
 - **Office-based:** Direct home-to-office and office-to-home trips have no reimbursable distance. For home-to-client or client-to-home trips, your usual one-way commute is subtracted from the actual route distance.
 - **Remote or mobile:** You have no regular workplace, so home-and-office commute exclusions do not apply.
