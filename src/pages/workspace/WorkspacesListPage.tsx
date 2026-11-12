@@ -369,9 +369,22 @@ function WorkspacesListPage() {
                     value: type,
                     text: translate('workspace.common.exportMembers'),
                     icon: icons.Export,
+                    shouldSkipFocusRestore: true,
                     onSelected: () => {
-                        queueBulkExportPolicyMembers(policyIDs);
-                        clearSelection();
+                        if (policyIDs.length === selectedRows.length) {
+                            queueBulkExportPolicyMembers(policyIDs);
+                            clearSelection();
+                            return;
+                        }
+                        close(() =>
+                            confirmBulkAction(
+                                policyIDs,
+                                translate('workspace.common.exportMembers'),
+                                translate('common.export'),
+                                () => queueBulkExportPolicyMembers(policyIDs),
+                                CONST.BUTTON_VARIANT.SUCCESS,
+                            ),
+                        );
                     },
                 };
             case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER:

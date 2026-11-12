@@ -850,9 +850,17 @@ async function checkBulkTransferPolicyBillingOwner(policyIDs: string[]): Promise
 }
 
 function queueBulkTransferPolicyBillingOwner(policyIDs: string[]) {
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = policyIDs.map((policyID) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        value: {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+        },
+    }));
+
     const params: QueueBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(',')};
 
-    API.write(WRITE_COMMANDS.QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER, params);
+    API.write(WRITE_COMMANDS.QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER, params, {failureData});
 }
 
 function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {

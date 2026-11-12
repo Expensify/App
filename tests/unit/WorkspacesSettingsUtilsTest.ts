@@ -1,6 +1,7 @@
 import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
 import {
     getBrickRoadForPolicy,
+    getBulkActionSkippedNotice,
     getBulkArchiveWorkspacesConfirmationPrompt,
     getBulkLeaveWorkspacesConfirmationPrompt,
     getChatTabBrickRoad,
@@ -351,6 +352,28 @@ describe('WorkspacesSettingsUtils', () => {
 
             // Then the payer warning comes after the warnings for the workspaces being left
             expect(prompt).toBe(`common.leaveWorkspaceConfirmation\n${CONST.DOT_SEPARATOR} Member 1\n\ncommon.leaveWorkspaceReimburser\n${CONST.DOT_SEPARATOR} Payer 1`);
+        });
+    });
+
+    describe('getBulkActionSkippedNotice', () => {
+        const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => [path, ...parameters].join(':');
+
+        it('names the skipped workspaces and how many the action applies to', () => {
+            // Given an action that applies to one of three selected workspaces
+            // When the notice is built
+            const notice = getBulkActionSkippedNotice(1, 3, ['Skipped 1', 'Skipped 2'], translate);
+
+            // Then it says how many workspaces the action covers and lists the ones it leaves out
+            expect(notice).toBe('workspace.common.bulkActionAppliesTo:1:3 workspace.common.bulkActionSkippedWorkspaces:Skipped 1, Skipped 2');
+        });
+
+        it('is empty when the action applies to every selected workspace', () => {
+            // Given an action that skips none of the selected workspaces
+            // When the notice is built
+            const notice = getBulkActionSkippedNotice(2, 2, [], translate);
+
+            // Then there is nothing to tell the user
+            expect(notice).toBe('');
         });
     });
 

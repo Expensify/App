@@ -2052,4 +2052,23 @@ describe('actions/PolicyMember', () => {
             expect(transferablePolicyIDs).toBeUndefined();
         });
     });
+
+    describe('queueBulkTransferPolicyBillingOwner', () => {
+        it('shows an error on each workspace when the request fails', async () => {
+            // Given two workspaces whose billing the user is taking over
+            const firstPolicy = {...createRandomPolicy(1), id: 'bulkTransfer1', errors: undefined};
+            const secondPolicy = {...createRandomPolicy(2), id: 'bulkTransfer2', errors: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${firstPolicy.id}`, firstPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${secondPolicy.id}`, secondPolicy);
+
+            // When the transfer request fails
+            mockFetch?.fail?.();
+            Member.queueBulkTransferPolicyBillingOwner([firstPolicy.id, secondPolicy.id]);
+            await waitForBatchedUpdates();
+
+            // Then both workspaces show an error, since nothing else tells the user the transfer didn't go through
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${firstPolicy.id}`))?.errors).toBeTruthy();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${secondPolicy.id}`))?.errors).toBeTruthy();
+        });
+    });
 });
