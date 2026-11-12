@@ -502,9 +502,9 @@ describe('insightsQueries', () => {
             // When the headline chart's query is built to stop at today
             const chartQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters, undefined, '2026-10-08');
 
-            // Then it keeps the date range and only takes expenses dated before tomorrow
+            // Then it keeps the date range and only takes expenses dated up to and including today
             expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}:${CONST.SEARCH.DATE_PRESETS.THIS_YEAR}`);
-            expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<2026-10-09`);
+            expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-10-08`);
         });
 
         it('adds nothing when the date range already ends by today', () => {

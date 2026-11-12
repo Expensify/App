@@ -46,13 +46,15 @@ function getDayAfter(date: Date): string {
     return format(addDays(date, 1), CONST.DATE.FNS_FORMAT_STRING);
 }
 
-/** Builds the filter that leaves out expenses dated after `lastDay`, or nothing when the date range already ends by then. */
-function buildStopAtDayFormValues(date: InsightsFilters['date'], lastDay: string): Partial<SearchAdvancedFiltersForm> {
-    const {end} = getInsightsDateRange(date);
-    if (!end || end <= lastDay) {
+/** Builds the filter that narrows the date range to the days the chart has data for: from `trackedFrom` when the range starts earlier, through `lastDay` when it ends later. */
+function buildDataDaysFormValues(date: InsightsFilters['date'], lastDay: string, trackedFrom: string | undefined): Partial<SearchAdvancedFiltersForm> {
+    const {start, end} = getInsightsDateRange(date);
+    const from = trackedFrom && (!start || start < trackedFrom) ? trackedFrom : undefined;
+    const to = end && end > lastDay ? lastDay : undefined;
+    if (!from && !to) {
         return {};
     }
-    return {[FILTER_KEYS.DATE_BEFORE]: getDayAfter(parseISO(lastDay))};
+    return {[FILTER_KEYS.DATE_RANGE]: getRangeQueryValue(from, to)};
 }
 
 /** Builds the page's filters in the shape a search query is built from. Leaves the workspaces out when none are selected, which reports on all of them. */
@@ -104,13 +106,13 @@ function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
     return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy as SearchGroupBy, compare: filters.compare});
 }
 
-/** Builds a chart's query with the page's filters applied. `lastDay` (yyyy-MM-dd) leaves out expenses dated after it, for charts on the expense date whose query goes to Search instead of GetInsights. */
+/** Builds a chart's query with the page's filters applied. `lastDay` (yyyy-MM-dd) is for queries that go to Search instead of GetInsights: it leaves out expenses dated after it and before the chart's `trackedFrom`, so Search lists what the chart plots. Applies to charts on the expense date only. */
 function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode, lastDay?: string): SearchQueryString {
     const isExpenseDateChart = !chart.dateFilterKey || chart.dateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
     const query = buildQueryStringFromFilterFormValues(
         {
             ...buildFilterFormValues(filters, true, chart.dateFilterKey),
-            ...(!!lastDay && isExpenseDateChart && buildStopAtDayFormValues(filters.date, lastDay)),
+            ...(!!lastDay && isExpenseDateChart && buildDataDaysFormValues(filters.date, lastDay, chart.trackedFrom)),
             has: chart.has,
             groupBy: chart.groupBy ?? getQueryGroupBy(filters),
             view: chart.view,

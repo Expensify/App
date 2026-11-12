@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
-import {getDateFilterRange} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getDateFilterRange} from '@libs/SearchQueryUtils';
 
 import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
@@ -32,6 +32,7 @@ import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
+import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
 import {doesRangeStartBeforeTracking} from '@pages/Insights/insightsTrackedFrom';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
@@ -183,6 +184,14 @@ function InsightsChartWidget({
             />
         ) : null;
 
+    const openOnSpend = () => {
+        const queryJSONForSearch = buildSearchQueryJSON(applyInsightsFilters(chart, filters, undefined, today)) ?? queryJSON;
+        if (!queryJSONForSearch) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSONForSearch)}));
+    };
+
     const headerMenu =
         !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && supportsDrillIn)) ? (
             <WidgetHeaderMenu
@@ -195,7 +204,7 @@ function InsightsChartWidget({
                               {
                                   text: translate('insightsPage.viewOnSpend'),
                                   icon: icons.Expand,
-                                  onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
+                                  onSelected: openOnSpend,
                                   shouldCallAfterModalHide: true,
                               },
                           ]
