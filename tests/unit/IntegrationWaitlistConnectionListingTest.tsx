@@ -94,7 +94,7 @@ describe('Coming-soon integrations in unified Connections', () => {
         expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();
 
         await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, '2026-10-15 10:00:00'));
-        expect(screen.getByLabelText('Exact Online, Coming soon, You’re on the waitlist')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Exact Online, Coming soon, On waitlist')).toBeOnTheScreen();
 
         await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, null));
         expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();

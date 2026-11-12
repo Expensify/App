@@ -1,8 +1,8 @@
 /** Account-wide waitlist signup for an integration before its accounting connector is available. */
 import Button from '@components/Button';
-import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,8 +21,8 @@ import React, {useEffect, useRef} from 'react';
 import useIntegrationWaitlist from './useIntegrationWaitlist';
 
 const SENTRY_LABELS = {
-    [CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.EXACT_ONLINE_WAITLIST_BUTTON,
-    [CONST.POLICY.CONNECTIONS.NAME.ODOO]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ODOO_WAITLIST_BUTTON,
+    [CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.JOIN_WAITLIST.EXACT_ONLINE,
+    [CONST.POLICY.CONNECTIONS.NAME.ODOO]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.JOIN_WAITLIST.ODOO,
 } satisfies Record<WaitlistIntegration, string>;
 
 type IntegrationWaitlistButtonProps = {
@@ -34,6 +34,7 @@ function IntegrationWaitlistButton({integration, policy}: IntegrationWaitlistBut
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const {signupTimestamp, pendingAction, errors} = useIntegrationWaitlist(integration);
     const isJoiningWaitlist = useRef(false);
@@ -53,16 +54,14 @@ function IntegrationWaitlistButton({integration, policy}: IntegrationWaitlistBut
 
         isJoiningWaitlist.current = false;
         showConfirmModal({
-            title: translate('workspace.accounting.integrationWaitlist.onWaitlist'),
+            title: translate('workspace.accounting.integrationWaitlist.addedToWaitlist'),
             prompt: translate('workspace.accounting.integrationWaitlist.waitlistDescription'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
     }, [errors, pendingAction, showConfirmModal, signupTimestamp, translate]);
 
-    if (signupTimestamp && !pendingAction) {
-        return <Text style={[styles.textSupporting, styles.flexShrink1, styles.textAlignRight]}>{translate('workspace.accounting.integrationWaitlist.onWaitlist')}</Text>;
-    }
+    const isOnWaitlist = !!signupTimestamp && !pendingAction;
 
     const joinWaitlist = () => {
         if (isJoiningWaitlist.current || pendingAction) {
@@ -80,15 +79,16 @@ function IntegrationWaitlistButton({integration, policy}: IntegrationWaitlistBut
     return (
         <Button
             onPress={joinWaitlist}
-            isDisabled={!!pendingAction}
+            isDisabled={isOnWaitlist || !!pendingAction}
             isLoading={!!pendingAction}
             style={styles.justifyContentCenter}
-            innerStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-            hoverStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+            innerStyles={!canWrite && !isOnWaitlist ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+            hoverStyles={!canWrite && !isOnWaitlist ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
             size={CONST.BUTTON_SIZE.SMALL}
             sentryLabel={SENTRY_LABELS[integration]}
         >
-            <Button.Text>{translate('workspace.accounting.integrationWaitlist.joinWaitlist')}</Button.Text>
+            {isOnWaitlist && <Button.Icon src={icons.Checkmark} />}
+            <Button.Text>{translate(isOnWaitlist ? 'workspace.accounting.integrationWaitlist.onWaitlist' : 'workspace.accounting.integrationWaitlist.joinWaitlist')}</Button.Text>
         </Button>
     );
 }

@@ -112,7 +112,7 @@ describe('Integration waitlist signup', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the same account signup is shown without another action in the new workspace
-        expect(screen.getByText('You’re on the waitlist')).toBeTruthy();
+        expect(screen.getByRole('button', {name: 'On waitlist', disabled: true})).toBeOnTheScreen();
         expect(screen.queryByRole('button', {name: 'Join waitlist'})).toBeNull();
         expect(joinIntegrationWaitlist).toHaveBeenCalledTimes(2);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
@@ -134,7 +134,7 @@ describe('Integration waitlist signup', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then their stored signup replaces the action without opening an acknowledgement
-        expect(screen.getByText('You’re on the waitlist')).toBeTruthy();
+        expect(screen.getByRole('button', {name: 'On waitlist', disabled: true})).toBeOnTheScreen();
         expect(screen.queryByRole('button', {name: 'Join waitlist'})).toBeNull();
         expect(joinIntegrationWaitlist).not.toHaveBeenCalled();
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
@@ -180,7 +180,7 @@ describe('Integration waitlist signup', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then Odoo shows the account is on its waitlist and confirms it once
-        expect(screen.getByText('You’re on the waitlist')).toBeTruthy();
+        expect(screen.getByRole('button', {name: 'On waitlist', disabled: true})).toBeOnTheScreen();
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
     });
 });

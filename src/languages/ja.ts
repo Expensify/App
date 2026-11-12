@@ -7821,7 +7821,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             integrationWaitlist: {
                 comingSoon: '近日公開予定',
                 joinWaitlist: 'ウェイトリストに参加',
-                onWaitlist: '順番待ちリストに登録されています',
+                onWaitlist: 'ウェイトリスト登録済み',
+                addedToWaitlist: '順番待ちリストに登録されています',
                 waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
             },
             setup: '接続',

@@ -8580,7 +8580,8 @@ const translations = {
             integrationWaitlist: {
                 comingSoon: 'Coming soon',
                 joinWaitlist: 'Join waitlist',
-                onWaitlist: 'You’re on the waitlist',
+                onWaitlist: 'On waitlist',
+                addedToWaitlist: 'You’re on the waitlist',
                 waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
             },
             setup: 'Connect',

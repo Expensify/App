@@ -79,7 +79,7 @@ function IntegrationWaitlistRow({integration, policy, style, titleWrapperStyle, 
                             />
                         </View>
                     </MenuItem.Content>
-                    <View style={[isOnWaitlist && styles.flex1, styles.justifyContentCenter]}>
+                    <View style={styles.justifyContentCenter}>
                         <MenuItem.Trailing>
                             <IntegrationWaitlistButton
                                 integration={integration}
