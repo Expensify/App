@@ -628,7 +628,7 @@ describe('ReportAlternateTextUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}`, {[threadExpense.reportActionID]: threadExpense});
             await waitForBatchedUpdates();
 
-            // When the last message text is resolved without a precomputed last action
+            // When the last message text is resolved with the last action each account can see, as callers resolve it
             const getLastMessageFor = (currentUserAccountID: number) =>
                 getLastMessageTextForReport({
                     formatPhoneNumber,
@@ -643,6 +643,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     oneTransactionThreadReportID: THREAD_REPORT_ID,
+                    lastAction: resolveLastActionContext(report, false, undefined, currentUserAccountID, THREAD_REPORT_ID).lastAction,
                     rules: undefined,
                 });
 
@@ -686,6 +687,7 @@ describe('ReportAlternateTextUtils', () => {
                 isReportArchived: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 oneTransactionThreadReportID: THREAD_REPORT_ID,
+                lastAction: resolveLastActionContext(report, false, undefined, WHISPER_TARGET_ACCOUNT_ID + 1, THREAD_REPORT_ID).lastAction,
                 rules: undefined,
             });
 
@@ -718,7 +720,7 @@ describe('ReportAlternateTextUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}`, {[threadWhisper.reportActionID]: threadWhisper});
             await waitForBatchedUpdates();
 
-            // When the last message text is resolved without a precomputed last action
+            // When the last message text is resolved with the last action each account can see, as callers resolve it
             const getLastMessageFor = (currentUserAccountID: number) =>
                 getLastMessageTextForReport({
                     formatPhoneNumber,
@@ -733,6 +735,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     oneTransactionThreadReportID: THREAD_REPORT_ID,
+                    lastAction: resolveLastActionContext(report, false, undefined, currentUserAccountID, THREAD_REPORT_ID).lastAction,
                     rules: undefined,
                 });
 
@@ -769,7 +772,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            // When the last message text is resolved without a precomputed last action
+            // When the last message text is resolved with the last action each account can see, as callers resolve it
             const getLastMessageFor = (currentUserAccountID: number) =>
                 getLastMessageTextForReport({
                     formatPhoneNumber,
@@ -783,6 +786,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    lastAction: resolveLastActionContext(report, false, undefined, currentUserAccountID).lastAction,
                     rules: undefined,
                 });
 
