@@ -11,7 +11,7 @@ type UpdateWiseOnboardingAdditionalDataParams = {
 
     /**
      * JSON of the page's answers under flat keys, such as `address.city`. It holds a typed SSN, so it is redacted from the logs.
-     * A page whose only answers are files sends `[]`, since the server rejects `{}` as "Inputs is not a valid json object".
+     * A page whose only answers are files sends `{}`, since the server rejects `[]` as "Inputs is not a valid json object".
      */
     inputs: string;
 

@@ -192,8 +192,8 @@ function getWiseOnboardingPageParams(
     return {
         bankAccountID,
         step,
-        // The server decodes `{}` as an object and rejects it, while `[]` reads as no answers
-        inputs: Object.keys(inputs).length > 0 ? JSON.stringify(toWiseInputs(step, inputs, savedSourceOfWealthList)) : '[]',
+        // The server rejects `[]` as "Inputs is not a valid json object", while `{}` reads as no answers
+        inputs: Object.keys(inputs).length > 0 ? JSON.stringify(toWiseInputs(step, inputs, savedSourceOfWealthList)) : '{}',
         ...(fileFieldKeys.size > 0 ? {documents: JSON.stringify(documents)} : {}),
         ...newFiles,
     };

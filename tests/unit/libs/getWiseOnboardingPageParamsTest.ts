@@ -113,7 +113,7 @@ describe('getWiseOnboardingPageParams', () => {
         expect(params.documents).toBe(JSON.stringify({idDocument: []}));
     });
 
-    it('sends an empty list as the inputs of a page whose only answers are files', () => {
+    it('sends an empty object as the inputs of a page whose only answers are files', () => {
         // Given a page that asks for nothing but a file, answered with one new file
         const page: DynamicFormPage = {key: 'BUSINESS_SOURCE_OF_WEALTH_PROOF', content: [{key: 'proofFile', type: 'file', required: true}]};
         const proofFile = new File(['statement'], 'statement.pdf', {type: 'application/pdf'});
@@ -121,8 +121,8 @@ describe('getWiseOnboardingPageParams', () => {
         // When the page is turned into a save request
         const params = getPageParams(BANK_ACCOUNT_ID, page, {proofFile: [proofFile]});
 
-        // Then inputs is `[]`, since the server rejects `{}` as "Inputs is not a valid json object", and the file still goes as its own part
-        expect(params.inputs).toBe('[]');
+        // Then inputs is `{}`, since the server rejects `[]` as "Inputs is not a valid json object", and the file still goes as its own part
+        expect(params.inputs).toBe('{}');
         expect(params['proofFile[0]']).toBe(proofFile);
     });
 
@@ -146,7 +146,7 @@ describe('getWiseOnboardingPageParams', () => {
         // Then each file goes under `<source>.<document type>`, so the server knows both, and the unused type is listed empty, so a removed invoice is removed on the server too
         expect(params[`${REVENUE_BANK_STATEMENTS}[0]`]).toBe(statement);
         expect(params.documents).toBe(JSON.stringify({[REVENUE_TAX_RETURNS]: ['kyc/1/tax.pdf'], [REVENUE_INVOICES]: [], [REVENUE_BANK_STATEMENTS]: []}));
-        expect(params.inputs).toBe('[]');
+        expect(params.inputs).toBe('{}');
     });
 
     it('sends the picked sources as the list Wise takes, keeping what the server holds for a source still picked', () => {
