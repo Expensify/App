@@ -14,6 +14,7 @@ import WiseBusinessOnboardingPage from '@pages/settings/Wallet/EnableGlobalReimb
 
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {saveDraftAnswers} from '@userActions/DynamicForm';
+import {readWiseBusinessAccount} from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -229,7 +230,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await renderPage({shouldLeaveReadRunning: true});
 
         // Then the page reads this bank account and keeps the loader, since the read-only rows come from the answer
-        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID});
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
         expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
         expect(saveDraftAnswers).not.toHaveBeenCalled();
 
@@ -249,6 +250,55 @@ describe('WiseBusinessOnboardingPage', () => {
         );
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
         expect(openReimbursementAccountPage).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens on the details the intro page read, without reading them again', async () => {
+        // Given the intro page's read for this bank account, already answered
+        readWiseBusinessAccount(BANK_ACCOUNT_ID);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+
+        // When the visit opens without a page
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT});
+
+        // Then the flow shows with those details and no second read
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({companyName: 'Boulder Development Inc.'}));
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('waits for the read the intro page started while it is still running', async () => {
+        // Given the intro page's read for this bank account, not answered yet
+        readWiseBusinessAccount(BANK_ACCOUNT_ID);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+        await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true});
+
+        // When the visit opens without a page
+        await renderPage();
+
+        // Then the loader stays without a second read
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+
+        // When the read answers
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {...REIMBURSEMENT_ACCOUNT, isLoading: false}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flow shows with its details
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({companyName: 'Boulder Development Inc.'}));
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('reads the details itself when the intro page read another bank account', async () => {
+        // Given the intro page's read for another bank account, with details for this one left on the device
+        readWiseBusinessAccount(BANK_ACCOUNT_ID + 1);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+
+        // When the visit opens without a page
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, shouldLeaveReadRunning: true});
+
+        // Then the page reads this bank account and waits, since the details on the device may be old
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
     });
 
     it('does not read again when Next or Back mounts the page on one of its pages', async () => {
@@ -292,7 +342,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the page reads this bank account's details, as an online visit does
-        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID});
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
         expect(screen.queryByText('common.thisFeatureRequiresInternet')).not.toBeOnTheScreen();
     });
 

@@ -103,7 +103,8 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // device holds.
     const [isNewVisit] = useState(!route.params.subPage);
     const shouldReadBusinessAccount = isNewVisit && !isOffline && !isOnboardingSubmitted;
-    const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(false);
+    const [introReadBankAccountID] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ACCOUNT_READ);
+    const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(introReadBankAccountID === bankAccountID);
 
     // The reimbursement account's errors are shared with the other bank account flows, so a new visit drops any left from them or from an earlier visit
     useEffect(() => {
@@ -119,7 +120,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         if (!shouldReadBusinessAccount || hasBusinessAccountReadStarted || isPrefillDone) {
             return;
         }
-        openReimbursementAccountPage({bankAccountID});
+        openReimbursementAccountPage({bankAccountID, shouldPreserveDraft: true});
     }, [bankAccountID, shouldReadBusinessAccount, hasBusinessAccountReadStarted, isPrefillDone]);
     const isWaitingForBusinessAccount = shouldReadBusinessAccount && (!hasBusinessAccountReadStarted || !!businessAccount?.isLoading);
 
