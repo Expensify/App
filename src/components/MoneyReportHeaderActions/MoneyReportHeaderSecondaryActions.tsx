@@ -47,6 +47,7 @@ import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -479,7 +480,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (isBankPayBlocked && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            showBankPaySkippedModal({policy, isSingleReport: true});
+            // The More menu is still closing here, and iOS can't present a modal until it's gone
+            deferModalPresentationAfterPopoverDismiss(() => {
+                showBankPaySkippedModal({policy, isSingleReport: true});
+            });
             return;
         }
         const runPaymentSelection = () =>
