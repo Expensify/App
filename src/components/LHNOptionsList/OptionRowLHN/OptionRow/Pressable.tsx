@@ -1,6 +1,5 @@
 import Hoverable from '@components/Hoverable';
-import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
-import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip';
+import {useLHNTooltipActionsContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import getActionBadgeText from '@components/utils/getActionBadgeText';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
@@ -64,9 +63,8 @@ function Pressable({optionItem, isOptionFocused, selectedStyle, hoveredStyle, on
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isScreenFocused} = useLHNTooltipContext();
+    const {getIsScreenFocused, hideConciergeTooltip} = useLHNTooltipActionsContext();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {hideProductTrainingTooltip} = useLHNRowProductTrainingTooltip();
 
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -101,7 +99,7 @@ function Pressable({optionItem, isOptionFocused, selectedStyle, hoveredStyle, on
     const testID = typeof reportID === 'number' ? String(reportID) : reportID;
 
     const onPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
-        hideProductTrainingTooltip();
+        hideConciergeTooltip();
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
             name: 'OptionRowLHN',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -114,7 +112,7 @@ function Pressable({optionItem, isOptionFocused, selectedStyle, hoveredStyle, on
     };
 
     const showPopover = (event: MouseEvent | GestureResponderEvent) => {
-        if (!isScreenFocused && shouldUseNarrowLayout) {
+        if (!getIsScreenFocused() && shouldUseNarrowLayout) {
             return;
         }
         setIsContextMenuActive(true);
