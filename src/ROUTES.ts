@@ -1252,6 +1252,30 @@ const DYNAMIC_ROUTES = {
         path: 'workspace-address',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
     },
+    // The pages that ask the admin to change the workspace currency first. Opening the currency page on top of them keeps
+    // them behind it after a reload, which the Overview-only WORKSPACE_OVERVIEW_CURRENCY route can't do.
+    WORKSPACE_CURRENCY: {
+        path: 'workspace-currency',
+        entryScreens: [
+            SCREENS.WORKSPACE.CONNECTIONS,
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING,
+            SCREENS.WORKSPACE.WORKFLOWS,
+            SCREENS.WORKSPACE.INVOICES,
+            SCREENS.WORKSPACE.EXPENSIFY_CARD,
+        ],
+        getRoute: ({isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment}: {isForcedToChangeCurrency?: boolean; shouldStartExpensifyCardEnrollment?: boolean} = {}) =>
+            getUrlWithParams('workspace-currency', {
+                isForcedToChangeCurrency: isForcedToChangeCurrency ? 'true' : undefined,
+                shouldStartExpensifyCardEnrollment: shouldStartExpensifyCardEnrollment ? 'true' : undefined,
+            }),
+        queryParams: ['isForcedToChangeCurrency', 'shouldStartExpensifyCardEnrollment'],
+    },
+    WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY: {
+        path: 'government-rate-country/:currencyCode',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY],
+        getRoute: (currencyCode: string) => `government-rate-country/${currencyCode}` as const,
+    },
     SUBSCRIPTION_DOWNGRADE_BLOCKED: {
         path: 'subscription-downgrade-blocked',
         entryScreens: [

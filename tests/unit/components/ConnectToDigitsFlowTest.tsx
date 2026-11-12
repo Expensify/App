@@ -1,6 +1,7 @@
-import {render} from '@testing-library/react-native';
+import {render, waitFor} from '@testing-library/react-native';
 
 import ConnectToDigitsFlow from '@components/ConnectToDigitsFlow';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -28,6 +29,8 @@ jest.mock('@hooks/useHasReusablePoliciesConnectedTo', () => () => mockHasReusabl
 jest.mock('@hooks/useShouldBlockCurrencyChange', () => () => false);
 jest.mock('@pages/workspace/accounting/digits/useStartDigitsOAuth', () => () => mockStartDigitsOAuth);
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
+// The flow starts from the Connections page, so the currency page has to open on top of it
+jest.mock('@libs/Navigation/helpers/getActiveRoute', () => () => 'workspaces/123/connections');
 
 const mockedNavigate = jest.mocked(Navigation.navigate);
 
@@ -67,6 +70,18 @@ describe('ConnectToDigitsFlow', () => {
         // Then a single currency prompt shows and the sign-in never opens
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockStartDigitsOAuth).not.toHaveBeenCalled();
+    });
+
+    it('should open the currency page on top of the Connections page when the admin agrees to change the currency', async () => {
+        // Given a workspace in EUR whose admin agrees to update the workspace currency
+        mockOutputCurrency = CONST.CURRENCY.EUR;
+        mockShowConfirmModal.mockResolvedValueOnce({action: ModalActions.CONFIRM});
+
+        // When the flow mounts and the admin confirms the prompt
+        renderInStrictMode();
+
+        // Then the currency page opens on top of the Connections page instead of on Overview's route, so a reload keeps Connections under it
+        await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith('workspaces/123/connections/workspace-currency'));
     });
 
     it('should navigate to the existing connections once when another workspace is connected to Digits', () => {

@@ -613,6 +613,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CURRENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyPage').default,
     [SCREENS.WORKSPACE.TIMEZONE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewTimezonePage').default,
     [SCREENS.WORKSPACE.CURRENCY_GOVERNMENT_RATE_COUNTRY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyGovernmentRateCountryPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyGovernmentRateCountryPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategorySettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRED_FIELDS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCategoryRequiredFieldsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesNewPage').default,

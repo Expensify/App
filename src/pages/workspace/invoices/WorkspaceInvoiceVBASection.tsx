@@ -15,6 +15,7 @@ import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
@@ -29,7 +30,7 @@ import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {TupleToUnion} from 'type-fest';
 
@@ -88,7 +89,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {isForcedToChangeCurrency: true}));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CURRENCY.getRoute({isForcedToChangeCurrency: true})));
     };
 
     /**
