@@ -62,6 +62,7 @@ import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -234,6 +235,11 @@ function getRestrictedPolicyID(
                     currentUserAccountID,
                 ),
         );
+}
+
+/** Whether a bank payment leaves a selected report out because nothing on it is owed, judged by the report's own workspace */
+function isSelectedReportBankPayBlocked(report: OnyxEntry<Report>, searchData: SearchResultDataType | undefined, policies: OnyxCollection<Policy> | undefined): boolean {
+    return !!report && isBankPayBlockedBySpend(report, getPolicyFromSearchSnapshot(report.policyID, searchData, policies));
 }
 
 function isGroupSelection(key: string, transaction: SelectedTransactions[string]): boolean {
@@ -754,7 +760,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {showConfirmModal} = useConfirmModal();
     const {showWiseQuoteCarouselModal} = useWiseQuoteConfirmModal();
-    const {showBankPaySkippedModal} = useBankPaySkippedModal();
+    const {showBankPaySkippedModal} = useBankPaySkippedModal({bankAccountList});
     const {showDecisionModal} = useDecisionModal();
 
     const showOfflineModal = useCallback(() => {
@@ -998,7 +1004,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     invoiceReceiverPolicy,
                 ) &&
                 // A bank payment leaves out a report with nothing owed instead of hiding the bank account for the whole selection
-                !isBankPayBlockedBySpend(report, currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? selectedPolicy)
+                !isSelectedReportBankPayBlocked(report, currentSearchResults?.data, policies)
             );
         });
     }, [
@@ -1011,6 +1017,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactions,
         currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
+        policies,
     ]);
 
     const selectedBulkPayReportID = payScopedReportIDs.at(0) ?? selectedTransactionReportIDs.at(0);
@@ -1025,10 +1032,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const selectedOptions = selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions);
         return (
             selectedOptions.length > 0 &&
-            selectedOptions.every((item) => {
-                const report = getReportFromSearchSnapshot(item.reportID, searchResults?.data, allReports);
-                return !!report && isBankPayBlockedBySpend(report, getPolicyFromSearchSnapshot(report.policyID, searchResults?.data, policies));
-            })
+            selectedOptions.every((item) => isSelectedReportBankPayBlocked(getReportFromSearchSnapshot(item.reportID, searchResults?.data, allReports), searchResults?.data, policies))
         );
     }, [areAllMatchingItemsSelected, selectedReports.length, payableSelectedReports, selectedTransactions, searchResults?.data, allReports, policies]);
 
@@ -1800,19 +1804,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     Log.info('[BulkPay] Dropping bulk pay: the unchecked expenses cannot be left out of the matching reports');
                     return;
                 }
-                const serializedQuery = serializeQueryJSONForBackend(allMatchingQuery);
-                if (paymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                    queueBulkPayReports(serializedQuery, {paymentType: paymentMethod, bankAccountID: expenseReportBankAccountID});
-                } else {
-                    queueBulkPayReports(serializedQuery);
-                }
+                queueBulkPayReports(
+                    serializeQueryJSONForBackend(allMatchingQuery),
+                    paymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? {paymentType: paymentMethod, bankAccountID: expenseReportBankAccountID} : undefined,
+                );
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
                 return;
             }
 
             // A report with nothing owed can only be marked as paid, so a bank payment leaves it out and lists it for the user once the rest are paid
-            const bankPaySkippedReports: BankPaySkippedReport[] = [];
+            const bankPaySkippedReportsByID = new Map<string, Report>();
             for (const reportID of new Set(selectedOptions.map((item) => item.reportID))) {
                 const report = reportID ? getReportFromSearchSnapshot(reportID, searchResults?.data, allReports) : undefined;
                 if (!reportID || !report) {
@@ -1823,11 +1825,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (!reportPaymentMethod || reportPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                     continue;
                 }
-                if (isBankPayBlockedBySpend(report, getPolicyFromSearchSnapshot(report.policyID, searchResults?.data, policies))) {
-                    bankPaySkippedReports.push({reportID, reportName: report.reportName ?? reportID});
+                if (isSelectedReportBankPayBlocked(report, searchResults?.data, policies)) {
+                    bankPaySkippedReportsByID.set(reportID, report);
                 }
             }
-            const bankPaySkippedReportIDs = new Set(bankPaySkippedReports.map(({reportID}) => reportID));
             const showBankPaySkippedReports = (skippedReports?: BankPaySkippedReport[]) =>
                 // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
                 deferModalPresentationAfterPopoverDismiss(() => {
@@ -1837,13 +1838,23 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         skippedReports,
                     });
                 });
-            if (bankPaySkippedReports.length > 0 && selectedOptions.every((item) => !!item.reportID && bankPaySkippedReportIDs.has(item.reportID))) {
+            if (bankPaySkippedReportsByID.size > 0 && selectedOptions.every((item) => !!item.reportID && bankPaySkippedReportsByID.has(item.reportID))) {
                 Log.info('[BulkPay] Dropping bulk pay: every selected report is non-reimbursable or totals $0 or less');
                 showBankPaySkippedReports();
                 return;
             }
 
-            const [conciergeReportID, introSelected, onboarding] = await Onyx.multiGet([ONYXKEYS.CONCIERGE_REPORT_ID, ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.NVP_ONBOARDING]);
+            const [conciergeReportID, introSelected, onboarding, reportAttributes] = await Onyx.multiGet([
+                ONYXKEYS.CONCIERGE_REPORT_ID,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+                ONYXKEYS.NVP_ONBOARDING,
+                ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+            ]);
+            // Lists the skipped reports by the names shown everywhere else, leaving out one without a name rather than showing its ID
+            const bankPaySkippedReports: BankPaySkippedReport[] = [...bankPaySkippedReportsByID].flatMap(([reportID, report]) => {
+                const reportName = getReportName(report, reportAttributes?.reports?.[reportID]?.reportName);
+                return reportName ? [{reportID, reportName}] : [];
+            });
             const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
             const isSelfTourViewed = hasSeenTourSelector(onboarding);
             const activeRoute = Navigation.getActiveRoute();
@@ -1857,7 +1868,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     Log.info('[BulkPay] Dropping bulk pay: selected item has no reportID');
                     return;
                 }
-                if (bankPaySkippedReportIDs.has(itemReportID)) {
+                if (bankPaySkippedReportsByID.has(itemReportID)) {
                     continue;
                 }
                 const itemReport = getReportFromSearchSnapshot(itemReportID, searchData, allReports);
@@ -1956,7 +1967,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     Log.info('[BulkPay] Skipping report: item has no reportID');
                     continue;
                 }
-                if (bankPaySkippedReportIDs.has(item.reportID)) {
+                if (bankPaySkippedReportsByID.has(item.reportID)) {
                     Log.info('[BulkPay] Skipping report: nothing is owed on it, so it can only be marked as paid', false, {reportID: item.reportID});
                     continue;
                 }
@@ -2132,7 +2143,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
                 // With a Wise quote to confirm, the skipped reports are listed once the expense reports are paid
-                if (!shouldConfirmWiseQuotes && bankPaySkippedReports.length > 0) {
+                if (!shouldConfirmWiseQuotes && bankPaySkippedReportsByID.size > 0) {
                     showBankPaySkippedReports(bankPaySkippedReports);
                 }
             }
@@ -2156,7 +2167,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             }
                             playSound(SOUNDS.SUCCESS);
                             clearSelectedTransactions();
-                            if (bankPaySkippedReports.length > 0) {
+                            if (bankPaySkippedReportsByID.size > 0) {
                                 showBankPaySkippedReports(bankPaySkippedReports);
                             }
                         },

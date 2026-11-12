@@ -112,10 +112,10 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
     };
 });
 
-const mockShowBankPaySkippedModal = jest.fn();
-jest.mock('@hooks/useBankPaySkippedModal', () => ({
+const mockShowConfirmModal = jest.fn();
+jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
-    default: () => ({showBankPaySkippedModal: mockShowBankPaySkippedModal}),
+    default: () => ({showConfirmModal: mockShowConfirmModal}),
 }));
 
 const mockVerifyAccountAndResume = jest.fn();
@@ -897,8 +897,13 @@ describe('SettlementButton', () => {
             pressMenuItem('Test Bank Account');
             await waitForBatchedUpdatesWithAct();
 
-            // Then the modal explains why the bank account can't pay it, and nothing is paid
-            expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID, isSingleReport: true}));
+            // Then the modal names the picked account and explains why it can't pay the report, and nothing is paid
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    title: translateLocal('iou.payWithBankAccountTitle', '5678'),
+                    prompt: translateLocal('iou.bankPayReportSkippedDescription'),
+                }),
+            );
             expect(defaultProps.onPress).not.toHaveBeenCalled();
         });
 
@@ -912,7 +917,7 @@ describe('SettlementButton', () => {
 
             // Then it's marked as paid as before, without the modal
             expect(defaultProps.onPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness: false});
-            expect(mockShowBankPaySkippedModal).not.toHaveBeenCalled();
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
         it('keeps only Mark as paid when the workspace has reimbursements turned off', async () => {

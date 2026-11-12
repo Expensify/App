@@ -5609,11 +5609,7 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
  * scanning, failed to scan or is a pending card charge, because its real reimbursable spend is not known yet.
  */
 function hasSettledZeroReimbursableSpend(spendBreakdown: SpendBreakdown, report: OnyxInputOrEntry<Report>, transactionsParam?: Transaction[]): boolean {
-    if (!isExpenseReport(report) || spendBreakdown.reimbursableSpend !== 0) {
-        return false;
-    }
-    const isTotalLoaded = report?.total !== undefined || report?.reimbursableTotal !== undefined;
-    if (!isTotalLoaded || isReportTotalPending(report)) {
+    if (!isExpenseReport(report) || spendBreakdown.reimbursableSpend !== 0 || !isReportTotalSettled(report)) {
         return false;
     }
     const expenses = resolveReportTransactions(report?.reportID, transactionsParam).filter((transaction) => !isTransactionPendingDelete(transaction));
@@ -5629,16 +5625,22 @@ function isPayOptional(report: OnyxInputOrEntry<Report>, transactionsParam?: Tra
 }
 
 /**
- * Whether a report that can only be marked as paid would be paid through a bank account if anything on it were owed,
- * because it's non-reimbursable or totals $0 or less. Such a report keeps the bank account option, and picking it explains why it can't be used.
- * Fails closed while the report total is not loaded or is pending, since an unknown total reads as $0.
+ * Whether the report total is known, since a total that isn't loaded yet or is being recalculated reads as $0.
+ */
+function isReportTotalSettled(report: OnyxInputOrEntry<Report>): boolean {
+    const isTotalLoaded = report?.total !== undefined || report?.reimbursableTotal !== undefined;
+    return isTotalLoaded && !isReportTotalPending(report);
+}
+
+/**
+ * Whether a bank account can't pay an expense report because nothing on it is owed: it's non-reimbursable or totals $0 or less,
+ * on a workspace that otherwise pays through a bank account. Such a report keeps the bank account option, and picking it explains why it can't be used.
+ * Fails closed while the report total isn't known, so a report that may be owed is never left out of a bank payment.
  */
 function isBankPayBlockedBySpend(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
-    const isTotalLoaded = report?.total !== undefined || report?.reimbursableTotal !== undefined;
     return (
         isExpenseReport(report) &&
-        isTotalLoaded &&
-        !isReportTotalPending(report) &&
+        isReportTotalSettled(report) &&
         getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO &&
         getMoneyRequestSpendBreakdown(report).reimbursableSpend <= 0
     );

@@ -404,7 +404,7 @@ describe('useSearchBulkActions - Pay option', () => {
 
         // Then the payment is handed to the backend via the search query (which covers every page), not looped per loaded report
         expect(queueBulkPayReports).toHaveBeenCalledTimes(1);
-        expect(queueBulkPayReports).toHaveBeenCalledWith(expect.any(String));
+        expect(queueBulkPayReports).toHaveBeenCalledWith(expect.any(String), undefined);
         expect(payMoneyRequest).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });

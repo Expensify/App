@@ -157,7 +157,7 @@ function BulkActionDone({action, total, failedReportIDs, skippedReportIDs, isBan
     const doneTitlePath = isBankPayment ? 'bulkAction.paidWithBankTitle' : DONE_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY];
     const doneTitle = total === 0 ? translate('bulkAction.noReportsTitle') : translate(doneTitlePath, {doneCount: Math.max(total - unpaidReportIDs.length, 0), count: total});
 
-    const viewFailedReports = () => {
+    const viewUnpaidReports = () => {
         const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${unpaidReportIDs.join(',')}`);
         if (!queryJSON) {
             onClose();
@@ -183,7 +183,7 @@ function BulkActionDone({action, total, failedReportIDs, skippedReportIDs, isBan
                     <Button
                         sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.VIEW_FAILED_REPORTS}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={viewFailedReports}
+                        onPress={viewUnpaidReports}
                         style={[styles.w100, styles.mb3]}
                     >
                         <Button.Text>{translate('bulkAction.viewFailedReports')}</Button.Text>

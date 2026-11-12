@@ -36,7 +36,6 @@ import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/Policy
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
-    isBankPayBlockedBySpend,
     isBusinessInvoiceRoom,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
@@ -178,9 +177,7 @@ function SettlementButton({
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const isBankAccountLocked = canAccessPolicyBankAccount(policy, bankAccountList) && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
-    const {showBankPaySkippedModal} = useBankPaySkippedModal();
-    // Nothing is owed on the report, so the bank account stays on offer and picking it explains why it can't pay instead of hiding it
-    const isBankPayBlocked = !!onlyShowPayElsewhere && isBankPayBlockedBySpend(iouReport, policy);
+    const {isBankPayBlocked, showBankPaySkippedModal} = useBankPaySkippedModal({bankAccountList, report: iouReport, policy, onlyShowPayElsewhere});
 
     function getLatestPersonalBankAccount() {
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
@@ -260,7 +257,7 @@ function SettlementButton({
 
     const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>, bankAccountID?: number) => {
         if (isBankPayBlocked && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            showBankPaySkippedModal({bankAccountID, policy, isSingleReport: true});
+            showBankPaySkippedModal({bankAccountID});
             return;
         }
         if (checkForNecessaryAction(paymentMethodType, action)) {

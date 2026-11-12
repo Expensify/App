@@ -66,7 +66,6 @@ import {
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
-    isBankPayBlockedBySpend,
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
     navigateToDetailsPage,
@@ -306,9 +305,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         !canIOUBePaid &&
         canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
-    const {showBankPaySkippedModal} = useBankPaySkippedModal();
-    // Nothing is owed on the report, so the bank account stays on offer and picking it explains why it can't pay instead of hiding it
-    const isBankPayBlocked = onlyShowPayElsewhere && isBankPayBlockedBySpend(moneyRequestReport, policy);
+    const {isBankPayBlocked, showBankPaySkippedModal} = useBankPaySkippedModal({bankAccountList, report: moneyRequestReport, policy, onlyShowPayElsewhere});
     const hasOnlyPendingTransactions = moneyReportTransactions.length > 0 && moneyReportTransactions.every((t) => isPending(t));
     const shouldShowApproveButton =
         (canApproveIOU(moneyRequestReport, policy, reportMetadata, currentUserPersonalDetails.accountID, moneyReportTransactions) && !hasOnlyPendingTransactions) ||
@@ -482,7 +479,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         if (isBankPayBlocked && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             // The More menu is still closing here, and iOS can't present a modal until it's gone
             deferModalPresentationAfterPopoverDismiss(() => {
-                showBankPaySkippedModal({policy, isSingleReport: true});
+                showBankPaySkippedModal();
             });
             return;
         }
