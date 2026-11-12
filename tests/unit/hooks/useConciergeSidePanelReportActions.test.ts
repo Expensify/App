@@ -51,8 +51,8 @@ function renderSidePanel(sessionStartTime: string, question: ReportAction, reply
     return renderHook(() =>
         useConciergeSidePanelReportActions({
             report,
-            reportActions,
-            visibleReportActions: reportActions,
+            combinedActions: reportActions,
+            visibleActions: reportActions,
             isConciergeHiddenHistory: true,
             hasUserSentMessage: true,
             hasOlderActions: false,
@@ -84,7 +84,7 @@ describe('useConciergeSidePanelReportActions (clock-skew reply visibility)', () 
 
         // When the side panel filters the session's actions
         const {result} = renderSidePanel(sessionStartTime, question, reply);
-        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+        const visibleIDs = result.current.filteredCombinedActions.map((action) => action.reportActionID);
 
         // Then the question and the reply both stay visible, while prior history stays hidden.
         expect(visibleIDs).toContain('20');
@@ -103,7 +103,7 @@ describe('useConciergeSidePanelReportActions (clock-skew reply visibility)', () 
 
         // When the side panel filters the session's actions
         const {result} = renderSidePanel(sessionStartTime, question, reply);
-        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+        const visibleIDs = result.current.filteredCombinedActions.map((action) => action.reportActionID);
 
         // Then the reply stays visible because it is bounded by the server-anchored sessionStartTime, not the
         // clamped question timestamp; prior history stays hidden.
@@ -121,7 +121,7 @@ describe('useConciergeSidePanelReportActions (clock-skew reply visibility)', () 
 
         // When the side panel filters the session's actions
         const {result} = renderSidePanel(sessionStartTime, question, reply);
-        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+        const visibleIDs = result.current.filteredCombinedActions.map((action) => action.reportActionID);
 
         // Then the reply falls below the ahead-client boundary and disappears — the failure this PR fixes.
         expect(visibleIDs).toContain('20');
@@ -143,8 +143,8 @@ describe('useConciergeSidePanelReportActions (sent-message retention)', () => {
 
         return {
             report,
-            reportActions,
-            visibleReportActions: reportActions,
+            combinedActions: reportActions,
+            visibleActions: reportActions,
             isConciergeHiddenHistory: true,
             hasUserSentMessage,
             hasOlderActions: false,
@@ -173,16 +173,16 @@ describe('useConciergeSidePanelReportActions (sent-message retention)', () => {
     it('keeps the message the user just sent when the server stamps it below the session boundary', () => {
         // Given the user's message is still pending, so it is visible on the strength of its pending state
         const {result, landServerResponse} = renderSurface();
-        expect(result.current.filteredReportActions.map((action) => action.reportActionID)).toContain('20');
+        expect(result.current.filteredCombinedActions.map((action) => action.reportActionID)).toContain('20');
 
         // When the server response lands and re-stamps `created` behind the boundary
         landServerResponse();
 
         // Then the message stays on screen and the welcome state does not come back over the conversation.
-        expect(result.current.filteredReportActions.map((action) => action.reportActionID)).toContain('20');
+        expect(result.current.filteredCombinedActions.map((action) => action.reportActionID)).toContain('20');
         expect(result.current.showConciergeSidePanelWelcome).toBe(false);
         // ...and the read history is still collapsed behind "Show history".
-        expect(result.current.filteredReportActions.map((action) => action.reportActionID)).not.toContain('11');
+        expect(result.current.filteredCombinedActions.map((action) => action.reportActionID)).not.toContain('11');
         // ...and the "Show history" button is still offered.
         expect(result.current.hasPreviousMessages).toBe(true);
     });

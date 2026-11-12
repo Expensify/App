@@ -41,7 +41,7 @@ describe('useFollowActionBadgeTarget', () => {
 
     it('follows a newer badge target when the previous target is hidden inside a collapsed run', () => {
         const scrollToActionBadgeTarget = jest.fn();
-        const renderedVisibleReportActions = [makeAction('current'), makeAction('summary')];
+        const listData = [makeAction('current'), makeAction('summary')];
         const reportActionIDToDisplayIndex = new Map([
             ['current', 0],
             ['previous', 1],
@@ -52,7 +52,7 @@ describe('useFollowActionBadgeTarget', () => {
                     reportID: REPORT_ID,
                     actionTargetReportActionID,
                     actionBadgeTargetIndex,
-                    renderedVisibleReportActions,
+                    listData,
                     reportActionIDToDisplayIndex,
                     scrollToActionBadgeTarget,
                 }),

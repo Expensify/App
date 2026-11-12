@@ -17,7 +17,8 @@ type ReportActionsListProps = {
 };
 
 type UseReportActionsListDataParams = {
-    sortedVisibleReportActions: OnyxTypes.ReportAction[];
+    /** The report's actions that render as rows, newest first. */
+    visibleActions: OnyxTypes.ReportAction[];
     sessionStartTime: string | null;
     linkedReportActionID: string | undefined;
     unreadMarkerReportActionID: string | null;
@@ -26,8 +27,7 @@ type UseReportActionsListDataParams = {
 type UseReportActionsListScrollParams = Pick<
     Parameters<typeof useReportActionsScroll>[0],
     | 'reportID'
-    | 'sortedVisibleReportActions'
-    | 'renderedVisibleReportActions'
+    | 'listData'
     | 'hasScrolledOverThreshold'
     | 'markNewestActionAsRead'
     | 'completeSkippedMarkAsRead'
@@ -38,13 +38,15 @@ type UseReportActionsListScrollParams = Pick<
     Pick<ReturnType<typeof useReportActionsPresentation>, 'reportActionIDToDisplayIndex' | 'focusRequestedReportActionID'> &
     Pick<UseReportActionsListDataParams, 'linkedReportActionID'> &
     Pick<ReportActionsListProps, 'onLayout'> & {
+        /** The report's visible actions, including support surveys the list hides. */
+        visibleActionsWithHiddenSurveys: OnyxTypes.ReportAction[];
         actionBadgeTargetID: string | undefined;
         onScrolledOverThresholdChange: (isOverThreshold: boolean) => void;
     };
 
 type UseReportActionsListRenderItemParams = Pick<
     ReturnType<typeof useReportActionsListData>,
-    | 'renderedVisibleReportActions'
+    | 'visibleActionsWithDraft'
     | 'listData'
     | 'canonicalIndexByReportActionID'
     | 'runsByAnchorReportActionID'
@@ -61,7 +63,7 @@ type UseReportActionsListRenderItemParams = Pick<
         reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
         isReportArchived: boolean;
         isOffline: boolean;
-        sortedReportActions: OnyxTypes.ReportAction[];
+        listActions: OnyxTypes.ReportAction[];
         onShowPreviousMessages: () => void;
     };
 

@@ -58,8 +58,9 @@ function buildHookProps(reportID: string, actions: ReportActions): HookProps {
     const actionsArray = Object.values(actions);
     return {
         reportID,
-        reportActions: actionsArray,
-        allReportActions: actionsArray,
+        cachedActions: actionsArray,
+        reportViewActions: actionsArray,
+        combinedActions: actionsArray,
         canPerformWriteAction: true,
         hasOlderActions: false,
         loadOlderChats: jest.fn(),
@@ -127,7 +128,7 @@ describe('useReportActionsVisibility scopes VISIBLE_REPORT_ACTIONS per report', 
         const props = buildHookProps(REPORT_A, {iou: action});
         const {result, unmount} = renderHook(() => useReportActionsVisibility(props), {wrapper});
         await waitForBatchedUpdates();
-        expect(result.current.sortedVisibleReportActions).toEqual([action]);
+        expect(result.current.visibleActions).toEqual([action]);
 
         // When transactions finish loading without any transactions for this report.
         await act(async () => {
@@ -136,7 +137,7 @@ describe('useReportActionsVisibility scopes VISIBLE_REPORT_ACTIONS per report', 
         });
 
         // Then the missing transaction hides the IOU instead of bypassing filtering.
-        expect(result.current.sortedVisibleReportActions).toEqual([]);
+        expect(result.current.visibleActions).toEqual([]);
 
         // When the matching transaction arrives for the open report.
         await act(async () => {
@@ -151,7 +152,7 @@ describe('useReportActionsVisibility scopes VISIBLE_REPORT_ACTIONS per report', 
         });
 
         // Then the IOU becomes visible as the report's own transactions update.
-        expect(result.current.sortedVisibleReportActions).toEqual([action]);
+        expect(result.current.visibleActions).toEqual([action]);
         unmount();
     });
 

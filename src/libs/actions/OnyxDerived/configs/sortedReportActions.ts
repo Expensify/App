@@ -40,6 +40,11 @@ function computeForReport(
     };
 }
 
+/** Whether two sorted lists hold the same action objects in the same order. */
+function areSameActions(previousActions: ReportAction[] | undefined, nextActions: ReportAction[]): boolean {
+    return previousActions?.length === nextActions.length && previousActions.every((action, index) => action === nextActions.at(index));
+}
+
 /**
  * Returns the reports whose sorted actions can change: their actions, the report or its chat report changed,
  * or the actions of their one transaction thread changed.
@@ -95,6 +100,7 @@ export default createOnyxDerivedValueConfig({
             const sortedActions = {...currentValue.sortedActions};
             const lastActions = {...currentValue.lastActions};
             const transactionThreadIDs = {...currentValue.transactionThreadIDs};
+            let hasChanged = false;
 
             for (const reportID of getReportIDsToRecompute(allReportActions, allReports, reportActionsUpdates, reportUpdates, currentValue.transactionThreadIDs)) {
                 if (!reportID) {
@@ -104,6 +110,7 @@ export default createOnyxDerivedValueConfig({
                 const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
                 const actions = allReportActions[reportActionsKey];
                 if (!actions) {
+                    hasChanged ||= reportID in sortedActions;
                     delete sortedActions[reportID];
                     delete lastActions[reportID];
                     delete transactionThreadIDs[reportID];
@@ -111,6 +118,15 @@ export default createOnyxDerivedValueConfig({
                 }
 
                 const result = computeForReport(reportID, actions, allReportActions, allReports, isOffline);
+                const hasSameResult =
+                    areSameActions(currentValue.sortedActions[reportID], result.sortedReportActions) &&
+                    currentValue.transactionThreadIDs[reportID] === result.transactionThreadReportID &&
+                    currentValue.lastActions[reportID] === result.lastAction;
+                if (hasSameResult) {
+                    continue;
+                }
+
+                hasChanged = true;
                 sortedActions[reportID] = result.sortedReportActions;
                 transactionThreadIDs[reportID] = result.transactionThreadReportID;
                 if (result.lastAction) {
@@ -120,7 +136,8 @@ export default createOnyxDerivedValueConfig({
                 }
             }
 
-            return {sortedActions, lastActions, transactionThreadIDs};
+            // A write that leaves every recomputed report as it was, like a new lastReadTime, must not notify every subscriber.
+            return hasChanged ? {sortedActions, lastActions, transactionThreadIDs} : currentValue;
         }
 
         // Full recompute on first load or when the network changes

@@ -10,8 +10,12 @@ import {useState} from 'react';
 
 type UseConciergeSidePanelReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
-    reportActions: OnyxTypes.ReportAction[];
-    visibleReportActions: OnyxTypes.ReportAction[];
+
+    /** The report's loaded actions merged with its one-expense thread's, hidden ones included. */
+    combinedActions: OnyxTypes.ReportAction[];
+
+    /** The `combinedActions` the current user may see. */
+    visibleActions: OnyxTypes.ReportAction[];
     isConciergeHiddenHistory: boolean;
     hasUserSentMessage: boolean;
     hasOlderActions: boolean;
@@ -23,8 +27,8 @@ type UseConciergeSidePanelReportActionsParams = {
 
 function useConciergeSidePanelReportActions({
     report,
-    reportActions,
-    visibleReportActions,
+    combinedActions,
+    visibleActions,
     isConciergeHiddenHistory,
     hasUserSentMessage,
     hasOlderActions,
@@ -54,7 +58,7 @@ function useConciergeSidePanelReportActions({
 
     const pendingSentActionIDs =
         isConciergeHiddenHistory && sessionStartTime
-            ? visibleReportActions.filter((action) => isCurrentUserPendingAddAction(action, currentUserAccountID)).map((action) => action.reportActionID)
+            ? visibleActions.filter((action) => isCurrentUserPendingAddAction(action, currentUserAccountID)).map((action) => action.reportActionID)
             : [];
     if (pendingSentActionIDs.some((reportActionID) => !sessionSentActionIDs.has(reportActionID))) {
         setSessionSentActionIDs((prev) => new Set([...prev, ...pendingSentActionIDs]));
@@ -73,9 +77,7 @@ function useConciergeSidePanelReportActions({
     if (!isConciergeHiddenHistory || !sessionStartTime) {
         hadUserMessageAtSessionStart = false;
     } else {
-        const hasUserMessageInLoadedSet = visibleReportActions.some(
-            (action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created < sessionStartTime,
-        );
+        const hasUserMessageInLoadedSet = visibleActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created < sessionStartTime);
         hadUserMessageAtSessionStart = hasUserMessageInLoadedSet || hasOlderActions;
     }
 
@@ -83,7 +85,7 @@ function useConciergeSidePanelReportActions({
     if (!isConciergeHiddenHistory || !hadUserMessageAtSessionStart || !sessionStartTime) {
         hasPreviousMessages = false;
     } else {
-        const hasPreSessionActionInLoadedSet = visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTime);
+        const hasPreSessionActionInLoadedSet = visibleActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTime);
         hasPreviousMessages = hasPreSessionActionInLoadedSet || hasOlderActions;
     }
 
@@ -110,7 +112,7 @@ function useConciergeSidePanelReportActions({
     const firstUserMessageCreated =
         showConciergeSidePanelWelcome || !isConciergeHiddenHistory || !hasUserSentMessage || !sessionStartTime
             ? undefined
-            : reportActions.reduce<string | undefined>((earliest, action) => {
+            : combinedActions.reduce<string | undefined>((earliest, action) => {
                   const isCurrentSessionUserMessage =
                       !isCreatedAction(action) &&
                       action.actorAccountID === currentUserAccountID &&
@@ -175,8 +177,8 @@ function useConciergeSidePanelReportActions({
         return filtered;
     };
 
-    const filteredVisibleActions = filterActions(visibleReportActions);
-    const filteredReportActions = filterActions(reportActions);
+    const filteredVisibleActions = filterActions(visibleActions);
+    const filteredCombinedActions = filterActions(combinedActions);
 
     const handleShowPreviousMessages = () => {
         setShowFullHistory(true);
@@ -185,7 +187,7 @@ function useConciergeSidePanelReportActions({
 
     return {
         filteredVisibleActions,
-        filteredReportActions,
+        filteredCombinedActions,
         showConciergeSidePanelWelcome,
         showFullHistory,
         hasPreviousMessages,

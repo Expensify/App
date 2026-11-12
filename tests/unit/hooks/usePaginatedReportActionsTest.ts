@@ -64,7 +64,7 @@ describe('usePaginatedReportActions', () => {
 
         // Then the routed row still renders before its forward action, so the routed message is not lost
         await waitFor(() => {
-            expect(result.current.reportActions.map((reportAction) => reportAction.reportActionID)).toEqual([
+            expect(result.current.windowActions.map((reportAction) => reportAction.reportActionID)).toEqual([
                 `${DEW_FORWARDED_ACTION.reportActionID}DEW`,
                 DEW_FORWARDED_ACTION.reportActionID,
                 CREATED_ACTION.reportActionID,

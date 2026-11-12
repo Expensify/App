@@ -51,8 +51,8 @@ function useReportActionsListRenderItem({
     reportNameValuePairs,
     isReportArchived,
     isOffline,
-    sortedReportActions,
-    renderedVisibleReportActions,
+    listActions,
+    visibleActionsWithDraft,
     listData,
     canonicalIndexByReportActionID,
     runsByAnchorReportActionID,
@@ -87,19 +87,19 @@ function useReportActionsListRenderItem({
     const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
     const isInvoiceLinkedToBill = isLinkedToBillSelector(reportNameValuePairs);
 
-    const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
+    const firstVisibleReportActionID = getFirstVisibleReportActionID(listActions, isOffline);
 
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     // An agent account can be opened through Copilot, and the agent must not rate its own replies
-    const actorAccountIDs = [...new Set(renderedVisibleReportActions.map((action) => action.actorAccountID))].filter((accountID) => accountID !== currentUserAccountID);
+    const actorAccountIDs = [...new Set(visibleActionsWithDraft.map((action) => action.actorAccountID))].filter((accountID) => accountID !== currentUserAccountID);
     const [customAgentAccountIDs = getEmptyArray<number>()] = usePersonalDetailsByIDs(actorAccountIDs, getCustomAgentAccountIDs);
 
     // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
     const latestConciergeFeedbackActionIDs =
         reportNameValuePairs?.conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
             ? getEmptyArray<string>()
-            : getFeedbackPromptActionIDs(renderedVisibleReportActions, persistedReportActionIDs, customAgentAccountIDs);
+            : getFeedbackPromptActionIDs(visibleActionsWithDraft, persistedReportActionIDs, customAgentAccountIDs);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
@@ -108,7 +108,7 @@ function useReportActionsListRenderItem({
     const shouldHideThreadDividerLine = firstVisibleReportActionID === unreadMarkerReportActionID;
 
     const shouldUseThreadDividerLine = (() => {
-        const topReport = renderedVisibleReportActions.length > 0 ? renderedVisibleReportActions.at(renderedVisibleReportActions.length - 1) : null;
+        const topReport = visibleActionsWithDraft.length > 0 ? visibleActionsWithDraft.at(visibleActionsWithDraft.length - 1) : null;
 
         if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return false;
@@ -165,12 +165,12 @@ function useReportActionsListRenderItem({
                 displayAsGroup={
                     !isAfterCollapsedRun &&
                     !shouldKeepBillPayActorHeader(reportAction, previousReportAction, reportStable, isInvoiceLinkedToBill) &&
-                    !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                    isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, canonicalIndex, isOffline)
+                    !isConsecutiveChronosAutomaticTimerAction(visibleActionsWithDraft, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                    isConsecutiveActionMadeByPreviousActor(visibleActionsWithDraft, canonicalIndex, isOffline)
                 }
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                shouldDisplayReplyDivider={renderedVisibleReportActions.length > 1}
+                shouldDisplayReplyDivider={visibleActionsWithDraft.length > 1}
                 isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                 isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
                 reportsParentHierarchy={reportsParentHierarchy}

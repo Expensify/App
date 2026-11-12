@@ -82,10 +82,10 @@ const mockReportActionsSkeletonView = jest.mocked(ReportActionsSkeletonView);
 const mockUserTypingEventListener = UserTypingEventListener as jest.MockedFunction<typeof UserTypingEventListener>;
 
 const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportActions> = {
-    reportActions: [],
+    windowActions: [],
     linkedAction: undefined,
     oldestUnreadReportAction: undefined,
-    sortedAllReportActions: undefined,
+    cachedActions: undefined,
     hasNewerActions: false,
     hasOlderActions: false,
     report: undefined,

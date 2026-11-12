@@ -50,12 +50,12 @@ function makeAction(reportActionID: string, overrides: Partial<OnyxTypes.ReportA
 }
 
 function renderUnreadMarker(params: Partial<Parameters<typeof useUnreadMarker>[0]> = {}) {
-    const actions = params.sortedVisibleReportActions ?? [makeAction('m1')];
+    const actions = params.visibleActions ?? [makeAction('m1')];
     return renderHook(() =>
         useUnreadMarker({
             reportID: REPORT_ID,
-            sortedVisibleReportActions: actions,
-            sortedReportActions: actions,
+            visibleActions: actions,
+            listActions: actions,
             oldestUnreadReportActionID: undefined,
             isScrolledOverThreshold: false,
             hasOnceLoadedReportActions: true,
@@ -85,7 +85,7 @@ describe('useUnreadMarker', () => {
     });
 
     it('places the marker on an unread message from another user', () => {
-        const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
+        const {result} = renderUnreadMarker({visibleActions: [makeAction('m1')]});
 
         expect(result.current.unreadMarkerReportActionID).toBe('m1');
         expect(result.current.unreadMarkerReportActionIndex).toBe(0);
@@ -94,7 +94,7 @@ describe('useUnreadMarker', () => {
     it('prefers the oldestUnread pagination anchor over the scan on first open when the scan finds nothing', () => {
         const readAction = makeAction('a', {created: '2023-01-01 09:00:00.000'});
         const {result} = renderUnreadMarker({
-            sortedVisibleReportActions: [readAction],
+            visibleActions: [readAction],
             oldestUnreadReportActionID: 'a',
             hasOnceLoadedReportActions: false,
         });
@@ -106,7 +106,7 @@ describe('useUnreadMarker', () => {
     it('ignores the oldestUnread anchor once the report actions have loaded', () => {
         const readAction = makeAction('a', {created: '2023-01-01 09:00:00.000'});
         const {result} = renderUnreadMarker({
-            sortedVisibleReportActions: [readAction],
+            visibleActions: [readAction],
             oldestUnreadReportActionID: 'a',
             hasOnceLoadedReportActions: true,
         });
@@ -121,7 +121,7 @@ describe('useUnreadMarker', () => {
 
         // When the chat opens before the report actions have loaded
         const {result} = renderUnreadMarker({
-            sortedVisibleReportActions: [selfAction],
+            visibleActions: [selfAction],
             oldestUnreadReportActionID: 'a',
             hasOnceLoadedReportActions: false,
         });
@@ -142,7 +142,7 @@ describe('useUnreadMarker', () => {
 
         // When the chat opens before the report actions have loaded
         const {result} = renderUnreadMarker({
-            sortedVisibleReportActions: [reportPreviewAction],
+            visibleActions: [reportPreviewAction],
             oldestUnreadReportActionID: 'a',
             hasOnceLoadedReportActions: false,
         });
@@ -153,7 +153,7 @@ describe('useUnreadMarker', () => {
     });
 
     it('clears the marker when an unreadAction event advances the unread marker time past the message', () => {
-        const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
+        const {result} = renderUnreadMarker({visibleActions: [makeAction('m1')]});
         expect(result.current.unreadMarkerReportActionID).toBe('m1');
 
         act(() => {
@@ -170,11 +170,11 @@ describe('useUnreadMarker', () => {
         const welcomeActions = [greeting, createdAction];
 
         const {result, rerender} = renderHook(
-            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+            (visibleActions: OnyxTypes.ReportAction[]) =>
                 useUnreadMarker({
                     reportID: REPORT_ID,
-                    sortedVisibleReportActions,
-                    sortedReportActions: sortedVisibleReportActions,
+                    visibleActions,
+                    listActions: visibleActions,
                     oldestUnreadReportActionID: undefined,
                     isScrolledOverThreshold: false,
                     hasOnceLoadedReportActions: true,
@@ -203,11 +203,11 @@ describe('useUnreadMarker', () => {
         const createdAction = makeAction('created', {created: '2023-01-01 08:00:00.000', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
 
         const {result, rerender} = renderHook(
-            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+            (visibleActions: OnyxTypes.ReportAction[]) =>
                 useUnreadMarker({
                     reportID: REPORT_ID,
-                    sortedVisibleReportActions,
-                    sortedReportActions: sortedVisibleReportActions,
+                    visibleActions,
+                    listActions: visibleActions,
                     oldestUnreadReportActionID: undefined,
                     isScrolledOverThreshold: false,
                     hasOnceLoadedReportActions: true,
@@ -230,11 +230,11 @@ describe('useUnreadMarker', () => {
         const oldMessage = makeAction('old', {created: '2023-01-01 09:00:00.000'});
 
         const {result, rerender} = renderHook(
-            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+            (visibleActions: OnyxTypes.ReportAction[]) =>
                 useUnreadMarker({
                     reportID: REPORT_ID,
-                    sortedVisibleReportActions,
-                    sortedReportActions: sortedVisibleReportActions,
+                    visibleActions,
+                    listActions: visibleActions,
                     oldestUnreadReportActionID: undefined,
                     isScrolledOverThreshold: false,
                     hasOnceLoadedReportActions: true,
@@ -255,11 +255,11 @@ describe('useUnreadMarker', () => {
         const oldMessage = makeAction('old', {created: '2023-01-01 09:00:00.000'});
 
         const {result, rerender} = renderHook(
-            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+            (visibleActions: OnyxTypes.ReportAction[]) =>
                 useUnreadMarker({
                     reportID: REPORT_ID,
-                    sortedVisibleReportActions,
-                    sortedReportActions: sortedVisibleReportActions,
+                    visibleActions,
+                    listActions: visibleActions,
                     oldestUnreadReportActionID: undefined,
                     isScrolledOverThreshold: false,
                     hasOnceLoadedReportActions: true,
@@ -285,12 +285,12 @@ describe('useUnreadMarker', () => {
         const action = makeAction('msg', {created: '2023-01-01 11:00:00.000'});
 
         // Mounted on A: 11:00 is after A's 10:00 read time → unread → marker lands on the action.
-        const {result: resultA} = renderUnreadMarker({reportID: 'A', sortedVisibleReportActions: [action], sortedReportActions: [action]});
+        const {result: resultA} = renderUnreadMarker({reportID: 'A', visibleActions: [action], listActions: [action]});
         expect(resultA.current.unreadMarkerReportActionID).toBe('msg');
         expect(resultA.current.unreadMarkerReportActionIndex).toBe(0);
 
         // Mounted on B: 11:00 is before B's 12:00 read time → already read → no marker.
-        const {result: resultB} = renderUnreadMarker({reportID: 'B', sortedVisibleReportActions: [action], sortedReportActions: [action]});
+        const {result: resultB} = renderUnreadMarker({reportID: 'B', visibleActions: [action], listActions: [action]});
         expect(resultB.current.unreadMarkerReportActionID).toBeNull();
         expect(resultB.current.unreadMarkerReportActionIndex).toBe(-1);
     });
@@ -301,8 +301,8 @@ describe('useUnreadMarker', () => {
         const oldestFirstActions = [readAction, unreadAction];
 
         const {result} = renderUnreadMarker({
-            sortedVisibleReportActions: oldestFirstActions,
-            sortedReportActions: oldestFirstActions,
+            visibleActions: oldestFirstActions,
+            listActions: oldestFirstActions,
             isReversed: true,
         });
 
@@ -315,10 +315,10 @@ describe('useUnreadMarker', () => {
         const unreadAction = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
 
         const newestFirst = [unreadAction, readAction];
-        const {result: newestFirstResult} = renderUnreadMarker({sortedVisibleReportActions: newestFirst, sortedReportActions: newestFirst});
+        const {result: newestFirstResult} = renderUnreadMarker({visibleActions: newestFirst, listActions: newestFirst});
 
         const oldestFirst = [readAction, unreadAction];
-        const {result: oldestFirstResult} = renderUnreadMarker({sortedVisibleReportActions: oldestFirst, sortedReportActions: oldestFirst, isReversed: true});
+        const {result: oldestFirstResult} = renderUnreadMarker({visibleActions: oldestFirst, listActions: oldestFirst, isReversed: true});
 
         expect(newestFirstResult.current.unreadMarkerReportActionID).toBe('unread');
         expect(oldestFirstResult.current.unreadMarkerReportActionID).toBe('unread');

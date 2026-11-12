@@ -57,8 +57,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const {windowActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
+    const reportActions = getFilteredReportActionsForReportView(windowActions);
 
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
 

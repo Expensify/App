@@ -105,7 +105,7 @@ import ActionContentRouter from './actionContents/ActionContentRouter';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
-import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
+import {useReportActionWithDraftID} from './ReportActionEditMessageContext';
 import {useReportActionItemState} from './ReportActionIndexContext';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
 import ReportActionItemFrame from './ReportActionItemFrame';
@@ -209,12 +209,16 @@ function ReportActionItem({
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactionsOnIOUReport = useReportTransactionsCollection(iouReport?.reportID);
-    const transactionsOnReportCollection = useReportTransactionsCollection(report?.reportID);
-    const transactionsOnReport = Object.values(transactionsOnReportCollection);
     const [isInvoiceLinkedToBill = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isInvoiceReport(report) ? reportID : undefined)}`, {
         selector: isLinkedToBillSelector,
     });
     const isBillPayCreatedAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && isBillPayHistoryAction(action, report, isInvoiceLinkedToBill);
+
+    // IOUDetails only exists when we are sending money
+    const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
+
+    // Only send money and bill pay rows read the report's transactions. Subscribing every row would re-render the whole list whenever one transaction changes.
+    const transactionsOnReportCollection = useReportTransactionsCollection(isSendingMoney || isBillPayCreatedAction ? report?.reportID : undefined);
     const IOUOriginalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(action) : undefined;
     const transactionID = isMoneyRequestAction(action) && IOUOriginalMessage?.IOUTransactionID;
     const isACHPaymentAction = IOUOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && IOUOriginalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
@@ -239,7 +243,7 @@ function ReportActionItem({
     });
     const isAgentProcessingInThread = !isOffline && !!action.childReportID && (threadProcessingAgentIDs?.length ?? 0) > 0;
 
-    const {editingMessage, editingReportAction} = useReportActionActiveEdit();
+    const reportActionWithDraftID = useReportActionWithDraftID();
 
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
@@ -272,12 +276,8 @@ function ReportActionItem({
     const highlightedBackgroundColorIfNeeded = isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
-    const draftMessage = editingReportAction && action && editingReportAction.reportActionID === action.reportActionID ? (editingMessage ?? undefined) : undefined;
-    const hasDraft = draftMessage !== undefined;
+    const hasDraft = reportActionWithDraftID === action.reportActionID;
     const isEditingInline = !shouldEditInComposer && hasDraft;
-
-    // IOUDetails only exists when we are sending money
-    const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
 
     // Only send money rows need the chat's actions. A comment on an expense report updates the report preview in that chat,
     // so subscribing on every row would re-render the whole list on each send.
@@ -296,6 +296,56 @@ function ReportActionItem({
     const isOnSearch = useIsOnSearch();
 
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    useEffect(
+        () => () => {
+            // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
+            // we should also hide them when the current component is destroyed
+            if (isActiveReportAction(action.reportActionID)) {
+                hideContextMenu();
+                hideDeleteModal();
+            }
+            if (isActive(action.reportActionID)) {
+                hideEmojiPicker(true);
+            }
+            if (isActiveReactionListReportAction(action.reportActionID)) {
+                hideReactionList();
+            }
+        },
+        [action.reportActionID, isActiveReactionListReportAction, hideReactionList],
+    );
+
+    useEffect(() => {
+        // We need to hide EmojiPicker when this is a deleted parent action
+        if (!isDeletedParentAction || !isActive(action.reportActionID)) {
+            return;
+        }
+
+        hideEmojiPicker(true);
+    }, [isDeletedParentAction, action.reportActionID]);
+
+    // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
+    // Removed messages should not be shown anyway and should not need this flow
+    const latestDecision = getReportActionMessage(action)?.moderationDecision?.decision ?? '';
+    useEffect(() => {
+        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
+            return;
+        }
+
+        // Hide reveal message button and show the message if latestDecision is changed to empty
+        if (!latestDecision) {
+            setIsHidden(false);
+            return;
+        }
+
+        if (![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === latestDecision) && !isPendingRemove(action)) {
+            setIsHidden(true);
+            return;
+        }
+        setIsHidden(false);
+    }, [latestDecision, action, setIsHidden]);
+
+    // Defined after the effects, so React Compiler can keep these callbacks and the row subtree that receives them.
+    const transactionsOnReport = Object.values(transactionsOnReportCollection);
     const dismissError = () => {
         const transactionIDToDismiss = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionIDToDismiss && reportID) {
@@ -354,54 +404,6 @@ function ReportActionItem({
             dismissError();
         }
     };
-
-    useEffect(
-        () => () => {
-            // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
-            // we should also hide them when the current component is destroyed
-            if (isActiveReportAction(action.reportActionID)) {
-                hideContextMenu();
-                hideDeleteModal();
-            }
-            if (isActive(action.reportActionID)) {
-                hideEmojiPicker(true);
-            }
-            if (isActiveReactionListReportAction(action.reportActionID)) {
-                hideReactionList();
-            }
-        },
-        [action.reportActionID, isActiveReactionListReportAction, hideReactionList],
-    );
-
-    useEffect(() => {
-        // We need to hide EmojiPicker when this is a deleted parent action
-        if (!isDeletedParentAction || !isActive(action.reportActionID)) {
-            return;
-        }
-
-        hideEmojiPicker(true);
-    }, [isDeletedParentAction, action.reportActionID]);
-
-    // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
-    // Removed messages should not be shown anyway and should not need this flow
-    const latestDecision = getReportActionMessage(action)?.moderationDecision?.decision ?? '';
-    useEffect(() => {
-        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
-            return;
-        }
-
-        // Hide reveal message button and show the message if latestDecision is changed to empty
-        if (!latestDecision) {
-            setIsHidden(false);
-            return;
-        }
-
-        if (![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === latestDecision) && !isPendingRemove(action)) {
-            setIsHidden(true);
-            return;
-        }
-        setIsHidden(false);
-    }, [latestDecision, action, setIsHidden]);
 
     const toggleContextMenuFromActiveReportAction = () => {
         setIsContextMenuActive(isActiveReportAction(action.reportActionID));
@@ -499,7 +501,7 @@ function ReportActionItem({
                     <ReportActionItemContentCreated
                         parentReportAction={parentReportAction}
                         transactionID={createdTransactionID}
-                        draftMessage={draftMessage}
+                        hasDraft={hasDraft}
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     />
                 </ShowContextMenuActionsContext.Provider>
@@ -562,7 +564,7 @@ function ReportActionItem({
                         <ReportActionItemContentCreated
                             parentReportAction={parentReportAction}
                             transactionID={createdTransactionID}
-                            draftMessage={draftMessage}
+                            hasDraft={hasDraft}
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />
                     )}
@@ -675,7 +677,7 @@ function ReportActionItem({
                                                                 originalReportID={originalReportID}
                                                                 iouReport={iouReport}
                                                                 displayAsGroup={displayAsGroup}
-                                                                draftMessage={draftMessage}
+                                                                hasDraft={hasDraft}
                                                                 isWhisper={isWhisper}
                                                                 hovered={isHoveredOrActive}
                                                                 isHidden={isHidden}

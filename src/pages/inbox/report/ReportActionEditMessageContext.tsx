@@ -56,6 +56,9 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
  */
 const ReportActionEditingReportActionIDContext = createContext<string | null>(null);
 
+/** The action being edited while its draft text exists. A bare ID, so rows learn whether they show the editor without re-rendering on every keystroke. */
+const ReportActionWithDraftIDContext = createContext<string | null>(null);
+
 const ReportActionEditMessageActionsContext = createContext<ReportActionEditMessageContextActions>({
     setEditingMessage: noop,
     setCurrentEditMessageSelection: noop,
@@ -161,7 +164,9 @@ function ReportActionEditMessageContextProvider({reportID, effectiveTransactionT
     return (
         <ReportActionEditMessageContext.Provider value={reportActionEditMessageContextValue}>
             <ReportActionEditMessageActionsContext.Provider value={actions}>
-                <ReportActionEditingReportActionIDContext.Provider value={editingReportActionID}>{children}</ReportActionEditingReportActionIDContext.Provider>
+                <ReportActionEditingReportActionIDContext.Provider value={editingReportActionID}>
+                    <ReportActionWithDraftIDContext.Provider value={editingMessage === null ? null : editingReportActionID}>{children}</ReportActionWithDraftIDContext.Provider>
+                </ReportActionEditingReportActionIDContext.Provider>
             </ReportActionEditMessageActionsContext.Provider>
         </ReportActionEditMessageContext.Provider>
     );
@@ -198,5 +203,17 @@ function useEditingReportActionID() {
     return useContext(ReportActionEditingReportActionIDContext);
 }
 
-export {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread, useReportActionActiveEdit, useReportActionActiveEditActions, useEditingReportActionID};
+/** The action being edited while its draft text exists, or null. */
+function useReportActionWithDraftID() {
+    return useContext(ReportActionWithDraftIDContext);
+}
+
+export {
+    ReportActionEditMessageContextProvider,
+    ReportScreenEditMessageProviderWithTransactionThread,
+    useReportActionActiveEdit,
+    useReportActionActiveEditActions,
+    useEditingReportActionID,
+    useReportActionWithDraftID,
+};
 export type {ReportActionEditMessageState};

@@ -123,13 +123,13 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportIDFromRoute}`);
     const reportID = report?.reportID;
 
-    const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, linkedReportActionID);
+    const {windowActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, linkedReportActionID);
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
     const {reportActions, reportTransactions, transactions, hasPendingDeletionTransaction, reportTransactionIDs, reportActionIDs} = useMoneyRequestReportData(
         reportIDFromRoute,
-        unfilteredReportActions,
+        windowActions,
         isOffline,
     );
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
@@ -204,9 +204,9 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID: reportID ?? reportIDFromRoute ?? '',
-        sortedVisibleReportActions: visibleReportActions,
+        visibleActions: visibleReportActions,
         isReversed: true,
-        sortedReportActions: reportActions,
+        listActions: reportActions,
         oldestUnreadReportActionID: undefined,
         isScrolledOverThreshold: hasScrolledOverThreshold,
         hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
@@ -231,8 +231,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         reportID: reportID ?? reportIDFromRoute ?? '',
         report,
         transactionThreadReport,
-        sortedVisibleReportActions: visibleReportActionsNewestFirst,
-        sortedReportActions: reportActions,
+        visibleActions: visibleReportActionsNewestFirst,
+        listActions: reportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
         hasNewerActions,
         scopeKey: 'moneyRequestReport',

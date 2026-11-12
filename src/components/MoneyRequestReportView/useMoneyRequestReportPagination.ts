@@ -69,7 +69,7 @@ function useMoneyRequestReportPagination({
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
         reportActions,
-        allReportActionIDs: reportActions.map((action) => action.reportActionID),
+        parentReportActionIDs: reportActions.map((action) => action.reportActionID),
         transactionThreadReportID,
         hasOlderActions,
         hasNewerActions,

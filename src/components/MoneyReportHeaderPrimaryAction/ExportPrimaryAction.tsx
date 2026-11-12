@@ -31,8 +31,8 @@ function ExportPrimaryAction({reportID, onExportModalOpen, isDisabled}: ExportPr
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectionNameFriendly = connectedIntegration ? getAccountingIntegrationDisplayName(policy, connectedIntegration, translate) : undefined;
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const {windowActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
+    const reportActions = getFilteredReportActionsForReportView(windowActions);
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
 
     return (

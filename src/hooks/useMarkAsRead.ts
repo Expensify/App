@@ -82,10 +82,10 @@ type UseMarkAsReadParams = {
     reportID: string;
     report: OnyxEntry<OnyxTypes.Report>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    sortedVisibleReportActions: OnyxTypes.ReportAction[];
+    visibleActions: OnyxTypes.ReportAction[];
 
     /** All sorted actions (the full chain), scanned for unread messages when the app regains focus. Defaults to the visible actions. */
-    sortedReportActions?: OnyxTypes.ReportAction[];
+    listActions?: OnyxTypes.ReportAction[];
 
     isScrolledToEnd: boolean;
     hasNewerActions: boolean;
@@ -109,8 +109,8 @@ function useMarkAsRead({
     reportID,
     report,
     transactionThreadReport,
-    sortedVisibleReportActions,
-    sortedReportActions,
+    visibleActions,
+    listActions,
     isScrolledToEnd,
     hasNewerActions,
     scopeKey = 'default',
@@ -146,7 +146,7 @@ function useMarkAsRead({
     const lastMessageTime = useRef<string | null>(null);
     const didMarkReportAsReadInitially = useRef(false);
 
-    const lastAction = sortedVisibleReportActions.at(0);
+    const lastAction = visibleActions.at(0);
     const isReportUnreadValue = isUnread(report, transactionThreadReport, isReportArchived, derivedIsEmptyReport) || (!!lastAction && isCurrentActionUnread(report, lastAction));
 
     const [instanceID] = useState(() => {
@@ -264,7 +264,7 @@ function useMarkAsRead({
             return;
         }
 
-        const isLastActionUnread = !!lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions);
+        const isLastActionUnread = !!lastAction && isCurrentActionUnread(report, lastAction, visibleActions);
         if (!isUnread(report, transactionThreadReport, isReportArchived, derivedIsEmptyReport) && !isLastActionUnread) {
             return;
         }
@@ -320,7 +320,7 @@ function useMarkAsRead({
 
         const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
         const hasNewMessagesInView = isScrolledToEnd;
-        const hasUnreadReportAction = (sortedReportActions ?? sortedVisibleReportActions).some(
+        const hasUnreadReportAction = (listActions ?? visibleActions).some(
             (reportAction) =>
                 newMessageTimeReference &&
                 newMessageTimeReference < reportAction.created &&

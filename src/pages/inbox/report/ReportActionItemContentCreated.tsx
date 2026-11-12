@@ -34,11 +34,12 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 type ReportActionItemContentCreatedProps = {
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
     transactionID: string | undefined;
-    draftMessage: string | undefined;
+    /** Whether the user is editing this action */
+    hasDraft: boolean;
     shouldHideThreadDividerLine: boolean;
 };
 
-function ReportActionItemContentCreated({parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
+function ReportActionItemContentCreated({parentReportAction, transactionID, hasDraft, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const contextMenuStateValue = useShowContextMenuState();
@@ -119,7 +120,7 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
                     <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
                         <ReportActionItemSingle
                             action={parentReportAction}
-                            showHeader={draftMessage === undefined}
+                            showHeader={!hasDraft}
                             report={report}
                         >
                             <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />
