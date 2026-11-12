@@ -31,7 +31,10 @@ function NetSuiteTokenSetupContent({onNext, currentPageName, policyID, shouldSho
         <View style={styles.flex1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
             <View style={[styles.mb3, styles.ph5]}>
-                <RenderHTML html={`<comment><muted-text>${Parser.replace(translate(description))}</muted-text></comment>`} />
+                {/* On Android, RenderHTML renders with no height in this layout unless a row container wraps it */}
+                <View style={styles.flexRow}>
+                    <RenderHTML html={`<comment><muted-text>${Parser.replace(translate(description))}</muted-text></comment>`} />
+                </View>
                 {shouldShowTokenAuthenticationLink && (
                     <NetSuiteTokenAuthenticationLink
                         policyID={policyID}
@@ -41,6 +44,7 @@ function NetSuiteTokenSetupContent({onNext, currentPageName, policyID, shouldSho
             </View>
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.TOKEN_SETUP_NEXT}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}
