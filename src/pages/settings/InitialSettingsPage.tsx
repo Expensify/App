@@ -1,6 +1,7 @@
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
+import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
@@ -67,6 +68,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const navigation = useNavigation();
     const isDrawnOverTabs = useIsSettingsDrawnOverTabs();
+    const getFlatNavRowProps = useFlatNavSidebarRowProps();
 
     // The tab navigator keeps the full tab history, so going back returns to the tab the user opened Account from.
     // With nothing behind it, as after a deep link or a relaunch, the tab history is reset to Home alone so that going
@@ -140,6 +142,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             item={item}
                             keyTitle={keyTitle}
                             isFocused={isFocused}
+                            flatNavRowProps={getFlatNavRowProps(isFocused)}
                             isExecuting={isExecuting}
                             isScreenFocused={isScreenFocused}
                             onPress={singleExecution(item.action)}

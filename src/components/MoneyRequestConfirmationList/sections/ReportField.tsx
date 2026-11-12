@@ -4,7 +4,6 @@ import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPop
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
@@ -57,7 +56,6 @@ type ReportFieldProps = {
 function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate, localeCompare} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
     const [ownerPersonalDetail] = usePersonalDetail(ownerAccountID);
 
@@ -133,7 +131,9 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false, ownerPersonalDetail?.login);
     const eligibleOutstandingReports = isCreatingExpense ? outstandingReports.filter((report) => canAddTransaction(report, rules)) : outstandingReports;
-    let hasSelectableReports = shouldReportFieldBeEditable(eligibleOutstandingReports, selectedReportID, isUnreported);
+    // Edits on a report can hide the new-report option; other non-creation flows always offer a choice.
+    const mayHideListOptions = action === CONST.IOU.ACTION.EDIT && !isUnreported;
+    let hasSelectableReports = (!isCreatingExpense && !mayHideListOptions) || shouldReportFieldBeEditable(eligibleOutstandingReports, selectedReportID, isUnreported);
     if (isCreatingExpense && !isUnreported) {
         // Keep a single eligible alternative read-only when the automatic destination is "New report".
         hasSelectableReports = eligibleOutstandingReports.length > 1;
@@ -143,13 +143,16 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const shouldReportBeEditable = hasSelectableReports && !isMoneyRequestReport(reportID);
     // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
     // the destination step when the workspace changes), so those keep the full page.
-    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;
+    const shouldOpenInDropdown = !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;
 
     const openReportPage = () => {
         if (!transactionID || !selectedReportID) {
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, reportActionID)));
+        // With no report to show yet, the page opens from the chat the expense is being created in, as the anchored list
+        // does, rather than from the placeholder ID.
+        const reportIDForPage = selectedReport ? selectedReportID : reportID || selectedReportID;
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, reportIDForPage, reportActionID)));
     };
 
     if (shouldUseDropdownRows) {

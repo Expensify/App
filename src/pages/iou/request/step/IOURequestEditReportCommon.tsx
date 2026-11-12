@@ -27,7 +27,7 @@ import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, 
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +35,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -77,6 +78,9 @@ type IOURequestEditReportCommonProps = {
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
+
+    /** Leaves a new expense off any report. Offered next to the new report option when passed */
+    selectNoReport?: () => void;
     isPerDiemRequest: boolean;
     isTimeRequest?: boolean;
     isUnreportedManagedCardTransaction?: boolean;
@@ -101,6 +105,11 @@ type IOURequestEditReportCommonProps = {
      * Handed the list and the size it needs, in the same render, so the container never learns the size through an effect.
      */
     renderInContainer?: (list: ReactNode, size: ReportListSize) => ReactNode;
+
+    /** Labels of the create, auto-report and remove rows. Each flow passes its own, because the same row does different work in each */
+    createReportSentryLabel: SentryLabel;
+    autoReportSentryLabel: SentryLabel;
+    removeFromReportSentryLabel: SentryLabel;
 };
 
 function IOURequestEditReportCommon({
@@ -120,12 +129,16 @@ function IOURequestEditReportCommon({
     isUnreported,
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
     createReport,
+    selectNoReport,
     isPerDiemRequest,
     isTimeRequest = false,
     isUnreportedManagedCardTransaction = false,
     hasMultipleSubmitters = false,
     areAllManagedCardsResolvable = false,
     autoReport,
+    createReportSentryLabel,
+    autoReportSentryLabel,
+    removeFromReportSentryLabel,
     onDismiss,
     onNavigateAway,
     shouldAutoFocusSearchInput = false,
@@ -373,7 +386,10 @@ function IOURequestEditReportCommon({
     // A report per submitter would need one API call each, so "Auto report" serves them alone in a single call.
     const createReportOption =
         !createReport || hasMultipleSubmitters || (isEditing && !isOwner && !isAdmin) ? undefined : (
-            <MenuItem.Root onPress={handleCreateReport}>
+            <MenuItem.Root
+                onPress={handleCreateReport}
+                sentryLabel={createReportSentryLabel}
+            >
                 <MenuItem.Row>
                     <MenuItem.Leading>
                         <MenuItem.Icon src={icons.Document} />
@@ -415,7 +431,10 @@ function IOURequestEditReportCommon({
         autoReportOption = undefined;
     } else {
         autoReportOption = (
-            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(handleAutoReport, false, session)}>
+            <MenuItem.Root
+                onPress={callIfAuthenticated(handleAutoReport, session)}
+                sentryLabel={autoReportSentryLabel}
+            >
                 <MenuItem.Row>
                     <MenuItem.Leading>
                         <MenuItem.Icon src={icons.DocumentMagicWand} />
@@ -429,9 +448,33 @@ function IOURequestEditReportCommon({
         );
     }
 
-    const listHeaderContent = createReportOption ?? autoReportOption;
+    const noReportOption = selectNoReport ? (
+        <MenuItem.Root
+            onPress={selectNoReport}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_PICKER.NO_REPORT}
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <MenuItem.Icon src={icons.Close} />
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.Title>{translate('common.none')}</MenuItem.Title>
+                </MenuItem.Content>
+            </MenuItem.Row>
+        </MenuItem.Root>
+    ) : undefined;
+
+    const newReportOption = createReportOption ?? autoReportOption;
+    const headerOptionCount = (newReportOption ? 1 : 0) + (noReportOption ? 1 : 0);
+    const listHeaderContent =
+        headerOptionCount > 0 ? (
+            <>
+                {newReportOption}
+                {noReportOption}
+            </>
+        ) : undefined;
     const isSearchable = !hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const listSize: ReportListSize = {rowCount: eligibleReports.length + (listHeaderContent ? 1 : 0), isSearchable};
+    const listSize: ReportListSize = {rowCount: eligibleReports.length + headerOptionCount, isSearchable};
 
     let shouldShowNotFoundPage;
     if (listHeaderContent) {
@@ -469,7 +512,10 @@ function IOURequestEditReportCommon({
             customListHeaderContent={listHeaderContent}
             listFooterContent={
                 shouldShowRemoveFromReport ? (
-                    <MenuItem.Root onPress={removeFromReport}>
+                    <MenuItem.Root
+                        onPress={removeFromReport}
+                        sentryLabel={removeFromReportSentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <MenuItem.Icon src={icons.Close} />
