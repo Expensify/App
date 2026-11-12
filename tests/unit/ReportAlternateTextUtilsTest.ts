@@ -41,6 +41,7 @@ import {
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getReportAlternateText,
+    getSplitAndTrackTransactionIDs,
     getWelcomeMessage,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
@@ -513,6 +514,137 @@ describe('ReportAlternateTextUtils', () => {
         // Then both previews use the localized changelog instead of the fallback.
         expect(lastMessage).toBe(expectedMessage);
         expect(alternateText).toContain(expectedMessage);
+    });
+
+    describe('getSplitAndTrackTransactionIDs', () => {
+        const groupChat: Report = {...createRandomReport(0, undefined), reportID: 'splitTrackGroupChat', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.GROUP};
+        const selfDM: Report = {...createRandomReport(1, undefined), reportID: 'splitTrackSelfDM', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM};
+
+        const buildIOUAction = (
+            report: Report,
+            type: typeof CONST.IOU.REPORT_ACTION_TYPE.SPLIT | typeof CONST.IOU.REPORT_ACTION_TYPE.TRACK | typeof CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            transactionID: string,
+        ): ReportAction => ({
+            ...createRandomReportAction(1),
+            reportID: report.reportID,
+            reportActionID: `iou_${transactionID}`,
+            created: '2026-11-01 10:00:00.000',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: [{type: 'COMMENT', text: 'expense'}],
+            originalMessage: {IOUTransactionID: transactionID, type, amount: 1000, currency: CONST.CURRENCY.USD},
+            pendingAction: undefined,
+            errors: undefined,
+            shouldShow: true,
+        });
+
+        const buildComment = (report: Report, overrides: Partial<ReportAction> = {}): ReportAction => ({
+            ...createRandomReportAction(2),
+            reportID: report.reportID,
+            reportActionID: 'newerComment',
+            created: '2026-11-01 11:00:00.000',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            message: [{type: 'COMMENT', html: 'hi', text: 'hi'}],
+            originalMessage: {html: 'hi', whisperedTo: []},
+            pendingAction: undefined,
+            errors: undefined,
+            shouldShow: true,
+            ...overrides,
+        });
+
+        const toOptions = (...reports: Report[]) => reports.map((report) => ({item: report, private_isArchived: false}));
+
+        it('returns the transaction of a split that is the newest action', () => {
+            // Given a group chat whose newest action is a split
+            const split = buildIOUAction(groupChat, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, 'splitTransaction1');
+
+            // When the transaction IDs are collected
+            const result = getSplitAndTrackTransactionIDs(toOptions(groupChat), {[groupChat.reportID]: [split]});
+
+            // Then the split's transaction is returned
+            expect(result).toEqual(['splitTransaction1']);
+        });
+
+        it('returns the transaction of a split when a newer comment was deleted', () => {
+            // Given a split followed by a newer comment that was deleted, so the preview still renders the split
+            const split = buildIOUAction(groupChat, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, 'splitTransaction2');
+            const deletedComment = buildComment(groupChat, {
+                message: [{type: 'COMMENT', html: '', text: '', deleted: '2026-11-01 11:05:00.000', isDeletedParentAction: false}],
+                originalMessage: {html: '', whisperedTo: []},
+            });
+
+            // When the transaction IDs are collected, with the newest action first like the sorted actions
+            const result = getSplitAndTrackTransactionIDs(toOptions(groupChat), {[groupChat.reportID]: [deletedComment, split]});
+
+            // Then the split's transaction is still returned, because the deleted comment isn't the last visible action
+            expect(result).toEqual(['splitTransaction2']);
+        });
+
+        it('returns the transaction of a split when a newer comment is pending delete', () => {
+            // Given a split followed by a newer comment that was deleted offline and is still pending delete
+            const split = buildIOUAction(groupChat, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, 'splitTransaction3');
+            const pendingDeleteComment = buildComment(groupChat, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // When the transaction IDs are collected
+            const result = getSplitAndTrackTransactionIDs(toOptions(groupChat), {[groupChat.reportID]: [pendingDeleteComment, split]});
+
+            // Then the split's transaction is still returned
+            expect(result).toEqual(['splitTransaction3']);
+        });
+
+        it('returns the transaction of a split when a newer comment failed to send', () => {
+            // Given a split followed by a newer comment that has an error
+            const split = buildIOUAction(groupChat, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, 'splitTransaction4');
+            const failedComment = buildComment(groupChat, {errors: {error1: 'failed'}});
+
+            // When the transaction IDs are collected
+            const result = getSplitAndTrackTransactionIDs(toOptions(groupChat), {[groupChat.reportID]: [failedComment, split]});
+
+            // Then the split's transaction is still returned
+            expect(result).toEqual(['splitTransaction4']);
+        });
+
+        it('returns nothing when a newer comment is visible', () => {
+            // Given a split followed by a newer comment that is visible, so the preview renders the comment
+            const split = buildIOUAction(groupChat, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, 'splitTransaction5');
+            const comment = buildComment(groupChat);
+
+            // When the transaction IDs are collected
+            const result = getSplitAndTrackTransactionIDs(toOptions(groupChat), {[groupChat.reportID]: [comment, split]});
+
+            // Then no transaction is needed
+            expect(result).toEqual([]);
+        });
+
+        it('returns the transaction of a track action in the self DM', () => {
+            // Given a self DM whose newest action is a tracked expense
+            const track = buildIOUAction(selfDM, CONST.IOU.REPORT_ACTION_TYPE.TRACK, 'trackTransaction1');
+
+            // When the transaction IDs are collected
+            const result = getSplitAndTrackTransactionIDs(toOptions(selfDM), {[selfDM.reportID]: [track]});
+
+            // Then the tracked transaction is returned
+            expect(result).toEqual(['trackTransaction1']);
+        });
+
+        it('ignores money request actions that are neither split nor track', () => {
+            // Given a group chat whose last action is a regular expense, whose transaction belongs to the report
+            const create = buildIOUAction(groupChat, CONST.IOU.REPORT_ACTION_TYPE.CREATE, 'createTransaction1');
+
+            // When the transaction IDs are collected
+            const result = getSplitAndTrackTransactionIDs(toOptions(groupChat), {[groupChat.reportID]: [create]});
+
+            // Then nothing is returned
+            expect(result).toEqual([]);
+        });
+
+        it('returns nothing for reports without actions', () => {
+            // Given reports that have no sorted actions, or no entry at all
+            // When the transaction IDs are collected
+            const result = getSplitAndTrackTransactionIDs(toOptions(groupChat, selfDM), {[groupChat.reportID]: []});
+
+            // Then nothing is returned
+            expect(result).toEqual([]);
+        });
     });
 
     describe('getLastMessageTextForReport', () => {

@@ -6413,6 +6413,7 @@ export {
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
+    isReportActionVisibleAsLastAction,
     wasActionTakenByCurrentUser,
     isReportActionFromCurrentUser,
     isInviteOrRemovedAction,

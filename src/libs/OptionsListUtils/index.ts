@@ -2780,6 +2780,7 @@ type SearchOptionsConfig = {
     sortedActions: Record<string, ReportAction[]> | undefined;
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions?: Record<string, ReportAction>;
+    splitAndTrackTransactions?: Transaction[];
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
@@ -2821,6 +2822,7 @@ function getSearchOptions({
     sortedActions,
     transactionThreadIDs,
     lastActions,
+    splitAndTrackTransactions,
     currentUserLogin,
     localeCompare,
     formatPhoneNumber,
@@ -2872,6 +2874,7 @@ function getSearchOptions({
             sortedActions,
             transactionThreadIDs,
             lastActions,
+            splitAndTrackTransactions,
             currentUserLogin: currentUserLogin ?? currentUserEmail,
             localeCompare,
             excludeFromSuggestionsOnly,

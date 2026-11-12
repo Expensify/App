@@ -23,6 +23,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import FS from '@libs/Fullstory';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
@@ -30,6 +31,7 @@ import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@lib
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
+import {getSplitAndTrackTransactionIDs} from '@libs/ReportAlternateTextUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
@@ -287,6 +289,10 @@ function SearchAutocompleteList({
         }
     }, [isLoadingOptions]);
 
+    // A split or track action's transaction isn't part of its chat, so read it here for the chat preview line.
+    const splitAndTrackTransactionIDs = listOptions === null ? undefined : getSplitAndTrackTransactionIDs(listOptions.reports, sortedActions, visibleReportActionsData);
+    const [splitAndTrackTransactions] = useTransactionsByID(splitAndTrackTransactionIDs);
+
     const searchOptions = useRouterSearchOptions(
         listOptions === null
             ? undefined
@@ -317,6 +323,7 @@ function SearchAutocompleteList({
                   sortedActions,
                   transactionThreadIDs,
                   lastActions,
+                  splitAndTrackTransactions,
                   currentUserLogin: currentUserEmail,
                   localeCompare,
                   formatPhoneNumber,
@@ -366,6 +373,7 @@ function SearchAutocompleteList({
             policyCollection: policies,
             personalDetails,
             sortedActions,
+            splitAndTrackTransactions,
             conciergeReportID,
             isTrackIntentUser,
             translate,
