@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import AddToWalletButton from '@components/AddToWalletButton';
 import AddToWalletStatusText from '@components/AddToWalletButton/AddToWalletStatusText';
@@ -175,6 +175,41 @@ describe('AddToWalletButton', () => {
         });
 
         // Then the button stays hidden, because the spinner is only cleared once the new wallet status is known
+        expect(screen.queryByTestId('add-to-wallet-button')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('add-to-wallet-spinner')).not.toBeOnTheScreen();
+    });
+
+    it('keeps the newest wallet status when an older read resolves last', async () => {
+        // Given the card page with a card that is not in the wallet yet
+        mockGetCardStatus.mockResolvedValueOnce('not found');
+        render(
+            <AddToWalletButton
+                card={card}
+                cardHolderName="Card Holder"
+                cardDescription="Expensify Card"
+            />,
+        );
+        expect(await screen.findByTestId('add-to-wallet-button')).toBeOnTheScreen();
+
+        // When a focus refresh starts before the card is added and only resolves after the post-add read
+        let resolveStaleRead: (status: CardStatus) => void = () => {};
+        mockGetCardStatus.mockReturnValueOnce(
+            new Promise((resolve) => {
+                resolveStaleRead = resolve;
+            }),
+        );
+        act(() => {
+            bringAppToForeground();
+        });
+        mockAddCardToAppleWallet.mockResolvedValueOnce('success');
+        mockGetCardStatus.mockResolvedValueOnce('active');
+        fireEvent(screen.getByTestId('add-to-wallet-button'), 'touchEnd');
+        await waitFor(() => expect(mockGetCardStatus).toHaveBeenCalledTimes(3));
+        await act(async () => {
+            resolveStaleRead('not found');
+        });
+
+        // Then the stale "not found" does not bring the Add button back for a card that is already in the wallet
         expect(screen.queryByTestId('add-to-wallet-button')).not.toBeOnTheScreen();
         expect(screen.queryByTestId('add-to-wallet-spinner')).not.toBeOnTheScreen();
     });
