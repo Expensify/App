@@ -2648,6 +2648,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Expensify アカウントでログインしているすべてのデバイスを管理できます。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">詳しくはこちら</a>.',
         revoke: '取り消す',
         unknownDevice: '不明なデバイス',
+        signOutAllDevices: 'すべてのデバイスからログアウト',
+        signOutAllDevicesConfirmation: 'このデバイスを含むすべてのデバイスからログアウトします。Expensifyを使用するには、再度ログインする必要があります。',
+        signOutAllDevicesError: 'すべてのデバイスからログアウトできませんでした。もう一度お試しください。',
+        signOutAllDevicesSuccess: 'すべてのデバイスからログアウトしました。',
     },
     twoFactorAuth: {
         headerTitle: '2要素認証',

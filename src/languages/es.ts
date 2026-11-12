@@ -2655,6 +2655,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Más información</a>.',
         revoke: 'Revocar',
         unknownDevice: 'Dispositivo Desconocido',
+        signOutAllDevices: 'Cerrar sesión en todos los dispositivos',
+        signOutAllDevicesConfirmation: 'Se cerrará tu sesión en todos los dispositivos, incluido este. Tendrás que volver a iniciar sesión para usar Expensify.',
+        signOutAllDevicesError: 'No pudimos cerrar tu sesión en todos los dispositivos. Inténtalo de nuevo.',
+        signOutAllDevicesSuccess: 'Se ha cerrado tu sesión en todos los dispositivos.',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticación de dos factores',

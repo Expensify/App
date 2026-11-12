@@ -31,7 +31,7 @@ function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
 
-function renderConfirmModalWrapper() {
+function renderConfirmModalWrapper(onConfirm?: () => Promise<string | void>) {
     const closeModal = jest.fn();
     const resolveModal = jest.fn();
 
@@ -48,6 +48,7 @@ function renderConfirmModalWrapper() {
                 shouldDisableConfirmButtonWhenOffline
                 // Routing confirm through the async resolve path lets us assert the confirm handler ran without depending on the modal-hide animation.
                 isConfirmLoading={false}
+                onConfirm={onConfirm}
             />
         </Wrapper>,
     );
@@ -102,5 +103,32 @@ describe('ConfirmModalWrapper (locked BA offline)', () => {
         fireEvent.press(confirmButton);
         await waitForBatchedUpdatesWithAct();
         expect(resolveModal).toHaveBeenCalledWith({action: 'CONFIRM'});
+    });
+
+    it('keeps an async confirmation open with safe feedback after rejection and allows another attempt', async () => {
+        // Given an async action rejects without supplying user-facing copy
+        const confirm = jest.fn<Promise<string | void>, []>().mockRejectedValueOnce(new Error('Private server details')).mockResolvedValueOnce('Please try again.');
+        const {closeModal, resolveModal} = renderConfirmModalWrapper(confirm);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user confirms
+        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: CONFIRM_TEXT}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the modal offers retry and cancel, without exposing private error details or resolving as success
+        expect(screen.getByText('Oops... something went wrong and your request could not be completed. Please try again later.')).toBeOnTheScreen();
+        expect(screen.queryByText('Private server details')).not.toBeOnTheScreen();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: CANCEL_TEXT})).toBeEnabled();
+        expect(closeModal).not.toHaveBeenCalled();
+        expect(resolveModal).not.toHaveBeenCalled();
+
+        // When the user retries
+        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: CONFIRM_TEXT}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then another attempt runs and its localized feedback replaces the previous error
+        expect(confirm).toHaveBeenCalledTimes(2);
+        expect(screen.getByText('Please try again.')).toBeOnTheScreen();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: CONFIRM_TEXT})).toBeEnabled();
     });
 });

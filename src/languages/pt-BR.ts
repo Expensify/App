@@ -2669,6 +2669,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Gerencie todos os dispositivos nos quais você fez login com sua conta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Saiba mais</a>.',
         revoke: 'Revogar',
         unknownDevice: 'Dispositivo Desconhecido',
+        signOutAllDevices: 'Sair em todos os dispositivos',
+        signOutAllDevicesConfirmation: 'Você sairá da sua conta em todos os dispositivos, incluindo este. Será necessário entrar novamente para usar o Expensify.',
+        signOutAllDevicesError: 'Não foi possível sair da sua conta em todos os dispositivos. Tente novamente.',
+        signOutAllDevicesSuccess: 'Você saiu da sua conta em todos os dispositivos.',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticação de dois fatores',

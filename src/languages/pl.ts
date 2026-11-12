@@ -2711,6 +2711,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Zarządzaj wszystkimi urządzeniami, na które zalogowałeś(-aś) się za pomocą konta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Dowiedz się więcej</a>.',
         revoke: 'Cofnąć',
         unknownDevice: 'Nieznane Urządzenie',
+        signOutAllDevices: 'Wyloguj się ze wszystkich urządzeń',
+        signOutAllDevicesConfirmation: 'Wylogujesz się ze wszystkich urządzeń, w tym z tego. Aby korzystać z Expensify, trzeba będzie zalogować się ponownie.',
+        signOutAllDevicesError: 'Nie udało się wylogować Cię ze wszystkich urządzeń. Spróbuj ponownie.',
+        signOutAllDevicesSuccess: 'Wylogowano Cię ze wszystkich urządzeń.',
     },
     twoFactorAuth: {
         headerTitle: 'Uwierzytelnianie dwuskładnikowe',

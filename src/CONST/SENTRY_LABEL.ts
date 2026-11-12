@@ -2777,6 +2777,7 @@ const SENTRY_LABEL = {
         ADD_COPILOT_ACCESS_LEVEL: 'SettingsSecurity-AddCopilotAccessLevel',
         ADD_COPILOT_CONFIRM: 'SettingsSecurity-AddCopilotConfirm',
         DEVICE_REVOKE: 'SettingsSecurity-DeviceRevoke',
+        SIGN_OUT_ALL_DEVICES: 'SettingsSecurity-SignOutAllDevices',
         LOCK_ACCOUNT_SUBMIT: 'SettingsSecurity-LockAccountSubmit',
         MERGE_ACCOUNTS_NEXT: 'SettingsSecurity-MergeAccountsNext',
         MERGE_RESULT_CONFIRM: 'SettingsSecurity-MergeResultConfirm',
