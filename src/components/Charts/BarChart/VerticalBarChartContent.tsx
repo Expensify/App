@@ -1,4 +1,5 @@
 import {BAR_CORNER_RADIUS, BAR_GROUP_INNER_GAP, BAR_HIT_GAP_RATIO, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
+import ChartAverageLine from '@components/Charts/components/ChartAverageLine';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
@@ -15,7 +16,7 @@ import {
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
 import type {ChartSeries, WrappedLabelConfig} from '@components/Charts/types';
-import {getBarLayout, getCartesianPlotBounds, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import {getBarLayout, getCartesianPlotBounds, getWholeNumberTickCount, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import {getBarChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
 import VictoryTheme, {CARTESIAN_Y_AXIS, GLYPH_PADDING, MAX_BAR_LABEL_LINES} from '@components/Charts/VictoryTheme';
 
@@ -42,7 +43,12 @@ function VerticalBarChartCanvas({
     series,
     yAxisUnit,
     yAxisUnitPosition = 'left',
+    formatValue: formatValueOverride,
+    countDimension,
+    shouldUseWholeNumberTicks = false,
     onBarPress,
+    onTooltipPress,
+    tooltipFooter,
     shouldShowLabels = true,
     shouldWrapLabels = false,
     chartWidth,
@@ -53,6 +59,9 @@ function VerticalBarChartCanvas({
     const StyleUtils = useStyleUtils();
 
     const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const barSeries = series.filter((seriesItem) => !seriesItem.isAverage);
+    const averageSeries = series.find((seriesItem) => seriesItem.isAverage);
+    const averageValue = averageSeries && data.at(0)?.values[averageSeries.key];
     const chartData: Array<{x: number} & Record<string, number | undefined>> = data.map((point, index) => ({
         x: index,
         ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
@@ -78,13 +87,15 @@ function VerticalBarChartCanvas({
         data,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
+        formatValue: formatValueOverride,
     });
 
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VERTICAL_BAR_DOMAIN_PADDING);
+    const yAxisTickCount = shouldUseWholeNumberTicks ? getWholeNumberTickCount(yAxisDomain, CARTESIAN_Y_AXIS.tickCount) : CARTESIAN_Y_AXIS.tickCount;
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VERTICAL_BAR_DOMAIN_PADDING, yAxisTickCount);
     const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap;
     const plotBounds = getCartesianPlotBounds(chartWidth, chartPaddingRight);
     const barLayout = getBarLayout(plotBounds.width, data.length);
-    const groupedBarWidth = (barLayout.barWidth - BAR_GROUP_INNER_GAP * (series.length - 1)) / series.length;
+    const groupedBarWidth = (barLayout.barWidth - BAR_GROUP_INNER_GAP * (barSeries.length - 1)) / barSeries.length;
 
     const measurements = useChartLabelMeasurements(labelData, fontManager, variables.iconSizeExtraSmall);
 
@@ -154,7 +165,7 @@ function VerticalBarChartCanvas({
         return isWithinX && args.cursorY >= plotTop.get() && args.cursorY <= plotBottom.get();
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, onTooltipDismiss, onChartTouchStart} =
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, dismissTooltip, isTouchPinned, onChartTouchStart} =
         useChartInteractions({
             handlePress: onBarPress ? handleBarPress : undefined,
             checkIsOver: checkIsOverBar,
@@ -238,6 +249,17 @@ function VerticalBarChartCanvas({
                     labelColor={theme.icon}
                     formatValue={formatCompactValue}
                 />
+                {averageValue !== undefined && (
+                    <ChartAverageLine
+                        value={averageValue}
+                        yScale={args.yScale}
+                        chartBounds={args.chartBounds}
+                        canvasHeight={args.canvasSize.height}
+                        formatValue={formatCompactValue}
+                        fontSize={variables.iconSizeExtraSmall}
+                        fontManager={fontManager}
+                    />
+                )}
             </>
         );
     };
@@ -272,7 +294,7 @@ function VerticalBarChartCanvas({
                         // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
                         labelPosition: 'inset',
                     }}
-                    yAxis={[{...CARTESIAN_Y_AXIS, domain: yAxisDomain}]}
+                    yAxis={[{...CARTESIAN_Y_AXIS, tickCount: yAxisTickCount, domain: yAxisDomain}]}
                     frame={{lineWidth: 0}}
                     data={chartData}
                 >
@@ -285,7 +307,7 @@ function VerticalBarChartCanvas({
                                 color={theme.border}
                             />
                             {groupedBarWidth > 0 &&
-                                series.flatMap((seriesItem, seriesIndex) => (points[seriesItem.key] ?? []).map((point) => renderBar(point, chartBounds, seriesItem, seriesIndex)))}
+                                barSeries.flatMap((seriesItem, seriesIndex) => (points[seriesItem.key] ?? []).map((point) => renderBar(point, chartBounds, seriesItem, seriesIndex)))}
                         </>
                     )}
                 </CartesianChart>
@@ -295,10 +317,13 @@ function VerticalBarChartCanvas({
                     data={data}
                     series={series}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
-                    onDismiss={onTooltipDismiss}
+                    onDismiss={dismissTooltip}
+                    onPress={isTouchPinned ? onTooltipPress : undefined}
+                    footer={isTouchPinned ? tooltipFooter : undefined}
                 />
             </Animated.View>
         </GestureDetector>

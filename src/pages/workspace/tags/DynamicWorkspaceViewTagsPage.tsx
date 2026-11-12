@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -35,7 +35,7 @@ import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
-    getTagListName,
+    getTagListEntryByOrderWeight,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
@@ -81,10 +81,10 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const currentTagListName = getTagListName(policyTags, orderWeight);
+    const currentPolicyTag = getTagListEntryByOrderWeight(policyTags, orderWeight)?.[1];
+    const currentTagListName = currentPolicyTag?.name ?? '';
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
-    const currentPolicyTag = policyTags?.[currentTagListName];
     const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.path);
@@ -275,6 +275,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
 
         return (
             <ButtonWithDropdownMenu
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.VIEW_TAGS_BULK_ACTIONS_DROPDOWN}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 buttonRef={dropdownButtonRef}
                 onPress={() => null}
@@ -323,14 +324,14 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 pendingAction={currentPolicyTag.pendingAction}
                 errorRowStyles={styles.mh5}
             >
-                <MenuItemWithTopDescription
-                    title={getCleanedTagName(currentPolicyTag.name)}
-                    description={translate(`workspace.tags.customTagName`)}
-                    onPress={navigateToEditTag}
-                    shouldShowRightIcon={canWriteTags}
-                    interactive={canWriteTags}
-                    wrapperStyle={styles.mb5}
-                />
+                <View style={styles.mb5}>
+                    <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.VIEW_TAGS_LIST_NAME}
+                        name={translate(`workspace.tags.customTagName`)}
+                        value={getCleanedTagName(currentPolicyTag.name)}
+                        onPress={canWriteTags ? navigateToEditTag : undefined}
+                    />
+                </View>
             </OfflineWithFeedback>
         </>
     );

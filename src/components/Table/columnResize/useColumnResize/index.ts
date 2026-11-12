@@ -1,9 +1,11 @@
 /**
- * Web column resizing: dragging a column's right edge sets its width, clicking it fits the content, double-clicking it
- * resets it. Widths live in CSS custom properties so React doesn't render mid-drag, and the layout is saved to Onyx once
- * the column settles.
+ * Web column resizing: dragging a column's right edge sets its width, and clicking it toggles between fitting the content
+ * and resetting it. A focused edge does the same with arrow keys, and Enter or Space toggling. Widths live in CSS custom
+ * properties so React doesn't render mid-drag, and the layout is saved to Onyx once the column settles.
  */
 import getDraggedSize from '@components/ResizeHandle/getDraggedSize';
+import useKeyboardResize from '@components/ResizeHandle/useKeyboardResize';
+import type {KeyboardResize} from '@components/ResizeHandle/useKeyboardResize';
 import usePointerDrag from '@components/ResizeHandle/usePointerDrag';
 import {SCROLL_EXTENT_FLOOR_VARIABLE, TABLE_COLUMN_SCROLLER_SELECTOR} from '@components/Table/columnResize/columnWidthExpressions';
 
@@ -15,7 +17,7 @@ import CONST from '@src/CONST';
 
 import type React from 'react';
 
-import {useEffect, useRef} from 'react';
+import {useRef} from 'react';
 
 import type {ColumnResizeController, ColumnResizeHandleDOMProps, UseColumnResizeParams} from './types';
 
@@ -50,23 +52,14 @@ type Drag = {
 
     /** Whether the pointer passed the drag slop. Until then, releasing it is a click. */
     hasMovedPointer: boolean;
-
-    /** Whether the pointer went down while a click on this edge was waiting to fit, so releasing it is a double-click. */
-    isSecondClick: boolean;
-};
-
-/** A click waiting out the double-click interval before it fits its column. */
-type PendingFit = {
-    columnKey: string;
-
-    timeoutID: ReturnType<typeof setTimeout>;
 };
 
 function useColumnResize({
     columnResizingID,
-    resizableColumnKeys,
-    getResizedColumnWidths,
-    resolvedColumnWidths,
+    resizableColumnKeys = [],
+    // Only reached once a column's edge drags, which needs the layout that brings the real one.
+    getResizedColumnWidths = (columnKey, width) => ({[columnKey]: width}),
+    resolvedColumnWidths = CONST.EMPTY_OBJECT,
     dragMinWidths,
     getStoredTableColumnWidths,
     getTargetColumnWidth,
@@ -74,13 +67,14 @@ function useColumnResize({
 }: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
     const dragRef = useRef<Drag | null>(null);
-    const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
+    const keyboardResizeRef = useRef<KeyboardResize<string> | null>(null);
+
+    const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef, keyboardResizeRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
 
-    // Fitting on the first click would move the edge before the second click, which would then land on the heading and sort it.
-    const pendingFitRef = useRef<PendingFit | null>(null);
-
     const readPaintedColumnWidths = () => Object.fromEntries(Object.keys(resolvedColumnWidths).map((columnKey) => [columnKey, readColumnWidth(columnKey) ?? 0]));
+
+    const getMinWidth = (columnKey: string) => dragMinWidths?.[columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH;
 
     const writeColumnWidths = (columnWidths: Record<string, number>) => {
         for (const [columnKey, width] of Object.entries(columnWidths)) {
@@ -107,20 +101,28 @@ function useColumnResize({
         setTableColumnWidths(columnResizingID, storedTableColumnWidths);
     };
 
-    // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
-    const endDrag = (drag: Drag) => {
-        hideIndicator();
-        scopeElementRef.current?.style.removeProperty(SCROLL_EXTENT_FLOOR_VARIABLE);
-
-        const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
+    /** Stores the width painted on a column since it was `startWidth`. Shared by drags and arrow keys. */
+    const settlePaintedWidth = (columnKey: string, startWidth: number) => {
+        const width = readColumnWidth(columnKey) ?? startWidth;
 
         // Nothing gets stored when the width doesn't change, so no render would follow to clear the live widths.
-        if (width === drag.startWidth) {
+        if (width === startWidth) {
             clearLiveWidths();
             return;
         }
 
-        settleColumn(drag.columnKey, width, true);
+        settleColumn(columnKey, width, true);
+    };
+
+    // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
+    const endDrag = (drag: Drag) => {
+        // A keyboard-focused edge keeps its line, the same as before the drag.
+        if (!drag.handle.matches(':focus-visible')) {
+            hideIndicator();
+        }
+
+        scopeElementRef.current?.style.removeProperty(SCROLL_EXTENT_FLOOR_VARIABLE);
+        settlePaintedWidth(drag.columnKey, drag.startWidth);
     };
 
     // Releasing or losing capture doesn't reliably fire boundary events, so hit-test the heading, including the handle overhanging it.
@@ -130,57 +132,55 @@ function useColumnResize({
         setGripHovered(event.currentTarget, isPointerOnHeading);
     };
 
-    const fitColumnToContent = (columnKey: string) => {
-        const width = getTargetColumnWidth?.(columnKey, CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT);
+    /** Fits the column to its content, or resets it when it already fits, so clicking an edge again undoes the fit. */
+    const toggleColumnFit = (columnKey: string) => {
+        const fitWidth = getTargetColumnWidth?.(columnKey, CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT);
 
-        // Nothing gets stored when the width doesn't change, so no render would follow to clear the live widths.
-        if (width === undefined || readColumnWidth(columnKey) === width) {
+        // A column that can't be fitted has nothing to toggle between.
+        if (fitWidth === undefined) {
             return;
         }
 
-        settleColumn(columnKey, width, true);
-    };
-
-    const resetColumnWidth = (columnKey: string) => {
-        const width = getTargetColumnWidth?.(columnKey, CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET);
-
-        if (width === undefined) {
+        if (readColumnWidth(columnKey) !== fitWidth) {
+            settleColumn(columnKey, fitWidth, true);
             return;
         }
 
-        settleColumn(columnKey, width, false);
-    };
+        const resetWidth = getTargetColumnWidth?.(columnKey, CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET);
 
-    const scheduleFit = (columnKey: string) => {
-        const timeoutID = setTimeout(() => {
-            pendingFitRef.current = null;
-            fitColumnToContent(columnKey);
-        }, CONST.TABLES.COLUMN_RESIZE.DOUBLE_CLICK_INTERVAL);
-
-        pendingFitRef.current = {columnKey, timeoutID};
-    };
-
-    /** Stops a waiting click. Returns the column it would have fitted. */
-    const cancelPendingFit = (): string | undefined => {
-        const pendingFit = pendingFitRef.current;
-
-        if (!pendingFit) {
-            return undefined;
+        if (resetWidth === undefined) {
+            return;
         }
 
-        clearTimeout(pendingFit.timeoutID);
-        pendingFitRef.current = null;
-
-        return pendingFit.columnKey;
+        settleColumn(columnKey, resetWidth, false);
     };
+
+    const {getKeyboardHandleProps} = useKeyboardResize<string>({
+        keyboardResizeRef,
+        isDragging: () => !!dragRef.current,
+        readSize: readColumnWidth,
+        getBounds: (columnKey) => ({min: getMinWidth(columnKey)}),
+        paintSize: (columnKey, width) => writeColumnWidths(getResizedColumnWidths(columnKey, width)),
+        settleSize: ({target, startSize}) => settlePaintedWidth(target, startSize),
+        onActivate: toggleColumnFit,
+        onShowFocus: revealIndicator,
+        onBlur: () => {
+            // A drag that took focus elsewhere hides its own line when it ends.
+            if (dragRef.current) {
+                return;
+            }
+
+            hideIndicator();
+        },
+    });
 
     const pointerDrag = usePointerDrag<Drag>({
         dragRef,
         onMove: (drag, clientX) => {
-            // Nothing is painted inside the slop, so a click fits from the width the column already had. A mouse click rarely
+            // Nothing is painted inside the slop, so a click fits or resets from the width the column already had. A mouse click rarely
             // lands on the exact pixel it started from.
             if (!drag.hasMovedPointer) {
-                if (Math.abs(clientX - drag.startClientX) <= CONST.TABLES.COLUMN_RESIZE.DRAG_SLOP) {
+                if (Math.abs(clientX - drag.startClientX) <= CONST.RESIZE_HANDLE.DRAG_SLOP) {
                     return;
                 }
 
@@ -198,7 +198,7 @@ function useColumnResize({
             }
 
             // The line rides the handle, so it follows the clamped width, not the pointer.
-            const width = getDraggedSize(drag.startWidth, clientX - drag.startClientX, {min: dragMinWidths?.[drag.columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH});
+            const width = getDraggedSize(drag.startWidth, clientX - drag.startClientX, {min: getMinWidth(drag.columnKey)});
 
             writeColumnWidths(getResizedColumnWidths(drag.columnKey, width));
         },
@@ -206,10 +206,8 @@ function useColumnResize({
             // A cancelled press or reclaimed capture isn't a click, so only a release fits or resets.
             if (drag.hasMovedPointer || !isRelease) {
                 endDrag(drag);
-            } else if (drag.isSecondClick) {
-                resetColumnWidth(drag.columnKey);
             } else {
-                scheduleFit(drag.columnKey);
+                toggleColumnFit(drag.columnKey);
             }
 
             syncGripHover(event);
@@ -219,37 +217,25 @@ function useColumnResize({
     const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
         const handle = event.currentTarget;
 
-        pointerDrag.startDrag(event, () => {
-            const pendingFitColumnKey = cancelPendingFit();
-            const isSecondClick = pendingFitColumnKey === columnKey;
-
-            // A click on another edge isn't a double-click, so the waiting one fits now, before this press reads its width.
-            if (pendingFitColumnKey && !isSecondClick) {
-                fitColumnToContent(pendingFitColumnKey);
-            }
-
-            return {columnKey, handle, startClientX: event.clientX, startWidth: readColumnWidth(columnKey) ?? 0, hasMovedPointer: false, isSecondClick};
-        });
+        pointerDrag.startDrag(event, () => ({columnKey, handle, startClientX: event.clientX, startWidth: readColumnWidth(columnKey) ?? 0, hasMovedPointer: false}));
     };
-
-    // Unmounting would otherwise fit a column that's gone.
-    useEffect(
-        () => () => {
-            cancelPendingFit();
-        },
-        [],
-    );
 
     if (!columnResizingID) {
         return undefined;
     }
 
+    const hasHandle = (columnKey: string) => resizableColumnKeys.includes(columnKey);
+
     const getHandleProps = (columnKey: string): ColumnResizeHandleDOMProps | undefined => {
-        if (!resizableColumnKeys.includes(columnKey)) {
+        if (!hasHandle(columnKey)) {
             return undefined;
         }
 
+        const width = readColumnWidth(columnKey) ?? 0;
+
         return {
+            // Columns have no widest width, and a focusable separator's maximum otherwise defaults to 100.
+            ...getKeyboardHandleProps(columnKey, {size: width, min: getMinWidth(columnKey), max: Number.MAX_SAFE_INTEGER}),
             style: {...getHandleStyle(columnGap), ...styles.cursorColResize},
             ref: trackHeadingHover,
             onPointerDown: (event) => handlePointerDown(columnKey, event),
@@ -257,7 +243,7 @@ function useColumnResize({
         };
     };
 
-    return {setScopeElement, getHandleProps};
+    return {setScopeElement, getHandleProps, hasHandle};
 }
 
 export default useColumnResize;

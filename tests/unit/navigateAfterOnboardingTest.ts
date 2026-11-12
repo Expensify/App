@@ -238,7 +238,7 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).not.toHaveBeenCalled();
     });
 
-    it('should open a parked deep link even when the trackExpensesWithConcierge variant would send the user to Concierge', () => {
+    it('should open a parked deep link even when the trackExpensesWithConcierge variant would send the user to Home', () => {
         // Given an account assigned the variant whose branch returns before the default destination is chosen
         const navigate = jest.spyOn(Navigation, 'navigate');
         const openDeepLink = jest.fn(() => true);
@@ -360,5 +360,40 @@ describe('navigateAfterOnboarding', () => {
         // Then the stored variant still applies and the user lands on Home rather than the admin room
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
+    });
+
+    it.each([false, true])('should land Track users on Home without opening the side panel (small screen: %s)', async (isSmallScreenWidth) => {
+        // Given a Track user, whose onboarding happens in Home's Getting started section
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        const openSidePanel = jest.spyOn(SidePanelActions, 'openSidePanel');
+
+        // When onboarding finishes with the trackExpensesWithConcierge variant
+        navigateAfterOnboarding(isSmallScreenWidth, true, REPORT_ID, {}, false, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {
+            variantOverride: CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE,
+        });
+        await waitForBatchedUpdates();
+
+        // Then they land on Home on every screen size, and neither the Concierge DM nor the side panel shows a second onboarding chat
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID), undefined);
+        expect(openSidePanel).not.toHaveBeenCalled();
+        expect((await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL))?.open).toBeFalsy();
+    });
+
+    it('should keep a report that is already on top for Track users', async () => {
+        // Given a report is already showing when a Track user finishes onboarding
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        const openSidePanel = jest.spyOn(SidePanelActions, 'openSidePanel');
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        // When onboarding finishes with the trackExpensesWithConcierge variant
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, false, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {
+            variantOverride: CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the report stays where it is, and the side panel is not opened over it
+        expect(navigate).not.toHaveBeenCalled();
+        expect(openSidePanel).not.toHaveBeenCalled();
     });
 });

@@ -78,6 +78,7 @@ describe('system message presentation', () => {
             CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
             CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM,
             CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY,
             CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
             CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
             CONST.REPORT.ACTIONS.TYPE.MOVED,
@@ -170,6 +171,7 @@ describe('system message presentation', () => {
             CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
             CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
             CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+            CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE,
         ])('does not classify the chat, structural, task, or actionable row %s as a system message', (actionName) => {
             // Given an interactive, structural, or unsupported action
             // When selecting its presentation
@@ -225,9 +227,9 @@ describe('system message presentation', () => {
         );
 
         it('collapses maximal runs of two or more system messages to one anchor row', () => {
-            // Given consecutive passive updates, including muted audit types
+            // Given consecutive passive updates, including muted audit types and one whose thread was opened without any replies
             const actions = [
-                systemAction('1', {childReportID: ''}),
+                systemAction('1', {childReportID: 'thread-report', childVisibleActionCount: 0, childCommenterCount: 0}),
                 makeAction('2', CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION),
                 makeAction('3', CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT),
             ];
@@ -254,13 +256,12 @@ describe('system message presentation', () => {
                 systemAction('3', {error: 'Could not update'}),
                 systemAction('3', {originalMessage: {reasoning: 'The expense was changed automatically.'}}),
                 systemAction('3', {childReportID: 'thread-report', childVisibleActionCount: 1, childCommenterCount: 1}),
-                systemAction('3', {childReportID: 'thread-report', childVisibleActionCount: 0, childCommenterCount: 0}),
             ].flatMap((boundary) => [
                 {boundary, newestFirst: false},
                 {boundary, newestFirst: true},
             ]),
         )('preserves interactive rows as run boundaries (newest first: $newestFirst): $boundary', ({boundary, newestFirst}) => {
-            // Given two eligible runs separated by interactive content, including a thread awaiting its first persisted reply
+            // Given two eligible runs separated by interactive content
             const chronologicalActions = [systemAction('1'), systemAction('2'), boundary, systemAction('4'), systemAction('5')];
             const actions = newestFirst ? chronologicalActions.toReversed() : chronologicalActions;
             // When constructing the display list in either report layout direction

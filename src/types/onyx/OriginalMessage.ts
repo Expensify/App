@@ -4,6 +4,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {ValueOf} from 'type-fest';
 
 import type {CardID} from './Card';
+import type {CompanyCardFeedWithNumber, FeedReimbursable} from './CardFeeds';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
@@ -103,6 +104,18 @@ type OriginalMessageIOU = {
     /** Cross-border FX reimbursement: last 4 of the employee deposit account that was credited */
     creditBankAccountLast4?: string;
 
+    /** Wise payment: total fees, in cents of `currency` */
+    fee?: number;
+
+    /** Wise payment: units of `creditedCurrency` per one unit of `currency` */
+    rate?: number;
+
+    /** Wise payment: amount taken from the company's bank account, in cents of `currency` */
+    debitedAmount?: number;
+
+    /** Wise payment: tax Wise charges on the transfer in some corridors, in cents of `currency` */
+    tax?: number;
+
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
@@ -129,6 +142,26 @@ type OriginalMessageSmartScanFailed = {
 
     /** LLM-friendly explanation of the scan failure that activates the Explain button */
     reasoning?: string;
+};
+
+/** Fields common to all report action original messages */
+type OriginalMessageBase = {
+    /**
+     * Account IDs for whom this action is marked as important. Similar to `actionableForAccountIDs` except
+     * receiving an important message only triggers a push notification.
+     */
+    importantForAccountIDs?: number[];
+
+    /** Whether push notifications should be scoped to actionableForAccountIDs only */
+    shouldScopePushToActionableAccounts?: boolean;
+
+    /**
+     * Accounts IDs for whom this action is actionable. Receiving an actionable message will
+     * - Mark the report as unread
+     * - Trigger an email notification
+     * - Trigger a push notification (on web and mobile)
+     */
+    actionableForAccountIDs?: number[];
 };
 
 /** Model of `add comment` report action */
@@ -268,6 +301,9 @@ type OriginalMessageSubmitted = {
 
     expenseReportID?: string;
 
+    /** Account that received this submission, even if the report's current manager later changes. */
+    submittedTo?: number;
+
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
 
@@ -300,6 +336,9 @@ type OriginalMessageAddExpenseOnSubmitted = {
 type OriginalMessageCreated = {
     /** The account id of the user the report is submitted to */
     submittedTo?: number;
+
+    /** Account of the person who created the bill or processed the invoice for its owner. Bill intake omits this for emailed invoices. */
+    processor?: number;
 };
 
 /** Model of `created report for unapproved transactions` report action */
@@ -499,6 +538,19 @@ type OriginalMessagePolicyChangeLog = {
 
     connectionName?: AllConnectionName;
     categoryName?: string;
+
+    /** Categories the members can see after a category visibility change, empty when they can see all categories */
+    categoryNames?: string[];
+
+    /** Account IDs of the members whose category visibility changed, empty when it applies to everyone */
+    accountIDs?: number[];
+
+    /** Whether the members already had a category visibility restriction before the change */
+    hadRestriction?: boolean;
+
+    /** Why the category visibility changed */
+    reason?: ValueOf<typeof CONST.POLICY.CATEGORY_VISIBILITY.REASON>;
+
     taxName?: string;
     updatedField?: string;
     oldMaxExpenseAmountNoReceipt?: number;
@@ -746,6 +798,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Name of company card feed */
     feedName?: string;
 
+    /** Type of the card feed added to the workspace */
+    feedType?: ValueOf<typeof CONST.COMPANY_CARD.LINK_FEED_TYPE>;
+
     /** Last four digits of a company card */
     cardLastFour?: string;
 
@@ -760,6 +815,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Previous statement period end day for a company card feed */
     previousStatementPeriodEndDay?: string;
+
+    /** Reimbursable setting of a company card feed */
+    forceReimbursable?: FeedReimbursable;
+
+    /** Previous reimbursable setting of a company card feed */
+    previousForceReimbursable?: FeedReimbursable;
 
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
@@ -1496,6 +1557,9 @@ type OriginalMessageCompanyCardConnectionBroken = {
 
     /** The feed name for which the company card connection was broken */
     feedName: string;
+
+    /** The feed's bank, used as the feed name when the feed has no custom name */
+    bank?: CompanyCardFeedWithNumber;
 };
 
 /**
@@ -1662,6 +1726,23 @@ type OriginalMessageSettlementAccountLocked = {
 
     /** The policy the bank account is connected to and is being notified */
     policyID: string;
+};
+
+/**
+ * Model of the Concierge report action that warns #admins about Auto Pay fees once Global Reimbursements is enabled
+ */
+type OriginalMessageAutoPayFeeDisclosure = {
+    /** The policy that has Auto Pay enabled */
+    policyID: string;
+
+    /** The admin who enabled Global Reimbursements */
+    accountID: number;
+
+    /** The name of the bank, which can be empty */
+    bankName: string;
+
+    /** The last four digits of the bank account number */
+    lastFour: string;
 };
 
 /**
@@ -1837,6 +1918,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED]: OriginalMessageHomeAddressRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
+    [CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE]: OriginalMessageAutoPayFeeDisclosure;
 } & Omit<OldDotOriginalMessageMap, typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
     Record<PolicyChangeLogCopyReportActionNames, OriginalMessagePolicyChangeCopyLog> & {
@@ -1852,7 +1934,7 @@ type OriginalMessageMap = {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION]: OriginalMessageEmployeeOfficeLocationChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
-type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;
+type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageBase & OriginalMessageMap[T] : never;
 
 export default OriginalMessage;
 export type {

@@ -8,6 +8,8 @@ import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {isSubmitPolicy} from './policyType';
+
 /**
  * Checks if policy's scheduled submit / auto reporting frequency is "instant".
  * Note: Free policies have "instant" submit always enabled.
@@ -54,6 +56,17 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /**
+ * Whether the policy has approvals turned on. False while the policy hasn't loaded yet (no `approvalMode`),
+ * unlike `!isSubmitAndClose(policy)`, which reads an unresolved policy as approvals-enabled.
+ *
+ * Submit workspaces are created in advanced mode even though configuring approvals is a paid upgrade for them, so
+ * they are excluded here to match the off state the Workflows tab shows them.
+ */
+function areApprovalsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
+    return !!policy?.approvalMode && !isSubmitPolicy(policy) && !isSubmitAndClose(policy);
+}
+
+/**
  * Checks if policy has Dynamic External Workflow enabled
  */
 function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy>): boolean {
@@ -70,4 +83,12 @@ function shouldHideDynamicExternalWorkflowPeople(policy: OnyxEntry<Policy>): boo
     return hasDynamicExternalWorkflow(policy) && !!policy?.dynamicExternalWorkflowHidePeople;
 }
 
-export {isInstantSubmitEnabled, isDelayedSubmissionEnabled, getCorrectedAutoReportingFrequency, isSubmitAndClose, hasDynamicExternalWorkflow, shouldHideDynamicExternalWorkflowPeople};
+export {
+    isInstantSubmitEnabled,
+    isDelayedSubmissionEnabled,
+    getCorrectedAutoReportingFrequency,
+    isSubmitAndClose,
+    areApprovalsEnabled,
+    hasDynamicExternalWorkflow,
+    shouldHideDynamicExternalWorkflowPeople,
+};

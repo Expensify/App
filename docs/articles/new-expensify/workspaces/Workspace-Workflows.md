@@ -65,8 +65,8 @@ Choose how frequently expenses are submitted:
 
 - **Instantly** – Expenses are submitted upon creation.
 - **Daily** – Reports are submitted every evening. Violations are submitted once corrected.
-- **Weekly** – Reports are submitted weekly. Violations are submitted on Sunday after correction.
-- **Twice a month** – Reports are submitted on the 15th and the last day of the month. Violations are submitted at the next applicable date.
+- **Weekly** – Reports are submitted weekly on your selected day. Violations are submitted on the next selected day after correction.
+- **Twice a month** – Reports are submitted on your two selected days of the month. Violations are submitted at the next applicable date.
 - **Monthly** – Reports are submitted once a month on your selected day. Violations are submitted the following month.
 - **By trip** – A report is submitted when no new expenses are added for two full days. A new trip report starts after that.
 - **Manually** – Expenses are automatically added to reports. Reports remain unsubmitted until a member submits them manually.
@@ -92,6 +92,21 @@ Who can pay reports depends on whether a business bank account is connected:
 [Learn how to add a business bank account](/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
 
 [Learn how to pay expenses](/articles/new-expensify/wallet-and-payments/Pay-Expenses).
+
+---
+
+## How to choose who pays currency conversion fees
+
+For cross-border reimbursements, the **Currency conversion fees** setting in the **Payments** section controls whether your company or your employee absorbs the foreign exchange (FX) rate difference and conversion fee when a reimbursement is paid in a currency other than your workspace currency.
+
+1. Go to **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees**.
+2. Select one of the following:
+   - **Company pays** — Your company absorbs the FX rate difference and conversion fee, so the employee receives the full intended amount in their local currency. Your business bank account is debited more than the report total to cover these costs.
+   - **Employee pays** — The employee absorbs the FX rate difference and conversion fee, so the amount deposited into their account can be less than the report total.
+
+Existing Global Reimbursement setups default to **Employee pays**. New Global Reimbursement setups default to **Company pays**.
+
+**Note:** The **Auto-pay approved reports** threshold applies to the report total and may not include currency conversion fees. When your company pays currency conversion fees, the amount debited from your business bank account can exceed the report total.
 
 ---
 
@@ -135,9 +150,8 @@ This happens if the submitter has set a submission frequency on their Individual
 
 ## What time of day are reports submitted when an automated submission frequency is set?
 
-All automatic report submissions occur in the evening Pacific Time (PT).
+All automatic report submissions occur in the evening, based on the workspace **Timezone** in **Workspaces > [workspace name] > Overview**.
 
 ## Can I automatically create separate reports for each of my credit cards?
 
 Not at this time. All expenses are collected into a single report and submitted based on the selected frequency.
-
