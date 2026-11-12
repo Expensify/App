@@ -1660,7 +1660,7 @@ function MoneyRequestView({
                                 {...dropdownProps}
                                 transactionID={transaction.transactionID}
                                 policy={policy}
-                                selectedTaxRate={getTaxRateTitle(policy, transaction, false)}
+                                selectedTaxRate={getTaxRateTitle(translate, policy, transaction, false)}
                             />
                         )}
                         sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_RATE_FIELD}
