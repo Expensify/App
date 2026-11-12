@@ -17,7 +17,7 @@ import type {ComponentRef, ReactElement, ReactNode, RefObject} from 'react';
 import type {ScrollView} from 'react-native';
 
 import lodashDefer from 'lodash/defer';
-import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 
@@ -104,19 +104,23 @@ function BasePickerImpl({
         setIsHighlighted(false);
     };
 
-    const iconToRender = useMemo((): IconToRender => {
-        if (icon) {
-            return () => icon(size);
-        }
-
-        return () => (
+    let iconToRender: IconToRender;
+    if (icon) {
+        iconToRender = () => icon(size);
+    } else {
+        iconToRender = () => (
             <Icon
                 fill={theme.icon}
                 src={icons.DownArrow}
-                {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
+                {...(size === 'small'
+                    ? {
+                          width: styles.pickerSmall().icon.width,
+                          height: styles.pickerSmall().icon.height,
+                      }
+                    : {})}
             />
         );
-    }, [icon, size, styles, theme.icon, icons.DownArrow]);
+    }
 
     useImperativeHandle(ref, () => ({
         /**
@@ -169,15 +173,14 @@ function BasePickerImpl({
     const selectedItem = items.find((item) => item.value === value);
     const selectedLabel = selectedItem?.label ?? '';
     const defaultAccessibilityLabel = accessibilityLabel ?? label ?? selectedLabel;
-    const enhancedAccessibilityLabel = useMemo(() => {
-        if (!defaultAccessibilityLabel) {
-            return selectedLabel || '';
-        }
-        if (selectedLabel) {
-            return `${defaultAccessibilityLabel}${shouldAnnounceSelectedLabel ? `, ${selectedLabel}` : ''}, ${translate(isHighlighted ? 'common.expanded' : 'common.collapsed')}`;
-        }
-        return defaultAccessibilityLabel;
-    }, [defaultAccessibilityLabel, selectedLabel, shouldAnnounceSelectedLabel, translate, isHighlighted]);
+    let enhancedAccessibilityLabel;
+    if (!defaultAccessibilityLabel) {
+        enhancedAccessibilityLabel = selectedLabel || '';
+    } else {
+        enhancedAccessibilityLabel = selectedLabel
+            ? `${defaultAccessibilityLabel}${shouldAnnounceSelectedLabel ? `, ${selectedLabel}` : ''}, ${translate(isHighlighted ? 'common.expanded' : 'common.collapsed')}`
+            : defaultAccessibilityLabel;
+    }
 
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (

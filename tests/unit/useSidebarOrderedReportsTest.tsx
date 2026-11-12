@@ -9,7 +9,8 @@ import SidebarUtils from '@libs/SidebarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 
@@ -426,5 +427,258 @@ describe('useSidebarOrderedReports', () => {
         });
 
         expect(fullRecomputeCall).toBeUndefined();
+    });
+
+    it('should recheck a hidden report when only its derived attributes change', async () => {
+        // Given a displayed chat and a chat thread that is hidden from the LHN because its derived attributes still mark it as empty
+        const displayedReports = createMockReports({
+            report1: {reportName: 'Chat A'},
+        });
+        const threadReport = {
+            reportID: '2',
+            reportName: 'Thread',
+            lastVisibleActionCreated: '2024-01-01 10:00:00',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: '1',
+            parentReportActionID: '100',
+        } as Report;
+        const createThreadAttributes = (isEmpty: boolean): ReportAttributesDerivedValue['reports'][string] => ({
+            reportName: 'Thread',
+            isEmpty,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+        });
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, displayedReports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, threadReport);
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[threadReport.reportID]: createThreadAttributes(true)}, locale: null});
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // When the derived attributes land a render after the report change that caused them (e.g. a first reply in the thread),
+        // so the reports collection itself does not change in this render
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[threadReport.reportID]: createThreadAttributes(false)}, locale: null});
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the hidden thread is rechecked with the fresh attributes, instead of only the already-displayed reports
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).toHaveBeenCalledWith(
+            expect.objectContaining({
+                updatedReportsKeys: expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}2`]),
+            }),
+        );
+    });
+
+    it('should only recheck reports whose derived attributes actually changed', async () => {
+        // Given two reports whose derived attributes are stored in Onyx, with report 1 remaining unchanged
+        const displayedReports = createMockReports({
+            report1: {reportName: 'Chat A'},
+        });
+        const report2 = createMockReports({
+            report2: {reportName: 'Chat B'},
+        })['2'];
+        const unchangedAttributes: ReportAttributesDerivedValue['reports'][string] = {
+            reportName: 'Chat A',
+            isEmpty: false,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+        };
+        const createReport2Attributes = (isEmpty: boolean): ReportAttributesDerivedValue['reports'][string] => ({
+            reportName: 'Chat B',
+            isEmpty,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+        });
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, displayedReports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, report2);
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+                reports: {
+                    [displayedReports['1'].reportID]: unchangedAttributes,
+                    [report2.reportID]: createReport2Attributes(true),
+                },
+                locale: null,
+            });
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+        await waitForBatchedUpdatesWithAct();
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // When only report 2's derived attributes change, while report 1 keeps the same input object reference
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+                reports: {
+                    [displayedReports['1'].reportID]: unchangedAttributes,
+                    [report2.reportID]: createReport2Attributes(false),
+                },
+                locale: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the incremental LHN update should recheck report 2 only
+        const callForReport2 = mockSidebarUtils.updateReportsToDisplayInLHN.mock.calls.find((call) => call[0]?.updatedReportsKeys.includes(`${ONYXKEYS.COLLECTION.REPORT}2`));
+        expect(callForReport2?.[0]?.updatedReportsKeys).toEqual([`${ONYXKEYS.COLLECTION.REPORT}2`]);
+    });
+
+    describe('one-transaction thread changes', () => {
+        const expenseReportID = '1';
+        const threadReportID = '2';
+
+        const createExpenseReportAttributes = (oneTransactionThreadReportID: string | undefined): ReportAttributes => ({
+            reportName: 'Expense Report',
+            isEmpty: false,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+            oneTransactionThreadReportID,
+        });
+
+        // Renders the LHN with a read expense report and its transaction thread, neither of which is displayed.
+        const renderWithHiddenExpenseReport = async (oneTransactionThreadReportID: string | undefined) => {
+            const otherReports = createMockReports({
+                report3: {reportName: 'Chat A'},
+            });
+            mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({[`${ONYXKEYS.COLLECTION.REPORT}3`]: otherReports['3']});
+            mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}3`, otherReports['3']);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
+                    reportID: expenseReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    lastVisibleActionCreated: '2024-01-01 10:00:00',
+                    lastReadTime: '2024-01-01 10:00:00',
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {
+                    reportID: threadReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: expenseReportID,
+                    parentReportActionID: '100',
+                    lastVisibleActionCreated: '2024-01-01 10:00:00',
+                    lastReadTime: '2024-01-01 10:00:00',
+                });
+                await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[expenseReportID]: createExpenseReportAttributes(oneTransactionThreadReportID)}, locale: 'en'});
+            });
+
+            renderHook(() => useSidebarOrderedReports(), {
+                wrapper: TestWrapper,
+            });
+            await waitForBatchedUpdatesWithAct();
+            mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+        };
+
+        const getUpdatedReportsKeys = () => mockSidebarUtils.updateReportsToDisplayInLHN.mock.calls.flatMap((call) => call[0]?.updatedReportsKeys ?? []);
+
+        it('should recheck the expense report when only its one-transaction thread changes', async () => {
+            // Given a single-expense report whose transaction thread is hidden from the LHN in favor of the expense report
+            await renderWithHiddenExpenseReport(threadReportID);
+
+            // When a new comment lands on the transaction thread, which changes the thread but not the expense report
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {lastVisibleActionCreated: '2024-01-02 10:00:00'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the expense report is rechecked too, because its unread state in Focus mode depends on the thread
+            expect(getUpdatedReportsKeys()).toEqual(expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]));
+        });
+
+        it('should not recheck the parent when a thread that is not its one-transaction thread changes', async () => {
+            // Given a report with a child thread that is not its one-transaction thread (e.g. a report with several expenses)
+            await renderWithHiddenExpenseReport(undefined);
+
+            // When a new comment lands on the child thread
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {lastVisibleActionCreated: '2024-01-02 10:00:00'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the thread is rechecked, since the parent's LHN state does not depend on it
+            expect(getUpdatedReportsKeys()).toEqual([`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]);
+        });
+    });
+
+    describe('reportAttributes changes', () => {
+        const createReportAttributes = (attributes: Partial<ReportAttributes> = {}): ReportAttributes => ({
+            reportName: 'Chat',
+            isEmpty: false,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+            ...attributes,
+        });
+
+        const displayedReportID = '1';
+        const newDMReportID = '2';
+
+        // Renders the LHN with one displayed report and a new DM that is filtered out because its attributes are not ready yet.
+        const renderWithExcludedReport = async () => {
+            const displayedReports = createMockReports({
+                report1: {reportName: 'Chat A'},
+            });
+            // The LHN cache is keyed by the report's Onyx key
+            mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({[`${ONYXKEYS.COLLECTION.REPORT}${displayedReportID}`]: displayedReports[displayedReportID]});
+            mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${displayedReportID}`, displayedReports[displayedReportID]);
+                await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[displayedReportID]: createReportAttributes()}, locale: 'en'});
+            });
+
+            renderHook(() => useSidebarOrderedReports(), {
+                wrapper: TestWrapper,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${newDMReportID}`, {reportID: newDMReportID, type: CONST.REPORT.TYPE.CHAT} as Report);
+            });
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        const getUpdatedReportsKeys = () => mockSidebarUtils.updateReportsToDisplayInLHN.mock.calls.flatMap((call) => call[0]?.updatedReportsKeys ?? []);
+
+        it('should recheck a report that is not displayed when its attributes make it require attention', async () => {
+            // Given the LHN cache is built and a new DM was filtered out before its attributes were calculated
+            await renderWithExcludedReport();
+            mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+            // When the derived attributes later mark the DM as requiring attention, with no change to the report itself
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+                    reports: {[displayedReportID]: createReportAttributes(), [newDMReportID]: createReportAttributes({requiresAttention: true})},
+                    locale: 'en',
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the DM is rechecked, so it can be added to the LHN without a full rebuild. The displayed report's
+            // attributes did not change, so it is not rechecked
+            expect(getUpdatedReportsKeys()).toEqual([`${ONYXKEYS.COLLECTION.REPORT}${newDMReportID}`]);
+        });
     });
 });

@@ -25,10 +25,8 @@ Once configured, you can:
 Each Workspace has its own DualEntry integration. To view or update the configuration settings:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. On the DualEntry connection, select **Import**, **Export**, or **Advanced**.
-
-![The Accounting page showing the connected DualEntry integration with the Import, Export, and Advanced settings visible.]({{site.url}}/assets/images/DualEntry_configure.png){:width="100%"}
+2. Select **Connections**, then select **Configure** next to DualEntry.
+3. Select **Import**, **Export**, or **Advanced**.
 
 ---
 
@@ -86,6 +84,7 @@ On the DualEntry integration, choose **Advanced** to configure:
   - **Cash** exports out-of-pocket expenses after they are paid.
 - **Sync reimbursed reports** – Automatically create bill payments in DualEntry when exported out-of-pocket reports are reimbursed in Expensify. This is enabled by default.
 - **Bill payment account** – Select the DualEntry bank account used for bill payments. Expensify automatically selects an eligible bank account when possible.
+- **DualEntry currency conversion fee account** – Select the expense account where currency conversion fees are recorded. This setting appears when **Sync reimbursed reports** is enabled, you reimburse through Expensify, and a business bank account is connected. When **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, a cross-border reimbursement exports an additional journal entry for the conversion cost to this account, alongside the bill payment. This account must be selected for the journal entry to export.
 - **Sync Expensify Card settlements** – Automatically sync Expensify Card settlement payments to DualEntry. This setting appears when Expensify Cards are enabled for the workspace.
 - **Expensify Card settlement account** – Select the active USD bank account used for Expensify Card settlements.
 - **Sync Travel Invoicing settlements** – Automatically sync Travel Invoicing settlement payments to DualEntry. This setting appears when Travel Invoicing is enabled.

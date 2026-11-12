@@ -1,3 +1,5 @@
+import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -172,13 +174,15 @@ function InternationalDepositAccountContent({
             shouldShowOfflineIndicatorInWideScreen={pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
             {isRedirecting || isAccountLoading ? (
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator onGoBack={handleBackButtonPress} />
             ) : (
-                <>
-                    <Header>
-                        {pageIndex !== CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS && <Header.BackButton onPress={handleBackButtonPress} />}
-                        <Header.Title title={translate('bankAccount.addBankAccount')} />
-                    </Header>
+                <CollapsibleHeaderOnKeyboardGroup>
+                    <CollapsibleHeaderOnKeyboardGroupMember>
+                        <Header>
+                            {pageIndex !== CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS && <Header.BackButton onPress={handleBackButtonPress} />}
+                            <Header.Title title={translate('bankAccount.addBankAccount')} />
+                        </Header>
+                    </CollapsibleHeaderOnKeyboardGroupMember>
                     <CurrentPage
                         isEditing={isEditing}
                         onNext={handleNextScreen}
@@ -186,7 +190,7 @@ function InternationalDepositAccountContent({
                         formValues={values}
                         fieldsMap={fieldsMap}
                     />
-                </>
+                </CollapsibleHeaderOnKeyboardGroup>
             )}
         </ScreenWrapper>
     );

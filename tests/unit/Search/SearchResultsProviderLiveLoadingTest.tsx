@@ -22,9 +22,11 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getViolationsFromSearchData: () => ({}),
 }));
 
+const EMPTY_TODO_METADATA = {count: 0, total: 0, currency: undefined};
+let mockTodoMetadata: Record<string, unknown> = EMPTY_TODO_METADATA;
 jest.mock('@hooks/useTodoSearchResults', () => ({
     __esModule: true,
-    default: () => ({data: {}, metadata: {count: 0, total: 0, currency: undefined}}),
+    default: () => ({data: {}, metadata: mockTodoMetadata}),
 }));
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -48,6 +50,7 @@ describe('SearchResultsProvider live to-do loading flag', () => {
     beforeEach(() => {
         mockUseOnyx.mockReset();
         mockIsTodoSearch = true;
+        mockTodoMetadata = EMPTY_TODO_METADATA;
     });
 
     it('forces isLoading off for a live to-do search even when the snapshot left it stuck true', () => {
@@ -65,5 +68,16 @@ describe('SearchResultsProvider live to-do loading flag', () => {
         expect(result.current.currentSearchResults?.search.isLoading).toBe(false);
         expect(result.current.currentSearchResults?.search.hasResults).toBe(false);
         expect(result.current.currentSearchResults?.data).toEqual({});
+    });
+
+    it('shows the figures the to-do list worked out, including the report count, over the snapshot', () => {
+        // Given the to-do list corrected the server's figures for reports that left it on this device
+        mockTodoMetadata = {count: 125, total: 125000, currency: 'USD', reportCount: 119};
+
+        // When the provider builds the live results over a snapshot that still holds the server's old figures
+        const {result} = renderProvider({isLoading: false, offset: 0, hash: 1, count: 126, total: 126000, currency: 'USD', reportCount: 120});
+
+        // Then the search shows the corrected figures, which "Select all" and the footer read
+        expect(result.current.currentSearchResults?.search).toMatchObject({count: 125, total: 125000, currency: 'USD', reportCount: 119});
     });
 });

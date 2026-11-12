@@ -1,10 +1,11 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import * as API from '@libs/API';
 import type {SetVacationDelegateParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {getKnownAccountIDByLogin, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {getAllReportActions} from '@libs/ReportActionsUtils';
@@ -23,27 +24,38 @@ import Onyx from 'react-native-onyx';
 import type {CurrentUser} from './Policy/Policy';
 
 import {addMembersToWorkspace} from './Policy/Member';
+import {resolveVacationDelegateDeletionConflicts} from './RequestConflictUtils';
 
 type SetVacationDelegateOptions = {
     creator: string;
     delegate: string;
+
+    /** UTC datetime (yyyy-MM-dd HH:mm:ss) when the backend should clear the delegate. No value means it never clears. */
+    clearAfter?: string;
     currentDelegate?: string;
+    currentClearAfter?: string;
     shouldOverridePolicyDiffWarning?: boolean;
 };
 
-async function setVacationDelegate({creator, delegate, currentDelegate, shouldOverridePolicyDiffWarning = false}: SetVacationDelegateOptions) {
+async function setVacationDelegate({creator, delegate, clearAfter, currentDelegate, currentClearAfter, shouldOverridePolicyDiffWarning = false}: SetVacationDelegateOptions) {
+    // Without the override, the response can still be a 305 that leads to the missing workspaces step, so the pick is only applied once the
+    // backend saved it. Applying it optimistically would flash the new delegate on Profile, take it away on the 305, and show it again after that step.
+    const pickedDelegate = {creator, delegate, clearAfter: clearAfter ?? null};
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
             value: {
-                creator,
-                delegate,
+                ...(shouldOverridePolicyDiffWarning ? pickedDelegate : {}),
                 errors: null,
+                // Set on both paths: the 305 ships an errors payload in its onyxData, and getVacationDelegateErrors only hides it while this is set
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 previousDelegate: currentDelegate ?? null,
+                previousClearAfter: currentClearAfter ?? null,
                 policyDiff: null,
                 pendingDelegate: null,
+                pendingClearAfter: null,
             },
         },
     ];
@@ -53,11 +65,14 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
             value: {
+                ...(shouldOverridePolicyDiffWarning ? {} : pickedDelegate),
                 errors: null,
                 pendingAction: null,
                 previousDelegate: null,
+                previousClearAfter: null,
                 policyDiff: null,
                 pendingDelegate: null,
+                pendingClearAfter: null,
             },
         },
     ];
@@ -76,6 +91,7 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
     const parameters: SetVacationDelegateParams = {
         creator,
         vacationDelegateEmail: delegate,
+        clearAfter,
         overridePolicyDiffWarning: shouldOverridePolicyDiffWarning,
     };
 
@@ -106,7 +122,9 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
         Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
             errors: null,
             delegate: currentDelegate ?? null,
+            clearAfter: currentClearAfter ?? null,
             pendingDelegate: delegate,
+            pendingClearAfter: clearAfter ?? null,
             policyDiff: response.data.policyDiff,
             pendingAction: null,
         });
@@ -122,7 +140,7 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
         return;
     }
 
-    const {creator, delegate} = vacationDelegate;
+    const {creator, delegate, clearAfter} = vacationDelegate;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -130,11 +148,14 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
             value: {
                 creator: null,
                 delegate: null,
+                clearAfter: null,
                 errors: null,
                 previousDelegate: vacationDelegate?.delegate,
+                previousClearAfter: clearAfter ?? null,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 policyDiff: null,
                 pendingDelegate: null,
+                pendingClearAfter: null,
             },
         },
     ];
@@ -147,6 +168,7 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
                 errors: null,
                 pendingAction: null,
                 previousDelegate: null,
+                previousClearAfter: null,
             },
         },
     ];
@@ -158,23 +180,34 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
             value: {
                 creator,
                 delegate,
+                clearAfter,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('statusPage.vacationDelegateError'),
                 pendingAction: null,
             },
         },
     ];
 
-    API.write(WRITE_COMMANDS.DELETE_VACATION_DELEGATE, null, {optimisticData, successData, failureData});
+    API.write(
+        WRITE_COMMANDS.DELETE_VACATION_DELEGATE,
+        null,
+        {optimisticData, successData, failureData},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => resolveVacationDelegateDeletionConflicts(persistedRequests),
+        },
+    );
 }
 
-function clearVacationDelegateError(previousDelegate?: string) {
+function clearVacationDelegateError(previousDelegate?: string, previousClearAfter?: string) {
     Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
         errors: null,
         pendingAction: null,
         delegate: previousDelegate ?? null,
+        clearAfter: previousClearAfter ?? null,
         previousDelegate: null,
+        previousClearAfter: null,
         policyDiff: null,
         pendingDelegate: null,
+        pendingClearAfter: null,
     });
 }
 
@@ -188,6 +221,7 @@ type InviteVacationDelegateToWorkspacesOptions = {
     /** The current user, on whose behalf the invitations are sent */
     inviter: CurrentUser;
 
+    personalDetailsByLogins: PersonalDetailsByLogin;
     translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
@@ -196,9 +230,9 @@ type InviteVacationDelegateToWorkspacesOptions = {
  * Adds a vacation delegate as a member of every given workspace, one invitation per workspace. Workspaces the
  * current user does not administer are untouched here and are left for the backend to email their admins about.
  */
-function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, translate, formatPhoneNumber}: InviteVacationDelegateToWorkspacesOptions) {
+function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, personalDetailsByLogins, translate, formatPhoneNumber}: InviteVacationDelegateToWorkspacesOptions) {
     // The delegate may have been picked from the selector without existing in personal details yet, so fall back to an optimistic accountID.
-    const knownDelegateAccountID = getKnownAccountIDByLogin(delegate);
+    const knownDelegateAccountID = personalDetailsByLogins[delegate]?.accountID;
     const delegateAccountID = knownDelegateAccountID ?? generateAccountID(delegate);
     const invitedEmailsToAccountIDs = {[delegate]: delegateAccountID};
     const isNewDelegate = knownDelegateAccountID === undefined;
@@ -225,7 +259,7 @@ function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, transl
             isLastInvite ? personalDetailsOnyxData : {optimisticData: personalDetailsOnyxData.optimisticData},
             `${translate('workspace.common.invitedYouToWorkspace', inviter.displayName ?? '', policy.name)}\n\n${translate('workspace.common.welcomeNote')}`,
             policy,
-            Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, undefined, false, false)),
+            Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, personalDetailsByLogins, false, false)),
             CONST.POLICY.ROLE.USER,
             inviter,
             policyExpenseChatReportActions,

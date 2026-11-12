@@ -1,0 +1,127 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -369,8 +369,24 @@
+         }
+         lastHeaderSizeRef.current = headerSize;
+     }, [horizontal, inverted, recyclerViewContext]);
++    // A loading footer can disappear after its parent's render (for example, after an exit animation).
++    // Invalidate the old width lock only if its height changes independently of scrollbar width.
++    const lastFooterLayoutRef = useRef();
++    const onFooterLayout = useCallback((event) => {
++        const layout = event.nativeEvent.layout;
++        const previous = lastFooterLayoutRef.current;
++        lastFooterLayoutRef.current = layout;
++        if (Platform.OS !== "web" || horizontal || !previous ||
++            areDimensionsNotEqual(previous.width, layout.width) ||
++            !areDimensionsNotEqual(previous.height, layout.height)) {
++            return;
++        }
++        if (recyclerViewManager.resetScrollbarOscillation()) {
++            recyclerViewContext.layout();
++        }
++    }, [horizontal, recyclerViewManager, recyclerViewContext]);
+     // Get secondary props and components
+-    const { refreshControl, renderHeader, renderFooter, renderEmpty, CompatScrollView, renderStickyHeaderBackdrop, } = useSecondaryProps(props, onHeaderLayout);
++    const { refreshControl, renderHeader, renderFooter, renderEmpty, CompatScrollView, renderStickyHeaderBackdrop, } = useSecondaryProps(props, onHeaderLayout, Platform.OS === "web" && !horizontal ? onFooterLayout : undefined);
+     if (!recyclerViewManager.getIsFirstLayoutComplete() &&
+         recyclerViewManager.getDataLength() > 0) {
+         parentRecyclerViewContext === null || parentRecyclerViewContext === void 0 ? void 0 : parentRecyclerViewContext.markChildLayoutAsPending(recyclerViewId);
+@@ -434,8 +450,15 @@
+                 marginTop: horizontal ? undefined : stickyHeaderOffset,
+                 height: horizontal ? undefined : 0,
+                 width: horizontal ? 0 : undefined,
+-            }, ref: firstChildViewRef }));
+-    }, [horizontal, stickyHeaderOffset]);
++            }, ref: firstChildViewRef, onLayout: Platform.OS === "web" && !horizontal ? (event) => {
++                // Scrollbars resize this inner view without resizing the outer viewport.
++                // Compare with the measured window, not the potentially locked cell width.
++                if (recyclerViewManager.hasLayout() &&
++                    areDimensionsNotEqual(event.nativeEvent.layout.width, recyclerViewManager.getWindowSize().width)) {
++                    recyclerViewContext.layout();
++                }
++            } : undefined }));
++    }, [horizontal, stickyHeaderOffset, recyclerViewManager, recyclerViewContext]);
+     const scrollAnchor = useMemo(() => {
+         if (maintainVisibleContentPosition != null) {
+             return (React.createElement(ScrollAnchor, { horizontal: Boolean(horizontal), scrollAnchorRef: scrollAnchorRef }));
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.d.ts b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.d.ts
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.d.ts
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.d.ts
+@@ -29,6 +29,7 @@
+     get props(): RecyclerViewProps<T>;
+     setOffsetProjectionEnabled(value: boolean): void;
+     updateProps(props: RecyclerViewProps<T>): void;
++    resetScrollbarOscillation(): boolean;
+     /**
+      * Updates the scroll offset and returns the engaged indices if any
+      * @param offset
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
+@@ -66,6 +66,10 @@
+         this.initialDrawBatchSize =
+             (_c = (_b = this.propsRef.overrideProps) === null || _b === void 0 ? void 0 : _b.initialDrawBatchSize) !== null && _c !== void 0 ? _c : this.initialDrawBatchSize;
+     }
++    resetScrollbarOscillation() {
++        return this.layoutManager instanceof RVLinearLayoutManagerImpl &&
++            this.layoutManager.resetScrollbarOscillation();
++    }
+     /**
+      * Updates the scroll offset and returns the engaged indices if any
+      * @param offset
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useSecondaryProps.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useSecondaryProps.js
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useSecondaryProps.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useSecondaryProps.js
+@@ -21,7 +21,7 @@
+  *   - renderStickyHeaderBackdrop: The sticky header backdrop component renderer
+  *   - CompatScrollView: The animated scroll component
+  */
+-export function useSecondaryProps(props, onHeaderLayout) {
++export function useSecondaryProps(props, onHeaderLayout, onFooterLayout) {
+     const { ListHeaderComponent, ListHeaderComponentStyle, ListFooterComponent, ListFooterComponentStyle, ListEmptyComponent, ListEmptyComponentStyle, renderScrollComponent, refreshing, progressViewOffset, onRefresh, data, refreshControl: customRefreshControl, stickyHeaderConfig, inverted, horizontal, } = props;
+     const invertedTransformStyle = inverted
+         ? getInvertedTransformStyle(horizontal)
+@@ -54,8 +54,8 @@
+         if (!ListFooterComponent) {
+             return null;
+         }
+-        return (React.createElement(CompatView, { style: [ListFooterComponentStyle, invertedTransformStyle] }, getValidComponent(ListFooterComponent)));
+-    }, [ListFooterComponent, ListFooterComponentStyle, invertedTransformStyle]);
++        return (React.createElement(CompatView, { style: [ListFooterComponentStyle, invertedTransformStyle], onLayout: onFooterLayout }, getValidComponent(ListFooterComponent)));
++    }, [ListFooterComponent, ListFooterComponentStyle, invertedTransformStyle, onFooterLayout]);
+     /**
+      * Creates the empty state component when there's no data.
+      * Only rendered when ListEmptyComponent is provided and data is empty.
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.d.ts b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.d.ts
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.d.ts
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.d.ts
+@@ -18,6 +18,8 @@
+      * @param params New layout parameters
+      */
+     updateLayoutParams(params: LayoutParams): void;
++    /** Discard the width lock when the content that caused it changes. */
++    resetScrollbarOscillation(): boolean;
+     /**
+      * Processes layout information for items, updating their dimensions.
+      * For horizontal layouts, also normalizes heights of items.
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
+@@ -52,6 +52,16 @@
+             }
+         }
+     }
++    /** Discard the width lock when the content that caused it changes. */
++    resetScrollbarOscillation() {
++        if (!this.scrollbarOscillationPair) {
++            return false;
++        }
++        this.scrollbarOscillationPair = undefined;
++        this.recentBoundedSizes = undefined;
++        this.scrollbarLockReleases = 0;
++        return true;
++    }
+     /**
+      * Web only. Stops the re-layout loop caused by a scrollbar that keeps showing and hiding.
+      *

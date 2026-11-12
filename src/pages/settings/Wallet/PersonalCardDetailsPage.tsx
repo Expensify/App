@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import CardUnsubmittedTransactionsPrompt from '@components/CardUnsubmittedTransactionsPrompt';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ImageSVG from '@components/ImageSVG';
@@ -12,6 +13,7 @@ import Text from '@components/Text';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -22,8 +24,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getActiveServer} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getCardFeedIcon, getPlaidInstitutionIconUrl, isPersonalCard, isPersonalCardBrokenConnection} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, hasCardConnectionIssue, isPersonalCard} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -39,7 +42,7 @@ import {clearCardErrorField, deletePersonalCard, syncCard, unassignCard} from '@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -51,10 +54,11 @@ import {View} from 'react-native';
 import CardDetailsActionButtons, {CardDetailsActionButton} from './CardDetailsActionButtons';
 import PersonalCardDetailsHeaderMenu from './PersonalCardDetailsHeaderMenu';
 
-type PersonalCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS>;
+type PersonalCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS>;
 
 function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const {cardID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.path);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
     const {translate, formatPhoneNumber, getLocalDateFromDatetime} = useLocalize();
@@ -74,7 +78,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
-    const isCardBroken = isPersonalCardBrokenConnection(card);
+    // Matches the wallet row, so a card the wallet says to fix also offers the fix here.
+    const isCardBroken = card ? hasCardConnectionIssue(card) : false;
     const isUserPersonalCard = !!(card && isPersonalCard(card));
 
     const [cardholderPersonalDetails] = usePersonalDetail(card?.accountID);
@@ -91,8 +96,13 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             return;
         }
         showConfirmModal({
-            title: translate('workspace.moreFeatures.companyCards.removeCard'),
-            prompt: translate('workspace.moreFeatures.companyCards.removeCardDescription'),
+            title: translate('common.areYouSure'),
+            prompt: (
+                <CardUnsubmittedTransactionsPrompt
+                    cardIDs={[card.cardID]}
+                    descriptionKey="workspace.moreFeatures.companyCards.removeCardDescription"
+                />
+            ),
             confirmText: translate('workspace.moreFeatures.companyCards.remove'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
@@ -136,7 +146,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                 return;
             }
             const savedColumnLayout = savedColumnLayouts?.[card.cardID];
-            Navigation.goBack(ROUTES.SETTINGS_WALLET, {
+            Navigation.goBack(backPath, {
                 afterTransition: () => deletePersonalCard({cardID: card.cardID, card, allTransactions, allReports, savedColumnLayout}),
             });
         });
@@ -176,7 +186,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         >
             <HeaderWithBackButtonAndTitle
                 title={translate('workspace.moreFeatures.companyCards.cardDetails')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <ScrollView addBottomSafeAreaPadding>
                 <View style={[styles.walletCard, styles.mb3]}>
@@ -219,6 +229,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     <CardDetailsActionButtons style={styles.mb0}>
                         {!isCSVImportedPersonalCard && (
                             <CardDetailsActionButton
+                                sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.UPDATE}
                                 onPress={updateCard}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
                                 isLoading={card?.isLoadingLastUpdated}
@@ -229,6 +240,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                             </CardDetailsActionButton>
                         )}
                         <CardDetailsActionButton
+                            sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.VIEW_TRANSACTIONS}
                             onPress={navigateToTransactions}
                             style={styles.flexShrink0}
                         >
@@ -257,9 +269,10 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                                 style={[styles.flex1, styles.mb0]}
                             />
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.FIX_CONNECTION}
                                 variant={CONST.BUTTON_VARIANT.DANGER}
                                 size={CONST.BUTTON_SIZE.SMALL}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(cardID))}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_FIX_CONNECTION.path))}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
                                 style={[styles.mb0, styles.alignSelfStart]}
                             >

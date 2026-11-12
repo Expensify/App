@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -125,14 +125,13 @@ function TransferBalancePage() {
                     title={translate('common.transferBalance')}
                     onBackButtonPress={dismissSuccessfulTransferBalancePage}
                 />
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     heading={translate('transferAmountPage.transferSuccess')}
                     description={
                         walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
                             ? translate('transferAmountPage.transferDetailBankAccount')
                             : translate('transferAmountPage.transferDetailDebitCard')
                     }
-                    shouldShowButton
                     buttonText={translate('common.done')}
                     onButtonPress={dismissSuccessfulTransferBalancePage}
                     containerStyle={styles.flex1}
@@ -176,6 +175,7 @@ function TransferBalancePage() {
                     <View style={styles.ph5}>
                         {paymentTypes.map((paymentType) => (
                             <MenuItem
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_PAYMENT_TYPE}
                                 key={paymentType.key}
                                 title={paymentType.title}
                                 description={paymentType.description}
@@ -196,6 +196,7 @@ function TransferBalancePage() {
                     <Text style={[styles.pt8, styles.ph5, styles.pb1, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.whichAccount')}</Text>
                     {!!selectedAccount && (
                         <MenuItem
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_ACCOUNT}
                             title={selectedAccount?.title}
                             description={selectedAccount?.description}
                             shouldShowRightIcon
@@ -214,6 +215,7 @@ function TransferBalancePage() {
                 </ScrollView>
                 <View>
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_SUBMIT}
                         buttonText={translate('transferAmountPage.transfer', isTransferable ? convertToDisplayString(transferAmount, CONST.CURRENCY.USD) : '')}
                         isLoading={walletTransfer?.loading}
                         onSubmit={() => selectedAccount && transferWalletBalance(selectedAccount)}

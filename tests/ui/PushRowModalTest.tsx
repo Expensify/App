@@ -28,6 +28,7 @@ jest.mock('@components/Modal', () => jest.fn(({children}: {children: React.React
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.fn(() => null));
+jest.mock('@components/SelectionList/ListItem/MultiSelectListItem', () => jest.fn(() => null));
 jest.mock('@hooks/useDebouncedState', () =>
     jest.fn((initialValue: string) => {
         const [value, setValue] = mockUseState(initialValue);
@@ -55,7 +56,7 @@ describe('PushRowModal', () => {
         render(
             <PushRowModal
                 isVisible
-                selectedOption={selectedOptionKey}
+                selectedOptions={[selectedOptionKey]}
                 onOptionChange={jest.fn()}
                 onClose={jest.fn()}
                 optionsList={optionsList}
@@ -78,7 +79,7 @@ describe('PushRowModal', () => {
         render(
             <PushRowModal
                 isVisible
-                selectedOption={selectedOptionKey}
+                selectedOptions={[selectedOptionKey]}
                 onOptionChange={jest.fn()}
                 onClose={jest.fn()}
                 optionsList={optionsList}
@@ -106,5 +107,40 @@ describe('PushRowModal', () => {
         );
 
         expect(searchedProps?.data.map((item) => item.keyForList)).toEqual(expectedSearchResults.map((item) => item.keyForList));
+    });
+
+    it('toggles rows without closing and saves with the confirm button when several options can be chosen', () => {
+        // Given a multi-select modal with one option already chosen
+        const onOptionChange = jest.fn();
+        const onConfirm = jest.fn();
+        const onClose = jest.fn();
+        render(
+            <PushRowModal
+                isVisible
+                canSelectMultiple
+                selectedOptions={[selectedOptionKey]}
+                onOptionChange={onOptionChange}
+                onConfirm={onConfirm}
+                onClose={onClose}
+                optionsList={optionsList}
+                headerTitle="Options"
+            />,
+        );
+        const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+        const firstRow = selectionListProps?.data.find((item) => item.keyForList === 'option-1');
+
+        // When the user picks another row, then presses the confirm button
+        act(() => {
+            if (firstRow) {
+                selectionListProps?.onSelectRow(firstRow);
+            }
+            selectionListProps?.confirmButtonOptions?.onConfirm?.();
+        });
+
+        // Then the row is reported but the modal stays open, so the user can pick more, and the confirm button saves
+        expect(selectionListProps?.canSelectMultiple).toBe(true);
+        expect(onOptionChange).toHaveBeenCalledWith('option-1');
+        expect(onClose).not.toHaveBeenCalled();
+        expect(onConfirm).toHaveBeenCalledTimes(1);
     });
 });

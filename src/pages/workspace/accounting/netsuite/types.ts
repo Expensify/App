@@ -14,7 +14,7 @@ import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Po
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText'> & {subscribedSettings?: string[]};
+type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText' | 'sentryLabel'> & {subscribedSettings?: string[]};
 
 type MenuItemToRender = MenuItemWithSubscribedSettings & {
     /** Optional hint text passed to the MenuItemWithTopDescription */
@@ -98,6 +98,9 @@ type CustomSubPageTokenInputProps = SubPageProps & {
 
     /** Whether the wizard connects over OAuth 2.0 rather than token-based authentication */
     isOAuthFlow: boolean;
+
+    /** Whether this is a TBA to OAuth migration rather than a fresh connection */
+    isMigration: boolean;
 
     /** Whether the step offers a link that switches the wizard to token-based authentication */
     shouldShowTokenAuthenticationLink: boolean;

@@ -10,7 +10,7 @@ import type {BusinessInfoSubPageProps} from '@pages/settings/Wallet/EnableGlobal
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 const {BUSINESS_REGISTRATION_INCORPORATION_NUMBER, ANNUAL_VOLUME, APPLICANT_TYPE_ID, TRADE_VOLUME, BUSINESS_CATEGORY} = INPUT_IDS;
 
@@ -25,73 +25,58 @@ function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
     const error = getLatestErrorMessage(enableGlobalReimbursementsDraft);
 
-    const paymentVolume = useMemo(
-        () => displayStringValue(corpayOnboardingFields?.picklists.AnnualVolumeRange ?? [], enableGlobalReimbursementsDraft?.[ANNUAL_VOLUME] ?? ''),
-        [corpayOnboardingFields?.picklists.AnnualVolumeRange, enableGlobalReimbursementsDraft],
-    );
-    const businessCategory = useMemo(
-        () => displayStringValue(corpayOnboardingFields?.picklists.NatureOfBusiness ?? [], enableGlobalReimbursementsDraft?.[BUSINESS_CATEGORY] ?? ''),
-        [corpayOnboardingFields?.picklists.NatureOfBusiness, enableGlobalReimbursementsDraft],
-    );
-    const businessType = useMemo(
-        () => displayStringValue(corpayOnboardingFields?.picklists.ApplicantType ?? [], enableGlobalReimbursementsDraft?.[APPLICANT_TYPE_ID] ?? ''),
-        [corpayOnboardingFields?.picklists.ApplicantType, enableGlobalReimbursementsDraft],
-    );
-    const tradeVolumeRange = useMemo(
-        () => displayStringValue(corpayOnboardingFields?.picklists.TradeVolumeRange ?? [], enableGlobalReimbursementsDraft?.[TRADE_VOLUME] ?? ''),
-        [corpayOnboardingFields?.picklists.TradeVolumeRange, enableGlobalReimbursementsDraft],
-    );
+    const paymentVolume = displayStringValue(corpayOnboardingFields?.picklists.AnnualVolumeRange ?? [], enableGlobalReimbursementsDraft?.[ANNUAL_VOLUME] ?? '');
+    const businessCategory = displayStringValue(corpayOnboardingFields?.picklists.NatureOfBusiness ?? [], enableGlobalReimbursementsDraft?.[BUSINESS_CATEGORY] ?? '');
+    const businessType = displayStringValue(corpayOnboardingFields?.picklists.ApplicantType ?? [], enableGlobalReimbursementsDraft?.[APPLICANT_TYPE_ID] ?? '');
+    const tradeVolumeRange = displayStringValue(corpayOnboardingFields?.picklists.TradeVolumeRange ?? [], enableGlobalReimbursementsDraft?.[TRADE_VOLUME] ?? '');
 
-    const summaryItems = useMemo(
-        () => [
-            {
-                id: 'registration-number',
-                title: enableGlobalReimbursementsDraft?.[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] ?? '',
-                description: translate('businessInfoStep.registrationNumber'),
-                shouldShowRightIcon: true,
-                onPress: () => {
-                    onMove(0);
-                },
+    const summaryItems = [
+        {
+            id: 'registration-number',
+            title: enableGlobalReimbursementsDraft?.[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] ?? '',
+            description: translate('businessInfoStep.registrationNumber'),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(0);
             },
-            {
-                id: 'business-type',
-                title: businessType,
-                description: translate('businessInfoStep.businessType'),
-                shouldShowRightIcon: true,
-                onPress: () => {
-                    onMove(1);
-                },
+        },
+        {
+            id: 'business-type',
+            title: businessType,
+            description: translate('businessInfoStep.businessType'),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(1);
             },
-            {
-                id: 'business-category',
-                title: businessCategory,
-                description: translate('businessInfoStep.businessCategory'),
-                shouldShowRightIcon: true,
-                onPress: () => {
-                    onMove(1);
-                },
+        },
+        {
+            id: 'business-category',
+            title: businessCategory,
+            description: translate('businessInfoStep.businessCategory'),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(1);
             },
-            {
-                id: 'annual-payment-volume',
-                title: paymentVolume,
-                description: translate('businessInfoStep.annualPaymentVolume'),
-                shouldShowRightIcon: true,
-                onPress: () => {
-                    onMove(2);
-                },
+        },
+        {
+            id: 'annual-payment-volume',
+            title: paymentVolume,
+            description: translate('businessInfoStep.annualPaymentVolume'),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(2);
             },
-            {
-                id: 'trade-volume-range',
-                title: tradeVolumeRange,
-                description: translate('businessInfoStep.averageReimbursementAmount'),
-                shouldShowRightIcon: true,
-                onPress: () => {
-                    onMove(3);
-                },
+        },
+        {
+            id: 'trade-volume-range',
+            title: tradeVolumeRange,
+            description: translate('businessInfoStep.averageReimbursementAmount'),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(3);
             },
-        ],
-        [businessCategory, businessType, enableGlobalReimbursementsDraft, onMove, paymentVolume, tradeVolumeRange, translate],
-    );
+        },
+    ];
 
     return (
         <ConfirmationStep

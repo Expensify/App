@@ -3,7 +3,7 @@ import getEnvironment from '@libs/Environment/getEnvironment';
 
 import type {ReactElement, ReactNode} from 'react';
 
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 
 import type {EnvironmentActionsContextType, EnvironmentStateContextType, EnvironmentValue} from './types';
 
@@ -76,7 +76,7 @@ const EnvironmentActionsContext = createContext<EnvironmentActionsContextType>(d
 function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement {
     const [environment, setEnvironment] = useState<EnvironmentValue>(defaultEnvironmentStateContextValue.environment);
     const [environmentURL, setEnvironmentURL] = useState(defaultEnvironmentStateContextValue.environmentURL);
-    const environmentURLWithoutTrailingSlash = useMemo(() => environmentURL.replaceAll(/\/+$/g, ''), [environmentURL]);
+    const environmentURLWithoutTrailingSlash = environmentURL.replaceAll(/\/+$/g, '');
 
     useEffect(() => {
         getEnvironment().then(setEnvironment);
@@ -87,22 +87,16 @@ function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement
      * Adjusts Expensify links in HTML content to use the current environment URL
      * instead of the production URL (new.expensify.com).
      */
-    const adjustExpensifyLinksForEnv = useCallback((html: string): string => rewriteProductionNewDotLinks(html, environmentURLWithoutTrailingSlash), [environmentURLWithoutTrailingSlash]);
+    const adjustExpensifyLinksForEnv = (html: string): string => rewriteProductionNewDotLinks(html, environmentURLWithoutTrailingSlash);
 
-    const stateValue = useMemo(
-        () => ({
-            environment,
-            environmentURL,
-        }),
-        [environment, environmentURL],
-    );
+    const stateValue = {
+        environment,
+        environmentURL,
+    };
 
-    const actionsValue = useMemo(
-        () => ({
-            adjustExpensifyLinksForEnv,
-        }),
-        [adjustExpensifyLinksForEnv],
-    );
+    const actionsValue = {
+        adjustExpensifyLinksForEnv,
+    };
 
     return (
         <EnvironmentStateContext.Provider value={stateValue}>

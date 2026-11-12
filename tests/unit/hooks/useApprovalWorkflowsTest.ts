@@ -1,6 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 
 import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 
@@ -14,6 +15,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
 import {buildPersonalDetails} from '../../utils/TestHelper';
 
+jest.mock('@hooks/useCurrentUserPersonalDetails');
 jest.mock('@hooks/useLocalize');
 jest.mock('@hooks/usePermissions');
 
@@ -66,9 +68,12 @@ describe('useApprovalWorkflows', () => {
         Onyx.init({keys: ONYXKEYS});
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.mocked(useLocalize).mockReturnValue(createMock<ReturnType<typeof useLocalize>>({localeCompare: (a: string, b: string) => a.localeCompare(b)}));
+        jest.mocked(useCurrentUserPersonalDetails).mockReturnValue(createMock<ReturnType<typeof useCurrentUserPersonalDetails>>({login: CURRENT_USER_LOGIN}));
         mockIsBetaEnabled([]);
+        // The hook reads the personal details itself, so they are seeded rather than passed in.
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
     });
 
     afterEach(async () => {
@@ -86,7 +91,7 @@ describe('useApprovalWorkflows', () => {
             },
         };
 
-        const {result} = renderHook(() => useApprovalWorkflows({policy, personalDetails, currentUserLogin: CURRENT_USER_LOGIN}));
+        const {result} = renderHook(() => useApprovalWorkflows(policy));
 
         await waitFor(() => {
             expect(result.current.approvalWorkflows).toHaveLength(1);
@@ -110,12 +115,43 @@ describe('useApprovalWorkflows', () => {
             employeeList: {[SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL}, [APPROVER_EMAIL]: {email: APPROVER_EMAIL}},
         };
 
-        const {result} = renderHook(() => useApprovalWorkflows({policy, personalDetails, currentUserLogin: CURRENT_USER_LOGIN}));
+        const {result} = renderHook(() => useApprovalWorkflows(policy));
 
         await waitFor(() => {
             expect(result.current.approvalWorkflows).toHaveLength(1);
             expect(result.current.approvalWorkflows.at(0)?.members.map((member) => member.email)).toEqual([SUBMITTER_EMAIL]);
             expect(result.current.approvalWorkflows.at(0)?.approvers.map((approver) => approver.email)).toEqual([APPROVER_EMAIL]);
+        });
+    });
+
+    it('keeps deriving workflows from employeeList under MULTIPLE_APPROVERS while a policy without rules has an over-limit approver', async () => {
+        // Given the beta is on, and an advanced policy without rules whose approver sends reports over their limit to the admin
+        mockIsBetaEnabled([CONST.BETAS.MULTIPLE_APPROVERS]);
+        const policy = {
+            ...createRandomPolicy(1),
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            approver: APPROVER_EMAIL,
+            employeeList: {
+                [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: APPROVER_EMAIL},
+                [APPROVER_EMAIL]: {email: APPROVER_EMAIL, approvalLimit: 10000, overLimitForwardsTo: CURRENT_USER_LOGIN},
+            },
+        };
+
+        // When the workflows are derived, before and after the policy gets rules
+        const {result} = renderHook(() => useApprovalWorkflows(policy));
+        await waitFor(() => {
+            expect(result.current.approvalWorkflows).toHaveLength(1);
+        });
+        const shouldUseRulesWithoutRules = result.current.shouldUseApprovalWorkflowRules;
+        await seedForwardApproveRules(POLICY_ID, SUBMITTER_EMAIL, APPROVER_EMAIL, 'rule');
+
+        // Then the policy stays on employeeList until it has rules, since writing rules would change where reports over
+        // the limit go, and the rules take over once they exist
+        expect(shouldUseRulesWithoutRules).toBe(false);
+        await waitFor(() => {
+            expect(result.current.shouldUseApprovalWorkflowRules).toBe(true);
         });
     });
 
@@ -125,7 +161,7 @@ describe('useApprovalWorkflows', () => {
 
         const policy = {...createRandomPolicy(1), id: POLICY_ID, employeeList: {[SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL}}};
 
-        const {result} = renderHook(() => useApprovalWorkflows({policy, personalDetails, currentUserLogin: CURRENT_USER_LOGIN}));
+        const {result} = renderHook(() => useApprovalWorkflows(policy));
 
         await waitFor(() => {
             expect(result.current.approvalWorkflows).toHaveLength(0);
