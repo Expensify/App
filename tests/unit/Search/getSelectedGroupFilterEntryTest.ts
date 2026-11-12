@@ -47,14 +47,49 @@ describe('getSelectedGroupFilterEntry', () => {
         expect(entry).toBeUndefined();
     });
 
-    it('returns no filter for a value group that is missing its field', () => {
-        // Given a category-grouped search whose group is a merchant group
-        const group = {...groupBase, merchant: 'Amazon'};
+    it.each([
+        [CONST.SEARCH.GROUP_BY.FROM, {...groupBase, accountID: 42}, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, 42],
+        [CONST.SEARCH.GROUP_BY.APPROVER, {...groupBase, accountID: 42}, CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, 42],
+        [CONST.SEARCH.GROUP_BY.CARD, {...groupBase, accountID: 42, bank: 'vcf', cardName: 'Business card', cardID: 7, lastFourPAN: '1234'}, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, 7],
+        [
+            CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            {...groupBase, entryID: 9, accountNumber: '1234', bankName: CONST.BANK_NAMES.CHASE, debitPosted: '2026-09-11', state: 1},
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+            9,
+        ],
+        [CONST.SEARCH.GROUP_BY.CATEGORY, {...groupBase, category: 'Travel'}, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, 'Travel'],
+        [CONST.SEARCH.GROUP_BY.CATEGORY, {...groupBase, category: ''}, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, CONST.SEARCH.CATEGORY_EMPTY_VALUE],
+        [CONST.SEARCH.GROUP_BY.MERCHANT, {...groupBase, merchant: 'Amazon'}, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, 'Amazon'],
+        [CONST.SEARCH.GROUP_BY.MERCHANT, {...groupBase, merchant: ''}, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.MERCHANT_EMPTY_VALUE],
+        [CONST.SEARCH.GROUP_BY.TAG, {...groupBase, tag: 'Project A'}, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, 'Project A'],
+        [CONST.SEARCH.GROUP_BY.TAG, {...groupBase, tag: ''}, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, CONST.SEARCH.TAG_EMPTY_VALUE],
+        [CONST.SEARCH.GROUP_BY.TAG, {...groupBase, tag: '(untagged)'}, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, CONST.SEARCH.TAG_EMPTY_VALUE],
+    ])('scopes a %s group by its value', (groupBy, group, key, value) => {
+        // Given a value group as it arrives in the search snapshot
 
         // When the filter that scopes an export to that group is built
-        const entry = getSelectedGroupFilterEntry(CONST.SEARCH.GROUP_BY.CATEGORY, group);
+        const entry = getSelectedGroupFilterEntry(groupBy, group);
 
-        // Then there is none, so the export fails instead of filtering on an undefined category
+        // Then it filters on the group's value, with an empty value mapped to the search syntax's "none"
+        expect(entry).toEqual({kind: 'value', key, value});
+    });
+
+    it.each([
+        CONST.SEARCH.GROUP_BY.FROM,
+        CONST.SEARCH.GROUP_BY.APPROVER,
+        CONST.SEARCH.GROUP_BY.CARD,
+        CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+        CONST.SEARCH.GROUP_BY.CATEGORY,
+        CONST.SEARCH.GROUP_BY.MERCHANT,
+        CONST.SEARCH.GROUP_BY.TAG,
+    ])('returns no filter for a %s group that is missing its field', (groupBy) => {
+        // Given a value-grouped search whose group is a violation group, which has none of the value fields
+        const group = {...groupBase, violation: 'missingCategory'};
+
+        // When the filter that scopes an export to that group is built
+        const entry = getSelectedGroupFilterEntry(groupBy, group);
+
+        // Then there is none, so the export fails instead of filtering on an undefined value
         expect(entry).toBeUndefined();
     });
 });

@@ -5239,6 +5239,38 @@ describe('SearchUIUtils', () => {
             expect(result.some((item) => item.formattedWeek.includes('Jun 15'))).toBe(true);
         });
 
+        it('should skip a week group without a week', () => {
+            // Given a week-grouped snapshot where one group has an empty week
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-01-25` as const]: {week: '2026-01-25', count: 2, currency: 'USD', total: 50},
+                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {week: '', count: 1, currency: 'USD', total: 25},
+            };
+
+            // When the week sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionWeekGroupListItemType,
+            );
+
+            // Then only the valid week is shown, because a week's dates are also its label and an empty week has none
+            expect(result.map((item) => item.week)).toEqual(['2026-01-25']);
+        });
+
         it('should return isTransactionCategoryGroupListItemType false for non-category group items', () => {
             const memberItem: TransactionMemberGroupListItemType = {
                 accountID: 123,

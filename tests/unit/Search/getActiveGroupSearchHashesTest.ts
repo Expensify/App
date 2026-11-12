@@ -37,6 +37,21 @@ describe('getActiveGroupSearchHashes', () => {
         expect(hashes).toEqual([buildSearchQueryJSON('type:expense date>=2026-09-01 date<=2026-09-30')?.hash]);
     });
 
+    it('returns the drill-down search of an approver group, scoped to that approver', () => {
+        // Given a search grouped by approver with one approver in the snapshot
+        const queryJSON = buildSearchQueryJSON(`type:expense groupBy:${CONST.SEARCH.GROUP_BY.APPROVER}`);
+        const data: OnyxTypes.SearchResults['data'] = {
+            personalDetailsList: {},
+            [`${CONST.SEARCH.GROUP_PREFIX}42` as const]: {accountID: 42, count: 1, currency: CONST.CURRENCY.USD, total: 100},
+        };
+
+        // When the searches backing the visible groups are collected
+        const hashes = getActiveGroupSearchHashes(data, queryJSON);
+
+        // Then the group's search is the ungrouped expense search limited to that approver, the one opening the group runs
+        expect(hashes).toEqual([buildSearchQueryJSON('type:expense approver:42')?.hash]);
+    });
+
     it.each([
         [CONST.SEARCH.GROUP_BY.DAY, {day: '2026-09-11'}],
         [CONST.SEARCH.GROUP_BY.WEEK, {week: '2026-09-07'}],
