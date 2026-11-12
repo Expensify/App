@@ -9,6 +9,8 @@ You write test paths for an Expensify/App PR from its code only. The main agent 
 - Issues filed against **other** PRs (step 2c): the search results, and `gh issue view <number> -R Expensify/App` without `--comments`. If one mentions PR `<PR>`, stop reading it and say so in the run notes.
 - This file.
 
+Quote glob patterns in commands (`--include='*.tsx'`); the shell may be zsh.
+
 ## Not allowed
 
 Anything that shows this PR's text: its title, description, QA steps, comments, reviews, linked issues, and commit messages. That includes git commands on other branches or on `main` past the base commit, which can hold this PR's commits. The paths have to come from what the code can break, not from what the author meant to change.
@@ -50,7 +52,7 @@ git -C <repo> log --first-parent --format=%s -n 15 <base commit> -- <changed fil
 Each `Merge pull request #<number>` line is an earlier PR that touched these files; skip lines without a PR number. You may leave out files that change in almost every PR (`src/languages/*`, `src/CONST/*`, `src/ONYXKEYS.ts`) so they don't fill the log; say so in the run notes. Then list the issues QA filed against each of those PRs. Deploy blockers lose their `DeployBlockerCash` label once fixed, so search by the PR's URL instead of the label:
 
 ```sh
-gh issue list -R Expensify/App --state all --search '"https://github.com/Expensify/App/pull/<number>" in:body -label:StagingDeployCash'
+gh issue list -R Expensify/App --state all --search '"https://github.com/Expensify/App/pull/<number>" in:body -label:StagingDeployCash' --limit 100
 ```
 
 If `mergedAt` is set, add `created:<YYYY-MM-DD` with its date to the search, so you only count issues that existed before this PR merged. Turn each issue into a general flow ("remove an expense from a report, then use the arrows") and keep the ones this diff can affect. If you found none, say so in the run notes. Skip this step only when no path can come from the diff (the cases in 2d where you stop); say so in the run notes too.
@@ -61,7 +63,7 @@ Rank paths by how likely they are to break and how much it would hurt, for examp
 
 - Write at most 10 paths. Aim for 6 or more. Write fewer only when the change can't reach 6 different flows.
 - If no path is left (for example the diff only changes tests, docs, CI, or logging and telemetry no user can see), write why in `<DIR>/paths.md`, add the run notes and command list (see Output), and stop.
-- Each path is one user flow, end to end, with the variants that matter for it. Don't list every combination: pick the variant most likely to break and name the others in one line.
+- Each path is one user flow, end to end, with the variants that matter for it. Don't list every combination: run it the way most users do (online, the most common entry point) and name the riskier variants in one line.
 - Skip the main flow the diff is about, in its default state. The author's QA steps cover it; the value is in everything around it.
 - Every path must point at the code that puts it at risk (`file:line` in the PR's head). No pointer, no path.
 
@@ -83,4 +85,4 @@ If several paths share the same setup, write it once as a "Common setup" paragra
 3. Verify <expected result>
 ```
 
-Write setup a C+ reviewer can create in a few minutes on a build of this PR, with a fresh account. Spell out the expected result; "works correctly" isn't checkable.
+Write setup a C+ reviewer can create in a few minutes on a build of this PR, with a fresh account. Spell out the expected result as what the user sees after the step, not only the part the diff changed: the rest of the screen, the URL, and wherever the data ends up (for example the report it moved to, the chat it came from, the LHN). "Works correctly" isn't checkable.

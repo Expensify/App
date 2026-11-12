@@ -53,7 +53,7 @@ First, without reading the PR description:
 - The expected result is what the code intends. If the code, its tests or its UI text say the behavior is deliberate, fix the path or drop it.
 - No two paths test the same flow.
 
-Then read the PR description. This is the first point where you may. Drop any path its QA steps already cover in full. Keep paths they cover only in part. From here on, only drop paths and renumber the rest: don't add or rewrite any.
+Then read the PR description. This is the first point where you may. Drop any path its QA steps already cover in full. Keep paths they cover only in part. From here on, only drop paths or steps and renumber the rest: don't add or rewrite any.
 
 If no path is left at any point in this step, tell the user in one or two sentences why, don't post anything, and go to cleanup.
 
@@ -62,7 +62,7 @@ If no path is left at any point in this step, tell the user in one or two senten
 Decide how to deliver it:
 
 - **Someone asked for this run in a comment on the PR** (for example through Melvin): post it.
-- **Anyone else** (for example the author running it in a terminal): show the full comment and post it only after they confirm.
+- **Anyone else** (for example the author running it in a terminal): show the full comment, not a summary, then ask whether to post it.
 
 Use one comment per PR and update it when the skill runs again. Start it with the marker `<!-- e2e-pr-explore -->` so you can find it:
 
