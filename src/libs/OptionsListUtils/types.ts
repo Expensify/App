@@ -215,7 +215,6 @@ type GetValidReportsConfig = {
     isDefaultRoomsBetaEnabled?: boolean;
     includeMultipleParticipantReports?: boolean;
     showChatPreviewLine?: boolean;
-    /** Transactions of the split and track last actions. They aren't part of their chat, so the chat preview line can't find them in the chat's transactions */
     splitAndTrackTransactions?: Transaction[];
     forcePolicyNamePreview?: boolean;
     includeSelfDM?: boolean;
