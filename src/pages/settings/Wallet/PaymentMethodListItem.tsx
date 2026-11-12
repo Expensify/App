@@ -263,6 +263,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const rightComponent = showThreeDotsMenu ? (
         <View style={styles.alignSelfCenter}>
             <ThreeDotsMenu
+                sentryLabel={CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.THREE_DOTS_MENU}
                 shouldSelfPosition
                 onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
                 menuItems={threeDotsMenuItems}

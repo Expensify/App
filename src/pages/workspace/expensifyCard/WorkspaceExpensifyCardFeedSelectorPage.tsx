@@ -290,6 +290,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                             addBottomSafeAreaPadding
                         >
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.FEED_SELECTOR_SAVE}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 size="large"
                                 style={styles.w100}

@@ -86,6 +86,7 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
         >
             {onboardingHelpDropdownButton}
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.EARLY_DISCOUNT_BANNER.CLAIM_OFFER}
                 variant={!hasActiveScheduledCall ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                 style={shouldDisplayButtonsInSeparateLine ? [styles.earlyDiscountButton, styles.flexGrow2] : styles.mr2}
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}

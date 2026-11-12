@@ -700,9 +700,9 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                // Import, export, and advanced screens are added in later releases.
-                onImportPagePress: () => null,
-                subscribedImportSettings: [],
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DIGITS_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [CONST.DIGITS_CONFIG.ENABLE_NEW_CATEGORIES, `${CONST.DIGITS_CONFIG.FIELD_MAPPING_PREFIX}${CONST.DIGITS_FIELD.DEPARTMENTS}`],
+                // Export and advanced pages are added in later releases.
                 onExportPagePress: () => null,
                 subscribedExportSettings: [],
                 onAdvancedPagePress: () => null,
