@@ -1192,12 +1192,12 @@ function dismissToPreviousRHP(options: {afterTransition?: () => void} = {}) {
     return dismissToModalStack(ALL_WIDE_RIGHT_MODALS, options);
 }
 
-function navigateBackToLastSuperWideRHPScreen(options: {afterTransition?: () => void | Promise<void>} = {}) {
+function navigateBackToLastSuperWideRHPScreen(options: {afterTransition?: () => void} = {}) {
     return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS, options);
 }
 
 function dismissToSuperWideRHP(options: {afterTransition?: () => void | Promise<void>} = {}) {
-    navigateBackToLastSuperWideRHPScreen(options);
+    dismissToModalStack(SUPER_WIDE_RIGHT_MODALS, options);
 }
 
 /**
