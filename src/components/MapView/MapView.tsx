@@ -35,6 +35,7 @@ import MapMarkerIcon from './MapMarkerIcon';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import useAccessToken from './useAccessToken';
+import useMapboxLanguage from './useMapboxLanguage';
 import utils from './utils';
 
 // Default is 1000ms which feels a bit too long for the animations when coming back from waypoints
@@ -76,6 +77,7 @@ function MapView({
     const [isWaypointsNextCenterTarget, setIsWaypointsNextCenterTarget] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
     const isAccessTokenReady = useAccessToken({accessToken});
+    useMapboxLanguage(preferredLocale);
 
     // Determines if map can be panned to user's detected
     // location without bothering the user. It will return
@@ -334,24 +336,11 @@ function MapView({
     const initCenterCoordinate = interactive && !hasWaypoints ? centerCoordinate : undefined;
     const initBounds = interactive ? undefined : waypointsBounds;
 
-    // Localize the map labels to the user's preferred app locale so they match the rest of the app.
-    const language = utils.getNativeMapboxLanguage(preferredLocale);
-    const localizeLabels:
-        | {
-              locale: string;
-          }
-        | undefined = language
-        ? {
-              locale: language,
-          }
-        : undefined;
-
     return !isOffline && isAccessTokenReady && !!defaultSettings ? (
         <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
             <Mapbox.MapView
                 style={{flex: 1}}
                 styleURL={styleURL}
-                localizeLabels={localizeLabels}
                 onMapIdle={setMapIdle}
                 onCameraChanged={onCameraChanged}
                 onTouchStart={() => {
