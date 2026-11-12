@@ -10,6 +10,7 @@ import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
+import {getPerDiemRowKey} from '@libs/PolicyPerDiemUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {findPolicyExpenseChatByPolicyID} from '@libs/ReportUtils';
 
@@ -211,11 +212,11 @@ function clearPerDiemRateError(policyID: string, customUnitID: string, rateID: s
  * Returns whether the selection covers every subrate of the custom unit, so the whole rate list can be cleared at once.
  */
 function isEverySubRateSelected(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[]): boolean {
-    const selectedSubRateKeys = new Set(subRatesToBeDeleted.map((subRate) => `${subRate.rateID}:${subRate.subRateID}`));
+    const selectedSubRateKeys = new Set(subRatesToBeDeleted.map((subRate) => getPerDiemRowKey(subRate.rateID, subRate.subRateID)));
     let subRateCount = 0;
     for (const rate of Object.values(customUnit.rates)) {
         for (const subRate of rate.subRates ?? []) {
-            if (!selectedSubRateKeys.has(`${rate.customUnitRateID}:${subRate.id}`)) {
+            if (!selectedSubRateKeys.has(getPerDiemRowKey(rate.customUnitRateID, subRate.id))) {
                 return false;
             }
             subRateCount++;

@@ -1,6 +1,7 @@
 /**
  * Validation and sanitization for workspace per diem destination, subrate, and amount fields.
  * Shared by the RHP edit forms and inline table editing so both surfaces reject the same values.
+ * Also builds the per diem row key shared by the rates table and the delete action.
  */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
@@ -81,4 +82,12 @@ function getPerDiemAmountErrorMessage(translate: LocaleContextProps['translate']
     }
 }
 
-export {getPerDiemNameError, getPerDiemNameErrorMessage, getPerDiemAmountError, getPerDiemAmountErrorMessage};
+/**
+ * Builds the key that identifies one subrate row. The rates table selects rows by this key and the delete action
+ * matches the selection against the custom unit with it, so both must use the same format.
+ */
+function getPerDiemRowKey(rateID: string, subRateID: string): string {
+    return `${rateID}:${subRateID}`;
+}
+
+export {getPerDiemNameError, getPerDiemNameErrorMessage, getPerDiemAmountError, getPerDiemAmountErrorMessage, getPerDiemRowKey};
