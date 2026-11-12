@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Cancelar',
         dismiss: 'Fechar',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionar a coluna ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        resizePanel: 'Redimensionar o painel',
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Continuar',
         unshare: 'Deixar de compartilhar',
         yes: 'Sim',
@@ -10931,7 +10932,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             completed: 'Concluído',
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Menor ou igual a ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maior que ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Maior ou igual a ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Entre ${greaterThan} e ${lessThan}`;

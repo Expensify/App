@@ -63,7 +63,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Anuluj',
         dismiss: 'Zamknij',
         resizeColumn: ({columnName}: {columnName: string}) => `Zmień szerokość kolumny ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pikseli`,
+        resizePanel: 'Zmień szerokość panelu',
+        widthInPixels: ({width}: {width: number}) => `${width} pikseli`,
         proceed: 'Kontynuuj',
         unshare: 'Cofnij udostępnianie',
         yes: 'Tak',
@@ -10958,7 +10959,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             completed: 'Zakończono',
             amount: {
                 lessThan: (amount?: string) => `Mniej niż ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Mniejszy lub równy ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Większe niż ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Większe niż lub równe ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Między ${greaterThan} a ${lessThan}`;
