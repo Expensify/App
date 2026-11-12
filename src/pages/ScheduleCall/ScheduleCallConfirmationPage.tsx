@@ -82,7 +82,7 @@ function ScheduleCallConfirmationPage() {
             {locale: dateFnsLocale},
         )}`;
 
-        const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone);
+        const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone, dateFnsLocale);
 
         dateTimeString = `${dateString} from ${timeString} ${timezoneString}`;
     }
@@ -126,6 +126,7 @@ function ScheduleCallConfirmationPage() {
                         </MenuItem.Row>
                     </MenuItemWithLabel>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SCHEDULE_CALL.CONFIRMATION_DATE_TIME}
                         name={translate('scheduledCall.confirmation.dateTime')}
                         value={dateTimeString}
                         numberOfLinesValue={2}
@@ -143,6 +144,7 @@ function ScheduleCallConfirmationPage() {
                 </ScrollView>
                 <FixedFooter>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.SCHEDULE_CALL.CONFIRMATION_CONFIRM}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={confirm}

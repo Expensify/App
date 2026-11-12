@@ -78,6 +78,7 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
 
     return (
         <MenuItemWithTopDescription
+            sentryLabel={CONST.SENTRY_LABEL.STATE_SELECTOR.OPEN}
             descriptionTextStyle={descStyle}
             ref={ref}
             shouldShowRightIcon

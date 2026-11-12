@@ -22,6 +22,8 @@ function AddShippingAddress({card}: AddShippingAddressProps) {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.ADD_SHIPPING_ADDRESS}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.ADD_SHIPPING_ADDRESS}
             icon={ExpensifyCardIcon}
             title={translate('homePage.timeSensitiveSection.addShippingAddress.title')}
             subtitle={translate('homePage.timeSensitiveSection.addShippingAddress.subtitle')}

@@ -31,6 +31,9 @@ type Response<TKey extends OnyxKey> = {
     /** Collection of onyx updates (SET/MERGE/...) */
     onyxData?: Array<OnyxUpdate<TKey>>;
 
+    /** Pagination pages for the items in onyxData. They are applied after onyxData, and skipped whenever onyxData is skipped. */
+    paginationOnyxData?: Array<OnyxUpdate<TKey>>;
+
     /** ID of the request that triggered this response */
     requestID?: string;
 
@@ -90,6 +93,9 @@ type Response<TKey extends OnyxKey> = {
 
     /** Whether the account is set for testing Travel and should use the sandbox environment */
     isTestAccount?: boolean;
+
+    /** Whether the account can enable Travel without a guide verifying the business first */
+    canSkipVerification?: boolean;
 
     /** User authorization token to authorize Pusher connections */
     auth?: string;
