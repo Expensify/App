@@ -48,6 +48,7 @@ function RequireQuickBooksDesktopModal() {
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.REQUIRE_CONFIRM}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={confirm}
                         size={CONST.BUTTON_SIZE.LARGE}

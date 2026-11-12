@@ -16,6 +16,8 @@ function FixEmailDelivery() {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.FIX_EMAIL_DELIVERY}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.FIX_EMAIL_DELIVERY}
             icon={icons.Mail}
             title={translate('homePage.timeSensitiveSection.emailDeliveryFailure.title')}
             subtitle={translate('homePage.timeSensitiveSection.emailDeliveryFailure.subtitle')}

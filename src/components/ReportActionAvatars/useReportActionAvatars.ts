@@ -13,6 +13,7 @@ import {
     getHumanAgentFirstName,
     getOriginalMessage,
     getReportActionActorAccountID,
+    isDeletedReportPreviewWithError,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
 import {
@@ -85,7 +86,9 @@ function useReportActionAvatars({
     const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: getStableReportSelector});
 
     const chatReport = isReportAChatReport ? report : reportChatReport;
-    const iouReport = isReportAChatReport ? undefined : report;
+    // A failed payment restores the deleted report in Onyx, which would swap this row's actor. Resolve from the chat.
+    const isADeletedReportPreview = isDeletedReportPreviewWithError(passedAction);
+    const iouReport = isReportAChatReport || isADeletedReportPreview ? undefined : report;
 
     const [chatReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(chatReport?.reportID)}`, {
         selector: pendingDeleteMemberAccountIDsSelector,
@@ -241,7 +244,8 @@ function useReportActionAvatars({
     const isReportPreviewInTripRoom = isAReportPreviewAction && isATripRoom;
 
     // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
-    const displayAllActors = isAReportPreviewAction && !isATripRoom && !isAWorkspaceChat && !reportPreviewSenderID;
+    // A deleted report has no second actor left to name.
+    const displayAllActors = isAReportPreviewAction && !isATripRoom && !isAWorkspaceChat && !reportPreviewSenderID && !isADeletedReportPreview;
 
     const shouldUseAccountIDs = accountIDs.length > 0;
     const shouldShowAllActors = displayAllActors && !reportPreviewSenderID;
@@ -431,16 +435,22 @@ function useReportActionAvatars({
         }
     }
 
+    // A deleted preview shows the chat's actor, so read its details from there too. Otherwise the row pairs one
+    // person's name with another's status and hint.
+    const displayedAccountID = isADeletedReportPreview ? Number(avatars.at(0)?.id) || accountID : accountID;
+    const displayedPersonalDetails = personalDetails?.[displayedAccountID];
+    const displayedActorHint = isADeletedReportPreview ? (displayedPersonalDetails?.login ?? avatars.at(0)?.name ?? '') : login || defaultDisplayName || fallbackDisplayName;
+
     return {
         avatars,
         avatarType,
         details: {
-            ...(personalDetails?.[accountID] ?? {}),
+            ...(displayedPersonalDetails ?? {}),
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
             shouldUseConciergeAvatar,
-            actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
-            accountID,
+            actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : displayedActorHint).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
+            accountID: displayedAccountID,
             delegateAccountID: !isWorkspaceActor && !!delegateAccountID ? actorAccountID : undefined,
             humanAgentAccountID,
         },
