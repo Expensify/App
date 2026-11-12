@@ -78,11 +78,14 @@ describe('useBankPaySkippedModal', () => {
         });
 
         // Then the title names that account and the prompt lists each skipped report by name, so the user knows which to mark as paid
+        // And the names scroll under a fixed description, so a long list can't push Got it off the screen
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 title: 'iou.payWithBankAccountTitle(1234)',
-                prompt: ['iou.bankPaySkippedReportsDescription', '', `${CONST.DOT_SEPARATOR} Card lunch`, `${CONST.DOT_SEPARATOR} Credit refund`].join('\n'),
+                subtitle: 'iou.bankPaySkippedReportsDescription',
+                prompt: [`${CONST.DOT_SEPARATOR} Card lunch`, `${CONST.DOT_SEPARATOR} Credit refund`].join('\n'),
                 shouldShowCancelButton: false,
+                shouldEnablePromptScroll: true,
             }),
         );
     });

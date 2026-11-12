@@ -42,18 +42,25 @@ function useBankPaySkippedModal() {
         const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : getAccessiblePolicyBankAccount(policy, bankAccountList);
         const accountNumber = bankAccount?.accountData?.accountNumber;
 
-        let prompt = translate('iou.bankPayAllReportsSkippedDescription');
-        if (isSingleReport) {
-            prompt = translate('iou.bankPayReportSkippedDescription');
-        } else if (skippedReports.length > 0) {
-            const reportLines = skippedReports.map(({reportName}) => `${CONST.DOT_SEPARATOR} ${reportName}`);
-            prompt = [translate('iou.bankPaySkippedReportsDescription'), '', ...reportLines].join('\n');
+        const title = translate('iou.payWithBankAccountTitle', accountNumber?.slice(-4));
+        const confirmText = translate('common.buttonConfirm');
+
+        if (!isSingleReport && skippedReports.length > 0) {
+            // A bulk payment can skip dozens of reports, so the names scroll under a fixed description to keep Got it on screen
+            return showConfirmModal({
+                title,
+                subtitle: translate('iou.bankPaySkippedReportsDescription'),
+                prompt: skippedReports.map(({reportName}) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                confirmText,
+                shouldShowCancelButton: false,
+                shouldEnablePromptScroll: true,
+            });
         }
 
         return showConfirmModal({
-            title: translate('iou.payWithBankAccountTitle', accountNumber?.slice(-4)),
-            prompt,
-            confirmText: translate('common.buttonConfirm'),
+            title,
+            prompt: translate(isSingleReport ? 'iou.bankPayReportSkippedDescription' : 'iou.bankPayAllReportsSkippedDescription'),
+            confirmText,
             shouldShowCancelButton: false,
         });
     };
