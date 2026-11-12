@@ -14,7 +14,7 @@ import type {AnyRequest} from '@src/types/onyx/Request';
 
 import type {NavigationState} from '@react-navigation/native';
 
-import {registerTool} from '@appduct/react-native';
+import {addAppductListener, registerTool} from '@appduct/react-native';
 import Onyx from 'react-native-onyx';
 
 jest.mock('@userActions/Session', () => ({
@@ -40,6 +40,10 @@ const ACCOUNT_ID = 7;
 const SIGNED_IN_SESSION = {authToken: 'tok', email: 's@gmail.com', accountID: ACCOUNT_ID};
 const GUIDED_SETUP_REQUEST: AnyRequest = {command: 'CompleteGuidedSetup'};
 const QUEUED_GUIDED_SETUP: AnyRequest[] = [GUIDED_SETUP_REQUEST];
+
+function isStateChangeListener(listener: unknown): listener is (event: {state: 'connecting' | 'active'}) => void {
+    return typeof listener === 'function';
+}
 
 /** Runs a tool to completion, fast-forwarding the fake clock through its polling waits. */
 async function call(name: string, input: Record<string, unknown> = {}) {
@@ -81,11 +85,20 @@ afterEach(async () => {
 });
 
 describe('registration', () => {
-    it('registers the contract tools by name on import', async () => {
+    it('registers the contract tools by name once a session is active', async () => {
         await import('@src/setup/appduct');
+        const onStateChange = jest.mocked(addAppductListener).mock.calls.at(0)?.[1];
+        if (!isStateChangeListener(onStateChange)) {
+            throw new Error('no stateChange listener was added');
+        }
+
+        onStateChange({state: 'connecting'});
+        await jest.runAllTimersAsync();
+        expect(registerTool).not.toHaveBeenCalled();
+
+        onStateChange({state: 'active'});
         // The module registers from a dynamic import of ./tools, so let it settle.
         await jest.runAllTimersAsync();
-
         expect(jest.mocked(registerTool).mock.calls.map(([tool]) => tool.name)).toEqual(['get_state', 'sign_in', 'complete_onboarding']);
     });
 });
