@@ -448,7 +448,7 @@ type AddCommentParams = {
     isInSidePanel?: boolean;
     sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
-    /** Markdown answer to show immediately in the Concierge reply thread. */
+    /** Sanitized HTML answer to show immediately in the Concierge reply thread. */
     preloadedResponse?: string;
     reportActionID?: string;
     delegateAccountID: number | undefined;
@@ -469,7 +469,7 @@ type AddActionsParams = {
     isInSidePanel?: boolean;
     sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
-    /** Markdown answer to show immediately in the Concierge reply thread. */
+    /** Sanitized HTML answer to show immediately in the Concierge reply thread. */
     preloadedResponse?: string;
     reportActionID?: string;
     delegateAccountID: number | undefined;
@@ -1008,6 +1008,7 @@ function addActions({
         preloadedResponse && isConciergeChat && !file
             ? buildOptimisticAddCommentReportAction({
                   text: preloadedResponse,
+                  isHTML: true,
                   actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
                   reportID: replyReportID,
                   currentUserAccountID,

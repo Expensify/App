@@ -2360,6 +2360,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
         const report = {...createRandomReport(1, undefined), reportID: '100'};
         const replyReportID = '9002';
+        const answer = '<strong>Travel</strong> increased <em>about</em> 20%.<ul><li>Flights</li></ul><ol><li>Review</li></ol><table><tr><td>£200</td></tr></table>';
 
         // When Explain posts a question with an answer that was preloaded.
         Report.addComment({
@@ -2367,7 +2368,7 @@ describe('actions/Report', () => {
             notifyReportID: report.reportID,
             ancestors: [],
             text: 'Explain this insight',
-            preloadedResponse: '**Travel** increased.',
+            preloadedResponse: answer,
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
@@ -2387,7 +2388,9 @@ describe('actions/Report', () => {
         expect(replyActions?.[answerID]?.created).toBe(request?.data?.optimisticConciergeCreated);
         expect((replyActions?.[answerID]?.created ?? '') > (question?.created ?? '')).toBe(true);
         expect(questionActions?.[answerID]).toBeUndefined();
-        expect(request?.data?.pregeneratedResponse).toContain('<strong>Travel</strong>');
+        expect(request?.data?.pregeneratedResponse).toBe(answer);
+        expect(replyActions?.[answerID]?.message).toEqual([expect.objectContaining({html: answer})]);
+        expect(replyActions?.[answerID]?.originalMessage).toMatchObject({html: answer});
 
         // When sending the question fails, then remove its optimistic reply from the thread as well.
         await Onyx.update(request?.failureData ?? []);
