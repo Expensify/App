@@ -160,10 +160,7 @@ describe('PolicyDistanceRatesUtils', () => {
                 // Given a government snapshot whose reclaimable amount uses two to four meaningful decimals
                 const taxClaimablePercentage = getSavedTaxClaimablePercentage(enteredAmount, 14);
                 const governmentRate = {...fuelBandGovernmentRate, taxClaimablePercentage};
-                const rate = buildRate(
-                    {rate: 14, startDate: '2026-06-01', endDate: undefined, attributes: {taxClaimablePercentage, governmentRate}},
-                    governmentRate,
-                );
+                const rate = buildRate({rate: 14, startDate: '2026-06-01', endDate: undefined, attributes: {taxClaimablePercentage, governmentRate}}, governmentRate);
 
                 // When checking a rate restored through the editor's amount-to-percentage conversion
                 const isUnmodified = isGovernmentRateUnmodified(rate);
