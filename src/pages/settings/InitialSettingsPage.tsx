@@ -1,6 +1,7 @@
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
+import DebugTabViewPlaceholder from '@components/Navigation/DebugTabViewPlaceholder';
 import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
@@ -236,6 +237,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {accountMenuItems}
                 {generalMenuItems}
             </ScrollView>
+            <DebugTabViewPlaceholder selectedTab={NAVIGATION_TABS.SETTINGS} />
         </ScreenWrapper>
     );
 }
