@@ -5,6 +5,7 @@ import type PolicyData from '@hooks/usePolicyData/types';
 import {getImportFailedFinalModal, getImportFinalModalID, getImportFinalModalOnyxData, waitForImportFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
+    CreatePolicyTagsParams,
     EnablePolicyTagsParams,
     ImportMultiLevelTagsParams,
     OpenPolicyTagsPageParams,
@@ -66,6 +67,7 @@ type CreatePolicyTagParams = {
     policyHasCustomCategories: boolean;
     pendingRequiresTagRestore?: boolean;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    reviewWorkspaceSettingsTaskData?: OnboardingTaskCompletionOnyxData;
 };
 
 function getEnabledPolicyTagsCount(policyTagList: PolicyTagList) {
@@ -185,6 +187,7 @@ function createPolicyTag({
     policyHasCustomCategories,
     pendingRequiresTagRestore,
     isVendorMatchingBetaEnabled,
+    reviewWorkspaceSettingsTaskData = {},
 }: CreatePolicyTagParams) {
     const {policy, tags: policyTags} = policyData;
     const policyID = policy?.id;
@@ -271,12 +274,13 @@ function createPolicyTag({
     }
 
     pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, policyRequiresTagOptimisticData, {}, tagListsOptimisticData);
-    const parameters = {
+    const parameters: CreatePolicyTagsParams = {
         policyID,
         tags: JSON.stringify([{name: newTagName}]),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
+    API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 
     const isTaskForCurrentWorkspace = (taskReport: OnyxEntry<Report>) => !taskReport?.policyID || taskReport.policyID === policyID;
 
@@ -336,6 +340,7 @@ function setWorkspaceTagEnabled(
     tagsToUpdate: Record<string, {name: string; enabled: boolean}>,
     tagListIndex: number,
     isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const policyTagListEntry = PolicyUtils.getTagListEntryByOrderWeight(policyData.tags, tagListIndex);
 
@@ -456,9 +461,10 @@ function setWorkspaceTagEnabled(
         policyID,
         tags: JSON.stringify(Object.keys(tagsToUpdate).map((key) => tagsToUpdate[key])),
         tagListIndex,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[], isVendorMatchingBetaEnabled: boolean | undefined) {
@@ -622,7 +628,13 @@ function clearPolicyTagListErrors({policyID, tagListIndex, policyTags}: ClearPol
     });
 }
 
-function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; newName: string}, tagListIndex: number, isVendorMatchingBetaEnabled: boolean | undefined) {
+function renamePolicyTag(
+    policyData: PolicyData,
+    policyTag: {oldName: string; newName: string},
+    tagListIndex: number,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
     const tagListEntry = PolicyUtils.getTagListEntryByOrderWeight(policyData.tags, tagListIndex);
     if (!tagListEntry) {
@@ -740,9 +752,10 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
         oldName: oldTagName,
         newName: newTagName,
         tagListIndex,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
+    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 // Builds a POLICY_TAGS update that sets every tag in the given lists to `enabled`.
@@ -977,7 +990,13 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
     });
 }
 
-function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
+function renamePolicyTagList(
+    policyID: string,
+    policyTagListName: {oldName: string; newName: string},
+    policyTags: OnyxEntry<PolicyTagLists>,
+    tagListIndex: number,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
     // Tag list names can repeat, so find the list being renamed by its orderWeight and use its Onyx key, which can differ from its name
@@ -1027,9 +1046,10 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
         oldName,
         newName,
         tagListIndex,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
+    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 /** extraPolicyUpdate folds a caller's same-save requiresCategory change into this action's single violation recompute. */

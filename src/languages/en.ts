@@ -102,6 +102,7 @@ const translations = {
         unableToDisplayChart: 'Unable to display chart',
         // @context Shown below "Unable to display chart". "WebGL" is a graphics technology name; keep it untranslated.
         webGLNotSupported: "Your browser doesn't support WebGL. Please enable it or switch browsers.",
+        webAssemblyNotSupported: 'WebAssembly is unavailable in your browser. Try another browser to view charts.',
         // @context Shown below "Unable to display chart" when the chart renderer failed to load, e.g. after an app update while the page stayed open.
         chartFailedToLoad: 'The chart could not be loaded. Please refresh the page and try again.',
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
@@ -11245,6 +11246,7 @@ const translations = {
             sortAscending: 'Sort ascending',
             sortDescending: 'Sort descending',
             hideColumn: 'Hide column',
+            resetColumnSizes: 'Reset column sizes',
         },
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',

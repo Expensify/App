@@ -1,6 +1,7 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PaymentMethodType} from '@components/KYCWall/types';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -697,6 +698,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {selectedTransactions: loadedSelection, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     // A group checked through its header that is still loading reaches the actions as one entry, as a group with no loaded rows does, so no action takes only its loaded rows.
@@ -1457,17 +1460,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const handleExportCurrentView = useCallback((isGroupsOnly = false) => handleCSVExport(false, isGroupsOnly), [handleCSVExport]);
 
     const handleApproveWithDEWCheck = useCallback(async () => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+
         if (isOffline) {
             showOfflineModal();
             return;
         }
 
         if (!hash) {
-            return;
-        }
-
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
             return;
         }
 
@@ -1559,6 +1567,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showOfflineModal,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
+        isAccountLocked,
+        showLockedAccountModal,
         selectedReports,
         selectedTransactions,
         hash,
