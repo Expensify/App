@@ -1,9 +1,10 @@
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import {useModal} from '@components/Modal/Global/ModalContext';
+import PayViaABADownloadModal from '@components/PayViaABADownloadModal';
 
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import type HttpsError from '@libs/Errors/HttpsError';
 import {getDisplayNameForParticipant, getReportOrDraftReport} from '@libs/ReportUtils';
-import saveTextFile from '@libs/saveTextFile';
 
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
 
@@ -14,10 +15,10 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import noop from 'lodash/noop';
 import {useState} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useDecisionModal from './useDecisionModal';
 import useDelegateAccountID from './useDelegateAccountID';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -29,7 +30,7 @@ type PayReportsViaABAOptions = {
 };
 
 /**
- * Returns a function that pays reports by downloading their ABA file, and tells the user when the download fails.
+ * Returns a function that pays reports by downloading their ABA file, showing its progress in a download modal.
  * Locked accounts are shown the locked account modal instead, and unvalidated ones verify their account before it downloads.
  * Also returns whether a download is in progress, so the Pay button can show it's loading.
  */
@@ -37,7 +38,7 @@ function usePayViaABA() {
     const {translate, formatPhoneNumber} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const {showDecisionModal} = useDecisionModal();
+    const modal = useModal();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -61,17 +62,9 @@ function usePayViaABA() {
         return name ? translate('iou.missingABADepositAccount', {name}) : translate('iou.submittersMissingABADepositAccount');
     };
 
-    const showDownloadFailedModal = (reportIDs: string[], error?: HttpsError) => {
-        showDecisionModal({
-            title: translate('common.downloadFailedTitle'),
-            prompt: getDownloadFailedPrompt(reportIDs, error),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    };
-
     const downloadABAFile = (reportIDs: string[], policy: OnyxEntry<Policy>, {shouldReimburseHeldTransactions, onPaid}: PayReportsViaABAOptions) => {
         setIsDownloadingABAFile(true);
-        payViaABA({
+        const abaFileRequest = payViaABA({
             reportIDs,
             policy,
             shouldReimburseHeldTransactions,
@@ -84,11 +77,11 @@ function usePayViaABA() {
             amountOwed,
             ownerBillingGracePeriodEnd,
             onPaid,
-            onDownloadFailed: (error) => showDownloadFailedModal(reportIDs, error),
-        })
-            .then((abaFile) => (abaFile ? saveTextFile(abaFile) : undefined))
-            .catch(() => showDownloadFailedModal(reportIDs))
-            .finally(() => setIsDownloadingABAFile(false));
+        });
+        deferModalPresentationAfterPopoverDismiss(() => {
+            modal.showModal({component: PayViaABADownloadModal, props: {abaFileRequest, getDownloadFailedMessage: (error) => getDownloadFailedPrompt(reportIDs, error)}});
+        });
+        abaFileRequest.catch(noop).finally(() => setIsDownloadingABAFile(false));
     };
 
     // Pay via ABA is always picked from a menu, so anything blocking it is shown once that menu has closed

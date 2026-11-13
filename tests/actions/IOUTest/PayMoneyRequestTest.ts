@@ -3118,10 +3118,8 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
         it('returns the ABA file for a single report, named the way Classic names it', async () => {
             // Given a single report to pay
-            const onDownloadFailed = jest.fn();
-
             // When it's paid via ABA
-            const abaFile = await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed});
+            const abaFile = await payViaABA({...payViaABAParams, reportIDs: ['123']});
 
             // Then the PayViaABA command is posted for that report, paying held expenses too by default, and its response is returned as the report's ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123');
@@ -3129,7 +3127,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const [, payViaABARequest] = getPayViaABACalls().at(0) ?? [];
             expect(payViaABARequest?.method).toBe(CONST.NETWORK.METHOD.POST);
             expect(abaFile).toEqual({fileName: 'ABA_Report_123.aba', content: 'ABA file'});
-            expect(onDownloadFailed).not.toHaveBeenCalled();
         });
 
         it('shows the reports as paid once their ABA file has downloaded', async () => {
@@ -3140,7 +3137,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             // When their ABA file downloads
             const onPaid = jest.fn();
-            await payViaABA({...payViaABAParams, reportIDs: ['123', '456'], onDownloadFailed: jest.fn(), onPaid});
+            await payViaABA({...payViaABAParams, reportIDs: ['123', '456'], onPaid});
             await waitForBatchedUpdates();
 
             // Then they're shown as paid straight away, and the caller is told they're paid, since the backend only sends the file once it has paid them
@@ -3159,7 +3156,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}1`, {data: {[reportKey]: approvedReport}});
 
             // When its ABA file downloads
-            await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed: jest.fn()});
+            await payViaABA({...payViaABAParams, reportIDs: ['123']});
             await waitForBatchedUpdates();
 
             // Then its Search row is shown as paid too, so the Pay button doesn't reappear there
@@ -3175,16 +3172,14 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 headers: new Headers([['content-type', 'application/json']]),
                 json: () => Promise.resolve({jsonCode: 402, message: CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT}),
             });
-            const onDownloadFailed = jest.fn();
             const onPaid = jest.fn();
 
             // When it's paid via ABA
-            const abaFile = await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed, onPaid});
-            await waitForBatchedUpdates();
+            const abaFileRequest = payViaABA({...payViaABAParams, reportIDs: ['123'], onPaid});
 
-            // Then the user is told why with the backend's error, there's no file to save, and the report isn't shown as paid
-            expect(onDownloadFailed).toHaveBeenCalledWith(expect.objectContaining({message: CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT}));
-            expect(abaFile).toBeUndefined();
+            // Then it fails with the backend's error, so the user can be told why, and the report isn't shown as paid
+            await expect(abaFileRequest).rejects.toMatchObject({message: CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT});
+            await waitForBatchedUpdates();
             expect(onPaid).not.toHaveBeenCalled();
             const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
             expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
@@ -3195,7 +3190,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const reportIDs = ['123', '456'];
 
             // When they're paid via ABA
-            const abaFile = await payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false, onDownloadFailed: jest.fn()});
+            const abaFile = await payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false});
 
             // Then one file pays them all, named the way Classic names a bulk ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123,456');
@@ -3208,7 +3203,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
 
             // When they try to pay via ABA
-            payViaABA({...payViaABAParams, reportIDs: ['123'], amountOwed: 100, ownerBillingGracePeriodEnd: pastDate, onDownloadFailed: jest.fn()});
+            payViaABA({...payViaABAParams, reportIDs: ['123'], amountOwed: 100, ownerBillingGracePeriodEnd: pastDate});
 
             // Then they're told why they can't, and no file is downloaded
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));

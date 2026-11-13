@@ -8,7 +8,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
-import HttpsError from '@libs/Errors/HttpsError';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isErrorResponseForFileDownload, rejectWithFileDownloadError} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -1042,7 +1041,6 @@ type PayViaABAFunctionParams = {
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    onDownloadFailed: (error?: HttpsError) => void;
     onPaid?: () => void;
 };
 
@@ -1053,7 +1051,8 @@ type ABAFile = {
 
 /**
  * Gets the ABA file for paying the given reports, leaving it to the caller to save. The backend marks them as "paid elsewhere"
- * when it creates the file. Resolves with the file, or with nothing when the download fails or the user can't pay.
+ * when it creates the file. Resolves with nothing when the user can't pay, and rejects with the backend's error when it
+ * doesn't send the file.
  */
 async function payViaABA(params: PayViaABAFunctionParams): Promise<ABAFile | undefined> {
     const {
@@ -1068,7 +1067,6 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<ABAFile | und
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        onDownloadFailed,
         onPaid,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
@@ -1089,20 +1087,14 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<ABAFile | und
 
     // The file download doesn't go through the write queue, so we wait for queued writes to reach the server first
     await API.waitForWrites(WRITE_COMMANDS.PAY_VIA_ABA);
-    let content: string;
-    try {
-        const response = await fetch(getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), {method: CONST.NETWORK.METHOD.POST, body: formData, credentials: 'same-origin'});
-        if (isErrorResponseForFileDownload(response.headers.get('content-type'), fileName)) {
-            await rejectWithFileDownloadError(response);
-        }
-        if (!response.ok) {
-            throw new Error('Failed to download the ABA file');
-        }
-        content = await response.text();
-    } catch (error) {
-        onDownloadFailed(error instanceof HttpsError ? error : undefined);
-        return undefined;
+    const response = await fetch(getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), {method: CONST.NETWORK.METHOD.POST, body: formData, credentials: 'same-origin'});
+    if (isErrorResponseForFileDownload(response.headers.get('content-type'), fileName)) {
+        await rejectWithFileDownloadError(response);
     }
+    if (!response.ok) {
+        throw new Error('Failed to download the ABA file');
+    }
+    const content = await response.text();
 
     // The backend only sends the file once it has paid the reports, so we mark them as paid now to stop the Pay button
     // reappearing before the BE's pusher updates arrive.
