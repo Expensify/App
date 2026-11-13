@@ -143,6 +143,7 @@ describe('ReportFieldDropdown', () => {
         expect(mockModalProps?.selectedReportID).toBe(CURRENT_REPORT_ID);
         expect(mockModalProps?.transactionIDs).toEqual([TRANSACTION_ID]);
         act(() => mockModalProps?.selectReport({value: OTHER_REPORT_ID, keyForList: OTHER_REPORT_ID, policyID: POLICY_ID}));
+        await waitForBatchedUpdates();
 
         // Then the draft is moved to `report2` straight away, with no screen transition to wait for, and the container closes
         expect(setTransactionReport).toHaveBeenCalledTimes(1);
