@@ -303,7 +303,7 @@ function useReportPickerActions({
             isUnreportedManagedCardTransaction: transaction ? isUnreportedManagedCardTransaction : false,
             shouldOnlyListOpenReports: isMovingTransactionFromTrackExpense(action),
             createReport: policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction || isUnreportedManagedCardTransaction ? createReport : undefined,
-            targetOwnerAccountID: ownerAccountID,
+            targetOwnerAccountID: newReportOwnerAccountID,
         },
     };
 }

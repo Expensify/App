@@ -6,6 +6,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {fetchOutstandingReports} from '@libs/actions/OutstandingReports';
 
 import DynamicIOURequestStepReportWithWritableReportOrNotFound from '@pages/iou/request/step/DynamicIOURequestStepReport';
 
@@ -85,6 +86,7 @@ const ACCOUNT_ID = 1;
 const ACCOUNT_LOGIN = 'test@user.com';
 const REPORT_ID_1 = '1';
 const REPORT_ID_2 = '2';
+const MEMBER_OPEN_REPORT_ID = '3';
 const TRANSACTION_ID = '1';
 const POLICY_ID_1 = '1';
 const POLICY_ID_2 = '2';
@@ -209,5 +211,30 @@ describe('IOURequestStepReport with a generated New report ID', () => {
         // Then only workspace B's report is listed, because the expense is created in workspace B's chat
         expect(await screen.findByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${REPORT_ID_2}`)).toBeTruthy();
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${REPORT_ID_1}`)).toBeNull();
+    });
+
+    it('should list the member reports when an admin creates an expense in the member workspace chat', async () => {
+        // Given an admin creating an expense for a member whose chat no longer points to a report
+        await givenExpenseInWorkspaceChatWithSubmittedReport();
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: APPROVER_ACCOUNT_ID, email: APPROVER_LOGIN});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {role: CONST.POLICY.ROLE.ADMIN});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${WORKSPACE_CHAT_ID}`, {isOwnPolicyExpenseChat: false});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MEMBER_OPEN_REPORT_ID}`, buildExpenseReport(MEMBER_OPEN_REPORT_ID, POLICY_ID_2, WORKSPACE_CHAT_ID));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID_1}`, {
+            ...buildExpenseReport(REPORT_ID_1, POLICY_ID_2, WORKSPACE_CHAT_ID),
+            ownerAccountID: APPROVER_ACCOUNT_ID,
+            managerID: APPROVER_ACCOUNT_ID,
+        });
+        await waitForBatchedUpdates();
+        jest.mocked(fetchOutstandingReports).mockClear();
+
+        // When the picker opens from New report without an existing report to supply the owner
+        await renderReportPickerForNewReport();
+
+        // Then it fetches and lists the member reports, not the signed-in admin reports in the same workspace
+        expect(await screen.findByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${MEMBER_OPEN_REPORT_ID}`)).toBeTruthy();
+        expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${REPORT_ID_1}`)).toBeNull();
+        expect(fetchOutstandingReports).toHaveBeenCalledWith(ACCOUNT_ID, POLICY_ID_2, 0);
+        expect(fetchOutstandingReports).not.toHaveBeenCalledWith(APPROVER_ACCOUNT_ID, POLICY_ID_2, 0);
     });
 });
