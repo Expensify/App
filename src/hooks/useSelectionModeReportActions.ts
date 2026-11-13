@@ -1,4 +1,5 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
@@ -108,7 +109,7 @@ function useSelectionModeReportActions({
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
 
-    const openHoldMenu = (requestType: ActionHandledType, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: () => void) => {
+    const openHoldMenu = (requestType: ActionHandledType, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: () => void, paymentMethod?: PaymentMethod) => {
         // Wait one frame so the current touch animation finishes before the modal opens
         requestAnimationFrame(() => {
             showHoldMenu({
@@ -116,6 +117,7 @@ function useSelectionModeReportActions({
                 chatReportID: chatReport?.reportID,
                 requestType,
                 paymentType,
+                paymentMethod,
                 methodID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 ...getHoldMenuAmounts(report, shouldShowPayButton, transactions, convertToDisplayString),
                 onConfirm: () => {
@@ -233,7 +235,7 @@ function useSelectionModeReportActions({
         onlyShowPayElsewhere,
         hasPayAction,
         allExpensesSelected,
-        onHoldMenuOpen: ({requestType, paymentType, methodID}) => openHoldMenu(requestType, paymentType, methodID),
+        onHoldMenuOpen: ({requestType, paymentType, paymentMethod, methodID}) => openHoldMenu(requestType, paymentType, methodID, undefined, paymentMethod),
         onPaymentComplete: () => {
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();

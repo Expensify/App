@@ -5,10 +5,13 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import * as API from '@libs/API';
 import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getCommandURL} from '@libs/ApiUtils';
 import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
+import HttpsError from '@libs/Errors/HttpsError';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -48,6 +51,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
@@ -1025,6 +1029,90 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     return payMoneyRequestParams.optimisticHoldReportID;
 }
 
+type PayViaABAFunctionParams = {
+    reportIDs: string[];
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    shouldReimburseHeldTransactions?: boolean;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    isSelfTourViewed: boolean | undefined;
+    currentUserAccountID: number;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    delegateAccountID: number | undefined;
+    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    amountOwed: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
+    onPaid?: () => void;
+};
+
+type ABAFile = {
+    fileName: string;
+    content: string;
+};
+
+/**
+ * Gets the ABA file for paying the given reports, leaving it to the caller to save. The backend marks them as "paid elsewhere"
+ * when it creates the file. Resolves with nothing when the user can't pay, and rejects with the backend's error when it
+ * doesn't send the file.
+ */
+async function payViaABA(params: PayViaABAFunctionParams): Promise<ABAFile | undefined> {
+    const {
+        reportIDs,
+        policy,
+        shouldReimburseHeldTransactions = true,
+        introSelected,
+        isSelfTourViewed,
+        currentUserAccountID,
+        conciergeChat,
+        delegateAccountID,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        onPaid,
+    } = params;
+    if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+        return undefined;
+    }
+
+    completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
+
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.PAY_VIA_ABA, {reportIDList: reportIDs.join(','), shouldReimburseHeldTransactions});
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(finalParameters)) {
+        formData.append(key, String(value));
+    }
+
+    // Matches the file names Classic gives ABA files
+    const fileName = reportIDs.length === 1 ? `ABA_Report_${reportIDs.at(0)}.aba` : `ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`;
+
+    // The file download doesn't go through the write queue, so we wait for queued writes to reach the server first
+    await API.waitForWrites(WRITE_COMMANDS.PAY_VIA_ABA);
+    const response = await fetch(getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), {method: CONST.NETWORK.METHOD.POST, body: formData, credentials: 'same-origin'});
+
+    // The API only responds with JSON instead of the file when it couldn't pay the reports
+    if (response.headers.get('content-type') === 'application/json') {
+        await response.json().then((error: {jsonCode?: number; message?: string}) => {
+            throw new HttpsError({message: error.message ?? '', status: String(error.jsonCode ?? '')});
+        });
+    }
+    if (!response.ok) {
+        throw new Error('Failed to download the ABA file');
+    }
+    const content = await response.text();
+
+    // The backend only sends the file once it has paid the reports, so we mark them as paid now to stop the Pay button
+    // reappearing before the BE's pusher updates arrive.
+    Onyx.update(
+        reportIDs.map((reportID) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
+        })),
+    );
+    onPaid?.();
+    return {fileName, content};
+}
+
 function markReportPaymentReceived(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
@@ -1332,5 +1420,5 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
-export type {PayMoneyRequestFunctionParams};
+export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, payViaABA, savePreferredPaymentMethod};
+export type {ABAFile, PayMoneyRequestFunctionParams};

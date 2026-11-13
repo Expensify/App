@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
@@ -12,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePayViaABA from '@hooks/usePayViaABA';
 import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -66,6 +68,7 @@ function PayActionButton() {
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
+    const {payReportsViaABA} = usePayViaABA();
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
 
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
@@ -74,7 +77,7 @@ function PayActionButton() {
     const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction, transactions, convertToDisplayString);
 
     // Only the pay flow opens this menu. Approve surfaces its partial/full choice in the approve dropdown instead.
-    const openHoldMenu = (paymentType: PaymentMethodType, methodID?: number) => {
+    const openHoldMenu = (paymentType: PaymentMethodType, methodID?: number, paymentMethod?: PaymentMethod) => {
         if (!iouReport) {
             return;
         }
@@ -84,6 +87,7 @@ function PayActionButton() {
                 reportID: iouReportID,
                 chatReportID,
                 paymentType,
+                paymentMethod,
                 methodID,
                 ...getHoldMenuAmounts(iouReport, shouldShowPayButton, transactions, convertToDisplayString),
                 onConfirm: startAnimation,
@@ -98,7 +102,7 @@ function PayActionButton() {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(transactions)) {
-            openHoldMenu(type, methodID);
+            openHoldMenu(type, methodID, paymentMethod);
         } else if (chatReport && iouReport) {
             const [conciergeReportID, introSelected, onboarding, rules, bankAccountList] = await Onyx.multiGet([
                 ONYXKEYS.CONCIERGE_REPORT_ID,
@@ -138,6 +142,8 @@ function PayActionButton() {
                     isTrackIntentUser,
                     rules,
                 });
+            } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+                payReportsViaABA([iouReport.reportID], policy, {onPaid: startAnimation});
             } else {
                 payWithWiseQuote({
                     bankAccountList,

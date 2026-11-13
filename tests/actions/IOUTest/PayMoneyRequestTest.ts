@@ -1,5 +1,5 @@
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest, payViaABA} from '@libs/actions/IOU/PayMoneyRequest';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
@@ -27,6 +27,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
+import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../../utils/TestHelper';
@@ -3077,6 +3078,136 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Then the payment is sent and no onboarding opens
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.PAY_MONEY_REQUEST, expect.anything(), expect.anything());
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+        });
+    });
+
+    describe('payViaABA', () => {
+        const policy = {...createRandomPolicy(1), id: 'ABAPolicy', ownerAccountID: CARLOS_ACCOUNT_ID, role: CONST.POLICY.ROLE.ADMIN};
+        const payViaABAParams = {
+            policy,
+            introSelected: undefined,
+            isSelfTourViewed: false,
+            currentUserAccountID: CARLOS_ACCOUNT_ID,
+            conciergeChat: undefined,
+            delegateAccountID: undefined,
+            userBillingGracePeriodEnds: undefined,
+            amountOwed: 0,
+        };
+        const abaFileResponse = {ok: true, headers: new Headers([['content-type', 'text/plain']]), text: () => Promise.resolve('ABA file')};
+        let appendSpy: jest.SpyInstance;
+
+        const mockPayViaABAResponse = (response: Partial<Response>) => {
+            const defaultImplementation = mockFetch.getMockImplementation();
+            mockFetch.mockImplementation((input, options) => {
+                if (typeof input === 'string' && input.includes(WRITE_COMMANDS.PAY_VIA_ABA)) {
+                    return Promise.resolve(createMock<Response>(response));
+                }
+                return defaultImplementation ? defaultImplementation(input, options) : Promise.reject(new Error('No fetch mock'));
+            });
+        };
+        const getPayViaABACalls = () => mockFetch.mock.calls.filter(([input]) => typeof input === 'string' && input.includes(WRITE_COMMANDS.PAY_VIA_ABA));
+
+        beforeEach(() => {
+            appendSpy = jest.spyOn(FormData.prototype, 'append');
+            mockPayViaABAResponse(abaFileResponse);
+        });
+
+        afterEach(() => {
+            appendSpy.mockRestore();
+        });
+
+        it('returns the ABA file for a single report, named the way Classic names it', async () => {
+            // Given a single report to pay
+            // When it's paid via ABA
+            const abaFile = await payViaABA({...payViaABAParams, reportIDs: ['123']});
+
+            // Then the PayViaABA command is posted for that report, paying held expenses too by default, and its response is returned as the report's ABA file
+            expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123');
+            expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'true');
+            const [, payViaABARequest] = getPayViaABACalls().at(0) ?? [];
+            expect(payViaABARequest?.method).toBe(CONST.NETWORK.METHOD.POST);
+            expect(abaFile).toEqual({fileName: 'ABA_Report_123.aba', content: 'ABA file'});
+        });
+
+        it('shows the reports as paid once their ABA file has downloaded', async () => {
+            // Given two approved reports
+            for (const reportID of ['123', '456']) {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            }
+
+            // When their ABA file downloads
+            const onPaid = jest.fn();
+            await payViaABA({...payViaABAParams, reportIDs: ['123', '456'], onPaid});
+            await waitForBatchedUpdates();
+
+            // Then they're shown as paid straight away, and the caller is told they're paid, since the backend only sends the file once it has paid them
+            for (const reportID of ['123', '456']) {
+                const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+                expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            }
+            expect(onPaid).toHaveBeenCalled();
+        });
+
+        it('shows the report as paid in Search results once its ABA file has downloaded', async () => {
+            // Given an approved report that's in Search results, which rows read instead of the report itself
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}123` as const;
+            const approvedReport = {reportID: '123', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+            await Onyx.set(reportKey, approvedReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}1`, {data: {[reportKey]: approvedReport}});
+
+            // When its ABA file downloads
+            await payViaABA({...payViaABAParams, reportIDs: ['123']});
+            await waitForBatchedUpdates();
+
+            // Then its Search row is shown as paid too, so the Pay button doesn't reappear there
+            const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}1`);
+            expect(snapshot?.data?.[reportKey]).toMatchObject({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        });
+
+        it('leaves the report unpaid when the backend returns an error instead of its ABA file', async () => {
+            // Given an approved report the backend won't pay, so it responds with an error instead of the file
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            mockPayViaABAResponse({
+                ok: true,
+                headers: new Headers([['content-type', 'application/json']]),
+                json: () => Promise.resolve({jsonCode: 402, message: CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT}),
+            });
+            const onPaid = jest.fn();
+
+            // When it's paid via ABA
+            const abaFileRequest = payViaABA({...payViaABAParams, reportIDs: ['123'], onPaid});
+
+            // Then it fails with the backend's error, so the user can be told why, and the report isn't shown as paid
+            await expect(abaFileRequest).rejects.toMatchObject({message: CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT});
+            await waitForBatchedUpdates();
+            expect(onPaid).not.toHaveBeenCalled();
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
+            expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+
+        it('returns one ABA file for several reports, named with the date', async () => {
+            // Given several reports to pay, leaving their held expenses for later
+            const reportIDs = ['123', '456'];
+
+            // When they're paid via ABA
+            const abaFile = await payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false});
+
+            // Then one file pays them all, named the way Classic names a bulk ABA file
+            expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123,456');
+            expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'false');
+            expect(abaFile?.fileName).toBe(`ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`);
+        });
+
+        it('navigates to the restricted action page instead of downloading when billable actions are restricted', () => {
+            // Given the workspace owner owes money and their billing grace period has ended
+            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+
+            // When they try to pay via ABA
+            payViaABA({...payViaABAParams, reportIDs: ['123'], amountOwed: 100, ownerBillingGracePeriodEnd: pastDate});
+
+            // Then they're told why they can't, and no file is downloaded
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            expect(getPayViaABACalls()).toHaveLength(0);
         });
     });
 });
