@@ -66,7 +66,6 @@ jest.mock('@hooks/useCompanyCards', () => ({
         selectedFeed: undefined,
         bankName: undefined,
         isFeedPending: false,
-        isFeedAdded: false,
     }),
 }));
 
