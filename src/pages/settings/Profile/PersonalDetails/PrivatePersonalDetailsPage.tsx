@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import {normalizeCountryCode, resolveStateCode} from '@libs/CountryUtils';
-import {appendCountryCode} from '@libs/LoginUtils';
+import {appendCountryCode, getCountryCodeForAddressCountry} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -125,7 +125,7 @@ function PrivatePersonalDetailsPage() {
         if (!isRequiredFulfilled(phoneValue)) {
             errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
         } else {
-            const phoneWithCountryCode = appendCountryCode(phoneValue, countryCode);
+            const phoneWithCountryCode = appendCountryCode(phoneValue, getCountryCodeForAddressCountry(values[INPUT_IDS.COUNTRY], countryCode));
             if (!isValidPhoneNumber(phoneWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
             }
