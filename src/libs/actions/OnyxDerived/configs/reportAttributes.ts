@@ -59,6 +59,8 @@ let previousReportsTransactions: Record<string, Transaction[]> | undefined;
 let previousFraudAlertReportIDs: Set<string> | undefined;
 let previousCardList: OnyxEntry<CardList>;
 let previousChildReportIDsWithError: Set<string> | undefined;
+let previousChildReportIDsByChat: Map<string, Set<string>> | undefined;
+let previousChatReportIDByChildReportID: Map<string, string> | undefined;
 
 const RECOMPUTE_ALL = 'all' as const;
 
@@ -206,7 +208,7 @@ const getPreviewActionsByChildReportID = (chatReportActions: ReportActions) => {
 // Returns the report-preview action ID of the oldest child in `reportIDs` matching `predicate`
 // (oldest by preview-action creation time), or undefined when none match.
 const getOldestPreviewActionID = (
-    reportIDs: string[] | undefined,
+    reportIDs: Iterable<string> | undefined,
     reports: OnyxCollection<Report>,
     chatReportActions: OnyxEntry<ReportActions>,
     predicate?: (childReport: OnyxEntry<Report>) => boolean,
@@ -243,6 +245,8 @@ const needsErrorOnParentChat = (report: OnyxEntry<Report>, attributes: ReportAtt
     !!report.chatReportID &&
     report.reportID !== report.chatReportID &&
     (!!attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+
+const getParentChatReportID = (report: OnyxEntry<Report>) => (report?.reportID && report.chatReportID && report.reportID !== report.chatReportID ? report.chatReportID : undefined);
 
 const isActionable = (childReport: OnyxEntry<Report>) => isOpenReport(childReport) || isProcessingReport(childReport);
 
@@ -869,17 +873,40 @@ export default createOnyxDerivedValueConfig({
         }
 
         // Every child of a chat is only needed when none of its errored children can be acted on, so they're collected on first use.
-        let childReportIDsByChat: Map<string, string[]> | undefined;
+        // A settled report keeps its error across runs, so the list is kept too and updated with the reports changed in this run.
+        let childReportIDsByChat = useIncrementalUpdates ? previousChildReportIDsByChat : undefined;
+        let chatReportIDByChildReportID = useIncrementalUpdates ? previousChatReportIDByChildReportID : undefined;
+        const setParentChat = (reportID: string, chatReportID: string | undefined) => {
+            if (!childReportIDsByChat || !chatReportIDByChildReportID) {
+                return;
+            }
+            const previousChatReportID = chatReportIDByChildReportID.get(reportID);
+            if (previousChatReportID === chatReportID) {
+                return;
+            }
+            if (previousChatReportID) {
+                childReportIDsByChat.get(previousChatReportID)?.delete(reportID);
+            }
+            if (!chatReportID) {
+                chatReportIDByChildReportID.delete(reportID);
+                return;
+            }
+            chatReportIDByChildReportID.set(reportID, chatReportID);
+            const childReportIDs = childReportIDsByChat.get(chatReportID) ?? new Set<string>();
+            childReportIDs.add(reportID);
+            childReportIDsByChat.set(chatReportID, childReportIDs);
+        };
+        for (const key of childReportIDsByChat ? dataToIterate : []) {
+            setParentChat(key.replace(ONYXKEYS.COLLECTION.REPORT, ''), getParentChatReportID(reports[key]));
+        }
         const getChildReportIDs = (chatReportID: string) => {
-            if (!childReportIDsByChat) {
+            if (!childReportIDsByChat || !chatReportIDByChildReportID) {
                 childReportIDsByChat = new Map();
+                chatReportIDByChildReportID = new Map();
                 for (const report of Object.values(reports)) {
-                    if (!report?.reportID || !report.chatReportID || report.reportID === report.chatReportID) {
-                        continue;
+                    if (report?.reportID) {
+                        setParentChat(report.reportID, getParentChatReportID(report));
                     }
-                    const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
-                    childReportIDs.push(report.reportID);
-                    childReportIDsByChat.set(report.chatReportID, childReportIDs);
                 }
             }
             return childReportIDsByChat.get(chatReportID);
@@ -924,6 +951,9 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
+        previousChildReportIDsByChat = childReportIDsByChat;
+        previousChatReportIDByChildReportID = chatReportIDByChildReportID;
+
         return {
             reports: reportAttributes,
             locale: preferredLocale ?? null,
@@ -939,6 +969,8 @@ export default createOnyxDerivedValueConfig({
         previousFraudAlertReportIDs = undefined;
         previousCardList = undefined;
         previousChildReportIDsWithError = undefined;
+        previousChildReportIDsByChat = undefined;
+        previousChatReportIDByChildReportID = undefined;
     },
 });
 
