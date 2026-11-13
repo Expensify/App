@@ -11,7 +11,8 @@ import {
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
-    getWholeNumberTickCount,
+    getSteppedYAxisTicks,
+    getYAxisTickLayout,
     getCartesianPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -35,6 +36,8 @@ import VictoryTheme, {
     X_AXIS_LABEL_MIN_HEIGHT,
 } from '@components/Charts/VictoryTheme';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
+
+import {AVERAGE_DURATION_PRECISION_IN_SECONDS} from '@libs/DateUtils';
 
 import variables from '@styles/variables';
 
@@ -701,40 +704,64 @@ describe('getNiceYAxisTicks', () => {
     });
 });
 
-describe('getWholeNumberTickCount', () => {
-    it('asks for as many ticks as the domain has units, so a small count domain is not split into fractions', () => {
+describe('getSteppedYAxisTicks', () => {
+    it('keeps a small count domain on whole numbers', () => {
         // Given a domain of 0 to 2 expenses, which the default 5 ticks would split in halves
-        // When the tick count is capped to the whole units the domain spans
-        // Then d3 is asked for 2 ticks, which lands them on 0, 1 and 2
-        expect(getWholeNumberTickCount([0, 2], 5)).toBe(2);
+        // When ticks are stepped by one expense
+        // Then they land on 0, 1 and 2 only
+        expect(getSteppedYAxisTicks([0, 2], 5, 1)).toEqual([0, 1, 2]);
     });
 
-    it('asks for a single tick on a domain of one unit, which d3 answers with both ends', () => {
-        // Given a domain of 0 to 1, where even 2 ticks would land on 0.5
-        // When the tick count is capped
-        // Then one tick is requested, and d3 returns 0 and 1
-        expect(getWholeNumberTickCount([0, 1], 5)).toBe(1);
+    it('gives a flat domain a tick one step above it, so the axis is not a single repeated label', () => {
+        // Given every value being zero
+        // When ticks are stepped by one
+        // Then the axis still spans one step
+        expect(getSteppedYAxisTicks([0, 0], 5, 1)).toEqual([0, 1]);
     });
 
-    it('never asks for fewer than one tick, also on a flat domain', () => {
-        // Given every value being zero, so the domain spans nothing
-        // When the tick count is capped
-        // Then it stays at 1 rather than dropping to 0, which would hide the axis
-        expect(getWholeNumberTickCount([0, 0], 5)).toBe(1);
+    it('picks round numbers of steps, so seconds stepped by tenths of a day read as round days', () => {
+        // Given durations up to 11 days in seconds, stepped by a tenth of a day like the mockup's 0 to 10 days axis
+        // When the ticks are picked
+        const ticks = getSteppedYAxisTicks([0, 11 * CONST.DATE.SECONDS_PER_DAY], 5, AVERAGE_DURATION_PRECISION_IN_SECONDS);
+
+        // Then they fall on every second day rather than on round numbers of seconds
+        expect(ticks.map((tick) => tick / CONST.DATE.SECONDS_PER_DAY)).toEqual([0, 2, 4, 6, 8, 10, 12]);
     });
 
-    it('keeps the default tick count once the domain spans at least that many units', () => {
-        // Given a domain wide enough that d3's own step is already a whole number
-        // When the tick count is capped
-        // Then the default is left alone
-        expect(getWholeNumberTickCount([0, 40], 5)).toBe(5);
+    it('spans one step when every duration is below it, instead of repeating "0 days"', () => {
+        // Given durations of a few seconds, far below a tenth of a day
+        // When the ticks are picked
+        // Then the axis runs from 0 to one step
+        expect(getSteppedYAxisTicks([0, 19], 5, AVERAGE_DURATION_PRECISION_IN_SECONDS)).toEqual([0, AVERAGE_DURATION_PRECISION_IN_SECONDS]);
     });
 
-    it('measures the span rather than the max, so negative domains are capped too', () => {
-        // Given a domain running from -1 to 1, a span of 2 units
-        // When the tick count is capped
-        // Then it follows the span and ticks land on -1, 0 and 1
-        expect(getWholeNumberTickCount([-1, 1], 5)).toBe(2);
+    it('covers negative domains too', () => {
+        // Given a domain running from -1 to 1
+        // When ticks are stepped by one
+        // Then they land on -1, 0 and 1
+        expect(getSteppedYAxisTicks([-1, 1], 5, 1)).toEqual([-1, 0, 1]);
+    });
+});
+
+describe('getYAxisTickLayout', () => {
+    it('leaves the axis to the default tick count over the data domain when no step is set', () => {
+        // Given an amount chart, which has no tick step
+        // When the Y-axis layout is picked
+        const layout = getYAxisTickLayout([0, 1234], undefined);
+
+        // Then the chart picks its own ticks over the data's domain
+        expect(layout).toEqual({ticks: undefined, tickCount: VictoryTheme.axis.tickCount, domain: [0, 1234]});
+    });
+
+    it('stretches the domain to the outermost stepped tick, so the axis ends on a label', () => {
+        // Given counts up to 11 expenses, stepped by one
+        // When the Y-axis layout is picked
+        const layout = getYAxisTickLayout([0, 11], 1);
+
+        // Then the ticks end on a round 12 and the domain reaches it
+        expect(layout.ticks?.at(-1)).toBe(12);
+        expect(layout.tickCount).toBe(layout.ticks?.length);
+        expect(layout.domain).toEqual([0, 12]);
     });
 });
 

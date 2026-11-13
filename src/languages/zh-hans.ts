@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: '天',
         rename: '重命名',
         address: '地址',
+        dayAbbreviation: '天',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: '秒',
@@ -571,6 +572,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: '导出到',
         shareReport: '分享报表',
         reportShared: '报表已分享',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 天`,
+            other: (count: number) => `${formattedCount ?? count} 天`,
+        }),
         amount: '金额',
     },
     socials: {
@@ -1215,6 +1220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提交所用时间最长',
         slowestToApprove: '审批最慢',
         mostTimeToPay: '最长付款时间',
+        averageDays: '平均天数',
     },
     allSettingsScreen: {
         subscription: '订阅',

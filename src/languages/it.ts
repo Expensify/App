@@ -430,6 +430,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'giorni',
         rename: 'Rinomina',
         address: 'Indirizzo',
+        dayAbbreviation: 'g',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -576,6 +577,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Esporta in',
         shareReport: 'Condividi report',
         reportShared: 'Report condiviso',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} giorno`,
+            other: (count: number) => `${formattedCount ?? count} giorni`,
+        }),
         amount: 'Importo',
     },
     socials: {
@@ -1269,6 +1274,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Più lungo per l’invio',
         slowestToApprove: 'I più lenti ad approvare',
         mostTimeToPay: 'Tempo massimo per pagare',
+        averageDays: 'Giorni medi',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',

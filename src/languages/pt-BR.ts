@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'dias',
         rename: 'Renomear',
         address: 'Endereço',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -575,6 +576,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exportações para',
         shareReport: 'Compartilhar relatório',
         reportShared: 'Relatório compartilhado',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} dia`,
+            other: (count: number) => `${formattedCount ?? count} dias`,
+        }),
         amount: 'Valor',
     },
     socials: {
@@ -1268,6 +1273,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Mais demorados para enviar',
         slowestToApprove: 'Mais lento para aprovar',
         mostTimeToPay: 'Maior prazo para pagar',
+        averageDays: 'Média de dias',
     },
     allSettingsScreen: {
         subscription: 'Assinatura',

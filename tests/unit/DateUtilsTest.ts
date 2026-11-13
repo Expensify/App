@@ -5,6 +5,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
+import {format as formatNumber} from '@libs/NumberFormatUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -1605,6 +1606,71 @@ describe('DateUtils', () => {
             expect(DateUtils.formatWithUTCTimeZone(DATETIME, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, de)).toBe('20. Juni 2026');
             expect(DateUtils.formatWithUTCTimeZone(DATETIME, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, es)).toBe('20 jun 2026');
             expect(DateUtils.formatWithUTCTimeZone(DATETIME, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, ja)).toBe('2026/06/20');
+        });
+    });
+
+    describe('formatAverageDuration', () => {
+        const numberFormatIn =
+            (locale: Parameters<typeof formatNumber>[0]): LocaleContextProps['numberFormat'] =>
+            (number, options) =>
+                formatNumber(locale, number, options);
+
+        it('writes seconds out as days, rounded to one decimal place', () => {
+            // Given an average of two and a half days, and one that falls between tenths of a day
+            const twoAndAHalfDays = 2.5 * CONST.DATE.SECONDS_PER_DAY;
+            const almostThreeAndAHalfDays = 3.46 * CONST.DATE.SECONDS_PER_DAY;
+
+            // When each is formatted in English
+            const formatted = [twoAndAHalfDays, almostThreeAndAHalfDays].map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.EN)));
+
+            // Then each reads in days with at most one decimal, because Insights compares how many days a stage takes
+            expect(formatted).toEqual(['2.5 days', '3.5 days']);
+        });
+
+        it('drops the decimal from a whole number of days', () => {
+            // Given an average of exactly two days
+            const twoDays = 2 * CONST.DATE.SECONDS_PER_DAY;
+
+            // When it is formatted in English
+            const formatted = DateUtils.formatAverageDuration(twoDays, translateLocal, numberFormatIn(CONST.LOCALES.EN));
+
+            // Then no trailing zero is written, so whole days read as the axis ticks do
+            expect(formatted).toBe('2 days');
+        });
+
+        it('rounds a duration shorter than a twentieth of a day down to 0 days, and keeps the singular for exactly one day', () => {
+            // Given an average of one hour, one of nine hours, and one of exactly a day
+            const oneHour = 60 * 60;
+            const nineHours = 9 * oneHour;
+
+            // When each is formatted in English
+            const formatted = [oneHour, nineHours, CONST.DATE.SECONDS_PER_DAY].map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.EN)));
+
+            // Then sub-day values read as tenths of a day, rounding to 0 below 0.05, because the chart only ever shows days
+            expect(formatted).toEqual(['0 days', '0.4 days', '1 day']);
+        });
+
+        it('abbreviates the unit when compact, the way axis ticks show it', () => {
+            // Given an average of two and a half days
+            const twoAndAHalfDays = 2.5 * CONST.DATE.SECONDS_PER_DAY;
+
+            // When it is formatted in compact notation in English
+            const formatted = DateUtils.formatAverageDuration(twoAndAHalfDays, translateLocal, numberFormatIn(CONST.LOCALES.EN), true);
+
+            // Then the unit is a single letter, because axis ticks have little room and the tooltip writes the full unit
+            expect(formatted).toBe('2.5d');
+        });
+
+        it("formats the number in the viewer's locale", () => {
+            // Given an average of two and a half days, viewed in German
+            IntlStore.load(CONST.LOCALES.DE);
+            const twoAndAHalfDays = 2.5 * CONST.DATE.SECONDS_PER_DAY;
+
+            // When it is formatted with the German number format
+            const formatted = DateUtils.formatAverageDuration(twoAndAHalfDays, translateLocal, numberFormatIn(CONST.LOCALES.DE));
+
+            // Then the decimal separator is German, because the number is formatted before it reaches the translation
+            expect(formatted).toMatch(/^2,5 /);
         });
     });
 });

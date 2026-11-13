@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: '日数',
         rename: '名前を変更',
         address: '住所',
+        dayAbbreviation: '日',
         hourAbbreviation: 'ｈ',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -575,6 +576,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'エクスポート先',
         shareReport: 'レポートを共有',
         reportShared: 'レポートを共有しました',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 日`,
+            other: (count: number) => `${formattedCount ?? count} 日`,
+        }),
         amount: '金額',
     },
     socials: {
@@ -1254,6 +1259,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提出まで最も長い順',
         slowestToApprove: '承認が最も遅い',
         mostTimeToPay: '支払いまで最も時間がかかる',
+        averageDays: '平均日数',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',

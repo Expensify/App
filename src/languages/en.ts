@@ -523,8 +523,13 @@ const translations = {
         // @context Used in date or calendar contexts to refer to a calendar day, not a duration (“daytime”).
         day: 'day',
         days: 'days',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} day`,
+            other: (count: number) => `${formattedCount ?? count} days`,
+        }),
         rename: 'Rename',
         address: 'Address',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -1380,6 +1385,7 @@ const translations = {
         longestToSubmit: 'Longest to submit',
         slowestToApprove: 'Slowest to approve',
         mostTimeToPay: 'Most time to pay',
+        averageDays: 'Average days',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',

@@ -9095,6 +9095,7 @@ const CONST = {
         CHART_METRIC: {
             AMOUNT: 'amount',
             COUNT: 'count',
+            DURATION: 'duration',
         },
         CHART_COUNT_DIMENSION: {
             EXPENSE: 'expense',

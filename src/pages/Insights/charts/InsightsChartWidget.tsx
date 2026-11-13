@@ -138,6 +138,7 @@ function InsightsChartWidget({
             today: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             shouldShowRunningTotal,
             countDimension,
+            metric: chart.metric,
         });
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };

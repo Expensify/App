@@ -420,6 +420,7 @@ const translations: TranslationDeepObject<typeof en> = {
         day: 'día',
         days: 'días',
         address: 'Dirección',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -560,6 +561,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exporta a',
         shareReport: 'Compartir informe',
         reportShared: 'Informe compartido',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} día`,
+            other: (count: number) => `${formattedCount ?? count} días`,
+        }),
         amount: 'Importe',
     },
     socials: {
@@ -1260,6 +1265,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Más lento en enviar',
         slowestToApprove: 'Más lento en aprobar',
         mostTimeToPay: 'Más tiempo para pagar',
+        averageDays: 'Días promedio',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',

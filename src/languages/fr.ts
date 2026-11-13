@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'jours',
         rename: 'Renommer',
         address: 'Adresse',
+        dayAbbreviation: 'j',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -576,6 +577,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exports vers',
         shareReport: 'Partager la note de frais',
         reportShared: 'Note de frais partagée',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} jour`,
+            other: (count: number) => `${formattedCount ?? count} jours`,
+        }),
         amount: 'Montant',
     },
     socials: {
@@ -1273,6 +1278,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Le plus long à soumettre',
         slowestToApprove: 'Plus lent à approuver',
         mostTimeToPay: 'Délai de paiement le plus long',
+        averageDays: 'Jours en moyenne',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

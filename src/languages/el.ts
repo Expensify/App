@@ -436,6 +436,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'ημέρες',
         rename: 'Μετονομασία',
         address: 'Διεύθυνση',
+        dayAbbreviation: 'η',
         hourAbbreviation: 'χ',
         minuteAbbreviation: 'μ',
         secondAbbreviation: 'ς',
@@ -573,6 +574,10 @@ const translations: TranslationDeepObject<typeof en> = {
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
         shareReport: 'Κοινοποιήστε την αναφορά',
         reportShared: 'Η αναφορά κοινοποιήθηκε',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} ημέρα`,
+            other: (count: number) => `${formattedCount ?? count} ημέρες`,
+        }),
         amount: 'Ποσό',
     },
     socials: {
@@ -1312,6 +1317,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
         slowestToApprove: 'Πιο αργοί στην έγκριση',
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
+        averageDays: 'Μέσος όρος ημερών',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',

@@ -430,6 +430,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'Tage',
         rename: 'Umbenennen',
         address: 'Adresse',
+        dayAbbreviation: 'T',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -577,6 +578,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exportiert nach',
         shareReport: 'Bericht teilen',
         reportShared: 'Bericht geteilt',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} Tag`,
+            other: (count: number) => `${formattedCount ?? count} Tage`,
+        }),
         amount: 'Betrag',
     },
     socials: {
@@ -1266,6 +1271,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Am längsten bis zur Einreichung',
         slowestToApprove: 'Am langsamsten bei der Genehmigung',
         mostTimeToPay: 'Längste Zahlungsfrist',
+        averageDays: 'Durchschnittliche Tage',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
