@@ -10,13 +10,14 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import useStartDigitsOAuth from '@pages/workspace/accounting/digits/useStartDigitsOAuth';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -51,7 +52,7 @@ function ConnectToDigitsFlow({policyID}: ConnectToDigitsFlowProps) {
         if (shouldBlockCurrencyChange || result.action !== ModalActions.CONFIRM) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policyID));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CURRENCY.getRoute()));
     };
 
     useEffect(() => {
