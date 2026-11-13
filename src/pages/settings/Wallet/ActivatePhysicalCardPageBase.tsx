@@ -93,6 +93,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
 
         if (cardError && inactiveCard?.cardID) {
             clearCardListErrors(inactiveCard?.cardID);
+            setShouldShowPersonalDetails(false);
         }
 
         setLastFourDigits(text);
@@ -111,6 +112,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
         }
 
         if (shouldConfirmPersonalDetails) {
+            clearCardListErrors(inactiveCard.cardID);
             setShouldShowPersonalDetails(true);
             return;
         }
@@ -122,7 +124,8 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
         return <NotFoundPage />;
     }
 
-    if (shouldShowPersonalDetails) {
+    // Wrong digits only come back once the details and magic code are sent, so the error is shown on this step
+    if (shouldShowPersonalDetails && !cardError) {
         return (
             <ActivatePhysicalCardPersonalDetails
                 card={inactiveCard}
@@ -156,6 +159,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
                     value={lastFourDigits}
                     onChangeText={onCodeInput}
                     onFulfill={submitAndNavigateToNextPage}
+                    shouldSubmitOnComplete={!cardError}
                     errorText={canShowError ? formError || cardError : ''}
                     ref={activateCardCodeInputRef}
                 />
