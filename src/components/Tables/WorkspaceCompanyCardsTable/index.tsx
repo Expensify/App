@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCompanyCardErrorField, resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {renameCompanyCardInline} from '@libs/actions/Policy/InlineEdit';
-import {formatMaskedCardName, getCardLastUpdated, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import {formatMaskedCardName, getCardLastUpdated, getDefaultCardName} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
@@ -43,7 +43,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
-import {companyCardCustomNamesSelector} from '@selectors/Card';
 import {Str} from 'expensify-common';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -130,12 +129,10 @@ function WorkspaceCompanyCardsTable({
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
     const clearCardSelection = () => setSelectedCardKeys([]);
     useImperativeHandle(ref, () => ({clearSelection: clearCardSelection}));
     const [personalDetails, personalDetailsMetadata] = useAllPersonalDetails();
-    const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
 
     const hasOnceLoadedPage = !!companyCardsLoadingState?.hasOnceLoadedPage;
@@ -300,7 +297,7 @@ function WorkspaceCompanyCardsTable({
                   const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                   const cardID = assignedCard?.cardID;
                   // The cell shows a placeholder when the card was never renamed. Rollback uses the stored name so a failed rename does not persist that placeholder.
-                  const storedCardName = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
+                  const storedCardName = assignedCard?.nameValuePairs?.cardTitle;
                   const customCardName = storedCardName ?? getDefaultCardName(cardholder?.displayName ?? '');
                   const canEditName = canWriteCompanyCards && !!bankName && isAssigned && cardID !== undefined && !isCardDeleted && !isSelectionModeActive;
                   const transactionStartDateErrors = getLatestErrorField(assignedCard ?? {}, 'scrapeMinDate');
