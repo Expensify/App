@@ -6,6 +6,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
+import useActiveServer from '@hooks/useActiveServer';
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,6 +20,7 @@ import variables from '@styles/variables';
 
 import {setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
 
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -35,6 +37,7 @@ function SelectBankStep() {
     const {isOffline} = useNetwork();
 
     const [addNewPersonalCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
+    const {activeServer} = useActiveServer();
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.PERSONAL_CARDS.BANKS> | null | undefined>(addNewPersonalCard?.data?.selectedBank);
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.PERSONAL_CARDS.BANKS.OTHER;
@@ -58,20 +61,29 @@ function SelectBankStep() {
         setAddNewPersonalCardStepAndData({step: CONST.PERSONAL_CARDS.STEP.SELECT_COUNTRY, data: {selectedBank: null}});
     };
 
-    const data = Object.values(CONST.PERSONAL_CARDS.BANKS).map((bank) => ({
-        value: bank,
-        text: bank === CONST.PERSONAL_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank,
-        keyForList: bank,
-        isSelected: bankSelected === bank,
-        leftElement: (
-            <Icon
-                src={getPersonalBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
-            />
-        ),
-    }));
+    const data = Object.values(CONST.PERSONAL_CARDS.BANKS)
+        .filter((bank) => {
+            // Keep Mock Bank available for non-production testing; hide it only
+            // when both the build environment and resolved server are production.
+            if (bank === CONST.PERSONAL_CARDS.BANKS.MOCK_BANK) {
+                return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || activeServer !== CONST.SERVER.PRODUCTION;
+            }
+            return true;
+        })
+        .map((bank) => ({
+            value: bank,
+            text: bank === CONST.PERSONAL_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank,
+            keyForList: bank,
+            isSelected: bankSelected === bank,
+            leftElement: (
+                <Icon
+                    src={getPersonalBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
+                    height={variables.iconSizeExtraLarge}
+                    width={variables.iconSizeExtraLarge}
+                    additionalStyles={styles.mr3}
+                />
+            ),
+        }));
 
     return (
         <ScreenWrapper
