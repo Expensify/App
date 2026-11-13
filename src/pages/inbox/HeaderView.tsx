@@ -587,6 +587,22 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
+                                {isInNarrowConciergePage && !isConciergeChat && (
+                                    <Tooltip text={translate('common.concierge.newChat')}>
+                                        <PressableWithoutFeedback
+                                            onPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
+                                            style={[styles.touchableButtonImage]}
+                                            role={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={translate('common.concierge.newChat')}
+                                            sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CONCIERGE_NEW_CHAT_ICON_BUTTON}
+                                        >
+                                            <Icon
+                                                src={icons.Plus}
+                                                fill={theme.icon}
+                                            />
+                                        </PressableWithoutFeedback>
+                                    </Tooltip>
+                                )}
                                 {shouldShowConciergeHistoryButton && (
                                     <Tooltip text={translate('common.concierge.viewChatHistory')}>
                                         <PressableWithoutFeedback

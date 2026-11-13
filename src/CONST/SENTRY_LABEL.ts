@@ -439,6 +439,7 @@ const SENTRY_LABEL = {
         JOIN_BUTTON: 'HeaderView-JoinButton',
         NEW_CONCIERGE_CHAT_BUTTON: 'HeaderView-NewConciergeChatButton',
         CONCIERGE_HISTORY_BUTTON: 'HeaderView-ConciergeHistoryButton',
+        CONCIERGE_NEW_CHAT_ICON_BUTTON: 'HeaderView-ConciergeNewChatIconButton',
         CHRONOS_TIMER_MENU_START_TIMER: 'HeaderView-ChronosTimerMenuStartTimer',
         CHRONOS_TIMER_MENU_STOP_TIMER: 'HeaderView-ChronosTimerMenuStopTimer',
         CHRONOS_TIMER_MENU_SCHEDULE_OOO: 'HeaderView-ChronosTimerMenuScheduleOOO',
