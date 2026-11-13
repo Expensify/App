@@ -1,5 +1,9 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
+import Header from '@components/Header/Header';
+import HeaderRight from '@components/Header/layout/HeaderRight';
+import HeaderBackButton from '@components/Header/primitives/HeaderBackButton';
+import HeaderTitle from '@components/Header/primitives/HeaderTitle';
 import Icon from '@components/Icon';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -43,6 +47,9 @@ type AskConciergeSidebarProps = {
 
     /** Shown as a back arrow in the header, for the layouts where the list is a page of its own */
     onBackButtonPress?: () => void;
+
+    /** Titles the list "Recents" in the standard page header, for the layouts where it slides in over the chat */
+    shouldUsePageHeader?: boolean;
 };
 
 // A thinking thread breathes its dot rather than animating anything else in the row.
@@ -125,31 +132,44 @@ function AskConciergeRow({label, icon, reportID, isSelected, isUnread, onPress}:
     );
 }
 
-function AskConciergeSidebar({threads, selectedReportID, onAskNewQuestion, onSelectThread, onBackButtonPress}: AskConciergeSidebarProps) {
+function AskConciergeSidebar({threads, selectedReportID, onAskNewQuestion, onSelectThread, onBackButtonPress, shouldUsePageHeader = false}: AskConciergeSidebarProps) {
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'DotIndicator', 'DotIndicatorUnfilled']);
     const illustrations = useMemoizedLazyIllustrations(['CommentBubblesBlue']);
     const {isInLandscapeMode} = useResponsiveLayout();
 
+    const newQuestionButton = (
+        <Button
+            size={CONST.BUTTON_SIZE.SMALL}
+            onPress={onAskNewQuestion}
+            sentryLabel={CONST.SENTRY_LABEL.ASK_CONCIERGE.NEW_QUESTION}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>New</Button.Text>
+        </Button>
+    );
+
     return (
         <View style={[styles.flex1, styles.h100]}>
-            <TopBarWithLoadingBar
-                breadcrumbLabel="Concierge"
-                shouldDisplaySearch={false}
-                onBackButtonPress={onBackButtonPress}
-            >
-                {/* The top bar keeps a 12px right margin of its own, so 8px here lands the button 20px from the edge. */}
-                <View style={styles.mr2}>
-                    <Button
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        onPress={onAskNewQuestion}
-                        sentryLabel={CONST.SENTRY_LABEL.ASK_CONCIERGE.NEW_QUESTION}
-                    >
-                        <Button.Icon src={icons.Plus} />
-                        <Button.Text>New</Button.Text>
-                    </Button>
-                </View>
-            </TopBarWithLoadingBar>
+            {shouldUsePageHeader ? (
+                <Header>
+                    {!!onBackButtonPress && <HeaderBackButton onPress={onBackButtonPress} />}
+                    <HeaderTitle
+                        title="Recents"
+                        titleStyles={styles.askConciergeSidebarTitle}
+                    />
+                    <HeaderRight>{newQuestionButton}</HeaderRight>
+                </Header>
+            ) : (
+                <TopBarWithLoadingBar
+                    breadcrumbLabel="Concierge"
+                    shouldDisplaySearch={false}
+                    onBackButtonPress={onBackButtonPress}
+                >
+                    {/* The top bar keeps a 12px right margin of its own, so 8px here lands the button 20px from the edge. */}
+                    <View style={styles.mr2}>{newQuestionButton}</View>
+                </TopBarWithLoadingBar>
+            )}
             {/* The rows carry no margin of their own, so a wrapper insets the whole list the way the navigation bar is inset. */}
             {threads.length === 0 ? (
                 <View style={[styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper]}>

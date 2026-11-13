@@ -22,6 +22,10 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
+// TODO: the navigation redesign shows the flat navigation bar to everyone reviewing it, whatever their account is
+// on. Remove this with the rest of the design branch.
+const FORCED_ON_BETAS = new Set<Beta>([CONST.BETAS.FLAT_NAV]);
+
 /** The configuration, the overrides and the environment are required so that no call site can skip them by accident. */
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: OnyxEntry<BetaConfiguration>, betaOverrides: OnyxEntry<BetaOverrides>, environment: Environment): boolean {
     if (canApplyBetaOverrides(environment)) {
@@ -29,6 +33,10 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: 
         if (override !== undefined) {
             return override;
         }
+    }
+
+    if (FORCED_ON_BETAS.has(beta)) {
+        return true;
     }
 
     const hasAllBetasEnabled = canUseAllBetas(betas);

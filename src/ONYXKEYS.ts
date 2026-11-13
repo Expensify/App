@@ -697,7 +697,7 @@ const ONYXKEYS = {
     /** Whether the navigation bar lists the destinations that are still being designed. Defaults to on. */
     SHOULD_SHOW_EXTRA_NAV_ITEMS: 'shouldShowExtraNavItems',
 
-    /** Whether the navigation bar lists the Ask Concierge destination. Defaults to off. */
+    /** Whether the navigation bar lists the Ask Concierge destination. Defaults to on. */
     SHOULD_SHOW_ASK_CONCIERGE_NAV_ITEM: 'shouldShowAskConciergeNavItem',
 
     /** Indicates whether Sentry debug mode is enabled - logs Sentry requests to console */

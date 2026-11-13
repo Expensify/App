@@ -18,18 +18,26 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
+import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {setIsSearchTabHovered} from '@libs/Navigation/helpers/searchTabPreloadStore';
+import Navigation from '@libs/Navigation/Navigation';
 
+import {requestNewConciergeQuestion} from '@pages/AskConcierge/NewQuestionStore';
 import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButton';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect} from 'react';
@@ -41,6 +49,31 @@ import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
 
+/** Destinations the design calls for that have no page yet, shown only while the debug toggle is on. */
+const PLACEHOLDER_DESTINATIONS = [
+    {label: 'Bills', iconName: 'Coins'},
+    {label: 'Invoices', iconName: 'InvoiceGeneric'},
+    {label: 'Travel', iconName: 'LuggageWithLines'},
+] as const;
+
+/** Whether Concierge has said something in this chat that the user has not read. Their own messages never count. */
+function hasUnreadFromConcierge(report: OnyxEntry<Report>, currentUserAccountID: number | undefined) {
+    return (report?.lastReadTime ?? '') < (report?.lastVisibleActionCreated ?? '') && report?.lastActorAccountID !== currentUserAccountID;
+}
+
+/**
+ * Whether the Concierge chat or any of its threads holds an unread reply, since an answer usually lands in a thread
+ * rather than in the chat itself.
+ */
+const makeHasUnreadConciergeMessageSelector = (currentUserAccountID: number | undefined, conciergeReportID: string | undefined) => (reports: OnyxCollection<Report>) => {
+    if (!conciergeReportID) {
+        return false;
+    }
+    return Object.values(reports ?? {}).some(
+        (report) => (report?.reportID === conciergeReportID || report?.parentReportID === conciergeReportID) && hasUnreadFromConcierge(report, currentUserAccountID),
+    );
+};
+
 type FlatNavigationBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
 };
@@ -48,15 +81,23 @@ type FlatNavigationBarProps = {
 /** Wide-layout left navigation that lists every top-level destination as a full-width row, with Account at the bottom. */
 function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'ReceiptMultiple', 'PieChart', 'Buildings']);
+    const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'ReceiptMultiple', 'PieChart', 'Buildings', 'Concierge', 'Coins', 'InvoiceGeneric', 'LuggageWithLines']);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [shouldShowExtraNavItems = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS);
+    const [shouldShowAskConciergeNavItem = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_ASK_CONCIERGE_NAV_ITEM);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {status: inboxStatus, indicatorColor: inboxIndicatorColor} = useInboxTabIndicatorStatus();
     const {status: workspacesStatus, indicatorColor: workspacesIndicatorColor} = useWorkspacesTabIndicatorStatus();
     const {status: accountStatus} = useAccountTabIndicatorStatus();
+
+    const hasUnreadConciergeMessageSelector = makeHasUnreadConciergeMessageSelector(currentUserPersonalDetails.accountID, conciergeReportID);
+    const [hasUnreadConciergeMessage = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasUnreadConciergeMessageSelector});
 
     const isHomeSelected = selectedTab === NAVIGATION_TABS.HOME;
     const isAccountSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
@@ -71,6 +112,18 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
     // The Spend row gets no hover out when the bar goes away while hovered, on a switch to the narrow layout or an unmount.
     useEffect(() => () => setIsSearchTabHovered(false), []);
+
+    const navigateToAskConcierge = () => {
+        // Pressing the row while the page is open starts a new question, since there is nowhere to navigate.
+        if (selectedTab === NAVIGATION_TABS.ASK_CONCIERGE) {
+            requestNewConciergeQuestion();
+            return;
+        }
+        clearSelectedText();
+        interceptAnonymousUser(() => {
+            Navigation.navigate(ROUTES.ASK_CONCIERGE);
+        }, session);
+    };
 
     const accountLabel = currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : translate('initialSettingsPage.account');
 
@@ -100,6 +153,16 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                                 onPress={navigateToHome}
                             />
+                            {shouldShowAskConciergeNavItem && (
+                                <FlatNavItem
+                                    label="Concierge"
+                                    icon={icons.Concierge}
+                                    isSelected={selectedTab === NAVIGATION_TABS.ASK_CONCIERGE}
+                                    statusIndicatorColor={hasUnreadConciergeMessage ? theme.iconSuccessFill : undefined}
+                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                                    onPress={navigateToAskConcierge}
+                                />
+                            )}
                             <FlatNavItem
                                 label={translate('common.inbox')}
                                 icon={icons.Inbox}
@@ -126,6 +189,17 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
                                 onPress={navigateToInsights}
                             />
+                            {shouldShowExtraNavItems &&
+                                PLACEHOLDER_DESTINATIONS.map(({label, iconName}) => (
+                                    <FlatNavItem
+                                        key={label}
+                                        label={label}
+                                        icon={icons[iconName]}
+                                        isSelected={false}
+                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                                        onPress={() => {}}
+                                    />
+                                ))}
                             <FlatNavDivider />
                             <FlatNavItem
                                 label={translate('common.workspacesTabTitle')}

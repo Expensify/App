@@ -1077,7 +1077,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         flatNavigationBarLabel: {
             flex: 1,
-            marginLeft: 12,
             fontSize: variables.fontSizeNormal,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
         },
@@ -1778,6 +1777,13 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
+        },
+
+        // The thread list is a page in its own right, so its title takes the page-header size rather than a breadcrumb's.
+        askConciergeSidebarTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeLarge,
+            color: theme.heading,
         },
 
         headerText: {

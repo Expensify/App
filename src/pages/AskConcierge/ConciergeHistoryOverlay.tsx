@@ -42,6 +42,7 @@ function ConciergeHistoryOverlay() {
         >
             <AskConciergeSidebar
                 threads={threads}
+                shouldUsePageHeader
                 onBackButtonPress={closeConciergeHistory}
                 onAskNewQuestion={() => {
                     // Collapsing the earlier conversation opens the chat behind the list on its welcome screen.
