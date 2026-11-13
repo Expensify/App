@@ -25,11 +25,58 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ComponentRef} from 'react';
 
+import debounce from 'lodash/debounce';
 import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ThreeDotsMenuProps from './types';
 import type {ThreeDotsMenuHandle} from './types';
+
+/**
+ * FlashList writes an explicit pixel width onto each row after the window has already resized, which moves this
+ * button without changing the button's own size. Watch the ancestors that do change size, and report once the button's window rect has actually moved.
+ */
+function subscribeToAnchorMovement(anchor: HTMLElement, onMove: () => void): () => void {
+    if (typeof ResizeObserver === 'undefined') {
+        return () => {};
+    }
+
+    const initialRect = anchor.getBoundingClientRect();
+    let lastLeft = initialRect.left;
+    let lastTop = initialRect.top;
+    let lastWidth = initialRect.width;
+    let lastHeight = initialRect.height;
+    let frame = 0;
+
+    const observer = new ResizeObserver(() => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => {
+            if (!anchor.isConnected) {
+                return;
+            }
+            const nextRect = anchor.getBoundingClientRect();
+            if (nextRect.left === lastLeft && nextRect.top === lastTop && nextRect.width === lastWidth && nextRect.height === lastHeight) {
+                return;
+            }
+            lastLeft = nextRect.left;
+            lastTop = nextRect.top;
+            lastWidth = nextRect.width;
+            lastHeight = nextRect.height;
+            onMove();
+        });
+    });
+
+    let node: HTMLElement | null = anchor;
+    while (node) {
+        observer.observe(node);
+        node = node.parentElement;
+    }
+
+    return () => {
+        cancelAnimationFrame(frame);
+        observer.disconnect();
+    };
+}
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
@@ -89,6 +136,10 @@ function ThreeDotsMenu({
     const calculateAndSetThreeDotsMenuPosition = () => calculatePopoverPosition(buttonRef, anchorAlignment);
 
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
+    const getMenuPositionRef = useRef(getMenuPosition);
+    useLayoutEffect(() => {
+        getMenuPositionRef.current = getMenuPosition;
+    });
 
     const onThreeDotsPress = () => {
         if (isPopupMenuVisible) {
@@ -126,12 +177,12 @@ function ThreeDotsMenu({
     };
 
     const updateMenuPosition = () => {
-        if (!getMenuPosition || !isPopupMenuVisible) {
+        const resolvePosition = getMenuPositionRef.current;
+        if (!isPopupMenuVisible || !resolvePosition) {
             return;
         }
-
-        getMenuPosition().then((value) => {
-            setPosition(value);
+        resolvePosition().then((value) => {
+            setPosition((previousPosition) => (previousPosition?.horizontal === value.horizontal && previousPosition?.vertical === value.vertical ? previousPosition : value));
         });
     };
 
@@ -149,8 +200,20 @@ function ThreeDotsMenu({
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
 
     useLayoutEffect(() => {
-        updateMenuPosition();
-    }, [windowWidth, windowHeight, shouldSelfPosition, updateMenuPosition]);
+        if (!getMenuPositionRef.current || !isPopupMenuVisible) {
+            return;
+        }
+        const debouncedRepositionMenu = debounce(updateMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
+        debouncedRepositionMenu();
+        return () => debouncedRepositionMenu.cancel();
+    }, [windowWidth, windowHeight, isPopupMenuVisible, updateMenuPosition]);
+
+    useEffect(() => {
+        if (!isPopupMenuVisible || !(buttonRef.current instanceof HTMLElement)) {
+            return;
+        }
+        return subscribeToAnchorMovement(buttonRef.current, updateMenuPosition);
+    }, [isPopupMenuVisible, updateMenuPosition]);
 
     const getIconFill = () => {
         if (!shouldChangeFillOnOpen) {
