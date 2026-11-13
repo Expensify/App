@@ -36,6 +36,8 @@ type WebOnlyStyleKey =
     | 'scrollPadding'
     | 'scrollPaddingBottom'
     | 'scrollPaddingTop'
+    | 'scrollSnapAlign'
+    | 'scrollSnapStop'
     | 'textDecoration'
     | 'textDecorationSkipInk'
     | 'textOverflow'
@@ -65,14 +67,10 @@ type WebEventPropKey = 'onClick' | 'onKeyDown' | 'onMouseEnter' | 'onMouseLeave'
  */
 declare module 'react-native' {
     interface ViewStyle extends Readonly<Pick<WebStyle, WebOnlyStyleKey>> {
-        /* CSS scroll snapping, which react-native-web passes through to the DOM but doesn't type */
-        readonly scrollSnapAlign?: 'none' | 'start' | 'end' | 'center';
-        readonly scrollSnapStop?: 'normal' | 'always';
-
         /*
-         * Text keys the app sets on views, mostly through shared helpers like `textAlignCenter`. React Native ignores
-         * them on a view, react-native-web passes them to the view's DOM element. They keep React Native's text value
-         * types, so they stay compatible with TextStyle on both the legacy and the Strict API types.
+         * Text keys the app sets on views, mostly through shared helpers like `textAlignCenter` and `userSelectNone`.
+         * React Native ignores them on a view, react-native-web passes them to the view's DOM element. They keep React
+         * Native's text value types, so they stay compatible with TextStyle on both the legacy and the Strict API types.
          */
         color?: TextStyle['color'];
         fontFamily?: TextStyle['fontFamily'];
@@ -81,6 +79,7 @@ declare module 'react-native' {
         textAlign?: TextStyle['textAlign'];
         textDecorationLine?: TextStyle['textDecorationLine'];
         textDecorationStyle?: TextStyle['textDecorationStyle'];
+        userSelect?: TextStyle['userSelect'];
     }
     interface TextStyle extends Readonly<Pick<WebStyle, WebOnlyStyleKey>> {}
     interface ImageStyle extends Readonly<Pick<WebStyle, WebOnlyStyleKey>> {}

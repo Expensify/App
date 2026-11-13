@@ -24,7 +24,7 @@ type AccordionProps = {
     isToggleTriggered: SharedValue<boolean>;
 };
 
-// Built outside the animated style because a worklet can't call a JS-thread function
+// The web-only values the animated style switches to when expanded, typed once instead of on every animation frame
 const EXPANDED_WEB_STYLE = toViewStyle({display: 'inline', maxHeight: 'none'});
 
 function Accordion({isExpanded, children, duration = 300, isToggleTriggered, style}: AccordionProps) {
