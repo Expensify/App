@@ -346,7 +346,7 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
                     callback: (transaction) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(transaction?.taxCode).toBe('');
                         expect(transaction?.taxAmount).toBeUndefined();
                         resolve();

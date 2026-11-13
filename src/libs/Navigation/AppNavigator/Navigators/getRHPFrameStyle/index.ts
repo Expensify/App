@@ -1,6 +1,5 @@
+import {RHP_FLOATING_CARD_BORDERS_WIDTH} from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
-
-import variables from '@styles/variables';
 
 import type GetRHPFrameStyle from './types';
 
@@ -15,7 +14,7 @@ const getRHPFrameStyle: GetRHPFrameStyle = ({styles, animatedWidth, singleRHPWid
     }
 
     // Border-box card, so the border is added back on top of the width or the content gets clipped.
-    const floatingCardWidth = getSingleRHPWidthStyleValue(singleRHPWidth, 2 * variables.rhpFloatingCardBorderWidth);
+    const floatingCardWidth = getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_BORDERS_WIDTH);
 
     // translateZ0 makes the frame a containing block that clips the fixed RHP screen to the radius.
     return [styles.pAbsolute, styles.overflowHidden, styles.translateZ0, styles.RHPFloatingCard, {width: floatingCardWidth}];

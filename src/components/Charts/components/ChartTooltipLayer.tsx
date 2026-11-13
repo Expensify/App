@@ -1,9 +1,14 @@
+import {useIsCapturingChart} from '@components/Charts/context/ChartCaptureContext';
 import {useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 import formatTooltipComparison from '@components/Charts/utils/formatTooltipComparison';
+import type {SearchChartCountDimension} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 
+import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 import type {NonEmptyTuple} from 'type-fest';
 
@@ -30,6 +35,9 @@ type ChartTooltipLayerProps = {
     /** Formats a numeric value for display */
     formatValue: (value: number) => string;
 
+    /** What each point's count counts. Defaults to expenses. */
+    countDimension?: SearchChartCountDimension;
+
     /** The width of the chart container */
     chartWidth: number;
 
@@ -44,6 +52,12 @@ type ChartTooltipLayerProps = {
 
     /** Whether a compared tooltip shows how the primary series changed against the compared one */
     shouldShowTooltipChange?: boolean;
+
+    /** Called with the shown data point when the tooltip is pressed */
+    onPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** Shown below the tooltip's amounts */
+    footer?: ReactNode;
 };
 
 /**
@@ -56,12 +70,16 @@ function ChartTooltipLayer({
     data,
     series,
     formatValue,
+    countDimension = CONST.SEARCH.CHART_COUNT_DIMENSION.EXPENSE,
     chartWidth,
     initialTooltipPosition,
     onChartMoved,
     onDismiss,
     shouldShowTooltipChange = true,
+    onPress,
+    footer,
 }: ChartTooltipLayerProps) {
+    const isCapturing = useIsCapturingChart();
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     // Set from the content's layout, since on native a value set during render can reach the UI thread before the new content is mounted
@@ -76,10 +94,10 @@ function ChartTooltipLayer({
 
     const {preferredLocale} = useLocalize();
     const isContentCurrent = useDerivedValue(() => matchedIndex.get() === laidOutIndex.get());
-    const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue);
+    const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue, countDimension);
     const activeDataPoint = data.at(activeDataIndex);
 
-    if (!tooltipData || !activeDataPoint) {
+    if (isCapturing || !tooltipData || !activeDataPoint) {
         return null;
     }
 
@@ -96,6 +114,7 @@ function ChartTooltipLayer({
             onDismiss={onDismiss}
             contentKey={activeDataIndex}
             onContentLayout={() => laidOutIndex.set(activeDataIndex)}
+            onPress={onPress ? () => onPress(activeDataPoint, activeDataIndex) : undefined}
         >
             {comparison ? (
                 <ChartTooltipComparison
@@ -105,10 +124,11 @@ function ChartTooltipLayer({
             ) : (
                 <ChartTooltipSummary
                     value={tooltipData.value}
-                    note={tooltipData.note}
-                    expenseCount={tooltipData.expenseCount}
+                    percentage={tooltipData.percentage}
+                    secondaryValue={tooltipData.secondaryValue}
                 />
             )}
+            {footer}
         </ChartTooltip>
     );
 }

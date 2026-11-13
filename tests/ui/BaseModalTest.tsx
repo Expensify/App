@@ -164,9 +164,9 @@ describe('BaseModal', () => {
                     },
                 };
             });
-            jest.doMock('@hooks/useIsResizableSingleRHP', () => ({
+            jest.doMock('@hooks/useResizableSingleRHP', () => ({
                 __esModule: true,
-                default: () => isResizableSingleRHP,
+                default: () => ({isResizable: isResizableSingleRHP, isFloating: isResizableSingleRHP}),
             }));
             jest.doMock('@hooks/useSingleRHPWidth', () => ({
                 __esModule: true,

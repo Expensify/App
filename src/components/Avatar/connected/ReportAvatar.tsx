@@ -1,9 +1,9 @@
 import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 
 import useOnyx from '@hooks/useOnyx';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,8 +61,7 @@ function ReportAvatar({
     sort,
     fallbackDisplayName,
 }: ReportAvatarProps) {
-    const [kindFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: reportAvatarKindSelector});
-    const kind = kindFromOnyx ?? CONST.REPORT_AVATAR_KIND.DEFAULT;
+    const [kind] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: reportAvatarKindSelector});
 
     if (!reportID) {
         return (
@@ -81,7 +80,7 @@ function ReportAvatar({
                 <GroupChatAvatar
                     reportID={reportID}
                     size={size}
-                    // The layout is always single, but the legacy component still drops the single avatar's container styles when horizontal stacking is requested.
+                    // The layout is always single, but it still drops the single avatar's container styles when horizontal stacking is requested, like the other kinds do.
                     containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
                     fallbackDisplayName={fallbackDisplayName}
                 />
@@ -129,7 +128,7 @@ function ReportAvatar({
                 <TaskReportAvatar
                     reportID={reportID}
                     size={size}
-                    // The layout is always single, but the legacy component still drops the single avatar's container styles when horizontal stacking is requested.
+                    // The layout is always single, but it still drops the single avatar's container styles when horizontal stacking is requested, like the other kinds do.
                     containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
                     fallbackDisplayName={fallbackDisplayName}
                 />
@@ -160,16 +159,6 @@ function ReportAvatar({
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
-        case CONST.REPORT_AVATAR_KIND.DEFAULT:
-            return (
-                <DefaultReportAvatar
-                    reportID={reportID}
-                    size={size}
-                    // The layout is always single, but the legacy component still drops the single avatar's container styles when horizontal stacking is requested.
-                    containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
-                    fallbackDisplayName={fallbackDisplayName}
-                />
-            );
         case CONST.REPORT_AVATAR_KIND.INVOICE:
             return (
                 <InvoiceReportAvatar
@@ -195,21 +184,21 @@ function ReportAvatar({
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
-        // TODO: The remaining kinds still render the legacy component. https://github.com/Expensify/App/issues/94590 adds a
-        // dedicated wrapper per kind, one PR at a time. The last of those deletes the ReportActionAvatars import and simplifies props.
-        default:
+        // A report that isn't in Onyx yet has no kind, so it renders the default avatar until it loads.
+        case CONST.REPORT_AVATAR_KIND.DEFAULT:
+        case undefined:
             return (
-                <ReportActionAvatars
+                <DefaultReportAvatar
                     reportID={reportID}
                     size={size}
-                    singleAvatarContainerStyle={singleAvatarContainerStyle}
-                    backdropColor={backdropColor}
-                    subscriptAvatarContainerStyle={subscriptAvatarContainerStyle}
-                    horizontalStacking={horizontalStacking}
-                    sort={sort}
+                    // The layout is always single, but it still drops the single avatar's container styles when horizontal stacking is requested, like the other kinds do.
+                    containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
+        default:
+            Log.warn('[ReportAvatar] Unhandled report avatar kind', {kind});
+            return null;
     }
 }
 

@@ -40,7 +40,7 @@ function readOnyxValue<TKey extends OnyxKey>(key: TKey) {
         const connection = Onyx.connectWithoutView({
             key,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

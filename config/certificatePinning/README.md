@@ -78,7 +78,10 @@ Pinning is **disabled in debug builds** on every layer (Android `BuildConfig.DEB
 ## Sentry reporting
 
 Pin failures are reported from the **native** pinning layer (TrustKit callback on iOS, monitor
-interceptors on Android), tagged with:
+interceptors on Android), one report per failed validation: HybridApp (Mobile-Expensify) sends a Sentry
+**log** (message `Certificate pinning validation failed`) in monitor mode and a captured error in
+enforce mode; the standalone NewDot layers here send a captured error in both modes. The attributes
+below ride along either way, as log attributes or as tags (long values as extras):
 - `certificate_pinning_host` — the hostname that failed validation
 - `certificate_pinning_mode` — `monitor` or `enforce`
 - `certificate_pinning_channel` — (Android only) the networking channel: `OkHttp`, `HttpURLConnection`, `WebView`, or `cronet`
@@ -88,6 +91,44 @@ interceptors on Android), tagged with:
   created; reported once). Events without this tag are real pin mismatches. A `chain_rebuild_failed`
   event is still worth investigating before flipping to enforce mode: OkHttp and the platform rebuild the
   chain the same way, so enforce mode would block that connection.
+
+On Android the OkHttp `SSLPeerUnverifiedException` message already lists the served chain (subject and
+SPKI hash per certificate). On iOS, TrustKit only reports *that* no pin matched, so the iOS reporters
+(`ios/CertificatePinning.swift` here, `iOS/Expensify/CertificatePinningReporter.m` in Mobile-Expensify)
+add what the device actually validated. Every value is typed so the column never flaps between boolean
+and number in Sentry — the old numeric `certificate_pinning_evaluation_result` landed as `true` for
+TrustKit result 1 and as `2` for result 2 and is gone:
+- `certificate_pinning_result` — `no_matching_pin` (the device trusted the chain but no pinned root was
+  in it) or `invalid_certificate_chain` (the device itself rejected the chain; this fails with or without
+  pinning). Rarely `invalid_parameters` / `could_not_generate_spki_hash`.
+- `certificate_pinning_sec_trust_result` — how the device classified the anchor: `proceed` means a root the
+  user or an MDM profile explicitly trusts (a TLS-intercepting proxy), `unspecified` a system root with no
+  user override (a public CA that is not pinned). This is the single most useful field for triage.
+- `certificate_pinning_chain_subjects` / `certificate_pinning_chain_fingerprints` — the validated chain,
+  leaf first, anchor last; subjects joined with ` > `, SHA-256 certificate fingerprints (upper-case hex,
+  no colons — strip the colons from a `ROOT_MANIFEST` entry in `scripts/generateCertificatePins.sh` to
+  compare) joined with `,`. `certificate_pinning_chain_length` is the number of certificates, as a string.
+- `certificate_pinning_anchor_subject` / `certificate_pinning_anchor_fingerprint` /
+  `certificate_pinning_anchor_self_signed` — the last certificate in that chain. A fingerprint that is not
+  in `ROOT_MANIFEST` and a subject naming a proxy vendor or a company is interception; a public root that
+  is not in `pins.json` is a pin-list gap (look the fingerprint up on crt.sh to get the certificate and
+  derive its SPKI pin). Certificates themselves are deliberately not sent: the fingerprint identifies the
+  anchor, and a PEM would embed a customer's proxy CA verbatim in every such report.
+- `certificate_pinning_trust_errors` — for `invalid_certificate_chain`, the system's reasons ("expired",
+  "not trusted", hostname mismatch…).
+- `certificate_pinning_trust_decision` — TrustKit's `allow` / `block`, confirming monitor mode did not block.
+- `certificate_pinning_http_proxy_configured` / `certificate_pinning_pac_configured` /
+  `certificate_pinning_vpn_interface_present` / `certificate_pinning_interface` — network context.
+  Presence only; the proxy host and PAC URL are never sent.
+- `certificate_pinning_pin_set_version` — the `_lastGenerated` value of the `pins.json` the client's
+  hashes were copied from, so a report can be matched to the exact pin set it was evaluated against.
+- `certificate_pinning_occurrence` — per-session count of reports with the same host, anchor and result
+  (as a string). One device can fire several identical reports per second from parallel image loads.
+- `certificate_pinning_validation_duration_us` — TrustKit's validation time in microseconds.
+
+Before reading these numbers, check `find_dropped_events` / the Stats page for the `logs` category: when
+the log quota is exceeded Sentry drops these reports along with everything else, and a flat chart may
+mean "nothing landed" rather than "nothing failed".
 
 Reporting requires early native Sentry initialization via `SentryNativeSDKManager` in
 `AppDelegate.swift` / `MainApplication.kt` (standalone NewDot) or

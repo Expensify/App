@@ -1,7 +1,6 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -86,21 +85,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const {filterConfig, isItemInFilter, shouldShowGroupFilter, shouldShowGroupColumn, groups} = useDomainGroupFilter(domainAccountID);
 
-    const membersFeatureListItems: FeatureListItem[] = [
-        {
-            icon: illustrations.BuildingCross,
-            translationKey: 'domain.members.membersFeatureList.controlPolicyCreation',
-        },
-        {
-            icon: illustrations.LockClosed,
-            translationKey: 'domain.members.membersFeatureList.enableSamlSso',
-        },
-        {
-            icon: illustrations.Encryption,
-            translationKey: 'domain.members.membersFeatureList.enforce2FA',
-        },
-    ];
-
     const members: DomainMemberRowData[] = (memberIDs ?? [])
         .filter((accountID) => {
             const details = personalDetails?.[accountID];
@@ -183,6 +167,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         {
             text: translate('domain.members.closeAccount', {count: selectedMembers.length}),
             value: CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES.CLOSE_ACCOUNT,
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.MEMBERS.BULK_ACTIONS_MENU_CLOSE_ACCOUNT,
             icon: icons.RemoveMembers,
             shouldSkipFocusRestore: true,
             onSelected: () => {
@@ -192,6 +177,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         {
             text: translate('domain.members.moveToGroup'),
             value: CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES.MOVE_TO_GROUP,
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.MEMBERS.BULK_ACTIONS_MENU_MOVE_TO_GROUP,
             icon: icons.Transfer,
             onSelected: () => {
                 setDomainMembersSelectedForMove(selectedMembers);
@@ -230,6 +216,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const getHeaderButtons = () => {
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedMembers.length > 0) ? (
             <ButtonWithDropdownMenu<DomainMemberBulkActionType>
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.BULK_ACTIONS_DROPDOWN}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
                 customText={translate('workspace.common.selected', {count: selectedMembers.length})}
@@ -245,6 +232,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         ) : (
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.ADD_MEMBER}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
                     innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
@@ -254,6 +242,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     <Button.Text>{translate('domain.members.addMember')}</Button.Text>
                 </Button>
                 <ButtonWithDropdownMenu
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.MORE_DROPDOWN}
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}
@@ -261,6 +250,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     options={[
                         {
                             value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SETTINGS,
+                            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.MEMBERS.MORE_MENU_SETTINGS,
                             text: translate('domain.common.settings'),
                             icon: icons.Gear,
                             onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
@@ -271,6 +261,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                             icon: icons.Download,
                             onSelected: onDownloadCSV,
                             value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SAVE_TO_CSV,
+                            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.MEMBERS.MORE_MENU_DOWNLOAD_CSV,
                         },
                     ]}
                     isSplitButton={false}
@@ -303,7 +294,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     >
                         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
                             <FeatureList
-                                menuItems={membersFeatureListItems}
                                 title={translate('domain.domainMembers')}
                                 renderSubtitle={() => (
                                     <SectionSubtitleHTML
@@ -321,7 +311,11 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                                 illustrationStyle={styles.emptyStateSamlIllustration}
                                 illustrationContainerStyle={[styles.cardSectionIllustrationContainer, styles.justifyContentCenter, styles.pv5]}
                                 titleStyles={styles.textHeadlineH1}
-                            />
+                            >
+                                <FeatureList.Item icon={illustrations.BuildingCross}>{translate('domain.members.membersFeatureList.controlPolicyCreation')}</FeatureList.Item>
+                                <FeatureList.Item icon={illustrations.LockClosed}>{translate('domain.members.membersFeatureList.enableSamlSso')}</FeatureList.Item>
+                                <FeatureList.Item icon={illustrations.Encryption}>{translate('domain.members.membersFeatureList.enforce2FA')}</FeatureList.Item>
+                            </FeatureList>
                         </View>
                     </ScrollView>
                 </ScreenWrapper>

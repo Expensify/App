@@ -116,7 +116,7 @@ function removeUnchangedBulkEditFields(
 ): TransactionChanges {
     const iouType = isInvoiceReportReportUtils(baseIOUReport ?? undefined) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
     const allowNegative = shouldEnableNegative(baseIOUReport ?? undefined, policy, iouType);
-    const currentDetails = getTransactionDetails(transaction, undefined, policy, allowNegative);
+    const currentDetails = getTransactionDetails(transaction, policy, allowNegative);
     if (!currentDetails) {
         return transactionChanges;
     }
@@ -529,6 +529,8 @@ function updateMultipleMoneyRequests({
             policies: allPolicies,
             personalPolicyOutputCurrency,
             getCurrencySymbol,
+            getCurrencyDecimals,
+            rules,
         });
         const isTransactionOnHold = isOnHold(transaction);
 

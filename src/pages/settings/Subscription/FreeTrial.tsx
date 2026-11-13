@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
+import useStackedHeaderRowPadding from '@hooks/useStackedHeaderRowPadding';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,6 +42,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Star']);
+    const stackedRowBottomPadding = useStackedHeaderRowPadding();
 
     const freeTrialText =
         privateSubscription || isOffline ? getFreeTrialText(accountID, translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial, privateSubscription) : undefined;
@@ -51,6 +53,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
 
     const freeTrial = pressable ? (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.FREE_TRIAL.OPEN_SUBSCRIPTION}
             variant={success ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
             contentContainerStyle={[styles.mw100]}
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
@@ -67,7 +70,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
         />
     );
 
-    return addSpacing ? <View style={inARow ? [styles.pb3, styles.w50, styles.pl1] : [styles.pb3, styles.ph5]}>{freeTrial}</View> : freeTrial;
+    return addSpacing ? <View style={inARow ? [stackedRowBottomPadding, styles.w50, styles.pl1] : [stackedRowBottomPadding, styles.ph5]}>{freeTrial}</View> : freeTrial;
 }
 
 export default FreeTrial;

@@ -1,8 +1,7 @@
 import type {OptionRowLHNDataProps} from '@components/LHNOptionsList/types';
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import {useIsCurrentReportID} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import {useReportAttributesByID} from '@hooks/useReportAttributes';
+import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -122,7 +122,7 @@ function getActionReportIDs(action: OnyxEntry<ReportAction>): Array<string | und
 function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', reportID, ...propsToForward}: OptionRowLHNDataProps) {
     const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
+    const isCurrentReport = useIsCurrentReportID(reportID);
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [fullReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -227,7 +227,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
         chatReport: chatReportForIOU,
     });
 
-    const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
+    const isReportFocused = isOptionFocused && isCurrentReport;
     const hasDraftComment = !!draftComment && !draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     const lastMessageTextFromReport = whisperTransactionID && !whisperTransaction ? '' : undefined;
     const hasPendingJoinRequest = Object.values(reportActions ?? {}).some(isActionableJoinRequestPendingReportAction);

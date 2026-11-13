@@ -26,6 +26,7 @@ function MergeHRApprovalModePage({
 
     const config: HRApprovalModeProviderConfig<MergeApprovalMode> = {
         testID: 'MergeHRApprovalModePage',
+        saveSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.HR.APPROVAL_MODE_SAVE.MERGE,
         isConnected: (policy) => isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR),
         approvalModes: CONST.MERGE.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.merge_hris?.config?.approvalMode ?? undefined,
