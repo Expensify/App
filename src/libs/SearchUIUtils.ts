@@ -98,6 +98,7 @@ import type {
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
+    SearchTrip,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
@@ -2575,6 +2576,21 @@ function getRowCapabilities(allActions: SearchTransactionAction[]): RowCapabilit
         canSubmit: allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT),
         canChangeApprover: allActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER),
     };
+}
+
+/**
+ * Whether a report opened from Spend shows the read-only trip summary instead of the trip room. Admins see trips in their workspaces
+ * that they aren't in, and the room would fail its access check for them.
+ */
+function shouldShowReadOnlyTripSummary(
+    searchTripRoom: Pick<SearchTrip, 'chatType' | 'travelerAccountID'> | undefined,
+    isTripRoomParticipant: boolean,
+    currentUserAccountID: number,
+): boolean {
+    if (searchTripRoom?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
+        return false;
+    }
+    return !isTripRoomParticipant && searchTripRoom.travelerAccountID !== currentUserAccountID;
 }
 
 /**
@@ -8715,6 +8731,7 @@ export {
     isReportActionEntry,
     isTaskListItemType,
     isTripListItemType,
+    shouldShowReadOnlyTripSummary,
     normalizeTripStatuses,
     getFiltersFormWithTripRoomStatuses,
     getActions,
