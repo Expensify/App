@@ -1,4 +1,4 @@
-import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContext';
+import {SearchQueryContext, SearchShouldUseLiveDataContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
 import isSnapshotCompatibleKey from '@libs/SnapshotUtils';
@@ -82,9 +82,8 @@ const useOnyx: UseOnyxWithoutSnapshots = <TKey extends OnyxKey, TReturnValue = O
     let shouldUseLiveData = false;
     if (isOnSearch && isSnapshotCompatible) {
         const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchQueryContext);
-        const {shouldUseLiveData: contextShouldUseLiveData} = use(SearchResultsContext);
         currentSearchHash = searchContextCurrentSearchHash;
-        shouldUseLiveData = !!contextShouldUseLiveData;
+        shouldUseLiveData = use(SearchShouldUseLiveDataContext);
     }
 
     const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;

@@ -4,7 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchResultsContext} from '@components/Search/SearchContextDefinitions';
+import {SearchShouldUseLiveDataContext} from '@components/Search/SearchContextDefinitions';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
@@ -36,17 +36,7 @@ function renderSearchActionHeader(action: ReportAction, report: Report | undefin
         <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <SearchScopeProvider isOnSearch={isOnSearch}>
                 {/* shouldUseLiveData: true keeps useOnyx reading from real Onyx collections instead of a search snapshot, since this test doesn't set up snapshot data */}
-                <SearchResultsContext.Provider
-                    value={{
-                        currentSearchResults: undefined,
-                        currentSearchTransactionsByReportID: new Map(),
-                        currentSearchViolations: CONST.EMPTY_OBJECT,
-                        shouldUseLiveData: true,
-                        sortedReportIDs: [],
-                        shouldShowFiltersBarLoading: false,
-                        lastSearchType: undefined,
-                    }}
-                >
+                <SearchShouldUseLiveDataContext value>
                     <SearchActionHeader
                         action={action}
                         report={report}
@@ -54,7 +44,7 @@ function renderSearchActionHeader(action: ReportAction, report: Report | undefin
                     >
                         <Text>Child content</Text>
                     </SearchActionHeader>
-                </SearchResultsContext.Provider>
+                </SearchShouldUseLiveDataContext>
             </SearchScopeProvider>
         </ComposeProviders>,
     );

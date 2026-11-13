@@ -98,6 +98,7 @@ const SearchSelectionContext = React.createContext<SearchSelectionContextValue>(
 const SearchSelectionActionsContext = React.createContext<SearchSelectionActionsValue>(defaultSearchSelectionActions);
 const SearchRowSelectionActionsContext = React.createContext<SearchRowSelectionActionsValue>(defaultRowSelectionActions);
 const SearchShiftRangeGroupsContext = React.createContext<SearchShiftRangeGroupsActions>(defaultSearchShiftRangeGroupsActions);
+const SearchShouldUseLiveDataContext = React.createContext(false);
 /** Incremented whenever a clear empties the Search selection, so the shift+click range session knows to reset */
 const SearchSelectionClearGenerationContext = React.createContext(0);
 
@@ -107,6 +108,7 @@ export {
     SearchQueryActionsContext,
     SearchResultsContext,
     SearchResultsActionsContext,
+    SearchShouldUseLiveDataContext,
     SearchSelectionContext,
     SearchSelectionActionsContext,
     SearchRowSelectionActionsContext,
