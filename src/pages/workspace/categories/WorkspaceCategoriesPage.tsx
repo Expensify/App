@@ -360,9 +360,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     if (canWriteCategories) {
         menuItems.push({
             text: translate('workspace.categories.autoCategorizeNewExpenses'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_MENU_AUTO_CATEGORIZE,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             shouldCloseModalOnSelect: false,
-            onSelected: () => setPolicyAutoCategorizeNewExpenses(policyId, !(policy?.autoCategorizeNewExpenses ?? true)),
+            onSelected: () => setPolicyAutoCategorizeNewExpenses(policyId, !(policy?.autoCategorizeNewExpenses ?? true), getReviewWorkspaceSettingsTaskCompletion()),
             numberOfLinesTitle: 0,
             shouldIgnoreCompactStyle: true,
             innerContainerStyle: styles.alignItemsCenter,
@@ -374,7 +375,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 isOn: policy?.autoCategorizeNewExpenses ?? true,
                 accessibilityLabel: translate('workspace.categories.autoCategorizeNewExpenses'),
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.AUTO_CATEGORIZE_SWITCH,
-                onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value),
+                onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value, getReviewWorkspaceSettingsTaskCompletion()),
                 disabled: !policy?.areCategoriesEnabled || !hasEnabledCategories,
             },
         });
@@ -382,6 +383,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     if (canWriteCategories && !!policy?.glCodes) {
         menuItems.push({
             text: translate('workspace.categories.showCategoryGLCodes'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_MENU_SHOW_GL_CODES,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             shouldCloseModalOnSelect: false,
             onSelected: () => setPolicyShowCategoryGLCodes(policyId, !(policy?.showCategoryGLCodes ?? false)),
@@ -407,6 +409,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             text: translate('spreadsheet.importSpreadsheet'),
             onSelected: navigateToImportSpreadsheet,
             value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_MENU_IMPORT_SPREADSHEET,
             // Group the toggle rows apart from the spreadsheet actions.
             addSeparatorBefore: true,
         });
@@ -425,6 +428,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 });
             },
             value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_MENU_DOWNLOAD_CSV,
         });
     }
     const secondaryActions = menuItems;
@@ -444,6 +448,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Trashcan,
                     text: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DELETE,
                     shouldSkipFocusRestore: true,
                     onSelected: async () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
@@ -482,6 +487,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS.DISABLE,
                     shouldSkipFocusRestore: isDisablingLastEnabledCategory || membersWithoutVisibleCategories.length > 0,
                     onSelected: () => {
                         if (isDisablingLastEnabledCategory) {
@@ -530,6 +536,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Checkmark,
                     text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS.ENABLE,
                     onSelected: () => {
                         clearTableSelection();
                         setWorkspaceCategoryEnabled({
@@ -638,11 +645,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                   icon: icons.Table,
                   buttonText: translate('common.import'),
                   buttonAction: navigateToImportSpreadsheet,
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.EMPTY_STATE.IMPORT,
               },
               {
                   icon: icons.Plus,
                   buttonText: translate('workspace.categories.addCategory'),
                   buttonAction: navigateToCreateCategoryPage,
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.EMPTY_STATE.ADD_CATEGORY,
                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
               },
           ]

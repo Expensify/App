@@ -20,7 +20,7 @@ type GetAvatarLayoutParams = {
 
     /**
      * When true, a secondary icon only counts if it has a name, so a nameless one downgrades the layout to a single avatar.
-     * Needed for icons built by `useReportActionAvatars`, which yields a placeholder secondary icon while the workspace loads.
+     * Needed for icons built by `useActionAvatar` and `PolicyAvatar`, which yield a placeholder secondary icon while the workspace loads.
      * Call sites working with pre-computed icons leave this off, because there a present secondary icon is always renderable.
      */
     shouldRequireSecondaryIconName?: boolean;

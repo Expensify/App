@@ -13,7 +13,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useRequestsKeptOnSAMLSignOut from '@hooks/useRequestsKeptOnSAMLSignOut';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import {isQAServerActive} from '@libs/ApiUtils';
@@ -121,11 +123,15 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
+    useRequestsKeptOnSAMLSignOut();
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
     const tabNavigatorStateKey = useRootNavigationState(getTabNavigatorStateKey);
-    const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
+    const oneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(topmostReportID);
+    // The table view doesn't show the expense thread's actions, so a comment there should still notify while the report is open
+    const topmostOneTransactionThreadReportID = shouldUseTableViewForSingleExpense ? undefined : oneTransactionThreadReportID;
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const topmostOneTransactionThreadReportIDRef = useRef(topmostOneTransactionThreadReportID);
 

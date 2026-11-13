@@ -1,8 +1,8 @@
 import {animatedSuperWideRHPWidth, useWideRHPState} from '@components/WideRHPContextProvider';
 
-import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -38,7 +38,8 @@ function useWideModalStackScreenOptions() {
     const {windowWidth} = useWindowDimensions();
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
     const {sidePanelOffset} = useSidePanelState();
-    const isResizableSingleRHP = useIsResizableSingleRHP();
+    // Not tied to which card is focused, so a closing stacked card keeps its dragged width while it slides out.
+    const {width: singleRHPWidth} = useSingleRHPWidth();
 
     return ({route}: {route: PlatformStackRouteProp<ParamListBase, string>}): PlatformStackNavigationOptions => {
         const baseInterpolator: StackCardStyleInterpolator = isSmallScreenWidth
@@ -67,10 +68,10 @@ function useWideModalStackScreenOptions() {
                 // single RHPs displayed above the wide RHP need to be positioned
             } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
                 cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                    cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
+                    cardStyle: styles.singleRHPExtendedCardInterpolatorStyles(singleRHPWidth),
                     containerStyle: styles.overflowVisible,
                 });
-            } else if (isResizableSingleRHP) {
+            } else {
                 cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {cardStyle: styles.singleRHPCardInterpolatorStyles});
             }
         }
