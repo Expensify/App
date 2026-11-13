@@ -9,7 +9,7 @@ import {close} from '@libs/actions/Modal';
 import {queueBulkArchivePolicy} from '@libs/actions/Policy/Policy';
 import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
 import {filterInactiveCards} from '@libs/CardUtils';
-import {getBulkActionSkippedWarning, getBulkArchiveWorkspacesWarnings} from '@libs/WorkspacesSettingsUtils';
+import {getBulkActionSkippedWarning, getBulkArchiveWorkspacesConsequences} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,16 +56,13 @@ function BulkArchiveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismis
         close(() => {
             const cardFeedsPerPolicy = getCardFeedsForDisplayPerPolicy(allCardFeeds, translate, feedKeysWithCards, policies);
             const rowsToArchive = selectedRows.filter((row) => policyIDs.includes(row.policyID));
-            const skippedWorkspaces = selectedRows.filter((row) => !policyIDs.includes(row.policyID)).map((row) => ({policyID: row.policyID, name: row.title}));
 
-            const warnings = getBulkArchiveWorkspacesWarnings(
+            const consequences = getBulkArchiveWorkspacesConsequences(
                 rowsToArchive.map((row) => {
                     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${row.policyID}`];
                     const hasPolicyAccount = !!policy?.policyAccountID;
                     const expensifyCards = filterInactiveCards(allCardsLists?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policy?.policyAccountID}_${CONST.EXPENSIFY_CARD.BANK}`]);
                     return {
-                        policyID: row.policyID,
-                        name: row.title,
                         hasExpensifyCards: !!policy?.areExpensifyCardsEnabled && hasPolicyAccount,
                         hasCards:
                             !!cardFeedsPerPolicy[row.policyID]?.length ||
@@ -75,12 +72,17 @@ function BulkArchiveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismis
                 }),
                 translate,
             );
-            const skippedWarning = getBulkActionSkippedWarning(policyIDs.length, selectedRows.length, skippedWorkspaces, translate);
-            const allWarnings = skippedWarning ? [...warnings, skippedWarning] : warnings;
+            const skippedWarning = getBulkActionSkippedWarning(policyIDs.length, selectedRows.length, translate);
 
             showConfirmModal({
                 title: translate('workspace.common.archiveWorkspacesTitle', {count: policyIDs.length}),
-                prompt: allWarnings.length > 0 ? <BulkActionConfirmationPrompt warnings={allWarnings} /> : undefined,
+                prompt: (
+                    <BulkActionConfirmationPrompt
+                        message={translate(consequences.length > 0 ? 'workspace.common.archiveWorkspacesConfirmationWithConsequences' : 'workspace.common.archiveWorkspacesConfirmation')}
+                        consequences={consequences}
+                        notes={skippedWarning ? [skippedWarning] : []}
+                    />
+                ),
                 confirmText: translate('common.archive'),
                 cancelText: translate('common.cancel'),
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,

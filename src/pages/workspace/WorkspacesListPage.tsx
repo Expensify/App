@@ -6,7 +6,6 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
-import BulkActionConfirmationPrompt from '@components/Tables/WorkspaceListTable/BulkActionConfirmationPrompt';
 import BulkArchiveWorkspacesFlow from '@components/Tables/WorkspaceListTable/BulkArchiveWorkspacesFlow';
 import BulkLeaveWorkspacesFlow from '@components/Tables/WorkspaceListTable/BulkLeaveWorkspacesFlow';
 import LeaveWorkspaceFlow from '@components/Tables/WorkspaceListTable/LeaveWorkspaceFlow';
@@ -294,9 +293,7 @@ function WorkspacesListPage() {
         onConfirm: () => void,
         buttonVariant: ValueOf<typeof CONST.BUTTON_VARIANT> = CONST.BUTTON_VARIANT.DANGER,
     ) => {
-        const skippedWorkspaces = selectedRows.filter((row) => !policyIDs.includes(row.policyID)).map((row) => ({policyID: row.policyID, name: row.title}));
-        const skippedWarning = getBulkActionSkippedWarning(policyIDs.length, selectedRows.length, skippedWorkspaces, translate);
-        const prompt = skippedWarning ? <BulkActionConfirmationPrompt warnings={[skippedWarning]} /> : undefined;
+        const prompt = getBulkActionSkippedWarning(policyIDs.length, selectedRows.length, translate);
 
         showConfirmModal({
             title,

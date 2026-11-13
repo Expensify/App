@@ -565,16 +565,14 @@ const translations = {
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `If you leave this workspace, you'll be replaced as the technical contact with ${workspaceOwner}, the workspace owner.`,
         leaveWorkspaceReimburser: "You can't leave this workspace as the payer. Please set a new payer in Workflows > Payments, then try again.",
-        leaveWorkspacesConfirmation: "If you leave these workspaces, you won't be able to submit expenses to them.",
-        leaveWorkspacesConfirmationAuditor: "If you leave these workspaces, you won't be able to view their reports and settings.",
-        leaveWorkspacesConfirmationAdmin: "If you leave these workspaces, you won't be able to manage their settings.",
-        leaveWorkspacesConfirmationApprover: (workspaceOwner: string) =>
-            `If you leave these workspaces, you'll be replaced in the approval workflow by ${workspaceOwner}, the workspace owner.`,
-        leaveWorkspacesConfirmationExporter: (workspaceOwner: string) =>
-            `If you leave these workspaces, you'll be replaced as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
-        leaveWorkspacesConfirmationTechContact: (workspaceOwner: string) =>
-            `If you leave these workspaces, you'll be replaced as the technical contact with ${workspaceOwner}, the workspace owner.`,
-        leaveWorkspacesReimburser: "You can't leave these workspaces as the payer. Please set a new payer in Workflows > Payments, then try again.",
+        leaveWorkspacesConfirmation: 'If you leave these workspaces:',
+        leaveWorkspacesConsequenceMember: "You won't be able to submit expenses to them",
+        leaveWorkspacesConsequenceAuditor: "You won't be able to view their reports and settings",
+        leaveWorkspacesConsequenceAdmin: "You won't be able to manage their settings",
+        leaveWorkspacesConsequenceApprover: 'The workspace owner will replace you in the approval workflow',
+        leaveWorkspacesConsequenceExporter: 'The workspace owner will replace you as the preferred exporter',
+        leaveWorkspacesConsequenceTechContact: 'The workspace owner will replace you as the technical contact',
+        leaveWorkspacesReimburser: "You can't leave the workspaces where you're the payer. Please set a new payer in Workflows > Payments, then try again.",
         reimbursable: 'Reimbursable',
         nonReimbursable: 'Non-reimbursable',
         editYourProfile: 'Edit your profile',
@@ -5574,10 +5572,12 @@ const translations = {
                 'Are you sure you want to archive this workspace? This will unassign all credit cards from members and permanently delete any unsubmitted card expenses.',
             archiveWithExpensifyCardsConfirmation:
                 'Are you sure you want to archive this workspace? This will set all Expensify Card limits to $0 and automatically decline any new purchase attempts.',
-            archiveWorkspacesWithThirdPartyCardsConfirmation:
-                'Are you sure you want to archive these workspaces? This will unassign all credit cards from members and permanently delete any unsubmitted card expenses.',
-            archiveWorkspacesWithExpensifyCardsConfirmation:
-                'Are you sure you want to archive these workspaces? This will set all Expensify Card limits to $0 and automatically decline any new purchase attempts.',
+            archiveWorkspacesConfirmation: 'Are you sure you want to archive these workspaces?',
+            archiveWorkspacesConfirmationWithConsequences: 'Are you sure you want to archive these workspaces? This will:',
+            archiveConsequenceExpensifyCardLimits: 'Set all Expensify Card limits to $0',
+            archiveConsequenceDeclinePurchases: 'Automatically decline any new purchase attempts',
+            archiveConsequenceUnassignCards: 'Unassign all credit cards from members',
+            archiveConsequenceDeleteCardExpenses: 'Permanently delete any unsubmitted card expenses',
             unarchive: 'Unarchive',
             unarchiveWorkspace: 'Unarchive workspace',
             unarchiveConfirmation: 'Are you sure you want to unarchive this workspace?',
@@ -5596,10 +5596,6 @@ const translations = {
                 other: (count: number) => `Transfer owner of ${count} workspaces?`,
             }),
             bulkActionAppliesTo: (count: number, total: number) => `This applies to ${count} of the ${total} selected workspaces.`,
-            bulkActionSkippedWorkspaces: () => ({
-                one: 'This will be skipped:',
-                other: 'These will be skipped:',
-            }),
             bulkTransferOwnerNoneEligible: 'None of the selected workspaces can be transferred together. Select one workspace at a time to transfer it.',
             deleteWorkspaceTitle: (workspaceName: string) => `Delete ${workspaceName}?`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',

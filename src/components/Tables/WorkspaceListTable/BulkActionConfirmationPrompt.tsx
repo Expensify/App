@@ -6,23 +6,24 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {BulkActionWarningGroup} from '@libs/WorkspacesSettingsUtils';
-
 import variables from '@styles/variables';
 
 import React from 'react';
 import {View} from 'react-native';
 
 type BulkActionConfirmationPromptProps = {
-    /** Each warning with the workspaces it applies to, listed under it */
-    warnings: BulkActionWarningGroup[];
+    /** The question the user is confirming */
+    message: string;
+
+    /** What the action changes, listed under the message */
+    consequences?: string[];
+
+    /** Notes about the selected workspaces the action leaves out */
+    notes?: string[];
 };
 
-/**
- * The prompt of a bulk action confirmation. Each warning is followed by its workspaces, listed the same way as in
- * useMembersNeedCategoryModal so a wrapped name stays aligned under its first line.
- */
-function BulkActionConfirmationPrompt({warnings}: BulkActionConfirmationPromptProps) {
+/** The prompt of a bulk action confirmation, listing the consequences the same way as useMembersNeedCategoryModal */
+function BulkActionConfirmationPrompt({message, consequences = [], notes = []}: BulkActionConfirmationPromptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -30,13 +31,13 @@ function BulkActionConfirmationPrompt({warnings}: BulkActionConfirmationPromptPr
 
     return (
         <View style={styles.gap4}>
-            {warnings.map((group) => (
-                <View key={group.warning}>
-                    <Text>{group.warning}</Text>
+            <View>
+                <Text>{message}</Text>
+                {consequences.length > 0 && (
                     <View style={styles.mt3}>
-                        {group.workspaces.map((workspace) => (
+                        {consequences.map((consequence) => (
                             <View
-                                key={workspace.policyID}
+                                key={consequence}
                                 style={[styles.flexRow, styles.alignItemsStart]}
                             >
                                 <View style={[StyleUtils.getHeight(variables.fontSizeNormalHeight), styles.justifyContentCenter, styles.ph2]}>
@@ -47,11 +48,14 @@ function BulkActionConfirmationPrompt({warnings}: BulkActionConfirmationPromptPr
                                         fill={theme.text}
                                     />
                                 </View>
-                                <Text style={styles.flex1}>{workspace.name}</Text>
+                                <Text style={styles.flex1}>{consequence}</Text>
                             </View>
                         ))}
                     </View>
-                </View>
+                )}
+            </View>
+            {notes.map((note) => (
+                <Text key={note}>{note}</Text>
             ))}
         </View>
     );

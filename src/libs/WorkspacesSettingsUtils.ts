@@ -138,26 +138,6 @@ function getLeaveWorkspaceWarning(policy: OnyxEntry<Policy>, userEmail: string, 
     return CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.MEMBER;
 }
 
-function getLeaveWorkspaceWarningText(warning: LeaveWorkspaceWarning, isPlural: boolean, ownerDisplayName: string, translate: LocaleContextProps['translate']): string {
-    switch (warning) {
-        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.PAYER:
-            return translate(isPlural ? 'common.leaveWorkspacesReimburser' : 'common.leaveWorkspaceReimburser');
-        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.TECHNICAL_CONTACT:
-            return isPlural ? translate('common.leaveWorkspacesConfirmationTechContact', ownerDisplayName) : translate('common.leaveWorkspaceConfirmationTechContact', ownerDisplayName);
-        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.EXPORTER:
-            return isPlural ? translate('common.leaveWorkspacesConfirmationExporter', ownerDisplayName) : translate('common.leaveWorkspaceConfirmationExporter', ownerDisplayName);
-        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.APPROVER:
-            return isPlural ? translate('common.leaveWorkspacesConfirmationApprover', ownerDisplayName) : translate('common.leaveWorkspaceConfirmationApprover', ownerDisplayName);
-        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.ADMIN:
-            return translate(isPlural ? 'common.leaveWorkspacesConfirmationAdmin' : 'common.leaveWorkspaceConfirmationAdmin');
-        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.AUDITOR:
-            return translate(isPlural ? 'common.leaveWorkspacesConfirmationAuditor' : 'common.leaveWorkspaceConfirmationAuditor');
-        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.MEMBER:
-        default:
-            return translate(isPlural ? 'common.leaveWorkspacesConfirmation' : 'common.leaveWorkspaceConfirmation');
-    }
-}
-
 function getLeaveWorkspaceConfirmationPrompt(
     policy: OnyxEntry<Policy>,
     userEmail: string,
@@ -165,71 +145,57 @@ function getLeaveWorkspaceConfirmationPrompt(
     translate: LocaleContextProps['translate'],
     isApproverOfOutstandingReports = false,
 ): string {
-    return getLeaveWorkspaceWarningText(getLeaveWorkspaceWarning(policy, userEmail, isApproverOfOutstandingReports), false, ownerDisplayName, translate);
+    switch (getLeaveWorkspaceWarning(policy, userEmail, isApproverOfOutstandingReports)) {
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.PAYER:
+            return translate('common.leaveWorkspaceReimburser');
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.TECHNICAL_CONTACT:
+            return translate('common.leaveWorkspaceConfirmationTechContact', ownerDisplayName);
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.EXPORTER:
+            return translate('common.leaveWorkspaceConfirmationExporter', ownerDisplayName);
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.APPROVER:
+            return translate('common.leaveWorkspaceConfirmationApprover', ownerDisplayName);
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.ADMIN:
+            return translate('common.leaveWorkspaceConfirmationAdmin');
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.AUDITOR:
+            return translate('common.leaveWorkspaceConfirmationAuditor');
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.MEMBER:
+        default:
+            return translate('common.leaveWorkspaceConfirmation');
+    }
 }
 
-type BulkActionWorkspace = {
-    policyID: string;
-    name: string;
-};
+const BULK_LEAVE_CONSEQUENCES = [
+    [CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.MEMBER, 'common.leaveWorkspacesConsequenceMember'],
+    [CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.AUDITOR, 'common.leaveWorkspacesConsequenceAuditor'],
+    [CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.ADMIN, 'common.leaveWorkspacesConsequenceAdmin'],
+    [CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.APPROVER, 'common.leaveWorkspacesConsequenceApprover'],
+    [CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.EXPORTER, 'common.leaveWorkspacesConsequenceExporter'],
+    [CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.TECHNICAL_CONTACT, 'common.leaveWorkspacesConsequenceTechContact'],
+] as const;
 
-/** A warning shown in a bulk action confirmation, with the selected workspaces it applies to */
-type BulkActionWarningGroup = {
-    warning: string;
-    workspaces: BulkActionWorkspace[];
-};
-
-type BulkLeaveWorkspace = BulkActionWorkspace & {
+type BulkLeaveWorkspace = {
     policy: OnyxEntry<Policy>;
-    ownerDisplayName: string;
     isApproverOfOutstandingReports: boolean;
 };
 
 /**
- * Lists the selected workspaces under the warning that applies to each, in the same order as LEAVE_WORKSPACE_WARNINGS.
+ * Lists what leaving the workspaces changes for the user, once per change even when several workspaces share it, so the
+ * confirmation doesn't have to repeat the workspaces the user just selected.
  */
-function getBulkLeaveWorkspacesWarnings(workspaces: BulkLeaveWorkspace[], userEmail: string, translate: LocaleContextProps['translate']): BulkActionWarningGroup[] {
-    const warningOrder: LeaveWorkspaceWarning[] = Object.values(CONST.POLICY.LEAVE_WORKSPACE_WARNINGS);
-    const groups = new Map<string, {warning: LeaveWorkspaceWarning; ownerDisplayName: string; workspaces: BulkActionWorkspace[]}>();
-    for (const workspace of workspaces) {
-        const warning = getLeaveWorkspaceWarning(workspace.policy, userEmail, workspace.isApproverOfOutstandingReports);
-
-        // Some warnings name the owner, so workspaces with different owners need separate groups.
-        const groupKey = getLeaveWorkspaceWarningText(warning, false, workspace.ownerDisplayName, translate);
-        const group = groups.get(groupKey) ?? {warning, ownerDisplayName: workspace.ownerDisplayName, workspaces: []};
-        group.workspaces.push({policyID: workspace.policyID, name: workspace.name});
-        groups.set(groupKey, group);
-    }
-
-    return [...groups.values()]
-        .sort((a, b) => warningOrder.indexOf(a.warning) - warningOrder.indexOf(b.warning))
-        .map((group) => ({
-            // The modal is about several workspaces, so the wording stays plural even when a warning lists only one.
-            warning: getLeaveWorkspaceWarningText(group.warning, true, group.ownerDisplayName, translate),
-            workspaces: group.workspaces,
-        }));
+function getBulkLeaveWorkspacesConsequences(workspaces: BulkLeaveWorkspace[], userEmail: string, translate: LocaleContextProps['translate']): string[] {
+    const warnings = new Set<LeaveWorkspaceWarning>(workspaces.map((workspace) => getLeaveWorkspaceWarning(workspace.policy, userEmail, workspace.isApproverOfOutstandingReports)));
+    return BULK_LEAVE_CONSEQUENCES.filter(([warning]) => warnings.has(warning)).map(([, path]) => translate(path));
 }
 
-/**
- * Tells the user which selected workspaces a bulk action leaves out, listed like the other warnings. Returns undefined
- * when it applies to all of them.
- */
-function getBulkActionSkippedWarning(
-    appliedCount: number,
-    selectedCount: number,
-    skippedWorkspaces: BulkActionWorkspace[],
-    translate: LocaleContextProps['translate'],
-): BulkActionWarningGroup | undefined {
-    if (skippedWorkspaces.length === 0) {
+/** Tells the user how many of the selected workspaces a bulk action applies to, or returns undefined when it applies to all of them */
+function getBulkActionSkippedWarning(appliedCount: number, selectedCount: number, translate: LocaleContextProps['translate']): string | undefined {
+    if (appliedCount >= selectedCount) {
         return undefined;
     }
-    return {
-        warning: `${translate('workspace.common.bulkActionAppliesTo', appliedCount, selectedCount)} ${translate('workspace.common.bulkActionSkippedWorkspaces', {count: skippedWorkspaces.length})}`,
-        workspaces: skippedWorkspaces,
-    };
+    return translate('workspace.common.bulkActionAppliesTo', appliedCount, selectedCount);
 }
 
-type BulkArchiveWorkspace = BulkActionWorkspace & {
+type BulkArchiveWorkspace = {
     /** Archiving sets the limits of the workspace's own Expensify Cards to $0 */
     hasExpensifyCards: boolean;
 
@@ -238,28 +204,18 @@ type BulkArchiveWorkspace = BulkActionWorkspace & {
 };
 
 /**
- * Lists the selected workspaces under the card warning that applies to each, using the same precedence as the single
- * workspace archive confirmation. Workspaces without cards aren't listed, and the wording stays plural like the modal.
+ * Lists what archiving the workspaces does to their cards, once per change. A workspace with Expensify Cards only adds
+ * the Expensify Card changes, like the single workspace archive confirmation.
  */
-function getBulkArchiveWorkspacesWarnings(workspaces: BulkArchiveWorkspace[], translate: LocaleContextProps['translate']): BulkActionWarningGroup[] {
-    const toListed = ({policyID, name}: BulkArchiveWorkspace): BulkActionWorkspace => ({policyID, name});
-    const expensifyCardWorkspaces = workspaces.filter((workspace) => workspace.hasExpensifyCards).map(toListed);
-    const cardWorkspaces = workspaces.filter((workspace) => !workspace.hasExpensifyCards && workspace.hasCards).map(toListed);
-
-    const groups: BulkActionWarningGroup[] = [];
-    if (expensifyCardWorkspaces.length > 0) {
-        groups.push({
-            warning: translate('workspace.common.archiveWorkspacesWithExpensifyCardsConfirmation'),
-            workspaces: expensifyCardWorkspaces,
-        });
+function getBulkArchiveWorkspacesConsequences(workspaces: BulkArchiveWorkspace[], translate: LocaleContextProps['translate']): string[] {
+    const consequences: string[] = [];
+    if (workspaces.some((workspace) => workspace.hasExpensifyCards)) {
+        consequences.push(translate('workspace.common.archiveConsequenceExpensifyCardLimits'), translate('workspace.common.archiveConsequenceDeclinePurchases'));
     }
-    if (cardWorkspaces.length > 0) {
-        groups.push({
-            warning: translate('workspace.common.archiveWorkspacesWithThirdPartyCardsConfirmation'),
-            workspaces: cardWorkspaces,
-        });
+    if (workspaces.some((workspace) => !workspace.hasExpensifyCards && workspace.hasCards)) {
+        consequences.push(translate('workspace.common.archiveConsequenceUnassignCards'), translate('workspace.common.archiveConsequenceDeleteCardExpenses'));
     }
-    return groups;
+    return consequences;
 }
 
 type WorkspacesBulkActionRow = {
@@ -367,9 +323,9 @@ export {
     getChatTabBrickRoad,
     getOwnershipChecksDisplayText,
     getLeaveWorkspaceConfirmationPrompt,
-    getBulkLeaveWorkspacesWarnings,
-    getBulkArchiveWorkspacesWarnings,
+    getBulkLeaveWorkspacesConsequences,
+    getBulkArchiveWorkspacesConsequences,
     getBulkActionSkippedWarning,
     getWorkspacesBulkActions,
 };
-export type {BrickRoad, BulkActionWarningGroup, WorkspacesBulkAction, WorkspacesBulkActionContext, WorkspacesBulkActionRow};
+export type {BrickRoad, WorkspacesBulkAction, WorkspacesBulkActionContext, WorkspacesBulkActionRow};

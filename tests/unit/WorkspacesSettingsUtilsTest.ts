@@ -2,8 +2,8 @@ import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
 import {
     getBrickRoadForPolicy,
     getBulkActionSkippedWarning,
-    getBulkArchiveWorkspacesWarnings,
-    getBulkLeaveWorkspacesWarnings,
+    getBulkArchiveWorkspacesConsequences,
+    getBulkLeaveWorkspacesConsequences,
     getChatTabBrickRoad,
     getChatTabBrickRoadReportID,
     getLeaveWorkspaceConfirmationPrompt,
@@ -298,144 +298,104 @@ describe('WorkspacesSettingsUtils', () => {
         });
     });
 
-    describe('getBulkLeaveWorkspacesWarnings', () => {
-        // The stub keeps the owner name in the output so the tests can tell the owner groups apart.
-        const listed = (...names: string[]) => names.map((name) => ({policyID: name, name}));
+    describe('getBulkLeaveWorkspacesConsequences', () => {
         const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => [path, ...parameters].join(':');
         const userEmail = 'user@example.com';
-        const buildWorkspace = (name: string, policy: Policy, ownerDisplayName = 'Owner A') => ({
-            policyID: name,
-            policy,
-            name,
-            ownerDisplayName,
-            isApproverOfOutstandingReports: false,
-        });
+        const buildWorkspace = (policy: Policy) => ({policy, isApproverOfOutstandingReports: false});
 
-        it('uses the plural wording for every warning, even one that lists a single workspace', () => {
-            // Given one workspace the user audits and two they administer
+        it('lists each consequence once, in the same order as the leave warnings', () => {
+            // Given two workspaces the user administers, one they audit and one where they approve
             const workspaces = [
-                buildWorkspace('Admin 1', createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN})),
-                buildWorkspace('Auditor 1', createMock<Policy>({role: CONST.POLICY.ROLE.AUDITOR})),
-                buildWorkspace('Admin 2', createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN})),
+                buildWorkspace(createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN})),
+                buildWorkspace(createMock<Policy>({approver: userEmail})),
+                buildWorkspace(createMock<Policy>({role: CONST.POLICY.ROLE.AUDITOR})),
+                buildWorkspace(createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN})),
             ];
 
-            // When the bulk leave warnings are built
-            const warnings = getBulkLeaveWorkspacesWarnings(workspaces, userEmail, translate);
+            // When the bulk leave consequences are built
+            const consequences = getBulkLeaveWorkspacesConsequences(workspaces, userEmail, translate);
 
-            // Then each warning lists its workspaces in plural wording, with auditor before admin
-            expect(warnings).toEqual([
-                {warning: 'common.leaveWorkspacesConfirmationAuditor', workspaces: listed('Auditor 1')},
-                {warning: 'common.leaveWorkspacesConfirmationAdmin', workspaces: listed('Admin 1', 'Admin 2')},
-            ]);
+            // Then the admin consequence shows once even though two workspaces share it, so the list stays short
+            expect(consequences).toEqual(['common.leaveWorkspacesConsequenceAuditor', 'common.leaveWorkspacesConsequenceAdmin', 'common.leaveWorkspacesConsequenceApprover']);
         });
 
-        it('groups the warnings that name the owner by owner', () => {
-            // Given the user approves in three workspaces owned by two different people
-            const workspaces = [
-                buildWorkspace('Approver 1', createMock<Policy>({approver: userEmail}), 'Owner A'),
-                buildWorkspace('Approver 2', createMock<Policy>({approver: userEmail}), 'Owner B'),
-                buildWorkspace('Approver 3', createMock<Policy>({approver: userEmail}), 'Owner A'),
-            ];
-
-            // When the bulk leave warnings are built
-            const warnings = getBulkLeaveWorkspacesWarnings(workspaces, userEmail, translate);
-
-            // Then each owner gets their own warning, so the owner named in it is right for every workspace listed under it
-            expect(warnings).toEqual([
-                {warning: 'common.leaveWorkspacesConfirmationApprover:Owner A', workspaces: listed('Approver 1', 'Approver 3')},
-                {warning: 'common.leaveWorkspacesConfirmationApprover:Owner B', workspaces: listed('Approver 2')},
-            ]);
-        });
-
-        it('lists the workspaces the user pays for last', () => {
+        it('has no consequence for a workspace the user pays for', () => {
             // Given the user is the payer of one workspace and a member of another
-            const workspaces = [buildWorkspace('Payer 1', createMock<Policy>({achAccount: {reimburser: userEmail}})), buildWorkspace('Member 1', createMock<Policy>({}))];
+            const workspaces = [buildWorkspace(createMock<Policy>({achAccount: {reimburser: userEmail}})), buildWorkspace(createMock<Policy>({}))];
 
-            // When the bulk leave warnings are built
-            const warnings = getBulkLeaveWorkspacesWarnings(workspaces, userEmail, translate);
+            // When the bulk leave consequences are built
+            const consequences = getBulkLeaveWorkspacesConsequences(workspaces, userEmail, translate);
 
-            // Then the payer warning comes after the warnings for the workspaces being left
-            expect(warnings).toEqual([
-                {warning: 'common.leaveWorkspacesConfirmation', workspaces: listed('Member 1')},
-                {warning: 'common.leaveWorkspacesReimburser', workspaces: listed('Payer 1')},
-            ]);
+            // Then only the member consequence is listed, because the payer can't leave and the flow explains that in a note
+            expect(consequences).toEqual(['common.leaveWorkspacesConsequenceMember']);
         });
     });
 
     describe('getBulkActionSkippedWarning', () => {
-        it('lists the skipped workspaces under how many the action applies to', () => {
+        it('says how many of the selected workspaces the action applies to', () => {
             // Given an action that applies to one of three selected workspaces
-            const skippedWorkspaces = [
-                {policyID: '1', name: 'Skipped 1'},
-                {policyID: '2', name: 'Skipped 2'},
-            ];
-
             // When the skipped warning is built
-            const warning = getBulkActionSkippedWarning(1, 3, skippedWorkspaces, TestHelper.translateLocal);
+            const warning = getBulkActionSkippedWarning(1, 3, TestHelper.translateLocal);
 
-            // Then it says how many workspaces the action covers and lists the ones it leaves out
-            expect(warning).toEqual({warning: 'This applies to 1 of the 3 selected workspaces. These will be skipped:', workspaces: skippedWorkspaces});
-        });
-
-        it('words a single skipped workspace in the singular', () => {
-            // Given an action that applies to one of two selected workspaces
-            // When the skipped warning is built
-            const warning = getBulkActionSkippedWarning(1, 2, [{policyID: '1', name: 'Acme'}], TestHelper.translateLocal);
-
-            // Then the sentence is worded for one workspace
-            expect(warning?.warning).toBe('This applies to 1 of the 2 selected workspaces. This will be skipped:');
+            // Then it tells the user the rest are left out
+            expect(warning).toBe('This applies to 1 of the 3 selected workspaces.');
         });
 
         it('is undefined when the action applies to every selected workspace', () => {
             // Given an action that skips none of the selected workspaces
             // When the skipped warning is built
-            const warning = getBulkActionSkippedWarning(2, 2, [], TestHelper.translateLocal);
+            const warning = getBulkActionSkippedWarning(2, 2, TestHelper.translateLocal);
 
             // Then there is nothing to tell the user
             expect(warning).toBeUndefined();
         });
     });
 
-    describe('getBulkArchiveWorkspacesWarnings', () => {
+    describe('getBulkArchiveWorkspacesConsequences', () => {
         const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => [path, ...parameters].join(':');
 
-        it('lists each workspace under the card warning that applies to it', () => {
+        it('lists the Expensify Card and other card consequences once each', () => {
             // Given two workspaces with Expensify Cards, one with other cards and one without any cards
             const workspaces = [
-                {policyID: '1', name: 'Expensify 1', hasExpensifyCards: true, hasCards: true},
-                {policyID: '2', name: 'Company 1', hasExpensifyCards: false, hasCards: true},
-                {policyID: '3', name: 'No cards', hasExpensifyCards: false, hasCards: false},
-                {policyID: '4', name: 'Expensify 2', hasExpensifyCards: true, hasCards: true},
+                {hasExpensifyCards: true, hasCards: true},
+                {hasExpensifyCards: false, hasCards: true},
+                {hasExpensifyCards: false, hasCards: false},
+                {hasExpensifyCards: true, hasCards: true},
             ];
 
-            // When the bulk archive warnings are built
-            const warnings = getBulkArchiveWorkspacesWarnings(workspaces, translate);
+            // When the bulk archive consequences are built
+            const consequences = getBulkArchiveWorkspacesConsequences(workspaces, translate);
 
-            // Then a workspace with Expensify Cards only gets that warning, like the single archive confirmation, the wording stays plural, and the workspace without cards isn't listed
-            expect(warnings).toEqual([
-                {
-                    warning: 'workspace.common.archiveWorkspacesWithExpensifyCardsConfirmation',
-                    workspaces: [
-                        {policyID: '1', name: 'Expensify 1'},
-                        {policyID: '4', name: 'Expensify 2'},
-                    ],
-                },
-                {warning: 'workspace.common.archiveWorkspacesWithThirdPartyCardsConfirmation', workspaces: [{policyID: '2', name: 'Company 1'}]},
+            // Then both kinds of card changes are listed once, however many workspaces share them
+            expect(consequences).toEqual([
+                'workspace.common.archiveConsequenceExpensifyCardLimits',
+                'workspace.common.archiveConsequenceDeclinePurchases',
+                'workspace.common.archiveConsequenceUnassignCards',
+                'workspace.common.archiveConsequenceDeleteCardExpenses',
             ]);
         });
 
-        it('has no warnings when none of the workspaces have cards', () => {
+        it('only lists the Expensify Card changes for a workspace that has both kinds of cards', () => {
+            // Given a workspace with Expensify Cards and other cards
+            // When the bulk archive consequences are built
+            const consequences = getBulkArchiveWorkspacesConsequences([{hasExpensifyCards: true, hasCards: true}], translate);
+
+            // Then it matches the single workspace archive confirmation, which only mentions the Expensify Cards
+            expect(consequences).toEqual(['workspace.common.archiveConsequenceExpensifyCardLimits', 'workspace.common.archiveConsequenceDeclinePurchases']);
+        });
+
+        it('has no consequences when none of the workspaces have cards', () => {
             // Given workspaces without any cards
             const workspaces = [
-                {policyID: '1', name: 'No cards 1', hasExpensifyCards: false, hasCards: false},
-                {policyID: '2', name: 'No cards 2', hasExpensifyCards: false, hasCards: false},
+                {hasExpensifyCards: false, hasCards: false},
+                {hasExpensifyCards: false, hasCards: false},
             ];
 
-            // When the bulk archive warnings are built
-            const warnings = getBulkArchiveWorkspacesWarnings(workspaces, translate);
+            // When the bulk archive consequences are built
+            const consequences = getBulkArchiveWorkspacesConsequences(workspaces, translate);
 
-            // Then there is no card warning to show
-            expect(warnings).toEqual([]);
+            // Then there is no card change to list
+            expect(consequences).toEqual([]);
         });
     });
 
