@@ -20,20 +20,23 @@ describe('getSingleRHPWidthBounds', () => {
     it('stops a wide window short of the wide RHP', () => {
         // Given a wide window with the Side Panel closed, where the wide RHP is the tighter limit
         const windowWidth = 1920;
-        expect(calculateWideRHPWidth(windowWidth) - CONST.RHP_RESIZE.WIDE_RHP_INSET).toBeLessThan(getWidthLeftForCard(windowWidth, 0));
+        expect(calculateWideRHPWidth(windowWidth) - CONST.RHP_RESIZE.WIDE_RHP_INSET - 2 * variables.rhpFloatingCardBorderWidth).toBeLessThan(getWidthLeftForCard(windowWidth, 0));
 
         // When the bounds are computed
         const bounds = getSingleRHPWidthBounds(windowWidth, 0);
 
-        // Then the single RHP can't grow past the inset below the wide RHP, so a single RHP stacked on a wide one never covers it
-        expect(bounds).toEqual({min: CONST.RHP_RESIZE.MIN_WIDTH, max: calculateWideRHPWidth(windowWidth) - CONST.RHP_RESIZE.WIDE_RHP_INSET});
+        // Then the widest single card, borders included, stays exactly the inset narrower than the wide RHP, so a single RHP stacked on a wide one never covers it
+        expect(bounds.min).toBe(CONST.RHP_RESIZE.MIN_WIDTH);
+        expect(bounds.max + 2 * variables.rhpFloatingCardBorderWidth).toBe(calculateWideRHPWidth(windowWidth) - CONST.RHP_RESIZE.WIDE_RHP_INSET);
     });
 
     it('leaves the content beside the card its reserve when the Side Panel is open', () => {
         // Given a window where the open Side Panel makes the content reserve the tighter limit
         const windowWidth = 1400;
         const sidePanelWidth = variables.sidePanelWidth;
-        expect(getWidthLeftForCard(windowWidth, sidePanelWidth)).toBeLessThan(calculateWideRHPWidth(windowWidth) - CONST.RHP_RESIZE.WIDE_RHP_INSET);
+        expect(getWidthLeftForCard(windowWidth, sidePanelWidth)).toBeLessThan(
+            calculateWideRHPWidth(windowWidth) - CONST.RHP_RESIZE.WIDE_RHP_INSET - 2 * variables.rhpFloatingCardBorderWidth,
+        );
 
         // When the bounds are computed
         const {max} = getSingleRHPWidthBounds(windowWidth, sidePanelWidth);

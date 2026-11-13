@@ -399,7 +399,7 @@ type SearchAmountFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED;
-type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
+type SearchAmountValues = Partial<Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string>>;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;

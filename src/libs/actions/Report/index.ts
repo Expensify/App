@@ -17,7 +17,6 @@ import type {
     CreateSupportTicketParams,
     DeleteAppReportParams,
     DeleteCommentParams,
-    ExpandURLPreviewParams,
     ExportReportPDFParams,
     FlagCommentParams,
     GetNewerActionsParams,
@@ -3321,22 +3320,6 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
             cursorID: reportActionID,
         },
     );
-}
-
-/**
- * Gets metadata info about links in the provided report action
- */
-function expandURLPreview(reportID: string | undefined, reportActionID: string) {
-    if (!reportID) {
-        return;
-    }
-
-    const parameters: ExpandURLPreviewParams = {
-        reportID,
-        reportActionID,
-    };
-
-    API.read(READ_COMMANDS.EXPAND_URL_PREVIEW, parameters);
 }
 
 /** Marks the new report actions as read
@@ -9565,7 +9548,6 @@ export {
     downloadReportPDF,
     editReportComment,
     explain,
-    expandURLPreview,
     exportReportToCSV,
     exportReportToPDF,
     shareReport,

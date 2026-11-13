@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Log from '@libs/Log';
+import {markCanvasKitLoadStarted} from '@libs/telemetry/integrations/canvasKitNoiseFilter';
 
 import variables from '@styles/variables';
 
@@ -22,7 +23,7 @@ import React, {lazy, Suspense, useRef, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import {View} from 'react-native';
 
-import isSkiaWebSupported from './isSkiaWebSupported';
+import getSkiaWebUnsupportedReason from './getSkiaWebUnsupportedReason';
 import useIsSkiaSurfaceUnavailable from './useIsSkiaSurfaceUnavailable';
 
 type ChartLoader<TProps> = () => Promise<{default: ComponentType<TProps>}>;
@@ -63,6 +64,7 @@ function getLazyChart<TProps>(getComponent: ChartLoader<TProps>) {
 
     const LazyChart = lazy(async () => {
         try {
+            markCanvasKitLoadStarted();
             // The glue mutates `opts` into the module object, so give each load its own object rather than sharing one.
             await LoadSkiaWeb({locateFile: locateCanvasKitFile});
             return await getComponent();
@@ -130,7 +132,7 @@ const logSkiaLoadError = (error: Error, info: {componentStack?: string | null}) 
 /**
  * Shared web wrapper that loads CanvasKit and the chart's code for the chart entry points (Pie/Line/Bar and the Victory
  * renderer). When the environment can't provide a usable WebGL/Skia surface it shows an "unable to
- * display chart" empty state instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `isSkiaWebSupported`).
+ * display chart" empty state instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `getSkiaWebUnsupportedReason`).
  * If CanvasKit itself fails to load or link, the error boundary degrades to the same empty state.
  */
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
@@ -142,15 +144,15 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
     const isInsideChartReveal = useIsInsideChartReveal();
 
     // Probed on each mount, so a fresh chart re-checks capability instead of trusting a stale session-wide result.
-    const [isSupported] = useState(() => isSkiaWebSupported());
+    const [unsupportedReason] = useState(() => getSkiaWebUnsupportedReason());
 
     // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
     // renderer reporting that and degrade to the empty state.
     const isSurfaceUnavailable = useIsSkiaSurfaceUnavailable(containerRef);
 
-    // If unsupported, the device can't give CanvasKit a usable WebGL surface.
-    if (!isSupported || isSurfaceUnavailable) {
-        return <ChartUnavailable />;
+    // Missing WebAssembly needs a different explanation from an unavailable drawing surface.
+    if (unsupportedReason || isSurfaceUnavailable) {
+        return <ChartUnavailable description={unsupportedReason} />;
     }
 
     const fallback = isInsideChartReveal ? (

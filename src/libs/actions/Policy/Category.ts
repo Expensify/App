@@ -13,6 +13,7 @@ import type {
     RemovePolicyCategoryItemizedReceiptsRequiredParams,
     RemovePolicyCategoryReceiptsRequiredParams,
     RenameWorkspaceCategoriesParams,
+    SetPolicyAutoCategorizeNewExpensesParams,
     SetPolicyCategoryApproverParams,
     SetPolicyCategoryAttendeesRequiredParams,
     SetPolicyCategoryDescriptionRequiredParams,
@@ -1259,7 +1260,7 @@ function setWorkspaceRequiresCategory(
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function setPolicyAutoCategorizeNewExpenses(policyID: string, enabled: boolean) {
+function setPolicyAutoCategorizeNewExpenses(policyID: string, enabled: boolean, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -1307,12 +1308,13 @@ function setPolicyAutoCategorizeNewExpenses(policyID: string, enabled: boolean) 
         ],
     };
 
-    const parameters = {
+    const parameters: SetPolicyAutoCategorizeNewExpensesParams = {
         policyID,
         enabled,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_AUTO_CATEGORIZE_NEW_EXPENSES, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_AUTO_CATEGORIZE_NEW_EXPENSES, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyShowCategoryGLCodes(policyID: string | undefined, showCategoryGLCodes: boolean) {

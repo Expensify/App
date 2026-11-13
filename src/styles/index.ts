@@ -5,7 +5,7 @@ import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/Wid
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
-import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
+import RHP_FLOATING_CARD_INSET, {RHP_FLOATING_CARD_BORDERS_WIDTH} from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import {getSidePanelWidthStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
@@ -892,6 +892,11 @@ const staticStyles = (theme: ThemeColors) =>
             paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
         },
 
+        // The "y" at the end of the wordmark already leaves empty space on its right, so the badge sits closer than the default badge margin
+        flatNavigationBarEnvironmentBadge: {
+            marginLeft: 6,
+        },
+
         flatNavigationBarCreateButtonContainer: {
             marginHorizontal: variables.flatNavigationBarCreateButtonInset,
             marginBottom: variables.flatNavigationBarCreateButtonGap,
@@ -1613,6 +1618,16 @@ const staticStyles = (theme: ThemeColors) =>
             height: CONST.CHAT_FOOTER_SECONDARY_ROW_HEIGHT,
             marginBottom: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
             marginTop: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
+        },
+
+        /**
+         * The secondary row reserves a fixed height so that the typing indicator appearing and disappearing never
+         * shifts the compose box. On mobile web in landscape that costs scarce vertical space for a row that is empty
+         * most of the time, so there it collapses to its content and accepts the shift instead.
+         */
+        chatItemComposeSecondaryRowCompact: {
+            marginTop: 0,
+            marginBottom: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
         },
 
         chatItemComposeSecondaryRowSubText: {
@@ -3112,6 +3127,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerBarNarrowHeight: {
             height: variables.contentHeaderNarrowHeight,
+        },
+
+        headerBarCompactHeight: {
+            height: variables.contentHeaderCompactHeight,
         },
 
         imageViewContainer: {
@@ -5088,24 +5107,6 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
-        linkPreviewWrapper: {
-            marginTop: 16,
-            borderLeftWidth: 4,
-            borderLeftColor: theme.border,
-            paddingLeft: 12,
-        },
-
-        linkPreviewImage: {
-            flex: 1,
-            borderRadius: 8,
-            marginTop: 8,
-        },
-
-        linkPreviewLogoImage: {
-            height: 16,
-            width: 16,
-        },
-
         contextMenuItemPopoverMaxWidth: {
             minWidth: variables.compactPopoverMenuWidth,
             maxWidth: variables.compactPopoverMenuWidth,
@@ -5179,6 +5180,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 2,
         },
 
+        shareCodeContainerWideLayout: {
+            maxWidth: variables.rhpWidth - spacing.ph5.paddingHorizontal * 2,
+            alignSelf: 'center',
+        },
+
         shareCodeContainerDownloadPadding: {
             paddingHorizontal: 12,
             paddingVertical: 12,
@@ -5198,15 +5204,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         headerEnvBadge: {
-            position: 'absolute',
-            bottom: -8,
-            left: -8,
             height: 12,
-            width: 22,
             paddingLeft: 4,
             paddingRight: 4,
             alignItems: 'center',
-            zIndex: -1,
         },
 
         headerEnvBadgeText: {
@@ -7324,7 +7325,15 @@ const dynamicStyles = (theme: ThemeColors) =>
                   }
                 : flex.flex1) satisfies ViewStyle,
 
-        // Straddles the left edge of the single RHP card (RHPFloatingCard), which shares its containing block.
+        // Sized like the lone floating card, so a drag paints its width through the CSS variable and the handle sits on its left edge.
+        resizableSingleRHPExtendedCardInterpolatorStyles: (singleRHPWidth: number) =>
+            ({
+                ...getRHPExtendedCardFrame(theme),
+                // Border-box card, so the border is added back on top of the width or the content gets clipped.
+                width: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_BORDERS_WIDTH),
+            }) satisfies ViewStyle,
+
+        // Straddles the left edge of the single RHP card, whether floating alone (RHPFloatingCard) or stacked on a wide card, both flush with the same right margin.
         rhpResizeHandle: (singleRHPWidth: number) =>
             ({
                 ...positioning.pAbsolute,
