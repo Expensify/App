@@ -1452,6 +1452,17 @@ describe('CardUtils', () => {
             // Then it is the feed's country, because Plaid rejects a link token request for Ethiopia
             expect(country).toBe(CONST.COUNTRY.US);
         });
+
+        it('Should fall back to the country of the workspace currency when the feed has no country', () => {
+            // Given a Plaid feed with no stored country on an ETB workspace
+            const feedCountry = undefined;
+
+            // When the country to reconnect the feed with is picked
+            const country = getPlaidCountryForFeed(feedCountry, 'ETB', currencyList);
+
+            // Then it comes from the workspace currency, since that is the only hint left
+            expect(country).toBe('ET');
+        });
     });
 
     describe('getSelectedFeed', () => {
