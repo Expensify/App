@@ -14,7 +14,7 @@ import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {toIndexMap} from '@libs/RuleUtils';
 import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
-import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils';
+import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils/duplicates';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';

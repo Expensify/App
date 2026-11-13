@@ -16,7 +16,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {getTaxByID, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {calculateTaxAmount, compareDuplicateTransactionFields, getAmount, getDefaultTaxCode, getTaxValue, getTransactionID} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getAmount, getDefaultTaxCode, getTaxValue, getTransactionID} from '@libs/TransactionUtils';
+import {compareDuplicateTransactionFields} from '@libs/TransactionUtils/duplicates';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -5,7 +5,8 @@
  */
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import Log from '@libs/Log';
-import {getTaxByID, isMultiLevelTags as isMultiLevelTagsPolicyUtils, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils/tag';
+import {getTaxByID, resolveCurrentTaxCode} from '@libs/PolicyUtils/tax';
 import {getReportOrDraftReport, isOpenReport, isProcessingReport} from '@libs/ReportUtils';
 
 import type {UpdateMoneyRequestDataKeys} from '@userActions/IOU/UpdateMoneyRequest';
@@ -22,10 +23,7 @@ import {SafeString} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, isCardTransactionReimbursableEditable, isExpensifyCardTransaction} from './index';
+import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, isCardTransactionReimbursableEditable, isExpensifyCardTransaction} from './fields';
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 type FieldsToChange = {

@@ -20,7 +20,7 @@ import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from 
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import {removeSettledAndApprovedTransactions} from '@libs/TransactionUtils/duplicates';
 
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 

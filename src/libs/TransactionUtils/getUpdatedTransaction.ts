@@ -26,12 +26,7 @@ import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
 
 import {isFailedScanAmountPlaceholder} from './amountUtils';
-import getDistanceInMeters from './getDistanceInMeters';
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
 import {
-    getCategoryTaxDetails,
     getCurrency,
     hasAppliedCommuterExclusion,
     hasLocallyKnownDistance,
@@ -40,7 +35,9 @@ import {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isScanRequest,
-} from './index';
+} from './fields';
+import getDistanceInMeters from './getDistanceInMeters';
+import {getCategoryTaxDetails} from './tax';
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
     return {
