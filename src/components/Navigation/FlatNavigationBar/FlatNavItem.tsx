@@ -1,5 +1,6 @@
 import Icon from '@components/Icon';
 import getTabIconFill from '@components/Navigation/NavigationTabBar/getTabIconFill';
+import {useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
@@ -17,6 +18,7 @@ import type {ColorValue} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import FlatNavMarqueeLabel from './FlatNavMarqueeLabel';
 
@@ -67,6 +69,9 @@ type FlatNavItemProps = {
 
     /** Control revealed at the row's end while it is hovered, such as a saved search's menu */
     hoverActionComponent?: React.ReactNode;
+
+    /** Narrows the row to its icon, as the collapsed bar does. The label stays mounted and fades. */
+    isCollapsed?: boolean;
 };
 
 /** Full-width row of the flat navigation bar: an icon or avatar, then the destination's label. */
@@ -88,10 +93,13 @@ function FlatNavItem({
     isLastSubItem = false,
     shouldShowTooltipWhenTruncated = false,
     hoverActionComponent,
+    isCollapsed = false,
 }: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    // The label stays mounted while the bar narrows, so it fades out rather than disappearing on the first frame.
+    const collapseFadeStyle = useSearchSidebarCollapseFadeStyle();
 
     const getRowBackgroundStyle = (isHovered: boolean) => {
         if (isSelected) {
@@ -115,7 +123,7 @@ function FlatNavItem({
                 const rowBackgroundColor = getRowBackgroundStyle(hovered)?.backgroundColor;
                 return (
                     <>
-                        {isSubItem && (
+                        {isSubItem && !isCollapsed && (
                             <View
                                 style={[
                                     styles.flatNavigationBarSubItemRule,
@@ -146,24 +154,27 @@ function FlatNavItem({
                             </View>
                         )}
                         {renderLeftElement?.({backgroundColor: rowBackgroundColor})}
-                        {shouldShowTooltipWhenTruncated ? (
-                            <FlatNavMarqueeLabel
-                                text={label}
-                                isHovered={hovered}
-                                style={[styles.flex1, !isSelected && styles.flatNavigationBarLabelRegular, {color: isSelected || hovered ? theme.text : theme.textSupporting}]}
-                            />
-                        ) : (
-                            <Text
-                                variant={isSelected ? 'textStrong' : 'text'}
-                                color={isSelected || hovered ? theme.text : theme.textSupporting}
-                                numberOfLines={1}
-                                style={styles.flex1}
-                            >
-                                {label}
-                            </Text>
+                        <Animated.View style={[styles.flex1, collapseFadeStyle]}>
+                            {shouldShowTooltipWhenTruncated ? (
+                                <FlatNavMarqueeLabel
+                                    text={label}
+                                    isHovered={hovered}
+                                    style={[styles.flex1, !isSelected && styles.flatNavigationBarLabelRegular, {color: isSelected || hovered ? theme.text : theme.textSupporting}]}
+                                />
+                            ) : (
+                                <Text
+                                    variant={isSelected ? 'textStrong' : 'text'}
+                                    color={isSelected || hovered ? theme.text : theme.textSupporting}
+                                    numberOfLines={1}
+                                >
+                                    {label}
+                                </Text>
+                            )}
+                        </Animated.View>
+                        {!isCollapsed && !!hoverActionComponent && (
+                            <View style={hovered ? styles.flatNavigationBarRowAction : styles.flatNavigationBarRowActionHidden}>{hoverActionComponent}</View>
                         )}
-                        {!!hoverActionComponent && <View style={hovered ? styles.flatNavigationBarRowAction : styles.flatNavigationBarRowActionHidden}>{hoverActionComponent}</View>}
-                        {rightElement}
+                        {!isCollapsed && rightElement}
                     </>
                 );
             }}

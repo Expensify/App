@@ -1,6 +1,6 @@
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
 import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
-import {getNavigationBarWidth} from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
+import useNavigationBarWidth from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
 import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -37,7 +37,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
-    const navigationBarWidth = getNavigationBarWidth(shouldUseFlatNavigationBar);
+    const navigationBarWidth = useNavigationBarWidth();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const isAtRoot = isTabRouteAtRoot(activeRoute);

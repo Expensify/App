@@ -1,5 +1,9 @@
+import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
+import SidebarRightIcon from '@assets/images/sidebar-right.svg';
+
 import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
 import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import getTabAccessibilityLabel from '@components/Navigation/NavigationTabBar/getTabAccessibilityLabel';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -8,6 +12,14 @@ import useHomeTabNavigation from '@components/Navigation/NavigationTabBar/useHom
 import useInsightsTabNavigation from '@components/Navigation/NavigationTabBar/useInsightsTabNavigation';
 import useSearchTabNavigation from '@components/Navigation/NavigationTabBar/useSearchTabNavigation';
 import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useWideInboxNavigation';
+import {
+    useFlatNavigationBarLayoutWidthStyle,
+    useFlatNavigationBarPeekShadowStyle,
+    useFlatNavigationBarVisualWidthStyle,
+    useSearchSidebarCollapse,
+    useSearchSidebarCollapseFadeStyle,
+} from '@components/Navigation/SearchSidebarCollapseStore';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
@@ -17,7 +29,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
@@ -42,6 +53,7 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import FlatNavAccountStatus from './FlatNavAccountStatus';
 import FlatNavCreateButton from './FlatNavCreateButton';
@@ -82,7 +94,6 @@ type FlatNavigationBarProps = {
 function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'ReceiptMultiple', 'PieChart', 'Buildings', 'Concierge', 'Coins', 'InvoiceGeneric', 'LuggageWithLines']);
@@ -95,6 +106,12 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const {status: inboxStatus, indicatorColor: inboxIndicatorColor} = useInboxTabIndicatorStatus();
     const {status: workspacesStatus, indicatorColor: workspacesIndicatorColor} = useWorkspacesTabIndicatorStatus();
     const {status: accountStatus} = useAccountTabIndicatorStatus();
+
+    const {isCollapsed, isVisuallyCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const layoutWidthStyle = useFlatNavigationBarLayoutWidthStyle();
+    const visualWidthStyle = useFlatNavigationBarVisualWidthStyle();
+    const logoFadeStyle = useSearchSidebarCollapseFadeStyle();
+    const peekShadowStyle = useFlatNavigationBarPeekShadowStyle();
 
     const hasUnreadConciergeMessageSelector = makeHasUnreadConciergeMessageSelector(currentUserPersonalDetails.accountID, conciergeReportID);
     const [hasUnreadConciergeMessage = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasUnreadConciergeMessageSelector});
@@ -130,112 +147,148 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     return (
         <>
             {!!isDebugModeEnabled && <DebugTabView selectedTab={selectedTab} />}
-            <Hoverable shouldUseNativeHoverEvents>
-                {(isBarHovered) => (
-                    <View
-                        style={[styles.flatNavigationBarContainer, StyleUtils.getWidthStyle(variables.flatNavigationBarWidth)]}
-                        testID="FlatNavigationBar"
-                    >
-                        <View style={styles.flatNavigationBarHeader}>
-                            <FlatNavLogo onPress={navigateToHome} />
-                        </View>
-                        <View style={styles.flatNavigationBarCreateButtonContainer}>
-                            <FlatNavCreateButton />
-                        </View>
-                        <ScrollView
-                            style={styles.flex1}
-                            showsVerticalScrollIndicator={false}
+            <Animated.View style={layoutWidthStyle}>
+                <Hoverable
+                    shouldUseNativeHoverEvents
+                    onHoverOut={endPeek}
+                >
+                    {(isBarHovered) => (
+                        <Animated.View
+                            style={[styles.flatNavigationBarContainer, styles.stickToLeft, styles.zIndex1, visualWidthStyle]}
+                            testID="FlatNavigationBar"
                         >
-                            <FlatNavItem
-                                label={translate('common.home')}
-                                icon={icons.Home}
-                                isSelected={isHomeSelected}
-                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
-                                onPress={navigateToHome}
+                            {/* Its own layer so the shadow can fade on its own while the bar peeks over the content. */}
+                            <Animated.View
+                                style={[styles.flatNavigationBarPeekShadow, peekShadowStyle]}
+                                pointerEvents="none"
                             />
-                            {shouldShowAskConciergeNavItem && (
-                                <FlatNavItem
-                                    label="Concierge"
-                                    icon={icons.Concierge}
-                                    isSelected={selectedTab === NAVIGATION_TABS.ASK_CONCIERGE}
-                                    statusIndicatorColor={hasUnreadConciergeMessage ? theme.iconSuccessFill : undefined}
-                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
-                                    onPress={navigateToAskConcierge}
-                                />
-                            )}
-                            <FlatNavItem
-                                label={translate('common.inbox')}
-                                icon={icons.Inbox}
-                                isSelected={selectedTab === NAVIGATION_TABS.INBOX}
-                                statusIndicatorColor={inboxStatus ? inboxIndicatorColor : undefined}
-                                accessibilityLabel={getTabAccessibilityLabel(translate('common.inbox'), !!inboxStatus, translate)}
-                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
-                                onPress={navigateToInbox}
-                            />
-                            <FlatNavDivider />
-                            <FlatNavItem
-                                label={translate('common.spend')}
-                                icon={icons.ReceiptMultiple}
-                                isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
-                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
-                                onPress={navigateToSearch}
-                                onHoverIn={() => setIsSearchTabHovered(true)}
-                                onHoverOut={() => setIsSearchTabHovered(false)}
-                            />
-                            <FlatNavItem
-                                label={translate('common.insights')}
-                                icon={icons.PieChart}
-                                isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
-                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
-                                onPress={navigateToInsights}
-                            />
-                            {shouldShowExtraNavItems &&
-                                PLACEHOLDER_DESTINATIONS.map(({label, iconName}) => (
-                                    <FlatNavItem
-                                        key={label}
-                                        label={label}
-                                        icon={icons[iconName]}
-                                        isSelected={false}
-                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
-                                        onPress={() => {}}
+                            <View style={[styles.flatNavigationBarHeader, isVisuallyCollapsed && styles.flatNavigationBarHeaderCollapsed]}>
+                                <Animated.View style={[styles.flatNavigationBarLogoContainer, logoFadeStyle]}>
+                                    <FlatNavLogo onPress={navigateToHome} />
+                                </Animated.View>
+                                <PressableWithFeedback
+                                    onPress={toggleSidebar}
+                                    role={CONST.ROLE.BUTTON}
+                                    accessibilityLabel={translate(isCollapsed ? 'reportActionCompose.expand' : 'reportActionCompose.collapse')}
+                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.COLLAPSE}
+                                    style={styles.flatNavigationBarCollapseButton}
+                                >
+                                    <Icon
+                                        src={isCollapsed ? SidebarRightIcon : SidebarLeftIcon}
+                                        fill={theme.icon}
+                                        width={variables.iconSizeNormal}
+                                        height={variables.iconSizeNormal}
                                     />
-                                ))}
-                            <FlatNavDivider />
-                            <FlatNavItem
-                                label={translate('common.workspacesTabTitle')}
-                                icon={icons.Buildings}
-                                isSelected={selectedTab === NAVIGATION_TABS.WORKSPACES}
-                                statusIndicatorColor={workspacesStatus ? workspacesIndicatorColor : undefined}
-                                accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesStatus, translate)}
-                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
-                                onPress={navigateToWorkspaces}
-                            />
-                        </ScrollView>
-                        <View style={styles.pb3}>
-                            <View style={[styles.flexRow, styles.ph3]}>
-                                <SupportalSwitcherButton isSidebarHovered={isBarHovered} />
+                                </PressableWithFeedback>
                             </View>
-                            <FlatNavDivider />
-                            <FlatNavItem
-                                label={accountLabel}
-                                renderLeftElement={({backgroundColor}) => (
-                                    <AccountNavigationAvatar
-                                        isSelected={isAccountSelected}
-                                        badgeBorderColor={backgroundColor}
-                                        shouldShowStatus={false}
+                            <View style={styles.flatNavigationBarCreateButtonContainer}>
+                                <FlatNavCreateButton />
+                            </View>
+                            <Hoverable onHoverIn={startPeek}>
+                                <ScrollView
+                                    style={styles.flex1}
+                                    showsVerticalScrollIndicator={false}
+                                >
+                                    <FlatNavItem
+                                        isCollapsed={isVisuallyCollapsed}
+                                        label={translate('common.home')}
+                                        icon={icons.Home}
+                                        isSelected={isHomeSelected}
+                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                                        onPress={navigateToHome}
                                     />
-                                )}
-                                rightElement={<FlatNavAccountStatus />}
-                                isSelected={isAccountSelected}
-                                isTall
-                                accessibilityLabel={getTabAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus, translate)}
-                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
-                                onPress={navigateToAccount}
-                            />
-                        </View>
-                    </View>
-                )}
-            </Hoverable>
+                                    {shouldShowAskConciergeNavItem && (
+                                        <FlatNavItem
+                                            isCollapsed={isVisuallyCollapsed}
+                                            label="Concierge"
+                                            icon={icons.Concierge}
+                                            isSelected={selectedTab === NAVIGATION_TABS.ASK_CONCIERGE}
+                                            statusIndicatorColor={hasUnreadConciergeMessage ? theme.iconSuccessFill : undefined}
+                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                                            onPress={navigateToAskConcierge}
+                                        />
+                                    )}
+                                    <FlatNavItem
+                                        isCollapsed={isVisuallyCollapsed}
+                                        label={translate('common.inbox')}
+                                        icon={icons.Inbox}
+                                        isSelected={selectedTab === NAVIGATION_TABS.INBOX}
+                                        statusIndicatorColor={inboxStatus ? inboxIndicatorColor : undefined}
+                                        accessibilityLabel={getTabAccessibilityLabel(translate('common.inbox'), !!inboxStatus, translate)}
+                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
+                                        onPress={navigateToInbox}
+                                    />
+                                    <FlatNavDivider />
+                                    <FlatNavItem
+                                        isCollapsed={isVisuallyCollapsed}
+                                        label={translate('common.spend')}
+                                        icon={icons.ReceiptMultiple}
+                                        isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
+                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
+                                        onPress={navigateToSearch}
+                                        onHoverIn={() => setIsSearchTabHovered(true)}
+                                        onHoverOut={() => setIsSearchTabHovered(false)}
+                                    />
+                                    <FlatNavItem
+                                        isCollapsed={isVisuallyCollapsed}
+                                        label={translate('common.insights')}
+                                        icon={icons.PieChart}
+                                        isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
+                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
+                                        onPress={navigateToInsights}
+                                    />
+                                    {shouldShowExtraNavItems &&
+                                        PLACEHOLDER_DESTINATIONS.map(({label, iconName}) => (
+                                            <FlatNavItem
+                                                isCollapsed={isVisuallyCollapsed}
+                                                key={label}
+                                                label={label}
+                                                icon={icons[iconName]}
+                                                isSelected={false}
+                                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                                                onPress={() => {}}
+                                            />
+                                        ))}
+                                    <FlatNavDivider />
+                                    <FlatNavItem
+                                        isCollapsed={isVisuallyCollapsed}
+                                        label={translate('common.workspacesTabTitle')}
+                                        icon={icons.Buildings}
+                                        isSelected={selectedTab === NAVIGATION_TABS.WORKSPACES}
+                                        statusIndicatorColor={workspacesStatus ? workspacesIndicatorColor : undefined}
+                                        accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesStatus, translate)}
+                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
+                                        onPress={navigateToWorkspaces}
+                                    />
+                                </ScrollView>
+                            </Hoverable>
+                            <View style={styles.pb3}>
+                                <View style={[styles.flexRow, styles.ph3]}>
+                                    <SupportalSwitcherButton isSidebarHovered={isBarHovered} />
+                                </View>
+                                <FlatNavDivider />
+                                <FlatNavItem
+                                    isCollapsed={isVisuallyCollapsed}
+                                    label={accountLabel}
+                                    renderLeftElement={({backgroundColor}) => (
+                                        <AccountNavigationAvatar
+                                            isSelected={isAccountSelected}
+                                            badgeBorderColor={backgroundColor}
+                                            shouldShowStatus={false}
+                                        />
+                                    )}
+                                    rightElement={<FlatNavAccountStatus />}
+                                    isSelected={isAccountSelected}
+                                    isTall
+                                    accessibilityLabel={getTabAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus, translate)}
+                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
+                                    onPress={navigateToAccount}
+                                />
+                            </View>
+                        </Animated.View>
+                    )}
+                </Hoverable>
+            </Animated.View>
         </>
     );
 }

@@ -1,7 +1,7 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import Header from '@components/Header/Header';
-import HeaderRight from '@components/Header/layout/HeaderRight';
 import HeaderBackButton from '@components/Header/primitives/HeaderBackButton';
 import HeaderTitle from '@components/Header/primitives/HeaderTitle';
 import Icon from '@components/Icon';
@@ -158,7 +158,6 @@ function AskConciergeSidebar({threads, selectedReportID, onAskNewQuestion, onSel
                         title="Recents"
                         titleStyles={styles.askConciergeSidebarTitle}
                     />
-                    <HeaderRight>{newQuestionButton}</HeaderRight>
                 </Header>
             ) : (
                 <TopBarWithLoadingBar
@@ -200,6 +199,19 @@ function AskConciergeSidebar({threads, selectedReportID, onAskNewQuestion, onSel
                         />
                     ))}
                 </ScrollView>
+            )}
+            {shouldUsePageHeader && (
+                <FixedFooter addBottomSafeAreaPadding>
+                    <Button
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={onAskNewQuestion}
+                        sentryLabel={CONST.SENTRY_LABEL.ASK_CONCIERGE.NEW_QUESTION}
+                    >
+                        <Button.Icon src={icons.Plus} />
+                        <Button.Text>New chat</Button.Text>
+                    </Button>
+                </FixedFooter>
             )}
         </View>
     );

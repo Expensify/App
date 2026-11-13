@@ -361,6 +361,23 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeReportID}));
     };
 
+    const newConciergeChatIconButton = (
+        <Tooltip text={translate('common.concierge.newChat')}>
+            <PressableWithoutFeedback
+                onPress={startNewConciergeChat}
+                style={[styles.touchableButtonImage]}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.concierge.newChat')}
+                sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.NEW_CONCIERGE_CHAT_BUTTON}
+            >
+                <Icon
+                    src={icons.Plus}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
+    );
+
     const newConciergeChatButton = (
         <Button
             sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.NEW_CONCIERGE_CHAT_BUTTON}
@@ -401,7 +418,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // side-panel chrome: no search button, no help dropdown/banners, close instead of back.
     const isAgentReportInRHP = route.name === SCREENS.RIGHT_MODAL.AGENT_REPORT;
     const shouldMirrorSidePanelHeader = isInSidePanel || isAgentReportInRHP;
-    const shouldDisplaySearchRouter = !shouldMirrorSidePanelHeader && (!isReportInRHP || isSmallScreenWidth);
+    // A Concierge screen on narrow already carries the new chat and history buttons, so search and the side panel
+    // would crowd the header rather than add anything.
+    const isNarrowConciergeScreen = (isConciergeChat || isConciergeThread) && shouldUseNarrowLayout;
+    const shouldDisplaySearchRouter = !shouldMirrorSidePanelHeader && !isNarrowConciergeScreen && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar =
@@ -555,7 +575,13 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {shouldShowConciergeHistoryButton && conciergeHistoryButton}
+                                    {shouldShowConciergeHistoryButton && (
+                                        // The pair reads as one control, so they sit flush rather than taking the row's gap.
+                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                            {newConciergeChatIconButton}
+                                            {conciergeHistoryButton}
+                                        </View>
+                                    )}
                                     {!isInSidePanel && isConciergeThread && !shouldUseNarrowLayout && newConciergeChatButton}
                                     {shouldShowCallAction && !shouldStackCallAction && callActionButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
@@ -586,7 +612,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     </Tooltip>
                                 )}
                                 {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
-                                {!shouldMirrorSidePanelHeader && !isConciergeChat && !isInAskConcierge && <SidePanelButton />}
+                                {!shouldMirrorSidePanelHeader && !isConciergeChat && !isNarrowConciergeScreen && !isInAskConcierge && <SidePanelButton />}
                             </View>
                         </View>
                     )}
@@ -594,7 +620,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, shouldUseCompactJoinRow ? styles.pb1 : styles.pb2]}>{joinButton}</View>
                 )}
-                {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, stackedRowBottomPadding]}>{newConciergeChatButton}</View>}
                 {shouldGroupConciergeActions && (
                     <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.ph5, stackedRowBottomPadding]}>
                         <View style={[styles.flex1, styles.minWidthAuto, styles.mw100]}>{callActionButton}</View>

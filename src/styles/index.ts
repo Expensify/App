@@ -920,8 +920,12 @@ const staticStyles = (theme: ThemeColors) =>
         flatNavigationBarHeader: {
             flexDirection: 'row',
             alignItems: 'center',
+            // The wordmark is absolutely positioned, so the collapse toggle is the only child in flow and sits at the end.
+            justifyContent: 'flex-end',
+            overflow: 'hidden',
             height: variables.flatNavigationBarHeaderHeight,
             paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+            paddingRight: variables.flatNavigationBarHeaderPaddingRight,
         },
 
         flatNavigationBarCreateButtonContainer: {
