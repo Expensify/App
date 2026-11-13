@@ -12,6 +12,7 @@ import mergeRefs from '@libs/mergeRefs';
 import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusReturn';
 
 import CONST from '@src/CONST';
+import type {ViewKeyDownEvent} from '@src/types/utils/ReactNativeCompat';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
@@ -166,13 +167,13 @@ function GenericPressable({
      * Otherwise, for elements with role="link", it triggers onPress when Enter is pressed
      * to comply with W3C APG Link Pattern (https://www.w3.org/WAI/ARIA/apg/patterns/link/).
      */
-    const handleKeyDown = (event: React.KeyboardEvent) => {
+    const handleKeyDown = (event: ViewKeyDownEvent) => {
         if (onKeyDown) {
-            onKeyDown(event as unknown as React.KeyboardEvent<Element>);
+            onKeyDown(event);
             return;
         }
 
-        if (isRoleLink && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+        if (isRoleLink && event.nativeEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             event.preventDefault();
             onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
         }

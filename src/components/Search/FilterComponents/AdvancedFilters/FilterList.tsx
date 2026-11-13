@@ -59,8 +59,11 @@ type FilterListProps = FilterItemCallbacks & {
     /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
     onPointerMove?: (event: {clientX: number; clientY: number}) => void;
 
-    /** Called when the cursor leaves the list, so the consumer can settle whatever it was still waiting on for the last row. Web only. */
-    onPointerLeave?: (event: {clientX: number}) => void;
+    /**
+     * Called when the cursor leaves the list, so the consumer can settle whatever it was still waiting on for the last row. Web only.
+     * It gets the list's mouse leave event, which keeps the position in `nativeEvent` under the Strict TypeScript API.
+     */
+    onPointerLeave?: (event: {nativeEvent: {clientX: number}}) => void;
 };
 
 type FilterItemProps = FilterItemCallbacks & {

@@ -18,6 +18,7 @@ import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {ViewKeyDownEvent} from '@src/types/utils/ReactNativeCompat';
 
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
@@ -76,14 +77,14 @@ function ListItemPressable<TItem extends ListItem>({
     // When the list-level keyboard shortcut is disabled (disableKeyboardShortcuts), we handle
     // Enter activation here at the item level so each row can still be activated individually
     // without interfering with other focusable controls (e.g. footer inputs) on the same screen.
-    const selectRowOnEnterKey = (event: React.KeyboardEvent) => {
+    const selectRowOnEnterKey = (event: ViewKeyDownEvent) => {
         if (
             shouldPreventEnterKeySubmit ||
             accessible === false ||
-            event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey ||
-            event.shiftKey ||
-            event.metaKey ||
-            event.ctrlKey ||
+            event.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey ||
+            event.nativeEvent.shiftKey ||
+            event.nativeEvent.metaKey ||
+            event.nativeEvent.ctrlKey ||
             item.isInteractive === false
         ) {
             return;
