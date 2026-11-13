@@ -158,4 +158,33 @@ describe('SearchSidebarCollapseStore', () => {
         // Then the endPeek reference is identical, so the bar's unmount cleanup that depends on it does not end a peek on every render
         expect(result.current.endPeek).toBe(initialEndPeek);
     });
+
+    it('does not re-render a surface when another surface peeks', async () => {
+        // Given both surfaces collapsed
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            await waitForBatchedUpdates();
+        });
+        const {result: barResult} = renderHook(() => useSearchSidebarCollapse(COLLAPSE_SURFACE.NAVIGATION_BAR));
+        let spendRenderCount = 0;
+        renderHook(() => {
+            spendRenderCount++;
+            return useSearchSidebarCollapse(COLLAPSE_SURFACE.SEARCH_SIDEBAR);
+        });
+        await waitForBatchedUpdates();
+        const initialSpendRenderCount = spendRenderCount;
+
+        // When the navigation bar peeks and collapses back
+        act(() => {
+            barResult.current.startPeek();
+        });
+        await waitForBatchedUpdates();
+        act(() => {
+            barResult.current.endPeek();
+        });
+        await waitForBatchedUpdates();
+
+        // Then Spend consumers do not re-render because their peek snapshot boolean did not change
+        expect(spendRenderCount).toBe(initialSpendRenderCount);
+    });
 });

@@ -53,10 +53,6 @@ function notify() {
     }
 }
 
-function getPeekSnapshot() {
-    return peekingSurface;
-}
-
 function getSearchSidebarWidth(progress: number) {
     return variables.searchSidebarExpandedWidth + (variables.searchSidebarCollapsedWidth - variables.searchSidebarExpandedWidth) * progress;
 }
@@ -85,6 +81,11 @@ function endPeek(surface: CollapseSurface) {
     notify();
 }
 
+const isSurfacePeekingSnapshots: Record<CollapseSurface, () => boolean> = {
+    [COLLAPSE_SURFACE.NAVIGATION_BAR]: () => peekingSurface === COLLAPSE_SURFACE.NAVIGATION_BAR,
+    [COLLAPSE_SURFACE.SEARCH_SIDEBAR]: () => peekingSurface === COLLAPSE_SURFACE.SEARCH_SIDEBAR,
+};
+
 const endPeekBySurface: Record<CollapseSurface, () => void> = {
     [COLLAPSE_SURFACE.NAVIGATION_BAR]: () => endPeek(COLLAPSE_SURFACE.NAVIGATION_BAR),
     [COLLAPSE_SURFACE.SEARCH_SIDEBAR]: () => endPeek(COLLAPSE_SURFACE.SEARCH_SIDEBAR),
@@ -93,7 +94,8 @@ const endPeekBySurface: Record<CollapseSurface, () => void> = {
 function useSearchSidebarCollapse(surface: CollapseSurface = COLLAPSE_SURFACE.SEARCH_SIDEBAR) {
     const [searchSidebarNVP] = useOnyx(ONYXKEYS.NVP_SEARCH_SIDEBAR);
     const collapsed = searchSidebarNVP?.isCollapsed ?? false;
-    const peeking = useSyncExternalStore(subscribe, getPeekSnapshot, getPeekSnapshot) === surface;
+    const isSurfacePeekingSnapshot = isSurfacePeekingSnapshots[surface];
+    const peeking = useSyncExternalStore(subscribe, isSurfacePeekingSnapshot, isSurfacePeekingSnapshot);
     const toggleSidebar = () => setSearchSidebarCollapsed(!collapsed);
     const startSurfacePeek = () => startPeek(surface, collapsed);
 
