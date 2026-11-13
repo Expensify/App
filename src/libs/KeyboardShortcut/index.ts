@@ -78,7 +78,9 @@ function getDisplayName(key: string, modifiers: string | string[]): string {
         displayName = [...modifiers.sort(), ...displayName];
     }
 
-    displayName = displayName.map((modifier) => CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME[modifier.toUpperCase() as keyof typeof CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME] ?? modifier);
+    // Any key can reach here, so read the display names as a string-keyed map; keys without one keep their own name.
+    const keyDisplayNames: Partial<Record<string, string>> = CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME;
+    displayName = displayName.map((modifier) => keyDisplayNames[modifier.toUpperCase()] ?? modifier);
 
     return displayName.join(' + ');
 }
@@ -89,7 +91,9 @@ for (const shortcut of Object.values(CONST.KEYBOARD_SHORTCUTS)) {
         continue;
     }
 
-    const shortcutTrigger = (operatingSystem && shortcut.trigger[operatingSystem as keyof typeof shortcut.trigger]) ?? shortcut.trigger.DEFAULT;
+    // Most shortcuts only define a DEFAULT trigger, so read the triggers as a map where the current OS can be missing.
+    const triggers: Partial<Record<string, typeof shortcut.trigger.DEFAULT>> = shortcut.trigger;
+    const shortcutTrigger = (operatingSystem && triggers[operatingSystem]) ?? shortcut.trigger.DEFAULT;
 
     KeyCommand.addListener(shortcutTrigger, (keyCommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keyCommandEvent, event));
 }
@@ -113,8 +117,9 @@ function getPlatformEquivalentForKeys(keys: ShortcutModifiers): string[] {
             return key;
         }
 
-        const platformModifiers = CONST.PLATFORM_SPECIFIC_KEYS[key];
-        return platformModifiers?.[operatingSystem as keyof typeof platformModifiers] ?? platformModifiers.DEFAULT ?? key;
+        // Only some keys have a value for the current OS, so read them as a map where the OS can be missing.
+        const platformModifiers: Partial<Record<string, string>> = CONST.PLATFORM_SPECIFIC_KEYS[key];
+        return (operatingSystem && platformModifiers[operatingSystem]) ?? platformModifiers.DEFAULT ?? key;
     });
 }
 
