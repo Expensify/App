@@ -17,7 +17,15 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isCardAlreadyAssigned, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
+import {
+    getCompanyCardFeed,
+    getDomainOrWorkspaceAccountID,
+    getPlaidCountryForFeed,
+    getPlaidInstitutionId,
+    isCardAlreadyAssigned,
+    isSelectedFeedExpired,
+    maskCardNumber,
+} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -112,7 +120,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
         if (isFeedExpired) {
             if (institutionId) {
-                const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+                const country = getPlaidCountryForFeed(companyCardFeedData?.country, policy?.outputCurrency, currencyList, countryByIp);
                 setAddNewCompanyCardStepAndData({
                     data: {
                         selectedCountry: country,
