@@ -215,6 +215,7 @@ import {
     isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
+    isReportTransactionThreadNew,
     isResolvedSupportTicket,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
@@ -297,6 +298,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {addDays, format as formatDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
@@ -32014,5 +32016,45 @@ describe('isExportInProgress', () => {
         // When checking whether the export is running
         // Then it is not, because no outcome will ever arrive and the button must not stay hidden
         expect(isExportInProgress(reportActions)).toBe(false);
+    });
+});
+
+describe('isReportTransactionThreadNew', () => {
+    const thread = {parentReportID: '1', parentReportActionID: '2'};
+    const buildIOUAction = (type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>) =>
+        ({
+            ...createRandomReportAction(2),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- the backend still sends originalMessage on report actions
+            originalMessage: {type, amount: 100, currency: 'USD', IOUTransactionID: '3'},
+        }) as ReportAction;
+
+    it('is true for an expense thread under an expense report', () => {
+        // Given a thread whose parent is an expense report and whose parent action created the expense
+        // When checking it with the parent data passed in
+        // Then it is a transaction thread, without reading the parent from Onyx
+        expect(isReportTransactionThreadNew(thread, {type: CONST.REPORT.TYPE.EXPENSE}, buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE))).toBe(true);
+    });
+
+    it('is true for a tracked expense thread under the self DM', () => {
+        // Given a thread whose parent is the self DM and whose parent action tracked the expense
+        // When checking it
+        // Then it is a transaction thread
+        expect(isReportTransactionThreadNew(thread, {chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}, buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.TRACK))).toBe(true);
+    });
+
+    it('is false while the parent report or action is not loaded', () => {
+        // Given a thread whose parent data has not arrived yet
+        // When checking it
+        // Then it is not a transaction thread yet, so callers recheck once the parent loads
+        expect(isReportTransactionThreadNew(thread, undefined, buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE))).toBe(false);
+        expect(isReportTransactionThreadNew(thread, {type: CONST.REPORT.TYPE.EXPENSE}, undefined)).toBe(false);
+    });
+
+    it('is false for a report that is not a thread', () => {
+        // Given a report with no parent action
+        // When checking it
+        // Then it is not a transaction thread
+        expect(isReportTransactionThreadNew({parentReportID: '1'}, {type: CONST.REPORT.TYPE.EXPENSE}, buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE))).toBe(false);
     });
 });

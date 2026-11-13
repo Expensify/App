@@ -3079,6 +3079,23 @@ function isReportTransactionThread(report: OnyxEntry<Report>) {
 }
 
 /**
+ * Same as isReportTransactionThread, but takes the parent report and action so callers can subscribe to them
+ */
+function isReportTransactionThreadNew(
+    report: OnyxEntry<Pick<Report, 'parentReportID' | 'parentReportActionID'>>,
+    parentReport: OnyxEntry<Pick<Report, 'type' | 'chatType'>>,
+    parentReportAction: OnyxEntry<ReportAction>,
+) {
+    if (!report?.parentReportID || !report.parentReportActionID || isEmptyObject(parentReportAction)) {
+        return false;
+    }
+    if (parentReport?.type === CONST.REPORT.TYPE.IOU || parentReport?.type === CONST.REPORT.TYPE.EXPENSE) {
+        return isTransactionThread(parentReportAction);
+    }
+    return parentReport?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM && isTrackExpenseAction(parentReportAction);
+}
+
+/**
  * Get displayed report ID, it will be parentReportID if the report is one transaction thread
  */
 function getDisplayedReportID(reportID: string, isOffline: boolean, parentReportActions?: OnyxEntry<ReportActions> | ReportAction[]): string {
@@ -16175,6 +16192,7 @@ export {
     isNewDotInvoice,
     isOpenInvoiceReport,
     isReportTransactionThread,
+    isReportTransactionThreadNew,
     getDefaultNotificationPreferenceForReport,
     canWriteInReport,
     navigateToDetailsPage,
