@@ -10,7 +10,9 @@ import type ReportActionItem from '@pages/inbox/report/ReportActionItem';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -48,14 +50,14 @@ const conciergeComment = createComment('100', CONST.ACCOUNT_ID.CONCIERGE, '2026-
 const olderAgentComment = createComment('200', AGENT_ACCOUNT_ID, '2026-09-02 00:00:00.000');
 const newerAgentComment = createComment('300', AGENT_ACCOUNT_ID, '2026-09-03 00:00:00.000');
 
-async function renderParentAction(reportAction: ReportAction, currentUserAccountID = CURRENT_USER_ACCOUNT_ID) {
+async function renderParentAction(reportAction: ReportAction, currentUserAccountID = CURRENT_USER_ACCOUNT_ID, reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
             <AncestorReportActionItem
                 report={parentReport}
                 reportAction={reportAction}
                 shouldDisplayNewMarker={false}
-                reportNameValuePairs={undefined}
+                reportNameValuePairs={reportNameValuePairs}
                 conciergePersonalDetail={undefined}
                 conciergeReportID={undefined}
                 currentUserAccountID={currentUserAccountID}
@@ -115,6 +117,32 @@ describe('AncestorReportActionItem feedback prompt', () => {
         // When a thread on the agent's older comment opens
         // Then only the agent's newest comment can be rated
         expect(await renderParentAction(olderAgentComment)).toBe(false);
+    });
+
+    it('shows no prompt on a Concierge message inside a feedback thread', async () => {
+        // Given the parent message belongs to a feedback thread, where Concierge should not ask for feedback again
+        const reportNameValuePairs = {
+            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${PARENT_REPORT_ID}`]: {conciergeFeedbackForReportActionID: 'originalAnswer'},
+        };
+
+        // When a nested thread opens on the latest Concierge message in that feedback thread
+        const shouldShowPrompt = await renderParentAction(conciergeComment, CURRENT_USER_ACCOUNT_ID, reportNameValuePairs);
+
+        // Then the parent message does not offer another feedback prompt
+        expect(shouldShowPrompt).toBe(false);
+    });
+
+    it('keeps the original answer prompt when only its child thread is marked for feedback', async () => {
+        // Given a feedback marker on the child thread, not the report containing the original answer
+        const reportNameValuePairs = {
+            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}200002`]: {conciergeFeedbackForReportActionID: conciergeComment.reportActionID},
+        };
+
+        // When the original answer is shown above that thread after its reaction was removed
+        const shouldShowPrompt = await renderParentAction(conciergeComment, CURRENT_USER_ACCOUNT_ID, reportNameValuePairs);
+
+        // Then the child's persistent feedback marker does not hide the original answer's prompt
+        expect(shouldShowPrompt).toBe(true);
     });
 
     it('shows no prompt to the agent itself when the agent account is open through Copilot', async () => {
