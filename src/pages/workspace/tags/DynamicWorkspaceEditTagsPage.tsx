@@ -9,6 +9,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,6 +44,7 @@ function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps
     const {inputCallbackRef} = useAutoFocusInput();
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.path : DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.path);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const validateTagName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM> = {};
@@ -66,7 +68,13 @@ function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps
 
     const updateTagListName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
         if (values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
-            renamePolicyTagList(route.params.policyID, {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, orderWeight);
+            renamePolicyTagList(
+                route.params.policyID,
+                {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]},
+                policyTags,
+                orderWeight,
+                getReviewWorkspaceSettingsTaskCompletion(),
+            );
         }
         goBackToTagsSettings();
     };

@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -73,6 +74,7 @@ function useDebugTabViewHeight(): number {
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
+        case CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR:
             return 'debug.indicatorStatus.theresAWorkspaceWithCustomUnitsErrors';
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAWorkspaceMember';
@@ -115,6 +117,8 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
             return ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(indicatorPolicyID);
+        case CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR:
+            return ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return ROUTES.WORKSPACE_MEMBERS.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
@@ -161,8 +165,9 @@ function DebugTabView({selectedTab}: Props) {
     const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
     const {shouldHideSidePanel} = useSidePanelDisplayStatus();
     const {windowWidth} = useWindowDimensions();
+    const {sidePanelWidth} = useSidePanelState();
     const navigationBarWidth = useNavigationBarWidth();
-    const sidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel ? variables.sidePanelWidth : 0;
+    const sidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel ? sidePanelWidth : 0;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, indicatorPolicyID} = useIndicatorStatus();
@@ -263,7 +268,10 @@ function DebugTabView({selectedTab}: Props) {
                     />
                     {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
                 </View>
-                <Button onPress={navigateTo}>
+                <Button
+                    onPress={navigateTo}
+                    sentryLabel={CONST.SENTRY_LABEL.DEBUG_TAB_VIEW.VIEW_BUTTON}
+                >
                     <Button.Text>{translate('common.view')}</Button.Text>
                 </Button>
             </View>
@@ -271,5 +279,5 @@ function DebugTabView({selectedTab}: Props) {
     );
 }
 
-export {getSettingsMessage, useDebugTabViewHeight};
+export {getSettingsMessage, getSettingsRoute, useDebugTabViewHeight};
 export default DebugTabView;

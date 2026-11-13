@@ -101,15 +101,6 @@ jest.mock('@components/Text', () => {
     const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
     return ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
 });
-jest.mock('@components/MenuItem', () => {
-    const ReactModule = jest.requireActual<typeof React>('react');
-    const {Pressable, Text} = jest.requireActual<{
-        Pressable: React.ComponentType<{accessibilityLabel?: string; accessibilityRole?: string; onPress?: () => void; children?: React.ReactNode}>;
-        Text: React.ComponentType<{children?: React.ReactNode}>;
-    }>('react-native');
-    return ({title, onPress}: {title: string; onPress: () => void}) =>
-        ReactModule.createElement(Pressable, {accessibilityLabel: title, accessibilityRole: 'button', onPress}, ReactModule.createElement(Text, null, title));
-});
 jest.mock('@components/Button', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<{
@@ -243,7 +234,7 @@ describe('New rule describe section', () => {
         ];
         expect(options).toHaveLength(expectedOptionNames.length);
         for (const [index, name] of expectedOptionNames.entries()) {
-            expect(options.at(index)).toHaveAccessibleName(name);
+            expect(options.at(index)).toHaveAccessibleName(`${name}, ${name}Description`);
         }
 
         // And the describe section follows, with its own submit button

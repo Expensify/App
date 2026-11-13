@@ -23,6 +23,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
     isDM,
+    isExpenseReport,
     isSelfDM,
     navigateOnDeleteExpense,
 } from '@libs/ReportUtils';
@@ -78,6 +79,7 @@ import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
+import useSingleExpenseReportView from './useSingleExpenseReportView';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThrottledButtonState from './useThrottledButtonState';
@@ -101,7 +103,7 @@ type UseExpenseActionsReturn = {
 
 function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const theme = useTheme();
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -211,7 +213,12 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, transaction.comment.originalTransactionID).length > 1;
     const hasSplitIndicator = isExpenseSplit && hasMultipleSplits;
     const isDeletingOwnExpense = requestParentReportAction?.actorAccountID === accountID;
-    const shouldShowEditSplitOnDeleteAction = isDeletingOwnExpense && !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
+
+    // In the table view a single-expense expense report is deleted as a report, so its expense moves to the self DM.
+    // IOU and invoice reports can't be deleted as a report, so they keep deleting their only expense.
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(reportID);
+    const shouldDeleteSingleExpense = isDeletingOwnExpense && !(shouldUseTableViewForSingleExpense && isExpenseReport(moneyRequestReport));
+    const shouldShowEditSplitOnDeleteAction = shouldDeleteSingleExpense && !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
 
     // Duplicate report throttle
     const [isDuplicateReportActive, temporarilyDisableDuplicateReportAction] = useThrottledButtonState();
@@ -283,7 +290,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
-                dateFnsLocale,
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -386,7 +392,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (!currentTransaction) {
                     return;
                 }
-                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare, getCurrencyDecimals);
+                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare, translate, getCurrencyDecimals);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE]: {
@@ -394,6 +400,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (duplicateTargetPolicy && shouldRestrictUserBillableActions(duplicateTargetPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     onDuplicateReset?.();
@@ -472,7 +479,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 duplicateReportAction({
                     isVendorMatchingBetaEnabled,
-                    dateFnsLocale,
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',
@@ -556,7 +562,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             onSelected: async () => {
                 const transactionCount = Object.keys(transactions).length;
 
-                if (transactionCount === 1 && isDeletingOwnExpense) {
+                if (transactionCount === 1 && shouldDeleteSingleExpense) {
                     if (shouldShowEditSplitOnDeleteAction && transaction?.transactionID) {
                         deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
                         return;

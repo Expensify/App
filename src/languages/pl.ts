@@ -63,7 +63,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Anuluj',
         dismiss: 'Zamknij',
         resizeColumn: ({columnName}: {columnName: string}) => `Zmień szerokość kolumny ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pikseli`,
+        resizePanel: 'Zmień szerokość panelu',
+        widthInPixels: ({width}: {width: number}) => `${width} pikseli`,
         proceed: 'Kontynuuj',
         unshare: 'Cofnij udostępnianie',
         yes: 'Tak',
@@ -574,6 +575,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Brak wyników. Spróbuj zmienić filtry lub zapytanie wyszukiwania',
         unableToDisplayChart: 'Nie można wyświetlić wykresu',
         webGLNotSupported: 'Twoja przeglądarka nie obsługuje WebGL. Włącz ją albo zmień przeglądarkę.',
+        webAssemblyNotSupported: 'WebAssembly jest niedostępne w Twojej przeglądarce. Spróbuj innej przeglądarki, aby wyświetlić wykresy.',
         chartFailedToLoad: 'Nie udało się załadować wykresu. Odśwież stronę i spróbuj ponownie.',
         apiKey: 'Klucz API',
         exportsTo: 'Eksporty do',
@@ -1284,6 +1286,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Zobacz wszystko',
         topExpenses: 'Najwyższe wydatki',
         noExpensesInRange: 'Brak wydatków w tym zakresie',
+        efficiency: 'Wydajność',
+        workflowEfficiency: 'Wydajność przepływu pracy',
+        longestToSubmit: 'Najdłużej oczekujące na wysłanie',
+        slowestToApprove: 'Najwolniejszy w zatwierdzaniu',
+        mostTimeToPay: 'Najdłuższy czas na zapłatę',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -1456,6 +1463,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'lub przeciągnij i upuść tutaj',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Strona ${page} z ${pageCount}`,
+        translate: 'Przetłumacz',
+        viewOriginal: 'Zobacz oryginał',
+        translationDisclaimer: 'AI może się mylić. Sprawdź proszę oryginał.',
+        translationError: {
+            unreadable: 'Nie mogliśmy odczytać tego paragonu wystarczająco wyraźnie, aby go przetłumaczyć.',
+            alreadyInLanguage: 'Ten paragon jest już w twoim języku.',
+            generic: 'Nie udało się przetłumaczyć tego paragonu. Spróbuj ponownie.',
+        },
     },
     quickAction: {
         scanReceipt: 'Zeskanuj paragon',
@@ -2090,6 +2105,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'przywrócił ten wydatek',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `stawki za przejechany dystans zaktualizowane dla nowej przestrzeni roboczej – ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} raport`,
+                other: (count: number) => `raporty: ${formattedCount ?? count}`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2337,6 +2358,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'w ostatnią sobotę miesiąca',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'w ostatnią niedzielę miesiąca',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Ten raport zostanie wyeksportowany po ostatecznym zatwierdzeniu.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Wydatki podlegające zwrotowi zostaną wyeksportowane, gdy ten raport zostanie opłacony.',
         },
     },
     profilePage: {
@@ -3339,6 +3364,7 @@ ${amount} dla ${merchant} - ${date}`,
         disablePaymentsPrompt: 'To usunie wszystkie twoje ustawienia płatności.',
         businessBankAccountCountries: 'Kraje firmowych kont bankowych',
         businessBankAccountCountriesDescription: 'Pracownicy w tych krajach podają dane do lokalnego przelewu. Wszyscy pozostali podają dane do międzynarodowego przelewu bankowego.',
+        businessBankAccountCountriesError: 'Nie udało się zaktualizować krajów zwrotu kosztów. Spróbuj ponownie.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>W tym obszarze roboczym jest włączony niestandardowy proces zatwierdzania. Aby przejrzeć lub zmienić ten proces, skontaktuj się ze swoim <account-manager-link>opiekunem klienta</account-manager-link> lub z <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5436,6 +5462,12 @@ ${amount} dla ${merchant} - ${date}`,
             readOnlyActionPrompt: 'Twoja rola w przestrzeni roboczej może wyświetlać te ustawienia, ale nie może ich edytować.',
             noAccessActionPrompt: 'Twoja rola w tym zespole nie ma dostępu do tych ustawień. Jeśli go potrzebujesz, poproś administratora.',
             connections: 'Połączenia',
+            newRoles: 'Nowe role',
+            adminRoles: 'Role administratora',
+            otherRoles: 'Inne role',
+            roleSelectorDescription: `Przydziel rolę, aby zarządzać uprawnieniami członka w przestrzeni roboczej. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Porównaj role w przestrzeni roboczej</a>.`,
+            roleSelectorFeedback: 'Nie widzisz potrzebnej roli?',
+            roleSelectorFeedbackLink: 'Daj nam znać',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -6780,7 +6812,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     mastercard: 'Mamy globalne integracje z Mastercard, choć kwalifikowalność zależy od banku i programu kart.\n\nAby rozpocząć, po prostu:',
                     vcf: `1. Odwiedź [ten artykuł pomocy](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}), aby uzyskać szczegółowe instrukcje dotyczące konfiguracji kart Visa Commercial.
 
-2. [Skontaktuj się ze swoim bankiem](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}), aby potwierdzić, że obsługuje on firmowy kanał danych dla Twojego programu, i poproś o jego włączenie.
+2. Skontaktuj się ze swoim bankiem, aby potwierdzić, że obsługuje on firmowy kanał danych dla Twojego programu, i poproś o jego włączenie.
 
 3. *Gdy kanał zostanie włączony i będziesz mieć jego dane, przejdź do następnego ekranu.*`,
                     gl1025: `1. Odwiedź [ten artykuł pomocy](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}), aby sprawdzić, czy American Express może włączyć komercyjny kanał dla Twojego programu.
@@ -6790,7 +6822,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
 3. *Gdy masz już informacje o kanale, przejdź do następnego ekranu.*`,
                     cdf: `1. Odwiedź [ten artykuł pomocy](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}), aby uzyskać szczegółowe instrukcje dotyczące konfiguracji kart Mastercard Commercial Cards.
 
-2. [Skontaktuj się ze swoim bankiem](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}), aby potwierdzić, że obsługuje on firmowy kanał danych dla Twojego programu i poprosić o jego włączenie.
+2. Skontaktuj się ze swoim bankiem, aby potwierdzić, że obsługuje on firmowy kanał danych dla Twojego programu i poprosić o jego włączenie.
 
 3. *Gdy kanał danych zostanie włączony i będziesz mieć jego szczegóły, przejdź do następnego ekranu.*`,
                     stripe: `1. Odwiedź pulpit Stripe i przejdź do [Ustawienia](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -7805,6 +7837,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             changeOfficeLocation: 'Zmień lokalizację biura',
             changeWorkArrangement: 'Zmień tryb pracy',
             changeRole: 'Zmień rolę',
+            newRolesBanner: {
+                title: 'Nowe role dostępne',
+                subtitle: '<label-text>Daj członkom dokładnie taki dostęp, jakiego potrzebują, dzięki nowym rolom <strong>Tylko zatwierdzanie</strong> i <strong>Gość</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
@@ -7918,6 +7954,13 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 comingSoon: 'Wkrótce dostępne',
                 joinWaitlist: 'Dołącz do listy oczekujących',
                 onWaitlist: 'Jesteś na liście oczekujących',
+                waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
+            },
+            integrationWaitlist: {
+                comingSoon: 'Wkrótce dostępne',
+                joinWaitlist: 'Dołącz do listy oczekujących',
+                onWaitlist: 'Jesteś na liście oczekujących',
+                onTheList: 'Jesteś na liście!',
                 waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
             },
             setup: 'Połącz',
@@ -8326,6 +8369,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             statusExpired: 'Wygasła',
             statusInactive: 'Nieaktywna',
             unit: 'Jednostka',
+            ukFuelRateTaxError: 'Dodaj stawkę podatku 20%, aby śledzić podatek dla brytyjskich zalecanych stawek paliwowych.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Dodaj stawkę podatku 20% w ${integrationName}, aby śledzić podatek dla brytyjskich zalecanych stawek paliwowych.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Aby korzystać z tej funkcji, włącz podatki w przestrzeni roboczej. Przejdź do sekcji <a href="#">Więcej funkcji</a>, aby to zmienić.</muted-text>',
             deleteDistanceRate: 'Usuń stawkę za dystans',
@@ -9237,6 +9283,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 describeRuleForConcierge: 'Opisz swoją regułę, a Concierge ją utworzy',
                 gotIt: 'Jasne',
                 createRule: 'Utwórz regułę',
+                saveAnyway: 'Zapisz mimo to',
+                checkingRule: 'Sprawdzanie reguły...',
                 fallbackBanner:
                     'To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta. Reguły agenta są uruchamiane, gdy wydatek lub raport zostanie utworzony albo zaktualizowany.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9690,8 +9738,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
         },
         digits: {
+            entity: 'Jednostka',
             updateCurrencyTitle: 'Zaktualizować walutę przestrzeni roboczej?',
             updateCurrencyPrompt: 'Digits jest obecnie dostępny tylko dla firm z siedzibą w USA, które działają w USD.',
+            importDescription: 'Wybierz, które konfiguracje Digits zaimportować.',
+            accountTypesDescription: 'Twoje konta Digits zostaną zaimportowane jako kategorie.',
+            enableNewAccountsTitle: 'Włącz nowo zaimportowane konta',
+            enableNewAccountsDescription: 'Nowe konta Digits będą dostępne jako kategorie.',
+            dimensionsImport: 'Wszystkie wymiary Digits są importowane jako tagi.',
+            departments: 'Działy',
         },
         zohoBooks: {
             organization: 'Organizacja Zoho Books',
@@ -10074,6 +10129,29 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             return `zmienił(a) pozycjonowanie paragonów dla kategorii „${categoryName}” na ${newValue} (wcześniej ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `zmieniono nazwę kategorii „${oldName}” na „${newName}”`,
+        setCategoryVisibility: (members: string, categories: string) => `ustawiono, aby ${members} widzieli tylko ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `zmienił(a) ustawienia, aby ${members} widzieli tylko ${categories}`,
+        clearedCategoryVisibility: (members: string) => `zmieniono uprawnienia ${members}, aby widzieli wszystkie kategorie`,
+        quotedCategoryName: (categoryName: string) => `„${categoryName}”`,
+        oneCategory: (categoryName: string) => `kategorię ${categoryName}`,
+        someCategories: (categoryList: string) => `${categoryList} kategorie`,
+        everyone: 'wszyscy',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 kategorię',
+            few: `${count} kategorie`,
+            many: `${count} kategorii`,
+            other: `${count} kategorii`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 członek',
+            few: `${count} członków`,
+            many: `${count} członków`,
+            other: `${count} członków`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Kategorie: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Członkowie: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', ponieważ ich jedyna kategoria została usunięta. Zaktualizuj w razie potrzeby widoczność ich kategorii.',
+        categoryVisibilityReasonDisabled: ', ponieważ ich jedyna kategoria została wyłączona. Zaktualizuj widoczność ich kategorii, jeśli to konieczne.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `usunięto podpowiedź opisu „${oldValue}” z kategorii „${categoryName}”`;
@@ -10798,6 +10876,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         columns: 'Kolumny',
         editColumns: 'Edytuj kolumny',
         resetColumns: 'Resetuj kolumny',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Opcje kolumny ${columnName}`,
+            sortAscending: 'Sortuj rosnąco',
+            sortDescending: 'Sortuj malejąco',
+            hideColumn: 'Ukryj kolumnę',
+            resetColumnSizes: 'Resetuj szerokość kolumn',
+        },
         groupColumns: 'Grupuj kolumny',
         expenseColumns: 'Kolumny wydatków',
         saveView: 'Zapisz widok',
@@ -10886,7 +10971,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             completed: 'Zakończono',
             amount: {
                 lessThan: (amount?: string) => `Mniej niż ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Mniejszy lub równy ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Większe niż ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Większe niż lub równe ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Między ${greaterThan} a ${lessThan}`;
@@ -10943,6 +11030,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartał',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Osoba zatwierdzająca',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Naruszenie',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Zapłacone przez',
             },
             feed: 'Kanał',
             withdrawalType: {
@@ -11005,6 +11093,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartały',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Osoby zatwierdzające',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Naruszenia',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Płatnicy',
         },
         moneyRequestReport: {emptyStateTitle: 'Brak wydatków', accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły'},
         noCategory: 'Brak kategorii',
@@ -11144,6 +11233,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             category: 'Kategoria',
             tag: 'Tag',
         },
+        switchToTableView: 'Przełącz na widok tabeli',
+        switchToExpenseView: 'Przełącz na widok wydatku',
     },
     report: {
         newReport: {
@@ -12824,6 +12915,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         deletingTitle: 'Usuwanie raportów...',
         deletingExpensesTitle: 'Usuwanie wydatków...',
         runningBody: 'Poczekaj kilka minut albo pozwól, by Concierge wysłał ci wiadomość, gdy wszystko będzie gotowe.',
+        changingWorkspaceTitle: 'Przenoszenie raportów...',
         sendFromConcierge: 'Napisz do mnie, kiedy będzie gotowe',
         conciergeTitle: 'No jasne!',
         conciergeBody: 'Gdy Concierge skończy, wyśle ci wiadomość.',
@@ -12859,6 +12951,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Usunięto wydatki w ${doneCount} z ${count} raportu`,
             other: `Usunięto wydatki w ${doneCount} z ${count} raportów`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Zmieniono przestrzeń roboczą w ${doneCount} z ${count} raportu`,
+            other: `Zmieniono przestrzeń roboczą w ${doneCount} z ${count} raportów`,
         }),
         noReportsTitle: 'Brak pasujących raportów',
         noReportsBody: 'Żaden z wybranych raportów nie wymagał tej akcji.',
@@ -12896,6 +12992,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: 'Nie udało się usunąć wydatków w 1 raporcie.',
             other: `Nie udało się usunąć wydatków w ${count} raportach.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się przenieść 1 raportu.',
+            other: `Nie udało się przenieść ${count} raportów.`,
         }),
     },
     earlyRenewal: {
