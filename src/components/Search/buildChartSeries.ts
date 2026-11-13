@@ -59,7 +59,13 @@ const AVERAGE_LABEL_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.FROM]: 'insightsPage.compare.allSpenderAverage',
     [CONST.SEARCH.GROUP_BY.MERCHANT]: 'insightsPage.compare.allMerchantAverage',
     [CONST.SEARCH.GROUP_BY.CATEGORY]: 'insightsPage.compare.allCategoryAverage',
+    [CONST.SEARCH.GROUP_BY.VIOLATION]: 'insightsPage.compare.allViolationAverage',
 };
+
+/** Returns the label naming the average a chart grouped by `groupBy` is compared against */
+function getAverageLabelKey(groupBy: SearchGroupBy): TranslationPaths {
+    return AVERAGE_LABEL_KEYS[groupBy] ?? 'insightsPage.compare.average';
+}
 
 type BuildChartSeriesParams = {
     /** Grouped search results, in the order the search returned them */
@@ -293,7 +299,7 @@ function buildChartSeries({
     const primarySeries: ChartSeries = {key: CHART_SERIES_KEY.PRIMARY, label: periods && formatDates(periods.primary, dateFnsLocale)};
     const comparisonSeries: ChartSeries | undefined =
         averageValue !== undefined
-            ? {key: CHART_SERIES_KEY.COMPARISON, label: translate(AVERAGE_LABEL_KEYS[groupBy] ?? 'insightsPage.compare.average'), isAverage: true}
+            ? {key: CHART_SERIES_KEY.COMPARISON, label: translate(getAverageLabelKey(groupBy)), isAverage: true}
             : comparedRows && {key: CHART_SERIES_KEY.COMPARISON, color: comparedRows.color, label: periods && formatDates(periods.comparison, dateFnsLocale)};
 
     return {
@@ -316,5 +322,5 @@ function buildChartSeries({
     };
 }
 
-export {buildChartSeries, getSliceColorsByDataIndex, isChartAverage, CHART_SERIES_KEY};
+export {buildChartSeries, getAverageLabelKey, getSliceColorsByDataIndex, isChartAverage, CHART_SERIES_KEY};
 export type {ChartAverage, ChartComparison, SearchChartModel};

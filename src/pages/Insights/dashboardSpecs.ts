@@ -1,6 +1,6 @@
 /** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
 
-import type {ChartView, SearchChartCountDimension, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
+import type {SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchView} from '@components/Search/types';
 
 import {canEditWorkspaceSettings} from '@libs/PolicyUtils/permissions';
 import {isArchivedOrPendingDeletePolicy, isControlPolicy, isGroupPolicy} from '@libs/PolicyUtils/policyType';
@@ -25,7 +25,10 @@ type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
     titleKey: TranslationPaths;
-    view: ChartView;
+    view: SearchView;
+
+    /** Whether the chart spans the whole width of the grid, below the charts laid out in two columns */
+    isFullWidth?: boolean;
 
     /** What the chart plots for each group, left out by charts plotting the money each group totals */
     metric?: SearchChartMetric;
@@ -46,6 +49,9 @@ type InsightsChartSpec = {
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
 };
+
+/** How many groups a chart drawn as a ranking table lists */
+const RANKING_TABLE_LIMIT = 15;
 
 /** Violations kept at submission or approval */
 const VIOLATION_HAS_VALUES: HasFilterValues = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
@@ -191,17 +197,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         },
         supportingCharts: [
             {
-                graphKey: CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
-                titleKey: 'insightsPage.topViolations',
-                has: VIOLATION_HAS_VALUES,
-                view: CONST.SEARCH.VIEW.PIE,
-                groupBy: CONST.SEARCH.GROUP_BY.VIOLATION,
-                metric: CONST.SEARCH.CHART_METRIC.COUNT,
-                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
-            },
-            {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
                 titleKey: 'insightsPage.violationsBySubmitter',
                 has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
@@ -226,6 +221,18 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: (policy) => hasMultipleMembers(policy) && areApprovalsEnabled(policy),
+            },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
+                titleKey: 'insightsPage.topViolations',
+                has: VIOLATION_HAS_VALUES,
+                view: CONST.SEARCH.VIEW.TABLE,
+                isFullWidth: true,
+                groupBy: CONST.SEARCH.GROUP_BY.VIOLATION,
+                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: RANKING_TABLE_LIMIT,
             },
         ],
     },

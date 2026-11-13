@@ -1,4 +1,5 @@
 /** Builds a CSV from the current period's loaded chart groups, without exporting individual expenses. */
+import {COUNT_COLUMN_TITLE_KEYS} from '@components/Charts/utils/formatChartCount';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import {isEmptyPeriodAfterToday} from '@components/Search/isPeriodAfterToday';
@@ -45,7 +46,7 @@ function buildInsightsChartCSV({
 }: BuildInsightsChartCSVParams): string {
     const {getLabel, getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
     const groupHeader = translate(GROUP_HEADER_KEYS[groupBy] ?? 'common.date');
-    const countHeader = translate(countDimension === CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT ? 'common.reports' : 'common.expenses');
+    const countHeader = translate(COUNT_COLUMN_TITLE_KEYS[countDimension]);
     const header = [groupHeader, countHeader, translate('common.total'), translate('common.currency')].map(escapeCsvField).join(',');
 
     // Trimmed before the running total, which replaces each period's count with the count so far
