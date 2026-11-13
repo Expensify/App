@@ -3,9 +3,6 @@ const SENTRY_LABEL = {
         CLEAR_BUTTON: 'TextInput-ClearButton',
         PASSWORD_VISIBILITY_TOGGLE: 'TextInput-PasswordVisibilityToggle',
     },
-    SELECTION_LIST: {
-        SEARCH_INPUT: 'SelectionList-SearchInput',
-    },
     ADD_PAYMENT_METHOD_MENU: {
         PERSONAL_BANK_ACCOUNT: 'AddPaymentMethodMenu-PersonalBankAccount',
         BUSINESS_BANK_ACCOUNT: 'AddPaymentMethodMenu-BusinessBankAccount',
@@ -1115,6 +1112,7 @@ const SENTRY_LABEL = {
         LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeaderSelectAll',
         SPEND_RULE_LIST_ITEM_CHECKBOX: 'SpendRuleListItem-Checkbox',
         CONFIRM_BUTTON: 'SelectionList-ConfirmButton',
+        SEARCH_INPUT: 'SelectionList-SearchInput',
     },
     CONTEXT_MENU: {
         REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
