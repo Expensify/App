@@ -7491,6 +7491,27 @@ describe('SearchUIUtils', () => {
                 expect(item?.approved).toBe(approvedAt);
             });
 
+            it('should keep the snapshot approved date on a paid report when the live report from OpenReport lacks it', async () => {
+                // Given a paid report whose Search snapshot has an approved date
+                const approvedAt = '2024-12-22 09:30:00';
+                const reportFields = {...report1, reportID: filterTestReportID, type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED};
+                const data = makeFilterTestData({...reportFields, approved: approvedAt});
+
+                // And the same report is already in Onyx without the approved date, as happens after opening it in Inbox first
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${filterTestReportID}`, {...reportFields, approved: undefined});
+                await waitForBatchedUpdates();
+
+                // When the expense rows are built
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+
+                // Then the live report is layered over the snapshot report, so the approved date is not lost
+                expect(item?.approved).toBe(approvedAt);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${filterTestReportID}`, null);
+                await waitForBatchedUpdates();
+            });
+
             it('should keep submitted/approved blank for a still-Open (never submitted) report even if unrelated live actions exist', () => {
                 const data = makeFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
                 const [sections] = callGetTransactionsSections(data);
@@ -16952,6 +16973,23 @@ describe('SearchUIUtils', () => {
 
     describe('mapFiltersFormToLabelValueList', () => {
         const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
+
+        it.each([
+            {form: {amountGreaterThan: '6000', amountGreaterThanOrEqualTo: '5000'}, expected: 'Greater than 60.00, Greater than or equal to 50.00'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD', amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Between 50.00 AUD and 100.00 AUD'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD'}, expected: 'Greater than or equal to 50.00 AUD'},
+            {form: {amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Less than or equal to 100.00 AUD'},
+        ])('shows inclusive amount bounds in one chip: $expected', ({form, expected}) => {
+            // Given inclusive operands must appear in the filter bar, not only in the search AST.
+            const formatAmount = (amount: number) => (amount / 100).toFixed(2);
+
+            // When the hydrated form is mapped to visible chips.
+            const chips = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, formatAmount);
+
+            // Then bounds share the Amount chip and keep their comparison currency.
+            expect(chips).toHaveLength(1);
+            expect(chips.at(0)).toMatchObject({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, value: expected});
+        });
 
         it('places default filters before non-default filters', () => {
             const form = {

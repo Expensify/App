@@ -142,6 +142,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
         menuItems.push({
             icon: icons.Trashcan,
             text: translate('common.delete'),
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.EDIT_REPORT_FIELD_DELETE,
             onSelected: () => {
                 handleReportFieldDelete();
             },

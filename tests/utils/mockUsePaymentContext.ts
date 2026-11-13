@@ -34,5 +34,5 @@ function createMockUsePaymentContextModule(overrides: MockPaymentContextOverride
     };
 }
 
+/** @public Read only through `jest.requireActual` in tests, which knip cannot see. Remove this tag together with the last such call. */
 export default createMockUsePaymentContextModule();
-export {createMockUsePaymentContextModule, defaultMockPaymentContextValue};
