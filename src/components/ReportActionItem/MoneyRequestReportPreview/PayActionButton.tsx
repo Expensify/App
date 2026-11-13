@@ -68,7 +68,7 @@ function PayActionButton() {
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
-    const {payReportsViaABA, isDownloadingABAFile} = usePayViaABA();
+    const {payReportsViaABA} = usePayViaABA();
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
 
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
@@ -205,7 +205,7 @@ function PayActionButton() {
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
             isDisabled={isOffline && !canAllowSettlement}
-            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile}
+            isLoading={!isOffline && !canAllowSettlement}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.PAY_BUTTON}
         />
     );
