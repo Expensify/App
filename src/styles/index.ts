@@ -6906,11 +6906,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: animatedWideRHPWidth,
         },
 
-        singleRHPExtendedCardInterpolatorStyles: {
-            ...getRHPExtendedCardFrame(theme),
-            width: variables.rhpWidth,
-        },
-
         // The floating card is the containing block (translateZ0), so a resizable single RHP's card fills it at whatever width
         // it is dragged to, independent of the box react-navigation measures (singleRHPStackBox).
         singleRHPCardInterpolatorStyles: {
@@ -7325,7 +7320,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 : flex.flex1) satisfies ViewStyle,
 
         // Sized like the lone floating card, so a drag paints its width through the CSS variable and the handle sits on its left edge.
-        resizableSingleRHPExtendedCardInterpolatorStyles: (singleRHPWidth: number) =>
+        singleRHPExtendedCardInterpolatorStyles: (singleRHPWidth: number) =>
             ({
                 ...getRHPExtendedCardFrame(theme),
                 // Border-box card, so the border is added back on top of the width or the content gets clipped.
