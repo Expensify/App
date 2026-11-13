@@ -33,6 +33,7 @@ jest.mock('@rnmapbox/maps', () => ({
 }));
 
 const CARD_ID = 5555;
+const WRONG_DIGITS_ERROR = "That didn't match the last four digits on the card. Please try again.";
 
 const card: Card = {
     cardID: CARD_ID,
@@ -121,6 +122,33 @@ describe('ActivatePhysicalCardPageBase', () => {
         // Then the card is activated without asking for details or a magic code, since nothing needs saving
         expect(TestHelper.getFetchMockCalls(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD)).toHaveLength(1);
         expect(screen.queryByText(TestHelper.translateLocal('activateCardPage.fillInAllDetails'))).toBeNull();
+    });
+
+    it('shows wrong digits on the last four step and waits for Next before trying again', async () => {
+        // Given a cardholder with no saved details who entered the last four digits and got to the details step
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        await enterLastFourDigits();
+        expect(screen.getByText(TestHelper.translateLocal('activateCardPage.fillInAllDetails'))).toBeOnTheScreen();
+
+        // When the request comes back saying the digits didn't match
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {[CARD_ID]: {errors: {1: WRONG_DIGITS_ERROR}}});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then they are back on the last four step with the error, where the digits are checked
+        expect(screen.getByText(WRONG_DIGITS_ERROR)).toBeOnTheScreen();
+        expect(screen.queryByText(TestHelper.translateLocal('activateCardPage.fillInAllDetails'))).toBeNull();
+
+        // When they enter the digits again
+        await enterLastFourDigits();
+
+        // Then nothing moves on until they press Next, like after a wrong entry without the details step
+        expect(screen.queryByText(TestHelper.translateLocal('activateCardPage.fillInAllDetails'))).toBeNull();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.next')));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(TestHelper.translateLocal('activateCardPage.fillInAllDetails'))).toBeOnTheScreen();
     });
 
     it('asks for the details when the cardholder has none on file', async () => {
