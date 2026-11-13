@@ -1,5 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
+import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
@@ -11,15 +12,23 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
+import type {NavigationState} from '@react-navigation/native';
+
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
+import {useNavigationState, useRoute} from '@react-navigation/native';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
-import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
+import type {NativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
+import getActiveTabRoute from './NativeTabNavigator/getActiveTabRoute';
+import getTabNavigatorState from './NativeTabNavigator/getTabNavigatorState';
+import {getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
+import useIsNativeFlatNavTabBarEnabled from './NativeTabNavigator/useIsNativeFlatNavTabBarEnabled';
+import useNativeFlatNavSearchSection from './NativeTabNavigator/useNativeFlatNavSearchSection';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
 import ReportsSplitNavigator from './ReportsSplitNavigator';
@@ -38,19 +47,37 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
-function TabNavigator() {
-    const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
+/** The Expenses, Reports and More items of the flat nav bar, which show the routes drawn inside them rather than a screen of their own. */
+function NativeTabItemPlaceholder() {
+    return null;
+}
+
+type NativeTabNavigatorProps = {
+    /** The section of the search Search shows, given only with the flat nav bar */
+    flatNavSearchSectionID?: FlatNavSectionID;
+
+    isFlatNavTabBarEnabled?: boolean;
+};
+
+function NativeTabNavigator({flatNavSearchSectionID, isFlatNavTabBarEnabled = false}: NativeTabNavigatorProps) {
+    const {shouldShowNativeTabBar, dotColors, tabLabels, tabsWithoutBarItem, tabRouterOverride, isTabSelectionEnabled, getTabHostRouteName} = useNativeTabNavigator({
+        isFlatNavTabBarEnabled,
+        flatNavSearchSectionID,
+    });
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     // A tab with no bar item draws no icon.
-    const getScreenOptions = ({route}: {route: {name: NativeTabName}}) =>
-        route.name === tabWithoutBarItem
-            ? {...screenOptions, ...HIDDEN_TAB_OPTIONS}
-            : {
-                  ...screenOptions,
-                  ...getTabOptions(route.name),
-                  tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
-              };
+    const getScreenOptions = ({route}: {route: {name: NativeTabRouteName}}) => {
+        if (!tabsWithoutBarItem.has(route.name)) {
+            return {
+                ...screenOptions,
+                ...getTabOptions(route.name),
+                tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
+            };
+        }
+        const tabBarItemHostRouteName = getTabHostRouteName(route.name);
+        return tabBarItemHostRouteName ? {...screenOptions, ...HIDDEN_TAB_OPTIONS, tabBarItemHostRouteName} : {...screenOptions, ...HIDDEN_TAB_OPTIONS};
+    };
 
     return (
         <Tab.Navigator
@@ -69,6 +96,23 @@ function TabNavigator() {
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 component={ReportsSplitNavigator}
             />
+            {/* The native bar draws its items in this order. */}
+            {isFlatNavTabBarEnabled && (
+                <>
+                    <Tab.Screen
+                        name={SCREENS.NATIVE_TAB_ITEM.EXPENSES}
+                        component={NativeTabItemPlaceholder}
+                    />
+                    <Tab.Screen
+                        name={SCREENS.NATIVE_TAB_ITEM.REPORTS}
+                        component={NativeTabItemPlaceholder}
+                    />
+                    <Tab.Screen
+                        name={SCREENS.NATIVE_TAB_ITEM.MORE}
+                        component={NativeTabItemPlaceholder}
+                    />
+                </>
+            )}
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                 component={SearchFullscreenNavigator}
@@ -89,6 +133,33 @@ function TabNavigator() {
             />
         </Tab.Navigator>
     );
+}
+
+/** The tab navigator with the flat nav bar, which reads where Search is so the bar can highlight its item. */
+function FlatNavNativeTabNavigator() {
+    const route = useRoute();
+    const getTabState = (parentState: NavigationState) => getTabNavigatorState(parentState, route.key);
+    const searchKey = useNavigationState((parentState) =>
+        getSearchTabSearchKey(getTabState(parentState)?.routes.find((tabRoute) => tabRoute.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)),
+    );
+    const isSearchFocused = useNavigationState((parentState) => getActiveTabRoute(getTabState(parentState))?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const flatNavSearchSectionID = useNativeFlatNavSearchSection({searchKey, isSearchFocused});
+
+    return (
+        <NativeTabNavigator
+            isFlatNavTabBarEnabled
+            flatNavSearchSectionID={flatNavSearchSectionID}
+        />
+    );
+}
+
+/**
+ * The flat nav bar is a navigator of its own, so the data it reads leaves the tab navigator without the beta untouched.
+ * Turning the beta on or off, or a tablet crossing the narrow breakpoint with it, remounts the tabs.
+ */
+function TabNavigator() {
+    const isFlatNavTabBarEnabled = useIsNativeFlatNavTabBarEnabled();
+    return isFlatNavTabBarEnabled ? <FlatNavNativeTabNavigator /> : <NativeTabNavigator />;
 }
 
 export default TabNavigator;
