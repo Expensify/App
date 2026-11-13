@@ -36,9 +36,9 @@ function SidePanelExpandButton({reportID}: SidePanelExpandButtonProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSidePanelResizable} = useSidePanelState();
     const {closeSidePanel} = useSidePanelActions();
-    const isReportAlreadyFocused = useRootNavigationState((state) => !!reportID && Navigation.getFocusedReportId(state) === reportID);
+    const focusedReportID = useRootNavigationState((state) => Navigation.getFocusedReportId(state));
 
-    if (!isInSidePanel || shouldUseNarrowLayout || !isSidePanelResizable || isReportAlreadyFocused || !reportID) {
+    if (!isInSidePanel || shouldUseNarrowLayout || !isSidePanelResizable || !reportID || focusedReportID === reportID) {
         return null;
     }
 
