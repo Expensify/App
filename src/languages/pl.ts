@@ -3206,6 +3206,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Zacznij',
             headerTitle: 'Globalne zwroty kosztów',
             payingReportSubtitle: 'Konta bankowe firmy i pracownika są w różnych walutach.',
+            payingMultipleReportsSubtitle: 'Nie udało się opłacić żadnego z tych raportów, ponieważ konta bankowe firmy i pracownika są w różnych walutach.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Zapłać z konta x${lastFour}` : 'Zapłać z konta bankowego'),
+            description: 'Te raporty nie zostały opłacone z konta bankowego, ponieważ wymagają globalnych zwrotów kosztów. Rozpocznij proces poniżej.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Płać ludziom na całym świecie', subtitle: 'Włącz globalne zwroty wydatków na swoim koncie w USD.'},
         wiseMoreInfoNeeded: 'Potrzeba więcej informacji, aby włączyć globalne zwroty kosztów',

@@ -3137,6 +3137,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: '使い始める',
             headerTitle: 'グローバル払い戻し',
             payingReportSubtitle: '会社と従業員の銀行口座は異なる通貨を使用しています。',
+            payingMultipleReportsSubtitle: '会社と従業員の銀行口座が異なる通貨を使用しているため、これらのレポートはいずれも支払えませんでした。',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `x${lastFour}で支払う` : '銀行口座で支払う'),
+            description: 'これらのレポートはグローバル払い戻しが必要なため、銀行口座で支払われませんでした。以下から手続きを開始してください。',
         },
         wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
         wiseMoreInfoNeeded: 'グローバル払い戻しを有効にするには、さらに情報が必要です',

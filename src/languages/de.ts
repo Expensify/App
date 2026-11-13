@@ -3174,6 +3174,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: "Los geht's",
             headerTitle: 'Globale Erstattungen',
             payingReportSubtitle: 'Die Bankkonten des Unternehmens und der Mitarbeitenden verwenden unterschiedliche Währungen.',
+            payingMultipleReportsSubtitle: 'Keiner dieser Berichte konnte bezahlt werden, weil die Bankkonten des Unternehmens und der Mitarbeitenden unterschiedliche Währungen verwenden.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Mit x${lastFour} bezahlen` : 'Mit Bankkonto bezahlen'),
+            description: 'Diese Berichte wurden nicht mit dem Bankkonto bezahlt, weil sie globale Rückerstattungen erfordern. Starten Sie den Vorgang unten.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Weltweit bezahlen', subtitle: 'Aktivieren Sie globale Erstattungen auf Ihrem USD-Konto.'},
         wiseMoreInfoNeeded: 'Weitere Informationen erforderlich, um globale Rückerstattungen zu aktivieren',

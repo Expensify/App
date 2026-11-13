@@ -6,6 +6,8 @@ type EnableGlobalReimbursementsModal = {
     bankCountry: string;
     /** The currency of the VBBA, sent so the client can render the business form without an extra BANK_ACCOUNT_LIST lookup */
     bankCurrency: string;
+    /** Whether bulk pay could not pay any of several selected reports, set only by the client so the intro explains it for all of them */
+    isPayingMultipleReports?: boolean;
 };
 
 export default EnableGlobalReimbursementsModal;

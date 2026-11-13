@@ -3168,6 +3168,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Começar',
             headerTitle: 'Reembolsos globais',
             payingReportSubtitle: 'As contas bancárias da empresa e do funcionário usam moedas diferentes.',
+            payingMultipleReportsSubtitle: 'Nenhum desses relatórios pôde ser pago porque as contas bancárias da empresa e do funcionário usam moedas diferentes.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Pagar com x${lastFour}` : 'Pagar com conta bancária'),
+            description: 'Esses relatórios não foram pagos com a conta bancária porque exigem reembolsos globais. Comece o processo abaixo.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Pague pessoas no mundo todo', subtitle: 'Ative reembolsos globais na sua conta em USD.'},
         wiseMoreInfoNeeded: 'Mais informações necessárias para ativar reembolsos globais',

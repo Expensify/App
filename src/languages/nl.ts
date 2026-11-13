@@ -3164,6 +3164,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Aan de slag',
             headerTitle: 'Wereldwijde terugbetalingen',
             payingReportSubtitle: 'De bankrekeningen van het bedrijf en de medewerker gebruiken verschillende valuta.',
+            payingMultipleReportsSubtitle: 'Geen van deze rapporten kon worden betaald, omdat de bankrekeningen van het bedrijf en de medewerker verschillende valuta gebruiken.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Betalen met x${lastFour}` : 'Betalen met bankrekening'),
+            description: 'Deze rapporten zijn niet met de bankrekening betaald, omdat ze wereldwijde terugbetalingen vereisen. Start het proces hieronder.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Betaal mensen wereldwijd', subtitle: 'Schakel wereldwijde terugbetalingen in op je USD-rekening.'},
         wiseMoreInfoNeeded: 'Meer informatie nodig om wereldwijde terugbetalingen in te schakelen',

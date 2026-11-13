@@ -3182,6 +3182,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Commencer',
             headerTitle: 'Remboursements globaux',
             payingReportSubtitle: 'Les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
+            payingMultipleReportsSubtitle: 'Aucune de ces notes de frais n’a pu être payée, car les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Payer avec x${lastFour}` : 'Payer avec un compte bancaire'),
+            description: 'Ces notes de frais n’ont pas été payées avec le compte bancaire, car elles nécessitent des remboursements globaux. Commencez la procédure ci-dessous.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
         wiseMoreInfoNeeded: 'Informations supplémentaires requises pour activer les remboursements globaux',

@@ -3050,6 +3050,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: '开始使用',
             headerTitle: '全球报销',
             payingReportSubtitle: '公司账户和员工账户使用的货币不同。',
+            payingMultipleReportsSubtitle: '由于公司账户和员工账户使用的货币不同，这些报告均无法支付。',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `使用 x${lastFour} 支付` : '使用银行账户支付'),
+            description: '这些报告需要全球报销，因此未使用该银行账户支付。请在下方开始设置流程。',
         },
         wiseGlobalReimbursementsBanner: {title: '向全球付款', subtitle: '在您的美元账户中启用全球报销。'},
         wiseMoreInfoNeeded: '启用全球报销所需的更多信息',

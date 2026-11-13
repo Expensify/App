@@ -3164,6 +3164,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Inizia',
             headerTitle: 'Rimborsi globali',
             payingReportSubtitle: 'I conti bancari dell’azienda e del dipendente utilizzano valute diverse.',
+            payingMultipleReportsSubtitle: 'Nessuno di questi resoconti è stato pagato perché i conti bancari dell’azienda e del dipendente utilizzano valute diverse.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Paga con x${lastFour}` : 'Paga con conto bancario'),
+            description: 'Questi resoconti non sono stati pagati con il conto bancario perché richiedono i rimborsi globali. Avvia la procedura qui sotto.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Paga persone in tutto il mondo', subtitle: 'Abilita i rimborsi globali sul tuo conto in USD.'},
         wiseMoreInfoNeeded: 'Servono più informazioni per abilitare i rimborsi globali',

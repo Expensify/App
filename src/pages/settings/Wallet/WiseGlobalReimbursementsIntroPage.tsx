@@ -42,6 +42,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     const bankAccountID = Number(route.params.bankAccountID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
     const isPayingReport = isWiseGlobalReimbursementsIntroOverPayReportScreen(backPath);
+    const isPayingMultipleReports = route.params.isPayingMultipleReports === 'true';
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const bankAccount = bankAccountList?.[bankAccountID];
@@ -95,7 +96,9 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                         />
                         <ConfirmationPage.Heading>{translate('walletPage.wiseGlobalReimbursementsIntro.title')}</ConfirmationPage.Heading>
                         <ConfirmationPage.Description style={styles.textSupporting}>
-                            {translate(isPayingReport ? 'walletPage.wiseGlobalReimbursementsIntro.payingReportSubtitle' : 'walletPage.wiseGlobalReimbursementsIntro.subtitle')}
+                            {isPayingMultipleReports
+                                ? translate('walletPage.wiseGlobalReimbursementsIntro.payingMultipleReportsSubtitle')
+                                : translate(isPayingReport ? 'walletPage.wiseGlobalReimbursementsIntro.payingReportSubtitle' : 'walletPage.wiseGlobalReimbursementsIntro.subtitle')}
                         </ConfirmationPage.Description>
                     </ConfirmationPage.Content>
                     <FixedFooter>

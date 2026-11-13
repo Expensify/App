@@ -326,16 +326,18 @@ describe('BankAccountUtils', () => {
             accountData: {type, state: CONST.BANK_ACCOUNT.STATE.OPEN, additionalData: {currency: CONST.CURRENCY.USD, ...additionalData}},
         });
 
-        it('returns true when a USD business account has global reimbursements disabled', () => {
-            // Given a USD business account the backend marks as not set up for global reimbursements
+        it.each([
+            ['has global reimbursements disabled', buildBankAccount({isGlobalReimbursementEnabled: false})],
+            ['comes without the global reimbursements flag', buildBankAccount({})],
+        ])('returns true when a USD business account %s', (_label, bankAccount) => {
+            // Given a USD business account that has not enabled global reimbursements
             // When checking it before paying
-            // Then onboarding should open, because the backend rejects every payment from this account
-            expect(shouldSetUpGlobalReimbursementsBeforePaying(buildBankAccount({isGlobalReimbursementEnabled: false}))).toBe(true);
+            // Then onboarding should open, because the backend only pays through global reimbursements once the flag is true
+            expect(shouldSetUpGlobalReimbursementsBeforePaying(bankAccount)).toBe(true);
         });
 
         it.each([
             ['global reimbursements are already enabled', buildBankAccount({isGlobalReimbursementEnabled: true})],
-            ['the backend did not send the flag', buildBankAccount({})],
             ['the account is personal', buildBankAccount({isGlobalReimbursementEnabled: false}, CONST.BANK_ACCOUNT.TYPE.PERSONAL)],
             ['the account is unknown', undefined],
         ])('returns false when %s', (_label, bankAccount) => {
