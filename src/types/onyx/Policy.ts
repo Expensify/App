@@ -106,6 +106,9 @@ type Attributes = {
     unit: Unit;
 
     taxEnabled?: boolean;
+
+    /** Workspace-wide dismissal, including future UK advisory fuel rates. */
+    isUKFuelRateTaxErrorDismissed?: boolean;
 };
 
 /** Policy custom unit */

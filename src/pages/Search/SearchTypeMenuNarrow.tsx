@@ -27,7 +27,15 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getValidLastQuery, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
-import {getItemBadgeText, getLastSearchQuery, getOverflowMenu, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {
+    getItemBadgeText,
+    getLastSearchQuery,
+    getOverflowMenu,
+    getSearchTypeMenuTabSentryLabel,
+    SAVED_SEARCH_FALLBACK_ICON_NAME,
+    SAVED_SEARCH_ICON_NAMES,
+    SEARCH_TYPE_MENU_ICON_NAMES,
+} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -163,6 +171,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   return {
                       key: savedSearchKey,
+                      sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_TAB,
                       icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? SAVED_SEARCH_FALLBACK_ICON_NAME],
                       title,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -185,6 +194,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                 tabItems.push({
                     key: item.key,
+                    sentryLabel: getSearchTypeMenuTabSentryLabel(item.key),
                     icon: expensifyIcons[item.icon],
                     title,
                     badgeText,

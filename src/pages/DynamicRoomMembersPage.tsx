@@ -273,6 +273,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 count: selectedMembers.length,
             }),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.ROOM_MEMBERS_SELECTION_REMOVE,
             icon: icons.RemoveMembers,
             shouldSkipFocusRestore: true,
             onSelected: showRemoveMembersModal,

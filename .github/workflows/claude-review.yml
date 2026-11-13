@@ -87,6 +87,8 @@ jobs:
       - name: Setup Node
         if: steps.skip.outputs.skip != 'true' && (steps.filter.outputs.code == 'true' || steps.filter.outputs.docs == 'true')
         uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: '["server/victory-chart-renderer", "web/cloudflare-worker"]'
 
       - name: Run Claude Code (code)
         id: code-review

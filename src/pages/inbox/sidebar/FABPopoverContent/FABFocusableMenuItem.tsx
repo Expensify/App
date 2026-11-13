@@ -16,7 +16,7 @@ type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wr
         shouldCallAfterModalHide?: boolean;
     };
 
-function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfterModalHide, ...props}: FABFocusableMenuItemProps) {
+function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfterModalHide, sentryLabel, ...props}: FABFocusableMenuItemProps) {
     const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(itemId, isVisible);
 
     if (!isVisible) {
@@ -28,6 +28,7 @@ function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfte
             // FABFocusableMenuItemProps is a strict subset of MenuItemProps — spreading forwards all remaining props safely
 
             {...(props as MenuItemProps)}
+            sentryLabel={sentryLabel}
             focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}
             wrapperStyle={wrapperStyle}

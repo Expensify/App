@@ -1,4 +1,5 @@
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -6,6 +7,7 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftMerchantRule} from '@libs/actions/User';
@@ -18,9 +20,13 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import variables from '@styles/variables';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
@@ -51,6 +57,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt']);
     const isCategorySettingsFlow = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW;
     const isCategoryScopedCreate = isCategorySettingsFlow || !!categoryName;
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     // From category settings the rule is pre-scoped to the category, so it opens the editor directly.
     const openCategoryScopedRule = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_NEW.path));
@@ -115,19 +122,31 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const shouldShowDescribeSection = !isCategoryScopedCreate;
 
     const newRuleMenuItems = visibleNewRuleOptions.map((option) => (
-        <MenuItem
+        <MenuItem.Root
             key={option.key}
-            icon={option.icon}
-            title={option.title}
-            description={option.description}
-            shouldShowRightIcon
-            onPress={option.onPress}
-            displayInDefaultIconColor
-            iconWidth={variables.iconSizeExtraLarge}
-            iconHeight={variables.iconSizeExtraLarge}
-            wrapperStyle={styles.rulesNewMenuItem}
+            onPress={callIfAuthenticated(option.onPress, session)}
+            style={styles.rulesNewMenuItem}
             sentryLabel={option.sentryLabel}
-        />
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <View style={styles.popoverMenuIcon}>
+                        <Icon
+                            src={option.icon}
+                            width={variables.iconSizeExtraLarge}
+                            height={variables.iconSizeExtraLarge}
+                        />
+                    </View>
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.Title>{option.title}</MenuItem.Title>
+                    <MenuItem.Description>{option.description}</MenuItem.Description>
+                </MenuItem.Content>
+                <MenuItem.Trailing>
+                    <MenuItem.Chevron />
+                </MenuItem.Trailing>
+            </MenuItem.Row>
+        </MenuItem.Root>
     ));
 
     return (

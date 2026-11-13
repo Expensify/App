@@ -44,12 +44,16 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
+import FontUtils from '@styles/utils/FontUtils';
+
 import {clearCategoryErrors, deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
@@ -119,6 +123,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const policyHasTags = hasTags(policyTags);
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
@@ -401,19 +406,31 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     key={rule.key}
                                     pendingAction={rule.pendingAction}
                                 >
-                                    <MenuItem
+                                    <MenuItem.Root
                                         sentryLabel={rule.sentryLabel}
-                                        icon={expensifyIcons.Bolt}
-                                        title={rule.summary}
-                                        description={rule.conditionSummary}
-                                        shouldShowDescriptionOnTop={false}
-                                        numberOfLinesTitle={3}
-                                        shouldShowBasicTitle
-                                        onPress={() => navigateToCategoryRule(rule.dynamicRoutePath)}
-                                        shouldShowRightIcon={!rule.isDisabled}
-                                        interactive={!rule.isDisabled}
-                                        disabled={rule.isDisabled}
-                                    />
+                                        onPress={rule.isDisabled ? undefined : callIfAuthenticated(() => navigateToCategoryRule(rule.dynamicRoutePath), session)}
+                                        isDisabled={rule.isDisabled}
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItem.Leading>
+                                                <MenuItem.Icon src={expensifyIcons.Bolt} />
+                                            </MenuItem.Leading>
+                                            <MenuItem.Content>
+                                                <MenuItem.Title
+                                                    numberOfLines={3}
+                                                    style={FontUtils.fontFamily.platform.EXP_NEUE}
+                                                >
+                                                    {rule.summary}
+                                                </MenuItem.Title>
+                                                {!!rule.conditionSummary && <MenuItem.Description>{rule.conditionSummary}</MenuItem.Description>}
+                                            </MenuItem.Content>
+                                            {!rule.isDisabled && (
+                                                <MenuItem.Trailing>
+                                                    <MenuItem.Chevron />
+                                                </MenuItem.Trailing>
+                                            )}
+                                        </MenuItem.Row>
+                                    </MenuItem.Root>
                                 </OfflineWithFeedback>
                             ))}
                             {canWriteRules && (
