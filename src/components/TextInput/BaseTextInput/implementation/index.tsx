@@ -33,7 +33,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import type {ComponentRef, RefObject} from 'react';
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, TextInput, ViewStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore} from 'react';
@@ -340,19 +340,21 @@ function BaseTextInput({
     // autoGrow uses autoGrowMeasurementStyles (includes padding), contentWidth doesn't - add padding manually
     const containerPadding = !autoGrow && shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0;
 
-    const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
-        styles.textInputContainer,
-        !shouldApplyPaddingToContainer && styles.p0,
-        !hasLabel && styles.pt0,
-        textInputContainerStyles,
-        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth + containerPadding),
-        !hideFocusedState && isFocused && styles.borderColorFocus,
-        (!!hasError || !!errorText) && styles.borderColorDanger,
-        autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
-        isAutoGrowHeightMarkdown && styles.pb2,
-        inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
-        shouldAddPaddingBottom && styles.pb1,
-    ]);
+    // The Strict TypeScript API types the flattened style as nullable, though this list always holds the container style
+    const newTextInputContainerStyles: ViewStyle =
+        StyleSheet.flatten([
+            styles.textInputContainer,
+            !shouldApplyPaddingToContainer && styles.p0,
+            !hasLabel && styles.pt0,
+            textInputContainerStyles,
+            (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth + containerPadding),
+            !hideFocusedState && isFocused && styles.borderColorFocus,
+            (!!hasError || !!errorText) && styles.borderColorDanger,
+            autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
+            isAutoGrowHeightMarkdown && styles.pb2,
+            inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
+            shouldAddPaddingBottom && styles.pb1,
+        ]) ?? {};
 
     // TextInputMeasurement is absolutely positioned, so it doesn’t inherit padding/border.
     // We extract the horizontal padding/border from the input container to get an accurate width.

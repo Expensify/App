@@ -143,7 +143,7 @@ function ListItemPressable<TItem extends ListItem>({
                     }
                     onSelectRow(item, undefined, e);
                 }}
-                disabled={isDisabled && !isRowSelected}
+                disabled={!!isDisabled && !isRowSelected}
                 interactive={item.isInteractive}
                 isNested
                 shouldAllowTextSelection={shouldAllowTextSelection}

@@ -54,7 +54,7 @@ function MergeTransactionItem<TItem extends MergeTransactionListItemType>({
                 onPress={() => {
                     onSelectRow(item);
                 }}
-                disabled={isDisabled && !item.isSelected}
+                disabled={!!isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 isNested

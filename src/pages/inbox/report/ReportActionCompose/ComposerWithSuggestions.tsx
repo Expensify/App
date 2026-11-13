@@ -917,7 +917,8 @@ function ComposerWithSuggestions({
     const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
 
     const handleContentSizeChange = (e: TextInputContentSizeChangeEvent) => {
-        const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
+        const paddingVertical = containerComposeStyles?.paddingVertical;
+        const paddingTopAndBottom = (typeof paddingVertical === 'number' ? paddingVertical : 0) * 2;
         const inputHeight = e.nativeEvent.contentSize.height;
         const totalHeight = inputHeight + paddingTopAndBottom;
 

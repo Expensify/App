@@ -167,7 +167,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     onLongPressRow?.(item);
                 }}
                 onPress={handleOnPress}
-                disabled={isDisabled && !isSelected}
+                disabled={!!isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? CONST.ROLE.BUTTON : 'none'}
                 isNested

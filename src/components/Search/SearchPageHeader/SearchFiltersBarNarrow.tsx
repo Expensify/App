@@ -55,7 +55,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             renderItem={renderFilterItem}
             onEndReached={adjustScroll}
             onEndReachedThreshold={0.75}
-            ListHeaderComponent={shouldShowFiltersBarLoading ? <SearchFiltersSkeleton shouldAnimate /> : null}
+            ListHeaderComponent={shouldShowFiltersBarLoading ? <SearchFiltersSkeleton shouldAnimate /> : undefined}
             ListFooterComponent={
                 <SearchFiltersActionButtons
                     canReset={canReset}

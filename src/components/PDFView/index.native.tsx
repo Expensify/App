@@ -156,7 +156,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth - insets.left - insets.right;
         const pdfHeight = isUsedAsChatAttachment ? LOADING_THUMBNAIL_HEIGHT : windowHeight;
 
-        const pdfStyles: StyleProp<ViewStyle> = [
+        const pdfStyles: Array<StyleProp<ViewStyle>> = [
             themeStyles.imageModalPDF,
             isUsedAsChatAttachment ? StyleUtils.getWidthAndHeightStyle(pdfWidth, pdfHeight) : StyleUtils.getPDFViewStyle(pdfWidth, pdfHeight),
         ];

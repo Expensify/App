@@ -72,7 +72,7 @@ function BaseAnchorForCommentsOnly({
             sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.LINK}
             inline
             suppressHighlighting
-            style={[styles.cursorDefault, !!flattenStyle.fontSize && StyleUtils.getFontSizeStyle(flattenStyle.fontSize)]}
+            style={[styles.cursorDefault, !!flattenStyle?.fontSize && StyleUtils.getFontSizeStyle(flattenStyle.fontSize)]}
             onSecondaryInteraction={(event) => {
                 showContextMenu({
                     type: isEmail ? CONST.CONTEXT_MENU_TYPES.EMAIL : CONST.CONTEXT_MENU_TYPES.LINK,

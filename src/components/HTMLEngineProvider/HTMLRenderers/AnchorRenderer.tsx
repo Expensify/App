@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 
 import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+import type {Writable} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import React, {useContext} from 'react';
@@ -114,10 +115,11 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
         if (tnode.classes.includes('no-style-link')) {
             // If the link has a class of a no-style-link, we don't apply any styles
-            linkStyle = {...(style as TextStyle)};
-            delete linkStyle.color;
-            delete linkStyle.textDecorationLine;
-            delete linkStyle.textDecorationColor;
+            const noStyleLinkStyle: Writable<TextStyle> = {...(style as TextStyle)};
+            delete noStyleLinkStyle.color;
+            delete noStyleLinkStyle.textDecorationLine;
+            delete noStyleLinkStyle.textDecorationColor;
+            linkStyle = noStyleLinkStyle;
         }
 
         return (

@@ -72,7 +72,7 @@ type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatList
  * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
  */
 function FlatListRenderImpl(props: AnimatedFlatListWithCellRendererProps<unknown>) {
-    const {itemLayoutAnimation, skipEnteringExitingAnimations, ref, CellRendererComponent: outerCellRenderer, ...restProps} = props;
+    const {itemLayoutAnimation, skipEnteringExitingAnimations, ref, CellRendererComponent: outerCellRenderer, inverted, ...restProps} = props;
 
     // Set default scrollEventThrottle, because user expects
     // to have continuous scroll events and
@@ -90,6 +90,8 @@ function FlatListRenderImpl(props: AnimatedFlatListWithCellRendererProps<unknown
             <AnimatedFlatList
                 ref={ref}
                 {...restProps}
+                // React Native's list props allow a null `inverted`, which Reanimated's animated props don't accept
+                inverted={inverted ?? undefined}
                 CellRendererComponent={CellRendererComponentImpl}
             />
         </CellRendererConfigContext.Provider>

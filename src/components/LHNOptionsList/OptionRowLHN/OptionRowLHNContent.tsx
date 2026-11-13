@@ -8,7 +8,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -45,11 +45,11 @@ function OptionRowLHNContent({optionDataParams, isReportFocused, viewMode, isIOU
     }
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
-    const placeholderRowStyle = StyleSheet.flatten<ViewStyle>(
-        isInFocusMode
-            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
-            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
-    );
+    // Typed up front so `StyleSheet.flatten` infers a view style on both the current and the Strict TypeScript API types
+    const placeholderRowStyles: StyleProp<ViewStyle> = isInFocusMode
+        ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
+        : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter];
+    const placeholderRowStyle = StyleSheet.flatten(placeholderRowStyles);
 
     // rendering null as a render item causes the FlashList to render all
     // its children and consume significant memory on the first render. We can avoid this by
