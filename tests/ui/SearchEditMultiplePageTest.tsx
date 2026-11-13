@@ -216,7 +216,7 @@ describe('SearchEditMultiplePage', () => {
         expect(mockShouldOpenInDropdownByRow.Reimbursable).toBe(true);
     });
 
-    it("shows Don't change on Reimbursable until a value is picked", async () => {
+    it('leaves Reimbursable empty until a value is picked, then shows it', async () => {
         // Given a selection where nothing has been picked for Reimbursable yet
         await selectTransactions([OPEN_TRANSACTION_ID]);
 
@@ -224,8 +224,14 @@ describe('SearchEditMultiplePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then the row shows the option its list has picked rather than reading as empty
-        expect(mockValueByRow.Reimbursable).toBe('Don’t change');
+        // Then the row is empty like the other untouched fields, since each expense keeps its own value
+        expect(mockValueByRow.Reimbursable).toBe('');
+
+        // When No is picked
+        await selectTransactions([OPEN_TRANSACTION_ID], {reimbursable: false});
+
+        // Then the row shows it
+        expect(mockValueByRow.Reimbursable).toBe('No');
     });
 
     it('sets every selected expense to non-reimbursable when No is picked', async () => {

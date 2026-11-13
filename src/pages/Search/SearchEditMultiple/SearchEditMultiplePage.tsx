@@ -272,7 +272,7 @@ function SearchEditMultiplePage() {
         updateBulkEditDraftTransaction({currency: newCurrency});
     };
 
-    // `null` is "Don't change", which drops the pending change so each expense keeps its own value.
+    // `null` means the picked value was tapped again, which drops the pending change so each expense keeps its own value.
     const saveDraftReimbursable = (value: boolean | null) => {
         updateBulkEditDraftTransaction({reimbursable: value});
     };
@@ -281,7 +281,7 @@ function SearchEditMultiplePage() {
         updateBulkEditDraftTransaction({billable: value});
     };
 
-    // The row shows the option its list has picked, "Don't change" included, so it never reads as empty.
+    // An empty row means nothing is pending, as on the other fields. Once a value is picked the row shows it.
     const getPendingBooleanTitle = (value: boolean | null | undefined) => {
         if (value === true) {
             return translate('common.yes');
@@ -289,7 +289,7 @@ function SearchEditMultiplePage() {
         if (value === false) {
             return translate('common.no');
         }
-        return translate('common.dontChange');
+        return '';
     };
 
     const saveDraftMerchant = (newMerchant: string) => {

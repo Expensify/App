@@ -275,14 +275,13 @@ describe('SearchEditMultiple dropdowns', () => {
             act(() => mockBooleanListProps?.onSelectRow(option));
         };
 
-        it("picks Don't change until a value is chosen, so an untouched field leaves each expense as it is", () => {
+        it('offers Yes and No with neither picked, so an untouched field leaves each expense as it is', () => {
             // Given a field nothing has been picked for yet
             // When its list opens
             renderBooleanDropdown(undefined, jest.fn());
 
-            // Then "Don't change" is picked, with Yes and No offered beside it
+            // Then only Yes and No are offered, and neither is picked
             expect(mockBooleanListProps?.data.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
-                {keyForList: 'dontChange', isSelected: true},
                 {keyForList: CONST.SEARCH.BOOLEAN.YES, isSelected: false},
                 {keyForList: CONST.SEARCH.BOOLEAN.NO, isSelected: false},
             ]);
@@ -302,16 +301,16 @@ describe('SearchEditMultiple dropdowns', () => {
             expect(onClose).toHaveBeenCalled();
         });
 
-        it("drops a picked value when Don't change is chosen", () => {
+        it('drops a picked value when it is tapped again', () => {
             // Given a field set to Yes earlier in this bulk edit
             const onSelected = jest.fn();
             renderBooleanDropdown(true, onSelected);
             expect(mockBooleanListProps?.data.find((item) => item.isSelected)?.keyForList).toBe(CONST.SEARCH.BOOLEAN.YES);
 
-            // When "Don't change" is picked
-            pickOption('dontChange');
+            // When Yes is tapped again
+            pickOption(CONST.SEARCH.BOOLEAN.YES);
 
-            // Then the pending value is dropped, so each expense keeps its own
+            // Then the pending value is dropped, so each expense keeps its own, as the full-page list did
             expect(onSelected).toHaveBeenCalledWith(null);
         });
     });

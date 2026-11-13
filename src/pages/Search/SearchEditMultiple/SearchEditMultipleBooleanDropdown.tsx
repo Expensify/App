@@ -11,12 +11,9 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-/** The option that leaves each expense's own value alone */
-const UNCHANGED_OPTION_KEY = 'dontChange';
-
 type BooleanOption = ListItem & {
-    /** What a pick records on the draft. `null` drops the pending change, so each expense keeps its own value. */
-    value: boolean | null;
+    /** The value picking this option records for every expense */
+    value: boolean;
 };
 
 type SearchEditMultipleBooleanDropdownProps = ExpenseFieldDropdownRenderProps & {
@@ -26,29 +23,26 @@ type SearchEditMultipleBooleanDropdownProps = ExpenseFieldDropdownRenderProps & 
     /** Value the draft records for every expense, `undefined` or `null` while each keeps its own */
     selectedValue: boolean | null | undefined;
 
-    /** Records the pick on the draft */
+    /** Records the pick on the draft. `null` drops the pending change, so each expense keeps its own value. */
     onSelected: (value: boolean | null) => void;
 };
 
 /**
- * A yes/no field of the bulk edit form, in the container anchored to its row. A switch can't tell "leave each expense
- * as it is" apart from "set every expense to No", so the list offers both, with "Don't change" picked until the user
- * chooses a value.
+ * A yes/no field of the bulk edit form, in the container anchored to its row. Nothing is picked until the user chooses
+ * a value, which leaves each expense as it is. Tapping the picked value again unpicks it, as the full-page list did.
  */
 function SearchEditMultipleBooleanDropdown({title, selectedValue, onSelected, onClose, ...popoverProps}: SearchEditMultipleBooleanDropdownProps) {
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const pendingValue = selectedValue ?? null;
 
     const options: BooleanOption[] = [
-        {value: null, keyForList: UNCHANGED_OPTION_KEY, text: translate('common.dontChange'), isSelected: pendingValue === null},
-        {value: true, keyForList: CONST.SEARCH.BOOLEAN.YES, text: translate('common.yes'), isSelected: pendingValue === true},
-        {value: false, keyForList: CONST.SEARCH.BOOLEAN.NO, text: translate('common.no'), isSelected: pendingValue === false},
+        {value: true, keyForList: CONST.SEARCH.BOOLEAN.YES, text: translate('common.yes'), isSelected: selectedValue === true},
+        {value: false, keyForList: CONST.SEARCH.BOOLEAN.NO, text: translate('common.no'), isSelected: selectedValue === false},
     ];
 
     const selectOption = (option: BooleanOption) => {
-        onSelected(option.value);
+        onSelected(option.value === selectedValue ? null : option.value);
         onClose();
     };
 
