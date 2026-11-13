@@ -39,6 +39,15 @@ function getQueryJSON(query: string) {
     return queryJSON;
 }
 
+function getNavigatedRouteParams() {
+    const [[route] = ['']] = jest.mocked(Navigation.navigate).mock.calls;
+    return new URLSearchParams(String(route).split('?').at(1));
+}
+
+function getSavedColumns() {
+    return getQueryJSON(getNavigatedRouteParams().get('q') ?? '').columns;
+}
+
 describe('useHideSearchColumn', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -63,8 +72,7 @@ describe('useHideSearchColumn', () => {
 
         // Then the search reloads with every other shown column kept in place, so hiding doesn't reorder the table,
         // and it keeps its key the same way saving from the Columns page does, so a saved search stays selected
-        const [[route] = ['']] = jest.mocked(Navigation.navigate).mock.calls;
-        const routeParams = new URLSearchParams(String(route).split('?').at(1));
+        const routeParams = getNavigatedRouteParams();
         expect(routeParams.get('searchKey')).toBe(mockSearchKey);
         expect(getQueryJSON(routeParams.get('q') ?? '').columns).toEqual([
             CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
@@ -85,13 +93,7 @@ describe('useHideSearchColumn', () => {
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.TO));
 
         // Then Amount debited stays saved, so it comes back once a row has a debited amount
-        const [[route] = ['']] = jest.mocked(Navigation.navigate).mock.calls;
-        const routeParams = new URLSearchParams(String(route).split('?').at(1));
-        expect(getQueryJSON(routeParams.get('q') ?? '').columns).toEqual([
-            CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME,
-            CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
-            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-        ]);
+        expect(getSavedColumns()).toEqual([CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME, CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
     });
 
     it('offers no hide for the total column, which the table needs to lay out', () => {
@@ -124,9 +126,7 @@ describe('useHideSearchColumn', () => {
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES));
 
         // Then the other shown group columns are saved alongside the expense columns, so expanding a group still shows the chosen expense columns
-        const [[route] = ['']] = jest.mocked(Navigation.navigate).mock.calls;
-        const routeParams = new URLSearchParams(String(route).split('?').at(1));
-        expect(getQueryJSON(routeParams.get('q') ?? '').columns).toEqual([
+        expect(getSavedColumns()).toEqual([
             CONST.SEARCH.TABLE_COLUMNS.AVATAR,
             CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
             CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
@@ -148,9 +148,7 @@ describe('useHideSearchColumn', () => {
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL));
 
         // Then only Total is dropped, so neither the group columns' order nor the expense columns change
-        const [[route] = ['']] = jest.mocked(Navigation.navigate).mock.calls;
-        const routeParams = new URLSearchParams(String(route).split('?').at(1));
-        expect(getQueryJSON(routeParams.get('q') ?? '').columns).toEqual([
+        expect(getSavedColumns()).toEqual([
             CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
             CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
             CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
