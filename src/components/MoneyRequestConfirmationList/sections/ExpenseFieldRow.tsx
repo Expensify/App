@@ -153,7 +153,8 @@ function ExpenseFieldRow({
 
     const row = (
         <MenuItem.Row>
-            <MenuItem.Content>
+            {/* A text input stacks its label right on its value, so the row does too and both kinds of field are 52px tall */}
+            <MenuItem.Content style={styles.gap0}>
                 {hasValue ? (
                     <>
                         <MenuItem.FieldName numberOfLines={1}>{name}</MenuItem.FieldName>

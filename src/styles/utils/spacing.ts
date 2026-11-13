@@ -831,6 +831,10 @@ export default {
         paddingBottom: '10%',
     },
 
+    gap0: {
+        gap: 0,
+    },
+
     gap1: {
         gap: 4,
     },
