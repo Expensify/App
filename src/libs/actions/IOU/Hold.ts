@@ -699,22 +699,7 @@ function getDuplicateActionsForPartialReport(
 
     const sourceReportActions = getAllReportActions(sourceReportID);
 
-    // Match the backend's WORKFLOW_ACTIONS list
-    const workflowActionTypes = [
-        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-        CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-        CONST.REPORT.ACTIONS.TYPE.APPROVED,
-        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
-        CONST.REPORT.ACTIONS.TYPE.REJECTED,
-        CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
-        CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-        CONST.REPORT.ACTIONS.TYPE.CLOSED,
-        CONST.REPORT.ACTIONS.TYPE.REOPENED,
-        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-        CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-        CONST.REPORT.ACTIONS.TYPE.REROUTE,
-        CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER,
-    ] as const;
+    const workflowActionTypes = CONST.REPORT.WORKFLOW_ACTIONS;
 
     const copiedActions: Record<string, OnyxTypes.ReportAction> = {};
     const copiedActionsSuccess: OnyxCollection<NullishDeep<OnyxTypes.ReportAction>> = {};

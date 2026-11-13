@@ -137,6 +137,7 @@ function DynamicIOURequestStepDate({
             updateMoneyRequestDate({
                 isVendorMatchingBetaEnabled,
                 transactionID,
+                transaction,
                 transactionThreadReport: report,
                 parentReport,
                 iouReportOwnerLogin,
@@ -176,6 +177,7 @@ function DynamicIOURequestStepDate({
                 isDraft: isTransactionDraft,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 getCurrencyDecimals,
+                rules,
             });
         }
 

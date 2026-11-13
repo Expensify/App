@@ -20,10 +20,9 @@ import type {UnreportedExpenseTableRowData} from '.';
 type AddExistingExpenseTableRowProps = {
     item: UnreportedExpenseTableRowData;
     rowIndex: number;
-    shouldUseNarrowTableLayout: boolean;
 };
 
-function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}: AddExistingExpenseTableRowProps) {
+function AddExistingExpenseTableRow({item, rowIndex}: AddExistingExpenseTableRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {tableMethods, processedData} = useTableContext<UnreportedExpenseTableRowData>();
@@ -54,7 +53,8 @@ function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}
                     transactionItem={item}
                     report={transactionReport}
                     policy={transactionPolicy}
-                    shouldUseNarrowLayout={shouldUseNarrowTableLayout}
+                    // The table renders the selection checkbox, so this row stays narrow and shows none of its own
+                    shouldUseNarrowLayout
                     isSelected={isSelected}
                     shouldShowTooltip
                     dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

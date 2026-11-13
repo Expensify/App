@@ -1,17 +1,15 @@
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
-import {hasVendorFeature, isPolicyTaxEnabled} from '@libs/PolicyUtils';
+import getReportDetailsColumns, {getConfiguredReportDetailsColumns} from '@libs/getReportDetailsColumns';
+import {hasVendorFeature} from '@libs/PolicyUtils';
 import {isIOUReport} from '@libs/ReportUtils';
-import {getColumnsToShow, getTableMinWidth, isReportDetailsCustomColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
+import {getTableMinWidth, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import shouldShowTransactionPostedYear from '@libs/TransactionUtils/shouldShowTransactionPostedYear';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 
@@ -60,12 +58,15 @@ type UseMoneyRequestReportColumnsResult = {
     isExpenseReportViewFromIOUReport: boolean;
 };
 
+function hasVisibleComments(reportActions: readonly OnyxTypes.ReportAction[]): boolean {
+    return Object.values(reportActions ?? {}).some((action) => (action?.childVisibleActionCount ?? 0) > 0);
+}
+
 /**
  * Derives which columns the transaction table shows and how wide they are, from the report's
  * transactions and the user's saved column preferences.
  */
 function useMoneyRequestReportColumns({report, policy, transactions, reportActions}: UseMoneyRequestReportColumnsParams): UseMoneyRequestReportColumnsResult {
-    const currentUserDetails = useCurrentUserPersonalDetails();
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
@@ -73,24 +74,16 @@ function useMoneyRequestReportColumns({report, policy, transactions, reportActio
 
     // Always use default columns for money request report view (don't use user-customized search columns)
     const isExpenseReportViewFromIOUReport = isIOUReport(report);
-    const shouldShowBillableColumn = isBillableEnabledOnPolicy(policy);
-    const shouldShowCommentsColumn = Object.values(reportActions ?? {}).some((action) => (action?.childVisibleActionCount ?? 0) > 0);
+    const shouldShowCommentsColumn = hasVisibleComments(reportActions);
     // The saved column list is account-wide, so the vendor column only shows on reports whose workspace has the vendor feature.
     const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
-    const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
     const columnsToShow = useStableArrayReference(
-        getColumnsToShow({
-            currentAccountID: currentUserDetails?.accountID,
-            data: transactions,
+        getReportDetailsColumns({
             report,
-            visibleColumns: isExpenseReportViewFromIOUReport ? [] : savedColumns,
-            isExpenseReportView: true,
-            isExpenseReportViewFromIOUReport,
-            shouldShowBillableColumn,
+            policy,
+            transactions,
+            columns: getConfiguredReportDetailsColumns(reportDetailsColumns, isVendorColumnAvailable),
             shouldShowCommentsColumn,
-            shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
-            reportCurrency: report?.currency,
-            isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
             isVendorColumnAvailable,
         }),
     );

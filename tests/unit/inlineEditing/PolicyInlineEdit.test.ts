@@ -6,6 +6,7 @@ import {
     getExpensifyCardLimitInlineUpdate,
     renameCategoryInline,
     renameExpensifyCardInline,
+    updateDistanceRateValueInline,
     updateDistanceTaxClaimableValueInline,
     updateExpensifyCardLimitInline,
     updateExpensifyCardLimitTypeInline,
@@ -180,6 +181,46 @@ describe('PolicyInlineEdit', () => {
         });
     });
 
+    describe('updateDistanceRateValueInline', () => {
+        const rate: Rate = {customUnitRateID: 'cars', rate: 10, currency: CONST.CURRENCY.GBP};
+        const customUnit: CustomUnit = {customUnitID: 'distance', name: CONST.CUSTOM_UNITS.NAME_DISTANCE, rates: {cars: rate}};
+        const toLocaleDigit = (digit: string) => digit;
+
+        it.each(['0.1', '0.10', '0.1000'])('does not persist the unchanged rate %s', (newRate) => {
+            // Given a stored rate displayed as 0.10
+            // When the same numeric rate is entered with different padding
+            const rejection = updateDistanceRateValueInline(translate, '1', customUnit, rate, newRate, toLocaleDigit);
+
+            // Then no unnecessary request is written
+            expect(rejection).toBeUndefined();
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('ignores floating-point noise when comparing at four decimals', () => {
+            // Given a saved rate whose cents conversion contains floating-point noise
+            const savedRate = {...rate, rate: Number('0.29') * 100};
+
+            // When the same amount is submitted
+            updateDistanceRateValueInline(translate, '1', customUnit, savedRate, '0.2900', toLocaleDigit);
+
+            // Then the rate is unchanged at editor precision
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('persists a change in the fourth decimal place', () => {
+            // Given a stored rate displayed as 0.10
+            // When the fourth decimal is changed
+            updateDistanceRateValueInline(translate, '1', customUnit, rate, '0.1001', toLocaleDigit);
+
+            // Then all four decimals reach the canonical update action
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE,
+                expect.objectContaining({customUnitRateArray: JSON.stringify([{...rate, rate: Number('0.1001') * 100}])}),
+                expect.anything(),
+            );
+        });
+    });
+
     describe('updateDistanceTaxClaimableValueInline', () => {
         const rate: Rate = {
             customUnitRateID: 'cars',
@@ -219,7 +260,7 @@ describe('PolicyInlineEdit', () => {
             expect(mockWrite).not.toHaveBeenCalled();
         });
 
-        it.each(['2', '2.0000'])('does not persist the unchanged amount %s', (newAmount) => {
+        it.each(['2', '2.00', '2.0000'])('does not persist the unchanged amount %s', (newAmount) => {
             // Given a stored percentage representing two currency units
             // When the same amount is entered with a different number of decimal places
             const rejection = updateDistanceTaxClaimableValueInline(translate, '1', customUnit, rate, newAmount);
@@ -227,6 +268,30 @@ describe('PolicyInlineEdit', () => {
             // Then numeric equality avoids an unnecessary request
             expect(rejection).toBeUndefined();
             expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it.each(['0.1', '0.10', '0.1000'])('does not persist the unchanged fractional amount %s', (newAmount) => {
+            // Given a reclaimable amount displayed as 0.10
+            const fractionalRate = {...rate, attributes: {...rate.attributes, taxClaimablePercentage: (0.1 * 100) / 1000}};
+
+            // When the same amount is entered with different padding
+            updateDistanceTaxClaimableValueInline(translate, '1', customUnit, fractionalRate, newAmount);
+
+            // Then both values are compared at four decimals instead of comparing their formatting
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('persists a change in the fourth decimal place', () => {
+            // Given a reclaimable amount displayed as 2.00
+            // When the fourth decimal is changed
+            updateDistanceTaxClaimableValueInline(translate, '1', customUnit, rate, '2.0001');
+
+            // Then the change is not mistaken for an unchanged two-decimal amount
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_DISTANCE_TAX_CLAIMABLE_VALUE,
+                expect.objectContaining({customUnitRateArray: JSON.stringify([{...rate, attributes: {...rate.attributes, taxClaimablePercentage: (2.0001 * 100) / 1000}}])}),
+                expect.anything(),
+            );
         });
 
         it.each(['', '0'])('clears an existing amount with input %s', (newAmount) => {

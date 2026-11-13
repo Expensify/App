@@ -51,6 +51,7 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
                     title={`${ownerData.firstName} ${ownerData.lastName}`}
                     description={`${ownerData.street}, ${ownerData.city}, ${ownerData.state} ${ownerData.zipCode}`}
                     accountID={CONST.DEFAULT_NUMBER_ID}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     onPress={() => {
                         handleOwnerEdit(ownerKey);
                     }}

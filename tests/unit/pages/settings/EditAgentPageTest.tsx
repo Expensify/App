@@ -130,13 +130,6 @@ jest.mock('@components/OfflineWithFeedback', () => {
     return MockOfflineWithFeedback;
 });
 
-jest.mock('@components/ReportActionAvatars', () => {
-    function MockReportActionAvatars() {
-        return null;
-    }
-    return MockReportActionAvatars;
-});
-
 jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     function MockNotFoundPage() {
         return 'notFound.notHere';

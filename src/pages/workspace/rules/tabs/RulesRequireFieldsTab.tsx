@@ -78,6 +78,7 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
                 isDisabled: !canWriteRules,
                 buttonText: translate('workspace.rules.requireFieldsEmptyState.cta'),
                 buttonAction: handleNewRequireFieldsRule,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_EMPTY_STATE_ADD_RULE,
             },
         ],
     };

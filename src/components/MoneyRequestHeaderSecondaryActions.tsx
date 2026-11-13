@@ -432,6 +432,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.hold'),
             icon: expensifyIcons.Stopwatch,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.HOLD,
             onSelected: () => {
                 if (!parentReportAction) {
                     throw new Error('Parent action does not exist');
@@ -470,6 +471,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.unhold'),
             icon: expensifyIcons.Stopwatch,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REMOVE_HOLD,
             onSelected: () => {
                 if (!parentReportAction) {
                     throw new Error('Parent action does not exist');
@@ -500,6 +502,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: shouldShowSplitIndicator ? translate('iou.editSplits') : translate('iou.split'),
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SPLIT,
             onSelected: () => {
                 initSplitExpense(transaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, getCurrencyDecimals, getCurrencySymbol);
             },
@@ -508,6 +511,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('common.merge'),
             icon: expensifyIcons.ArrowCollapse,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.MERGE,
             onSelected: () => {
                 if (!transaction) {
                     return;
@@ -520,6 +524,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (duplicateTargetPolicy && shouldRestrictUserBillableActions(duplicateTargetPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     dropdownMenuRef.current?.setIsMenuVisible(false);
@@ -568,6 +573,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.VIEW_DETAILS,
             text: translate('iou.viewDetails'),
             icon: expensifyIcons.Info,
             onSelected: () => {
@@ -578,6 +584,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
             icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
+            sentryLabel: shouldShowEditSplitOnDeleteAction ? CONST.SENTRY_LABEL.MORE_MENU.SPLIT : CONST.SENTRY_LABEL.MORE_MENU.DELETE,
             onSelected: () => {
                 if (shouldShowEditSplitOnDeleteAction && transaction?.transactionID) {
                     deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
@@ -663,6 +670,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('common.reject'),
             icon: expensifyIcons.ThumbsDown,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REJECT,
             onSelected: () => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
@@ -682,6 +690,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.moveExpenses'),
             icon: expensifyIcons.DocumentMerge,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.MOVE_EXPENSE,
             onSelected: () => {
                 if (!parentReport || !transaction?.transactionID) {
                     return;
@@ -710,6 +719,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.sendToSomeone'),
             icon: expensifyIcons.Send,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SEND_TO_SOMEONE,
             onSelected: () => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
@@ -723,6 +733,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.submitToEmployer'),
             icon: expensifyIcons.Building,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SEND_TO_EMPLOYER,
             onSelected: () => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();

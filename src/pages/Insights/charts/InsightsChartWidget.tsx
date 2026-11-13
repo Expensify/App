@@ -183,6 +183,7 @@ function InsightsChartWidget({
                         ? [
                               {
                                   text: translate('insightsPage.viewOnSpend'),
+                                  sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_VIEW_ON_SPEND,
                                   icon: icons.Expand,
                                   onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
                                   shouldCallAfterModalHide: true,
@@ -193,6 +194,7 @@ function InsightsChartWidget({
                         ? [
                               {
                                   text: translate('spreadsheet.downloadCSV'),
+                                  sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_DOWNLOAD_CSV,
                                   icon: icons.Table,
                                   onSelected: downloadCSV,
                                   shouldCallAfterModalHide: true,
