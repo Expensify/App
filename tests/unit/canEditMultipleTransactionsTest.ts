@@ -3,6 +3,7 @@ import {canEditMultipleTransactions} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, Policy, Report, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -131,6 +132,21 @@ describe('canEditMultipleTransactions', () => {
         const result = canEditMultipleTransactions([transaction1], reportActions, reports, policies, undefined);
 
         expect(result).toBe(false);
+    });
+
+    it('returns false when a selected expense is on a report that is archived in the search snapshot', () => {
+        // Given two editable expenses where the second expense's report is archived only in the search snapshot
+        const {transaction1, transaction2, reports, policies, reportActions, report2} = buildTestData();
+        const snapshotData: SearchResultDataType = {};
+        snapshotData[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report2.reportID}`] = {private_isArchived: '2024-01-01 00:00:00'};
+
+        // When checking whether both expenses can be bulk edited with and without the snapshot
+        const resultWithSnapshot = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined, false, snapshotData);
+        const resultWithoutSnapshot = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
+
+        // Then bulk edit is blocked only when the snapshot marks the report as archived
+        expect(resultWithSnapshot).toBe(false);
+        expect(resultWithoutSnapshot).toBe(true);
     });
 
     it('returns false when any selected transaction has no editable fields', () => {

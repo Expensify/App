@@ -642,6 +642,10 @@ function useSelectedTransactionsActions({
         }
 
         const canAllSelectedTransactionsBeRemoved = selectedTransactionsList.every((transaction) => {
+            if (isReportArchived) {
+                return false;
+            }
+
             const action = getTransactionIOUAction(transaction, transaction.transactionID);
 
             // Some reported expenses have no IOU action, and the API still deletes them by transactionID, so the report-level delete rules decide.

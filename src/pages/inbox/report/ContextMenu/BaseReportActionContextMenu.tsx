@@ -241,6 +241,7 @@ function BaseReportActionContextMenu({
     const [moneyRequestActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestAction?.childReportID)}`);
     const iouReportID = (moneyRequestAction ?? reportAction)?.reportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const isMoneyRequestReportArchived = useReportIsArchived(iouReportID);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
@@ -293,6 +294,7 @@ function BaseReportActionContextMenu({
                 originalReportActions,
                 moneyRequestReportActions,
                 isArchivedRoom,
+                isMoneyRequestReportArchived,
                 menuTarget: anchor,
                 isChronosReport,
                 reportID,
