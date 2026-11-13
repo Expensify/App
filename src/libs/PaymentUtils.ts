@@ -13,7 +13,7 @@ import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BillingGraceEndPeriod, Policy, Report, Rule, TransactionViolations} from '@src/types/onyx';
+import type {AccountData, BillingGraceEndPeriod, Policy, Report, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -50,6 +50,7 @@ type SelectPaymentTypeParams = {
     isASAPSubmitBetaEnabled: boolean;
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
+    iouReportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
@@ -236,6 +237,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         isASAPSubmitBetaEnabled,
         confirmApproval,
         iouReport,
+        iouReportTransactions,
         rules,
         userBillingGracePeriodEnds,
         amountOwed,
@@ -269,6 +271,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         } else {
             approveMoneyRequest({
                 expenseReport: iouReport,
+                expenseReportTransactions: iouReportTransactions,
                 expenseReportPolicy,
                 rules,
                 currentUserAccountIDParam: currentAccountID,
