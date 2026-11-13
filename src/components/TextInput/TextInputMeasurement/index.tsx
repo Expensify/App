@@ -4,10 +4,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
 
-import type {ViewStyle} from 'react-native';
-
 import React from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type TextInputMeasurementProps from './types';
 
@@ -28,12 +26,14 @@ function TextInputMeasurement({
     autoGrowMeasurementStyles,
 }: TextInputMeasurementProps) {
     const styles = useThemeStyles();
+    // A TextStyle color is not a valid View style color. The hidden wrapper View only measures and draws no text, so it doesn't need the color.
+    const {color, ...wrapperInputStyle} = StyleSheet.flatten(inputStyle) ?? {};
 
     return (
         <>
             {!!contentWidth && isPrefixCharacterPaddingCalculated && (
                 <View
-                    style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
+                    style={[wrapperInputStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
                     onLayout={(e) => {
                         if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
                             return;

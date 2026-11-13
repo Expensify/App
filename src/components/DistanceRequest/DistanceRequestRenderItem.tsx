@@ -7,7 +7,6 @@ import useTheme from '@hooks/useTheme';
 import {isWaypointNullIsland} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
@@ -35,18 +34,18 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
     const lastWaypointIndex = numberOfWaypoints - 1;
 
     const index = getIndex?.() ?? -1;
-    let descriptionKey = 'distance.waypointDescription.';
+    let descriptionKey: 'distance.waypointDescription.start' | 'distance.waypointDescription.stop';
     let waypointIcon;
     let sentryLabel: SentryLabel = CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_STOP_MENU_ITEM;
     if (index === 0) {
-        descriptionKey += 'start';
+        descriptionKey = 'distance.waypointDescription.start';
         sentryLabel = CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_START_MENU_ITEM;
         waypointIcon = expensifyIcons.DotIndicatorUnfilled;
     } else if (index === lastWaypointIndex) {
-        descriptionKey += 'stop';
+        descriptionKey = 'distance.waypointDescription.stop';
         waypointIcon = expensifyIcons.Location;
     } else {
-        descriptionKey += 'stop';
+        descriptionKey = 'distance.waypointDescription.stop';
         waypointIcon = expensifyIcons.DotIndicator;
     }
 
@@ -56,7 +55,7 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
 
     return (
         <MenuItemWithTopDescription
-            description={translate(descriptionKey as TranslationPaths)}
+            description={translate(descriptionKey)}
             title={title}
             icon={expensifyIcons.DragHandles}
             iconFill={theme.icon}

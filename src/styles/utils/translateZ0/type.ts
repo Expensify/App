@@ -1,5 +1,3 @@
-import type {ViewStyle} from 'react-native';
-
-type TranslateZ0Style = Record<'translateZ0', Pick<ViewStyle, 'transform'>>;
+type TranslateZ0Style = Record<'translateZ0', {transform: string}>;
 
 export default TranslateZ0Style;
