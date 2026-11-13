@@ -779,7 +779,7 @@
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Session/index.ts"	"no-restricted-syntax"	9
-"../../src/libs/actions/Session/index.ts"	"rulesdir/no-onyx-connect"	2
+"../../src/libs/actions/Session/index.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/actions/StatsCounter.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/StoreReview/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Subscription.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

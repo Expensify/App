@@ -11,7 +11,7 @@ import * as Session from './actions/Session';
 const interceptAnonymousUser = (callback: () => void, session: OnyxEntry<SessionType>) => {
     const isAnonymousUser = Session.isAnonymousUser(session);
     if (isAnonymousUser) {
-        Session.signOutAndRedirectToSignIn();
+        Session.signOutAndRedirectToSignIn(session);
     } else {
         callback();
     }

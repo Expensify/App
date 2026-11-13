@@ -47,6 +47,7 @@ import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn
 import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
+let currentSession: OnyxEntry<Session>;
 const pendingDeepLinkCleanups = new Set<() => void>();
 
 registerSessionCleanupCallback(() => {
@@ -55,11 +56,13 @@ registerSessionCleanupCallback(() => {
     }
 });
 
-// Use connectWithoutView since this is to open an external link and doesn't affect any UI
+// Use connectWithoutView since this is to open an external link and doesn't affect any UI.
+// It also keeps the session live for deep links, which sign out after sign-in finishes, so a value captured when the link was opened would be stale.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        currentSession = value;
     },
 });
 
@@ -398,7 +401,7 @@ function openLink(href: string, environmentURL: string, isAttachment: boolean, s
 
     if (reportLinkRoute) {
         if (internalNewExpensifyPath && hasSameOrigin && isAnonymousUser(session) && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
-            signOutAndRedirectToSignIn();
+            signOutAndRedirectToSignIn(session);
             return;
         }
         if (focusedSearchReportActionRoute && reportLinkRouteParams?.reportActionID) {
@@ -416,7 +419,7 @@ function openLink(href: string, environmentURL: string, isAttachment: boolean, s
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalNewExpensifyPath && hasSameOrigin) {
         if (isAnonymousUser(session) && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
-            signOutAndRedirectToSignIn();
+            signOutAndRedirectToSignIn(session);
             return;
         }
         if (shouldCloseRHP) {
@@ -526,8 +529,8 @@ function openReportFromDeepLink(
                 // anonymous session can never fulfill them even though report routes are otherwise anonymous-accessible
                 // (canAnonymousUserAccessRoute would allow it). Force a real sign-in first; the deep link is re-processed
                 // after sign-in. Without this the user lands on /r/:id?secureKey with no join, stuck loading/404.
-                if (isAnonymousUser()) {
-                    signOutAndRedirectToSignIn(true);
+                if (isAnonymousUser(currentSession)) {
+                    signOutAndRedirectToSignIn(currentSession, true);
                     return;
                 }
                 // On cold launch the report is already the initial route; navigating again would stack a duplicate
@@ -570,12 +573,12 @@ function openReportFromDeepLink(
             key: ONYXKEYS.NVP_ONBOARDING,
             callback: (val: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>) => {
                 latestOnboarding = val;
-                if (!isPending || (!val && !isAnonymousUser())) {
+                if (!isPending || (!val && !isAnonymousUser(currentSession))) {
                     return;
                 }
 
                 // Capture once. Use the raw flag, not the selector, which returns `true` for the empty NVP a fresh sign-up briefly has.
-                if (!isAuthenticated && initialHasCompletedGuidedSetupFlow === undefined && val && !isAnonymousUser()) {
+                if (!isAuthenticated && initialHasCompletedGuidedSetupFlow === undefined && val && !isAnonymousUser(currentSession)) {
                     initialHasCompletedGuidedSetupFlow = val.hasCompletedGuidedSetupFlow;
                 }
 
@@ -584,8 +587,8 @@ function openReportFromDeepLink(
                         return;
                     }
 
-                    if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
-                        signOutAndRedirectToSignIn(true);
+                    if (route && isAnonymousUser(currentSession) && !canAnonymousUserAccessRoute(route)) {
+                        signOutAndRedirectToSignIn(currentSession, true);
                         return;
                     }
 
@@ -625,7 +628,14 @@ function openReportFromDeepLink(
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
                             if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
                                 // TODO: Pass guideAccountIDs in Phase B. findLastAccessedReport reaches hasExpensifyGuidesEmails, which falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-                                const lastAccessedReportID = findLastAccessedReport(false, undefined, isAnonymousUser(), shouldOpenOnAdminRoom(), reportID, reportNameValuePairs)?.reportID;
+                                const lastAccessedReportID = findLastAccessedReport(
+                                    false,
+                                    undefined,
+                                    isAnonymousUser(currentSession),
+                                    shouldOpenOnAdminRoom(),
+                                    reportID,
+                                    reportNameValuePairs,
+                                )?.reportID;
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
@@ -753,7 +763,7 @@ function openReportFromDeepLink(
                         openDeepLink();
                     };
 
-                    if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser() || shouldSkipOnboarding) {
+                    if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser(currentSession) || shouldSkipOnboarding) {
                         handleDeeplinkNavigation();
                     }
                 });

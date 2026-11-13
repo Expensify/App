@@ -20,9 +20,11 @@ import variables from '@styles/variables';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import ErrorBodyText from './ErrorBodyText';
 
@@ -83,8 +85,8 @@ function GenericErrorPage({error}: {error?: Error}) {
                                     {isAuthenticated && (
                                         <Button
                                             sentryLabel={CONST.SENTRY_LABEL.ERROR_PAGE.SIGN_OUT}
-                                            onPress={() => {
-                                                signOutAndRedirectToSignIn();
+                                            onPress={async () => {
+                                                signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
                                                 refreshPage();
                                             }}
                                         >

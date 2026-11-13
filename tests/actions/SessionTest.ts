@@ -587,7 +587,7 @@ describe('Session', () => {
 
             const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
-            signOutAndRedirectToSignIn();
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
 
             await waitForBatchedUpdates();
 
@@ -611,7 +611,7 @@ describe('Session', () => {
 
             const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
-            signOutAndRedirectToSignIn();
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
 
             await waitForBatchedUpdates();
 
@@ -636,7 +636,7 @@ describe('Session', () => {
 
             await waitForBatchedUpdates();
 
-            signOutAndRedirectToSignIn(false, false, true, true);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, false, true, true);
 
             await waitForBatchedUpdates();
 
@@ -670,7 +670,7 @@ describe('Session', () => {
 
             const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
-            signOutAndRedirectToSignIn(true, false, true, true);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), true, false, true, true);
 
             await waitForBatchedUpdates();
 
@@ -1445,6 +1445,121 @@ describe('Session', () => {
 
         test('returns false when session is undefined', () => {
             expect(SessionUtil.isSupportAuthToken(undefined)).toBe(false);
+        });
+    });
+
+    describe('session passed by the caller instead of the module-level session', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('signOutAndRedirectToSignIn logs out with the authToken of the passed session, not the stored one', async () => {
+            // Given a signed-in session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'storedAuthToken', email: 'stored@example.com', accountID: 1});
+            await waitForBatchedUpdates();
+            jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            // When the user signs out with a session passed by the caller
+            signOutAndRedirectToSignIn({authToken: 'passedAuthToken', email: 'passed@example.com', accountID: 2});
+            await waitForBatchedUpdates();
+
+            // Then LogOut invalidates the passed session's token, because the stored session is no longer read
+            expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'passedAuthToken'}), {});
+        });
+
+        test('signOutAndRedirectToSignIn stashes the passed session when asked to stash it', async () => {
+            // Given a signed-in session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'storedAuthToken', email: 'stored@example.com', accountID: 1});
+            await waitForBatchedUpdates();
+            jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+            const onyxMultiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+            const passedSession: Session = {authToken: 'passedAuthToken', email: 'passed@example.com', accountID: 2};
+
+            // When the user signs out and asks to keep the session for later, as a supportal login does
+            signOutAndRedirectToSignIn(passedSession, false, true);
+            await waitForBatchedUpdates();
+
+            // Then the passed session is the one stashed, so it is the one restored afterwards
+            expect(onyxMultiSetSpy).toHaveBeenCalledWith(expect.objectContaining({[ONYXKEYS.STASHED_SESSION]: passedSession}));
+        });
+
+        test('isAnonymousUser returns false for an undefined session even when the stored session is anonymous', async () => {
+            // Given an anonymous session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+
+            // When the check is made before the caller's session has loaded
+            // Then it no longer falls back to the stored session
+            expect(SessionUtil.isAnonymousUser(undefined)).toBe(false);
+        });
+
+        test('isSupportAuthToken returns false for an undefined session even when the stored session is a support session', async () => {
+            // Given a support session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'supportAuthToken', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+            await waitForBatchedUpdates();
+
+            // When the check is made before the caller's session has loaded
+            // Then it no longer falls back to the stored session
+            expect(SessionUtil.isSupportAuthToken(undefined)).toBe(false);
+        });
+    });
+
+    describe('waitForUserSignIn', () => {
+        test('resolves right away when the user is already signed in', async () => {
+            // Given a signed-in session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'authToken'});
+            await waitForBatchedUpdates();
+            const onSignIn = jest.fn();
+
+            // When a caller waits for sign-in
+            SessionUtil.waitForUserSignIn().then(onSignIn);
+            await waitForBatchedUpdates();
+
+            // Then it resolves without waiting for another session update, since the auth token is read live
+            expect(onSignIn).toHaveBeenCalledWith(true);
+        });
+
+        test('resolves once an auth token arrives', async () => {
+            // Given a signed-out user waiting for sign-in
+            const onSignIn = jest.fn();
+            SessionUtil.waitForUserSignIn().then(onSignIn);
+            await waitForBatchedUpdates();
+            expect(onSignIn).not.toHaveBeenCalled();
+
+            // When the session receives an auth token
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'authToken'});
+            await waitForBatchedUpdates();
+
+            // Then the wait resolves
+            expect(onSignIn).toHaveBeenCalledWith(true);
+        });
+    });
+
+    describe('session creationDate', () => {
+        test('stamps a creationDate on a session written without one', async () => {
+            // Given a session written without a creationDate, as the HybridApp transition from OldDot does
+            await Onyx.set(ONYXKEYS.SESSION, {authToken: 'authToken', email: 'user@example.com', accountID: 1});
+            await waitForBatchedUpdates();
+
+            // When the session is read
+            const session = await getOnyxValue(ONYXKEYS.SESSION);
+
+            // Then it has a creationDate, which Image needs to attach the auth token to authenticated images
+            expect(session?.creationDate).toEqual(expect.any(Number));
+        });
+
+        test('keeps the creationDate a session was written with', async () => {
+            // Given a session written with its own creationDate
+            const creationDate = 1_000;
+            await Onyx.set(ONYXKEYS.SESSION, {authToken: 'authToken', creationDate});
+            await waitForBatchedUpdates();
+
+            // When the session is read
+            const session = await getOnyxValue(ONYXKEYS.SESSION);
+
+            // Then the stamp leaves it unchanged
+            expect(session?.creationDate).toBe(creationDate);
         });
     });
 
