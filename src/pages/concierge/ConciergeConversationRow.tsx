@@ -3,7 +3,6 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
-import {useIsCurrentReportID} from '@hooks/useCurrentReportID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -30,6 +29,9 @@ import Animated, {Easing, useAnimatedStyle, useReducedMotion, useSharedValue, wi
 
 type ConciergeConversationRowProps = {
     conversation: ConciergeConversation;
+
+    /** The open report is this conversation or a thread nested in it */
+    isSelected: boolean;
 
     onOpenThread: (reportID: string) => void;
 
@@ -119,11 +121,8 @@ function ConciergeConversationRowContent({title, isUnread: isConversationUnread,
     );
 }
 
-function ConciergeThreadRow({conversation, onOpenThread}: ConciergeConversationRowProps) {
+function ConciergeThreadRow({conversation, isSelected, onOpenThread}: ConciergeConversationRowProps) {
     const reportID = conversation.reportID;
-
-    // The focused report follows every navigation, including the ones made while the Concierge page was in the background
-    const isSelected = useIsCurrentReportID(reportID ?? '');
     const threadAttributesSelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>) => {
         const threadAttributes = reportID ? attributes?.reports?.[reportID] : undefined;
         return {reportName: threadAttributes?.reportName ?? '', brickRoadStatus: threadAttributes?.brickRoadStatus};

@@ -5,6 +5,7 @@
  */
 import getEnvironment from '@libs/Environment/getEnvironment';
 import type Environment from '@libs/Environment/getEnvironment/types';
+import isInConciergeConversation from '@libs/isInConciergeConversation';
 import Permissions from '@libs/Permissions';
 
 import CONST from '@src/CONST';
@@ -64,7 +65,7 @@ function isConciergePageEnabled(): boolean {
 }
 
 function isConciergeConversationReportID(reportID: string): boolean {
-    return !!conciergeReportID && (reportID === conciergeReportID || reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID === conciergeReportID);
+    return isInConciergeConversation(reportID, conciergeReportID, reports);
 }
 
 function isKnownReportID(reportID: string): boolean {

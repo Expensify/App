@@ -9,6 +9,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useConciergeConversations from '@hooks/useConciergeConversations';
+import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -19,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getConciergeConversationReportID} from '@libs/isInConciergeConversation';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 
@@ -27,7 +29,9 @@ import {closeConciergePage, loadConciergeThreads, openConciergeConversation, ope
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -65,6 +69,9 @@ function ConciergeSidebarScreen() {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
+    const {currentReportID} = useCurrentReportIDState();
+    const selectedConversationSelector = (reports: OnyxCollection<Report>) => getConciergeConversationReportID(currentReportID, conciergeReportID, reports);
+    const [selectedConversationReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: selectedConversationSelector});
 
     // The first page is loaded once per mount, so a second effect run doesn't send the request again
     const hasLoadedFirstPageRef = useRef(false);
@@ -149,9 +156,11 @@ function ConciergeSidebarScreen() {
                     data={conversations}
                     contentContainerStyle={[styles.ph3, styles.pt1]}
                     keyExtractor={(conversation) => conversation.key}
+                    extraData={selectedConversationReportID}
                     renderItem={({item}) => (
                         <ConciergeConversationRow
                             conversation={item}
+                            isSelected={!!item.reportID && item.reportID === selectedConversationReportID}
                             onOpenThread={openConciergeConversation}
                             onOpenMessage={openMessage}
                         />

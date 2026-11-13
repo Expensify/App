@@ -24,11 +24,6 @@ type ConciergeConversation = {
     lastActivity: string;
 };
 
-/** Whether the report is the Concierge DM or one of its threads */
-function isConciergeConversationReport(report: Pick<Report, 'reportID' | 'parentReportID'> | undefined, conciergeReportID: string | undefined): boolean {
-    return !!conciergeReportID && !!report && (report.reportID === conciergeReportID || report.parentReportID === conciergeReportID);
-}
-
 /** The threads of the Concierge DM the user has not left */
 function getConciergeThreadConversations(reports: OnyxCollection<Report>, conciergeReportID: string | undefined): ConciergeConversation[] {
     if (!conciergeReportID) {
@@ -92,12 +87,5 @@ function sortConciergeConversations(conversations: ConciergeConversation[]): Con
     return conversations.sort((first, second) => second.lastActivity.localeCompare(first.lastActivity) || second.key.localeCompare(first.key));
 }
 
-export {
-    getConciergeMessageConversations,
-    getConciergeThreadConversations,
-    getConciergeThreadLastActivities,
-    isConciergeConversationReport,
-    isConciergeMessageWithoutThread,
-    sortConciergeConversations,
-};
+export {getConciergeMessageConversations, getConciergeThreadConversations, getConciergeThreadLastActivities, isConciergeMessageWithoutThread, sortConciergeConversations};
 export type {ConciergeConversation};

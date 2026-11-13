@@ -38,8 +38,8 @@ import {isValid, startOfDay, subMonths} from 'date-fns';
 import type {OptionData} from './ReportUtils';
 
 import {isAnonymousUser} from './actions/Session';
-import {isConciergeConversationReport} from './ConciergeConversationUtils';
 import DateUtils from './DateUtils';
+import isInConciergeConversation from './isInConciergeConversation';
 import Log from './Log';
 import {shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
@@ -196,7 +196,7 @@ function shouldDisplayReportInLHN({
         return {shouldDisplay: false};
     }
 
-    if (shouldHideConciergeConversations && isConciergeConversationReport(report, conciergeReportID)) {
+    if (shouldHideConciergeConversations && isInConciergeConversation(report.reportID, conciergeReportID, reports)) {
         return {shouldDisplay: false};
     }
 
