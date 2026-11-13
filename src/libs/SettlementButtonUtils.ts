@@ -40,6 +40,7 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
             value: CONST.PAYMENT_METHODS.ABA,
             shouldUpdateSelectedIndex: false,
             key: CONST.PAYMENT_METHODS.ABA,
+            sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PAY_VIA_ABA,
         },
     };
 

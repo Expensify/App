@@ -177,6 +177,7 @@ function usePaymentOptions({
                 text: translate('iou.payViaABA'),
                 icon: icons.Paycheck,
                 value: CONST.PAYMENT_METHODS.ABA,
+                sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PAY_VIA_ABA,
                 // The file is downloaded straight from the API, which can't be queued for when the user is back online
                 disabled: isOffline,
                 onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA}),

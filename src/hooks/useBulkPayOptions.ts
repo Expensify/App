@@ -152,6 +152,7 @@ function useBulkPayOptions({
 
     const payViaABAOption = {
         ...paymentMethods[CONST.PAYMENT_METHODS.ABA],
+        sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PAY_VIA_ABA,
         // The file is downloaded straight from the API, which can't be queued for when the user is back online
         disabled: isOffline,
         additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA},
