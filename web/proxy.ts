@@ -72,8 +72,9 @@ const server = http.createServer((request: IncomingMessage, response: ServerResp
         headers: {
             ...request.headers,
             host: hostname,
+            // Identify the development proxy so upstream checks match the actual HTTP client.
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            'user-agent': request.headers['user-agent']?.concat(' Development-NewDot/1.0'),
+            'user-agent': 'Development-NewDot/1.0',
         },
         port: 443,
     });
@@ -87,6 +88,13 @@ const server = http.createServer((request: IncomingMessage, response: ServerResp
     proxyRequest.on('error', (error) => {
         /* eslint-disable-next-line no-console */
         console.log(error);
+        // A failed upstream connection must not leave the browser waiting indefinitely.
+        if (response.headersSent) {
+            response.destroy(error);
+            return;
+        }
+        response.writeHead(502);
+        response.end();
     });
 });
 
