@@ -1199,6 +1199,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: '合规',
         runningTotal: '累计总额',
+        futureExpensesNotShown: (amount: string) => `未显示：未来报销金额 ${amount}。`,
+        violationsTrackedFrom: (date: string) => `从 ${date} 起开始记录违规情况。`,
         upsellState: {title: '升级到 Control，获取更多洞察', subtitle: '跟踪报销政策合规趋势，并标记屡次违规的用户。', button: '升级至 Control'},
         explain: '解释',
         explainChartPrompt: (chartTitle: string) => `解释「${chartTitle}」中的数据。`,

@@ -10610,6 +10610,8 @@ const CONST = {
                 AMOUNT: 'amount',
             },
         },
+        // The backend started recording violations on this day, so it has no violation data for earlier dates
+        VIOLATIONS_TRACKED_FROM: '2026-06-01',
     },
 
     SECTION_LIST_ITEM_TYPE: {

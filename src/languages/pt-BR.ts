@@ -1248,6 +1248,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformidade',
         runningTotal: 'Total acumulado',
+        futureExpensesNotShown: (amount: string) => `Não mostrado: ${amount} em despesas futuras.`,
+        violationsTrackedFrom: (date: string) => `Violações são registradas a partir de ${date}.`,
         upsellState: {
             title: 'Faça upgrade para o plano Control para ter mais insights',
             subtitle: 'Acompanhe tendências de conformidade com a política de despesas e sinalize reincidentes.',

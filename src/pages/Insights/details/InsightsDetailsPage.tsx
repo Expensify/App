@@ -16,6 +16,7 @@ import type {InsightsDetailsParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
+import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
@@ -37,7 +38,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const {graphKey, item: itemKey, end: periodEnd} = route.params;
+    const {graphKey, item: itemKey, end: periodEnd, asOf} = route.params;
     const {filters, isResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
     const memberAccountID = graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? Number(itemKey) : undefined;
     const [storedMember] = usePersonalDetail(memberAccountID);
@@ -61,7 +62,8 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   translate,
               })
             : undefined;
-    const drillDownQuery = chartQueryJSON && item ? buildChartDrillDownQuery(chartQueryJSON, item.filterQuery) : undefined;
+    const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters, undefined, getInsightsLastDay(asOf))) : undefined;
+    const drillDownQuery = queryJSONThroughToday && item ? buildChartDrillDownQuery(queryJSONThroughToday, item.filterQuery) : undefined;
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
         return (

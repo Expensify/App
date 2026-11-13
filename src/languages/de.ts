@@ -1246,6 +1246,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
+        futureExpensesNotShown: (amount: string) => `Nicht angezeigt: ${amount} in zukünftigen Ausgaben.`,
+        violationsTrackedFrom: (date: string) => `Verstöße werden ab dem ${date} erfasst.`,
         upsellState: {
             title: 'Upgrade auf Control für mehr Einblicke',
             subtitle: 'Verfolgen Sie Trends bei der Einhaltung der Spesenrichtlinie und markieren Sie Wiederholungstäter.',

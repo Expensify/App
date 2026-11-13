@@ -1234,6 +1234,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
+        futureExpensesNotShown: (amount: string) => `非表示：将来の経費に${amount}あります。`,
+        violationsTrackedFrom: (date: string) => `違反は${date}から追跡されます。`,
         upsellState: {
             title: 'より多くのインサイトを得るには Control にアップグレードしてください',
             subtitle: '経費ポリシー順守の傾向を追跡し、違反を繰り返すユーザーにフラグを付けます。',

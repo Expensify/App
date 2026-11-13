@@ -1,4 +1,4 @@
-import {getDateRangeForPreset} from '@libs/SearchQueryUtils';
+import type {SearchDatePreset} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 
@@ -8,6 +8,7 @@ import {addDays, differenceInCalendarDays, differenceInMonths, parseISO} from 'd
 
 import type {InsightsFilters} from './insightsFilters';
 
+import getInsightsDateRange from './getInsightsDateRange';
 import {INSIGHTS_GROUP_BY_OPTIONS, INSIGHTS_RUNNING_TOTAL_GROUP_BY} from './insightsFilters';
 
 type InsightsGroupBy = InsightsFilters['groupBy'];
@@ -23,13 +24,26 @@ const MIN_MONTHS_BY_GROUP_BY = {
     [CONST.SEARCH.GROUP_BY.YEAR]: 24,
 } as const;
 
+const CURRENT_PERIOD_GROUP_BY_OPTIONS: Partial<Record<SearchDatePreset, InsightsTimeGroupBy[]>> = {
+    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: [CONST.SEARCH.GROUP_BY.DAY],
+    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: [CONST.SEARCH.GROUP_BY.DAY],
+    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: [CONST.SEARCH.GROUP_BY.WEEK],
+    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: [CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.MONTH],
+    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: [CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.MONTH],
+};
+
 /** Returns the Group by options that fit the date range, in the dropdown's order */
 function getInsightsGroupByOptions(date: InsightsFilters['date']): InsightsTimeGroupBy[] {
     if ('on' in date) {
         return [CONST.SEARCH.GROUP_BY.DAY];
     }
 
-    const boundaries = 'from' in date ? {start: date.from, end: date.to} : getDateRangeForPreset(date.preset);
+    const currentPeriodOptions = 'preset' in date ? CURRENT_PERIOD_GROUP_BY_OPTIONS[date.preset] : undefined;
+    if (currentPeriodOptions) {
+        return currentPeriodOptions;
+    }
+
+    const boundaries = getInsightsDateRange(date);
 
     // Presets like "never" have no fixed range, so there's no length to fit a grouping to
     if (!boundaries.start || !boundaries.end) {
@@ -75,9 +89,16 @@ function isRunningTotalAvailable(date: InsightsFilters['date']): boolean {
     return getInsightsGroupByOptions(date).length > 0;
 }
 
-/** Returns the grouping a running total is plotted at: by day for ranges that offer Day (62 days or less), by month otherwise. */
+/** Returns the grouping a running total is plotted at: by day for ranges that offer Day (62 days or less), by month otherwise, or by the finest offered grouping when Month isn't offered either, like Week for This quarter. */
 function getRunningTotalGroupBy(date: InsightsFilters['date']): InsightsTimeGroupBy {
-    return getInsightsGroupByOptions(date).includes(CONST.SEARCH.GROUP_BY.DAY) ? CONST.SEARCH.GROUP_BY.DAY : CONST.SEARCH.GROUP_BY.MONTH;
+    const options = getInsightsGroupByOptions(date);
+    if (options.includes(CONST.SEARCH.GROUP_BY.DAY)) {
+        return CONST.SEARCH.GROUP_BY.DAY;
+    }
+    if (options.includes(CONST.SEARCH.GROUP_BY.MONTH)) {
+        return CONST.SEARCH.GROUP_BY.MONTH;
+    }
+    return options.at(0) ?? CONST.SEARCH.GROUP_BY.MONTH;
 }
 
 /** Returns the real time bucket the charts are queried with, fitted to the date range. Running total queries a real day/month bucket, so it never reaches the backend as the Running total value. */

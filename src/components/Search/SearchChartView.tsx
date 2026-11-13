@@ -70,6 +70,9 @@ type SearchChartViewProps = {
     /** Whether pressing a bar, point or slice opens Search filtered to it */
     shouldDrillDownOnPress?: boolean;
 
+    /** Query a pressed group is narrowed from instead of `queryJSON`, for charts whose data stops short of their date range, so Search lists only what the point plots */
+    drillDownQueryJSON?: Readonly<SearchQueryJSON>;
+
     /** Called with the group whose bar, point, slice or touch-opened tooltip is pressed. Takes precedence over `shouldDrillDownOnPress`. */
     onGroupPress?: (item: GroupedItem) => void;
 
@@ -90,6 +93,12 @@ type SearchChartViewProps = {
 
     /** Style of the view around the chart, which the details below it don't share */
     chartContainerStyle?: StyleProp<ViewStyle>;
+
+    /** First day the data was recorded, as a yyyy-MM-dd string, so compared buckets before it plot nothing instead of 0 */
+    trackedFrom?: string;
+
+    /** Day the data was counted through, as a yyyy-MM-dd string, which decides where the line ends and which period is in progress. Defaults to the device's today. */
+    today?: string;
 };
 
 /**
@@ -107,6 +116,7 @@ function SearchChartView({
     shouldShowGroupLabels = true,
     shouldUseResponsiveLabels = false,
     shouldDrillDownOnPress = true,
+    drillDownQueryJSON,
     onGroupPress,
     tooltipFooter,
     shouldShowSinglePointAsBar = false,
@@ -114,6 +124,8 @@ function SearchChartView({
     shouldShowRunningTotal = false,
     renderDetails,
     chartContainerStyle,
+    trackedFrom,
+    today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
 }: SearchChartViewProps) {
     const theme = useTheme();
     const {preferredLocale, translate, dateFnsLocale, numberFormat} = useLocalize();
@@ -123,7 +135,6 @@ function SearchChartView({
 
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
 
@@ -139,7 +150,6 @@ function SearchChartView({
     const formatTotal = isCountMetric ? convertToDisplayString : undefined;
 
     const emptyLaterKeys = new Set(data.filter((item) => isEmptyPeriodAfterToday(item, groupBy, today, dateFilterRange.start)).map((item) => item.keyForList));
-    const comparedKeysWithExpenses = new Set(comparison && !isChartAverage(comparison) ? comparison.data.filter((item) => !!item.count).map((item) => item.keyForList) : []);
     const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
 
     const {series, rows} = buildChartSeries({
@@ -158,7 +168,7 @@ function SearchChartView({
             return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
         },
         isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
-        hasComparedExpenses: (item) => comparedKeysWithExpenses.has(item.keyForList),
+        trackedFrom,
         translate,
         dateFnsLocale,
         colorScheme: theme.colorScheme,
@@ -179,11 +189,12 @@ function SearchChartView({
             return;
         }
 
-        if (!queryJSON) {
+        const pressedQueryJSON = drillDownQueryJSON ?? queryJSON;
+        if (!pressedQueryJSON) {
             return;
         }
 
-        const query = buildChartDrillDownQuery(queryJSON, getFilterQuery(item));
+        const query = buildChartDrillDownQuery(pressedQueryJSON, getFilterQuery(item));
 
         if (!query) {
             return;

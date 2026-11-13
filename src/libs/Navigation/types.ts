@@ -1617,6 +1617,9 @@ type InsightsDetailsParamList = {
 
         /** Last day of the clicked period, trimmed to the date range like the chart's label */
         end?: string;
+
+        /** Last day the dashboard counted expenses through, so Top expenses stops on the same day as the chart. Missing when the panel is opened from a link. */
+        asOf?: string;
     };
 };
 

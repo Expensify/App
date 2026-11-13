@@ -1382,6 +1382,8 @@ const translations = {
         slowestToApprove: 'Slowest to approve',
         mostTimeToPay: 'Most time to pay',
         runningTotal: 'Running total',
+        futureExpensesNotShown: (amount: string) => `Not shown: ${amount} in future expenses.`,
+        violationsTrackedFrom: (date: string) => `Violations are tracked from ${date}.`,
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',

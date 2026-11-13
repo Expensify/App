@@ -2437,12 +2437,14 @@ const ROUTES = {
             graphKey,
             itemKey,
             periodEnd,
+            asOfDate,
         }: {
             dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
             graphKey: ValueOf<typeof CONST.INSIGHTS.GRAPH>;
             itemKey: string;
             periodEnd?: string;
-        }) => `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}` as const,
+            asOfDate?: string;
+        }) => `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}` as const,
     },
 
     EXPENSE_REPORT_RHP: {

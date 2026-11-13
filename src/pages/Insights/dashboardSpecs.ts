@@ -45,6 +45,9 @@ type InsightsChartSpec = {
 
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
+
+    /** First day the backend has data for the chart, as a yyyy-MM-dd string. Earlier time buckets aren't drawn, and a note says where the data starts. */
+    trackedFrom?: string;
 };
 
 /** Violations kept at submission or approval */
@@ -197,6 +200,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             view: CONST.SEARCH.VIEW.LINE,
             has: VIOLATION_HAS_VALUES,
             metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            trackedFrom: CONST.INSIGHTS.VIOLATIONS_TRACKED_FROM,
         },
         supportingCharts: [
             {
