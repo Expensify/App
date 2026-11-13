@@ -14,4 +14,11 @@ const AuthorizeTransactionCancelConfirmModal = createCancelConfirmModal('Authori
     cancelButtonText: 'common.cancel',
 });
 
-export {DefaultCancelConfirmModal, AuthorizeTransactionCancelConfirmModal};
+const FreezeCardCancelConfirmModal = createCancelConfirmModal('FreezeCardCancelConfirmModal', {
+    title: 'cardPage.freezeCard',
+    description: 'multifactorAuthentication.fraudReview.ifYouCloseWeWillFreezeCard',
+    confirmButtonText: 'cardPage.freezeCard',
+    cancelButtonText: 'common.cancel',
+});
+
+export {DefaultCancelConfirmModal, AuthorizeTransactionCancelConfirmModal, FreezeCardCancelConfirmModal};

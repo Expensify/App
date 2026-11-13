@@ -693,6 +693,16 @@ const translations: TranslationDeepObject<typeof en> = {
             alreadyReviewedSubtitle:
                 'Ya ha revisado esta transacción. Por favor, revise su <transaction-history-link>historial de transacciones</transaction-history-link> o contacte a <concierge-link>Concierge</concierge-link> para reportar cualquier problema.',
         },
+        fraudReview: {
+            doYouRecognizeTransaction: '¿Reconoces esta transacción?',
+            weDeclinedSuspiciousTransaction: 'Hemos rechazado una transacción sospechosa con tu Tarjeta Expensify. Revisa los detalles e indícanos si la reconoces.',
+            unrecognizedButton: 'No, no he sido yo',
+            recognizedButton: 'Sí, la reconozco',
+            tryAgain: 'Inténtalo de nuevo',
+            giveItAnotherTry: 'Vuelve a intentarlo',
+            thankYouForConfirming: 'Gracias por confirmar que has realizado esta transacción. Inténtalo de nuevo en el comercio.',
+            ifYouCloseWeWillFreezeCard: 'Si cierras esta pantalla, tendremos que congelar tu tarjeta. Tendrás que descongelarla para volver a usarla.',
+        },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo no compatible',
             pleaseDownloadMobileApp: `Esta acción no está soportada en tu dispositivo. Por favor descarga la aplicación de Expensify desde la <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e inténtalo de nuevo.`,

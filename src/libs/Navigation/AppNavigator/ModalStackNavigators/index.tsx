@@ -1601,6 +1601,7 @@ const WorkspacesDomainModalStackNavigator = createModalStackNavigator<Workspaces
 
 const MultifactorAuthenticationStackNavigator = createModalStackNavigator<MultifactorAuthenticationParamList>({
     [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/AuthorizeTransactionPage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.REVIEW_TRANSACTION]: () => require<ReactComponentModule>('@pages/MultifactorAuthentication/ReviewTransactionPage').default,
     [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: () => require<ReactComponentModule>('@pages/MultifactorAuthentication/RevokePage').default,
 });
 

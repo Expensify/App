@@ -794,6 +794,16 @@ const translations = {
             alreadyReviewedSubtitle:
                 'You already reviewed this transaction. Please check your <transaction-history-link>transaction history</transaction-history-link> or contact <concierge-link>Concierge</concierge-link> to report any issues.',
         },
+        fraudReview: {
+            doYouRecognizeTransaction: 'Do you recognize this transaction?',
+            weDeclinedSuspiciousTransaction: 'We declined a suspicious transaction on your Expensify Card. Please review the details and let us know if you recognize it.',
+            unrecognizedButton: "No, it wasn't me",
+            recognizedButton: 'Yes, I do',
+            tryAgain: 'Try again',
+            giveItAnotherTry: 'Give it another try',
+            thankYouForConfirming: 'Thank you for confirming the transaction was yours. Please try again at the merchant.',
+            ifYouCloseWeWillFreezeCard: "If you close this screen, we'll have to freeze your card. You'll need to unfreeze it to use it again.",
+        },
         unsupportedDevice: {
             unsupportedDevice: 'Unsupported device',
             pleaseDownloadMobileApp: `This action is not supported on your device. Please download the Expensify app from the <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> or <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> and try again.`,

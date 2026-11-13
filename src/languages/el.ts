@@ -708,6 +708,16 @@ const translations: TranslationDeepObject<typeof en> = {
             alreadyReviewedSubtitle:
                 'Έχετε ήδη ελέγξει αυτή τη συναλλαγή. Παρακαλούμε ελέγξτε το <transaction-history-link>ιστορικό συναλλαγών</transaction-history-link> σας ή επικοινωνήστε με το <concierge-link>Concierge</concierge-link> για να αναφέρετε τυχόν προβλήματα.',
         },
+        fraudReview: {
+            doYouRecognizeTransaction: 'Αναγνωρίζετε αυτή τη συναλλαγή;',
+            weDeclinedSuspiciousTransaction: 'Απορρίψαμε μια ύποπτη συναλλαγή στην Κάρτα Expensify σας. Ελέγξτε τις λεπτομέρειες και ενημερώστε μας αν την αναγνωρίζετε.',
+            unrecognizedButton: 'Όχι, δεν ήμουν εγώ',
+            recognizedButton: 'Ναι, την αναγνωρίζω',
+            tryAgain: 'Δοκιμάστε ξανά',
+            giveItAnotherTry: 'Κάντε άλλη μια προσπάθεια',
+            thankYouForConfirming: 'Σας ευχαριστούμε που επιβεβαιώσατε ότι πραγματοποιήσατε εσείς τη συναλλαγή. Δοκιμάστε ξανά στον έμπορο.',
+            ifYouCloseWeWillFreezeCard: 'Αν κλείσετε αυτή την οθόνη, θα πρέπει να παγώσουμε την κάρτα σας. Θα χρειαστεί να την ξεμπλοκάρετε για να τη χρησιμοποιήσετε ξανά.',
+        },
         unsupportedDevice: {
             unsupportedDevice: 'Μη υποστηριζόμενη συσκευή',
             pleaseDownloadMobileApp: `Αυτή η ενέργεια δεν υποστηρίζεται στη συσκευή σας. Παρακαλούμε κατεβάστε την εφαρμογή Expensify από το <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ή το <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> και δοκιμάστε ξανά.`,

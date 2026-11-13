@@ -755,6 +755,16 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptThisDevice: '你确定吗？你将在此设备上的下一次验证中需要输入安全码。',
             confirmationPromptMultiple: '您确定吗？下次在这些设备上进行验证时，您需要输入安全代码。',
         },
+        fraudReview: {
+            doYouRecognizeTransaction: '您认得这笔交易吗？',
+            weDeclinedSuspiciousTransaction: '我们拒绝了您 Expensify 卡上的一笔可疑交易。请查看交易详情，并告知我们您是否认得这笔交易。',
+            unrecognizedButton: '不，这不是我的交易',
+            recognizedButton: '是的，我认得',
+            tryAgain: '重试',
+            giveItAnotherTry: '请再试一次',
+            thankYouForConfirming: '感谢您确认这笔交易是您本人进行的。请在商户处重试。',
+            ifYouCloseWeWillFreezeCard: '如果您关闭此页面，我们将不得不冻结您的卡片。您需要先解冻才能再次使用。',
+        },
         unsupportedDevice: {
             unsupportedDevice: '不支持的设备',
             pleaseDownloadMobileApp: `您的设备不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play 商店</a>下载 Expensify 应用，然后重试。`,

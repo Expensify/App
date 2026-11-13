@@ -773,6 +773,16 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptThisDevice: 'Weet je het zeker? Je hebt een beveiligingscode nodig voor de volgende verificatie op dit apparaat.',
             confirmationPromptMultiple: 'Weet je het zeker? Je hebt een beveiligingscode nodig voor de volgende verificatie op die apparaten.',
         },
+        fraudReview: {
+            doYouRecognizeTransaction: 'Herken je deze transactie?',
+            weDeclinedSuspiciousTransaction: 'We hebben een verdachte transactie met je Expensify Kaart geweigerd. Bekijk de details en laat ons weten of je de transactie herkent.',
+            unrecognizedButton: 'Nee, dat was ik niet',
+            recognizedButton: 'Ja, die herken ik',
+            tryAgain: 'Probeer opnieuw',
+            giveItAnotherTry: 'Probeer het nog eens',
+            thankYouForConfirming: 'Bedankt dat je hebt bevestigd dat jij de transactie hebt uitgevoerd. Probeer het opnieuw bij de winkelier.',
+            ifYouCloseWeWillFreezeCard: 'Als je dit scherm sluit, moeten we je kaart blokkeren. Je moet de kaart deblokkeren om deze weer te kunnen gebruiken.',
+        },
         unsupportedDevice: {
             unsupportedDevice: 'Niet-ondersteund apparaat',
             pleaseDownloadMobileApp: `Deze actie wordt niet ondersteund op jouw apparaat. Download de Expensify-app uit de <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> of de <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> en probeer het opnieuw.`,
