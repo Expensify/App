@@ -1,5 +1,6 @@
 import type CONST from '@src/CONST';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 import type {ValueOf} from 'type-fest';
@@ -47,6 +48,9 @@ type TrackExpenseParams = {
     isDistance?: boolean;
     odometerStart?: number;
     odometerEnd?: number;
+
+    /** Distance unit the odometer readings were entered in, so the backend can convert them when the rate uses a different unit */
+    odometerUnit?: Unit;
 };
 
 export default TrackExpenseParams;

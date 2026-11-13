@@ -94,6 +94,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     gpsModifiedDistance?: number;
     odometerStart?: number;
     odometerEnd?: number;
+    /** Unit the readings were entered in, which can differ from the current rate's unit. */
+    odometerUnit?: Unit;
     odometerDistance?: number;
     previousOdometerDraft?: OnyxEntry<OdometerDraft>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
@@ -203,6 +205,7 @@ function handleMoneyRequestStepDistanceNavigation({
     policyForMovingExpenses,
     odometerStart,
     odometerEnd,
+    odometerUnit,
     odometerDistance,
     previousOdometerDraft,
     recentWaypoints,
@@ -342,6 +345,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                 selectedRouteDistance,
                                 odometerStart,
                                 odometerEnd,
+                                odometerUnit,
                                 taxCode: distanceTaxCode,
                                 taxAmount: distanceTaxAmount,
                                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
@@ -432,6 +436,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             selectedRouteDistance,
                             odometerStart,
                             odometerEnd,
+                            odometerUnit,
                             taxCode: distanceTaxCode,
                             taxAmount: distanceTaxAmount,
                         },
@@ -508,16 +513,15 @@ function handleMoneyRequestStepDistanceNavigation({
         // without a transaction, setCustomUnitRateID never resolves a rate, so the currency is never read.
         setCustomUnitRateID(transactionID, rateID, undefined, undefined, false, undefined);
 
-        // Update distance and distance unit in transaction object as it is usually set before this function is called using
-        // defaultExpensePolicy data which is not accurate in this case as defaultExpensePolicy has autoReporting set to false
-        // and because of this this report is converted to selfDM here
-        if (isSelfDMReport && distance !== undefined && unit) {
-            const ratePolicyForMovingExpenses = policyForMovingExpenses
-                ? DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy: policyForMovingExpenses})
-                : undefined;
-            const currency = ratePolicyForMovingExpenses?.currency ?? personalOutputCurrency ?? CONST.CURRENCY.USD;
-            const distanceUnit = ratePolicyForMovingExpenses?.unit ?? DistanceRequestUtils.getRateForP2P(currency, transaction).unit;
-            const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
+        // Returning from confirmation can leave a different workspace's unit on the draft. Convert the latest
+        // input to the automatically selected recipient's rate, rather than reading the potentially stale transaction prop.
+        if (distance !== undefined && unit) {
+            const ratePolicy = isSelfDMReport ? policyForMovingExpenses : defaultExpensePolicy;
+            const targetRate = ratePolicy ? DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy: ratePolicy}) : undefined;
+            const currency = targetRate?.currency ?? personalOutputCurrency ?? CONST.CURRENCY.USD;
+            const distanceUnit = targetRate?.unit ?? DistanceRequestUtils.getRateForP2P(currency, transaction).unit;
+            const currentDistance = isGPSDistance ? (gpsModifiedDistance ?? distance) : distance;
+            const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(currentDistance, unit);
             const distanceInDistanceUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit));
             setMoneyRequestDistance(transactionID, distanceInDistanceUnit, true, distanceUnit);
         }

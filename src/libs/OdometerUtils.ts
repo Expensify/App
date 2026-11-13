@@ -1,8 +1,10 @@
 import CONST from '@src/CONST';
+import type {Comment} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {getMimeTypeFromUri} from './fileDownload/FileUtils';
 import getPlatform from './getPlatform';
+import {roundToTwoDecimalPlaces} from './NumberUtils';
 
 function getOdometerImageUri(image: FileObject | string | null | undefined): string {
     return typeof image === 'string' ? image : (image?.uri ?? '');
@@ -127,6 +129,36 @@ function shouldInitializeOdometerFromTransaction(state: OdometerResyncState, isE
     );
 }
 
-export {getOdometerImageUri, getOdometerImageName, getOdometerImageType, getOdometerImageIdentity, isExternalOdometerResync, shouldInitializeOdometerFromTransaction};
+/**
+ * The total distance for the given odometer readings, in the transaction's current distance unit.
+ *
+ * Readings stay exactly as entered so they match the odometer photos, but the quantity is converted when the expense moves to
+ * a workspace with a different distance unit. So when the readings match the saved ones, the saved quantity is returned as is,
+ * and when they differ, the difference is scaled by the same factor the saved quantity was converted by.
+ */
+function getOdometerTotalDistance(start: number, end: number, comment: Comment | undefined): number {
+    const distance = end - start;
+    const savedStart = comment?.odometerStart;
+    const savedEnd = comment?.odometerEnd;
+    const savedQuantity = comment?.customUnit?.quantity;
+
+    if (savedStart === undefined || savedEnd === undefined || savedQuantity === undefined || savedQuantity === null || savedEnd <= savedStart) {
+        return roundToTwoDecimalPlaces(distance);
+    }
+    if (start === savedStart && end === savedEnd) {
+        return savedQuantity;
+    }
+    return roundToTwoDecimalPlaces(distance * (savedQuantity / (savedEnd - savedStart)));
+}
+
+export {
+    getOdometerImageUri,
+    getOdometerImageName,
+    getOdometerImageType,
+    getOdometerImageIdentity,
+    getOdometerTotalDistance,
+    isExternalOdometerResync,
+    shouldInitializeOdometerFromTransaction,
+};
 export type {OdometerResyncState};
 export default revokeOdometerImageUri;

@@ -48,7 +48,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getOdometerImageIdentity} from '@libs/OdometerUtils';
+import {getOdometerImageIdentity, getOdometerTotalDistance} from '@libs/OdometerUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
@@ -285,18 +285,6 @@ function IOURequestStepDistanceOdometer({
         personalOutputCurrency: personalPolicy?.outputCurrency,
     });
 
-    // Calculate total distance - updated live after every input change
-    const totalDistance = (() => {
-        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
-        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
-        if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
-            return null;
-        }
-        const distance = end - start;
-        // Show 0 if distance is negative
-        return distance <= 0 ? 0 : distance;
-    })();
-
     // Get image source for web (blob URL) or native (URI string)
     const getImageSource = (image: FileObject | string | {uri?: string} | undefined): string | undefined => {
         if (!image) {
@@ -405,11 +393,12 @@ function IOURequestStepDistanceOdometer({
     const navigateToNextPage = () => {
         const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
         const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
-        const distance = end - start;
-        const calculatedDistance = roundToTwoDecimalPlaces(distance);
+        const calculatedDistance = getOdometerTotalDistance(start, end, currentTransaction?.comment);
+        const odometerUnit = currentTransaction?.comment?.odometerUnit ?? unit;
 
         if (!isEditing) {
-            setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
+            // Keep the unit the readings were first entered in, since they aren't converted when the rate's unit changes
+            setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft, odometerUnit);
             setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
         }
         // Local state has just been persisted to the transaction thus the resync guard can be lowered
@@ -452,6 +441,7 @@ function IOURequestStepDistanceOdometer({
                     distance: calculatedDistance,
                     odometerStart: start,
                     odometerEnd: end,
+                    odometerUnit: transaction?.comment?.odometerUnit ?? undefined,
                     // Not required for odometer distance request
                     transactionBackup: undefined,
                     policy,
@@ -509,6 +499,7 @@ function IOURequestStepDistanceOdometer({
         navigateToNextStep({
             odometerStart: start,
             odometerEnd: end,
+            odometerUnit,
             odometerDistance: calculatedDistance,
             unit,
             previousOdometerDraft: odometerDraft,
@@ -547,7 +538,7 @@ function IOURequestStepDistanceOdometer({
         }
 
         // Validation: Check that distance * rate doesn't exceed the backend's safe amount limit
-        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distance, rate)) {
+        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(getOdometerTotalDistance(start, end, currentTransaction?.comment), rate)) {
             setFormError(translate('iou.error.distanceAmountTooLargeReduceDistance'));
             return;
         }
@@ -608,6 +599,18 @@ function IOURequestStepDistanceOdometer({
         onTabSwitchDiscard: handleTabSwitchDiscard,
         onVisibilityChange: setIsDiscardModalVisible,
     });
+
+    // Calculate after the hooks so React Compiler can cache the total and its displayed rounding.
+    const totalDistance = (() => {
+        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
+        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
+        if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
+            return null;
+        }
+        const distance = getOdometerTotalDistance(start, end, currentTransaction?.comment);
+        // Show 0 if distance is negative
+        return distance <= 0 ? 0 : distance;
+    })();
 
     const handleSaveForLater = async () => {
         shouldBypassDiscardConfirmationRef.current = true;
