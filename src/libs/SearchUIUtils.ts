@@ -2856,7 +2856,12 @@ function getPaymentAction(
 ): OnyxTypes.ReportAction | undefined {
     const latestCancellation = findActionByCreated(
         actions,
-        [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE],
+        [
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+        ],
         'latest',
     );
     const isValidPaymentAction = (action: OnyxTypes.ReportAction | undefined): action is OnyxTypes.ReportAction => {

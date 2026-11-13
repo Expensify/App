@@ -1317,6 +1317,47 @@ const CONST = {
             'RESIDENTS_PROPERTY_MANAGEMENT',
             'DIPLOMATIC_BODIES',
         ],
+
+        /**
+         * Maps Wise's payout `failure_reason_code` values to the translation key of the reason we show on a failed deposit.
+         * Codes not listed here, including `REASON_NOT_SPECIFIED` and ones Wise adds later, show the generic reason.
+         * https://docs.wise.com/guides/product/send-money/tracking/payout-failures#failure-reason-codes
+         */
+        PAYOUT_FAILURE_REASON: {
+            WRONG_ACCOUNT_NUMBER: 'wrongAccountNumber',
+            WRONG_ACCOUNT_DETAILS: 'wrongAccountDetails',
+            WRONG_BANK_CODE: 'wrongBankCode',
+            WRONG_BRANCH_CODE: 'wrongBranchCode',
+            WRONG_ACCOUNT_TYPE: 'wrongAccountType',
+            WRONG_CARD_NUMBER: 'wrongCardNumber',
+            WRONG_CARD_TYPE: 'wrongCardType',
+            WRONG_NAME: 'wrongName',
+            WRONG_PHONE_NUMBER: 'wrongPhoneNumber',
+            WRONG_ID_NUMBER: 'wrongIdNumber',
+            WRONG_RUT_NUMBER: 'wrongRutNumber',
+            TAX_ID_NOT_MATCHING: 'taxIdNotMatching',
+            WRONG_CURRENCY: 'wrongCurrency',
+            ACCOUNT_DOES_NOT_EXIST: 'accountDoesNotExist',
+            EXTERNAL_IDENTIFIER_DETAILS_HAVE_CHANGED: 'externalIdentifierDetailsHaveChanged',
+            ACCOUNT_CLOSED: 'accountClosed',
+            ACCOUNT_FROZEN: 'accountFrozen',
+            ACCOUNT_BLOCKED: 'accountBlocked',
+            ACCOUNT_LIMIT_REACHED: 'accountLimitReached',
+            TAX_ID_SUSPENDED: 'taxIdSuspended',
+            CANNOT_ACCEPT_FROM_3RD_PARTY: 'cannotAcceptFrom3rdParty',
+            CREDITING_ACCOUNT_FORBIDDEN: 'creditingAccountForbidden',
+            BUSINESS_PAYMENTS_FORBIDDEN: 'businessPaymentsForbidden',
+            RETURN_REQUESTED_BY_RECIPIENT: 'returnRequestedByRecipient',
+            FUNDS_NOT_EXPECTED_RETURNED: 'fundsNotExpectedReturned',
+            DUPLICATE_ENTRY: 'duplicateEntry',
+            MANDATE_NOT_FILLED_IN: 'mandateNotFilledIn',
+            REQUEST_FOR_INFORMATION_EXPIRED: 'requestForInformationExpired',
+            WRONG_REFERENCE: 'wrongReference',
+            WRONG_PAYMENT_PURPOSE: 'wrongPaymentPurpose',
+            SENDER_REQUESTED_TO_CANCEL: 'senderRequestedToCancel',
+            TECHNICAL_ISSUE: 'technicalIssue',
+            TECHNICAL_ISSUE_RETRYABLE: 'technicalIssueRetryable',
+        },
     },
     NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
@@ -2260,6 +2301,11 @@ const CONST = {
                 REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
                 REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
+                // OldDot sends these four actions when a Wise reimbursement fails, is held, is refunded, or is released
+                REIMBURSEMENT_DEPOSIT_FAILED: 'REIMBURSEMENTDEPOSITFAILED',
+                REIMBURSEMENT_HELD: 'REIMBURSEMENTHELD',
+                REIMBURSEMENT_REFUNDED: 'REIMBURSEMENTREFUNDED',
+                REIMBURSEMENT_RELEASED: 'REIMBURSEMENTRELEASED',
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // Deprecated OldDot Action
