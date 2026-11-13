@@ -103,6 +103,7 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
                     />
                 </View>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_AMOUNT_MATCH_TYPE}
                     name={translate('workspace.rules.merchantRules.matchType')}
                     onPress={() =>
                         Navigation.navigate(

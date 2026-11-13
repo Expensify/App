@@ -151,6 +151,7 @@ function AddTaxRateToMatchPage({route}: AddTaxRateToMatchPageProps) {
                 }
                 footerContent={
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_TAX_RATE_TO_MATCH_SAVE}
                         buttonText={translate('common.save')}
                         isAlertVisible={false}
                         onSubmit={handleSave}

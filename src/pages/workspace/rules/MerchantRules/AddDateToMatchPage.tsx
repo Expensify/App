@@ -102,6 +102,7 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
                     />
                 </View>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DATE_MATCH_TYPE}
                     name={translate('workspace.rules.merchantRules.matchType')}
                     onPress={() =>
                         Navigation.navigate(

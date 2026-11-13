@@ -153,6 +153,7 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
                 }
                 footerContent={
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_CARD_TO_MATCH_SAVE}
                         buttonText={translate('common.save')}
                         isAlertVisible={false}
                         onSubmit={handleSave}

@@ -25,6 +25,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -148,6 +149,7 @@ function AddCurrencyToMatchPage({route}: AddCurrencyToMatchPageProps) {
                 }
                 footerContent={
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_CURRENCY_TO_MATCH_SAVE}
                         buttonText={translate('common.save')}
                         isAlertVisible={false}
                         onSubmit={handleSave}
