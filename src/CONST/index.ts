@@ -5597,6 +5597,7 @@ const CONST = {
                 BUSINESS_CENTRAL: 'businessCentral',
                 EXACT_ONLINE: 'exactOnline',
                 SAGE_ACCOUNTING: 'sageAccounting',
+                ACUMATICA: 'acumatica',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5639,6 +5640,7 @@ const CONST = {
                 businessCentral: 'Dynamics 365 Business Central',
                 exactOnline: 'Exact Online',
                 sageAccounting: 'Sage Accounting',
+                acumatica: 'Acumatica',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -5671,7 +5673,7 @@ const CONST = {
             },
             // Integrations that aren't available yet, so the Connections page offers their waitlist instead of connecting
             get WAITLIST_CONNECTION_NAMES() {
-                return [this.NAME.SAGE_ACCOUNTING] as const;
+                return [this.NAME.SAGE_ACCOUNTING, this.NAME.ACUMATICA] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.

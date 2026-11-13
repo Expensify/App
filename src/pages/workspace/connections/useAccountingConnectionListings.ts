@@ -161,22 +161,33 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                 anchorRef.current = button;
             },
         };
-        if (name !== CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
-            return listing;
+        if (name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
+            // Sage Accounting sits next to Sage Intacct, the other Sage product. Its connector flow arrives in a later
+            // release, so beta users also see the waitlist for now.
+            return [
+                listing,
+                {
+                    key: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING,
+                    category: CONST.TAB.CONNECTIONS.ACCOUNTING,
+                    title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.sageAccounting,
+                    // Sage Accounting shares the Sage logo with Sage Intacct
+                    icon: accountingIcons.IntacctSquare,
+                },
+            ];
         }
-
-        // Sage Accounting sits next to Sage Intacct, the other Sage product. Its connector flow arrives in a later
-        // release, so beta users also see the waitlist for now.
-        return [
-            listing,
-            {
-                key: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING,
-                category: CONST.TAB.CONNECTIONS.ACCOUNTING,
-                title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.sageAccounting,
-                // Sage Accounting shares the Sage logo with Sage Intacct
-                icon: accountingIcons.IntacctSquare,
-            },
-        ];
+        if (name === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
+            // Acumatica is placed after Certinia, as in the design. Its connector flow arrives in a later release,
+            // so only its waitlist is offered for now.
+            return [
+                listing,
+                {
+                    key: CONST.POLICY.CONNECTIONS.NAME.ACUMATICA,
+                    category: CONST.TAB.CONNECTIONS.ACCOUNTING,
+                    title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.acumatica,
+                },
+            ];
+        }
+        return listing;
     });
 
     // The connector flow arrives in a later release, so beta users also see the waitlist for now.
