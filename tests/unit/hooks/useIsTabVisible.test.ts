@@ -5,7 +5,7 @@ import useIsTabVisible from '@hooks/useIsTabVisible';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-import type {NavigationState} from '@react-navigation/routers';
+import type {NavigationState} from '@react-navigation/native';
 import type {ScaledSize} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
