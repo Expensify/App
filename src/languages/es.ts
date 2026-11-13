@@ -7057,9 +7057,17 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'No se pueden eliminar ni deshabilitar todas las categorías',
                 description: `Debe quedar al menos una categoría habilitada porque tu espacio de trabajo requiere categorías.`,
             },
+            visibleTo: 'Visible para',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 miembro',
+                other: `${count} miembros`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Elige qué miembros pueden usar la categoría ${categoryName} al enviar gastos.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `No se puede desactivar ${categoryName}`,
                 bulkTitle: 'No se pueden deshabilitar estas categorías',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `No se puede quitar el acceso a ${categoryName}`,
+                bulkRemoveAccessTitle: 'No se puede quitar el acceso a estas categorías',
                 description: ({count}: {count: number}) => ({
                     one: '1 miembro se quedaría sin categorías para elegir. Actualiza la visibilidad de sus categorías y vuelve a intentarlo:',
                     other: `${count} miembros se quedarían sin categorías para elegir. Actualiza la visibilidad de sus categorías y vuelve a intentarlo:`,

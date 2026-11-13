@@ -6813,9 +6813,17 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '无法删除或停用所有类别',
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
+            visibleTo: '可见对象',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 位成员',
+                other: `${count} 位成员`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `选择哪些成员在提交报销时可以使用 ${categoryName} 类别。`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `无法禁用 ${categoryName}`,
                 bulkTitle: '无法禁用这些类别',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `无法移除对 ${categoryName} 的访问权限`,
+                bulkRemoveAccessTitle: '无法移除对这些类别的访问权限',
                 description: ({count}: {count: number}) => ({
                     one: '将会有 1 名成员没有可选择的类别。请先更新 TA 的类别可见性，然后再试一次：',
                     other: `将有 ${count} 名成员将没有可选择的类别。请先更新他们的类别可见性，然后重试：`,

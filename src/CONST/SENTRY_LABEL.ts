@@ -1863,6 +1863,8 @@ const SENTRY_LABEL = {
             SETTINGS_GL_CODE: 'WorkspaceCategories-SettingsGLCode',
             SETTINGS_NAME: 'WorkspaceCategories-SettingsName',
             SETTINGS_PAYROLL_CODE: 'WorkspaceCategories-SettingsPayrollCode',
+            SETTINGS_VISIBLE_TO: 'WorkspaceCategories-SettingsVisibleTo',
+            VISIBLE_TO_SAVE: 'WorkspaceCategories-VisibleToSave',
             SETTINGS_RULE_ROW: {
                 FLAG_FOR_REVIEW: 'WorkspaceCategories-SettingsRuleRow-FlagForReview',
                 REQUIRE_FIELDS: 'WorkspaceCategories-SettingsRuleRow-RequireFields',

@@ -110,6 +110,10 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_GL_CODE]: {
         policyID: string;
         categoryName: string;

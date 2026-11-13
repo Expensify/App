@@ -7069,9 +7069,17 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Kan niet alle categorieën verwijderen of uitschakelen',
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
+            visibleTo: 'Zichtbaar voor',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 lid',
+                other: `${count} leden`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Kies welke leden de categorie ${categoryName} kunnen gebruiken bij het indienen van uitgaven.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Kan ${categoryName} niet uitschakelen`,
                 bulkTitle: 'Deze categorieën kunnen niet worden uitgeschakeld',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Kan toegang tot ${categoryName} niet verwijderen`,
+                bulkRemoveAccessTitle: 'Kan toegang tot deze categorieën niet verwijderen',
                 description: ({count}: {count: number}) => ({
                     one: '1 lid zou geen categorieën meer hebben om uit te kiezen. Werk de zichtbaarheid van diens categorieën bij en probeer het opnieuw:',
                     other: `${count} leden zouden geen categorieën meer hebben om uit te kiezen. Werk hun categoriezichtbaarheid bij en probeer het daarna opnieuw:`,

@@ -7076,9 +7076,17 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Impossibile eliminare o disattivare tutte le categorie',
                 description: `Almeno una categoria deve rimanere abilitata perché il tuo spazio di lavoro richiede le categorie.`,
             },
+            visibleTo: 'Visibile a',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 membro',
+                other: `${count} membri`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Scegli quali membri possono usare la categoria ${categoryName} quando inviano le spese.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossibile disabilitare ${categoryName}`,
                 bulkTitle: 'Impossibile disattivare queste categorie',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Impossibile rimuovere l’accesso a ${categoryName}`,
+                bulkRemoveAccessTitle: 'Impossibile rimuovere l’accesso a queste categorie',
                 description: ({count}: {count: number}) => ({
                     one: '1 membro resterebbe senza categorie tra cui scegliere. Aggiorna la visibilità delle sue categorie, quindi riprova:',
                     other: `A ${count} membri non rimarrebbe alcuna categoria tra cui scegliere. Aggiorna la visibilità delle loro categorie, poi riprova:`,

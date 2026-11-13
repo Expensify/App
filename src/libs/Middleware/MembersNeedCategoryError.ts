@@ -14,36 +14,46 @@ import type {OnyxKey} from 'react-native-onyx';
 import type Middleware from './types';
 
 /**
- * Middleware that catches the backend rejecting SetWorkspaceCategoriesEnabled because disabling the categories would
- * leave members without one they can use. Write requests don't hand their response back to the caller, so it signals
- * the "Cannot disable category" modal through Onyx with the members the backend sent. The request's failureData already
- * puts the categories back.
+ * Middleware that catches the backend rejecting SetWorkspaceCategoriesEnabled or SetPolicyCategoryMemberVisibility
+ * because the change would leave members without a category they can use. Write requests don't hand their response
+ * back to the caller, so it signals the "Cannot disable category" modal through Onyx with the members the backend sent.
+ * The request's failureData already puts the categories back.
  */
 const MembersNeedCategoryError: Middleware = <TKey extends OnyxKey>(responsePromise: Promise<Response<TKey> | void>, request: Request<TKey> | PaginatedRequest<TKey>) =>
     responsePromise.then((response) => {
-        if (request?.command !== WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED || !response || response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+        const isDisablingCategories = request?.command === WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED;
+        const isRemovingCategoryAccess = request?.command === WRITE_COMMANDS.SET_POLICY_CATEGORY_MEMBER_VISIBILITY;
+        if ((!isDisablingCategories && !isRemovingCategoryAccess) || !response || response.jsonCode === CONST.JSON_CODE.SUCCESS) {
             return response;
         }
 
         const accountIDs = response.additionalData?.accountIDs;
         const policyID = request.data?.policyID;
-        const categories = request.data?.categories;
+        const categories = isRemovingCategoryAccess ? request.data?.categoryNames : request.data?.categories;
         if (!accountIDs?.length || typeof policyID !== 'string' || typeof categories !== 'string') {
             return response;
         }
 
-        // The request sends each category as {name, enabled}. Without the names the modal falls back to its bulk title.
+        // A disable sends each category as {name, enabled}, and a visibility change sends plain names. Without the names
+        // the modal falls back to its bulk title.
         let categoryNames: string[] = [];
         try {
             const parsedCategories: unknown = JSON.parse(categories);
             if (Array.isArray(parsedCategories)) {
-                categoryNames = parsedCategories.map((category: unknown) => (isRecord(category) && typeof category.name === 'string' ? category.name : '')).filter((name) => !!name);
+                categoryNames = parsedCategories
+                    .map((category: unknown) => {
+                        if (typeof category === 'string') {
+                            return category;
+                        }
+                        return isRecord(category) && typeof category.name === 'string' ? category.name : '';
+                    })
+                    .filter((name) => !!name);
             }
         } catch (error) {
             Log.warn('MembersNeedCategoryError: could not parse the request categories', {error});
         }
 
-        setMembersNeedCategoryModal(policyID, accountIDs, categoryNames);
+        setMembersNeedCategoryModal(policyID, accountIDs, categoryNames, isRemovingCategoryAccess);
         return response;
     });
 
