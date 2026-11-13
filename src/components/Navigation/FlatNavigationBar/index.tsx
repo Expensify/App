@@ -255,7 +255,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             />
                                         </Animated.View>
                                     )}
-                                    rightElement={<FlatNavAccountStatus />}
+                                    rightElement={<FlatNavAccountStatus isCollapsed={isVisuallyCollapsed} />}
                                     isSelected={isAccountSelected}
                                     isTall
                                     accessibilityLabel={getTabAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus, translate)}

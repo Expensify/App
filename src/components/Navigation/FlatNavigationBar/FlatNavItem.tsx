@@ -85,7 +85,7 @@ function FlatNavItem({
         return isHovered ? styles.highlightBG : undefined;
     };
 
-    // The label and right element stay mounted and fade, rather than disappearing the moment the bar starts narrowing.
+    // The label stays mounted and fades, rather than disappearing the moment the bar starts narrowing.
     const collapseFadeStyle = getCollapseFadeStyle(isCollapsed);
 
     // Always mounted, with the text only while collapsed, so a row does not remount when the bar collapses.
@@ -137,7 +137,7 @@ function FlatNavItem({
                                     {label}
                                 </Text>
                             </Animated.View>
-                            {!!rightElement && <Animated.View style={collapseFadeStyle}>{rightElement}</Animated.View>}
+                            {rightElement}
                         </>
                     );
                 }}
