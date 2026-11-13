@@ -717,6 +717,7 @@ function updateSavedExpenseAmount({
     updateMoneyRequestAmountAndCurrency({
         isVendorMatchingBetaEnabled,
         transactionID,
+        transaction,
         transactionThreadReport,
         parentReport,
         iouReportOwnerLogin,

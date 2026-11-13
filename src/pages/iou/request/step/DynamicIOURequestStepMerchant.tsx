@@ -55,7 +55,7 @@ function DynamicIOURequestStepMerchant({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.path);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const updateParams = useMoneyRequestUpdateParams(transactionID, report);
-    const {updateMerchant: updateSavedExpenseMerchant} = useUpdateTransactionMerchant({transactionID, updateParams});
+    const {updateMerchant: updateSavedExpenseMerchant} = useUpdateTransactionMerchant({transactionID, transaction, updateParams});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();

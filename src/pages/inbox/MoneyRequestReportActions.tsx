@@ -6,6 +6,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 
@@ -38,6 +39,7 @@ function MoneyRequestReportActions({report}: MoneyRequestReportActionsProps) {
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const allReportTransactions = useReportTransactionsCollection(report.reportID);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(report.reportID);
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportLoadingState, isReportLoadPending, isOffline);
 
     if (shouldWaitForTransactions) {
@@ -49,7 +51,7 @@ function MoneyRequestReportActions({report}: MoneyRequestReportActionsProps) {
         );
     }
 
-    if (shouldDisplayReportTableView(report, reportTransactions)) {
+    if (shouldDisplayReportTableView(report, reportTransactions, shouldUseTableViewForSingleExpense)) {
         return <MoneyRequestReportActionsList />;
     }
 
