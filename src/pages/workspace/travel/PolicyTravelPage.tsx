@@ -103,6 +103,7 @@ function WorkspaceTravelPage({
             icon: icons.Exit,
             text: translate('common.export'),
             value: CONST.POLICY.SECONDARY_ACTIONS.EXPORT,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.EXPORT,
             onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_EXPORT.getRoute(policyID)),
         },
     ];

@@ -1,6 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 
 import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
@@ -13,6 +12,7 @@ import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldSho
 import {
     CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
+    getAutocompletePolicyData,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
     getAutocompleteTags,
@@ -150,11 +150,12 @@ function useAutocompleteSuggestions({
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
     const lastActions = sortedReportActionsData?.lastActions;
     const {currencyList} = useCurrencyListState();
-    const {exportedToFilterOptions} = useExportedToFilterOptions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
+    const {policyFilter: typedPolicyFilter, selectedPolicyIDs} = getAutocompletePolicyData(autocompleteQueryValue, ranges, policies, autocompleteSubstitutions);
+    const {exportedToFilterOptions} = useExportedToFilterOptions(typedPolicyFilter);
 
     let autocompleteKey = autocomplete?.key;
     let autocompleteValue = autocomplete?.value ?? '';
@@ -605,21 +606,7 @@ function useAutocompleteSuggestions({
                 }
                 workspaceList.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
             }
-            const policyIdRanges = ranges.filter((range) => range.key === autocompleteKey);
-            const keyValueCount = new Map<string, number>();
-            const alreadySelectedPolicyIds =
-                autocompleteSubstitutions &&
-                new Set(
-                    policyIdRanges
-                        .map((range) => {
-                            const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
-                            const index = keyValueCount.get(baseKey) ?? 0;
-                            keyValueCount.set(baseKey, index + 1);
-                            const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
-                            return autocompleteSubstitutions[fullKey] ?? (index === 0 ? autocompleteSubstitutions[baseKey] : undefined);
-                        })
-                        .filter(Boolean),
-                );
+            const alreadySelectedPolicyIds = autocompleteSubstitutions && new Set(selectedPolicyIDs);
 
             const filteredPolicies = workspaceList
                 .filter((workspace) => {

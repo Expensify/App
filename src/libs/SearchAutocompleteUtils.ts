@@ -1,15 +1,16 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import type {Filter, SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 
 import CONST from '@src/CONST';
-import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyKey, getUserFriendlyValue, isGroupBySupportedBySearch} from './SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isGroupBySupportedBySearch, resolvePolicyIDFromName} from './SearchQueryUtils';
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
@@ -22,7 +23,7 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ];
 
-type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length'> & {key: string};
+type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length' | 'negated'> & {key: string};
 type AutocompleteParserResult = {autocomplete: AutocompleteParserRange | null; ranges: AutocompleteParserRange[]};
 type KnownFilterValues = {
     userLogins: ReadonlySet<string>;
@@ -92,6 +93,47 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
         }
     }
     return Array.from(uniqueTagNames);
+}
+
+/** Resolves each typed workspace clause while retaining all selected IDs for autocomplete exclusion. */
+function getAutocompletePolicyData(
+    query: string,
+    ranges: AutocompleteParserRange[],
+    policies: OnyxCollection<Policy>,
+    substitutions?: SubstitutionMap,
+): {policyFilter: Filter; selectedPolicyIDs: string[]} {
+    const policyIdRanges = ranges.filter((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+    const keyValueCount = new Map<string, number>();
+    const selectedPolicyIDs: string[] = [];
+    const positiveClauses: string[][] = [];
+    const excludedPolicyIDs = new Set<string>();
+    let previousRange: AutocompleteParserRange | undefined;
+    for (const range of policyIdRanges) {
+        const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
+        const index = keyValueCount.get(baseKey) ?? 0;
+        keyValueCount.set(baseKey, index + 1);
+        const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
+        const policyID = substitutions?.[fullKey] ?? resolvePolicyIDFromName(range.value, policies);
+        selectedPolicyIDs.push(policyID);
+
+        if (range.negated) {
+            excludedPolicyIDs.add(policyID);
+        } else if (previousRange && !previousRange.negated && query.slice(previousRange.start + previousRange.length, range.start) === ',') {
+            positiveClauses.at(-1)?.push(policyID);
+        } else {
+            positiveClauses.push([policyID]);
+        }
+        previousRange = range;
+    }
+
+    if (positiveClauses.length > 0) {
+        // Comma-separated values are alternatives; separate workspace clauses must all match.
+        const policyIDs = [...new Set(positiveClauses.at(0))].filter((id) => !excludedPolicyIDs.has(id) && positiveClauses.every((clause) => clause.includes(id)));
+        return {policyFilter: {value: policyIDs, isNegated: false}, selectedPolicyIDs};
+    }
+
+    // An explicit unscoped filter prevents falling back to the submitted workspace after it is removed from the input.
+    return {policyFilter: {value: excludedPolicyIDs.size > 0 ? [...excludedPolicyIDs] : undefined, isNegated: excludedPolicyIDs.size > 0}, selectedPolicyIDs};
 }
 
 /**
@@ -424,6 +466,7 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
 export {
     CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
+    getAutocompletePolicyData,
     getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,

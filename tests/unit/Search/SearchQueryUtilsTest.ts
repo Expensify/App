@@ -30,6 +30,7 @@ import {
     getQueryWithoutGroupBy,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
+    shouldRefetchSearchOnReportActionChange,
     getDateFilterRange,
     getKeywordQueryForSearchInput,
     getKeywordQueryWithCurrentSearchContext,
@@ -83,6 +84,51 @@ import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/Test
 const mockGetRootState = jest.fn();
 
 describe('currency-qualified amount filters', () => {
+    it.each([
+        {filterKey: 'amount', type: 'expense', lower: '50.00 AUD', upper: '100.00 AUD'},
+        {filterKey: 'purchaseAmount', type: 'expense', lower: '12.50 EUR', upper: '20.00 EUR'},
+        {filterKey: 'total', type: 'expense-report', lower: '5000', upper: '10000'},
+        {filterKey: 'amountDebited', type: 'expense-report', lower: '5000', upper: '10000'},
+        {filterKey: 'amountReimbursed', type: 'expense-report', lower: '5000', upper: '10000'},
+    ] as const)('preserves inclusive $filterKey bounds through the filter form', ({filterKey, type, lower, upper}) => {
+        // Given NL searches include both endpoints, unlike the existing strict Between editor.
+        const query = `type:${type} ${filterKey}>=${sanitizeSearchValue(lower)} ${filterKey}<=${sanitizeSearchValue(upper)}`;
+        const queryJSON = buildSearchQueryJSON(query);
+        if (!queryJSON) {
+            throw new Error('Expected the inclusive range to parse');
+        }
+
+        // When the query is opened in Filters and reapplied through the type-specific allowlist.
+        const form = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+        const savedQuery = buildFilterQueryWithSortDefaults(form, {}, queryJSON) ?? '';
+
+        // Then neither the currencies nor equality at the endpoints can be lost.
+        expect(form).toMatchObject({[`${filterKey}GreaterThanOrEqualTo`]: lower, [`${filterKey}LessThanOrEqualTo`]: upper});
+        expect(form[`${filterKey}GreaterThan`]).toBeUndefined();
+        expect(form[`${filterKey}LessThan`]).toBeUndefined();
+        expect(savedQuery).toContain(`${filterKey}>=${sanitizeSearchValue(lower)}`);
+        expect(savedQuery).toContain(`${filterKey}<=${sanitizeSearchValue(upper)}`);
+        expect(buildSearchQueryJSON(savedQuery)?.flatFilters).toEqual(expect.arrayContaining(queryJSON.flatFilters));
+    });
+
+    it.each(['amount>="50.00 AUD"', 'amount<="100.00 AUD"', 'amount>="50.00 AUD" amount<"100.00 AUD"', 'amount>5000 amount<=10000'])(
+        'preserves open-ended and mixed amount bounds: %s',
+        (query) => {
+            // Given a range may have one bound or mix inclusive and exclusive endpoints.
+            const queryJSON = buildSearchQueryJSON(query);
+            if (!queryJSON) {
+                throw new Error('Expected the amount comparison to parse');
+            }
+
+            // When another filter edit rebuilds the query from its form values.
+            const form = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+            const savedQuery = buildQueryStringFromFilterFormValues(form);
+
+            // Then the original comparisons survive rather than becoming strict or disappearing.
+            expect(buildSearchQueryJSON(savedQuery)?.flatFilters).toEqual(expect.arrayContaining(queryJSON.flatFilters));
+        },
+    );
+
     it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('round-trips Any currency for %s using the legacy request format', (filterKey) => {
         // Given an Any currency operand already expressed in legacy hundredths.
         const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '10'};
@@ -6553,6 +6599,85 @@ describe('SearchQueryUtils', () => {
 
             expect(result.value).toBeUndefined();
             expect(result.isNegated).toBe(false);
+        });
+    });
+
+    describe('shouldRefetchSearchOnReportActionChange', () => {
+        test('returns true when grouped by approver', () => {
+            // Given a query grouped by approver, whose groups change when a report is approved
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:${CONST.SEARCH.GROUP_BY.APPROVER}`);
+
+            // When checking whether approval actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because the approver groups come from the server
+            expect(shouldRefetch).toBe(true);
+        });
+
+        test('returns true for a positive has:approved-violation filter', () => {
+            // Given a query filtered to approved violations, whose matches change when a report is approved
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            // When checking whether approval actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because approving the report adds its expenses to the results
+            expect(shouldRefetch).toBe(true);
+        });
+
+        test('returns true for a negated has:approved-violation filter', () => {
+            // Given a query that excludes approved violations
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            // When checking whether approval actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because approving a report with violations moves its expenses out of the results
+            expect(shouldRefetch).toBe(true);
+        });
+
+        test('returns true for a positive has:submitted-violation filter', () => {
+            // Given a query filtered to submitted violations, whose matches change when a report is submitted
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            // When checking whether workflow actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because submitting the report adds its expenses to the results
+            expect(shouldRefetch).toBe(true);
+        });
+
+        test('returns true for a negated has:submitted-violation filter', () => {
+            // Given a query that excludes submitted violations
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            // When checking whether workflow actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because submitting a report with violations moves its expenses out of the results
+            expect(shouldRefetch).toBe(true);
+        });
+
+        test('returns false for other groupings and has filters', () => {
+            // Given a query whose results don't depend on submission or approval state
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+
+            // When checking whether workflow actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it shouldn't, so these searches skip walking the report actions
+            expect(shouldRefetch).toBe(false);
+        });
+
+        test.each(['approver:1', 'anyApproval:this-month', 'submitted:this-month', 'approved:this-month'])('returns true for the %s filter', (filter) => {
+            // Given a query filtered by an approver or a workflow date, whose matches change when a report is submitted, approved or forwarded
+            const queryJSON = buildSearchQueryJSON(`type:expense ${filter}`);
+
+            // When checking whether workflow actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because those actions change the report's approver and workflow dates without changing a transaction
+            expect(shouldRefetch).toBe(true);
         });
     });
 

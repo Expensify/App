@@ -38,8 +38,6 @@ function useInsightData(config: SearchTypeMenuItem | undefined, isConfigResolved
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
 
     const {isOffline} = useNetwork();
-    // The chart is built from a snapshot that no update patches, so an expense change has to move the key.
-    const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
     const [policyIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyIDsSelector});
 
     const retry = () => {
@@ -61,7 +59,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined, isConfigResolved
         });
     };
 
-    useTabFocusedRefresh(SCREENS.HOME, [queryJSON?.hash, isOffline, isConfigResolved, spendDataSignature?.expenses ?? 0, policyIDs ?? ''].join('|'), retry);
+    useTabFocusedRefresh(SCREENS.HOME, [queryJSON?.hash, isOffline, isConfigResolved, policyIDs ?? ''].join('|'), retry);
 
     const sortedData = useGroupedItems(searchResults, queryJSON);
 

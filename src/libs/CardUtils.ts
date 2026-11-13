@@ -54,7 +54,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {format, fromUnixTime, isBefore} from 'date-fns';
+import {format, fromUnixTime, isBefore, isValid} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
 
@@ -79,11 +79,6 @@ function getCardFeedColors(cardFeed: string | undefined): {background: string; t
         .sort((a, b) => b.length - a.length)
         .find((key) => cardFeed.startsWith(key));
     return feedKey !== undefined ? CARD_FEED_COLORS[feedKey] : GENERIC_CARD_COLORS;
-}
-
-/** Returns the background hex color for the card image shown for a given feed. */
-function getCardFeedBackgroundColor(cardFeed: string | undefined): string {
-    return getCardFeedColors(cardFeed).background;
 }
 
 /** Returns the WCAG-compliant overlay text color for a given feed's card artwork. */
@@ -1838,6 +1833,25 @@ function isLastScrapePastDismissThreshold(card: Card): boolean {
 }
 
 /**
+ * Builds a card's "Last updated" value: Updating... while an update runs, Never without a usable `lastScrape`, otherwise
+ * the full local timestamp. `localDate` is set only for a timestamp, so callers can also show it in a shorter form.
+ *
+ * @param card the card to read
+ * @returns the text the card details page shows, and the sync time in the viewer's timezone when there is one
+ */
+function getCardLastUpdated(card: Card, translate: LocalizedTranslate, getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime']): {text: string; localDate?: Date} {
+    if (card.isLoadingLastUpdated) {
+        return {text: translate('workspace.moreFeatures.companyCards.updating')};
+    }
+    const localDate = card.lastScrape ? getLocalDateFromDatetime(card.lastScrape) : undefined;
+    // A malformed lastScrape would make format() throw, so it reads as never synced.
+    if (!localDate || !isValid(localDate)) {
+        return {text: translate('workspace.moreFeatures.companyCards.neverUpdated')};
+    }
+    return {text: format(localDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), localDate};
+}
+
+/**
  * Turn the Expensify Card monthly settlement day of the month into a date, so it can be formatted for display.
  *
  * @param dayOfMonth the day of the month the workspace settles on
@@ -2592,7 +2606,6 @@ export {
     getEffectiveFeedReimbursable,
     canResolveTransactionCard,
     getAssignedCardSortKey,
-    getCardFeedBackgroundColor,
     getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
     getDisplayedExpensifyCardLimitType,
@@ -2666,6 +2679,7 @@ export {
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
     isLastScrapePastDismissThreshold,
+    getCardLastUpdated,
     toMonthlySettlementDate,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
