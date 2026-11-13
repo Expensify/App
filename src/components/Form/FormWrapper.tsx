@@ -19,7 +19,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, View, ViewStyle} from 'react-native';
 
 import React, {useContext, useImperativeHandle, useRef} from 'react';
 import {Keyboard} from 'react-native';
@@ -66,7 +66,9 @@ type FormWrapperProps = ChildrenProps &
         shouldSubmitButtonStickToBottom?: boolean;
 
         /** Fires at most once per frame during scrolling. */
-        onScroll?: () => void;
+        onScroll?: ScrollViewProps['onScroll'];
+
+        onScrollBeginDrag?: ScrollViewProps['onScrollBeginDrag'];
 
         /** Prevents the submit button from triggering blur on mouse down. */
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
@@ -110,6 +112,7 @@ function FormWrapper({
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
+    onScrollBeginDrag,
     forwardedFSClass,
     sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
     ref,
@@ -164,10 +167,14 @@ function FormWrapper({
         }, CONST.ANIMATED_TRANSITION);
     };
 
-    const scrollTo = (y: number) => {
+    const scrollTo: FormWrapperRef['scrollTo'] = (y, {animated = true, shouldWaitForKeyboard = true} = {}) => {
+        if (!shouldWaitForKeyboard) {
+            formRef.current?.scrollTo({y: Math.max(y, 0), animated});
+            return;
+        }
         // Wait for the keyboard animation to complete
         setTimeout(() => {
-            formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
+            formRef.current?.scrollTo({y: Math.max(y, 0), animated});
         }, CONST.ANIMATED_TRANSITION);
     };
 
@@ -285,6 +292,8 @@ function FormWrapper({
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
+                    onScroll={onScroll}
+                    onScrollBeginDrag={onScrollBeginDrag}
                 >
                     {scrollViewContent()}
                 </ScrollViewWithContext>
@@ -298,6 +307,7 @@ function FormWrapper({
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
                     onScroll={onScroll}
+                    onScrollBeginDrag={onScrollBeginDrag}
                 >
                     {scrollViewContent()}
                 </ScrollView>

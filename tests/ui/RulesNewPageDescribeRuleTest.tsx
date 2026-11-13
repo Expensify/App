@@ -12,6 +12,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {toIndexMap} from '@libs/RuleUtils';
 
+import DescribeRuleForm from '@pages/workspace/rules/DescribeRuleForm';
 import RulesNewPage from '@pages/workspace/rules/RulesNewPage';
 
 import CONST from '@src/CONST';
@@ -22,6 +23,7 @@ import type {GeneratedRule, Rule} from '@src/types/onyx';
 import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
+import type {ScrollViewProps, TextInputProps} from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -114,30 +116,33 @@ jest.mock('@components/Button', () => {
 });
 jest.mock('@components/Form/InputWrapper', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    const {TextInput} = jest.requireActual<{TextInput: React.ComponentType<{accessibilityLabel?: string; onFocus?: () => void}>}>('react-native');
-    return ({accessibilityLabel, onFocus}: {accessibilityLabel: string; onFocus?: () => void}) => ReactModule.createElement(TextInput, {accessibilityLabel, onFocus});
+    const {TextInput} = jest.requireActual<{TextInput: React.ComponentType<TextInputProps>}>('react-native');
+    return ({accessibilityLabel, onFocus, onBlur, onChangeText}: TextInputProps) => ReactModule.createElement(TextInput, {accessibilityLabel, onFocus, onBlur, onChangeText});
 });
 jest.mock('@components/Form/FormProvider', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    const {Pressable, Text} = jest.requireActual<{
+    const {Pressable, Text, ScrollView} = jest.requireActual<{
         Pressable: React.ComponentType<{accessibilityLabel?: string; onPress?: () => void; children?: React.ReactNode}>;
         Text: React.ComponentType<{children?: React.ReactNode}>;
+        ScrollView: React.ComponentType<ScrollViewProps>;
     }>('react-native');
     function MockFormProvider({
         children,
         onSubmit,
         submitButtonText,
         ref,
+        onScroll,
     }: {
         children: React.ReactNode;
         onSubmit: (values: {prompt: string}) => void;
         submitButtonText: string;
         ref: React.Ref<{scrollTo: (y: number) => void; scrollToEnd: () => void}>;
+        onScroll?: ScrollViewProps['onScroll'];
     }) {
         ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo, scrollToEnd: mockScrollToEnd}));
         return ReactModule.createElement(
-            ReactModule.Fragment,
-            null,
+            ScrollView,
+            {onScroll, testID: 'describe-rule-scroll-view'},
             children,
             ReactModule.createElement(
                 Pressable,
@@ -269,6 +274,153 @@ describe('New rule describe section', () => {
 
         // Then the form scrolls to the top of the box, because iOS and Android do not scroll it above the keyboard
         expect(mockScrollTo).toHaveBeenCalledWith(420);
+    });
+
+    describe('editing a focused description', () => {
+        let frameSpy: jest.SpiedFunction<typeof requestAnimationFrame>;
+        let cancelFrameSpy: jest.SpiedFunction<typeof cancelAnimationFrame>;
+
+        beforeEach(() => {
+            frameSpy = jest.spyOn(global, 'requestAnimationFrame').mockReturnValue(1);
+            cancelFrameSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            frameSpy.mockRestore();
+            cancelFrameSpy.mockRestore();
+        });
+
+        async function focusDescription(offset: number, height = 300) {
+            await renderRulesNewPage();
+            const input = screen.getByLabelText('workspace.rules.newRule.describeRuleInputLabel');
+            fireEvent(input, 'layout', {nativeEvent: {layout: {x: 0, y: 420, width: 300, height: 96}}});
+            fireEvent(input, 'focus');
+            mockScrollTo.mockClear();
+            fireEvent.scroll(screen.getByTestId('describe-rule-scroll-view'), {nativeEvent: {contentOffset: {y: offset}, layoutMeasurement: {height}}});
+            return input;
+        }
+
+        it.each([
+            [0, 216],
+            [600, 420],
+        ])('reveals an obscured input from offset %s without another focus event', async (offset, expectedOffset) => {
+            // Given the description retains focus after the admin scrolls it outside the viewport
+            const input = await focusDescription(offset);
+            expect(mockScrollTo).not.toHaveBeenCalled();
+
+            // When typing resumes, including several characters in one frame
+            fireEvent.changeText(input, 'A multiline\nrule');
+            fireEvent.changeText(input, 'A multiline\nrule description');
+            act(() => frameSpy.mock.calls.at(0)?.at(0)?.(0));
+
+            // Then one animated scroll starts without a keyboard delay, leaving internal caret scrolling to the input
+            expect(frameSpy).toHaveBeenCalledTimes(1);
+            expect(mockScrollTo).toHaveBeenCalledTimes(1);
+            expect(mockScrollTo).toHaveBeenCalledWith(expectedOffset, {animated: true, shouldWaitForKeyboard: false});
+        });
+
+        it('does not move the form while the description is already visible', async () => {
+            // Given the whole description box fits in the viewport
+            const input = await focusDescription(300);
+
+            // When the admin types without changing focus
+            fireEvent.changeText(input, 'A visible rule');
+            act(() => frameSpy.mock.calls.at(0)?.at(0)?.(0));
+
+            // Then the form does not jump on each edit
+            expect(mockScrollTo).not.toHaveBeenCalled();
+        });
+
+        it('uses the latest scroll position when an edit is waiting for layout', async () => {
+            // Given an edit schedules recovery while the box is off-screen
+            const input = await focusDescription(0);
+            fireEvent.changeText(input, 'A rule');
+
+            // When manual scrolling reveals the box before recovery runs
+            fireEvent.scroll(screen.getByTestId('describe-rule-scroll-view'), {nativeEvent: {contentOffset: {y: 300}, layoutMeasurement: {height: 300}}});
+            act(() => frameSpy.mock.calls.at(0)?.at(0)?.(0));
+
+            // Then the queued edit respects the now-visible box
+            expect(mockScrollTo).not.toHaveBeenCalled();
+        });
+
+        it('cancels recovery when the input blurs', async () => {
+            // Given an off-screen edit has queued recovery
+            const input = await focusDescription(0);
+            fireEvent.changeText(input, 'A rule');
+
+            // When the admin leaves the input before the frame
+            fireEvent(input, 'blur');
+            act(() => frameSpy.mock.calls.at(0)?.at(0)?.(0));
+
+            // Then even a late callback cannot scroll another interaction away
+            expect(cancelFrameSpy).toHaveBeenCalledWith(1);
+            expect(mockScrollTo).not.toHaveBeenCalled();
+        });
+
+        it('leaves the refusal visible until editing resumes', async () => {
+            // Given the focused description produced a refusal below the input
+            const input = await focusDescription(300);
+            const {generationID} = describeRule(writeSpy, 'Text the approver when a report is submitted');
+            await answerGeneration({
+                generationID,
+                state: CONST.GENERATED_RULE.STATE.IMPOSSIBLE,
+                reason: CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY,
+                explanation: 'Rules cannot send text messages.',
+            });
+            fireEvent.scroll(screen.getByTestId('describe-rule-scroll-view'), {nativeEvent: {contentOffset: {y: 600}, layoutMeasurement: {height: 300}}});
+            expect(mockScrollToEnd).toHaveBeenCalledTimes(1);
+            expect(frameSpy).not.toHaveBeenCalled();
+
+            // When the admin types again without a second focus event
+            fireEvent.changeText(input, 'Comment on the report instead');
+            act(() => frameSpy.mock.calls.at(0)?.at(0)?.(0));
+
+            // Then recovery reveals the input without changing the existing refusal scroll
+            expect(mockScrollTo).toHaveBeenCalledWith(420, {animated: true, shouldWaitForKeyboard: false});
+            expect(mockScrollToEnd).toHaveBeenCalledTimes(1);
+        });
+
+        it('cancels pending recovery on unmount', async () => {
+            // Given an edit has scheduled recovery on the next frame
+            const input = await focusDescription(0);
+            fireEvent.changeText(input, 'A rule');
+
+            // When the admin leaves the page before that frame
+            screen.unmount();
+
+            // Then recovery does not retain work for a removed form
+            expect(cancelFrameSpy).toHaveBeenCalledWith(1);
+            expect(mockScrollTo).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            [false, true],
+            [true, false],
+        ])('does not recover when active=%s and scrolling=%s', async (isActive, shouldUseScrollView) => {
+            // Given a hidden form or the non-scrolling Describe modal
+            render(
+                <DescribeRuleForm
+                    policyID={POLICY_ID}
+                    isActive={isActive}
+                    shouldUseScrollView={shouldUseScrollView}
+                    submitButtonText="common.next"
+                    inputContainerStyle={undefined}
+                    onRuleGenerated={jest.fn()}
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+            const input = screen.getByLabelText('workspace.rules.newRule.describeRuleInputLabel');
+            fireEvent(input, 'focus');
+            mockScrollTo.mockClear();
+
+            // When its input emits an edit
+            fireEvent.changeText(input, 'A rule');
+
+            // Then it leaves scrolling to the modal or active screen
+            expect(frameSpy).not.toHaveBeenCalled();
+            expect(mockScrollTo).not.toHaveBeenCalled();
+        });
     });
 
     it('hides the describe section when New rule opens for a category', async () => {

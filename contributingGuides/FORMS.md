@@ -440,3 +440,16 @@ Pass the `scrollContextEnabled` prop to enable scrolling up when Picker is press
 #### Enable Form to Scroll to the End
 
 Pass the `shouldScrollToEnd` prop to automatically scroll to the bottom when the form is opened. Ensure that the scrolling stops at the appropriate limit so that the button remains visible above the keypad.
+
+### Revealing an input when editing resumes
+
+For a focused input that can be manually scrolled out of view, opt into `useRevealEditedInput`:
+
+- Pass `isEnabled` only while the page is active and its form is scrollable.
+- Pass a `scrollTo` callback that starts scrolling immediately, for example `offset => formRef.current?.scrollTo(offset, {animated: true, shouldWaitForKeyboard: false})`. Omitting options preserves the form's existing animated scroll after the keyboard transition.
+- Attach `measureInput` to the input container's `onLayout`. Its position must be relative to the scroll content, not the screen.
+- Attach `trackScroll` to the form's `onScroll` and `cancelRecovery` to `onScrollBeginDrag`, so manual dragging can interrupt recovery.
+- Compose `markFocused` with the existing input focus handler, and attach `markBlurred` to `onBlur` and `revealEditedInput` to `onChangeText` without replacing value or draft updates.
+- Call `cancelRecovery` before submitting or starting another programmatic scroll. Blur, disablement, and unmount also cancel queued recovery.
+
+The hook reveals the bounded input box, not individual text lines. Multiline inputs must retain their own internal caret scrolling; a viewport smaller than the input still requires native keyboard testing.

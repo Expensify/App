@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRevealEditedInput from '@hooks/useRevealEditedInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -157,6 +158,11 @@ function DescribeRuleForm({
     const canCreateAnyway = !!refusalSuggestedPrompt && !!onAgentRuleFallback;
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
+    const {measureInput, trackScroll, markFocused, markBlurred, revealEditedInput, cancelRecovery} = useRevealEditedInput({
+        isEnabled: isActive && shouldUseScrollView,
+        scrollTo: (offset) => formRef.current?.scrollTo(offset, {animated: true, shouldWaitForKeyboard: false}),
+    });
+
     const finish = () => {
         pendingGenerationRef.current = undefined;
         clearNewRulePrompt();
@@ -266,6 +272,7 @@ function DescribeRuleForm({
     };
 
     const submit = (values: FormOnyxValues<NewRulePromptFormID>) => {
+        cancelRecovery();
         const prompt = values[INPUT_IDS.PROMPT]?.trim() ?? '';
         if (!prompt) {
             setNewRulePromptEmptyError();
@@ -303,6 +310,8 @@ function DescribeRuleForm({
             style={style}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             shouldUseScrollView={shouldUseScrollView}
+            onScroll={trackScroll}
+            onScrollBeginDrag={cancelRecovery}
             // scrollToInput moves the whole box above the keyboard. If Android also moves the box, the page moves two times.
             shouldScrollChildToFocus={false}
             submitFlexEnabled={submitFlexEnabled}
@@ -320,6 +329,7 @@ function DescribeRuleForm({
                 style={inputContainerStyle}
                 onLayout={(event) => {
                     inputTopOffsetRef.current = event.nativeEvent.layout.y;
+                    measureInput(event);
                 }}
             >
                 <InputWrapper
@@ -333,7 +343,13 @@ function DescribeRuleForm({
                     accessibilityLabel={inputLabel}
                     role={CONST.ROLE.PRESENTATION}
                     onKeyPress={submitFormOnModEnter}
-                    onFocus={scrollToInput}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_PROMPT}
+                    onFocus={() => {
+                        markFocused();
+                        scrollToInput();
+                    }}
+                    onBlur={markBlurred}
+                    onChangeText={revealEditedInput}
                     maxLength={CONST.GENERATED_RULE.PROMPT_MAX_LENGTH}
                     multiline
                     shouldSaveDraft

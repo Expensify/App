@@ -27,7 +27,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ScrollViewProps, StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {deepEqual} from 'fast-equals';
@@ -105,7 +105,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     shouldSubmitButtonStickToBottom?: boolean;
 
     /** Fires at most once per frame during scrolling. */
-    onScroll?: () => void;
+    onScroll?: ScrollViewProps['onScroll'];
+
+    onScrollBeginDrag?: ScrollViewProps['onScrollBeginDrag'];
 
     /** Use stricter HTML-like tag validation (e.g. blocks <✓>, <123>). */
     shouldUseStrictHtmlTagValidation?: boolean;
@@ -411,8 +413,8 @@ function FormProvider({
         formWrapperRef.current?.scrollToEnd();
     }, []);
 
-    const scrollTo = useCallback((y: number) => {
-        formWrapperRef.current?.scrollTo(y);
+    const scrollTo = useCallback((...args: Parameters<FormWrapperRef['scrollTo']>) => {
+        formWrapperRef.current?.scrollTo(...args);
     }, []);
 
     useImperativeHandle(ref, () => ({

@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import FormContext from '@components/Form/FormContext';
 import FormWrapper from '@components/Form/FormWrapper';
@@ -10,9 +10,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
-import {View} from 'react-native';
+// The native prototype lets this test observe the real wrapper's imperative scroll calls.
+// eslint-disable-next-line no-restricted-imports
+import {ScrollView as RNScrollView, View} from 'react-native';
 
-import type {InputComponentBaseProps, InputRefs} from '../../../../src/components/Form/types';
+import type {FormWrapperRef, InputComponentBaseProps, InputRefs} from '../../../../src/components/Form/types';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -49,11 +51,13 @@ function renderFormWrapper({
     serverErrorFields,
     inputRefs,
     shouldScrollChildToFocus,
+    ref,
 }: {
     errors?: Record<string, string>;
     serverErrorFields?: ErrorFields | null;
     inputRefs: React.RefObject<InputRefs>;
     shouldScrollChildToFocus?: boolean;
+    ref?: React.RefObject<FormWrapperRef | null>;
 }) {
     return render(
         <FormContext.Provider
@@ -64,6 +68,7 @@ function renderFormWrapper({
             }}
         >
             <FormWrapper
+                ref={ref}
                 formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                 submitButtonText="Submit"
                 onSubmit={jest.fn()}
@@ -91,6 +96,44 @@ function createFocusableInput(inputID: string): InputComponentBaseProps {
 describe('FormWrapper', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it('starts an animated edit recovery immediately without a delayed second scroll', () => {
+        // Given a form with a focused input whose keyboard is already open
+        jest.useFakeTimers();
+        const scrollSpy = jest.spyOn(RNScrollView.prototype, 'scrollTo').mockImplementation(() => {});
+        const ref = React.createRef<FormWrapperRef>();
+        renderFormWrapper({inputRefs: {current: {}}, ref});
+
+        // When recovery opts out of the keyboard-opening wait
+        act(() => ref.current?.scrollTo(216, {animated: true, shouldWaitForKeyboard: false}));
+
+        // Then scrolling is animated but starts now, with no queued scroll overriding a later interaction
+        expect(scrollSpy).toHaveBeenCalledTimes(1);
+        expect(scrollSpy).toHaveBeenCalledWith({y: 216, animated: true});
+        act(() => jest.runOnlyPendingTimers());
+        expect(scrollSpy).toHaveBeenCalledTimes(1);
+        scrollSpy.mockRestore();
+        jest.useRealTimers();
+    });
+
+    it('preserves delayed animated scrolling for existing callers', () => {
+        // Given a form opening the keyboard on initial focus
+        jest.useFakeTimers();
+        const scrollSpy = jest.spyOn(RNScrollView.prototype, 'scrollTo').mockImplementation(() => {});
+        const ref = React.createRef<FormWrapperRef>();
+        renderFormWrapper({inputRefs: {current: {}}, ref});
+
+        // When an existing caller omits scrolling options
+        act(() => ref.current?.scrollTo(-10));
+
+        // Then it waits for the keyboard and clamps the target as before
+        expect(scrollSpy).not.toHaveBeenCalled();
+        act(() => jest.runOnlyPendingTimers());
+        expect(scrollSpy).toHaveBeenCalledTimes(1);
+        expect(scrollSpy).toHaveBeenCalledWith({y: 0, animated: true});
+        scrollSpy.mockRestore();
+        jest.useRealTimers();
     });
 
     it('focuses the first local validation error before server field errors', () => {
