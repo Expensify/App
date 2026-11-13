@@ -1,3 +1,5 @@
+import type {SnapshotCensusResult} from '@libs/SnapshotCensus';
+
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -10,6 +12,7 @@ declare global {
         report?: Promise<Report | undefined>;
         transaction?: Promise<Transaction | undefined>;
         receipt?: Promise<Receipt | undefined>;
+        snapshotCensus?: {dump: () => Promise<SnapshotCensusResult>};
     }
 
     // Injected by Rspack's DefinePlugin at build time; empty string in non-development builds.

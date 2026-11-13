@@ -2,6 +2,7 @@ import {isProduction as isProductionLib} from '@libs/Environment/Environment';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isRecord} from '@libs/ObjectUtils';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
+import {dumpSnapshotCensus, isSnapshotCensusEnabled} from '@libs/SnapshotCensus';
 
 import {setSupportAuthToken} from '@userActions/Session';
 
@@ -36,6 +37,10 @@ export default function addUtilsToWindow() {
         window.Onyx.log = log;
 
         window.setSupportToken = setSupportAuthToken;
+
+        if (isSnapshotCensusEnabled()) {
+            window.snapshotCensus = {dump: dumpSnapshotCensus};
+        }
 
         // Helper to get current route params
         function getRouteParams() {
