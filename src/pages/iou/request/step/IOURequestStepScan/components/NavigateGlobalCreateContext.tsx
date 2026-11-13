@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {RefObject} from 'react';
@@ -35,8 +36,9 @@ import type {OnyxEntry} from 'react-native-onyx';
  * returns a stable callable.
  */
 import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
-type NavigateGlobalCreateFn = (transactionIDs: string[], isMultiScanEnabled: boolean) => void;
+type NavigateGlobalCreateFn = (transactionIDs: string[], isMultiScanEnabled: boolean) => void | Promise<void>;
 
 type ProviderProps = WithCurrentUserPersonalDetailsProps & {
     iouType: IOUType;
@@ -94,7 +96,7 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
-    const navigateGlobalCreate: NavigateGlobalCreateFn = (transactionIDs, isMultiScanEnabled) => {
+    const navigateGlobalCreate: NavigateGlobalCreateFn = async (transactionIDs, isMultiScanEnabled) => {
         startScanProcessSpan(isMultiScanEnabled);
 
         // Manual's confirmation flips the shared route to TRACK once it lands on the self DM, so a later scan arrives already resolved.
@@ -107,39 +109,50 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
             // Quick-scan entry points (e.g. the bottom-tab camera button) start from the default workspace chat rather than a generated reportID,
             // so the draft isn't flagged as global create yet. Flag it here so the workspace stays editable on the confirmation page, like the FAB scan flow.
             const shouldAutoReport = !isSelfDMTrackExpense && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
-            const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
-            const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
-            const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+            const assignDraftsToTargetReport = (targetReport: OnyxEntry<Report>) => {
+                const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
+                const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
 
-            // If the user previously selected different participants in confirmation, preserve that choice
-            if (transaction?.participants && transaction.participants.at(0)?.reportID !== targetReport?.reportID) {
-                const isTrackExpense = transaction.participants.at(0)?.reportID === selfDMReport?.reportID;
-                const preservedParticipants = transaction.participants;
-                const preservedReportID = transaction.reportID;
+                // If the user previously selected different participants in confirmation, preserve that choice
+                if (transaction?.participants && transaction.participants.at(0)?.reportID !== targetReport?.reportID) {
+                    const isTrackExpense = transaction.participants.at(0)?.reportID === selfDMReport?.reportID;
+                    const preservedParticipants = transaction.participants;
+                    const preservedReportID = transaction.reportID;
+
+                    for (const tid of transactionIDs) {
+                        setMoneyRequestParticipants(tid, preservedParticipants);
+                        setTransactionReport(tid, {isFromGlobalCreate: true}, true);
+                    }
+                    deferNavigate(() => {
+                        if (isTrackExpense) {
+                            endScanProcessAndStartConfirmationMountSpan();
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, selfDMReport?.reportID));
+                        } else {
+                            navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, preservedReportID);
+                        }
+                    });
+                    return;
+                }
 
                 for (const tid of transactionIDs) {
-                    setMoneyRequestParticipants(tid, preservedParticipants);
-                    setTransactionReport(tid, {isFromGlobalCreate: true}, true);
+                    setTransactionReport(tid, {reportID: transactionReportID, isFromGlobalCreate: true}, true);
+                    setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
                 }
                 deferNavigate(() => {
-                    if (isTrackExpense) {
-                        endScanProcessAndStartConfirmationMountSpan();
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, selfDMReport?.reportID));
-                    } else {
-                        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, preservedReportID);
-                    }
+                    endScanProcessAndStartConfirmationMountSpan();
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
                 });
+            };
+
+            if (!shouldAutoReport) {
+                assignDraftsToTargetReport(selfDMReport);
                 return;
             }
 
-            for (const tid of transactionIDs) {
-                setTransactionReport(tid, {reportID: transactionReportID, isFromGlobalCreate: true}, true);
-                setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
-            }
-            deferNavigate(() => {
-                endScanProcessAndStartConfirmationMountSpan();
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
-            });
+            // The workspace chat is only needed after capture, so read it once here instead of subscribing to every report
+            // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+            const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+            assignDraftsToTargetReport(getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id, reports));
         } else {
             endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
             navigateToParticipantPage(iouType, transactionID, reportID);

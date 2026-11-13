@@ -33,6 +33,7 @@ import SCREENS from '@src/SCREENS';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -114,7 +115,7 @@ function IOURequestStepHours({
 
     const navigateBack = () => Navigation.goBack(isEditingConfirmation ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID) : undefined);
 
-    const saveTime = () => {
+    const saveTime = async () => {
         if (rate === undefined) {
             return;
         }
@@ -139,7 +140,10 @@ function IOURequestStepHours({
 
         if (isEmbeddedInStartPage) {
             if (explicitPolicyID) {
-                const policyExpenseChat = getPolicyExpenseChat(accountID, policyID);
+                // The workspace chat is only needed on submit, so read it once here instead of subscribing to every report
+                // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+                const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+                const policyExpenseChat = getPolicyExpenseChat(accountID, policyID, reports);
                 if (!policyExpenseChat) {
                     console.error(`Couldn't find policy expense chat for policyID: ${policyID}`);
                     return;

@@ -14,7 +14,7 @@ import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
+import {findSelfDMReportID} from '@libs/ReportUtils';
 
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
@@ -23,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {policyExpenseChatsSelector} from '@src/selectors/Report';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -45,6 +46,8 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     } = route;
     const {accountID} = useCurrentUserPersonalDetails();
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
+    const selector = policyExpenseChatsSelector(accountID);
+    const [policyExpenseChats] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {isOffline} = useNetwork();
@@ -53,7 +56,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
 
     const selectWorkspace = (policy: OnyxEntry<Policy>) => {
         const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
-            getPolicyExpenseChat(accountID, policy?.id),
+            policy?.id ? policyExpenseChats?.[policy.id] : undefined,
             selfDMReport,
             iouType,
             defaultExpensePolicy,

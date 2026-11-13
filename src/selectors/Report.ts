@@ -210,6 +210,26 @@ const policyChatRoomsSelector =
         return list;
     };
 
+/**
+ * Selector that returns a map of policyID -> Report for policy expense chats owned by the given account.
+ * Use this when the policyID is not known at render time (e.g. in a dynamic callback)
+ * to avoid subscribing to the full raw reports collection.
+ */
+const policyExpenseChatsSelector =
+    (ownerAccountID: number | undefined) =>
+    (reports: OnyxCollection<Report>): Record<string, Report> => {
+        const result: Record<string, Report> = {};
+        if (!ownerAccountID) {
+            return result;
+        }
+        for (const report of Object.values(reports ?? {})) {
+            if (report?.policyID && isPolicyExpenseChat(report) && !isThread(report) && report.ownerAccountID === ownerAccountID) {
+                result[report.policyID] = report;
+            }
+        }
+        return result;
+    };
+
 /** Selects the outstanding reports that belong to the given policy. */
 const createOutstandingReportsForPolicySelector =
     (policyID: string | undefined) =>
@@ -460,6 +480,7 @@ export {
     getReportHasParentAccess,
     getReportPolicyID,
     policyIDsWithEmptyReportsSelector,
+    policyExpenseChatsSelector,
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
     reportAvatarFieldsSelector,

@@ -84,7 +84,8 @@ describe('navigateGlobalCreate', () => {
         // When the receipts are captured
         navigateGlobalCreate(['t1', 't2'], false);
 
-        // Then every draft is flagged as global create so the workspace stays editable on the confirmation page
+        // Then every draft is flagged as global create so the workspace stays editable on the confirmation page, once the workspace chat is read
+        await waitForBatchedUpdates();
         expect(setTransactionReport).toHaveBeenCalledWith('t1', {reportID: DEFAULT_WORKSPACE_CHAT_ID, isFromGlobalCreate: true}, true);
         expect(setTransactionReport).toHaveBeenCalledWith('t2', {reportID: DEFAULT_WORKSPACE_CHAT_ID, isFromGlobalCreate: true}, true);
         expect(setMoneyRequestParticipantsFromReport).toHaveBeenCalledTimes(2);
@@ -103,7 +104,8 @@ describe('navigateGlobalCreate', () => {
         // When the receipt is captured again
         navigateGlobalCreate(['t1'], false);
 
-        // Then the chosen workspace is kept and the draft is still flagged as global create so it can be changed again
+        // Then the chosen workspace is kept and the draft is still flagged as global create so it can be changed again, once the workspace chat is read
+        await waitForBatchedUpdates();
         expect(setMoneyRequestParticipants).toHaveBeenCalledWith('t1', participants);
         expect(setTransactionReport).toHaveBeenCalledWith('t1', {isFromGlobalCreate: true}, true);
     });

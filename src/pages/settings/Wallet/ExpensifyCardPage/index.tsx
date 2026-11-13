@@ -92,6 +92,7 @@ import type {ValueOf} from 'type-fest';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type ExpensifyCardPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD>
@@ -283,8 +284,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         });
     };
 
-    const handleAskToUnfreezePress = () => {
-        const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard)?.reportID;
+    const handleAskToUnfreezePress = async () => {
+        // The workspace chat is only needed on press, so read it once here instead of subscribing to every report
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+        const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+        const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard, reports)?.reportID;
         if (!cardHolderWorkspaceChatReportID) {
             return;
         }
@@ -329,7 +333,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         frozenDate={currentCard?.nameValuePairs?.frozen?.date}
                         style={styles.mt8}
                         canUnfreezeCard={canUnfreezeCard}
-                        onAskToUnfreezePress={handleAskToUnfreezePress}
+                        onAskToUnfreezePress={() => {
+                            handleAskToUnfreezePress();
+                        }}
                         onUnfreezePress={handleUnfreezePress}
                         cardPreview={
                             <CardPreview
