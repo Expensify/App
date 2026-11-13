@@ -58,6 +58,10 @@ type UseMoneyRequestReportColumnsResult = {
     isExpenseReportViewFromIOUReport: boolean;
 };
 
+function hasVisibleComments(reportActions: readonly OnyxTypes.ReportAction[]): boolean {
+    return Object.values(reportActions ?? {}).some((action) => (action?.childVisibleActionCount ?? 0) > 0);
+}
+
 /**
  * Derives which columns the transaction table shows and how wide they are, from the report's
  * transactions and the user's saved column preferences.
@@ -70,7 +74,7 @@ function useMoneyRequestReportColumns({report, policy, transactions, reportActio
 
     // Always use default columns for money request report view (don't use user-customized search columns)
     const isExpenseReportViewFromIOUReport = isIOUReport(report);
-    const shouldShowCommentsColumn = Object.values(reportActions ?? {}).some((action) => (action?.childVisibleActionCount ?? 0) > 0);
+    const shouldShowCommentsColumn = hasVisibleComments(reportActions);
     // The saved column list is account-wide, so the vendor column only shows on reports whose workspace has the vendor feature.
     const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const columnsToShow = useStableArrayReference(
