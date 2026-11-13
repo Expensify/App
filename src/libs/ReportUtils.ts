@@ -2993,11 +2993,11 @@ function isThreadMemberProtectedByParentReport(parentReport: OnyxInputOrEntry<Re
 }
 
 /**
- * Checks if a report aligns its action list to the top (transaction threads, money request / invoice reports).
+ * Checks if a report aligns its action list to the top (chat / transaction threads, support tickets, money request / invoice reports).
  */
 function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
     const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
-    return isTransactionThreadReport || isChatThread(report) || isMoneyRequestReport(report) || isInvoiceReport(report);
+    return isTransactionThreadReport || isChatThread(report) || isSupportTicket(report) || isMoneyRequestReport(report) || isInvoiceReport(report);
 }
 
 /**

@@ -245,6 +245,7 @@ import {
     shouldExcludeAncestorReportAction,
     shouldCreateNewMoneyRequestReport,
     shouldHideSingleReportField,
+    shouldReportAlignToTop,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
@@ -612,6 +613,36 @@ const policy: Policy = {
     owner: '',
     outputCurrency: '',
 };
+
+describe('shouldReportAlignToTop', () => {
+    it.each<{type: Report['type']; parentReportID?: string; expected: boolean}>([
+        {type: CONST.REPORT.TYPE.SUPPORT_TICKET, expected: true},
+        {type: CONST.REPORT.TYPE.CHAT, parentReportID: '1', expected: true},
+        {type: CONST.REPORT.TYPE.CHAT, expected: false},
+        {type: CONST.REPORT.TYPE.TASK, expected: false},
+        {type: CONST.REPORT.TYPE.EXPENSE, expected: true},
+        {type: CONST.REPORT.TYPE.IOU, expected: true},
+        {type: CONST.REPORT.TYPE.INVOICE, expected: true},
+    ])('aligns $type reports with parent $parentReportID to the top: $expected', ({type, parentReportID, expected}) => {
+        // Given a support ticket, Concierge-style thread, or an unrelated report type
+        const report: Report = {reportID: '2', type, parentReportID, parentReportActionID: parentReportID ? '3' : undefined};
+
+        // When the shared list and scrolling policy chooses the initial alignment
+        const shouldAlignToTop = shouldReportAlignToTop(report, undefined);
+
+        // Then tickets match threads without changing the other report types
+        expect(shouldAlignToTop).toBe(expected);
+    });
+
+    it('does not align a missing report to the top', () => {
+        // Given an unloaded report
+        // When alignment is evaluated before its data arrives
+        const shouldAlignToTop = shouldReportAlignToTop(undefined, undefined);
+
+        // Then it retains the default chat layout
+        expect(shouldAlignToTop).toBe(false);
+    });
+});
 
 describe('ReportUtils', () => {
     beforeAll(() => {

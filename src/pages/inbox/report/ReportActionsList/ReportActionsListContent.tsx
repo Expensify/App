@@ -19,7 +19,7 @@ import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shouldHidePayAction} from '@libs/ReportActionsUtils';
-import {isArchivedReport, isChatThread} from '@libs/ReportUtils';
+import {isArchivedReport, isChatThread, isSupportTicket} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
@@ -267,8 +267,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     renderItem={renderItem}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    // An inverted list pads its visual top with paddingBottom. A thread opens on its first message, so it needs far less of it.
-                    contentContainerStyle={[styles.chatContentScrollView, isChatThread(report) && styles.pb2]}
+                    // An inverted list pads its visual top with paddingBottom. Threads and support tickets open on their first message, so they need far less of it.
+                    contentContainerStyle={[styles.chatContentScrollView, (isChatThread(report) || isSupportTicket(report)) && styles.pb2]}
                     ListHeaderComponent={listHeaderComponent}
                     ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     ListFooterComponent={listFooterComponent}
