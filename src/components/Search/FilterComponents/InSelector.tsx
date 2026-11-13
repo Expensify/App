@@ -131,6 +131,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             report,
             {},
             {
+                report: reportData,
                 dateFnsLocale,
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency,
