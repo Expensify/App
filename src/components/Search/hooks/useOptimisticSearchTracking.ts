@@ -176,9 +176,13 @@ function useOptimisticSearchTracking({searchResults, queryJSON, currentUserAccou
             return searchData;
         }
 
+        // Once the create has settled the row must come from the snapshot. Re-adding a settled transaction
+        // would override a server result that legitimately excluded it (e.g. it no longer matches a filter).
+        const isPendingCreation = optimisticTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
         if (
             !optimisticTransactionKey ||
             !optimisticTransaction?.transactionID ||
+            !isPendingCreation ||
             searchData[optimisticTransactionKey] ||
             optimisticTransaction.reportID === CONST.REPORT.SPLIT_REPORT_ID ||
             !doesOptimisticTransactionMatchQuery
