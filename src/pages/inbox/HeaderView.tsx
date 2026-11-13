@@ -6,6 +6,7 @@ import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
 import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
+import useConciergeTabNavigation from '@components/Navigation/NavigationTabBar/useConciergeTabNavigation';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -23,6 +24,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useHeaderAvatarSize from '@hooks/useHeaderAvatarSize';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
+import useIsConciergeNewChatOnly from '@hooks/useIsConciergeNewChatOnly';
 import useIsInConciergePage from '@hooks/useIsInConciergePage';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
@@ -38,6 +40,7 @@ import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useStackedHeaderRowPadding from '@hooks/useStackedHeaderRowPadding';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -182,6 +185,11 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // The Concierge page starts new conversations from the New button of its list
     const shouldShowNewConciergeChatButton = !isInSidePanel && !isInConciergePage && isConciergeThread;
     const isInNarrowConciergePage = isInConciergePage && shouldUseNarrowLayout;
+    const isConciergeNewChatOnly = useIsConciergeNewChatOnly();
+    const isInConciergeSidePanel = isInSidePanel && isConciergeNewChatOnly && (isConciergeChat || isConciergeThread);
+    const shouldShowConciergeHistoryButton = isInNarrowConciergePage || isInConciergeSidePanel;
+    const {closeSidePanel} = useSidePanelActions();
+    const openConciergeNewChat = useConciergeTabNavigation(false);
     const navigation = useNavigation();
     // The list goes on top of this chat, so its back button returns here
     const openConciergeHistory = () => {
@@ -192,6 +200,15 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 index: state.routes.length,
             }),
         );
+    };
+    const openConciergePageFromSidePanel = () => {
+        closeSidePanel();
+        // Wide layouts already show the list beside the new chat
+        if (!isSmallScreenWidth) {
+            openConciergeNewChat();
+            return;
+        }
+        Navigation.navigate(ROUTES.CONCIERGE_CHATS);
     };
     const goBackFromConciergePage = () => {
         if (isConciergeChat) {
@@ -315,7 +332,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall || shouldShowSupportTicketBookCall;
 
-    const shouldShowTalkToHuman = isConciergeChat || (isInConciergePage && isConciergeThread && !isSupportTicketReport);
+    const shouldShowTalkToHuman = isConciergeChat || ((isInConciergePage || isInConciergeSidePanel) && isConciergeThread && !isSupportTicketReport);
     const shouldShowCallAction = shouldShowTalkToHuman || shouldShowBookCall;
 
     // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
@@ -570,10 +587,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
-                                {isInNarrowConciergePage && (
+                                {shouldShowConciergeHistoryButton && (
                                     <Tooltip text={translate('common.concierge.viewChatHistory')}>
                                         <PressableWithoutFeedback
-                                            onPress={openConciergeHistory}
+                                            onPress={isInConciergeSidePanel ? openConciergePageFromSidePanel : openConciergeHistory}
                                             style={[styles.touchableButtonImage]}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('common.concierge.viewChatHistory')}

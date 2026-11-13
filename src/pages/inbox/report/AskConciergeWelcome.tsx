@@ -1,6 +1,7 @@
 import ScrollView from '@components/ScrollView';
 
-import useIsInConciergePage from '@hooks/useIsInConciergePage';
+import useIsConciergeNewChatOnly from '@hooks/useIsConciergeNewChatOnly';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,18 +27,19 @@ function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWel
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const isInConciergePage = useIsInConciergePage();
+    const isConciergeNewChatOnly = useIsConciergeNewChatOnly();
+    const isInSidePanel = useIsInSidePanel();
 
     return (
         <ScrollView
-            style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
-            // The Concierge page has no history button under the welcome text, so the text keeps the same gap from the composer on its own
-            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, isInConciergePage && styles.pb8]}
+            style={[!shouldUseNarrowLayout && !isInSidePanel && styles.flexGrow0, styles.conciergeAskColumn]}
+            // Without a history button under the welcome text, the text keeps the same gap from the composer on its own
+            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, isConciergeNewChatOnly && styles.pb8]}
             keyboardShouldPersistTaps="handled"
             onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}
         >
             <AskConciergeEmptyState />
-            {!isInConciergePage && (
+            {!isConciergeNewChatOnly && (
                 <ConciergeChatHistoryToggle
                     isHistoryShown={false}
                     onPress={onShowPreviousMessages}

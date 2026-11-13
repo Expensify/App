@@ -15,7 +15,8 @@ import {useRoute} from '@react-navigation/native';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsConciergeInboxDM from './useIsConciergeInboxDM';
-import useIsInConciergePage from './useIsInConciergePage';
+import useIsConciergeNewChatOnly from './useIsConciergeNewChatOnly';
+import useIsInSidePanel from './useIsInSidePanel';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
 
@@ -35,7 +36,10 @@ type ConciergeAskState = {
 
 function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
-    const isInConciergePage = useIsInConciergePage();
+    const isConciergeNewChatOnly = useIsConciergeNewChatOnly();
+    const isInSidePanel = useIsInSidePanel();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const isConciergeDM = isConciergeInboxDM || (isInSidePanel && isConciergeNewChatOnly && !!reportID && reportID === conciergeReportID);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showFullHistory, isHistoryCollapsedByUser} = useConciergeChatHistoryState();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -59,14 +63,14 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         selector: hasUnreadMessageFromOthersSelector,
     });
 
-    // On the Concierge page every conversation is its own thread, so the DM only starts new ones and never shows its history
-    const isHistoryExpanded = isConciergeInboxDM && !isInConciergePage && (showFullHistory || !!route.params?.reportActionID);
-    const shouldShowWelcome = isConciergeInboxDM && !isHistoryExpanded && (isInConciergePage || ((isHistoryCollapsedByUser || !hasFailedSend) && !hasUnreadMessageFromOthers));
+    const isHistoryExpanded = isConciergeDM && !isConciergeNewChatOnly && (showFullHistory || !!route.params?.reportActionID);
+    const shouldShowWelcome = isConciergeDM && !isHistoryExpanded && (isConciergeNewChatOnly || ((isHistoryCollapsedByUser || !hasFailedSend) && !hasUnreadMessageFromOthers));
 
     return {
         isHistoryExpanded,
         shouldShowWelcome,
-        shouldCenterWelcomeWithComposer: shouldShowWelcome && !shouldUseNarrowLayout,
+        // The side panel is always narrow, so it keeps the composer at the bottom like the mobile layout
+        shouldCenterWelcomeWithComposer: shouldShowWelcome && !shouldUseNarrowLayout && !isInSidePanel,
         hasUnreadMessageFromOthers,
     };
 }
