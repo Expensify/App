@@ -90,6 +90,8 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     const shouldShowSkeletonForInitialLoad = isReportLoadPending && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
+    // Once actions have been displayed, an app load that resumes on reconnect must not swap the list for a skeleton,
+    // because remounting the list would discard the scroll position.
     const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline && !hasOnceLoadedReportActions;
 
     // Show skeleton for the Concierge side panel until report data has been loaded
