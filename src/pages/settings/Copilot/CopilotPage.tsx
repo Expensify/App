@@ -256,7 +256,8 @@ function CopilotPage() {
         const personalDetail = personalDetailsByLogin[email.toLowerCase()];
         const addDelegateError = getLatestError(errorFields?.addDelegate?.[email]);
         const removeDelegateError = getLatestError(errorFields?.removeDelegate?.[email]);
-        const error = getLatestError({...addDelegateError, ...removeDelegateError});
+        const updateDelegateRoleError = getLatestError(errorFields?.updateDelegateRole?.[email]);
+        const error = getLatestError({...addDelegateError, ...removeDelegateError, ...updateDelegateRoleError});
         const isOwnerRow = isAgentAccount === true && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
         const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -292,6 +293,7 @@ function CopilotPage() {
             onPendingActionDismiss: () => {
                 clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess});
                 clearDelegateErrorsByField({email, fieldName: 'removeDelegate', delegatedAccess: account?.delegatedAccess});
+                clearDelegateErrorsByField({email, fieldName: 'updateDelegateRole', delegatedAccess: account?.delegatedAccess});
             },
             error,
             disabled: isPendingDelete,

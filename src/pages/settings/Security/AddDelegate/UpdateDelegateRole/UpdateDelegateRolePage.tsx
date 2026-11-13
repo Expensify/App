@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {updateDelegateRole} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -46,10 +47,10 @@ function UpdateDelegateRoleSelectionListHeader() {
 
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
-    const [delegates] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegatesSelector});
+    const [delegatedAccess] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegatesSelector});
     const {currentRole, login} = route.params;
 
-    const currentDelegate = delegates?.find((d) => d.email === login);
+    const currentDelegate = delegatedAccess?.delegates?.find((d) => d.email === login);
     const matchingRole = currentDelegate?.role ?? currentRole;
 
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -78,6 +79,18 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                     onSelectRow={(option) => {
                         if (!option.value || option.isSelected) {
                             Navigation.dismissModal();
+                            return;
+                        }
+                        // Downgrading from full access to submitter removes privileges, so it is applied directly
+                        // without requiring the magic code that every other role change goes through.
+                        if (currentRole === CONST.DELEGATE_ROLE.ALL && option.value === CONST.DELEGATE_ROLE.SUBMITTER) {
+                            updateDelegateRole({
+                                email: login,
+                                role: option.value,
+                                delegatedAccess,
+                                validateCode: undefined,
+                            });
+                            Navigation.goBack(ROUTES.SETTINGS_COPILOT);
                             return;
                         }
                         Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE.getRoute(login, option?.value));

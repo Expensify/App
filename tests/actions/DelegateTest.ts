@@ -30,6 +30,7 @@ import type {DelegatedAccess} from '@src/types/onyx/Account';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {setupGlobalFetchMock, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -230,6 +231,12 @@ describe('actions/Delegate', () => {
     });
 
     describe('updateDelegateRole', () => {
+        const mockFetch = setupGlobalFetchMock();
+
+        afterEach(() => {
+            mockFetch.succeed();
+        });
+
         it('should update a delegate role', async () => {
             const delegatedAccess: DelegatedAccess = {
                 delegates: [
@@ -262,6 +269,33 @@ describe('actions/Delegate', () => {
             });
 
             resetQueue();
+        });
+
+        it('puts an error on the copilot row and clears its pending state when the role update fails', async () => {
+            // Given a copilot with full access
+            const delegatedAccess: DelegatedAccess = {
+                delegates: [
+                    {
+                        email: 'test@test.com',
+                        role: CONST.DELEGATE_ROLE.ALL,
+                    },
+                ],
+            };
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
+            await waitForBatchedUpdates();
+
+            // When the server rejects the role update, for example because the magic code was invalid
+            mockFetch.fail();
+            updateDelegateRole({email: 'test@test.com', role: CONST.DELEGATE_ROLE.SUBMITTER, validateCode: '123456', delegatedAccess});
+            await waitForBatchedUpdates();
+
+            // Then CopilotPage has an error to show under that copilot's row, which keeps its original role and is no longer pending
+            const account = await getOnyxValue(ONYXKEYS.ACCOUNT);
+            expect(Object.values(account?.delegatedAccess?.errorFields?.updateDelegateRole?.['test@test.com'] ?? {})).toEqual([translateLocal('delegate.genericError')]);
+            const firstDelegate = account?.delegatedAccess?.delegates?.at(0);
+            expect(firstDelegate?.role).toBe(CONST.DELEGATE_ROLE.ALL);
+            expect(firstDelegate?.pendingAction).toBeFalsy();
+            expect(firstDelegate?.pendingFields?.role).toBeFalsy();
         });
     });
     describe('isConnectedAsDelegate', () => {
