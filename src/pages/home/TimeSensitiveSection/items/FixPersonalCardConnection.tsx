@@ -23,6 +23,8 @@ function FixPersonalCardConnection({card}: FixPersonalCardConnectionProps) {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.FIX_PERSONAL_CARD_CONNECTION}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.FIX_PERSONAL_CARD_CONNECTION}
             icon={icons.Connect}
             title={translate('homePage.timeSensitiveSection.fixPersonalCardConnection.title', {cardName: card?.cardName})}
             subtitle={translate('homePage.timeSensitiveSection.fixPersonalCardConnection.subtitle')}

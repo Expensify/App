@@ -20,6 +20,7 @@ import type {
     SearchQueryJSON,
     SearchQueryString,
     SearchWithdrawalType,
+    SelectedTransactions,
     SyntaxFilterKey,
     UserFriendlyKey,
     UserFriendlyValue,
@@ -199,6 +200,13 @@ const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
 ]);
+// Submitting, approving or forwarding a report changes which expenses these filters match without changing a transaction.
+const WORKFLOW_FILTER_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+]);
 
 function isFooterCount(value: string): value is SearchFooterCount {
     return VALID_FOOTER_COUNTS.has(value);
@@ -209,6 +217,14 @@ function isFooterTotal(value: string): value is SearchFooterTotal {
 }
 
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
+
+/** Group-bys only Insights queries use. The Search command doesn't return data for them yet (see https://github.com/Expensify/App/issues/105303) */
+const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.VIOLATION, CONST.SEARCH.GROUP_BY.PAID_BY]);
+
+function isGroupBySupportedBySearch(groupBy: string | undefined): boolean {
+    return !groupBy || !INSIGHTS_ONLY_GROUP_BYS.has(groupBy);
+}
+
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
@@ -642,6 +658,8 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
     const equalTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
     const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
     const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
+    const greaterThanOrEqualTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO}`];
+    const lessThanOrEqualTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO}`];
 
     const amountStrings = [];
 
@@ -655,6 +673,14 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
 
     if (lessThan) {
         amountStrings.push(`${filterKey}<${sanitizeSearchValue(lessThan)}`);
+    }
+
+    if (greaterThanOrEqualTo) {
+        amountStrings.push(`${filterKey}>=${sanitizeSearchValue(greaterThanOrEqualTo)}`);
+    }
+
+    if (lessThanOrEqualTo) {
+        amountStrings.push(`${filterKey}<=${sanitizeSearchValue(lessThanOrEqualTo)}`);
     }
 
     if (negatedAmount) {
@@ -849,6 +875,13 @@ function getQueryWithFooterSelection(
  * search snapshots can still include FORWARDED actions with violation data.
  */
 function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+    return queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+}
+
+/**
+ * Whether the query includes a `has:` filter for any of the given values. Negated filters only count when `shouldIncludeNegated` is set.
+ */
+function queryHasHasFilter(queryJSON: SearchQueryJSON | undefined, hasValues: ReadonlyArray<ValueOf<typeof CONST.SEARCH.HAS_VALUES>>, shouldIncludeNegated = false): boolean {
     const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
     if (hasFilterGroups.length === 0) {
         return false;
@@ -856,12 +889,26 @@ function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolea
 
     return hasFilterGroups.some((group) =>
         group.filters.some((filter) => {
-            if (filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+            if (!shouldIncludeNegated && filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 return false;
             }
             const value = filter.value.toString();
-            return value === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION || value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION;
+            return hasValues.some((hasValue) => hasValue === value);
         }),
+    );
+}
+
+/**
+ * Whether the query's results depend on report state that only report actions reveal, so adding a workflow action
+ * must refetch it: grouping by approver, an `approver:`, `anyApproval:`, `submitted:` or `approved:` filter, or a
+ * `submitted-violation` or `approved-violation` filter. Negated filters count too, because submitting or approving a
+ * report moves its expenses out of a `-has:submitted-violation` or `-has:approved-violation` search.
+ */
+function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): boolean {
+    return (
+        queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER ||
+        queryJSON.flatFilters.some((filter) => WORKFLOW_FILTER_KEYS.has(filter.key)) ||
+        queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], true)
     );
 }
 
@@ -2182,11 +2229,14 @@ function buildFilterFormValuesFromQuery(
             filtersForm[rangeKey] = undefined;
         }
 
-        if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
+        const amountFilterKey = AMOUNT_FILTER_KEYS.find((key: string) => key === filterKey);
+        if (amountFilterKey) {
             const negatedKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.NOT_MODIFIER}`;
             const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
             const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
             const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
+            const greaterThanOrEqualToKey = `${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO}` as const;
+            const lessThanOrEqualToKey = `${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO}` as const;
 
             const isValidAmount = (value: string) => {
                 const parsed = parseAmountFilterValue(value);
@@ -2208,6 +2258,12 @@ function buildFilterFormValuesFromQuery(
             filtersForm[greaterThanKey] =
                 filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidAmount(filter.value.toString()))?.value.toString() ??
                 filtersForm[greaterThanKey];
+            filtersForm[greaterThanOrEqualToKey] =
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[greaterThanOrEqualToKey];
+            filtersForm[lessThanOrEqualToKey] =
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[lessThanOrEqualToKey];
             filtersForm[negatedKey] =
                 filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
                 filtersForm[negatedKey];
@@ -3408,7 +3464,27 @@ function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) 
     return lastQuery;
 }
 
+function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransactions: SelectedTransactions): SearchQueryJSON | undefined {
+    const excludedEntries = Object.values(excludedTransactions);
+    if (excludedEntries.some((transaction) => !transaction.reportID)) {
+        return undefined;
+    }
+    const excludedReportIDs = [...new Set(excludedEntries.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID))];
+    if (excludedReportIDs.length === 0) {
+        return queryJSON;
+    }
+
+    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
+    flatFilters.push({
+        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+        filters: excludedReportIDs.map((reportID) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: reportID})),
+    });
+
+    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
+}
+
 export {
+    getAllMatchingReportQuery,
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
@@ -3418,6 +3494,7 @@ export {
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
     getQueryWithoutGroupBy,
+    isGroupBySupportedBySearch,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     getChangedDisplayOptionsCount,
@@ -3481,6 +3558,7 @@ export {
     doesQueryMatchDefaultFilterKeysAndType,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
+    shouldRefetchSearchOnReportActionChange,
 };
 
 export type {BuildUserReadableQueryStringParams};

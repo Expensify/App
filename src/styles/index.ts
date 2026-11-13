@@ -5,7 +5,8 @@ import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/Wid
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
-import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
+import RHP_FLOATING_CARD_INSET, {RHP_FLOATING_CARD_BORDERS_WIDTH} from '@libs/Navigation/helpers/rhpFloatingCardInset';
+import {getSidePanelWidthStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import CONST from '@src/CONST';
@@ -561,11 +562,6 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: lineHeightScale.label,
         },
 
-        /** Gives every digit the same advance so a counter doesn't shift sideways as its digits change. */
-        tabularNums: {
-            fontVariant: ['tabular-nums'],
-        },
-
         mutedNormalTextLabel: {
             color: theme.textSupporting,
             fontSize: fontScale.label,
@@ -892,10 +888,23 @@ const staticStyles = (theme: ThemeColors) =>
         flatNavigationBarHeader: {
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
             height: variables.flatNavigationBarHeaderHeight,
             paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
-            paddingRight: 12,
+        },
+
+        // The "y" at the end of the wordmark already leaves empty space on its right, so the badge sits closer than the default badge margin
+        flatNavigationBarEnvironmentBadge: {
+            marginLeft: 6,
+        },
+
+        flatNavigationBarCreateButtonContainer: {
+            marginHorizontal: variables.flatNavigationBarCreateButtonInset,
+            marginBottom: variables.flatNavigationBarCreateButtonGap,
+        },
+
+        flatNavigationBarCreateButton: {
+            height: variables.flatNavigationBarCreateButtonHeight,
+            minHeight: variables.flatNavigationBarCreateButtonHeight,
         },
 
         flatNavigationBarItem: {
@@ -1611,6 +1620,16 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
         },
 
+        /**
+         * The secondary row reserves a fixed height so that the typing indicator appearing and disappearing never
+         * shifts the compose box. On mobile web in landscape that costs scarce vertical space for a row that is empty
+         * most of the time, so there it collapses to its content and accepts the shift instead.
+         */
+        chatItemComposeSecondaryRowCompact: {
+            marginTop: 0,
+            marginBottom: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
+        },
+
         chatItemComposeSecondaryRowSubText: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -2088,6 +2107,16 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
             boxShadow: 'none',
+        },
+
+        // The liquid glass behind the icon draws the button's surface and its own depth.
+        floatingActionButtonGlass: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+        },
+
+        floatingButtonGlass: {
+            borderRadius: variables.componentBorderRadiusCircle,
         },
 
         floatingCameraButton: {
@@ -3098,6 +3127,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerBarNarrowHeight: {
             height: variables.contentHeaderNarrowHeight,
+        },
+
+        headerBarCompactHeight: {
+            height: variables.contentHeaderCompactHeight,
         },
 
         imageViewContainer: {
@@ -4127,6 +4160,12 @@ const staticStyles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        // Lays a centered heading's label over the hidden copy that sizes its slot
+        searchColumnMenuLabelOverlay: {
+            ...StyleSheet.absoluteFill,
+            justifyContent: 'center',
+        },
+
         zIndex10: {
             zIndex: 10,
         },
@@ -4406,6 +4445,20 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: 20,
+        },
+
+        receiptScanningLine: {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderTopWidth: CONST.RECEIPT.TRANSLATION_SCAN_LINE_HEIGHT,
+            borderTopColor: theme.success,
+        },
+
+        translatedReceiptCard: {
+            width: '100%',
+            maxWidth: 400,
         },
 
         bgGreenSuccess: {
@@ -5053,24 +5106,6 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
-        linkPreviewWrapper: {
-            marginTop: 16,
-            borderLeftWidth: 4,
-            borderLeftColor: theme.border,
-            paddingLeft: 12,
-        },
-
-        linkPreviewImage: {
-            flex: 1,
-            borderRadius: 8,
-            marginTop: 8,
-        },
-
-        linkPreviewLogoImage: {
-            height: 16,
-            width: 16,
-        },
-
         contextMenuItemPopoverMaxWidth: {
             minWidth: variables.compactPopoverMenuWidth,
             maxWidth: variables.compactPopoverMenuWidth,
@@ -5144,6 +5179,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 2,
         },
 
+        shareCodeContainerWideLayout: {
+            maxWidth: variables.rhpWidth - spacing.ph5.paddingHorizontal * 2,
+            alignSelf: 'center',
+        },
+
         shareCodeContainerDownloadPadding: {
             paddingHorizontal: 12,
             paddingVertical: 12,
@@ -5163,15 +5203,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         headerEnvBadge: {
-            position: 'absolute',
-            bottom: -8,
-            left: -8,
             height: 12,
-            width: 22,
             paddingLeft: 4,
             paddingRight: 4,
             alignItems: 'center',
-            zIndex: -1,
         },
 
         headerEnvBadgeText: {
@@ -7001,6 +7036,15 @@ const staticStyles = (theme: ThemeColors) =>
             right: -variables.sideBarWidth,
             backgroundColor: theme.overlay,
         },
+        // Straddles the side panel's left edge, so the line drawn at its centre runs just outside the panel's border.
+        sidePanelResizeHandle: {
+            ...positioning.pAbsolute,
+            top: 0,
+            bottom: 0,
+            left: -CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2,
+            width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
+        } satisfies ViewStyle,
+
         sidePanelContent: {
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             top: 0,
@@ -7280,14 +7324,33 @@ const dynamicStyles = (theme: ThemeColors) =>
                   }
                 : flex.flex1) satisfies ViewStyle,
 
-        // Straddles the left edge of the single RHP card (RHPFloatingCard), which shares its containing block.
+        // Sized like the lone floating card, so a drag paints its width through the CSS variable and the handle sits on its left edge.
+        resizableSingleRHPExtendedCardInterpolatorStyles: (singleRHPWidth: number) =>
+            ({
+                ...getRHPExtendedCardFrame(theme),
+                // Border-box card, so the border is added back on top of the width or the content gets clipped.
+                width: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_BORDERS_WIDTH),
+            }) satisfies ViewStyle,
+
+        // Straddles the left edge of the single RHP card, whether floating alone (RHPFloatingCard) or stacked on a wide card, both flush with the same right margin.
         rhpResizeHandle: (singleRHPWidth: number) =>
             ({
                 ...positioning.pAbsolute,
                 top: variables.rhpFloatingCardMargin,
                 bottom: variables.rhpFloatingCardMargin,
-                width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
-                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+                width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
+            }) satisfies ViewStyle,
+
+        // Spans the single RHP card and the handle straddling its left edge, and shares their containing block's right, top and bottom edges.
+        rhpResizableDialog: (singleRHPWidth: number) =>
+            ({
+                ...positioning.pAbsolute,
+                ...pointerEventsBoxNone,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET + CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
             }) satisfies ViewStyle,
 
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
@@ -7633,8 +7696,8 @@ const dynamicStyles = (theme: ThemeColors) =>
         sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
             opacity: isOverlayVisible ? variables.overlayOpacity : 0,
         }),
-        sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
-            width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
+        sidePanelContentWidth: (shouldUseNarrowLayout: boolean, sidePanelWidth: number): ViewStyle => ({
+            width: shouldUseNarrowLayout ? '100%' : getSidePanelWidthStyleValue(sidePanelWidth),
         }),
         sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
@@ -8075,9 +8138,9 @@ const plainStyles = (theme: ThemeColors) =>
                 gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
             }) satisfies ViewStyle,
 
-        insightsAICardText: {
-            width: variables.insightsAICardTextWidth,
-        } satisfies TextStyle,
+        insightsAICard: {
+            width: variables.insightsAICardWidth,
+        } satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {
             width: variables.insightsEmptyStateIllustrationSize,

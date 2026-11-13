@@ -157,6 +157,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
                 />
             </View>
             <ButtonDisabledWhenOffline
+                sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.ACTIVATE_PHYSICAL_CARD_SUBMIT}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isLoading={inactiveCard?.isLoading}
                 size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}

@@ -9,10 +9,13 @@ import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useLocalize from '@hooks/useLocalize';
+import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentReady';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,6 +24,7 @@ import useSearchAutoRefetch, {getPolicyIDsFromSearchResults} from '@hooks/useSea
 import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -36,17 +40,19 @@ import {
     shouldRefreshActiveTransactionIDs,
 } from '@libs/actions/TransactionThreadNavigation';
 import Log from '@libs/Log';
+import {shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
-import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
+import {isCreatedTaskReportAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
+    canEditSearchColumns,
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
     getValidGroupBy,
@@ -117,11 +123,13 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
+import useHideSearchColumn from './hooks/useHideSearchColumn';
 import useLiveRowLimit from './hooks/useLiveRowLimit';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
+import SearchColumnMenu from './SearchColumnMenu';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -191,6 +199,7 @@ function Search({
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
@@ -209,6 +218,8 @@ function Search({
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const shouldReturnTripRooms = useShouldReturnTripRooms(type);
+    const {isBetaEnabled} = usePermissions();
+    const shouldShowColumnMenu = isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS) && canEditSearchColumns(type, shouldReturnTripRooms);
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     // getSections only needs the boolean (it gates attendees on unreported transactions for the
@@ -457,8 +468,14 @@ function Search({
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
     const autoSearchedHashRef = useRef<number | undefined>(undefined);
+    const isInPreloadedTab = useIsInPreloadedTab();
 
     useEffect(() => {
+        // A preloaded tab sends no request while hidden, including from the migrated-modal and reconnect branches below.
+        if (isInPreloadedTab) {
+            return;
+        }
+
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
 
@@ -582,6 +599,7 @@ function Search({
 
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
+    const markPreloadedTabContentReady = useMarkPreloadedTabContentReady();
     const navigateToReportsSpanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS));
     const newNavigateToReportsSpansOnMount = useRef(getNavigateToReportsSpans());
 
@@ -815,7 +833,10 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
+                // A single-expense report in the table view opens at the same width as a multi-expense report.
+                // A "Pay someone" report always uses the expense view, so it keeps the normal wide width.
+                const isSentMoneyReport = isSentMoneyReportAction(firstTransaction?.reportAction);
+                if (shouldUseMultiExpenseReportLayout(item.transactions.length, shouldUseTableViewForSingleExpense && !isSentMoneyReport)) {
                     markReportRHPWidth(reportID, 'super-wide');
                 } else {
                     unmarkReportRHPWidth(reportID, 'super-wide');
@@ -907,6 +928,7 @@ function Search({
             getCurrencyDecimals,
             delegateAccountID,
             fullPolicySnapshotLastModifiedByPolicyID,
+            shouldUseTableViewForSingleExpense,
         ],
     );
 
@@ -997,6 +1019,7 @@ function Search({
 
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
+    const {hidableColumns, hideColumn} = useHideSearchColumn(queryJSON, columnsToShow);
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
@@ -1177,6 +1200,10 @@ function Search({
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
+        // Not visible yet: the submit spans and the pending write wait for the first open, which the focus effect below handles.
+        if (isInPreloadedTab) {
+            return;
+        }
         onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
             [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
@@ -1186,7 +1213,7 @@ function Search({
         TransitionTracker.runAfterTransitions({
             callback: () => flushPendingSearchWrite(),
         });
-    }, [onDestinationVisible]);
+    }, [onDestinationVisible, isInPreloadedTab]);
 
     // Deferred layout only needs the base work (no scroll handling, no content-ready signal).
     const onDeferredLayout = onLayoutBase;
@@ -1234,12 +1261,17 @@ function Search({
 
     const onLayoutChart = useCallback(() => {
         hasHadFirstLayout.current = true;
+        // The chart has no onContentReady (that would also dismiss the submit overlay), so it tells a preloaded tab directly.
+        markPreloadedTabContentReady();
+        if (isInPreloadedTab) {
+            return;
+        }
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
             [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
         });
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
-    }, []);
+    }, [isInPreloadedTab, markPreloadedTabContentReady]);
 
     // Tracks whether the pending-expense tracking was re-armed on re-focus
     // (subsequent expense creation while Search stays mounted). Used by the
@@ -1609,7 +1641,14 @@ function Search({
                 // Trip rows share the expense report layout (Total without flex), so the header aligns the same way
                 isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
                 isActionColumnWide={isActionColumnWide}
-            />
+            >
+                {shouldShowColumnMenu && (
+                    <SearchColumnMenu
+                        hidableColumns={hidableColumns}
+                        hideColumn={hideColumn}
+                    />
+                )}
+            </SearchTableHeader>
         </View>
     );
 
