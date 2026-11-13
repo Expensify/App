@@ -135,11 +135,13 @@ function AddAgentRulePage({
     const tabs: TabSelectorBaseItem[] = [
         {
             key: CONST.TAB.AGENT_RULE.SUGGESTIONS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_TAB.SUGGESTIONS,
             title: translate('workspace.rules.agentRules.suggestionsTab'),
             icon: icons.Feed,
         },
         {
             key: CONST.TAB.AGENT_RULE.WRITE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_TAB.WRITE,
             title: translate('workspace.rules.agentRules.writeTab'),
             icon: icons.Pencil,
         },

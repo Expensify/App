@@ -19,7 +19,6 @@ import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
 
 import addUtilsToWindow from './addUtilsToWindow';
-import registerAppductTools from './appductTools';
 import platformSetup from './platformSetup';
 import telemetry from './telemetry';
 
@@ -117,6 +116,7 @@ export default function () {
             ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL,
             ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL,
             ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES,
+            ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID,
             ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS,
         ],
     });
@@ -159,8 +159,6 @@ export default function () {
 
     // Perform any other platform-specific setup
     platformSetup();
-
-    registerAppductTools();
 
     addUtilsToWindow();
 }

@@ -398,7 +398,7 @@ describe('LHNOptionsList', () => {
             // Then it should render a single avatar, not a diagonal (multiple) avatar
             await waitFor(() => {
                 expect(screen.getByTestId('SingleAvatar')).toBeTruthy();
-                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+                expect(screen.queryByTestId('Avatar-MultipleAvatars')).toBeNull();
             });
         });
     });
@@ -473,7 +473,7 @@ describe('LHNOptionsList', () => {
 
             // Then it should render a subscript avatar (workspace expense requests preserve subscript)
             await waitFor(() => {
-                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+                expect(screen.getByTestId('Avatar-Subscript')).toBeTruthy();
             });
         });
     });
@@ -540,7 +540,7 @@ describe('LHNOptionsList', () => {
             await waitFor(() => {
                 expect(screen.getByTestId('SingleAvatar')).toBeTruthy();
             });
-            expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
+            expect(screen.queryByTestId('Avatar-Subscript')).toBeNull();
         });
 
         it('should render the copilot avatar for a workspace task a copilot created, even without chatReportID', async () => {
@@ -678,7 +678,7 @@ describe('LHNOptionsList', () => {
 
             // Then it should render a subscript avatar (workspace icon + user avatar)
             await waitFor(() => {
-                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+                expect(screen.getByTestId('Avatar-Subscript')).toBeTruthy();
             });
         });
     });
@@ -727,9 +727,9 @@ describe('LHNOptionsList', () => {
 
             // Then it should render diagonal (multiple) avatars
             await waitFor(() => {
-                expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeTruthy();
+                expect(screen.getByTestId('Avatar-MultipleAvatars')).toBeTruthy();
                 expect(screen.queryByTestId('SingleAvatar')).toBeNull();
-                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
+                expect(screen.queryByTestId('Avatar-Subscript')).toBeNull();
             });
         });
     });

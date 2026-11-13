@@ -180,6 +180,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                         buttons={[
                             {
                                 buttonText: translate('iou.createExpense'),
+                                sentryLabel: CONST.SENTRY_LABEL.REPORT.ADD_EXISTING_EXPENSE_EMPTY_STATE_CREATE_EXPENSE,
                                 buttonAction: () => {
                                     if (
                                         report?.policyID &&

@@ -200,6 +200,14 @@ const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
 ]);
+// Submitting, approving or forwarding a report changes which expenses these filters match without changing a transaction.
+const WORKFLOW_FILTER_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+]);
+const VIOLATION_HAS_VALUES = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION] as const;
 
 function isFooterCount(value: string): value is SearchFooterCount {
     return VALID_FOOTER_COUNTS.has(value);
@@ -868,6 +876,13 @@ function getQueryWithFooterSelection(
  * search snapshots can still include FORWARDED actions with violation data.
  */
 function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+    return queryHasHasFilter(queryJSON, VIOLATION_HAS_VALUES);
+}
+
+/**
+ * Whether the query includes a `has:` filter for any of the given values. Negated filters only count when `shouldIncludeNegated` is set.
+ */
+function queryHasHasFilter(queryJSON: SearchQueryJSON | undefined, hasValues: ReadonlyArray<ValueOf<typeof CONST.SEARCH.HAS_VALUES>>, shouldIncludeNegated = false): boolean {
     const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
     if (hasFilterGroups.length === 0) {
         return false;
@@ -875,12 +890,26 @@ function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolea
 
     return hasFilterGroups.some((group) =>
         group.filters.some((filter) => {
-            if (filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+            if (!shouldIncludeNegated && filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 return false;
             }
             const value = filter.value.toString();
-            return value === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION || value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION;
+            return hasValues.some((hasValue) => hasValue === value);
         }),
+    );
+}
+
+/**
+ * Whether the query's results depend on report state that only report actions reveal, so adding a workflow action
+ * must refetch it: grouping by approver, an `approver:`, `anyApproval:`, `submitted:` or `approved:` filter, or a
+ * `submitted-violation` or `approved-violation` filter. Negated filters count too, because submitting or approving a
+ * report moves its expenses out of a `-has:submitted-violation` or `-has:approved-violation` search.
+ */
+function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): boolean {
+    return (
+        queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER ||
+        queryJSON.flatFilters.some((filter) => WORKFLOW_FILTER_KEYS.has(filter.key)) ||
+        queryHasHasFilter(queryJSON, VIOLATION_HAS_VALUES, true)
     );
 }
 
@@ -888,7 +917,7 @@ function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolea
  * Same meaning as queryHasViolationFilter, for the advanced-filters form `has` array rather than parsed query JSON.
  */
 function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefined): boolean {
-    return !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+    return VIOLATION_HAS_VALUES.some((violationHasValue) => !!hasValues?.includes(violationHasValue));
 }
 
 /**
@@ -3530,6 +3559,7 @@ export {
     doesQueryMatchDefaultFilterKeysAndType,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
+    shouldRefetchSearchOnReportActionChange,
 };
 
 export type {BuildUserReadableQueryStringParams};
