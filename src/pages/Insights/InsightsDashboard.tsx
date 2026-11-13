@@ -217,8 +217,30 @@ function InsightsDashboardContent({
         );
     }
 
+    const renderChart = ({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded}: InsightsDashboardChart, isHeadline = false) => (
+        <InsightsChartWidget
+            key={chart.graphKey}
+            dashboardID={dashboardID}
+            chart={chart}
+            queryJSON={queryJSON}
+            snapshot={snapshot}
+            previousPeriodQueryJSON={previousPeriodQueryJSON}
+            previousPeriodSnapshot={previousPeriodSnapshot}
+            average={average}
+            isDashboardLoaded={isDashboardLoaded}
+            filters={filters}
+            insightsScope={insightsScope}
+            countDimension={countDimension}
+            supportsDrillIn={supportsDrillIn}
+            onRetry={onRetry}
+            onGroupByChange={isHeadline ? onGroupByChange : undefined}
+        />
+    );
+
+    const gridCharts = supportingCharts.filter(({chart}) => !chart.isFullWidth);
+    const fullWidthCharts = supportingCharts.filter(({chart}) => chart.isFullWidth);
     // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
-    const columns = shouldUseNarrowLayout ? [supportingCharts] : [supportingCharts.filter((chart, index) => index % 2 === 0), supportingCharts.filter((chart, index) => index % 2 === 1)];
+    const columns = shouldUseNarrowLayout ? [gridCharts] : [gridCharts.filter((chart, index) => index % 2 === 0), gridCharts.filter((chart, index) => index % 2 === 1)];
 
     return (
         <TabRootScrollViewMarker>
@@ -243,50 +265,21 @@ function InsightsDashboardContent({
                             hasFailedToLoad={hasFailedToLoad}
                         />
                     )}
-                    <InsightsChartWidget
-                        dashboardID={dashboardID}
-                        chart={headlineChart.chart}
-                        queryJSON={headlineChart.queryJSON}
-                        snapshot={headlineChart.snapshot}
-                        previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
-                        previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
-                        average={headlineChart.average}
-                        isDashboardLoaded={headlineChart.isDashboardLoaded}
-                        filters={filters}
-                        insightsScope={insightsScope}
-                        countDimension={countDimension}
-                        supportsDrillIn={supportsDrillIn}
-                        onRetry={onRetry}
-                        onGroupByChange={onGroupByChange}
-                    />
-                    <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
-                        {columns.map((columnCharts, columnIndex) => (
-                            <View
-                                // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
-                                key={columnIndex}
-                                style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
-                            >
-                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded}) => (
-                                    <InsightsChartWidget
-                                        key={chart.graphKey}
-                                        dashboardID={dashboardID}
-                                        chart={chart}
-                                        queryJSON={queryJSON}
-                                        snapshot={snapshot}
-                                        previousPeriodQueryJSON={previousPeriodQueryJSON}
-                                        previousPeriodSnapshot={previousPeriodSnapshot}
-                                        average={average}
-                                        isDashboardLoaded={isDashboardLoaded}
-                                        filters={filters}
-                                        insightsScope={insightsScope}
-                                        countDimension={countDimension}
-                                        supportsDrillIn={supportsDrillIn}
-                                        onRetry={onRetry}
-                                    />
-                                ))}
-                            </View>
-                        ))}
-                    </View>
+                    {renderChart(headlineChart, true)}
+                    {gridCharts.length > 0 && (
+                        <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
+                            {columns.map((columnCharts, columnIndex) => (
+                                <View
+                                    // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                                    key={columnIndex}
+                                    style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
+                                >
+                                    {columnCharts.map((chart) => renderChart(chart))}
+                                </View>
+                            ))}
+                        </View>
+                    )}
+                    {fullWidthCharts.map((chart) => renderChart(chart))}
                 </View>
             </ScrollView>
         </TabRootScrollViewMarker>

@@ -11,6 +11,12 @@ const COUNT_TRANSLATION_KEYS = {
     [CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT]: 'iou.reportCount',
 } as const satisfies Record<SearchChartCountDimension, string>;
 
+/** Header of a column listing counts, e.g. "Expenses" */
+const COUNT_COLUMN_TITLE_KEYS = {
+    [CONST.SEARCH.CHART_COUNT_DIMENSION.EXPENSE]: 'common.expenses',
+    [CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT]: 'common.reports',
+} as const satisfies Record<SearchChartCountDimension, string>;
+
 /**
  * Names a count of expenses or reports in the viewer's locale, e.g. "1,234.5 expenses".
  * The number is formatted here and passed to the translation rather than left to it, because locales whose `one` plural category also covers 0 and fractions
@@ -22,4 +28,4 @@ function formatChartCount(count: number, countDimension: SearchChartCountDimensi
 }
 
 export default formatChartCount;
-export {MAX_COUNT_FRACTION_DIGITS};
+export {COUNT_COLUMN_TITLE_KEYS, MAX_COUNT_FRACTION_DIGITS};

@@ -45,6 +45,7 @@ import {View} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 
 import InsightsDataTable from './InsightsDataTable';
+import InsightsRankingTable from './InsightsRankingTable';
 
 type InsightsChartWidgetProps = {
     dashboardID: InsightsDashboardID;
@@ -204,6 +205,53 @@ function InsightsChartWidget({
             />
         ) : null;
 
+    const content =
+        view === CONST.SEARCH.VIEW.TABLE ? (
+            <InsightsRankingTable
+                title={translate(chart.titleKey)}
+                data={data}
+                groupBy={groupBy}
+                countDimension={countDimension}
+                rowLimit={chart.limit}
+                comparison={comparison}
+                isComparingPreviousPeriod={filters.compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}
+                queryJSON={queryJSON}
+                isLoading={isLoading}
+            />
+        ) : (
+            <View style={cardPaddingBottom}>
+                <SearchChartView
+                    queryJSON={queryJSON}
+                    view={view}
+                    groupBy={groupBy}
+                    data={data}
+                    metric={chart.metric}
+                    countDimension={countDimension}
+                    isLoading={isLoading}
+                    shouldDrillDownOnPress={supportsDrillIn}
+                    comparison={comparison}
+                    shouldShowRunningTotal={shouldShowRunningTotal}
+                    chartContainerStyle={cardPaddingHorizontal}
+                    shouldShowSinglePointAsBar
+                    shouldShowGroupLabels={isTimeGrouped}
+                    onGroupPress={openDetails}
+                    tooltipFooter={openDetails ? <Text style={[styles.chartTooltipText, styles.link, styles.mt2]}>{translate('insightsPage.viewDetails')}</Text> : undefined}
+                    renderDetails={
+                        shouldShowTable
+                            ? ({rows, formatValue}) => (
+                                  <InsightsDataTable
+                                      rows={rows}
+                                      formatValue={formatValue}
+                                      isLoading={isLoading}
+                                      onRowPress={openDetails}
+                                  />
+                              )
+                            : undefined
+                    }
+                />
+            </View>
+        );
+
     return (
         <WidgetContainer
             title={translate(chart.titleKey)}
@@ -225,39 +273,7 @@ function InsightsChartWidget({
                 {state === INSIGHTS_CHART_STATE.OFFLINE && <ChartOfflineState />}
                 {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
                 {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
-                {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                    <View style={cardPaddingBottom}>
-                        <SearchChartView
-                            queryJSON={queryJSON}
-                            view={view}
-                            groupBy={groupBy}
-                            data={data}
-                            metric={chart.metric}
-                            countDimension={countDimension}
-                            isLoading={isLoading}
-                            shouldDrillDownOnPress={supportsDrillIn}
-                            comparison={comparison}
-                            shouldShowRunningTotal={shouldShowRunningTotal}
-                            chartContainerStyle={cardPaddingHorizontal}
-                            shouldShowSinglePointAsBar
-                            shouldShowGroupLabels={isTimeGrouped}
-                            onGroupPress={openDetails}
-                            tooltipFooter={openDetails ? <Text style={[styles.chartTooltipText, styles.link, styles.mt2]}>{translate('insightsPage.viewDetails')}</Text> : undefined}
-                            renderDetails={
-                                shouldShowTable
-                                    ? ({rows, formatValue}) => (
-                                          <InsightsDataTable
-                                              rows={rows}
-                                              formatValue={formatValue}
-                                              isLoading={isLoading}
-                                              onRowPress={openDetails}
-                                          />
-                                      )
-                                    : undefined
-                            }
-                        />
-                    </View>
-                )}
+                {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && content}
             </Animated.View>
         </WidgetContainer>
     );

@@ -1374,6 +1374,9 @@ const translations = {
         topViolations: 'Top violations',
         violationsBySubmitter: 'Violations by submitter',
         violationsByApprover: 'Violations by approver',
+        percentChange: '% change',
+        // @context Column header for each group's portion of the total, as a percentage. A noun, not the verb "to share".
+        share: 'Share',
         efficiency: 'Efficiency',
         workflowEfficiency: 'Workflow efficiency',
         longestToSubmit: 'Longest to submit',
@@ -1392,6 +1395,7 @@ const translations = {
             allSpenderAverage: 'All-spender average',
             allMerchantAverage: 'All-merchant average',
             allCategoryAverage: 'All-category average',
+            allViolationAverage: 'All-violation average',
             averageValue: (amount: string) => `${amount} avg`,
             dayLabel: (day?: number) => (day === undefined ? 'Day' : `Day ${day}`),
             weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),

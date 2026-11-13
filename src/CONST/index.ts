@@ -10533,6 +10533,7 @@ const CONST = {
             EFFICIENCY: 'insightsEfficiency',
             COMPLIANCE: 'insightsCompliance',
         },
+        NO_CHANGE_PLACEHOLDER: '—',
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_OVER_TIME: 'violationsOverTime',
