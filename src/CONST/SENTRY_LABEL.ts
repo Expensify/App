@@ -1282,6 +1282,7 @@ const SENTRY_LABEL = {
         ROW: 'PaymentMethodListItem-Row',
         CHASE_ACCOUNT_HELP: 'PaymentMethodListItem-ChaseAccountHelp',
         GLOBAL_REIMBURSEMENTS_ENABLED: 'PaymentMethodListItem-GlobalReimbursementsEnabled',
+        CONNECTION_STATUS_ACTION: 'PaymentMethodListItem-ConnectionStatusAction',
     },
     EMOJI_PICKER: {
         BUTTON: 'EmojiPicker-Button',
@@ -2024,6 +2025,7 @@ const SENTRY_LABEL = {
             LOAD_MORE_APPROVALS: 'WorkspaceWorkflows-LoadMoreApprovals',
             BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
             ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',
+            BANK_ACCOUNT_CONNECTION_ACTION: 'WorkspaceWorkflows-BankAccountConnectionAction',
             AUTHORIZED_PAYER: 'WorkspaceWorkflows-AuthorizedPayer',
             BUSINESS_BANK_ACCOUNT_COUNTRIES: 'WorkspaceWorkflows-BusinessBankAccountCountries',
             APPROVALS_EDIT_SAVE: 'WorkspaceWorkflows-ApprovalsEditSave',

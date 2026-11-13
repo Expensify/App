@@ -381,6 +381,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                                     message={bankConnectionMessage}
                                                     actionText={bankConnectionActionText}
                                                     onActionPress={canWritePayments && canPerformBankAccountAction ? handleBankAccountPress : undefined}
+                                                    actionSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT_CONNECTION_ACTION}
                                                     isActionDisabled={!canInteractWithBankAccountRow}
                                                     statusTone="danger"
                                                     shouldIncludeHorizontalPadding={false}
