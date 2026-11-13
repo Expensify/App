@@ -239,6 +239,67 @@ describe('actions/IOU/Receipt', () => {
             expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
         });
 
+        it('should optimistically set receipt state to SCAN_READY when replacing a failed scan placeholder', async () => {
+            // Given a transaction whose receipt is SCAN_FAILED and whose amount has never been filled in
+            const transaction = await setupTransactionWithSnapshot(transactionID, {
+                receipt: {source: 'failed.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, filename: 'failed.jpg'},
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                amount: 0,
+                modifiedAmount: undefined,
+                isAmountSet: false,
+            });
+
+            // When replaceReceipt is called without an explicit state and not as a crop/rotate
+            replaceReceipt({
+                transaction,
+                file: createFile(),
+                source,
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic state is SCAN_READY, mirroring the backend upgrade so the UI shows "Scanning" instead of 0.00
+            const updatedTransaction = await getUpdatedTransaction(transactionID);
+            expect(updatedTransaction?.receipt?.source).toBe(source);
+            expect(updatedTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
+        });
+
+        it('should keep optimistic state OPEN on failed scan replacement when the user has already entered an amount', async () => {
+            // Given a transaction whose receipt is SCAN_FAILED but whose amount the user has already confirmed
+            const transaction = await setupTransactionWithSnapshot(transactionID, {
+                receipt: {source: 'failed.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, filename: 'failed.jpg'},
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                amount: 0,
+                modifiedAmount: 1234,
+                isAmountSet: true,
+            });
+
+            // When replaceReceipt is called
+            replaceReceipt({
+                transaction,
+                file: createFile(),
+                source,
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic state stays OPEN so re-scanning does not overwrite the user's confirmed amount
+            const updatedTransaction = await getUpdatedTransaction(transactionID);
+            expect(updatedTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
+        });
+
         it('should add receipt if it does not exist', async () => {
             // Given a transaction with no receipt
             const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: null});

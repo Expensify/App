@@ -13,7 +13,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {buildOptimisticReceiptAddedAction, buildOptimisticReceiptRemovedAction, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
-import {hasReceiptSource, hasUploadedReceipt} from '@libs/TransactionUtils';
+import {hasReceiptSource, hasUploadedReceipt, isFailedScanAmountPlaceholder} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
@@ -254,10 +254,13 @@ function replaceReceipt({
     logReceiptCaptured({file, captureSource: 'replace', receiptTraceId});
 
     const oldReceipt = transaction?.receipt ?? {};
+    // Replacing a failed-scan receipt whose amount was never filled in: upgrade to SCAN_READY so the UI shows "Scanning" instead of 0.00, mirroring the backend.
+    // If the user already entered an amount, keep it OPEN so re-scanning does not overwrite that amount.
+    const isFailedScanPlaceholder = !state && !isSameReceipt && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && isFailedScanAmountPlaceholder(transaction);
     const receiptOptimistic = {
         source,
         localSource: null,
-        state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
+        state: state ?? (isFailedScanPlaceholder ? CONST.IOU.RECEIPT_STATE.SCAN_READY : CONST.IOU.RECEIPT_STATE.OPEN),
         filename: file.name,
         receiptTraceId,
         // Clear the old count while the replacement is pending.
@@ -349,9 +352,13 @@ function replaceReceipt({
 
     if (transactionPolicy && isGroupPolicy(transactionPolicy) && newTransaction) {
         const currentTransactionViolations = transactionViolations ?? [];
+        // Restarting the scan clears the stale scan-failure violation; failureData restores it on rollback.
+        const optimisticTransactionViolations = isFailedScanPlaceholder
+            ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.SMARTSCAN_FAILED)
+            : currentTransactionViolations;
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction: newTransaction,
-            transactionViolations: currentTransactionViolations,
+            transactionViolations: optimisticTransactionViolations,
             policy: transactionPolicy,
             policyTagList: transactionPolicyTagList ?? {},
             policyCategories: transactionPolicyCategories ?? {},
