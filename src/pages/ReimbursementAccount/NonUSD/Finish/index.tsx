@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
@@ -55,7 +55,7 @@ function Finish() {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('bankAccount.addBankAccount')}
                 onBackButtonPress={handleBackButtonPress}
             />
