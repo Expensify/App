@@ -94,7 +94,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
     });
@@ -176,13 +175,14 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         const isFromGlobalCreate = getIsFromGlobalCreate(transaction);
 
         const firstReceiptFile = files.at(0);
-        const [quickAction, policyRecentlyUsedCurrencies, activePolicyID, recentWaypoints, userLocation, onboarding, conciergeChat] = await Onyx.multiGet([
+        const [quickAction, policyRecentlyUsedCurrencies, activePolicyID, recentWaypoints, userLocation, onboarding, transactionDrafts, conciergeChat] = await Onyx.multiGet([
             ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             ONYXKEYS.RECENTLY_USED_CURRENCIES,
             ONYXKEYS.NVP_ACTIVE_POLICY_ID,
             ONYXKEYS.NVP_RECENT_WAYPOINTS,
             ONYXKEYS.USER_LOCATION,
             ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
             `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
         ]);
 
@@ -283,7 +283,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             billable: false,
             reimbursable: defaultReimbursable,
             isSelfTourViewed: hasSeenTourSelector(onboarding),
-            allTransactionDrafts,
+            allTransactionDrafts: validTransactionDraftsSelector(transactionDrafts),
             personalDetails,
             recentWaypoints,
             optimisticTransactionIDs,
