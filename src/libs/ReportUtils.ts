@@ -14656,13 +14656,16 @@ function canBeExported(report: OnyxEntry<Report>) {
 }
 
 /**
- * Whether the current user can email the report to someone. The submitter, the approver and workspace admins can once the report is submitted.
+ * Whether the current user can email the report to someone. The submitter and workspace admins can, and so can the approver once the report is submitted.
  */
 function canShareReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean {
-    if (!isExpenseReport(report) || isOpenReport(report)) {
+    if (!isExpenseReport(report)) {
         return false;
     }
-    return isCurrentUserSubmitter(report, currentUserAccountID) || report?.managerID === currentUserAccountID || isPolicyAdmin(policy);
+    if (isCurrentUserSubmitter(report, currentUserAccountID) || isPolicyAdmin(policy)) {
+        return true;
+    }
+    return !isOpenReport(report) && report?.managerID === currentUserAccountID;
 }
 
 function getIntegrationNameFromExportMessage(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
