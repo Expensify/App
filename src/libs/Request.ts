@@ -23,8 +23,8 @@ let middlewares: Middleware[] = [];
 const latestApplyAttemptByRequest = new WeakMap<WeakKey, number>();
 
 function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response<TKey> | void> {
-    const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return hasReadRequiredDataFromStorage().then((): Promise<Response<TKey> | void> => {
+        const finalParameters = enhanceParameters(request.command, request?.data ?? {});
         return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline);
     });
 }
