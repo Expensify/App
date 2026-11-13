@@ -5,7 +5,7 @@ import Growl from '@libs/Growl';
 
 import Navigation from '@navigation/Navigation';
 
-import {switchToOldDot} from '@userActions/ExitSurvey';
+import {clearSwitchToOldDotResult, switchToOldDot} from '@userActions/ExitSurvey';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,10 +41,11 @@ function useSwitchToClassic({shouldDismissModal = false}: UseSwitchToClassicOpti
 
     // Classic opens only after the switch is saved, because Classic sends users who still prefer New Expensify back to it
     useEffect(() => {
-        if (!requestResult) {
+        if (!pendingRequestID || !requestResult) {
             return;
         }
 
+        clearSwitchToOldDotResult(pendingRequestID);
         // The request only finishes when its outcome arrives through Onyx, so the pending request can only be cleared in reaction to it
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setPendingRequestID(undefined);
@@ -56,7 +57,7 @@ function useSwitchToClassic({shouldDismissModal = false}: UseSwitchToClassicOpti
             Navigation.dismissModal();
         }
         openClassic();
-    }, [requestResult, translate, openClassic, shouldDismissModal]);
+    }, [pendingRequestID, requestResult, translate, openClassic, shouldDismissModal]);
 
     const switchToClassic = (exitSurveyResponse: string | undefined) => {
         setPendingRequestID(switchToOldDot(exitSurveyResponse));

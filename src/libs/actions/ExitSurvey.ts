@@ -49,6 +49,13 @@ function switchToOldDot(exitSurveyResponse: string | undefined): string {
 }
 
 /**
+ * Remove the outcome of a handled switch so outcomes don't pile up in storage.
+ */
+function clearSwitchToOldDotResult(requestID: string) {
+    Onyx.merge(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {switchToOldDotResults: {[requestID]: null}});
+}
+
+/**
  * Clear the exit survey form data.
  */
 function resetExitSurveyForm(callback: () => void) {
@@ -58,4 +65,4 @@ function resetExitSurveyForm(callback: () => void) {
     }).then(callback);
 }
 
-export {switchToOldDot, resetExitSurveyForm};
+export {switchToOldDot, clearSwitchToOldDotResult, resetExitSurveyForm};

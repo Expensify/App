@@ -22,11 +22,12 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/ExperienceCookie', () => ({writeExperienceCookie: jest.fn(() => true), clearExperienceCookie: jest.fn(() => true)}));
 jest.mock('@userActions/Link', () => ({openOldDotLink: jest.fn()}));
-jest.mock('@userActions/ExitSurvey', () => ({switchToOldDot: jest.fn()}));
+jest.mock('@userActions/ExitSurvey', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/ExitSurvey'), switchToOldDot: jest.fn()}));
 jest.mock('@navigation/Navigation', () => ({__esModule: true, default: {dismissModal: jest.fn()}}));
 jest.mock('@libs/Growl', () => ({__esModule: true, default: {error: jest.fn()}}));
 jest.mock('@hooks/useLocalize', () => ({
@@ -116,6 +117,24 @@ describe('useSwitchToClassic', () => {
         expect(result.current.isSwitchingToClassic).toBe(false);
         expect(writeExperienceCookie).not.toHaveBeenCalled();
         expect(openOldDotLink).not.toHaveBeenCalled();
+    });
+
+    it('removes only the outcomes it has handled', async () => {
+        // Given an outcome of a switch started in another tab
+        await arrangeAccount([CONST.BETAS.HYBRID_WEB]);
+        await Onyx.merge(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {switchToOldDotResults: {otherTabRequest: CONST.EXIT_SURVEY.SWITCH_RESULT.SAVED}});
+        const {result} = await renderSwitchToClassic();
+
+        // When one request fails and the retry is saved
+        startSwitch(result.current, 'failedRequest');
+        await respond({failedRequest: CONST.EXIT_SURVEY.SWITCH_RESULT.FAILED});
+        startSwitch(result.current, 'savedRequest');
+        await respond({savedRequest: CONST.EXIT_SURVEY.SWITCH_RESULT.SAVED});
+
+        // Then both handled outcomes are removed, so they don't pile up in storage, and the other tab's outcome stays
+        const form = await getOnyxValue(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM);
+        expect(form?.switchToOldDotResults).toEqual({otherTabRequest: CONST.EXIT_SURVEY.SWITCH_RESULT.SAVED});
+        expect(openOldDotLink).toHaveBeenCalledTimes(1);
     });
 
     it('lets each tab act on its own request when overlapping switches fail and then succeed', async () => {
