@@ -20,7 +20,6 @@ import {callIfAuthenticated} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {authTokenTypeSelector} from '@src/selectors/Session';
 
 import {isCollectingDepositAccountsSelector} from '@selectors/Policy';
 import React from 'react';
@@ -36,7 +35,6 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['BankCoin', 'WalletAlt2']);
     const [isCollectingDepositAccounts = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isCollectingDepositAccountsSelector});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     // A workspace collecting deposit accounts needs the bank details its country requires, which the wallet setup does not ask for.
     const onGetReimbursedPressed = () => {
@@ -57,7 +55,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
                             ? CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_PURPOSE_GET_REIMBURSED.COLLECT_DEPOSIT_ACCOUNT
                             : CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_PURPOSE_GET_REIMBURSED.PERSONAL_BANK_ACCOUNT
                     }
-                    onPress={callIfAuthenticated(onGetReimbursedPressed, session)}
+                    onPress={callIfAuthenticated(onGetReimbursedPressed)}
                     style={styles.purposeMenuItem}
                 >
                     <MenuItem.Row>
@@ -81,7 +79,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
                 </MenuItem.Root>
                 <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_PURPOSE_MAKE_PAYMENTS}
-                    onPress={callIfAuthenticated(showCountrySelectionStep, session)}
+                    onPress={callIfAuthenticated(showCountrySelectionStep)}
                     style={styles.purposeMenuItem}
                 >
                     <MenuItem.Row>

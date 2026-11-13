@@ -7,7 +7,6 @@ import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {findMatchingCards, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
@@ -21,15 +20,12 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
 function DualEntryCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -78,9 +74,8 @@ function DualEntryCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                         >
                             <MenuItem.Root
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.CARD_PROGRAM_ACCOUNT_FEED_ROW}
-                                onPress={callIfAuthenticated(
-                                    () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined),
-                                    session,
+                                onPress={callIfAuthenticated(() =>
+                                    policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined,
                                 )}
                             >
                                 <MenuItemField.Row

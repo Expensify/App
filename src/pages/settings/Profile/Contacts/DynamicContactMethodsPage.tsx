@@ -82,10 +82,7 @@ function DynamicContactMethodsPage() {
                             >
                                 <MenuItem.Root
                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_ROW}
-                                    onPress={callIfAuthenticated(
-                                        () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID))),
-                                        session,
-                                    )}
+                                    onPress={callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID))))}
                                     isDisabled={!!option.pendingAction}
                                 >
                                     <MenuItem.Row>

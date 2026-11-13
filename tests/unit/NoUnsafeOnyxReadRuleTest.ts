@@ -705,6 +705,278 @@ describe('no-unsafe-onyx-read allowed paths', () => {
     });
 });
 
+describe('no-unsafe-onyx-read Session authentication handler exception', () => {
+    const filename = inRepo('src/libs/actions/Session/index.ts');
+
+    ruleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            {
+                // Given a synchronous factory that returns an async event handler
+                // When it reads SESSION only inside that handler
+                // Then creating the handler during render does not read Onyx
+                code: `${ONYX_IMPORT} export function callIfAuthenticated(callback) { return async (...args) => { const session = await Onyx.get(ONYXKEYS.SESSION); if (session) { return callback(...args); } }; }`,
+                filename,
+            },
+            {
+                // Given a component creating the guarded callback during render
+                // When it passes the result to an event prop without invoking it
+                // Then the deferred SESSION read remains allowed
+                code: `${ONYX_IMPORT} function callIfAuthenticated(callback) { return async () => callback(await Onyx.get(ONYXKEYS.SESSION)); } function Row() { return <View onPress={callIfAuthenticated(() => {})} />; }`,
+                filename,
+            },
+            {
+                // Given a returned async function expression instead of an arrow
+                // When its event body reads SESSION
+                // Then the same narrow exception applies
+                code: `${ONYX_IMPORT} function callIfAuthenticated(callback) { return async function handlePress(...args) { await Onyx.get(ONYXKEYS.SESSION); return callback(...args); }; }`,
+                filename,
+            },
+            {
+                // Given a factory that short-circuits absent callbacks
+                // When its remaining path directly returns the async handler
+                // Then no read happens on the factory's early return path
+                code: `${ONYX_IMPORT} function callIfAuthenticated(callback) { if (!callback) { return; } return async () => callback(await Onyx.get(ONYXKEYS.SESSION)); }`,
+                filename,
+            },
+        ],
+        invalid: [
+            {
+                // Given the same factory in a different action file
+                // When its returned handler reads SESSION
+                // Then the exception cannot spread to other actions
+                code: `${ONYX_IMPORT} function callIfAuthenticated(callback) { return async () => callback(await Onyx.get(ONYXKEYS.SESSION)); }`,
+                filename: inRepo('src/libs/actions/Other/index.ts'),
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given another function in the Session action file
+                // When its returned handler reads SESSION
+                // Then allowing one factory does not allow the rest of the file
+                code: `${ONYX_IMPORT} function otherAction(callback) { return async () => callback(await Onyx.get(ONYXKEYS.SESSION)); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a read in the factory body itself
+                // When render creates a handler
+                // Then that eager read remains banned
+                code: `${ONYX_IMPORT} function callIfAuthenticated(callback) { Onyx.get(ONYXKEYS.SESSION); return async () => callback(); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a returned synchronous handler
+                // When it starts an Onyx read without awaiting it
+                // Then it does not match the async event handler exception
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return () => Onyx.get(ONYXKEYS.SESSION); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given an async factory rather than a synchronous handler factory
+                // When it returns a handler that reads SESSION
+                // Then the exception does not allow a promise in place of the event handler
+                code: `${ONYX_IMPORT} async function callIfAuthenticated() { return async () => Onyx.get(ONYXKEYS.SESSION); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given an async generator instead of an event handler
+                // When its body reads SESSION
+                // Then merely having the async flag is insufficient
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async function* handlePress() { yield Onyx.get(ONYXKEYS.SESSION); }; }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a handler returned by reference
+                // When a separate local function contains the read
+                // Then only directly returned handler bodies are exempt
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { const handler = async () => Onyx.get(ONYXKEYS.SESSION); return handler; }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given an async function immediately invoked before returning
+                // When creating the handler therefore starts the read
+                // Then a return statement alone does not qualify for the exception
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return (async () => Onyx.get(ONYXKEYS.SESSION))(); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a nested reading helper inside the returned handler
+                // When that helper reads SESSION
+                // Then the exception does not allow additional function boundaries
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async () => { const read = async () => Onyx.get(ONYXKEYS.SESSION); return read(); }; }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a nested factory with the allowed name
+                // When it reads SESSION from its returned handler
+                // Then the exception still requires the top-level declaration
+                code: `${ONYX_IMPORT} function otherAction() { function callIfAuthenticated() { return async () => Onyx.get(ONYXKEYS.SESSION); } return callIfAuthenticated; }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a variable with the allowed factory name
+                // When its returned handler reads SESSION
+                // Then the exception still requires the specific declaration shape
+                code: `${ONYX_IMPORT} const callIfAuthenticated = () => async () => Onyx.get(ONYXKEYS.SESSION);`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given the allowed handler reading a different key
+                // When the file otherwise matches the exception
+                // Then only the SESSION read is exempt
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async () => Onyx.get(ONYXKEYS.ACCOUNT); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a SESSION read and a second read in the same handler
+                // When each call is checked independently
+                // Then the allowed call does not exempt its neighboring call
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async () => { await Onyx.get(ONYXKEYS.SESSION); await Onyx.get(ONYXKEYS.ACCOUNT); }; }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given multiGet containing only SESSION
+                // When it appears in the allowed handler
+                // Then the exception remains limited to get
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async () => Onyx.multiGet([ONYXKEYS.SESSION]); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a const alias for the SESSION key
+                // When the allowed handler reads through that alias
+                // Then the exception still requires the explicit key access
+                code: `${ONYX_IMPORT} const key = ONYXKEYS.SESSION; function callIfAuthenticated() { return async () => Onyx.get(key); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a parameter shadowing ONYXKEYS
+                // When its SESSION property is used in a read
+                // Then the spelling cannot disguise a different key
+                code: `${ONYX_IMPORT} function callIfAuthenticated(ONYXKEYS) { return async () => Onyx.get(ONYXKEYS.SESSION); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a computed SESSION property access
+                // When the allowed handler reads it
+                // Then the exception remains limited to the explicit dotted form
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async () => Onyx.get(ONYXKEYS['SESSION']); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a computed read method with the right key
+                // When it appears in the allowed handler
+                // Then only a direct dotted get call qualifies
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async () => Onyx['get'](ONYXKEYS.SESSION); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given an Onyx read at module scope in the Session file
+                // When the file also declares the allowed factory
+                // Then the exception does not exempt module initialization
+                code: `${ONYX_IMPORT} Onyx.get(ONYXKEYS.SESSION); function callIfAuthenticated() { return async () => {}; }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a matching handler whose JSX evaluates the read
+                // When the exception passes its path check
+                // Then the existing render-position check must still reject it
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async () => <View session={Onyx.get(ONYXKEYS.SESSION)} />; }`,
+                filename,
+                errors: RENDER_ERRORS,
+            },
+            {
+                // Given a returned async function named like a component
+                // When its body reads SESSION
+                // Then the existing component-position check still rejects it
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async function Handler() { await Onyx.get(ONYXKEYS.SESSION); }; }`,
+                filename,
+                errors: RENDER_ERRORS,
+            },
+            {
+                // Given an effect callback containing a SESSION read
+                // When it is nested in the returned event handler
+                // Then effects cannot acquire an exception through their enclosing factory
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async () => { useEffect(() => { Onyx.get(ONYXKEYS.SESSION); }, []); }; }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a reference to the read method instead of a direct call
+                // When it appears in the otherwise allowed handler
+                // Then method-reference restrictions remain in force
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async () => { const read = Onyx.get; return read(ONYXKEYS.SESSION); }; }`,
+                filename,
+                errors: [BY_REFERENCE_ERROR, ...OUTSIDE_ALLOWED_PATH_ERRORS],
+            },
+        ],
+    });
+
+    tsRuleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            {
+                // Given the generic Session helper with a real ONYXKEYS import
+                // When its returned async handler reads SESSION and forwards callback arguments
+                // Then TypeScript annotations do not prevent the narrow exception
+                code: `${ONYX_IMPORT}
+                    import ONYXKEYS from '@src/ONYXKEYS';
+                    function callIfAuthenticated<TArgs extends unknown[], TResult>(callback: (...args: TArgs) => TResult): (...args: TArgs) => Promise<Awaited<TResult> | void>;
+                    function callIfAuthenticated<TArgs extends unknown[], TResult>(callback: ((...args: TArgs) => TResult) | void): ((...args: TArgs) => Promise<Awaited<TResult> | void>) | undefined;
+                    function callIfAuthenticated<TArgs extends unknown[], TResult>(callback: ((...args: TArgs) => TResult) | void): ((...args: TArgs) => Promise<Awaited<TResult> | void>) | undefined {
+                        if (!callback) { return; }
+                        return async (...args: TArgs) => {
+                            const session = await Onyx.get(ONYXKEYS.SESSION);
+                            if (session?.authTokenType === 'anonymous') { return; }
+                            return callback(...args);
+                        };
+                    }
+                    export {callIfAuthenticated};`,
+                filename,
+            },
+            {
+                // Given a typed wrapper around the returned async handler
+                // When only a type assertion surrounds the function value
+                // Then the function is still returned directly without an eager read
+                code: `${ONYX_IMPORT} function callIfAuthenticated(callback: () => void) { return (async () => { await Onyx.get(ONYXKEYS.SESSION); callback(); }) as () => Promise<void>; }`,
+                filename,
+            },
+        ],
+        invalid: [
+            {
+                // Given a generic helper with a read in the factory body
+                // When TypeScript parses its annotated signature
+                // Then typing does not conceal the eager read
+                code: `${ONYX_IMPORT} function callIfAuthenticated<TArgs extends unknown[]>(callback: (...args: TArgs) => void) { Onyx.get(ONYXKEYS.SESSION); return async (...args: TArgs) => callback(...args); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a type assertion around a different key
+                // When the returned handler reads that asserted value
+                // Then a cast cannot turn it into an allowed SESSION read
+                code: `${ONYX_IMPORT} function callIfAuthenticated() { return async () => Onyx.get(ONYXKEYS.ACCOUNT as typeof ONYXKEYS.SESSION); }`,
+                filename,
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+        ],
+    });
+});
+
 describe('no-unsafe-onyx-read outside a component or hook', () => {
     ruleTester.run(ruleModule.name, ruleModule, {
         valid: [

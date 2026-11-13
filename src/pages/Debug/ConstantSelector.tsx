@@ -1,15 +1,12 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
-import useOnyx from '@hooks/useOnyx';
-
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ComponentRef, ForwardedRef} from 'react';
@@ -17,7 +14,6 @@ import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
-import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 
 type ConstantSelectorProps = {
@@ -47,7 +43,6 @@ type ConstantSelectorProps = {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ConstantSelector({formType, policyID, errorText = '', name, value, onInputChange, ref}: ConstantSelectorProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {
@@ -71,7 +66,7 @@ function ConstantSelector({formType, policyID, errorText = '', name, value, onIn
             sentryLabel={CONST.SENTRY_LABEL.DEBUG.CONSTANT_SELECTOR}
             onPress={callIfAuthenticated(() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.getRoute(formType, name, value, policyID)));
-            }, session)}
+            })}
         >
             <MenuItemField.Row
                 name={name}

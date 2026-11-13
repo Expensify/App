@@ -40,7 +40,6 @@ import type {SentryLabel} from '@src/types/utils/SentryLabel';
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 
 import navigateAwayFromReportPicker from './IOURequestStepReport/navigateAwayFromReportPicker';
@@ -147,7 +146,6 @@ function IOURequestEditReportCommon({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     let resolvedReportOwnerAccountID;
@@ -422,7 +420,7 @@ function IOURequestEditReportCommon({
     } else {
         autoReportOption = (
             <MenuItem.Root
-                onPress={callIfAuthenticated(handleAutoReport, session)}
+                onPress={callIfAuthenticated(handleAutoReport)}
                 sentryLabel={autoReportSentryLabel}
             >
                 <MenuItem.Row>

@@ -419,9 +419,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.limitType}>
                         <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.DETAILS_LIMIT_TYPE}
-                            onPress={
-                                canWriteExpensifyCard ? callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path)), session) : undefined
-                            }
+                            onPress={canWriteExpensifyCard ? callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path))) : undefined}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.card.issueNewCard.limitType')}

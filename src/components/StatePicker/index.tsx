@@ -2,18 +2,15 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 
 import type {Option} from '@libs/searchOptions';
 
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {CONST as COMMON_CONST} from 'expensify-common';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import StateSelectorModal from './StateSelectorModal';
@@ -31,7 +28,6 @@ type StatePickerProps = {
 };
 
 function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -47,7 +43,7 @@ function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerPr
     return (
         <>
             <MenuItem.Root
-                onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}
+                onPress={callIfAuthenticated(() => setIsPickerVisible(true))}
                 sentryLabel={CONST.SENTRY_LABEL.STATE_PICKER.OPEN}
             >
                 <MenuItemField.Row

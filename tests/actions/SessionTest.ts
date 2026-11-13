@@ -4,6 +4,7 @@ import {beforeEach, jest, test} from '@jest/globals';
 
 import {openApp, reconnectApp} from '@libs/actions/App';
 import * as DelegateActions from '@libs/actions/Delegate';
+import * as ModalActions from '@libs/actions/Modal';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
 import {initReconnect} from '@libs/actions/Reconnect';
@@ -109,17 +110,115 @@ beforeEach(() => {
 
 describe('Session', () => {
     describe('callIfAuthenticated', () => {
-        test('blocks a non-anonymous action for a passed anonymous session even when the stored session is signed in', async () => {
-            // Given a signed-in session stored in Onyx
-            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@example.com'});
-            await waitForBatchedUpdates();
+        beforeEach(() => {
+            jest.spyOn(ModalActions, 'close').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            jest.mocked(ModalActions.close).mockRestore();
+        });
+
+        test('does not read the session or run the callback while creating the handler', () => {
+            // Given a callback being wrapped during render, when an Onyx read would be unsafe
+            const getSpy = jest.spyOn(Onyx, 'get');
             const callback = jest.fn();
 
-            // When the action is wrapped for an anonymous session passed by the caller
-            const result = SessionUtil.callIfAuthenticated(callback, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            // When the handler is created without a user interaction
+            SessionUtil.callIfAuthenticated(callback);
 
-            // Then the passed session decides: the callback is replaced by the sign-in redirect
-            expect(result).not.toBe(callback);
+            // Then neither authentication nor the protected action runs during render
+            expect(getSpy).not.toHaveBeenCalled();
+            expect(callback).not.toHaveBeenCalled();
+            expect(ModalActions.close).not.toHaveBeenCalled();
+            getSpy.mockRestore();
+        });
+
+        test('blocks the callback when the session becomes anonymous after the handler is created', async () => {
+            // Given a handler created while signed in that will outlive a session change
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'user@example.com'});
+            const callback = jest.fn();
+            const handler = SessionUtil.callIfAuthenticated(callback);
+            await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+
+            // When the existing handler is invoked after the session changes
+            await handler();
+
+            // Then the current anonymous session blocks the action and starts the sign-in flow
+            expect(callback).not.toHaveBeenCalled();
+            expect(ModalActions.close).toHaveBeenCalledWith(expect.any(Function));
+        });
+
+        test('forwards arguments and the return value when the session becomes authenticated', async () => {
+            // Given a handler created anonymously, before the user signs in
+            await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            const callback = jest.fn((value: string, count: number) => `${value}${count}`);
+            const handler = SessionUtil.callIfAuthenticated(callback);
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'user@example.com'});
+
+            // When the same handler is invoked with the event's arguments after sign-in
+            const result = await handler('value', 2);
+
+            // Then the current authenticated session permits the original action and its result
+            expect(callback).toHaveBeenCalledTimes(1);
+            expect(callback).toHaveBeenCalledWith('value', 2);
+            expect(result).toBe('value2');
+            expect(ModalActions.close).not.toHaveBeenCalled();
+        });
+
+        test('rechecks the session on every invocation of the same handler', async () => {
+            // Given an authenticated action that can be invoked without rendering again
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'user@example.com'});
+            const callback = jest.fn();
+            const handler = SessionUtil.callIfAuthenticated(callback);
+            await handler();
+
+            // When a later press happens after the session becomes anonymous
+            await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await handler();
+
+            // Then only the authenticated press runs the action
+            expect(callback).toHaveBeenCalledTimes(1);
+            expect(ModalActions.close).toHaveBeenCalledTimes(1);
+        });
+
+        test('preserves an absent callback without reading the session', () => {
+            // Given an optional action whose absence makes its row non-interactive
+            const getSpy = jest.spyOn(Onyx, 'get');
+
+            // When the missing callback is wrapped
+            const handler = SessionUtil.callIfAuthenticated(undefined);
+
+            // Then no truthy no-op handler or unnecessary session read is introduced
+            expect(handler).toBeUndefined();
+            expect(getSpy).not.toHaveBeenCalled();
+            getSpy.mockRestore();
+        });
+
+        test('adopts the callback promise', async () => {
+            // Given an authenticated action whose caller needs to await its result
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'user@example.com'});
+            const callback = jest.fn(() => Promise.resolve('completed'));
+
+            // When the protected asynchronous action runs
+            const result = SessionUtil.callIfAuthenticated(callback)();
+
+            // Then awaiting the handler also waits for the original callback
+            await expect(result).resolves.toBe('completed');
+        });
+
+        test('propagates callback failures to the caller', async () => {
+            // Given an authenticated action whose failure must not be hidden by the wrapper
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'user@example.com'});
+            const error = new Error('Action failed');
+            const callback = jest.fn(() => {
+                throw error;
+            });
+
+            // When the protected action throws
+            const result = SessionUtil.callIfAuthenticated(callback)();
+
+            // Then the handler rejects so the caller can handle the failure
+            await expect(result).rejects.toBe(error);
         });
     });
 

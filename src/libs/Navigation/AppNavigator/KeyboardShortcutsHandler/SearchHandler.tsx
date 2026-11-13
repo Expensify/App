@@ -1,6 +1,5 @@
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 
-import useOnyx from '@hooks/useOnyx';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -9,19 +8,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
-import {authTokenTypeSelector} from '@selectors/Session';
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
 
 function SearchHandler() {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
-    // The shortcut callback below is registered once, so read the latest session from a ref at fire time.
-    const sessionRef = useRef(session);
-
-    useEffect(() => {
-        sessionRef.current = session;
-    }, [session]);
     const {toggleSearch} = useSearchRouterActions();
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
 
@@ -35,7 +25,7 @@ function SearchHandler() {
                         return;
                     }
                     toggleSearch();
-                }, sessionRef.current)();
+                })();
             },
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,

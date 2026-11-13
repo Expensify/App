@@ -1,22 +1,18 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
-import useOnyx from '@hooks/useOnyx';
-
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
-import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 
 type DateTimeSelectorProps = {
@@ -41,7 +37,6 @@ type DateTimeSelectorProps = {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function DateTimeSelector({errorText = '', name, value, onInputChange, ref}: DateTimeSelectorProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {
@@ -65,7 +60,7 @@ function DateTimeSelector({errorText = '', name, value, onInputChange, ref}: Dat
             sentryLabel={CONST.SENTRY_LABEL.DEBUG.DATE_TIME_SELECTOR}
             onPress={callIfAuthenticated(() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.getRoute(name, value)));
-            }, session)}
+            })}
         >
             <MenuItemField.Row
                 name={name}

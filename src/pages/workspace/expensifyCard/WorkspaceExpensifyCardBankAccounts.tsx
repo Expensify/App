@@ -36,7 +36,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {authTokenTypeSelector} from '@src/selectors/Session';
 import type {BankName} from '@src/types/onyx/Bank';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -49,7 +48,6 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
@@ -112,7 +110,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.BANK_ACCOUNT_ROW}
                     key={bankAccountID}
-                    onPress={callIfAuthenticated(() => handleSelectBankAccount(bankAccountID), session)}
+                    onPress={callIfAuthenticated(() => handleSelectBankAccount(bankAccountID))}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>

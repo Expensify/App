@@ -60,7 +60,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {TupleToUnion} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -73,7 +72,6 @@ type WorkflowsPaymentsTabProps = {
 };
 
 function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -425,7 +423,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                         >
                             <View style={[styles.mt3, styles.mbn3]}>
                                 <MenuItemSectionRoot
-                                    onPress={canChangePayer ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(policyID)), session) : undefined}
+                                    onPress={canChangePayer ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(policyID))) : undefined}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
                                 >
                                     <MenuItemField.Row
@@ -450,7 +448,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                         >
                             <View style={[styles.mt3, styles.mbn3]}>
                                 <MenuItemSectionRoot
-                                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID)), session)}
+                                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID)))}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
                                 >
                                     <MenuItemField.Row
@@ -493,7 +491,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                     <MenuItemSectionRoot
                                         onPress={
                                             canWritePayments
-                                                ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES.getRoute(policyID)), session)
+                                                ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES.getRoute(policyID)))
                                                 : undefined
                                         }
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}

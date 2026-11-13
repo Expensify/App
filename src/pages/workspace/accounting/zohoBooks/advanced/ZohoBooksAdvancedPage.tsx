@@ -35,17 +35,14 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
 function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const zohoBooksConfig = policy?.connections?.zohoBooks?.config;
@@ -107,7 +104,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.ACCOUNTING_METHOD], zohoBooksConfig?.pendingFields)}>
                     <MenuItem.Root
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.ACCOUNTING_METHOD}
-                        onPress={callIfAuthenticated(() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT_METHOD.getRoute(policyID)) : undefined), session)}
+                        onPress={callIfAuthenticated(() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT_METHOD.getRoute(policyID)) : undefined))}
                     >
                         <MenuItemField.Row
                             name={translate('workspace.zohoBooks.accountingMethods.label')}

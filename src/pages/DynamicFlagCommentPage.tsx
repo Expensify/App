@@ -30,7 +30,6 @@ import type {SentryLabel} from '@src/types/utils/SentryLabel';
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -55,7 +54,6 @@ type SeverityItem = {
 type SeverityItemList = SeverityItem[];
 
 function DynamicFlagCommentPage({parentReportAction, report, parentReport, reportAction}: DynamicFlagCommentPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -151,7 +149,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={callIfAuthenticated(() => flagComment(item.severity), session)}
+            onPress={callIfAuthenticated(() => flagComment(item.severity))}
             style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}

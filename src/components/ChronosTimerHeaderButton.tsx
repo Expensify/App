@@ -15,7 +15,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -30,7 +29,6 @@ type ChronosTimerHeaderButtonProps = {
 type ChronosAction = 'timer' | 'scheduleOOO';
 
 function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -60,7 +58,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             text: timerStartTime ? translate('chronos.stopTimer', formatElapsedTime(timerStartTime)) : translate('chronos.startTimer'),
             sentryLabel: timerStartTime ? CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_MENU_STOP_TIMER : CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_MENU_START_TIMER,
             onSelected: () => {
-                callIfAuthenticated(toggleChronosTimer, session)();
+                callIfAuthenticated(toggleChronosTimer)();
             },
         },
         {
@@ -83,7 +81,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             <ButtonWithDropdownMenu<ChronosAction>
                 variant={!timerStartTime ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                 onPress={() => {
-                    callIfAuthenticated(toggleChronosTimer, session)();
+                    callIfAuthenticated(toggleChronosTimer)();
                 }}
                 options={options}
                 wrapperStyle={styles.flex1}

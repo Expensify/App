@@ -123,7 +123,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             isDisabled={!isTaskActionable}
             onPress={callIfAuthenticated(() => {
                 completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskItem.reportID);
-            }, session)}
+            })}
         >
             <Button.Text>{translate('task.action')}</Button.Text>
         </Button>

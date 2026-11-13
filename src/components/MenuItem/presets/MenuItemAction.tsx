@@ -5,18 +5,14 @@ import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemTitle from '@components/MenuItem/leaves/content/MenuItemTitle';
 import MenuItemIcon from '@components/MenuItem/leaves/leading/MenuItemIcon';
 
-import useOnyx from '@hooks/useOnyx';
-
 import {callIfAuthenticated} from '@userActions/Session';
 
-import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
 import type {GestureResponderEvent} from 'react-native';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type MenuItemActionProps = WithSentryLabel &
@@ -39,10 +35,9 @@ type MenuItemActionProps = WithSentryLabel &
  * action in place (delete, select, add, etc.)
  */
 function MenuItemAction({title, icon, onPress, isDisabled = false, sentryLabel, testID}: MenuItemActionProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={callIfAuthenticated(onPress, session)}
+            onPress={callIfAuthenticated(onPress)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

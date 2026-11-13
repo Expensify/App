@@ -537,20 +537,29 @@ function signOutAndRedirectToSignIn(
 }
 
 /**
+ * Check the session when the returned event handler runs, without subscribing the caller.
+ *
  * @param callback The callback to execute if the action is allowed
- * @param session The current session, used to check whether the user is anonymous
- * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
+ * @returns An async event handler, or undefined when there is no callback
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function callIfAuthenticated<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, session: OnyxEntry<Session>): TCallback | (() => void) {
-    if (isAnonymousUser(session)) {
-        return () => {
+function callIfAuthenticated<TArgs extends unknown[], TResult>(callback: (...args: TArgs) => TResult): (...args: TArgs) => Promise<Awaited<TResult> | void>;
+function callIfAuthenticated<TArgs extends unknown[], TResult>(callback: ((...args: TArgs) => TResult) | void): ((...args: TArgs) => Promise<Awaited<TResult> | void>) | undefined;
+function callIfAuthenticated<TArgs extends unknown[], TResult>(callback: ((...args: TArgs) => TResult) | void): ((...args: TArgs) => Promise<Awaited<TResult> | void>) | undefined {
+    if (!callback) {
+        return;
+    }
+
+    return async (...args: TArgs): Promise<Awaited<TResult> | void> => {
+        const session = await Onyx.get(ONYXKEYS.SESSION);
+        if (session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS) {
             close(() => {
                 signOutAndRedirectToSignIn();
             });
-        };
-    }
-    return callback;
+            return;
+        }
+
+        return await callback(...args);
+    };
 }
 
 /**

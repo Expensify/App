@@ -670,7 +670,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             <MentionReportContext.Provider value={mentionReportContextValue}>
                                 <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
-                                    onPress={readOnly ? undefined : callIfAuthenticated(onPressDescription, session)}
+                                    onPress={readOnly ? undefined : callIfAuthenticated(onPressDescription)}
                                 >
                                     <MenuItem.Row>
                                         <MenuItemField.Content name={translate('workspace.editor.descriptionInputLabel')}>
@@ -987,7 +987,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
                                     style={shouldShowRulesDocumentSubSection && styles.mt4}
-                                    onPress={readOnly ? undefined : callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID)), session)}
+                                    onPress={readOnly ? undefined : callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID)))}
                                 >
                                     <MenuItem.Row>
                                         <MenuItemField.Content name={translate('workspace.rules.customRules.policyText')}>

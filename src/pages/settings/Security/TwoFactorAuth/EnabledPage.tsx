@@ -24,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {createHasAdminPolicyWithXeroConnectionSelector} from '@selectors/Policy';
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -38,7 +37,6 @@ function EnabledPage() {
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {login} = useCurrentUserPersonalDetails();
     const [hasAdminPolicyWithXeroConnection] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasAdminPolicyWithXeroConnectionSelector(login)});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const showTwoFactorAuthRequireModal = () => {
@@ -80,7 +78,7 @@ function EnabledPage() {
                             return;
                         }
                         Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
-                    }, session)}
+                    })}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>

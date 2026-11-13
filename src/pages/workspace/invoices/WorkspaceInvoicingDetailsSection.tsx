@@ -15,7 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type WorkspaceInvoicingDetailsSectionProps = {
@@ -28,7 +27,6 @@ type WorkspaceInvoicingDetailsSectionProps = {
 function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: WorkspaceInvoicingDetailsSectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     return (
@@ -43,7 +41,7 @@ function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: Work
             <MenuItemSectionRoot
                 key={translate('workspace.invoices.companyName')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_NAME}
-                onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID)), session) : undefined}
+                onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID))) : undefined}
             >
                 <MenuItemField.Row
                     name={translate('workspace.invoices.companyName')}
@@ -55,7 +53,7 @@ function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: Work
             <MenuItemSectionRoot
                 key={translate('workspace.invoices.companyWebsite')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_WEBSITE}
-                onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID)), session) : undefined}
+                onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID))) : undefined}
             >
                 <MenuItemField.Row
                     name={translate('workspace.invoices.companyWebsite')}

@@ -1,4 +1,3 @@
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -8,20 +7,11 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import {useEffect, useRef} from 'react';
 
 function GoToWorkspaceHandler() {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
-    // The shortcut callback below is registered once, so read the latest session from a ref at fire time.
-    const sessionRef = useRef(session);
-
-    useEffect(() => {
-        sessionRef.current = session;
-    }, [session]);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
 
@@ -48,7 +38,7 @@ function GoToWorkspaceHandler() {
 
                     const route = shouldUseNarrowLayoutRef.current ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
                     Navigation.navigate(route);
-                }, sessionRef.current)();
+                })();
             },
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,

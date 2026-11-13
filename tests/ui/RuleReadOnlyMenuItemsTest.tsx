@@ -224,7 +224,7 @@ describe('Read-only facts in the rule editors', () => {
         expect(goBackSpy).not.toHaveBeenCalled();
         expect(writeSpy).not.toHaveBeenCalled();
         fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Category, Meals'}), PRESS_EVENT);
-        expect(navigateSpy).toHaveBeenCalledWith(getFlagForReviewRuleCategoryRoute(POLICY_ID));
+        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(getFlagForReviewRuleCategoryRoute(POLICY_ID)));
     });
 
     it('does not open a merchant-type picker or change the category mapping when the locked fact is pressed', async () => {
@@ -243,7 +243,7 @@ describe('Read-only facts in the rule editors', () => {
         expect(goBackSpy).not.toHaveBeenCalled();
         expect(writeSpy).not.toHaveBeenCalled();
         fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Category, Meals'}), PRESS_EVENT);
-        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(POLICY_ID, GROUP_ID));
+        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(POLICY_ID, GROUP_ID)));
     });
 
     it.each([

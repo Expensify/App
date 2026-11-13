@@ -6,7 +6,6 @@ import type {SearchFooterCount, SearchFooterTotal} from '@components/Search/type
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFooterCountItems, getFooterTotalItems} from '@libs/SearchUIUtils';
@@ -14,9 +13,7 @@ import {getFooterCountItems, getFooterTotalItems} from '@libs/SearchUIUtils';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import CurrencyPopup from './CurrencyPopup';
@@ -86,7 +83,6 @@ function SearchFooterPopup({
     onCurrencyChange,
 }: SearchFooterPopupProps) {
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [selectedFooterFilter, setSelectedFooterFilter] = useState<SelectedFooterFilter>(null);
@@ -107,7 +103,7 @@ function SearchFooterPopup({
                 )}
                 {shouldShowTotalSelector && !!totalType && (
                     <MenuItem.Root
-                        onPress={!isTotalLoading ? callIfAuthenticated(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL), session) : undefined}
+                        onPress={!isTotalLoading ? callIfAuthenticated(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL)) : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL}
                     >
                         <MenuItemField.Row
@@ -119,7 +115,7 @@ function SearchFooterPopup({
                     </MenuItem.Root>
                 )}
                 <MenuItem.Root
-                    onPress={!isTotalLoading && !isOffline ? callIfAuthenticated(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY), session) : undefined}
+                    onPress={!isTotalLoading && !isOffline ? callIfAuthenticated(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY)) : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_CURRENCY}
                 >
                     <MenuItemField.Row

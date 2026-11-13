@@ -2,8 +2,10 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import TaskView from '@components/ReportActionItem/TaskView';
 
+import * as ModalActions from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameForParticipant, isOpenTaskReport} from '@libs/ReportUtils';
 
@@ -93,6 +95,7 @@ describe('TaskView', () => {
                 throw new Error('Missing task assignee row');
             }
             fireEvent.press(assigneeRoot, {nativeEvent: {}});
+            await waitForBatchedUpdates();
 
             // Then only editable tasks have an action/chevron; no variant receives disabled opacity.
             const isEditable = isModifiable && isOpen;
@@ -101,6 +104,43 @@ describe('TaskView', () => {
             expect(assigneeRoot.findAll((node) => node.type === MenuItem.Chevron)).toHaveLength(isEditable ? 1 : 0);
             expect(Navigation.navigate).toHaveBeenCalledTimes(isEditable ? 1 : 0);
         });
+    });
+
+    it.each([false, true])('retains the title click target across authentication when anonymous=%s', async (isAnonymous) => {
+        // Given an editable task and a click target that is valid only during event dispatch
+        jest.spyOn(TaskActions, 'canModifyTask').mockReturnValue(true);
+        jest.spyOn(TaskActions, 'canActionTask').mockReturnValue(false);
+        const closeModal = jest.spyOn(ModalActions, 'close').mockImplementation(() => {});
+        await Onyx.set(ONYXKEYS.SESSION, {authTokenType: isAnonymous ? CONST.AUTH_TOKEN_TYPES.ANONYMOUS : undefined});
+        const taskReport = createRegularTaskReport(1, TASK_MANAGER_ACCOUNT_ID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+        await waitForBatchedUpdates();
+        render(
+            <OnyxListItemProvider>
+                <TaskView
+                    report={taskReport}
+                    parentReport={undefined}
+                    action={undefined}
+                />
+            </OnyxListItemProvider>,
+        );
+        const title = screen.UNSAFE_getAllByType(PressableWithSecondaryInteraction).find((node) => node.props.sentryLabel === CONST.SENTRY_LABEL.TASK.VIEW_TITLE);
+        if (!title) {
+            throw new Error('Missing task title');
+        }
+        const blur = jest.fn();
+        const event = {type: 'click', currentTarget: {blur} as {blur: () => void} | null};
+
+        // When the event target is cleared before the asynchronous session read resumes
+        fireEvent.press(title, event);
+        expect(blur).not.toHaveBeenCalled();
+        event.currentTarget = null;
+        await waitForBatchedUpdates();
+
+        // Then authentication still gates both blurring the captured target and navigation
+        expect(blur).toHaveBeenCalledTimes(isAnonymous ? 0 : 1);
+        expect(Navigation.navigate).toHaveBeenCalledTimes(isAnonymous ? 0 : 1);
+        expect(closeModal).toHaveBeenCalledTimes(isAnonymous ? 1 : 0);
     });
 
     it('resolves the assignee display name through the translate function from useLocalize', async () => {

@@ -18,7 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActionReactions} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -32,7 +31,6 @@ function BaseQuickEmojiReactions({
     onWillShowPicker = () => {},
     setIsEmojiPickerActive,
 }: BaseQuickEmojiReactionsProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -54,7 +52,9 @@ function BaseQuickEmojiReactions({
                         <EmojiReactionBubble
                             emojiCodes={[getPreferredEmojiCode(emoji, preferredSkinTone)]}
                             isContextMenu
-                            onPress={callIfAuthenticated(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone), session)}
+                            onPress={() => {
+                                callIfAuthenticated(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone))();
+                            }}
                         />
                     </View>
                 </Tooltip>

@@ -86,7 +86,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {policyTypeSelector} from '@selectors/Policy';
-import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -115,7 +114,6 @@ function SplitToggleRow({label, sentryLabel, isOn, onToggle}: SplitToggleRowProp
 }
 
 function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
@@ -422,7 +420,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                               }
 
                               Navigation.navigate(rateRoute);
-                          }, session)
+                          })
                         : undefined
                 }
             >

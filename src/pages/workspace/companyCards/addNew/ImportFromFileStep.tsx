@@ -129,7 +129,7 @@ function ImportFromFileStep() {
                     <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')} />
                 </View>
                 <MenuItem.Root
-                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID)), session)}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID)))}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.IMPORT_FROM_FILE_LAYOUT_NAME}
                 >
                     <MenuItemField.Row

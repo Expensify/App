@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
@@ -168,7 +168,7 @@ describe('MenuItemField', () => {
                 }),
             );
             fireEvent.press(await screen.findByLabelText(`${NAME}, ${VALUE}`), pressEvent);
-            expect(onPress).toHaveBeenCalledTimes(1);
+            await waitFor(() => expect(onPress).toHaveBeenCalledTimes(1));
         });
 
         it('keeps disabled interactive values excluded from selection and copied content', () => {
@@ -469,7 +469,7 @@ describe('MenuItemField', () => {
             fireEvent.press(await screen.findByLabelText(`${NAME}, ${VALUE}`), pressEvent);
 
             // Then the usual row action still runs once
-            expect(onPress).toHaveBeenCalledTimes(1);
+            await waitFor(() => expect(onPress).toHaveBeenCalledTimes(1));
         });
 
         it('does not call onPress when disabled', async () => {

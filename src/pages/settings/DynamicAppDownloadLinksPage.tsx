@@ -9,7 +9,6 @@ import ScrollView from '@components/ScrollView';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
@@ -18,14 +17,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 function DynamicAppDownloadLinksPage() {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['Android', 'Apple']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -50,7 +46,7 @@ function DynamicAppDownloadLinksPage() {
 
             <ScrollView style={[styles.mt3]}>
                 <MenuItem.Root
-                    onPress={callIfAuthenticated(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID), session)}
+                    onPress={callIfAuthenticated(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID))}
                     sentryLabel={CONST.SENTRY_LABEL.APP_DOWNLOAD_LINKS.ANDROID}
                 >
                     <MenuItem.Row>
@@ -66,7 +62,7 @@ function DynamicAppDownloadLinksPage() {
                     </MenuItem.Row>
                 </MenuItem.Root>
                 <MenuItem.Root
-                    onPress={callIfAuthenticated(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true), session)}
+                    onPress={callIfAuthenticated(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true))}
                     sentryLabel={CONST.SENTRY_LABEL.APP_DOWNLOAD_LINKS.IOS}
                 >
                     <MenuItem.Row>

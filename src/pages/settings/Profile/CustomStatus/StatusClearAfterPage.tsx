@@ -26,7 +26,6 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useState} from 'react';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
@@ -118,7 +117,6 @@ function StatusClearAfterPage() {
     const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
     const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
     const [statusDraftCustomClearAfterDate] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const draftClearAfter = customStatus?.clearAfter ?? '';
     const [draftPeriod, setDraftPeriod] = useState(() => getSelectedStatusType(draftClearAfter || clearAfter));
@@ -162,14 +160,14 @@ function StatusClearAfterPage() {
                     name={translate('statusPage.date')}
                     value={customStatusDate}
                     error={customDateError}
-                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE), session)}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE))}
                     sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_DATE}
                 />
                 <StatusExpiryField
                     name={translate('statusPage.time')}
                     value={customStatusTime}
                     error={customTimeError}
-                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME), session)}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME))}
                     sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_TIME}
                 />
             </>

@@ -12,7 +12,6 @@ import UserPills from '@components/UserPills';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -26,7 +25,6 @@ import {getApproverTitles, getNonMemberApproverError} from '@libs/WorkflowUtils'
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
@@ -37,7 +35,6 @@ import type {ComponentRef, ForwardedRef} from 'react';
 import type {ScrollView as ScrollViewRN} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
@@ -59,7 +56,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -196,7 +192,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
                 <MenuItemSectionRoot
                     accessibilityLabel={members}
-                    onPress={!approvalWorkflow.isDefault ? callIfAuthenticated(handleExpensesFromPress, session) : undefined}
+                    onPress={!approvalWorkflow.isDefault ? callIfAuthenticated(handleExpensesFromPress) : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS}
                 >
                     <MenuItem.Row>
@@ -243,7 +239,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                         >
                             <MenuItemSectionRoot
                                 accessibilityLabel={formatPhoneNumber(approver?.displayName ?? '')}
-                                onPress={callIfAuthenticated(() => editApprover(approverIndex), session)}
+                                onPress={callIfAuthenticated(() => editApprover(approverIndex))}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
                                 style={errorText || hintText ? styles.pb0 : undefined}
                             >
@@ -278,7 +274,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                     )}
                                     {!!hintText && (
                                         <PressableWithoutFeedback
-                                            onPress={callIfAuthenticated(() => editApprover(approverIndex), session)}
+                                            onPress={callIfAuthenticated(() => editApprover(approverIndex))}
                                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
                                             accessible={false}
                                             tabIndex={-1}

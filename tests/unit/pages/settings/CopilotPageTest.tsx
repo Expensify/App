@@ -1,5 +1,7 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
+import * as ModalActions from '@libs/actions/Modal';
+import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 
@@ -9,6 +11,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 const SESSION_EMAIL = 'me@example.com';
 const OWNER_EMAIL = 'owner@example.com';
@@ -17,6 +22,8 @@ let mockPersonalDetailsByLogin: Record<string, {displayName: string}> = {};
 let mockIsOffline = false;
 
 jest.mock('@hooks/useIsAgentAccount', () => () => mockIsAgentAccount);
+
+jest.mock('@libs/getClickedTargetLocation', () => jest.fn(() => ({x: 10, y: 20, right: 30, height: 40})));
 
 const mockUseOnyx = jest.fn<unknown[], [string]>();
 
@@ -171,6 +178,11 @@ jest.mock('@components/SectionSubtitleHTML', () => {
 });
 
 describe('CopilotPage', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        return waitForBatchedUpdates();
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockIsAgentAccount = false;
@@ -189,6 +201,43 @@ describe('CopilotPage', () => {
             return [undefined];
         });
     }
+
+    describe('deferred popover anchors', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            jest.restoreAllMocks();
+        });
+
+        it.each([
+            ['delegates', false],
+            ['delegators', false],
+            ['delegates', true],
+            ['delegators', true],
+        ] as const)('captures the %s row anchor while preserving anonymous=%s gating', async (relationship, isAnonymous) => {
+            // Given a relationship row whose event target exists only during dispatch
+            const email = 'copilot@example.com';
+            setOnyxAccount({validated: true, delegatedAccess: {[relationship]: [{email, role: 'all'}]}});
+            await Onyx.set(ONYXKEYS.SESSION, {authTokenType: isAnonymous ? CONST.AUTH_TOKEN_TYPES.ANONYMOUS : undefined});
+            const closeModal = jest.spyOn(ModalActions, 'close').mockImplementation(() => {});
+            const target = {blur: jest.fn()};
+            const event = {type: 'click', currentTarget: target as typeof target | null};
+            render(<CopilotPage />);
+
+            // When MenuItemList forwards the click and React clears the dispatched target before authentication resumes
+            fireEvent.press(screen.getByText(email), event);
+            expect(getClickedTargetLocation).not.toHaveBeenCalled();
+            event.currentTarget = null;
+            await waitForBatchedUpdates();
+
+            // Then allowed popovers measure the captured row, without mutating the event or opening for anonymous users
+            expect(getClickedTargetLocation).toHaveBeenCalledTimes(isAnonymous ? 0 : 1);
+            if (!isAnonymous) {
+                expect(getClickedTargetLocation).toHaveBeenCalledWith(target);
+            }
+            expect(event.currentTarget).toBeNull();
+            expect(closeModal).toHaveBeenCalledTimes(isAnonymous ? 1 : 0);
+        });
+    });
 
     it('hides both section labels when the user has no delegators or delegates', () => {
         setOnyxAccount({validated: true, delegatedAccess: {delegators: [], delegates: []}});

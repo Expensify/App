@@ -4,10 +4,13 @@ import {
     createOnyxReadTracker,
     getCalleeName,
     getDeclaredVariable,
+    getOnyxKeyPath,
     getRepoRelativePath,
     getStaticName,
     matchesCalleeName,
     ONYX_MODULE,
+    ONYXKEYS_ROOT,
+    READ_METHOD,
     TYPE_ONLY_EXPRESSIONS,
     unwrapTypeOnlyExpressions,
 } from './utils/onyxReadUtils.js';
@@ -24,6 +27,10 @@ const READ_ALLOWED_DIRECTORIES = ['src/components/', 'src/pages/', 'src/hooks/',
 const TEST_INFRASTRUCTURE_DIRECTORIES = [TESTS_DIRECTORY, '__mocks__/', 'jest/'];
 
 const READ_ALLOWED_FILES = new Set([]);
+
+const SESSION_ACTIONS_FILE = 'src/libs/actions/Session/index.ts';
+
+const AUTHENTICATED_HANDLER_FACTORY = 'callIfAuthenticated';
 
 // Hooks that run their callback after render, mapped to the argument index of that callback
 const EFFECT_HOOK_CALLBACK_INDICES = new Map([
@@ -98,7 +105,7 @@ const meta = {
     type: 'problem',
     docs: {
         description:
-            'Disallow Onyx.get and Onyx.multiGet outside components, pages, hooks and tests, outside a component or hook body in those source directories, during render, inside effects or at module scope, and disallow using the Onyx object as a value instead of through its members. no-onyx-get-snapshot-key checks which keys they read.',
+            'Disallow Onyx.get and Onyx.multiGet outside components, pages, hooks and tests (except the SESSION read in the async handler directly returned by Session.callIfAuthenticated), outside a component or hook body in those source directories, during render, inside effects or at module scope, and disallow using the Onyx object as a value instead of through its members. no-onyx-get-snapshot-key checks which keys they read.',
         recommended: 'error',
     },
     schema: [],
@@ -110,7 +117,7 @@ const meta = {
             'Do not read Onyx at module scope. The module body runs once at import, so a value read there never updates when the key changes.\n\n' +
             'Move the read into the function that needs the value, so it reads the current value when that function runs. If the module must track a key, subscribe with Onyx.connectWithoutView().',
         noOnyxReadOutsideAllowedPath:
-            'Onyx.get() and Onyx.multiGet() are only allowed in src/components, src/pages, src/hooks and tests. Outside them this rule cannot tell whether a read runs during render, in an effect or in an event handler.\n\n' +
+            'Onyx.get() and Onyx.multiGet() are only allowed in src/components, src/pages, src/hooks and tests, except Onyx.get(ONYXKEYS.SESSION) in the async handler directly returned by callIfAuthenticated in src/libs/actions/Session/index.ts. Outside them this rule cannot tell whether a read runs during render, in an effect or in an event handler.\n\n' +
             'Take the value as a parameter or keep the Onyx.connectWithoutView() subscription. Reviewers accept a new READ_ALLOWED_FILES entry only in a PR that removes an Onyx.connectWithoutView() from that file.',
         noOnyxReadInEffect:
             'Do not read Onyx inside an effect or in a function an effect calls. If the value is an effect dependency, its useOnyx subscription is what re-runs the effect, and a one-shot read stops that.\n\n' +
@@ -578,6 +585,40 @@ function isReadAllowedInFile(filename) {
     return READ_ALLOWED_DIRECTORIES.some((directory) => relativePath.startsWith(directory)) || READ_ALLOWED_FILES.has(relativePath);
 }
 
+// This factory lets event handlers check authentication without subscribing their components to SESSION. Keep the
+// exception on the returned handler, so creating it during render cannot read Onyx or permit other actions to read it.
+function isAuthenticatedHandlerSessionRead(node, ancestors, relativePath, readMethod, sourceCode) {
+    if (relativePath !== SESSION_ACTIONS_FILE || readMethod !== READ_METHOD || node.callee.type !== 'MemberExpression' || node.callee.computed || node.arguments.length !== 1) {
+        return false;
+    }
+
+    const key = node.arguments.at(0);
+
+    if (key.type !== 'MemberExpression' || key.computed || key.object.type !== 'Identifier' || key.object.name !== ONYXKEYS_ROOT || getOnyxKeyPath(key, sourceCode) !== 'SESSION') {
+        return false;
+    }
+
+    const functions = ancestors.filter(isFunctionNode);
+    const [factory, handler] = functions;
+
+    if (
+        functions.length !== 2 ||
+        factory.type !== 'FunctionDeclaration' ||
+        factory.id?.name !== AUTHENTICATED_HANDLER_FACTORY ||
+        factory.async ||
+        factory.generator ||
+        !handler.async ||
+        handler.generator
+    ) {
+        return false;
+    }
+
+    const factoryParent = factory.parent?.type === 'ExportNamedDeclaration' ? factory.parent.parent : factory.parent;
+    const returned = getOutermostTypeOnlyWrapper(handler).parent;
+
+    return factoryParent?.type === 'Program' && returned?.type === 'ReturnStatement' && returned.parent === factory.body;
+}
+
 /** True for a file under `src/components`, `src/pages` or `src/hooks`, where a read must sit inside a component or hook. Test suites are exempt, because their reads sit in module-level `it` blocks. */
 function requiresComponentOrHookScope(filename) {
     const relativePath = getRepoRelativePath(filename);
@@ -819,16 +860,19 @@ function create(context) {
             context.report({node, messageId: 'noOnyxObjectAsValue'});
         },
         CallExpression(node) {
-            if (!getCalledReadMethod(node.callee)) {
-                return;
-            }
+            const readMethod = getCalledReadMethod(node.callee);
 
-            if (!isReadAllowedInFile(filename)) {
-                context.report({node, messageId: 'noOnyxReadOutsideAllowedPath'});
+            if (!readMethod) {
                 return;
             }
 
             const ancestors = sourceCode.getAncestors(node);
+
+            if (!isReadAllowedInFile(filename) && !isAuthenticatedHandlerSessionRead(node, ancestors, relativePath, readMethod, sourceCode)) {
+                context.report({node, messageId: 'noOnyxReadOutsideAllowedPath'});
+                return;
+            }
+
             const position = classifyPosition(ancestors, sourceCode);
 
             if (position === MODULE_SCOPE) {

@@ -1,6 +1,5 @@
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -9,9 +8,7 @@ import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {authTokenTypeSelector} from '@src/selectors/Session';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
@@ -43,7 +40,6 @@ type CountrySelectorProps = {
 
 function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur, ref}: CountrySelectorProps) {
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {country: countryFromUrl} = useGeographicalStateAndCountryFromRoute();
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
@@ -84,7 +80,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
                 callIfAuthenticated(() => {
                     didOpenCountrySelector.current = true;
                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_COUNTRY.getRoute(countryCode ?? '')));
-                }, session)();
+                })();
             }}
         >
             <MenuItemField.Row

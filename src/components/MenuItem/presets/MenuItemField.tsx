@@ -8,18 +8,13 @@ import MenuItemFieldNamePlaceholder from '@components/MenuItem/leaves/content/Me
 import MenuItemFieldValue from '@components/MenuItem/leaves/content/MenuItemFieldValue';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
-import useOnyx from '@hooks/useOnyx';
-
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import hasRenderableChildren from '@libs/hasRenderableChildren';
 
 import {callIfAuthenticated} from '@userActions/Session';
 
-import ONYXKEYS from '@src/ONYXKEYS';
-
 import type {PropsWithChildren, ReactNode} from 'react';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type MenuItemFieldRowProps = PropsWithChildren<
@@ -108,10 +103,9 @@ function MenuItemFieldPreset({
     shouldAllowTextSelection = isValueSelectable,
     forwardedFSClass,
 }: MenuItemFieldProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={onPress ? callIfAuthenticated(onPress, session) : undefined}
+            onPress={onPress ? callIfAuthenticated(onPress) : undefined}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

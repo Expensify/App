@@ -1,5 +1,4 @@
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
@@ -7,8 +6,6 @@ import DateUtils from '@libs/DateUtils';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {authTokenTypeSelector} from '@src/selectors/Session';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
@@ -39,7 +36,6 @@ type TimeModalPickerProps = {
 function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref}: TimeModalPickerProps) {
     const styles = useThemeStyles();
     const {dateFnsLocale} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     // The row shows a localized time, while `TimePicker` still reads `value` through `extractTime12Hour` — that one is
     // the picker's English wire format, so rendering it here would put an AM/PM clock next to 24-hour times elsewhere.
@@ -59,7 +55,7 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref
         <>
             <MenuItem.Root
                 sentryLabel={CONST.SENTRY_LABEL.TIME_MODAL_PICKER.OPEN}
-                onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}
+                onPress={callIfAuthenticated(() => setIsPickerVisible(true))}
                 ref={ref}
             >
                 <MenuItemField.Row

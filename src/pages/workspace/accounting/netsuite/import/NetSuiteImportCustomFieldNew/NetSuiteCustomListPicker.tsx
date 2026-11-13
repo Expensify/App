@@ -2,17 +2,14 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type NetSuiteCustomListPickerProps = {
@@ -29,7 +26,6 @@ type NetSuiteCustomListPickerProps = {
 };
 
 function NetSuiteCustomListPicker({value, policyID, errorText, isEditing}: NetSuiteCustomListPickerProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
 
     return (
@@ -40,7 +36,7 @@ function NetSuiteCustomListPicker({value, policyID, errorText, isEditing}: NetSu
                     return;
                 }
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR.getRoute(policyID, isEditing ? 'edit' : undefined));
-            }, session)}
+            })}
         >
             <MenuItemField.Row
                 name={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}

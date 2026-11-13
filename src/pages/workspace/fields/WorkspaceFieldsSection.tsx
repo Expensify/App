@@ -32,7 +32,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import {authTokenTypeSelector} from '@src/selectors/Session';
 import type {Policy, PolicyConnectionName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
@@ -119,7 +118,6 @@ function WorkspaceFieldsSection({
     const {cardPadding, cardPaddingHorizontal, cardEdgeToEdge} = useLayoutSpacing();
     const {showConfirmModal} = useConfirmModal();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((connectionName) => connectionName === connectionSyncProgress?.connectionName);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, syncErrorConnectionNames);
@@ -167,7 +165,7 @@ function WorkspaceFieldsSection({
             <MenuItem.Root
                 sentryLabel={rowSentryLabel}
                 style={cardPaddingHorizontal}
-                onPress={!item.isDisabled && canWrite ? callIfAuthenticated(() => navigateToFieldSettings(item), session) : undefined}
+                onPress={!item.isDisabled && canWrite ? callIfAuthenticated(() => navigateToFieldSettings(item)) : undefined}
                 isDisabled={item.isDisabled}
             >
                 <MenuItem.Row>

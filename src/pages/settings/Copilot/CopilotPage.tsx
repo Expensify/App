@@ -50,7 +50,6 @@ import type {Delegate, DelegateRole} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef, RefObject} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 
 import debounce from 'lodash/debounce';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
@@ -65,6 +64,8 @@ type SearchableCopilot = Delegate & {
     sortKey: string;
     type: 'delegate' | 'delegator';
 };
+
+type MenuItemPressTarget = Parameters<NonNullable<MenuItemProps['onPress']>>[1];
 
 const filterCopilot = (copilot: SearchableCopilot, searchInput: string) => tokenizedSearch([copilot], searchInput, (option) => [option.sortKey, option.email]).length > 0;
 
@@ -156,12 +157,12 @@ function CopilotPage() {
         });
     };
 
-    const captureDelegateButtonRef = (nativeEvent: GestureResponderEvent | KeyboardEvent) => {
-        delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+    const captureDelegateButtonRef = (currentTarget: MenuItemPressTarget) => {
+        delegateButtonRef.current = (currentTarget as HTMLDivElement | null | undefined) ?? null;
     };
 
-    const showPopoverMenu = (nativeEvent: GestureResponderEvent | KeyboardEvent, delegate: Delegate) => {
-        captureDelegateButtonRef(nativeEvent);
+    const showPopoverMenu = (currentTarget: MenuItemPressTarget, delegate: Delegate) => {
+        captureDelegateButtonRef(currentTarget);
         setMenuPosition();
         setShouldShowDelegatePopoverMenu(true);
         setSelectedDelegate(delegate);
@@ -181,8 +182,8 @@ function CopilotPage() {
         };
     }, [setMenuPosition]);
 
-    const showDelegatorPopoverMenu = (nativeEvent: GestureResponderEvent | KeyboardEvent, delegator: Delegate) => {
-        captureDelegateButtonRef(nativeEvent);
+    const showDelegatorPopoverMenu = (currentTarget: MenuItemPressTarget, delegator: Delegate) => {
+        captureDelegateButtonRef(currentTarget);
         setMenuPosition();
         setShouldShowDelegatorPopoverMenu(true);
         setSelectedDelegator(delegator);
@@ -260,9 +261,9 @@ function CopilotPage() {
         const isOwnerRow = isAgentAccount === true && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
         const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-        const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
+        const onPress: NonNullable<MenuItemProps['onPress']> = (_event, currentTarget) => {
             if (isEmptyObject(pendingAction)) {
-                showPopoverMenu(e, {email, role});
+                showPopoverMenu(currentTarget, {email, role});
                 return;
             }
             if (!role) {
@@ -319,8 +320,8 @@ function CopilotPage() {
             iconType: CONST.ICON_TYPE_AVATAR,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             disabled: isPending || isCurrentUser,
-            onPress: (e: GestureResponderEvent | KeyboardEvent) => {
-                showDelegatorPopoverMenu(e, {email, role});
+            onPress: (_event, currentTarget) => {
+                showDelegatorPopoverMenu(currentTarget, {email, role});
             },
             pendingAction,
             shouldForceOpacity: !!pendingAction,

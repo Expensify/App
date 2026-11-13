@@ -1,18 +1,22 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 
+import * as ModalActions from '@libs/actions/Modal';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {SvgProps} from 'react-native-svg';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../../utils/TestHelper';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const mockNewWindowIcon: React.FC<SvgProps> = () => null;
 const mockLinkIcon: React.FC<SvgProps> = () => null;
@@ -57,6 +61,60 @@ describe('MenuItem', () => {
         mockRenderHTML.mockClear();
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
         mockedGetOperatingSystem.mockReturnValue(CONST.OS.WINDOWS);
+    });
+
+    describe('asynchronous authentication', () => {
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+            return waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            jest.restoreAllMocks();
+        });
+
+        it.each([
+            [false, false],
+            [true, false],
+            [true, true],
+        ])('retains the click target when anonymous=%s and anonymous action=%s', async (isAnonymous, isAnonymousAction) => {
+            // Given a click whose dispatched currentTarget will be cleared before authentication resumes
+            await Onyx.set(ONYXKEYS.SESSION, {authTokenType: isAnonymous ? CONST.AUTH_TOKEN_TYPES.ANONYMOUS : undefined});
+            const closeModal = jest.spyOn(ModalActions, 'close').mockImplementation(() => {});
+            const blur = jest.fn();
+            const onPress = jest.fn();
+            const target = {blur};
+            const event = {type: 'click', currentTarget: target as {blur: () => void} | null};
+            render(
+                <Wrapper>
+                    {/* eslint-disable-next-line @typescript-eslint/no-deprecated -- This regression verifies currentTarget handling in the legacy MenuItem authentication gate. */}
+                    <MenuItem
+                        title="Protected action"
+                        onPress={onPress}
+                        isAnonymousAction={isAnonymousAction}
+                    />
+                </Wrapper>,
+            );
+
+            // When dispatch ends before the session read resolves
+            fireEvent.press(screen.getByLabelText('Protected action'), event);
+            if (!isAnonymousAction) {
+                expect(blur).not.toHaveBeenCalled();
+            }
+            event.currentTarget = null;
+            await waitForBatchedUpdates();
+
+            // Then only allowed actions blur the original element and invoke their callback
+            const isAllowed = !isAnonymous || isAnonymousAction;
+            expect(blur).toHaveBeenCalledTimes(isAllowed ? 1 : 0);
+            expect(onPress).toHaveBeenCalledTimes(isAllowed ? 1 : 0);
+            expect(closeModal).toHaveBeenCalledTimes(isAllowed ? 0 : 1);
+            if (isAllowed) {
+                expect(onPress).toHaveBeenCalledWith(event, target);
+            }
+            expect(event.currentTarget).toBeNull();
+        });
     });
 
     it('forwards selectable HTML titles to RenderHTML on web', () => {

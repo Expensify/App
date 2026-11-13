@@ -25,13 +25,11 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@selectors/Domain';
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
 
 function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {domainAccountID, accountID} = route.params;
 
     const {translate, formatPhoneNumber} = useLocalize();
@@ -88,7 +86,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                 <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.REVOKE_ADMIN_ACCESS}
                     isDisabled={isCurrentUserPrimaryContact}
-                    onPress={callIfAuthenticated(handleRevokeAdminAccess, session)}
+                    onPress={callIfAuthenticated(handleRevokeAdminAccess)}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>

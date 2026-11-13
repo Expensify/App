@@ -1,6 +1,5 @@
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -8,9 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {authTokenTypeSelector} from '@src/selectors/Session';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
@@ -46,7 +43,6 @@ type StateSelectorProps = {
 
 function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, ref}: StateSelectorProps) {
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
 
     const didOpenStateSelector = useRef(false);
@@ -88,7 +84,7 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
                 callIfAuthenticated(() => {
                     didOpenStateSelector.current = true;
                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_STATE.getRoute(stateCode, label)));
-                }, session)();
+                })();
             }}
             style={wrapperStyle}
         >

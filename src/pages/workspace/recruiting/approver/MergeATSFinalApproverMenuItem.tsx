@@ -2,7 +2,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import UserPills from '@components/UserPills';
 
-import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,10 +9,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import {useMergeATSApprovalDraftState} from './MergeATSApprovalDraftContext';
@@ -27,13 +24,12 @@ type MergeATSFinalApproverMenuItemProps = {
 };
 
 function MergeATSFinalApproverMenuItem({policyID, description}: MergeATSFinalApproverMenuItemProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {finalApprover} = useMergeATSApprovalDraftState(policyID);
     const finalApproverDetails = usePersonalDetailByLogin(finalApprover);
 
     return (
         <MenuItem.Root
-            onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.getRoute(policyID)), session)}
+            onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.getRoute(policyID)))}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_FINAL_APPROVER}
         >
             <MenuItem.Row>

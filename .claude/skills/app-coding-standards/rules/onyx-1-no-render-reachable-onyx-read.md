@@ -13,7 +13,7 @@ Do not re-check these:
 
 | Enforced | By |
 |---|---|
-| `Onyx.get` or `Onyx.multiGet` outside `src/components`, `src/pages`, `src/hooks` and `tests` | `no-unsafe-onyx-read` |
+| `Onyx.get` or `Onyx.multiGet` outside `src/components`, `src/pages`, `src/hooks` and `tests`, except `Onyx.get(ONYXKEYS.SESSION)` directly inside the async handler returned by the top-level `callIfAuthenticated` function declaration in `src/libs/actions/Session/index.ts` | `no-unsafe-onyx-read` |
 | A read written in a component or hook body (including `memo` and `forwardRef` wrappers and any function with a top-level `return <JSX>`), in a JSX expression, in a `useMemo` callback, a `selector`, a lazy initializer or a `useSyncExternalStore` snapshot, in a same-file function passed by name to a `useMemo`, `useState`, `useReducer` or `useSyncExternalStore` slot, to `memo` or `forwardRef`, or to a `selector`, in a same-file helper that render or module scope calls, or at module scope. Not a helper imported from another file, see A | `no-unsafe-onyx-read` |
 | A read inside an effect, or in a same-file function an effect calls | `no-unsafe-onyx-read` |
 | A read in a module-level function, object or class in `src/components`, `src/pages` or `src/hooks`, outside a component or hook body | `no-unsafe-onyx-read` |
@@ -28,6 +28,8 @@ Do not re-check these:
 A disable of `no-onyx-get-snapshot-key` is allowed with a reason, and the script checks only that it holds at least 12 letters or digits. Judge its content under E1. The key `${ONYXKEYS.COLLECTION.REPORT}${id}`, inline or through a const, passes `no-onyx-get-snapshot-key` without a disable when `id` is a same-file `const` bound to `ONYXKEYS.CONCIERGE_REPORT_ID` by `await Onyx.get(...)`, `const [id] = useOnyx(...)` with no `selector`, or the matching slot of `Onyx.multiGet(...)`. That read needs no E1 review, and A through D still apply to it.
 
 What lint leaves to review is below: a read reached from render across files (A), write ordering (B), a handler an effect in another file calls (C), a read value shown later as current (D), and the content of a disable reason (E).
+
+The `callIfAuthenticated` exception permits only its returned event handler to read SESSION, not the factory itself, nested reading helpers, other keys, `multiGet`, or other functions in that file. Creating the handler during render is safe; invoking it during render or from an effect is not. Review its callers under A and C, since lint does not follow the returned handler across files. The other reading rules still apply.
 
 Mutating a read result writes the cache, since a single-key read returns the cached object and a collection read returns the cached members. `useOnyx` hands out the same object, so this stays a documented convention and isn't flagged here. A `set` with that same object can be skipped as unchanged, so the mutation is neither saved nor announced.
 

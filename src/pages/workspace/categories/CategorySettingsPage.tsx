@@ -53,7 +53,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {authTokenTypeSelector} from '@src/selectors/Session';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
@@ -123,7 +122,6 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const policyHasTags = hasTags(policyTags);
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
@@ -408,7 +406,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 >
                                     <MenuItem.Root
                                         sentryLabel={rule.sentryLabel}
-                                        onPress={rule.isDisabled ? undefined : callIfAuthenticated(() => navigateToCategoryRule(rule.dynamicRoutePath), session)}
+                                        onPress={rule.isDisabled ? undefined : callIfAuthenticated(() => navigateToCategoryRule(rule.dynamicRoutePath))}
                                         isDisabled={rule.isDisabled}
                                     >
                                         <MenuItem.Row>

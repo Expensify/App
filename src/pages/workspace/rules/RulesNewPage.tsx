@@ -7,7 +7,6 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftMerchantRule} from '@libs/actions/User';
@@ -23,10 +22,8 @@ import variables from '@styles/variables';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {authTokenTypeSelector} from '@src/selectors/Session';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
@@ -57,7 +54,6 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt']);
     const isCategorySettingsFlow = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW;
     const isCategoryScopedCreate = isCategorySettingsFlow || !!categoryName;
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     // From category settings the rule is pre-scoped to the category, so it opens the editor directly.
     const openCategoryScopedRule = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_NEW.path));
@@ -124,7 +120,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const newRuleMenuItems = visibleNewRuleOptions.map((option) => (
         <MenuItem.Root
             key={option.key}
-            onPress={callIfAuthenticated(option.onPress, session)}
+            onPress={callIfAuthenticated(option.onPress)}
             style={styles.rulesNewMenuItem}
             sentryLabel={option.sentryLabel}
         >

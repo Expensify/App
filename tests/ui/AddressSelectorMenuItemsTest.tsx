@@ -95,7 +95,7 @@ describe('Composable address selectors', () => {
         expect(ref.current).not.toBeNull();
         expect(typeof ref.current?.focus).toBe('function');
         expect(screen.UNSAFE_getByType(MenuItem.Root).props.sentryLabel).toBe(sentryLabel);
-        expect(callIfAuthenticated).toHaveBeenCalledWith(expect.any(Function), {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+        expect(callIfAuthenticated).toHaveBeenCalledWith(expect.any(Function));
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
     });
 

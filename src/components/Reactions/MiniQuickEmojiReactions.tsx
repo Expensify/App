@@ -25,8 +25,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef} from 'react';
 
-import {authTokenTypeSelector} from '@selectors/Session';
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import type {BaseQuickEmojiReactionsProps} from './QuickEmojiReactions/types';
@@ -46,7 +45,6 @@ type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
  * a message.
  */
 function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected, onPressOpenPicker = () => {}, onEmojiPickerClosed = () => {}}: MiniQuickEmojiReactionsProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -55,12 +53,9 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
 
-    const selectEmojiWithReaction = useCallback(
-        (emoji: Emoji, skinTone: number) => {
-            onEmojiSelected(emoji, emojiReactions, skinTone);
-        },
-        [onEmojiSelected, emojiReactions],
-    );
+    const selectEmojiWithReaction = (emoji: Emoji, skinTone: number) => {
+        onEmojiSelected(emoji, emojiReactions, skinTone);
+    };
 
     const openEmojiPicker = () => {
         onPressOpenPicker();
@@ -81,7 +76,9 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
-                    onPress={callIfAuthenticated(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone), session)}
+                    onPress={() => {
+                        callIfAuthenticated(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone))();
+                    }}
                     sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.QUICK_REACTION}
                 >
                     <Text
@@ -94,13 +91,15 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={callIfAuthenticated(() => {
-                    if (!emojiPickerRef.current?.isEmojiPickerVisible) {
-                        openEmojiPicker();
-                    } else {
-                        emojiPickerRef.current?.hideEmojiPicker();
-                    }
-                }, session)}
+                onPress={() => {
+                    callIfAuthenticated(() => {
+                        if (!emojiPickerRef.current?.isEmojiPickerVisible) {
+                            openEmojiPicker();
+                        } else {
+                            emojiPickerRef.current?.hideEmojiPicker();
+                        }
+                    })();
+                }}
                 isDelayButtonStateComplete={false}
                 tooltipText={translate('emojiReactions.addReactionTooltip')}
                 sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.EMOJI_PICKER_BUTTON}

@@ -164,7 +164,6 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {policyTypeSelector} from '@selectors/Policy';
-import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -219,7 +218,6 @@ function MoneyRequestView({
     isFromReviewDuplicates = false,
     mergeTransactionID,
 }: MoneyRequestViewProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase', 'NewWindow']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -1089,7 +1087,7 @@ function MoneyRequestView({
                                           DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
                                       ),
                                   );
-                              }, session)
+                              })
                             : undefined
                     }
                 >
@@ -1165,7 +1163,7 @@ function MoneyRequestView({
                                           ),
                                       ),
                                   );
-                              }, session)
+                              })
                             : undefined
                     }
                 >
@@ -1450,7 +1448,7 @@ function MoneyRequestView({
                                               DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
                                           ),
                                       );
-                                  }, session)
+                                  })
                                 : undefined
                         }
                     >
@@ -1531,7 +1529,7 @@ function MoneyRequestView({
                                                   ),
                                               );
                                           }
-                                      }, session)
+                                      })
                                     : undefined
                             }
                         >
@@ -1575,7 +1573,7 @@ function MoneyRequestView({
                                                   getReportRHPActiveRoute(),
                                               ),
                                           );
-                                      }, session)
+                                      })
                                     : undefined
                             }
                         >
@@ -1636,7 +1634,7 @@ function MoneyRequestView({
                                                   ),
                                               ),
                                           );
-                                      }, session)
+                                      })
                                     : undefined
                             }
                         >
@@ -1682,7 +1680,7 @@ function MoneyRequestView({
                                                   ),
                                               ),
                                           );
-                                      }, session)
+                                      })
                                     : undefined
                             }
                         >

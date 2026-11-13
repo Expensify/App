@@ -11,7 +11,6 @@ import {callIfAuthenticated} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import {authTokenTypeSelector} from '@src/selectors/Session';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 
@@ -33,7 +32,6 @@ type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLab
 
 function InitialListValueSelector({value = '', label = '', rightLabel, errorText = '', onInputChange, route, ref}: InitialListValueSelectorProps) {
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const draftInitialValue = formDraft?.initialValue ?? '';
 
     useEffect(() => {
@@ -64,7 +62,7 @@ function InitialListValueSelector({value = '', label = '', rightLabel, errorText
             <MenuItem.Root
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.CREATE_INITIAL_VALUE}
                 ref={ref}
-                onPress={callIfAuthenticated(() => Navigation.navigate(route), session)}
+                onPress={callIfAuthenticated(() => Navigation.navigate(route))}
             >
                 <MenuItemField.Row
                     name={label}

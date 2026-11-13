@@ -7,7 +7,6 @@ import Section from '@components/Section';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,10 +20,8 @@ import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicy
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -39,7 +36,6 @@ type ExpenseReportRulesSectionProps = {
 function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayments, withApprovalsReadOnlyFallback, withPaymentsReadOnlyFallback}: ExpenseReportRulesSectionProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -144,7 +140,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_APPROVE_REPORTS_UNDER}
-                            onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID)), session) : undefined}
+                            onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))) : undefined}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
@@ -167,7 +163,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.RANDOM_REPORT_AUDIT}
-                            onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID)), session) : undefined}
+                            onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID))) : undefined}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
@@ -218,7 +214,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_PAY_REPORTS_UNDER}
-                            onPress={canWritePayments ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID)), session) : undefined}
+                            onPress={canWritePayments ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))) : undefined}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}

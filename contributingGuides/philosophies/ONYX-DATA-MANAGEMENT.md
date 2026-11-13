@@ -66,6 +66,8 @@ In rare cases a component that subscribes to multiple large collections through 
 ### - `Onyx.get()` is ONLY for event handlers in components, pages and hooks
 It reads the cache once and never subscribes, so the value it returns MUST NOT reach rendered output, directly or through state, a ref or a module variable. Use it in event handlers and `useCallback` bodies under `src/components`, `src/pages` and `src/hooks`. Never call it during render, at module scope, or in code an effect runs.
 
+The sole exception outside those directories is `Onyx.get(ONYXKEYS.SESSION)` directly inside the async handler returned by the top-level `callIfAuthenticated` function declaration in `src/libs/actions/Session/index.ts`. This lets components check authentication when an event fires without a session subscription. The factory itself must not read Onyx, and callers must invoke its returned handler only for events, never during render or from effects. This does not allow other keys, `Onyx.multiGet()`, nested reading helpers, or other functions in that file. All other reading rules still apply.
+
 ### - `Onyx.get()` MUST NOT read the Search snapshot keys
 `@hooks/useOnyx` redirects the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` to a Search snapshot inside a `SearchScopeProvider`. `Onyx.get()` always reads the global key. These keys stay on `useOnyx`, and an `Onyx.multiGet()` key list must not contain any of them. Write that list as an array literal of static keys, or as a `const` bound to one. Declare that `const` once in the same file, do not export it, and pass it only to `Onyx.multiGet()`, so lint can check each element.
 

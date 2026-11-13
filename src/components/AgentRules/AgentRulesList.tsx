@@ -1,7 +1,6 @@
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getAgentRuleDisplayTitle} from '@libs/AgentRulesUtils';
@@ -12,13 +11,11 @@ import {clearPolicyAgentRuleErrors} from '@userActions/Policy/Rules';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -33,7 +30,6 @@ type AgentRulesListProps = {
 
 function AgentRulesList({policyID, rules, canWriteRules, showReadOnlyModal, listContainerStyle, menuItemWrapperStyle}: AgentRulesListProps) {
     const styles = useThemeStyles();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const handleEditAgentRule = (ruleID: string, pendingAction?: PendingAction) => {
         if (!canWriteRules) {
@@ -47,7 +43,7 @@ function AgentRulesList({policyID, rules, canWriteRules, showReadOnlyModal, list
 
         Navigation.navigate(ROUTES.RULES_AGENT_EDIT.getRoute(policyID, ruleID));
     };
-    const editAgentRule = callIfAuthenticated(handleEditAgentRule, session);
+    const editAgentRule = callIfAuthenticated(handleEditAgentRule);
 
     return (
         <View style={listContainerStyle}>

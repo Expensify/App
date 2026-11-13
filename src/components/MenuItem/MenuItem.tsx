@@ -27,7 +27,6 @@ import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAc
 import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -55,7 +54,6 @@ import variables from '@styles/variables';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -67,7 +65,6 @@ import type {AccessibilityState, GestureResponderEvent, ImageStyle, Role, StyleP
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
@@ -97,7 +94,8 @@ type MenuItemBaseProps = ForwardedFSClassProps &
     WithSentryLabel &
     Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
         ref?: PressableRef | Ref<ComponentRef<typeof View>>;
-        onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+        /** currentTarget is captured during dispatch so deferred handlers can use the original anchor. */
+        onPress?: (event: GestureResponderEvent | KeyboardEvent, currentTarget?: GestureResponderEvent['currentTarget'] | EventTarget | null) => void | Promise<void>;
         interactive?: boolean;
 
         /** Text to be shown as badge near the right end. */
@@ -597,7 +595,6 @@ function MenuItem({
     titleAccessibilityRole,
     shouldIgnoreCompactStyle = false,
 }: MenuItemProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark', 'NewWindow']);
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -792,7 +789,7 @@ function MenuItem({
         return title ? convertToLTR(title) : '';
     };
 
-    const onPressAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+    const executePressAction = (event: GestureResponderEvent | KeyboardEvent | undefined, currentTarget: GestureResponderEvent['currentTarget'] | EventTarget | null | undefined) => {
         if (disabled || !interactive) {
             return;
         }
@@ -801,21 +798,32 @@ function MenuItem({
             return;
         }
 
-        if (event?.type === 'click') {
-            (event.currentTarget as HTMLElement).blur();
+        if (event?.type === 'click' && currentTarget && 'blur' in currentTarget && typeof currentTarget.blur === 'function') {
+            currentTarget.blur();
         }
 
         if (onPress && event) {
             if (!singleExecution || !waitForNavigate) {
-                onPress(event);
+                onPress(event, currentTarget);
                 return;
             }
             singleExecution(
                 waitForNavigate(() => {
-                    onPress(event);
+                    onPress(event, currentTarget);
                 }),
             )();
         }
+    };
+
+    const authenticateAndExecutePressAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        // React clears currentTarget after dispatch, before authentication finishes.
+        const currentTarget = event?.currentTarget;
+        if (shouldCheckActionAllowedOnPress && !isAnonymousAction) {
+            callIfAuthenticated(() => executePressAction(event, currentTarget))();
+            return;
+        }
+
+        executePressAction(event, currentTarget);
     };
 
     const secondaryInteraction = (event: GestureResponderEvent | MouseEvent) => {
@@ -869,7 +877,7 @@ function MenuItem({
                     >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress && !isAnonymousAction ? callIfAuthenticated(onPressAction, session) : onPressAction}
+                                onPress={authenticateAndExecutePressAction}
                                 onMouseDown={(event) => {
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
@@ -1258,7 +1266,7 @@ function MenuItem({
                                                     <View style={[styles.alignSelfCenter, styles.ml3]}>
                                                         <RadioButton
                                                             isChecked={isSelected}
-                                                            onPress={onPressAction}
+                                                            onPress={authenticateAndExecutePressAction}
                                                             accessibilityLabel={title ?? ''}
                                                             accessible={false}
                                                             tabIndex={-1}

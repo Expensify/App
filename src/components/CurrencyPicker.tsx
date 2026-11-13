@@ -1,6 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -8,11 +7,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React, {Fragment, useState} from 'react';
 
 import type {CurrencyListItem} from './CurrencySelectionList/types';
@@ -69,7 +66,6 @@ function CurrencyPicker({
     shouldShowFullPageOfflineView = false,
     onInputChange = () => {},
 }: CurrencyPickerProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -90,7 +86,7 @@ function CurrencyPicker({
         <>
             <MenuItem.Root
                 sentryLabel={CONST.SENTRY_LABEL.CURRENCY_PICKER.OPEN}
-                onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}
+                onPress={callIfAuthenticated(() => setIsPickerVisible(true))}
                 isDisabled={disabled}
                 accessibilityLabel={accessibilityLabel ? [accessibilityLabel, value ? `${value} - ${getCurrencySymbol(value)}` : undefined].filter(Boolean).join(', ') : undefined}
             >

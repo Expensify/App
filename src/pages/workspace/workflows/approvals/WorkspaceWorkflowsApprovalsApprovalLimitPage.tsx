@@ -42,7 +42,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {authTokenTypeSelector} from '@src/selectors/Session';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -62,7 +61,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const {translate, formatPhoneNumber} = useLocalize();
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -232,7 +230,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                 <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_APPROVER}
                                     accessibilityLabel={approverDisplayName}
-                                    onPress={callIfAuthenticated(navigateToApproverChange, session)}
+                                    onPress={callIfAuthenticated(navigateToApproverChange)}
                                 >
                                     <MenuItem.Row>
                                         <MenuItemField.Content name={translate('workflowsPage.approver')}>

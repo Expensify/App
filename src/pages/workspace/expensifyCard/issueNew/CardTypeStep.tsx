@@ -18,7 +18,6 @@ import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {authTokenTypeSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -41,7 +40,6 @@ function CardTypeStep({policy, stepNames, startStepIndex}: CardTypeStepProps) {
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'VirtualCard']);
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const isEditing = issueNewCard?.isEditing;
 
@@ -89,7 +87,7 @@ function CardTypeStep({policy, stepNames, startStepIndex}: CardTypeStepProps) {
             <View style={styles.mh5}>
                 <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_TYPE_PHYSICAL}
-                    onPress={callIfAuthenticated(() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL), session)}
+                    onPress={callIfAuthenticated(() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL))}
                     style={styles.purposeMenuItem}
                 >
                     <MenuItem.Row>
@@ -113,7 +111,7 @@ function CardTypeStep({policy, stepNames, startStepIndex}: CardTypeStepProps) {
                 </MenuItem.Root>
                 <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_TYPE_VIRTUAL}
-                    onPress={callIfAuthenticated(() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL), session)}
+                    onPress={callIfAuthenticated(() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL))}
                     style={styles.purposeMenuItem}
                 >
                     <MenuItem.Row>

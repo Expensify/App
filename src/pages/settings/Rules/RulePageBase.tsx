@@ -40,7 +40,6 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -87,7 +86,6 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) 
 };
 
 function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM);
@@ -163,7 +161,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate('expenseRulesPage.addRule.expenseContains')}</Text>
                     <MenuItem.Root
-                        onPress={callIfAuthenticated(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash), session)}
+                        onPress={callIfAuthenticated(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash))}
                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.MERCHANT_TO_MATCH}
                     >
                         <MenuItemField.Row

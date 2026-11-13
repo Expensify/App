@@ -41,7 +41,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -64,7 +63,6 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 };
 
 function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovered = false, style}: TaskPreviewProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -179,14 +177,23 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             isChecked={isTaskCompleted}
                             disabled={!isTaskActionable}
                             shouldSelectOnPressEnter
-                            onPress={callIfAuthenticated(() => {
-                                updateTaskCheckboxStateForAccessibility(isTaskCompleted);
-                                if (isTaskCompleted) {
-                                    reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
-                                } else {
-                                    completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskReportID);
-                                }
-                            }, session)}
+                            onPress={() => {
+                                callIfAuthenticated(() => {
+                                    updateTaskCheckboxStateForAccessibility(isTaskCompleted);
+                                    if (isTaskCompleted) {
+                                        reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
+                                    } else {
+                                        completeTask(
+                                            taskContextReport,
+                                            parentReport?.hasOutstandingChildTask ?? false,
+                                            hasOutstandingChildTask,
+                                            parentReportAction,
+                                            delegateEmail,
+                                            taskReportID,
+                                        );
+                                    }
+                                })();
+                            }}
                             accessibilityLabel={taskCheckboxAccessibilityLabel}
                             accessibilityHint={taskCheckboxAccessibilityHint}
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}

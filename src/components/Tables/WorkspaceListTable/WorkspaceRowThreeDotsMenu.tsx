@@ -30,7 +30,6 @@ import type {RefObject} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/core';
-import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useState} from 'react';
 
 import type {WorkspaceRowData} from '.';
@@ -63,7 +62,6 @@ type WorkspaceRowThreeDotsMenuProps = {
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
 function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID, threeDotsMenuRef}: WorkspaceRowThreeDotsMenuProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -117,7 +115,9 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
                 icon: icons.Exit,
                 text: translate('common.leave'),
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU_LEAVE,
-                onSelected: callIfAuthenticated(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE), session),
+                onSelected: () => {
+                    callIfAuthenticated(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE))();
+                },
                 shouldCallAfterModalHide: true,
             });
         }
@@ -191,7 +191,9 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             icon: icons.ArrowCircleClockwise,
             text: translate('workspace.common.unarchive'),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU_UNARCHIVE,
-            onSelected: callIfAuthenticated(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE), session),
+            onSelected: () => {
+                callIfAuthenticated(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE))();
+            },
             shouldCallAfterModalHide: true,
         });
     }

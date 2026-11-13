@@ -64,7 +64,7 @@ describe('Composable form picker rows', () => {
         expect(ref.current).not.toBeNull();
         expect(typeof ref.current?.focus).toBe('function');
         expect(screen.UNSAFE_getByType(MenuItem.Root).props.sentryLabel).toBe(sentryLabel);
-        expect(callIfAuthenticated).toHaveBeenCalledWith(expect.any(Function), {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+        expect(callIfAuthenticated).toHaveBeenCalledWith(expect.any(Function));
     });
 
     it.each(cases)('%s composes error help and a red dot without removing the chevron', (_name, Component) => {

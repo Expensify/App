@@ -79,7 +79,6 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {ValueOf} from 'type-fest';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {authTokenTypeSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -97,7 +96,6 @@ const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + varia
 function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const delegateAccountID = useDelegateAccountID();
 
     const {splitReportID: reportID, originalTransactionID: transactionID, splitExpenseTransactionID} = route.params;
@@ -557,7 +555,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         <>
             <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
                 <MenuItem.Root
-                    onPress={callIfAuthenticated(onAddSplitExpense, session)}
+                    onPress={callIfAuthenticated(onAddSplitExpense)}
                     style={[styles.ph4]}
                     sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.ADD_SPLIT_BUTTON}
                 >
@@ -572,7 +570,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 </MenuItem.Root>
                 {isInitialSplit && (
                     <MenuItem.Root
-                        onPress={callIfAuthenticated(onMakeSplitsEven, session)}
+                        onPress={callIfAuthenticated(onMakeSplitsEven)}
                         style={[styles.ph4]}
                         sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.MAKE_SPLITS_EVEN_BUTTON}
                     >

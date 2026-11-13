@@ -12,7 +12,7 @@ import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {PersonalDetailsList, Session} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
@@ -36,7 +36,7 @@ type PromotedAction = {
 
 type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
 
-type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport, session: OnyxEntry<Session>) => PromotedAction> & {
+type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {
@@ -54,7 +54,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport, sess
         isSupportalSession: boolean;
     }) => PromotedAction;
 } & {
-    [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number, session: OnyxEntry<Session>) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
 };
 
 type PromotedActionsBarProps = {
@@ -63,12 +63,14 @@ type PromotedActionsBarProps = {
 };
 
 const PromotedActions = {
-    pin: (report, session) => ({
+    pin: (report) => ({
         key: CONST.PROMOTED_ACTIONS.PIN,
         icon: 'Pin',
         translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
         sentryLabel: report.isPinned ? CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.UNPIN : CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.PIN,
-        onSelected: callIfAuthenticated(() => togglePinnedState(report.reportID, !!report.isPinned), session),
+        onSelected: () => {
+            callIfAuthenticated(() => togglePinnedState(report.reportID, !!report.isPinned))();
+        },
     }),
     share: () => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
@@ -77,15 +79,17 @@ const PromotedActions = {
         sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.SHARE,
         onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path)),
     }),
-    join: (report, currentUserAccountID, session) => ({
+    join: (report, currentUserAccountID) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: 'ChatBubbles',
         translationKey: 'common.join',
         sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.JOIN,
-        onSelected: callIfAuthenticated(() => {
-            Navigation.dismissModal();
-            joinRoom(report, currentUserAccountID);
-        }, session),
+        onSelected: () => {
+            callIfAuthenticated(() => {
+                Navigation.dismissModal();
+                joinRoom(report, currentUserAccountID);
+            })();
+        },
     }),
     message: ({
         reportID,
