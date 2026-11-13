@@ -122,7 +122,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
-    const {payReportsViaABA, isDownloadingABAFile} = usePayViaABA();
+    const {payReportsViaABA} = usePayViaABA();
 
     const refreshSearch = () => {
         // Read at payment time, since the Wise quote can be confirmed after the network state changes
@@ -257,7 +257,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
             isDisabled={(isOffline && !canAllowSettlement) || isDisabled}
-            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile}
+            isLoading={!isOffline && !canAllowSettlement}
         />
     );
 }
