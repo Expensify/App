@@ -274,7 +274,7 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the Reimbursable row shows, because the workspace cash expense rules don't apply to card expenses
-        expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+        expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeDefined();
     });
 
     it.each([true, false])('hides Reimbursable when the selection contains a company card expense forced to %s', async (forceReimbursable) => {
@@ -293,7 +293,7 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the Reimbursable row is hidden, because the forced expense's reimbursable value can't change
-        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+        expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeUndefined();
     });
 
     it.each([
@@ -319,9 +319,9 @@ describe('SearchEditMultiplePage', () => {
 
         // Then the row follows the expense's saved restriction, not the current feed setting
         if (expectedEditable) {
-            expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+            expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeDefined();
         } else {
-            expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+            expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeUndefined();
         }
     });
 
@@ -340,7 +340,7 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then unreported expenses still respect their saved restriction
-        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+        expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeUndefined();
     });
 
     it('shows the spinner before applying the changes on save, then applies them and dismisses the RHP', async () => {
