@@ -341,7 +341,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                 headerStyles={styles.pv2}
                 innerContainerStyle={styles.pb0}
                 shouldUseScrollView
-                shouldUpdateFocusedIndex={false}
+                shouldUpdateFocusedIndex={shouldShowSearchInput}
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldShowRadioButton
             />
