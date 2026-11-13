@@ -157,25 +157,35 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     });
     const {listData, reportActionIDToDisplayIndex, unreadMarkerListIndex, focusRequestedReportActionID, draftAutoScrollKey, isDraftPendingCompletion} = reportActionsListData;
 
-    const {listID, listProps, shouldBeAlignedToTop, isFloatingMessageCounterVisible, isActionBadgeAboveViewport, scrollToBottomAndMarkReportAsRead, scrollToActionBadgeTarget} =
-        useReportActionsListScroll({
-            reportID,
-            // Hidden surveys still prove that the selected page contains the newest action.
-            sortedVisibleReportActions: paymentFilteredVisibleReportActions,
-            renderedVisibleReportActions: listData,
-            reportActionIDToDisplayIndex,
-            hasScrolledOverThreshold,
-            markNewestActionAsRead,
-            completeSkippedMarkAsRead,
-            unreadMarkerReportActionID,
-            unreadMarkerReportActionIndex: unreadMarkerListIndex,
-            draftAutoScrollKey,
-            focusRequestedReportActionID,
-            actionBadgeTargetID: reportAttributes?.actionTargetReportActionID,
-            linkedReportActionID,
-            onScrolledOverThresholdChange: setHasScrolledOverThreshold,
-            onLayout: recordTimeToMeasureItemLayout,
-        });
+    const {
+        listID,
+        listProps,
+        shouldBeAlignedToTop,
+        isFloatingMessageCounterVisible,
+        isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
+        scrollToBottomAndMarkReportAsRead,
+        scrollToActionBadgeTarget,
+    } = useReportActionsListScroll({
+        reportID,
+        // Hidden surveys still prove that the selected page contains the newest action.
+        sortedVisibleReportActions: paymentFilteredVisibleReportActions,
+        renderedVisibleReportActions: listData,
+        reportActionIDToDisplayIndex,
+        hasScrolledOverThreshold,
+        markNewestActionAsRead,
+        completeSkippedMarkAsRead,
+        unreadMarkerReportActionID,
+        unreadMarkerReportActionIndex: unreadMarkerListIndex,
+        draftAutoScrollKey,
+        focusRequestedReportActionID,
+        actionBadgeTargetID: reportAttributes?.actionTargetReportActionID,
+        linkedReportActionID,
+        onScrolledOverThresholdChange: setHasScrolledOverThreshold,
+        onLayout: recordTimeToMeasureItemLayout,
+    });
+
+    const shouldShowActionBadgePill = !isProduction && (isActionBadgeAboveViewport || isActionBadgeBelowViewport);
 
     const {renderItem, extraData} = useReportActionsListRenderItem({
         ...reportActionsListData,
@@ -250,8 +260,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
-                actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
-                actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
+                actionBadge={shouldShowActionBadgePill ? reportAttributes?.actionBadge : undefined}
+                actionBadgeBrickRoadStatus={shouldShowActionBadgePill ? reportAttributes?.brickRoadStatus : undefined}
+                isActionBadgeTargetBelow={isActionBadgeBelowViewport}
                 onActionBadgePress={scrollToActionBadgeTarget}
             />
             <ReportActionsListPaddingView
