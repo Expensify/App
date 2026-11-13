@@ -73,7 +73,7 @@ type Exhaustive<Actual, Declared> = [Actual] extends [Declared]
     : {returnsButIsNotDeclared: Exclude<Actual, Declared>};
 
 const RETURNING_EXPORTS_BY_MODULE = {
-    Split: true satisfies Exhaustive<ReturningExports<typeof SplitActions>, 'createDistanceRequest' | 'createSplitsAndOnyxData' | 'resolveOptimisticSplitChatReportID'>,
+    Split: true satisfies Exhaustive<ReturningExports<typeof SplitActions>, 'createSplitsAndOnyxData' | 'planDistanceRequest' | 'resolveOptimisticSplitChatReportID'>,
     SplitTransactionUpdate: true satisfies Exhaustive<
         ReturningExports<typeof SplitTransactionUpdateActions>,
         'getExpenseReportIDsEmptiedBySplitUpdate' | 'hasEditableSplitExpenseLeft' | 'willSplitUpdateEmptyExpenseReport'
@@ -100,15 +100,13 @@ const RETURNING_EXPORTS_BY_MODULE = {
 const MIGRATED_ACTION_FILES = Object.keys(RETURNING_EXPORTS_BY_MODULE).map((module) => `IOU/${module}.ts`);
 
 /**
- * Write-performing actions under `actions/IOU` that still hand a payload back. The list is kept by hand, so it covers
- * only the actions named here. Each entry fails once its action returns nothing, and the fix is to delete the entry. The first four give back the optimistic IOU report that the
- * duplicate batch merges the next expense into, and createExpenseByType and duplicateExpenseTransaction pass it on.
- * initMoneyRequest returns the draft transaction it created. The rest hand the caller a route or report ID to navigate with.
+ * Write-performing actions under `actions/IOU` that still hand a payload back. The list is kept by hand, so it covers only the actions named here. Each entry fails once its action returns
+ * nothing, and the fix is to delete the entry. The first three give back the optimistic IOU report that the duplicate batch merges the next expense into, and createExpenseByType and
+ * duplicateExpenseTransaction pass it on. initMoneyRequest returns the draft transaction it created. The rest hand the caller a route or report ID to navigate with.
  */
 const PAYLOAD_RETURNING_ACTIONS = {
     requestMoney: true satisfies HasPayload<(typeof TrackExpenseActions)['requestMoney']>,
     trackExpense: true satisfies HasPayload<(typeof TrackExpenseActions)['trackExpense']>,
-    createDistanceRequest: true satisfies HasPayload<(typeof SplitActions)['createDistanceRequest']>,
     submitPerDiemExpense: true satisfies HasPayload<(typeof PerDiemActions)['submitPerDiemExpense']>,
     deleteMoneyRequest: true satisfies HasPayload<typeof deleteMoneyRequest>,
     deleteTrackExpense: true satisfies HasPayload<(typeof TrackExpenseActions)['deleteTrackExpense']>,

@@ -98,7 +98,8 @@ jest.mock('@libs/actions/IOU/Split', () => {
     const actual = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
         ...actual,
-        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
+        planDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
+        commitDistanceRequest: jest.fn(),
         startSplitBill: jest.fn(),
     };
 });
@@ -2386,7 +2387,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
-        it('should route unreported distance expense to the self DM through trackExpense and skip createDistanceRequest', async () => {
+        it('should route unreported distance expense to the self DM through trackExpense and never plan a distance request', async () => {
             // Given a distance expense started from global create and headed to the self DM, which is the only flow that
             // leaves the draft unreported (reportID 0) at confirmation
             const selfDMReportID = 'self-dm-report-dist';
@@ -2463,7 +2464,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Then it is tracked in the self DM, since CreateDistanceRequest has no self DM target
             await waitFor(() => expect(TrackExpense.trackExpense).toHaveBeenCalled());
-            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.planDistanceRequest).not.toHaveBeenCalled();
         });
     });
 
@@ -2472,7 +2473,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         });
 
-        it('should call createDistanceRequest with personalDetails for non-unreported distance expense', async () => {
+        it('should plan the distance request with personalDetails for non-unreported distance expense', async () => {
+            // Given a distance draft on a workspace expense report
             const transactionID = 'tx-dist-1';
             const policy = createPolicyWithTaxAndDistance();
 
@@ -2542,13 +2544,15 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 </OnyxListItemProvider>,
             );
 
+            // When the expense is created from the confirmation page
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
-            await waitFor(() => expect(Split.createDistanceRequest).toHaveBeenCalled());
-            const createDistanceRequestMock = jest.mocked(Split.createDistanceRequest);
-            const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
+            // Then it is planned with the personal details and the plan is committed, since a plan on its own writes nothing
+            await waitFor(() => expect(Split.planDistanceRequest).toHaveBeenCalled());
+            const params = jest.mocked(Split.planDistanceRequest).mock.calls.at(0)?.at(0);
             expect(params?.personalDetails).toBeDefined();
+            expect(Split.commitDistanceRequest).toHaveBeenCalledTimes(1);
         });
     });
 

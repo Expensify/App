@@ -3,7 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {setCustomUnitRateID, setMoneyRequestDistance, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
-import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
+import {commitDistanceRequest, planDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {
@@ -396,7 +396,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 isLookingAroundUser,
                 isSelfDMDestination,
                 executeWrite: (overrides) => {
-                    const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
+                    const distanceRequestPlan = planDistanceRequest({
                         isVendorMatchingBetaEnabled,
                         report,
                         moneyRequestReportTransactions,
@@ -453,11 +453,12 @@ function handleMoneyRequestStepDistanceNavigation({
                         rules,
                         reusableDistanceRoutes,
                     });
+                    commitDistanceRequest(distanceRequestPlan);
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,
                         action,
                         draftTransactionIDs,
-                        transactionID: writtenDistanceTransactionID,
+                        transactionID: distanceRequestPlan.transactionID,
                         isFromGlobalCreate: transactionIsFromGlobalCreate,
                         backToReport,
                         optimisticChatReportID,

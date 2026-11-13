@@ -60,6 +60,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(),
+        getCurrentRoute: jest.fn(),
     },
 }));
 
@@ -2670,7 +2671,8 @@ describe('actions/Duplicate', () => {
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_MONEY, expect.objectContaining({}), expect.objectContaining({}));
         });
 
-        it('should call createDistanceRequest for distance transactions', async () => {
+        it('should plan and commit a distance request for distance transactions', async () => {
+            // Given a distance expense, which duplicates through the distance plan rather than through requestMoney
             const mockDistanceTransaction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
@@ -2685,6 +2687,7 @@ describe('actions/Duplicate', () => {
 
             await Onyx.clear();
 
+            // When it is duplicated on its own, outside a bulk action
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
@@ -2717,7 +2720,7 @@ describe('actions/Duplicate', () => {
 
             await waitForBatchedUpdates();
 
-            // Verify API was called with CREATE_DISTANCE_REQUEST
+            // Then it is written through the distance command, and the action does not navigate
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, expect.objectContaining({}), expect.objectContaining({}));
             expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
@@ -3377,7 +3380,8 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
         });
 
-        it('should route distance transactions through createDistanceRequest', async () => {
+        it('should route distance transactions through the distance plan', async () => {
+            // Given a report holding one cash expense and one distance expense
             const cashTx = createCashTransaction('cash1');
             const distanceTx = createCashTransaction('dist1', {
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
@@ -3390,9 +3394,11 @@ describe('actions/Duplicate', () => {
                 },
             });
 
+            // When the report is duplicated
             duplicateReport(getDefaultParams([cashTx, distanceTx]));
             await waitForBatchedUpdates();
 
+            // Then one new report is created and each expense is written through its own command, with no navigation from the action
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(1);
@@ -4037,6 +4043,71 @@ describe('actions/Duplicate', () => {
 
             // Then the expense-added growl is signaled
             expect(signalExpenseAddedGrowl).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(signalExpenseAddedGrowl).mock.calls.at(0)?.at(1)).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+        });
+
+        it('should read each written transaction ID from the distance plan when bulk-duplicating distance expenses', async () => {
+            // Given three reported distance expenses selected in Spend, which take the distance branch the sibling test above does not reach
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const buildDistanceTransaction = (seed: number, transactionID: string): Transaction => ({
+                ...createRandomTransaction(seed),
+                transactionID,
+                amount: -500 * seed,
+                currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 10 * seed},
+                    waypoints: {
+                        waypoint0: {address: 'Start', lat: 37.7749, lng: -122.4194},
+                        waypoint1: {address: 'End', lat: 34.0522, lng: -118.2437},
+                    },
+                },
+            });
+            const distanceTransactionIDs = ['bulk_distance_1', 'bulk_distance_2', 'bulk_distance_3'];
+            const allTransactions = Object.fromEntries(
+                distanceTransactionIDs.map((transactionID, index) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, buildDistanceTransaction(index + 1, transactionID)]),
+            );
+
+            // When they are duplicated in one bulk action
+            bulkDuplicateExpenses({
+                isVendorMatchingBetaEnabled: false,
+                conciergeChat: undefined,
+                transactionIDs: distanceTransactionIDs,
+                allTransactions,
+                sourcePolicyIDMap: {},
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetPolicyTags: {},
+                targetReport: policyExpenseChat,
+                policyTagList: {},
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                recentWaypoints: [],
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then each selected expense is written once through the distance command
+            const distanceCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
+            expect(distanceCalls).toHaveLength(3);
+
+            // Then the growl names the transaction the last duplicate was written at. The loop reads that ID from the distance plan, so losing it leaves the growl without a target.
+            expect(signalExpenseAddedGrowl).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(signalExpenseAddedGrowl).mock.calls.at(0)?.at(0)).toBe(distanceCalls.at(-1)?.[1].transactionID);
             expect(jest.mocked(signalExpenseAddedGrowl).mock.calls.at(0)?.at(1)).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
         });
 
