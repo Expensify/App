@@ -54,8 +54,9 @@ import type {DynamicFormListItem} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, InputModeOptions, KeyboardTypeOptions, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ComponentRef, ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports -- type only
+import type {GestureResponderEvent, InputModeOptions, KeyboardTypeOptions, ScrollView, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 /**
@@ -193,6 +194,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         scrollContextEnabled?: boolean;
 
         shouldUseScrollView?: boolean;
+
+        /** Ref to the form's scroll view, e.g. for useKeyboardDrivenScroll */
+        scrollViewRef?: RefObject<ComponentRef<typeof ScrollView> | null>;
 
         /** Container styles */
         style?: StyleProp<ViewStyle>;

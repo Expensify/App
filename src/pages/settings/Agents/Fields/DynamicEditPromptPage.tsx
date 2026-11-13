@@ -1,7 +1,7 @@
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -9,6 +9,8 @@ import TextInput from '@components/TextInput';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardDrivenScroll from '@hooks/useKeyboardDrivenScroll';
+import type {KeyboardScrollable} from '@hooks/useKeyboardDrivenScroll/types';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -50,12 +52,13 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
     const landscapePromptHeight = shouldShrinkPromptInput ? PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE : styles.h42.height;
     const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
-    const formRef = useRef<FormRef>(null);
+    const scrollViewRef = useRef<KeyboardScrollable>(null);
+    const scrollWithKeyboard = useKeyboardDrivenScroll(scrollViewRef);
     const promptTopOffsetRef = useRef(0);
     const isPromptFocusedRef = useRef(false);
     const scrollToInput = () => {
         isPromptFocusedRef.current = true;
-        scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+        scrollToMultilineInput(scrollWithKeyboard, shouldUseScrollableLayout, promptTopOffsetRef.current);
     };
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path);
 
@@ -105,7 +108,7 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
                 />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider
-                ref={formRef}
+                scrollViewRef={scrollViewRef}
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM}
                 validate={validate}
                 onSubmit={handleSubmit}
@@ -131,7 +134,7 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
                             promptTopOffsetRef.current = event.nativeEvent.layout.y;
                             // Rotation preserves focus, so reveal the prompt again after its new layout is measured.
                             if (isPromptFocusedRef.current) {
-                                scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+                                scrollToMultilineInput(scrollWithKeyboard, shouldUseScrollableLayout, promptTopOffsetRef.current);
                             }
                         }}
                     >

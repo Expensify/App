@@ -110,6 +110,7 @@ function FormWrapper({
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
+    scrollViewRef,
     forwardedFSClass,
     sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
     ref,
@@ -117,7 +118,8 @@ function FormWrapper({
     submitButtonInnerStyles,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
-    const formRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const internalFormRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const formRef = scrollViewRef ?? internalFormRef;
     const formContentRef = useRef<ComponentRef<typeof View>>(null);
     const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
     const errorAnnouncementKey = getErrorAnnouncementKey();

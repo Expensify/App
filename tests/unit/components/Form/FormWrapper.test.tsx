@@ -12,7 +12,7 @@ import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {InputComponentBaseProps, InputRefs} from '../../../../src/components/Form/types';
+import type {FormProps, InputComponentBaseProps, InputRefs} from '../../../../src/components/Form/types';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -44,17 +44,15 @@ jest.mock('@hooks/usePressLoading', () =>
 
 const moveAccessibilityFocusSpy = jest.spyOn(Accessibility, 'moveAccessibilityFocus').mockImplementation(jest.fn());
 
-function renderFormWrapper({
-    errors = {},
-    serverErrorFields,
-    inputRefs,
-    shouldScrollChildToFocus,
-}: {
+type RenderFormWrapperParams = {
     errors?: Record<string, string>;
     serverErrorFields?: ErrorFields | null;
     inputRefs: React.RefObject<InputRefs>;
     shouldScrollChildToFocus?: boolean;
-}) {
+    scrollViewRef?: FormProps['scrollViewRef'];
+};
+
+function renderFormWrapper({errors = {}, serverErrorFields, inputRefs, shouldScrollChildToFocus, scrollViewRef}: RenderFormWrapperParams) {
     return render(
         <FormContext.Provider
             value={{
@@ -72,6 +70,7 @@ function renderFormWrapper({
                 isAlertVisible
                 serverErrorFields={serverErrorFields}
                 shouldScrollChildToFocus={shouldScrollChildToFocus}
+                scrollViewRef={scrollViewRef}
             >
                 {null}
             </FormWrapper>
@@ -91,6 +90,17 @@ function createFocusableInput(inputID: string): InputComponentBaseProps {
 describe('FormWrapper', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it("gives the caller's scroll view ref the form's scroll view", () => {
+        // Given a caller that needs the form's scroll view, e.g. for useKeyboardDrivenScroll
+        const scrollViewRef: NonNullable<FormProps['scrollViewRef']> = {current: null};
+
+        // When the form renders
+        renderFormWrapper({inputRefs: {current: {}}, scrollViewRef});
+
+        // Then the ref points at the scroll view
+        expect(scrollViewRef.current).not.toBeNull();
     });
 
     it('focuses the first local validation error before server field errors', () => {

@@ -16,6 +16,8 @@ import {getAssignableWorkspaceMemberRoleItems} from '@components/WorkspaceMember
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useKeyboardDrivenScroll from '@hooks/useKeyboardDrivenScroll';
+import type {KeyboardScrollable} from '@hooks/useKeyboardDrivenScroll/types';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -90,6 +92,8 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const hasSubmittedRef = useRef(false);
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
+    const scrollViewRef = useRef<KeyboardScrollable>(null);
+    const scrollWithKeyboard = useKeyboardDrivenScroll(scrollViewRef);
     const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, undefined, policy, currentUserLogin ?? '');
     // The role list is ordered for display, so the default comes from the role hierarchy instead.
     const defaultRole = POLICY_ROLE_RANKING.find((role) => availableRoleItems.some((item) => item.value === role));
@@ -240,7 +244,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const isPromptFocusedRef = useRef(false);
     const handleInputFocus = () => {
         isPromptFocusedRef.current = true;
-        scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+        scrollToMultilineInput(scrollWithKeyboard, shouldUseScrollableLayout, promptTopOffsetRef.current);
     };
 
     const agentAvatar = avatarSource ? (
@@ -267,6 +271,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                 </CollapsibleHeaderOnKeyboard>
                 <FormProvider
                     ref={formRef}
+                    scrollViewRef={scrollViewRef}
                     formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
                     onSubmit={handleSubmit}
                     validate={validate}
@@ -323,7 +328,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                                 promptTopOffsetRef.current = event.nativeEvent.layout.y;
                                 // Rotation preserves focus, so reveal the prompt again after its new layout is measured.
                                 if (isPromptFocusedRef.current) {
-                                    scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+                                    scrollToMultilineInput(scrollWithKeyboard, shouldUseScrollableLayout, promptTopOffsetRef.current);
                                 }
                             }}
                         >

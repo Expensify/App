@@ -33,6 +33,9 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 let mockPrompt = '';
 const mockScrollTo = jest.fn();
 const mockScrollToEnd = jest.fn();
+const mockScrollWithKeyboard = jest.fn((): boolean => true);
+
+jest.mock('@hooks/useKeyboardDrivenScroll', () => () => mockScrollWithKeyboard);
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation = jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native');
@@ -266,7 +269,23 @@ describe('New rule describe section', () => {
         // When the admin taps the describe box, which opens the keyboard
         fireEvent(input, 'focus');
 
-        // Then the form scrolls to the top of the box, because iOS and Android do not scroll it above the keyboard
+        // Then the box top goes to the keyboard-driven scroll, because iOS and Android do not scroll it above the keyboard
+        expect(mockScrollWithKeyboard).toHaveBeenCalledWith({offset: 420});
+        // And the form does not scroll a second time
+        expect(mockScrollTo).not.toHaveBeenCalled();
+    });
+
+    it('scrolls the form to the describe box when the keyboard-driven scroll does not handle it', async () => {
+        // Given an admin on New rule on web, where the keyboard-driven scroll leaves the scroll to the caller
+        mockScrollWithKeyboard.mockReturnValueOnce(false);
+        await renderRulesNewPage();
+        const input = screen.getByLabelText('workspace.rules.newRule.describeRuleInputLabel');
+        fireEvent(input, 'layout', {nativeEvent: {layout: {x: 0, y: 420, width: 300, height: 96}}});
+
+        // When the admin focuses the describe box
+        fireEvent(input, 'focus');
+
+        // Then the form scrolls to the top of the box itself
         expect(mockScrollTo).toHaveBeenCalledWith(420);
     });
 

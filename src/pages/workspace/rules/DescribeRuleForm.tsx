@@ -7,6 +7,8 @@ import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/ty
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
 
+import useKeyboardDrivenScroll from '@hooks/useKeyboardDrivenScroll';
+import type {KeyboardScrollable} from '@hooks/useKeyboardDrivenScroll/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -140,6 +142,8 @@ function DescribeRuleForm({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const formRef = useRef<FormRef>(null);
+    const scrollViewRef = useRef<KeyboardScrollable>(null);
+    const scrollWithKeyboard = useKeyboardDrivenScroll(scrollViewRef);
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const inputTopOffsetRef = useRef(0);
     const pendingGenerationRef = useRef<PendingGeneration>(undefined);
@@ -283,7 +287,12 @@ function DescribeRuleForm({
 
     // On iOS and Android, the keyboard covers the focused input unless the form scrolls to it. The scroll stops at the end of
     // the content, therefore the submit button below the input also stays in view when it fits.
-    const scrollToInput = () => formRef.current?.scrollTo(inputTopOffsetRef.current);
+    const scrollToInput = () => {
+        if (scrollWithKeyboard({offset: inputTopOffsetRef.current})) {
+            return;
+        }
+        formRef.current?.scrollTo(inputTopOffsetRef.current);
+    };
 
     const describeSuggestedRule = (suggestedPrompt: string) => {
         Log.info('[GenerateRule] Tried the suggested description', false, {policyID, generationID: refusal?.generationID, reason: refusal?.reason});
@@ -296,6 +305,7 @@ function DescribeRuleForm({
     return (
         <FormProvider
             ref={formRef}
+            scrollViewRef={scrollViewRef}
             formID={ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM}
             validate={validate}
             onSubmit={submit}

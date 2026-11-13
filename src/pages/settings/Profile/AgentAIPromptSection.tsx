@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useKeyboardDrivenScroll from '@hooks/useKeyboardDrivenScroll';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -37,23 +38,6 @@ type AgentAIPromptSectionProps = {
     parentScrollViewRef?: RefObject<ComponentRef<typeof RNScrollView> | null>;
 };
 
-function scrollInputIntoView(parentScrollViewRef: RefObject<ComponentRef<typeof RNScrollView> | null>) {
-    if (getPlatform() !== CONST.PLATFORM.IOS) {
-        return;
-    }
-
-    const scrollView = parentScrollViewRef.current;
-    if (!scrollView) {
-        return;
-    }
-
-    requestAnimationFrame(() => {
-        setTimeout(() => {
-            scrollView.scrollToEnd({animated: true});
-        }, CONST.ANIMATED_TRANSITION);
-    });
-}
-
 function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSectionProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -67,6 +51,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
     const [isUserInitiatedSave, setIsUserInitiatedSave] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
+    const scrollWithKeyboard = useKeyboardDrivenScroll(parentScrollViewRef);
     const wasSavingRef = useRef(false);
     const savedConfirmationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isSaving = agentPrompt?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
@@ -156,10 +141,11 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     };
 
     const handleInputFocus = () => {
-        if (!parentScrollViewRef) {
+        if (getPlatform() !== CONST.PLATFORM.IOS) {
             return;
         }
-        scrollInputIntoView(parentScrollViewRef);
+        // Like scrollToEnd, as the scroll view stops at its end
+        scrollWithKeyboard({offset: Number.MAX_SAFE_INTEGER});
     };
 
     const handleSave = () => {
