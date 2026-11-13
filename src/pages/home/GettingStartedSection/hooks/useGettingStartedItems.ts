@@ -39,6 +39,7 @@ import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
 import {createHasExpenseDefaultRulesSelector} from '@selectors/Rule';
 import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import Onyx from 'react-native-onyx';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
@@ -110,7 +111,6 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [hasCreatedExpense = false] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (transactions) => Object.values(transactions ?? {}).some((transaction) => !!transaction && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction)),
     });
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const personalCards = useBankLinkedPersonalCards();
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
@@ -239,7 +239,10 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: translate('homePage.gettingStartedSection.createExpense'),
             subText: translate('homePage.gettingStartedSection.createExpenseSubText'),
             isComplete: hasCreatedExpense,
-            onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs),
+            onPress: () => {
+                // Read the drafts on press, since a subscription would re-render Home when Create expense writes its draft.
+                Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT).then((drafts) => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), validTransactionDraftIDsSelector(drafts)));
+            },
         });
 
         items.push({

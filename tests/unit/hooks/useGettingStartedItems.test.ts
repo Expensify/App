@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use backend-shaped object keys that don't follow camelCase: email addresses for PolicyEmployeeList entries and human-readable names / 'GL Code' for PolicyCategories */
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -1860,7 +1860,25 @@ describe('useGettingStartedItems', () => {
                 const createExpenseItem = result.current.items.find((item) => item.key === 'createExpense');
                 expect(createExpenseItem?.route).toBeUndefined();
                 createExpenseItem?.onPress?.();
-                expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array));
+                await waitFor(() => expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array)));
+            });
+
+            it('should pass the draft IDs that exist when createExpense is pressed', async () => {
+                // Given a draft written after the hook rendered, which only a read at press time sees
+                startMoneyRequest.mockClear();
+                await setupTrackPersonalScenario({policy: {areCategoriesEnabled: true}});
+                const {result} = renderHook(() => useGettingStartedItems());
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft1`, {transactionID: 'draft1'});
+                });
+                const createExpenseItem = result.current.items.find((item) => item.key === 'createExpense');
+                expect(createExpenseItem?.onPress).toBeDefined();
+
+                // When the user presses createExpense
+                createExpenseItem?.onPress?.();
+
+                // Then that draft goes to startMoneyRequest, so starting a new flow still clears it
+                await waitFor(() => expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), ['draft1']));
             });
 
             it('should mark createExpense incomplete with no transactions and complete once a non-deleted transaction exists', async () => {
