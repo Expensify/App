@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
-import {getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidDisplayName} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,8 +27,8 @@ function Name({onNext, onMove, isEditing}: NameProps) {
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, [SIGNER_FULL_NAME], translate);
 
-        if (values[SIGNER_FULL_NAME] && !isValidLegalName(String(values[SIGNER_FULL_NAME]))) {
-            errors[SIGNER_FULL_NAME] = translate('bankAccount.error.fullName');
+        if (values[SIGNER_FULL_NAME] && !isValidDisplayName(String(values[SIGNER_FULL_NAME]))) {
+            errors[SIGNER_FULL_NAME] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
         }
 
         return errors;

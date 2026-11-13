@@ -10,7 +10,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
+import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidDisplayName} from '@libs/ValidationUtils';
 
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 
@@ -89,9 +89,9 @@ function FullNameStepImpl({
         if (!isRequiredFulfilled(firstName)) {
             // @ts-expect-error type mismatch to be fixed
             errors[firstNameInputID] = translate('common.error.fieldRequired');
-        } else if (!isValidLegalName(firstName)) {
+        } else if (!isValidDisplayName(firstName)) {
             // @ts-expect-error type mismatch to be fixed
-            errors[firstNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+            errors[firstNameInputID] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
         } else if (firstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
             // @ts-expect-error type mismatch to be fixed
             errors[firstNameInputID] = translate('common.error.characterLimitExceedCounter', firstName.length, CONST.LEGAL_NAME.MAX_LENGTH);
@@ -106,9 +106,9 @@ function FullNameStepImpl({
         if (!isRequiredFulfilled(lastName)) {
             // @ts-expect-error type mismatch to be fixed
             errors[lastNameInputID] = translate('common.error.fieldRequired');
-        } else if (!isValidLegalName(lastName)) {
+        } else if (!isValidDisplayName(lastName)) {
             // @ts-expect-error type mismatch to be fixed
-            errors[lastNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+            errors[lastNameInputID] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
         } else if (lastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
             // @ts-expect-error type mismatch to be fixed
             errors[lastNameInputID] = translate('common.error.characterLimitExceedCounter', lastName.length, CONST.LEGAL_NAME.MAX_LENGTH);
