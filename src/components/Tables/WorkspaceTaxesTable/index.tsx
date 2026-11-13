@@ -4,7 +4,6 @@ import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -50,7 +49,6 @@ function getNumericTaxRateValue(value: string): string | undefined {
 }
 
 export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, shouldShowTaxCodeColumn, onRowSelectionChange, headerComponent}: WorkspaceTaxesTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -100,7 +98,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             sortable: true,
             width: variables.tableSwitchColumnWidth,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
             },
         },
         {

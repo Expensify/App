@@ -11,6 +11,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -102,7 +103,7 @@ export default function WorkspaceCategoriesTable({
             sortable: true,
             width: variables.tableSwitchColumnWidth,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
             },
         },
         {

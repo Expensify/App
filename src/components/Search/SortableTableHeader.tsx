@@ -182,3 +182,4 @@ function SortableTableHeader({
 }
 
 export default SortableTableHeader;
+export type {ColumnConfig};

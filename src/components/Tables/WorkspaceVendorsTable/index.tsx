@@ -63,7 +63,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
             sortable: true,
             width: variables.tableSwitchColumnWidth,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
             },
         },
     ];

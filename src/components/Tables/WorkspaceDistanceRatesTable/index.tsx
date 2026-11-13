@@ -74,7 +74,7 @@ function WorkspaceDistanceRatesTable({
             label: translate('workspace.distanceRates.status'),
             sortable: true,
             width: variables.tableStatusColumnWidth,
-            styling: {containerStyles: [styles.justifyContentCenter]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER},
         },
         {
             key: 'name',
@@ -113,7 +113,7 @@ function WorkspaceDistanceRatesTable({
                   {key: 'endDate', label: translate('workspace.distanceRates.endDate'), sortable: true},
               ] as const)
             : []),
-        {key: 'enabled', label: translate('common.enabled'), sortable: true, width: variables.tableSwitchColumnWidth, styling: {containerStyles: [styles.justifyContentEnd]}},
+        {key: 'enabled', label: translate('common.enabled'), sortable: true, width: variables.tableSwitchColumnWidth, styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END}},
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
     ];
 

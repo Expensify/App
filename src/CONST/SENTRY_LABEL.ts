@@ -748,10 +748,12 @@ const SENTRY_LABEL = {
         GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
         SORTABLE_HEADER: 'Search-SortableHeader',
         COLUMN_MENU: 'Search-ColumnMenu',
-        COLUMN_MENU_SORT_ASCENDING: 'Search-ColumnMenu-SortAscending',
-        COLUMN_MENU_SORT_DESCENDING: 'Search-ColumnMenu-SortDescending',
-        COLUMN_MENU_HIDE_COLUMN: 'Search-ColumnMenu-HideColumn',
-        COLUMN_MENU_EDIT_COLUMNS: 'Search-ColumnMenu-EditColumns',
+        COLUMN_MENU_ITEM: {
+            SORT_ASCENDING: 'Search-ColumnMenu-SortAscending',
+            SORT_DESCENDING: 'Search-ColumnMenu-SortDescending',
+            HIDE_COLUMN: 'Search-ColumnMenu-HideColumn',
+            EDIT_COLUMNS: 'Search-ColumnMenu-EditColumns',
+        },
         UNREPORTED_EXPENSE_LIST_ITEM: 'Search-UnreportedExpenseListItem',
         WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
         STATIC_LIST_ITEM: 'Search-StaticListItem',
@@ -984,6 +986,13 @@ const SENTRY_LABEL = {
         MONEY_REPORT_HEADER_SELECTION_DROPDOWN: 'Report-MoneyReportHeaderSelectionDropdown',
         SELECTION_TOOLBAR_DROPDOWN: 'Report-SelectionToolbarDropdown',
         COLUMNS_BUTTON: 'Report-ColumnsButton',
+        COLUMN_MENU: 'Report-ColumnMenu',
+        COLUMN_MENU_ITEM: {
+            SORT_ASCENDING: 'Report-ColumnMenu-SortAscending',
+            SORT_DESCENDING: 'Report-ColumnMenu-SortDescending',
+            HIDE_COLUMN: 'Report-ColumnMenu-HideColumn',
+            EDIT_COLUMNS: 'Report-ColumnMenu-EditColumns',
+        },
         GROUP_BY_BUTTON: 'Report-GroupByButton',
         GROUP_HEADER_CHECKBOX: 'Report-GroupHeaderCheckbox',
         TABLE_HEADER_SELECT_ALL: 'Report-TableHeaderSelectAll',
@@ -1104,6 +1113,11 @@ const SENTRY_LABEL = {
     },
     TABLE_HEADER: {
         SORTABLE_COLUMN: 'TableHeader-SortableColumn',
+        COLUMN_MENU: 'TableHeader-ColumnMenu',
+        COLUMN_MENU_ITEM: {
+            SORT_ASCENDING: 'TableHeader-ColumnMenu-SortAscending',
+            SORT_DESCENDING: 'TableHeader-ColumnMenu-SortDescending',
+        },
     },
     SELECTION_LIST: {
         BASE_LIST_ITEM: 'SelectionList-BaseListItem',

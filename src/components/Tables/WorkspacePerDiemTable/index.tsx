@@ -10,6 +10,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -80,7 +81,8 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             sortable: true,
             styling: {
                 // Keep the amount right-aligned, inset by the same chrome as the padded amount cell.
-                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
+                containerStyles: [styles.editableCellHeader],
             },
         },
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},

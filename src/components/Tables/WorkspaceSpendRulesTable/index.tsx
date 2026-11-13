@@ -4,11 +4,12 @@ import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/Tabl
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -31,7 +32,6 @@ type WorkspaceSpendRulesTableProps = {
 
 function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, emptyState, onRowSelectionChange, headerComponent}: WorkspaceSpendRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -41,7 +41,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, em
             label: translate('workspace.rules.spendRules.tableColumnType'),
             sortable: true,
             width: variables.tableTypeColumnWidth,
-            styling: {containerStyles: [styles.justifyContentCenter]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER},
         },
         {
             key: 'card',

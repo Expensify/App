@@ -3,7 +3,6 @@ import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@c
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -34,7 +33,6 @@ type WorkspaceExpenseDefaultsTableProps = {
 
 function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent}: WorkspaceExpenseDefaultsTableProps) {
     const {translate, localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -44,7 +42,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnType'),
             sortable: true,
             width: variables.tableTypeColumnWidth,
-            styling: {containerStyles: [styles.justifyContentCenter]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER},
         },
         {
             key: 'condition',

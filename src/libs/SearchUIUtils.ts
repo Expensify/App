@@ -4818,6 +4818,11 @@ function canEditSearchColumns(type: SearchDataTypes, shouldReturnTripRooms: bool
     return (type !== CONST.SEARCH.DATA_TYPES.TRIP || shouldReturnTripRooms) && getCustomColumns(type).length > 0;
 }
 
+/** Columns users can't remove from a report's expense table. The total has to stay so at least one column flexes. */
+function getRequiredReportDetailsColumns(): Set<SearchCustomColumnIds> {
+    return new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+}
+
 /**
  * Columns users can't remove. At least one column has to flex for the table to lay out, and the totals make sense in
  * every expense table, so they always stay. A search filtering by violations also keeps the column showing them.
@@ -4830,6 +4835,26 @@ function getRequiredSearchColumns(shouldRequireViolationsColumn: boolean): Set<S
     }
 
     return requiredColumns;
+}
+
+/** Which shown columns of a table users can hide from their menu, and the columns to save when they hide one. */
+type ColumnHiding = {
+    hidableColumns: Set<SearchColumnType>;
+    getColumnsWithout: (column: SearchColumnType) => SearchCustomColumnIds[];
+};
+
+/**
+ * Hiding starts from the saved columns, because a table drops some of them, e.g. a column no row has a value in, and
+ * saving only the shown ones would lose those. The last saved column can't be hidden.
+ */
+function getColumnHiding(shownColumns: SearchCustomColumnIds[], savedColumns: SearchCustomColumnIds[], requiredColumns: ReadonlySet<SearchColumnType>): ColumnHiding {
+    const columnsToSave = savedColumns.length > 0 ? savedColumns : shownColumns;
+    const canHideAnyColumn = columnsToSave.length > 1;
+
+    return {
+        hidableColumns: new Set(canHideAnyColumn ? shownColumns.filter((column) => !requiredColumns.has(column)) : []),
+        getColumnsWithout: (column) => columnsToSave.filter((columnToSave) => columnToSave !== column),
+    };
 }
 
 function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
@@ -8520,6 +8545,8 @@ export {
     getCustomColumnDefault,
     canEditSearchColumns,
     getRequiredSearchColumns,
+    getRequiredReportDetailsColumns,
+    getColumnHiding,
     filterValidHasValues,
     navigateToSearchRHP,
     navigateToSearchWithColumns,
