@@ -1,7 +1,8 @@
 /**
- * Decides where a link to the Concierge DM or one of its threads opens. With the wide flat navigation they open on the
- * Concierge page, under concierge/:reportID, and everywhere else in the Inbox, under r/:reportID. Links are built with
- * r/:reportID all over the app and in notifications and emails, so paths are rewritten here as they are parsed.
+ * Decides where a link to the Concierge DM or one of its threads opens. With the flatNav beta, concierge/ links open on
+ * the Concierge page, and on wide layouts r/:reportID links to Concierge conversations open there too. Everywhere else
+ * they open in the Inbox, under r/:reportID. Links are built with r/:reportID all over the app and in notifications and
+ * emails, so paths are rewritten here as they are parsed.
  */
 import getEnvironment from '@libs/Environment/getEnvironment';
 import type Environment from '@libs/Environment/getEnvironment/types';
@@ -60,9 +61,8 @@ const REPORT_PATH_REGEX = /^\/r\/(\d+)(\/\d+)?(?=[?#]|$)/;
 const NEW_CHAT_PATH_REGEX = /^\/concierge(?=[?#]|$)/;
 const CONCIERGE_CONVERSATION_PATH_REGEX = /^\/concierge\/(\d+)(\/\d+)?(?=[?#]|$)/;
 
-/** Whether Concierge conversations open on the Concierge page, which only the wide flat navigation has */
-function isConciergeNavigationEnabled(): boolean {
-    return !getIsNarrowLayout() && Permissions.isBetaEnabled(CONST.BETAS.FLAT_NAV, betas, betaConfiguration, betaOverrides, environment);
+function isConciergePageEnabled(): boolean {
+    return Permissions.isBetaEnabled(CONST.BETAS.FLAT_NAV, betas, betaConfiguration, betaOverrides, environment);
 }
 
 function isConciergeConversationReportID(reportID: string): boolean {
@@ -80,15 +80,18 @@ function getConciergeConversationPath(path: string): string {
         return path;
     }
 
-    if (isConciergeNavigationEnabled()) {
+    if (isConciergePageEnabled()) {
         // The Concierge page starts new conversations from the Concierge DM, which the user never sees as a chat of its own
         if (conciergeReportID && NEW_CHAT_PATH_REGEX.test(path)) {
             return path.replace(NEW_CHAT_PATH_REGEX, `/concierge/${conciergeReportID}`);
         }
 
-        const reportPath = path.replace(REPORT_PATH_REGEX, (match, reportID: string, reportActionPath: string | undefined) =>
-            isConciergeConversationReportID(reportID) ? `/concierge/${reportID}${reportActionPath ?? ''}` : match,
-        );
+        // Narrow layouts keep Concierge conversations in the Inbox, which still lists them there
+        const reportPath = getIsNarrowLayout()
+            ? path
+            : path.replace(REPORT_PATH_REGEX, (match, reportID: string, reportActionPath: string | undefined) =>
+                  isConciergeConversationReportID(reportID) ? `/concierge/${reportID}${reportActionPath ?? ''}` : match,
+              );
 
         // A Concierge page link to a report that isn't a Concierge conversation opens it in the Inbox
         return reportPath.replace(CONCIERGE_CONVERSATION_PATH_REGEX, (match, reportID: string, reportActionPath: string | undefined) =>

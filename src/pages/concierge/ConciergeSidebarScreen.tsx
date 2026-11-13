@@ -108,18 +108,22 @@ function ConciergeSidebarScreen() {
                 breadcrumbLabel={translate('common.concierge.title')}
                 shouldDisplaySearch={false}
             >
-                <Button
-                    size={CONST.BUTTON_SIZE.SMALL}
-                    onPress={startNewChat}
-                    sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_SIDEBAR.NEW_CHAT}
-                >
-                    <Button.Icon src={icons.Plus} />
-                    <Button.Text>{translate('common.new')}</Button.Text>
-                </Button>
+                {/* The top bar keeps a 12px right margin of its own, so 8px here lands the button 20px from the edge. */}
+                <View style={styles.mr2}>
+                    <Button
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        onPress={startNewChat}
+                        sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_SIDEBAR.NEW_CHAT}
+                    >
+                        <Button.Icon src={icons.Plus} />
+                        <Button.Text>{translate('common.new')}</Button.Text>
+                    </Button>
+                </View>
             </TopBar>
             <View style={styles.flex1}>
                 <FlashList
                     data={conversations}
+                    contentContainerStyle={[styles.ph3, styles.pt1]}
                     keyExtractor={(conversation) => conversation.key}
                     renderItem={({item}) => (
                         <ConciergeConversationRow

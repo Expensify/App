@@ -8,6 +8,7 @@ import SCREENS from '@src/SCREENS';
  */
 const WIDTH_BY_SIDEBAR_SCREEN: Record<string, number> = {
     [SCREENS.INBOX]: variables.inboxSideBarWidth,
+    [SCREENS.CONCIERGE_SIDEBAR]: variables.conciergeSideBarWidth,
 };
 
 function getSplitNavigatorSidebarWidth(sidebarScreenName?: string): number {

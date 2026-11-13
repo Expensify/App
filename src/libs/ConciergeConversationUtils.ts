@@ -64,6 +64,18 @@ function getConciergeMessageConversations(reportActions: OnyxEntry<ReportActions
     return conversations;
 }
 
+/** A thread created by opening a Concierge message is newer than the message, so its time comes from the message */
+function getConciergeThreadLastActivities(reportActions: OnyxEntry<ReportActions>): Record<string, string> {
+    const lastActivities: Record<string, string> = {};
+    for (const reportAction of Object.values(reportActions ?? {})) {
+        if (!reportAction?.childReportID) {
+            continue;
+        }
+        lastActivities[reportAction.childReportID] = reportAction.childLastVisibleActionCreated ?? reportAction.created;
+    }
+    return lastActivities;
+}
+
 function isConciergeMessageWithoutThread(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction {
     return (
         !!reportAction &&
@@ -80,5 +92,12 @@ function sortConciergeConversations(conversations: ConciergeConversation[]): Con
     return conversations.sort((first, second) => second.lastActivity.localeCompare(first.lastActivity) || second.key.localeCompare(first.key));
 }
 
-export {getConciergeMessageConversations, getConciergeThreadConversations, isConciergeConversationReport, isConciergeMessageWithoutThread, sortConciergeConversations};
+export {
+    getConciergeMessageConversations,
+    getConciergeThreadConversations,
+    getConciergeThreadLastActivities,
+    isConciergeConversationReport,
+    isConciergeMessageWithoutThread,
+    sortConciergeConversations,
+};
 export type {ConciergeConversation};

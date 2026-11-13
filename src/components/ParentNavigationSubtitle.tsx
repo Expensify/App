@@ -1,4 +1,5 @@
 import useHover from '@hooks/useHover';
+import useIsInConciergePage from '@hooks/useIsInConciergePage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -101,6 +102,8 @@ function ParentNavigationSubtitle({
 
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
+    const isInConciergePage = useIsInConciergePage();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [hasParentAccess] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportHasParentAccess});
     const [reportType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportType});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
@@ -147,6 +150,12 @@ function ParentNavigationSubtitle({
 
     const onPress = () => {
         if (!parentReportID) {
+            return;
+        }
+
+        // The Concierge DM is the new chat screen of the Concierge page
+        if (isInConciergePage && parentReportID === conciergeReportID) {
+            Navigation.navigate(ROUTES.CONCIERGE);
             return;
         }
 

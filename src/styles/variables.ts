@@ -193,6 +193,7 @@ export default {
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 260,
     inboxSideBarWidth: 360,
+    conciergeSideBarWidth: 340,
     superWideRHPLeftMargin: 360,
     // RHP panel width. Kept separate from sideBarWidth (the LHN) so the two can differ.
     rhpWidth: 440,
@@ -201,7 +202,6 @@ export default {
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
-    conciergeConversationIndicatorSize: 8,
     flatNavigationBarWidth: 232,
     flatNavigationBarItemHeight: 40,
     flatNavigationBarAccountItemHeight: 56,

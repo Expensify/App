@@ -2295,14 +2295,6 @@ const staticStyles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
-        conciergeConversationRowIndicator: {
-            width: variables.conciergeConversationIndicatorSize,
-            height: variables.conciergeConversationIndicatorSize,
-            borderRadius: variables.conciergeConversationIndicatorSize / 2,
-            borderWidth: 1.5,
-            borderColor: theme.icon,
-        },
-
         sidebarLinkTextBold: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             color: theme.heading,
