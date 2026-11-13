@@ -500,6 +500,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Esta pessoa que enviou o relatório tem uma conta bancária que não é em USD. Ative os reembolsos globais para pagar o relatório, ou peça para adicionar uma conta bancária em USD.',
         purchaseAmount: 'Valor da compra',
+        convertedAmount: 'Valor convertido',
         originalAmount: 'Valor original',
         frequency: 'Frequência',
         link: 'Link',

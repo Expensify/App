@@ -506,6 +506,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalTitle: 'Zapłać raport',
         corpayPayModalPrompt: 'Ta osoba zgłaszająca ma konto bankowe inne niż USD. Włącz globalne zwroty, aby zapłacić raport, lub poproś o dodanie konta bankowego w USD.',
         purchaseAmount: 'Kwota zakupu',
+        convertedAmount: 'Kwota przeliczona',
         originalAmount: 'Kwota pierwotna',
         frequency: 'Częstotliwość',
         link: 'Link',

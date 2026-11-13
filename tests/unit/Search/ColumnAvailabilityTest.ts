@@ -116,6 +116,17 @@ describe('Column availability single source of truth', () => {
         expect(reportColumns).toContain(TABLE_COLUMNS.ORIGINAL_AMOUNT);
     });
 
+    test('the Converted amount column is offered in Search but not in the single-report picker', () => {
+        // Given the column that shows each expense in its workspace currency
+        // When the two pickers are built
+        const expenseColumns = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
+        const reportColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS);
+
+        // Then only Search offers it, because the report view already shows converted amounts in its Total column
+        expect(expenseColumns).toContain(TABLE_COLUMNS.CONVERTED_AMOUNT);
+        expect(reportColumns).not.toContain(TABLE_COLUMNS.CONVERTED_AMOUNT);
+    });
+
     test('report-level columns stay out of the single-report picker', () => {
         const reportColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS);
         const reportLevelColumns = [

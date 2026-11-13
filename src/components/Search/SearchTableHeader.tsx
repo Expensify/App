@@ -202,6 +202,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         isColumnSortable: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT,
+        translationKey: 'common.convertedAmount',
+        isColumnSortable: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
         isColumnSortable: true,

@@ -164,6 +164,7 @@ import {
     getTaskAssigneeChatOnyxData,
     getTitleFieldWithFallback,
     getTransactionDetails,
+    getTransactionPolicyConvertedDisplayAmount,
     getTransactionReportName,
     getUploadingAttachmentLabelFromDraft,
     getTransactionSortValue,
@@ -28600,6 +28601,65 @@ describe('ReportUtils', () => {
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             });
+        });
+    });
+
+    describe('getTransactionPolicyConvertedDisplayAmount', () => {
+        const expenseReport: Report = {...createRandomReport(1, undefined), type: CONST.REPORT.TYPE.EXPENSE};
+        const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.IOU};
+
+        it('signs the workspace amount like the displayed amount on an expense report', () => {
+            // Given an expense on an expense report, stored with the opposite sign in both currencies
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -1000,
+                currency: 'EUR',
+                policyConvertedAmount: -1250,
+                policyCurrency: 'USD',
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, expenseReport, undefined);
+
+            // Then it is flipped the same way as the Amount column, not shown in the stored sign
+            expect(displayAmount).toBe(1250);
+        });
+
+        it('shows the workspace amount as positive on an IOU', () => {
+            // Given an IOU expense stored as negative
+            const transaction: Transaction = {
+                ...createRandomTransaction(2),
+                reportID: iouReport.reportID,
+                amount: -1000,
+                currency: 'EUR',
+                policyConvertedAmount: -1250,
+                policyCurrency: 'USD',
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, iouReport, undefined);
+
+            // Then it is positive, because IOU amounts are never shown as negative
+            expect(displayAmount).toBe(1250);
+        });
+
+        it('flips the sign of an unreported expense', () => {
+            // Given an unreported refund, stored as positive, that the server returned in its own currency
+            const transaction: Transaction = {
+                ...createRandomTransaction(3),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 500,
+                currency: 'EUR',
+                policyConvertedAmount: 500,
+                policyCurrency: 'EUR',
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, undefined, undefined);
+
+            // Then it shows as negative, matching how the Amount column shows a tracked refund
+            expect(displayAmount).toBe(-500);
         });
     });
 

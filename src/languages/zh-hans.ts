@@ -496,6 +496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalTitle: '支付报告',
         corpayPayModalPrompt: '此提交者使用的是非美元银行账户。请启用全球报销以支付该报告，或请其添加美元银行账户。',
         purchaseAmount: '购买金额',
+        convertedAmount: '换算金额',
         originalAmount: '原始金额',
         frequency: '频率',
         link: '链接',

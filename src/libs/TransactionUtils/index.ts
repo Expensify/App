@@ -618,6 +618,19 @@ function getOriginalAmount(transaction: Transaction): number {
     return Math.abs(amount);
 }
 
+/**
+ * Return an amount stored with the transaction's sign, signed for display.
+ * IOU amounts show as positive, while expense report and tracked expense amounts are stored with the opposite sign and are flipped.
+ */
+function getAmountWithDisplaySign(amount: number, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false): number {
+    if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
+        return Math.abs(amount);
+    }
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    return amount ? -amount : 0;
+}
+
 function getConvertedAmount(
     transaction: OnyxInputOrEntry<Transaction>,
     isFromExpenseReport = false,
@@ -625,22 +638,13 @@ function getConvertedAmount(
     allowNegative = false,
     disableOppositeConversion = false,
 ): number {
-    // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
-        return Math.abs(transaction?.convertedAmount ?? 0);
-    }
-
-    if (disableOppositeConversion) {
-        return transaction?.convertedAmount ?? 0;
-    }
-
-    // Expense report case:
-    // The amounts are stored using an opposite sign and negative values can be set,
-    // we need to return an opposite sign than is saved in the transaction object
     const convertedAmount = transaction?.convertedAmount ?? 0;
+    const canBeNegative = isFromExpenseReport || isFromTrackedExpense || allowNegative;
+    if (canBeNegative && disableOppositeConversion) {
+        return convertedAmount;
+    }
 
-    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
-    return convertedAmount ? -convertedAmount : 0;
+    return getAmountWithDisplaySign(convertedAmount, isFromExpenseReport, isFromTrackedExpense, allowNegative);
 }
 
 /**
@@ -1988,6 +1992,7 @@ export {
     getOriginalCurrencyForDisplay,
     getMCCForDisplay,
     hasDisplayableMCC,
+    getAmountWithDisplaySign,
     getConvertedAmount,
     isTimeRequest,
     getExpenseTypeTranslationKey,

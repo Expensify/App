@@ -500,6 +500,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalTitle: 'レポートを支払う',
         corpayPayModalPrompt: 'この提出者は非USDの銀行口座を使用しています。レポートを支払うにはグローバル払い戻しを有効にするか、USDの銀行口座を追加するよう依頼してください。',
         purchaseAmount: '購入金額',
+        convertedAmount: '換算額',
         originalAmount: '元の金額',
         frequency: '頻度',
         link: 'リンク',

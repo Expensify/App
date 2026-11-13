@@ -8571,6 +8571,12 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                // Search only, because the report view already shows each expense's converted amount in its Total column.
+                CONVERTED_AMOUNT: {
+                    column: this.TABLE_COLUMNS.CONVERTED_AMOUNT,
+                    search: true,
+                    reportView: false,
+                },
                 REPORT_ID: {
                     column: this.TABLE_COLUMNS.REPORT_ID,
                     search: true,
@@ -8949,6 +8955,7 @@ const CONST = {
             TAG: 'tag',
             VIOLATIONS: 'violations',
             ORIGINAL_AMOUNT: 'originalamount',
+            CONVERTED_AMOUNT: 'convertedAmount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             HELD: 'held',
@@ -9254,6 +9261,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.TAG]: 'tag',
                 [this.TABLE_COLUMNS.VIOLATIONS]: 'violations',
                 [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
+                [this.TABLE_COLUMNS.CONVERTED_AMOUNT]: 'converted-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
                 [this.TABLE_COLUMNS.HELD]: 'held',
