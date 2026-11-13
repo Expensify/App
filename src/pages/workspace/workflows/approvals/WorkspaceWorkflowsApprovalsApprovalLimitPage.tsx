@@ -6,7 +6,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -276,32 +275,39 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                 />
                             </View>
 
-                            <MenuItemWithTopDescription
+                            <MenuItemSectionRoot
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_ADDITIONAL_APPROVER}
                                 accessibilityLabel={selectedApproverDisplayName}
-                                titleStyle={styles.textNormalThemeText}
-                                description={translate('workflowsApprovalLimitPage.additionalApproverLabel')}
-                                descriptionTextStyle={selectedApproverDisplayName ? styles.textLabelSupportingNormal : undefined}
-                                titleComponent={
-                                    selectedApproverEmail ? (
-                                        <View style={styles.pr3}>
-                                            <UserPill
-                                                avatar={selectedApproverPersonalDetails?.avatar}
-                                                displayName={selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail}
-                                                email={selectedApproverEmail}
-                                                style={styles.userPillStandalone}
-                                            />
-                                        </View>
-                                    ) : undefined
-                                }
-                                onPress={navigateToApproverSelector}
-                                shouldShowRightIcon
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                brickRoadIndicator={approverErrorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                errorText={approverErrorText}
-                                disabled={areLimitFieldsDisabled}
-                                shouldGreyOutWhenDisabled
-                            />
+                                onPress={callIfAuthenticated(navigateToApproverSelector, session)}
+                                isDisabled={areLimitFieldsDisabled}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItemField.Content name={translate('workflowsApprovalLimitPage.additionalApproverLabel')}>
+                                        {!!selectedApproverEmail && (
+                                            <MenuItem.FieldValue accessibilityLabel={selectedApproverDisplayName}>
+                                                <View style={styles.pr3}>
+                                                    <UserPill
+                                                        avatar={selectedApproverPersonalDetails?.avatar}
+                                                        displayName={selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail}
+                                                        email={selectedApproverEmail}
+                                                        style={styles.userPillStandalone}
+                                                    />
+                                                </View>
+                                            </MenuItem.FieldValue>
+                                        )}
+                                    </MenuItemField.Content>
+                                    <MenuItem.Trailing>
+                                        {!!approverErrorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                                {!!approverErrorText && (
+                                    <MenuItem.HelpText
+                                        isError
+                                        message={approverErrorText}
+                                    />
+                                )}
+                            </MenuItemSectionRoot>
 
                             {shouldShowRemoveLimitRow && (
                                 <MenuItemSectionRoot
