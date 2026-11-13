@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 
+import useIsInAskConcierge from '@hooks/useIsInAskConcierge';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,9 +24,14 @@ type ConciergeChatHistoryToggleProps = {
 };
 
 function ConciergeChatHistoryToggle({isHistoryShown, onPress, containerStyles}: ConciergeChatHistoryToggleProps) {
+    const isInAskConcierge = useIsInAskConcierge();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
+
+    if (isInAskConcierge) {
+        return null;
+    }
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.mh5, containerStyles]}>

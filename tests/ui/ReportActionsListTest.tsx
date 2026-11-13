@@ -48,6 +48,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import type ReactNative from 'react-native';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -198,6 +199,7 @@ type MockInvertedFlashListProps = {
     extraData?: unknown;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onContentSizeChange?: () => void;
+    contentContainerStyle?: ReactNative.StyleProp<ReactNative.ViewStyle>;
 };
 
 const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
@@ -403,6 +405,24 @@ describe('ReportActionsList (body)', () => {
     afterEach(async () => {
         await waitForBatchedUpdatesWithAct();
         await Onyx.clear();
+    });
+
+    it.each([CONST.REPORT.TYPE.SUPPORT_TICKET, CONST.REPORT.TYPE.CHAT])('uses compact visual-top padding for %s conversations', (type) => {
+        // Given a loaded support ticket or Concierge-style thread
+        const report: OnyxTypes.Report = {...mockReport, type, parentReportID: '456', parentReportActionID: '789'};
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseOnyx.mockImplementation((key, options) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`) {
+                return [report, {status: 'loaded'}];
+            }
+            return getMockOnyxValue(key, options);
+        });
+
+        // When its conversation list is rendered
+        renderReportActionsList();
+
+        // Then both use the same compact spacing above the first message in the inverted list
+        expect(StyleSheet.flatten(getCapturedListProps()?.contentContainerStyle)).toMatchObject({paddingBottom: 8});
     });
 
     it('leaves counter copy subscriptions in the counter wrapper while forwarding report and navigation props', () => {
