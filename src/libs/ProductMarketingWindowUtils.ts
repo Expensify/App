@@ -5,15 +5,15 @@ import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {SingleImageSource} from '@src/types/utils/ReactNativeCompat';
 
-import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 type ProductMarketingAnnouncementVisual =
     | {
           type: 'image';
-          source: ImageSourcePropType;
+          source: SingleImageSource;
       }
     | {
           type: 'illustration';

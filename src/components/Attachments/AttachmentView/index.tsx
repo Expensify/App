@@ -98,7 +98,7 @@ type AttachmentViewProps = Attachment & {
     rotation?: RotationDegrees;
 };
 
-function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined, fileType?: string) {
+function checkIsFileImage(source: string | number | ImageURISource | readonly ImageURISource[], fileName: string | undefined, fileType?: string) {
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
 
     const isFileNameImage = !!fileName && Str.isImage(fileName);

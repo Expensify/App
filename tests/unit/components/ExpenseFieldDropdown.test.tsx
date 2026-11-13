@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {ReactNode} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 
 import React, {createRef} from 'react';
 import {View} from 'react-native';
@@ -45,7 +45,7 @@ const pressRow = () => fireEvent.press(screen.getByTestId(ROW_TEST_ID), {nativeE
  * geometry, which the test renderer never lays out, so each test says where the row sits instead.
  */
 const mockRowAt = (rowTop: number) => {
-    jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((callback) => {
+    jest.spyOn<ComponentRef<typeof View>, 'measureInWindow'>(View.prototype, 'measureInWindow').mockImplementation((callback) => {
         callback(ROW_X, rowTop, ROW_WIDTH, ROW_HEIGHT);
     });
 };

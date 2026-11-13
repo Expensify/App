@@ -16,10 +16,10 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ImageContentFit} from 'expo-image';
-import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {WebStyle} from 'react-native-web';
 import type {MergeExclusive} from 'type-fest';
 
@@ -74,7 +74,7 @@ type BaseBlockingViewProps = {
 
 type BlockingViewIconProps = {
     /** Expensicon for the page */
-    icon: React.FC<SvgProps> | ImageSourcePropType;
+    icon: IconAsset;
 
     iconWidth?: number;
     iconHeight?: number;
