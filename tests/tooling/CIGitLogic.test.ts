@@ -195,6 +195,8 @@ async function initGitServer() {
     fs.mkdirSync(GIT_REMOTE, {recursive: true});
     process.chdir(GIT_REMOTE);
     await $`git init -b main`;
+    // Detached maintenance must not keep changing files after an awaited Git command finishes.
+    await $`git config --local maintenance.auto false`;
     await setupGitAsHuman();
     await $`npm init -y`;
     await $`npm version --no-git-tag-version 1.0.0-0`;
@@ -219,13 +221,17 @@ async function initGitServer() {
 }
 
 async function checkoutRepo() {
+    // The previous checkout may still be the cwd when it is replaced.
+    process.chdir(SANDBOX_DIR);
     if (fs.existsSync(DUMMY_DIR)) {
         Log.warn(`Found existing directory at ${DUMMY_DIR}, deleting it to simulate a fresh checkout...`);
-        fs.rmSync(DUMMY_DIR, {recursive: true});
+        fs.rmSync(DUMMY_DIR, {recursive: true, force: true});
     }
     fs.mkdirSync(DUMMY_DIR);
     process.chdir(DUMMY_DIR);
     await $`git init`;
+    // This setting is local to each fresh checkout, leaving the developer's Git configuration untouched.
+    await $`git config --local maintenance.auto false`;
     await $`git remote add origin ${GIT_REMOTE}`;
     await $`git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main`;
     await $`git checkout --progress --force -B main refs/remotes/origin/main`;
@@ -490,6 +496,40 @@ describe.serial('CIGitLogic', () => {
         // Restore the cwd before removing the sandbox, so the process is never left sitting in a deleted directory.
         process.chdir(startingDir);
         fs.rmSync(SANDBOX_DIR, {recursive: true, force: true});
+    });
+
+    test('Recreate a checkout removed after its existence check', async () => {
+        // Given another process removes the checkout between the existence check and deletion.
+        const existsSync = fs.existsSync;
+        const existsSyncSpy = jest.spyOn(fs, 'existsSync').mockImplementationOnce((directory) => {
+            const exists = existsSync(directory);
+            fs.rmSync(DUMMY_DIR, {recursive: true});
+            return exists;
+        });
+
+        try {
+            // When a fresh checkout replaces the missing directory.
+            await checkoutRepo();
+
+            // Then it is a usable repository rather than an ENOENT failure.
+            expect(await refExists('main')).toBe(true);
+            expect(getVersion()).toBe('2.0.0-0');
+        } finally {
+            existsSyncSpy.mockRestore();
+        }
+    });
+
+    test('Disable automatic maintenance in both sandbox repositories', async () => {
+        // Given both repositories can run Git commands that trigger detached maintenance.
+        // When Git resolves their local configuration.
+        const remoteMaintenance = await $`git -C ${GIT_REMOTE} config --get maintenance.auto`.nothrow();
+        const checkoutMaintenance = await $`git -C ${DUMMY_DIR} config --get maintenance.auto`.nothrow();
+
+        // Then no background maintenance should outlive a command and race with sandbox deletion.
+        expect(remoteMaintenance.exitCode).toBe(0);
+        expect(remoteMaintenance.text().trim()).toBe('false');
+        expect(checkoutMaintenance.exitCode).toBe(0);
+        expect(checkoutMaintenance.text().trim()).toBe('false');
     });
 
     test('Merge a pull request while the checklist is unlocked', async () => {
