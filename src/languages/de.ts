@@ -2968,16 +2968,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Geben Sie Ihre Unternehmensdaten ein',
                 legalName: 'Rechtlicher Firmenname',
-                companyType: 'Unternehmensart',
-                companyTypeLimitedLiabilityCompany: 'Gesellschaft mit beschränkter Haftung (LLC)',
-                companyTypeForProfitCorporation: 'Gewinnorientierte Kapitalgesellschaft',
-                companyTypeNonProfitCorporation: 'Gemeinnützige Kapitalgesellschaft',
-                companyTypeSoleProprietorship: 'Einzelunternehmen',
-                companyTypeGeneralPartnership: 'Offene Personengesellschaft',
-                companyTypeLimitedPartnership: 'Kommanditgesellschaft',
-                companyTypeLimitedLiabilityPartnership: 'Partnerschaft mit beschränkter Haftung (LLP)',
-                companyTypeTrust: 'Trust',
-                companyTypeOther: 'Sonstiges',
                 companyRole: 'Ihre Rolle im Unternehmen',
                 companyRoleOwner: 'Eigentümer',
                 companyRoleDirector: 'Geschäftsführer',
@@ -3146,8 +3136,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: 'Ich bestätige, dass meine Angaben wahr und korrekt sind.',
                 expensifyTerms: `Ich stimme den <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Allgemeinen Geschäftsbedingungen</a> und der <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzerklärung</a> von Expensify zu.`,
                 expensifyTermsAccessibilityLabel: 'Ich stimme den Allgemeinen Geschäftsbedingungen und der Datenschutzerklärung von Expensify zu.',
-                wiseTerms: `Ich stimme den <a href="${CONST.WISE.TERMS_URL}">Allgemeinen Geschäftsbedingungen</a> und der <a href="${CONST.WISE.PRIVACY_URL}">Datenschutzerklärung</a> von Wise zu.`,
-                wiseTermsAccessibilityLabel: 'Ich stimme den Allgemeinen Geschäftsbedingungen und der Datenschutzerklärung von Wise zu.',
+                wiseTerms: `Mit dem Klick auf Bestätigen akzeptiere ich die <a href="${CONST.WISE.TERMS_URL}">Nutzungsbedingungen</a> von Wise, willige ein, elektronische Unterlagen gemäß der <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Richtlinie zur elektronischen Kommunikation</a> von Wise zu erhalten, und akzeptiere die <a href="${CONST.WISE.PRIVACY_URL}">Datenschutzerklärung</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'Mit dem Klick auf Bestätigen akzeptiere ich die Nutzungsbedingungen von Wise, willige ein, elektronische Unterlagen gemäß der Richtlinie zur elektronischen Kommunikation von Wise zu erhalten, und akzeptiere die Datenschutzerklärung.',
                 error: 'Bitte akzeptieren Sie alle Bedingungen, um fortzufahren.',
             },
             moreInfoNeeded: {
@@ -3164,7 +3155,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Konto genehmigt', heading: 'Zur weltweiten Zahlung freigegeben', description: 'Bezahlen Sie Mitglieder, wo immer sie sind.'},
             rejected: {title: 'Bankkonto abgelehnt', heading: 'Unser Partner hat Ihr Bankkonto abgelehnt', description: 'Chatten Sie mit Concierge, um weitere Informationen zu erhalten.'},
         },
-        wiseSetupInProgress: {message: 'Einrichtung der globalen Rückerstattungen läuft.', continue: 'Fortfahren.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Einrichtung der globalen Rückerstattungen läuft.', link: 'Fortfahren.'},
+            inReview: {message: 'Einrichtung der globalen Rückerstattungen wird geprüft.', link: 'Status prüfen.'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Globale Rückerstattungen einrichten?',
             subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.',

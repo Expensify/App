@@ -61,7 +61,6 @@ const COMPLETE_DRAFT = {
     hasNoSSN: false,
     idDocument: [toSavedFile('wise/id.png')],
     companyName: 'Boulder Development Inc.',
-    companyType: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
     companyRole: CONST.WISE.COMPANY_ROLE.OWNER,
     industryCategories: [CONST.WISE.INDUSTRY_CATEGORIES[0]],
     description: 'We sell bikes',

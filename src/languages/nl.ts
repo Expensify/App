@@ -2958,16 +2958,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Voer je bedrijfsgegevens in',
                 legalName: 'Wettelijke bedrijfsnaam',
-                companyType: 'Bedrijfstype',
-                companyTypeLimitedLiabilityCompany: 'Vennootschap met beperkte aansprakelijkheid (LLC)',
-                companyTypeForProfitCorporation: 'Vennootschap met winstoogmerk',
-                companyTypeNonProfitCorporation: 'Vennootschap zonder winstoogmerk',
-                companyTypeSoleProprietorship: 'Eenmanszaak',
-                companyTypeGeneralPartnership: 'Vennootschap onder firma',
-                companyTypeLimitedPartnership: 'Commanditaire vennootschap',
-                companyTypeLimitedLiabilityPartnership: 'Personenvennootschap met beperkte aansprakelijkheid (LLP)',
-                companyTypeTrust: 'Trust',
-                companyTypeOther: 'Overig',
                 companyRole: 'Je rol in het bedrijf',
                 companyRoleOwner: 'Eigenaar',
                 companyRoleDirector: 'Directeur',
@@ -3136,8 +3126,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: 'Ik verklaar dat de door mij verstrekte informatie waar en juist is.',
                 expensifyTerms: `Ik ga akkoord met de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">algemene voorwaarden</a> en het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">privacybeleid</a> van Expensify.`,
                 expensifyTermsAccessibilityLabel: 'Ik ga akkoord met de algemene voorwaarden en het privacybeleid van Expensify.',
-                wiseTerms: `Ik ga akkoord met de <a href="${CONST.WISE.TERMS_URL}">algemene voorwaarden</a> en het <a href="${CONST.WISE.PRIVACY_URL}">privacybeleid</a> van Wise.`,
-                wiseTermsAccessibilityLabel: 'Ik ga akkoord met de algemene voorwaarden en het privacybeleid van Wise.',
+                wiseTerms: `Door op Bevestigen te klikken, accepteer ik de <a href="${CONST.WISE.TERMS_URL}">Gebruiksvoorwaarden</a> van Wise, ga ik akkoord met het ontvangen van elektronische documenten zoals beschreven in het <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Beleid voor elektronische communicatie</a> van Wise, en accepteer ik het <a href="${CONST.WISE.PRIVACY_URL}">Privacybeleid</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'Door op Bevestigen te klikken, accepteer ik de Gebruiksvoorwaarden van Wise, ga ik akkoord met het ontvangen van elektronische documenten zoals beschreven in het Beleid voor elektronische communicatie van Wise, en accepteer ik het Privacybeleid.',
                 error: 'Accepteer alle voorwaarden om door te gaan.',
             },
             moreInfoNeeded: {
@@ -3154,7 +3145,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Account goedgekeurd', heading: 'Goedgekeurd om wereldwijd te betalen', description: 'Betaal leden, waar ze ook zijn.'},
             rejected: {title: 'Bankrekening afgewezen', heading: 'Onze partner heeft je bankrekening afgewezen', description: 'Chat met Concierge voor meer informatie.'},
         },
-        wiseSetupInProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.', continue: 'Doorgaan.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.', link: 'Doorgaan.'},
+            inReview: {message: 'Instellen van wereldwijde terugbetalingen wordt beoordeeld.', link: 'Status bekijken.'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',

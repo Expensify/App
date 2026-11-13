@@ -103,10 +103,10 @@ type PaymentMethodItem = PaymentMethod & {
     wiseSetupInProgress?: {
         bankAccountID: number;
 
-        /** Whether the admin has something to do, which shows Continue */
-        canContinue: boolean;
+        /** Whether Wise is reviewing the onboarding with nothing for the admin to do, so the row says it is in review */
+        isInReview: boolean;
 
-        /** Whether the onboarding is already with Wise, so Continue opens the status page instead of the intro */
+        /** Whether the onboarding is already with Wise, so the row links to the status page instead of the intro */
         isOnboardingSubmitted: boolean;
     };
 
@@ -375,7 +375,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             {!!item.wiseSetupInProgress && (
                 <WiseSetupInProgressRow
                     bankAccountID={item.wiseSetupInProgress.bankAccountID}
-                    canContinue={item.wiseSetupInProgress.canContinue}
+                    isInReview={item.wiseSetupInProgress.isInReview}
                     isOnboardingSubmitted={item.wiseSetupInProgress.isOnboardingSubmitted}
                     style={[styles.pt4, styles.pb3, cardPaddingHorizontal]}
                 />

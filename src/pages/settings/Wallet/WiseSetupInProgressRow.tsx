@@ -1,4 +1,4 @@
-/** The line under a Wallet bank account whose Wise global reimbursements setup is not finished, with Continue when the admin has something to do */
+/** The line under a Wallet bank account whose Wise global reimbursements setup is not finished, with a link to where the admin can pick it up or follow it */
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -24,10 +24,10 @@ import {View} from 'react-native';
 type WiseSetupInProgressRowProps = {
     bankAccountID: number;
 
-    /** Whether the admin has something to do, which shows Continue to the intro that picks the setup up */
-    canContinue: boolean;
+    /** Whether Wise is reviewing the onboarding with nothing for the admin to do, so the row says it is in review instead of offering to continue it */
+    isInReview: boolean;
 
-    /** Whether the onboarding is already with Wise, so Continue opens the status page instead of the intro */
+    /** Whether the onboarding is already with Wise, so the row links to the status page instead of the intro */
     isOnboardingSubmitted: boolean;
 
     /** Spacing for the row, which follows the list it sits in */
@@ -35,11 +35,18 @@ type WiseSetupInProgressRowProps = {
 };
 
 /** Tells the admin under the Wallet bank account row that its global reimbursements setup is not finished */
-function WiseSetupInProgressRow({bankAccountID, canContinue, isOnboardingSubmitted, style}: WiseSetupInProgressRowProps) {
+function WiseSetupInProgressRow({bankAccountID, isInReview, isOnboardingSubmitted, style}: WiseSetupInProgressRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass']);
+    // While the admin has something to do they continue the setup, and while Wise reviews it the admin can only check its status.
+    const copyState = isInReview ? 'inReview' : 'inProgress';
+
+    const openSetup = () =>
+        Navigation.navigate(
+            isOnboardingSubmitted ? getWiseOnboardingStatusRoute(bankAccountID) : createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)),
+        );
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, style]}>
@@ -54,22 +61,13 @@ function WiseSetupInProgressRow({bankAccountID, canContinue, isOnboardingSubmitt
                 variant="label"
                 style={[styles.textSupporting, styles.flexShrink1]}
             >
-                {translate('walletPage.wiseSetupInProgress.message')}
-                {canContinue && (
-                    <>
-                        {' '}
-                        <TextLink
-                            variant="label"
-                            onPress={() =>
-                                isOnboardingSubmitted
-                                    ? Navigation.navigate(getWiseOnboardingStatusRoute(bankAccountID))
-                                    : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)))
-                            }
-                        >
-                            {translate('walletPage.wiseSetupInProgress.continue')}
-                        </TextLink>
-                    </>
-                )}
+                {translate(`walletPage.wiseSetupRow.${copyState}.message`)}{' '}
+                <TextLink
+                    variant="label"
+                    onPress={openSetup}
+                >
+                    {translate(`walletPage.wiseSetupRow.${copyState}.link`)}
+                </TextLink>
             </Text>
         </View>
     );
