@@ -1544,7 +1544,6 @@ const CONST = {
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         PINNABLE_TABLE_COLUMNS: 'pinnableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
-        RESIZABLE_RHP: 'resizableRHP',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
         SINGLE_EXPENSE_TABLE_VIEW: 'singleExpenseTableView',
@@ -5201,6 +5200,12 @@ const CONST = {
         RULE_CONDITIONS: {
             MATCHES: 'matches',
         },
+
+        // Expensify Classic stores this in an employee's forwardsTo or overLimitForwardsTo when it sends reports to nobody
+        EMPLOYEE_NO_ONE: 'no one',
+
+        // Approval limit, in cents, up to which Expensify Classic admins mean every report to go to the over-limit approver
+        EVERY_REPORT_OVER_LIMIT_APPROVAL_LIMIT: 100,
         FIELDS: {
             TAG: 'tag',
             CATEGORY: 'category',
@@ -9850,6 +9855,11 @@ const CONST = {
             CREATE: 'create',
             UPDATE: 'update',
             REMOVE: 'remove',
+        },
+        /** Which reports an approver after the first one gets */
+        APPROVER_CONDITION: {
+            ALWAYS: 'always',
+            OVER_AMOUNT: 'overAmount',
         },
     },
 

@@ -23,7 +23,9 @@ import {filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/Rul
 import {
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
+    extractSubmitterEmails,
     getWorkflowMemberEmails,
+    hasHiddenEmployeeRoutes,
     includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
 } from '@libs/WorkflowUtils';
@@ -108,13 +110,29 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
     const {currentApprovalWorkflow, defaultApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = getApprovalWorkflowData();
 
-    const updateApprovalWorkflowCallback = () => {
+    const updateApprovalWorkflowCallback = async () => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
             return;
         }
 
-        if (!validateApprovalWorkflow(approvalWorkflow, shouldUseApprovalWorkflowRules)) {
+        if (!validateApprovalWorkflow(approvalWorkflow)) {
             return;
+        }
+
+        // Saving a workflow the employee settings still route turns it into rules, which only keep the approvers shown, so
+        // the admin is warned when the employee settings route some reports another way
+        const ruleSubmitterEmails = new Set(Object.values(getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID)).flatMap(extractSubmitterEmails));
+        const isRoutedByEmployeeSettings = !initialApprovalWorkflow.members.some((member) => ruleSubmitterEmails.has(member.email));
+        if (shouldUseApprovalWorkflowRules && isRoutedByEmployeeSettings && hasHiddenEmployeeRoutes(initialApprovalWorkflow.approvers, policy?.employeeList ?? {})) {
+            const result = await showConfirmModal({
+                title: translate('workflowsEditApprovalsPage.hiddenRoutesTitle'),
+                prompt: translate('workflowsEditApprovalsPage.hiddenRoutesPrompt'),
+                confirmText: translate('common.save'),
+                cancelText: translate('common.cancel'),
+            });
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
         }
 
         // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
