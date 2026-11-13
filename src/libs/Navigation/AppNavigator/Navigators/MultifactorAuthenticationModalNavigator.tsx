@@ -1,8 +1,10 @@
+import FocusTrapExtraContainersContext from '@components/FocusTrap/FocusTrapExtraContainersContext';
 import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
 import {handleInitialScreenLayout, MFA_INITIAL_SCREEN, mfaNavigationRef, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RHPResizeHandle from '@components/RHPResizeHandle';
 
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -28,17 +30,15 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import viewRef from '@src/types/utils/viewRef';
 
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 
 import {BaseNavigationContainer, NavigationIndependentTree, StackActions} from '@react-navigation/core';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import getRHPFrameStyle from './getRHPFrameStyle';
-import RHPResizeHandle from './RHPResizeHandle';
 
 type Phase = 'open' | 'closing' | 'closed';
 
@@ -144,12 +144,12 @@ function MultifactorAuthenticationModalNavigator() {
         opacity: backdropProgress.get() * variables.rhpOverlayOpacity,
     }));
 
+    const [resizeHandleElement, setResizeHandleElement] = useState<HTMLDivElement | null>(null);
     const {width: singleRHPWidth} = useSingleRHPWidth();
     const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, singleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
     const slideFromWidthInterpolator = (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}});
     const {isBetaEnabled} = usePermissions();
     const isResizable = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP) && !shouldUseNarrowLayout;
-    const singleRHPWidthScopeRef = useRef<HTMLElement | null>(null);
 
     const stackContentStyle = styles.singleRHPStackBox(isResizable);
 
@@ -223,7 +223,6 @@ function MultifactorAuthenticationModalNavigator() {
 
     return (
         <View
-            ref={viewRef(singleRHPWidthScopeRef)}
             style={[StyleSheet.absoluteFill, styles.mfaModalNavigatorRoot]}
             pointerEvents="box-none"
         >
@@ -239,10 +238,12 @@ function MultifactorAuthenticationModalNavigator() {
                     />
                 </Animated.View>
             )}
-            <View style={frameStyle}>
-                <View style={stackContentStyle}>{stack}</View>
-            </View>
-            {isResizable && <RHPResizeHandle scopeRef={singleRHPWidthScopeRef} />}
+            <FocusTrapExtraContainersContext.Provider value={resizeHandleElement?.parentElement ? [resizeHandleElement.parentElement] : []}>
+                <View style={frameStyle}>
+                    <View style={stackContentStyle}>{stack}</View>
+                </View>
+            </FocusTrapExtraContainersContext.Provider>
+            {isResizable && <RHPResizeHandle ref={setResizeHandleElement} />}
             <CancelConfirmModal
                 isVisible={isCancelConfirmVisible}
                 onConfirm={confirmCancel}

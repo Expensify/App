@@ -195,7 +195,7 @@ function DynamicConfirmationPage() {
                             >
                                 {translate('violations.confirmDetails')}
                             </Text>
-                            <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
+                            <Text>{translate(isReportOwner ? 'violations.confirmDuplicatesRemovedInfo' : 'violations.confirmDuplicatesInfo')}</Text>
                         </View>
                         {/* We need that provider here because MoneyRequestView component requires that */}
                         <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
@@ -220,6 +220,7 @@ function DynamicConfirmationPage() {
                             />
                         )}
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_DUPLICATE.CONFIRM_BUTTON}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => {
                                 // With every duplicate filtered out (e.g. all on approved/closed/reimbursed reports) there

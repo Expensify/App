@@ -6,6 +6,7 @@ import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getNetSuiteCreditCardAccounts} from '@libs/NetSuiteUtils';
 import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -91,6 +92,7 @@ type ProgramAccountExport = {
         | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT
         | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT
         | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT
         | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT;
 
     /** Every account, in connection order, because an account that is no longer offered can still be the resolved one */
@@ -204,7 +206,7 @@ function getPolicyCardExportSettings(
     policy?: Policy,
     backTo?: string | undefined,
 ): CardExportSettings | undefined {
-    const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
+    const basePath = ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
@@ -342,6 +344,22 @@ function getPolicyCardExportSettings(
                             workspaceDefaultAccountID: config?.payableAcct,
                         },
                     };
+                case CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE: {
+                    return {
+                        description,
+                        exportPageLink,
+                        shouldShowMenuItem: true,
+                        // Journal entries and credit card charges keep separate card-level mappings, so selecting an account under one export type never overwrites the other
+                        exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT,
+                        accountSelection: {
+                            type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
+                            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT,
+                            accounts: normalizeAccounts(getNetSuiteCreditCardAccounts(policy)),
+                            defaultLabel: defaultAccount,
+                            workspaceDefaultAccountID: config?.creditCardAccount,
+                        },
+                    };
+                }
                 default:
                     return {description, exportPageLink, shouldShowMenuItem: false};
             }
@@ -437,8 +455,6 @@ function getPolicyCardExportSettings(
         case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
             const rilletConfig = policy?.connections?.rillet?.config;
             const rilletData = policy?.connections?.rillet?.data;
-            const exportReimbursable = rilletConfig?.export?.reimbursable ?? CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL;
-            const exportNonReimbursable = rilletConfig?.export?.nonReimbursable ?? CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE;
 
             return {
                 description: currentConnectionName
@@ -447,10 +463,7 @@ function getPolicyCardExportSettings(
                 exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
                 shouldHideMenuItemDescription: true,
                 shouldShowMenuItemIcon: true,
-                shouldShowMenuItem:
-                    rilletConfig?.export?.exportToMultipleAccounts &&
-                    exportReimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL &&
-                    exportNonReimbursable === CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE,
+                shouldShowMenuItem: rilletConfig?.export?.exportToMultipleAccounts,
                 accountSelection: {
                     type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT,
                     nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
@@ -538,6 +551,41 @@ function getPolicyCardExportSettings(
                     })),
                     workspaceProgramAccountKey: campfireConfig?.export?.creditCardAccountID,
                     programAccountKeysByFeed: campfireConfig?.export?.cardProgramAccounts,
+                    exportsToLabel: translate('common.exportsTo'),
+                    defaultTitleSuffix: translate('common.default').toLocaleLowerCase(),
+                    defaultOptionPrefix: translate('common.default'),
+                },
+            };
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS: {
+            const zohoBooksConfig = policy?.connections?.zohoBooks?.config;
+            const zohoBooksData = policy?.connections?.zohoBooks?.data;
+            const exportReimbursable = zohoBooksConfig?.export?.reimbursable ?? CONST.ZOHO_BOOKS_EXPORT_REIMBURSABLE.VENDOR_BILL;
+            const exportNonReimbursable = zohoBooksConfig?.export?.nonReimbursable ?? CONST.ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE.EXPENSE;
+
+            return {
+                description: currentConnectionName
+                    ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.zohoBooks.cardAccount.label'))
+                    : undefined,
+                exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
+                shouldShowMenuItem:
+                    zohoBooksConfig?.export?.exportToMultipleAccounts &&
+                    exportReimbursable === CONST.ZOHO_BOOKS_EXPORT_REIMBURSABLE.VENDOR_BILL &&
+                    exportNonReimbursable === CONST.ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE.EXPENSE,
+                accountSelection: {
+                    type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT,
+                    nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT,
+                    accounts: (zohoBooksData?.bankAccounts ?? []).map((account) => ({
+                        id: account.id,
+                        label: account.name,
+                        keyForList: account.id,
+                        configKey: account.id,
+                        isSelectable: account.isActive && (account.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK || account.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CREDIT_CARD),
+                    })),
+                    workspaceProgramAccountKey: zohoBooksConfig?.export?.creditCardAccountID,
+                    programAccountKeysByFeed: zohoBooksConfig?.export?.cardProgramAccounts,
                     exportsToLabel: translate('common.exportsTo'),
                     defaultTitleSuffix: translate('common.default').toLocaleLowerCase(),
                     defaultOptionPrefix: translate('common.default'),

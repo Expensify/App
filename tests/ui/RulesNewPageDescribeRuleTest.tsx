@@ -32,6 +32,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 let mockPrompt = '';
 const mockScrollTo = jest.fn();
+const mockScrollToEnd = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation = jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native');
@@ -100,15 +101,6 @@ jest.mock('@components/Text', () => {
     const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
     return ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
 });
-jest.mock('@components/MenuItem', () => {
-    const ReactModule = jest.requireActual<typeof React>('react');
-    const {Pressable, Text} = jest.requireActual<{
-        Pressable: React.ComponentType<{accessibilityLabel?: string; accessibilityRole?: string; onPress?: () => void; children?: React.ReactNode}>;
-        Text: React.ComponentType<{children?: React.ReactNode}>;
-    }>('react-native');
-    return ({title, onPress}: {title: string; onPress: () => void}) =>
-        ReactModule.createElement(Pressable, {accessibilityLabel: title, accessibilityRole: 'button', onPress}, ReactModule.createElement(Text, null, title));
-});
 jest.mock('@components/Button', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<{
@@ -139,9 +131,9 @@ jest.mock('@components/Form/FormProvider', () => {
         children: React.ReactNode;
         onSubmit: (values: {prompt: string}) => void;
         submitButtonText: string;
-        ref: React.Ref<{scrollTo: (y: number) => void}>;
+        ref: React.Ref<{scrollTo: (y: number) => void; scrollToEnd: () => void}>;
     }) {
-        ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo}));
+        ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo, scrollToEnd: mockScrollToEnd}));
         return ReactModule.createElement(
             ReactModule.Fragment,
             null,
@@ -242,7 +234,7 @@ describe('New rule describe section', () => {
         ];
         expect(options).toHaveLength(expectedOptionNames.length);
         for (const [index, name] of expectedOptionNames.entries()) {
-            expect(options.at(index)).toHaveAccessibleName(name);
+            expect(options.at(index)).toHaveAccessibleName(`${name}, ${name}Description`);
         }
 
         // And the describe section follows, with its own submit button
@@ -467,6 +459,25 @@ describe('New rule describe section', () => {
         expect(screen.getByText('workspace.rules.newRule.impossible.quotedSuggestion Comment on the report when it is submitted')).toBeOnTheScreen();
         expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toBeUndefined();
+    });
+
+    it('scrolls to the refusal so that the keyboard does not cover it', async () => {
+        // Given an admin who described something that neither a rule nor an agent rule can do, with the keyboard still open
+        await renderRulesNewPage();
+        const {generationID} = describeRule(writeSpy, 'Text the approver when a report is submitted');
+        expect(mockScrollToEnd).not.toHaveBeenCalled();
+
+        // When Concierge refuses it
+        await answerGeneration({
+            generationID,
+            state: CONST.GENERATED_RULE.STATE.IMPOSSIBLE,
+            reason: CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY,
+            explanation: 'Rules cannot send text messages.',
+            suggestedPrompt: 'Comment on the report when it is submitted',
+        });
+
+        // Then the form scrolls to its end, because the refusal and its buttons show below the input, under the keyboard
+        expect(mockScrollToEnd).toHaveBeenCalledTimes(1);
     });
 
     it('drafts the refused description as an agent rule when the admin taps Create anyway', async () => {

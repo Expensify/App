@@ -112,6 +112,7 @@ import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
+import WorkspaceNewRolesBanner from './members/WorkspaceNewRolesBanner';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
@@ -138,7 +139,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
@@ -152,7 +152,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
     };
     const {isOffline} = useNetwork({onReconnect: getWorkspaceMembers});
-    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -172,15 +171,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {showDownloadErrorModal} = useAlertModals();
-    const currentUserLogin = currentUserPersonalDetails.login;
-    const canEditWorkspaceSettings = canEditWorkspaceSettingsUtil(policy, currentUserLogin);
-    const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
-    const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && arePaymentsEnabled(policy);
-
-    // Group policies (Collect/Control + Submit) allow member management.
-    const canManageMembers = isGroupPolicy(policy);
-    const isLoading = !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList));
-
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isFocused = useIsFocused();
@@ -191,13 +181,81 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [memberBankAccounts] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${policyID}`);
+    const {approvalWorkflows, enforcedApprovalWorkflows, approverPendingActionByMemberEmail, shouldUseApprovalWorkflowRules} = useApprovalWorkflows(policy);
 
-    const accountIDs = Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID));
-    const prevAccountIDs = usePrevious(accountIDs);
+    const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && arePaymentsEnabled(policy);
+    const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
+
+    // The bank accounts are only returned while the workspace shows them, so load the members again when that changes.
+    useEffect(() => {
+        getWorkspaceMembersEvent();
+    }, [shouldShowMemberBankAccounts]);
+
+    const filteredMembers = useWorkspaceMembers(policy);
+
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true);
+    const prevPolicyMemberEmailsToAccountIDs = usePrevious(policyMemberEmailsToAccountIDs);
     const invitedEmails = Object.keys(invitedEmailsToAccountIDsDraft ?? {});
 
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || policyMemberEmailsToAccountIDs === prevPolicyMemberEmailsToAccountIDs) {
+            return;
+        }
+
+        const tableMembers = tableRef.current?.getProcessedData() ?? [];
+        if (!tableMembers.length) {
+            return;
+        }
+
+        const invitedMemberIndex = tableMembers.findIndex((member) => invitedEmails.includes(member.login));
+
+        if (invitedMemberIndex !== -1) {
+            tableRef.current?.scrollToIndex({
+                index: invitedMemberIndex,
+                animated: false,
+                viewPosition: 0.5,
+            });
+            tableRef.current?.highlightItems(invitedEmails);
+            clearInviteDraft(policyID);
+        }
+    }, [invitedEmailsToAccountIDsDraft, isFocused, policyMemberEmailsToAccountIDs, prevPolicyMemberEmailsToAccountIDs, invitedEmails, policyID]);
+
+    useMergeSyncResultsPage(policyID);
+
+    useSearchBackPress({
+        onClearSelection: () => setSelectedEmployees([]),
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
+
+    // The role change happens on its own screen, which reports the change back by emptying the shared selection.
+    // Backing out of that screen drops the selection instead, so only a drop to zero clears the rows here.
+    const [membersSelectedForRoleChange] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE);
+    const isRoleChangeSaved = membersSelectedForRoleChange?.policyID === policyID && membersSelectedForRoleChange.logins.length === 0;
+    const [wasRoleChangeSaved, setWasRoleChangeSaved] = useState(isRoleChangeSaved);
+    if (wasRoleChangeSaved !== isRoleChangeSaved) {
+        setWasRoleChangeSaved(isRoleChangeSaved);
+
+        if (isRoleChangeSaved) {
+            setSelectedEmployees([]);
+        }
+    }
+
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
+    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
+    const currentUserLogin = currentUserPersonalDetails.login;
+    const canEditWorkspaceSettings = canEditWorkspaceSettingsUtil(policy, currentUserLogin);
+    const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
+
+    // Group policies (Collect/Control + Submit) allow member management.
+    const canManageMembers = isGroupPolicy(policy);
+    const isLoading = !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList));
+
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
-    const {approvalWorkflows, enforcedApprovalWorkflows, approverPendingActionByMemberEmail} = useApprovalWorkflows(policy);
 
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
@@ -248,13 +306,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             });
         }
     }
-
-    const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
-
-    // The bank accounts are only returned while the workspace shows them, so load the members again when that changes.
-    useEffect(() => {
-        getWorkspaceMembersEvent();
-    }, [shouldShowMemberBankAccounts]);
 
     /**
      * Open the modal to invite a user
@@ -394,7 +445,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         updateMemberRoleInline(policy, login, accountID, currentRole, newRole);
     };
 
-    const filteredMembers = useWorkspaceMembers(policy);
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const isWideTableLayout = !shouldUseNarrowLayout && !isMediumScreenWidth;
@@ -487,35 +537,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         };
     });
 
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || accountIDs === prevAccountIDs) {
-            return;
-        }
-
-        const tableMembers = tableRef.current?.getProcessedData() ?? [];
-        if (!tableMembers.length) {
-            return;
-        }
-
-        const invitedMemberIndex = tableMembers.findIndex((member) => invitedEmails.includes(member.login));
-
-        if (invitedMemberIndex !== -1) {
-            tableRef.current?.scrollToIndex({
-                index: invitedMemberIndex,
-                animated: false,
-                viewPosition: 0.5,
-            });
-            tableRef.current?.highlightItems(invitedEmails);
-            clearInviteDraft(policyID);
-        }
-    }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, invitedEmails, policyID]);
-
-    useMergeSyncResultsPage(policyID);
-
     let headerMessage;
     if (isOfflineAndNoMemberDataAvailable) {
         headerMessage = translate('workspace.common.mustBeOnlineToViewMembers');
@@ -536,53 +557,40 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const getHeaderContent = () => (
-        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
-            <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
-                    {translate('workspace.people.workspaceMembersCount', memberCount)}
-                    {shouldShowHRSyncLink && '. '}
-                    {shouldShowHRSyncLink && (
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID))}>
-                            {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
-                        </TextLink>
+        <>
+            <WorkspaceNewRolesBanner policy={policy} />
+            <View style={shouldUseNarrowLayout ? [styles.workspaceSectionMobile, styles.pr5] : styles.workspaceSection}>
+                <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
+                    <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
+                        {translate('workspace.people.workspaceMembersCount', memberCount)}
+                        {shouldShowHRSyncLink && '. '}
+                        {shouldShowHRSyncLink && (
+                            <TextLink
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE))}
+                            >
+                                {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
+                            </TextLink>
+                        )}
+                    </Text>
+                    {shouldShowHRSyncLink && isHRSyncInProgress && (
+                        <ActivityIndicator
+                            size="small"
+                            style={styles.ml2}
+                        />
                     )}
-                </Text>
-                {shouldShowHRSyncLink && isHRSyncInProgress && (
-                    <ActivityIndicator
-                        size="small"
-                        style={styles.ml2}
+                </View>
+                {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
+                    <MessagesRow
+                        type="success"
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        messages={{0: translate('workspace.people.addedWithPrimary')}}
+                        containerStyles={[styles.pb5, styles.ph5]}
+                        onDismiss={() => dismissAddedWithPrimaryLoginMessages(policyID)}
                     />
                 )}
             </View>
-            {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
-                <MessagesRow
-                    type="success"
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate('workspace.people.addedWithPrimary')}}
-                    containerStyles={[styles.pb5, styles.ph5]}
-                    onDismiss={() => dismissAddedWithPrimaryLoginMessages(policyID)}
-                />
-            )}
-        </View>
+        </>
     );
-
-    useSearchBackPress({
-        onClearSelection: () => setSelectedEmployees([]),
-        onNavigationCallBack: () => Navigation.goBack(),
-    });
-
-    // The role change happens on its own screen, which reports the change back by emptying the shared selection.
-    // Backing out of that screen drops the selection instead, so only a drop to zero clears the rows here.
-    const [membersSelectedForRoleChange] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE);
-    const isRoleChangeSaved = membersSelectedForRoleChange?.policyID === policyID && membersSelectedForRoleChange.logins.length === 0;
-    const [wasRoleChangeSaved, setWasRoleChangeSaved] = useState(isRoleChangeSaved);
-    if (wasRoleChangeSaved !== isRoleChangeSaved) {
-        setWasRoleChangeSaved(isRoleChangeSaved);
-
-        if (isRoleChangeSaved) {
-            setSelectedEmployees([]);
-        }
-    }
 
     const editSelectedEmployees = (bulkEditRoute: Route) => {
         setWorkspaceMembersSelectedForBulkEdit(
@@ -608,6 +616,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.changeRole'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_ROLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_CHANGE_ROLE,
                 icon: icons.UserPencil,
                 shouldSkipFocusRestore: true,
                 onSelected: () => {
@@ -621,6 +630,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.changeOfficeLocation'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_OFFICE_LOCATION,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_CHANGE_OFFICE_LOCATION,
                 icon: icons.Location,
                 onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION.getRoute(policyID)),
             });
@@ -634,6 +644,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.changeWorkArrangement'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_WORK_ARRANGEMENT,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_CHANGE_WORK_ARRANGEMENT,
                 icon: icons.Building,
                 onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.getRoute(policyID)),
             });
@@ -643,6 +654,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_REMOVE,
                 icon: icons.RemoveMembers,
                 shouldSkipFocusRestore: true,
                 onSelected: askForConfirmationToRemove,
@@ -682,6 +694,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID));
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_MENU_IMPORT_SPREADSHEET,
             },
             {
                 icon: icons.Download,
@@ -692,10 +705,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         return;
                     }
                     close(() => {
-                        downloadMembersCSV(policyID, showDownloadErrorModal, translate);
+                        downloadMembersCSV(policyID, shouldUseApprovalWorkflowRules, showDownloadErrorModal, translate);
                     });
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_MENU_DOWNLOAD_CSV,
             },
         ];
         const hrProvider = getConnectedHRProvider(policy);
@@ -714,13 +728,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     close(() => syncConnection(policy, hrProvider.connectionName));
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.SYNC_WITH_HR,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_MENU_SYNC_WITH_HR,
                 disabled: isHRSyncInProgress,
             });
         }
         secondaryActions = menuItems;
     }
-
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const getHeaderButtons = () => {
         if (!canWriteMembers) {
@@ -774,7 +787,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     let tableHeaderComponent: React.ReactElement | undefined;
     if (data.length > 0) {
         tableHeaderComponent = shouldUseNarrowLayout ? (
-            <View style={[styles.pr5]}>{getHeaderContent()}</View>
+            getHeaderContent()
         ) : (
             <>
                 {!!headerMessage && (

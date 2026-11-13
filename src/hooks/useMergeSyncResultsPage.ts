@@ -9,7 +9,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 
 import {useIsFocused} from '@react-navigation/native';
-import {isModalActiveSelector} from '@selectors/Modal';
+import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 import useOnyx from './useOnyx';
@@ -43,7 +43,8 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
     // We instead remember that this mount watched a sync run, and we open the result one time for that run.
     // A mount that finds a finished sync already in Onyx never saw the run, therefore it opens nothing.
     const didWatchSyncRunRef = useRef(false);
-    const [isAnyModalActive] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
+    // Only a modal opening on top holds the results back. `isVisible` stays on for as long as an RHP is open, so it would keep the HR panel from ever opening them.
+    const [isModalOpenOnTop] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
     const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const syncConnectionName = connectionSyncProgress?.connectionName;
@@ -65,22 +66,28 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
         const hasResultsScreen = !!getSyncResultsRoutePath(syncConnectionName);
         const isSyncRunning = hasResultsScreen && !!stageInProgress && stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
 
+        // A screen covered by another one, like Connections under its HR panel, leaves the results to the screen on top
         if (isSyncRunning && isFocused) {
             didWatchSyncRunRef.current = true;
         }
 
         const isSyncDoneWithResult = hasResultsScreen && stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE && !!syncResult;
-        const didSyncComplete = isSyncDoneWithResult && didWatchSyncRunRef.current;
+        const didSyncComplete = isFocused && isSyncDoneWithResult && didWatchSyncRunRef.current;
 
         if (didSyncComplete && syncResult && syncConnectionName) {
             pendingSyncResultRef.current = {connectionName: syncConnectionName, result: syncResult};
             didWatchSyncRunRef.current = false;
         }
 
-        // Hold the result while the user is on another screen, so it doesn't open on top of that screen.
-        // It opens once the user comes back.
+        // A sync that finishes after this screen got covered is shown by the screen on top, so this one lets it go
+        if (isSyncDoneWithResult && !isFocused) {
+            didWatchSyncRunRef.current = false;
+        }
+
+        // Hold results already captured while focused so they don't open on top of another screen.
+        // Completions received after blur are still discarded above.
         const pendingSyncResult = pendingSyncResultRef.current;
-        if (!pendingSyncResult || isAnyModalActive || !isFocused) {
+        if (!pendingSyncResult || isModalOpenOnTop || !isFocused) {
             return;
         }
 
@@ -92,7 +99,7 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
             waitForUpcomingTransition: true,
         });
         return () => handle.cancel();
-    }, [connectionName, syncConnectionName, connectionSyncProgress?.result, connectionSyncProgress?.stageInProgress, connectionSyncProgress?.timestamp, isAnyModalActive, isFocused]);
+    }, [connectionName, syncConnectionName, connectionSyncProgress?.result, connectionSyncProgress?.stageInProgress, connectionSyncProgress?.timestamp, isModalOpenOnTop, isFocused]);
 }
 
 export default useMergeSyncResultsPage;

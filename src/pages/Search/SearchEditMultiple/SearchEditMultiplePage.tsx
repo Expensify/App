@@ -30,11 +30,13 @@ import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPoli
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
     getAttendeesListDisplayString,
     getTagArrayFromName,
     getTaxName,
     hasSplitExpenseInSelection,
+    isCardTransactionReimbursableEditable,
     isDistanceRequest,
     isManagedCardTransaction,
     isPerDiemRequest,
@@ -155,11 +157,17 @@ function SearchEditMultiplePage() {
     });
 
     const areSelectedTransactionsReimbursable = selectedTransactionContexts.every(({transaction, report, transactionPolicy}) => {
+        if (!isCardTransactionReimbursableEditable(transaction)) {
+            return false;
+        }
+
         // Unreported expenses have no policy yet but reimbursable is always applicable
         if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             return true;
         }
-        return !isIOUReport(report) && !isInvoiceReport(report) && transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction);
+
+        // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
+        return !isIOUReport(report) && !isInvoiceReport(report) && (isManagedCardTransaction(transaction) || transactionPolicy?.disabledFields?.reimbursable === false);
     });
 
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, mergedReports);
@@ -322,23 +330,27 @@ function SearchEditMultiplePage() {
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.ph5, styles.mb5, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.AMOUNT_FIELD}
                         name={translate('iou.amount')}
                         value={draftTransaction?.amount !== undefined ? convertToDisplayStringWithoutCurrency(draftTransaction.amount, currency) : ''}
                         onPress={isAmountDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP)}
                         isDisabled={isAmountDisabled}
                     />
                     <MenuItemFieldHTML
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.DESCRIPTION_FIELD}
                         name={translate('common.description')}
                         value={description ? Parser.replace(description) : undefined}
                         onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP)}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.MERCHANT_FIELD}
                         name={translate('common.merchant')}
                         value={draftTransaction?.merchant}
                         onPress={hasPartiallyEditableMerchantTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_MERCHANT_RHP)}
                         isDisabled={hasPartiallyEditableMerchantTransaction}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.DATE_FIELD}
                         name={translate('common.date')}
                         value={draftTransaction?.created}
                         onPress={hasPartiallyEditableDateTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DATE_RHP)}
@@ -346,9 +358,13 @@ function SearchEditMultiplePage() {
                     />
                     {areCategoriesEnabled && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.CATEGORY_FIELD}
                             name={translate('common.category')}
                             value={draftTransaction?.category}
-                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP)}
+                            onPress={() => {
+                                startOpenCategoryPickerSpan();
+                                Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP);
+                            }}
                         />
                     )}
                     {areTagsEnabled &&
@@ -359,6 +375,7 @@ function SearchEditMultiplePage() {
                             const tagName = tagsArray.at(tagListIndex) ?? '';
                             return (
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAG_FIELD}
                                     key={tagList.name}
                                     name={tagList.name || translate('common.tag')}
                                     value={tagName ? getCleanedTagName(tagName) : ''}
@@ -368,14 +385,16 @@ function SearchEditMultiplePage() {
                         })}
                     {isTaxTrackingEnabled && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAX_FIELD}
                             name={policy?.taxRates?.name ?? translate('common.tax')}
-                            value={draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : ''}
+                            value={draftTransaction?.taxCode ? getTaxName(translate, policy, draftTransaction) : ''}
                             onPress={isTaxDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
                             isDisabled={isTaxDisabled}
                         />
                     )}
                     {areSelectedTransactionsBillable && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BILLABLE_FIELD}
                             name={translate('common.billable')}
                             value={getBooleanTitle(draftTransaction?.billable)}
                             onPress={isBillableDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_BILLABLE_RHP)}
@@ -384,6 +403,7 @@ function SearchEditMultiplePage() {
                     )}
                     {areSelectedTransactionsReimbursable && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.REIMBURSABLE_FIELD}
                             name={translate('common.reimbursable')}
                             value={getBooleanTitle(draftTransaction?.reimbursable)}
                             onPress={hasPartiallyEditableReimbursableTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP)}
@@ -392,6 +412,7 @@ function SearchEditMultiplePage() {
                     )}
                     {areAttendeesEnabled && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.ATTENDEES_FIELD}
                             name={translate('iou.attendees')}
                             value={draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, formatPhoneNumber, localeCompare) : ''}
                             onPress={isAttendeesDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP)}
@@ -400,6 +421,7 @@ function SearchEditMultiplePage() {
                     )}
                 </ScrollView>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.SAVE_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={save}

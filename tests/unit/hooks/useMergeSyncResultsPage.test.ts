@@ -6,6 +6,7 @@ import type MergeSyncResult from '@libs/API/MergeSyncResult';
 import type {HRConnectionName} from '@libs/merge/HRUtils';
 import type {RecruitingConnectionName} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,14 +38,15 @@ jest.mock('@hooks/useScreenBoundDynamicRoute', () => () => mockBuildDynamicRoute
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
     __esModule: true,
     default: {
-        runAfterTransitions: ({callback}: {callback: () => void}) => {
+        runAfterTransitions: jest.fn(({callback}: {callback: () => void}) => {
             callback();
             return {cancel: jest.fn()};
-        },
+        }),
     },
 }));
 
 const mockNavigate = jest.mocked(Navigation.navigate);
+const mockRunAfterTransitions = jest.mocked(TransitionTracker.runAfterTransitions);
 const RESULT = {addedEmployeesCount: 2, removedEmployeesCount: 1, skippedEmployees: [{id: '7', name: 'Al Ex', reason: 'No email address.'}]};
 const RUNNING = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE;
 const JOB_DONE = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
@@ -72,10 +74,10 @@ async function pushSyncProgress(...args: Parameters<typeof syncProgress>) {
     });
 }
 
-/** Toggle the app's modal state the way opening or closing any modal does, then let the hook render on it. */
+/** Toggle the app's modal state the way opening or closing a modal on top does, then let the hook render on it. */
 async function setModalVisible(isVisible: boolean) {
     await act(async () => {
-        await Onyx.merge(ONYXKEYS.MODAL, {isVisible});
+        await Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible});
         await waitForBatchedUpdates();
     });
 }
@@ -94,9 +96,14 @@ describe('useMergeSyncResultsPage', () => {
     });
 
     beforeEach(() => {
+        mockIsFocused = true;
         mockNavigate.mockClear();
         mockBuildDynamicRoute.mockClear();
-        mockIsFocused = true;
+        mockRunAfterTransitions.mockReset();
+        mockRunAfterTransitions.mockImplementation(({callback}) => {
+            callback();
+            return {cancel: jest.fn()};
+        });
     });
 
     afterEach(async () => {
@@ -204,49 +211,109 @@ describe('useMergeSyncResultsPage', () => {
         expect(mockNavigate).toHaveBeenCalledWith(RESULTS_ROUTE);
     });
 
-    it.each([true, false])('captures completion after blur before shared progress is replaced (separate result update: %s)', async (separateResultUpdate) => {
-        // Given a run observed on this screen before the user leaves
+    it('cancels queued navigation on blur and opens results exactly once after refocus', async () => {
+        // Given a completed sync whose navigation is waiting for a transition to finish
+        const pendingCallbacks = new Set<Parameters<typeof TransitionTracker.runAfterTransitions>[0]['callback']>();
+        const cancelHandles: jest.Mock[] = [];
+        mockRunAfterTransitions.mockImplementation(({callback}) => {
+            pendingCallbacks.add(callback);
+            const cancel = jest.fn(() => pendingCallbacks.delete(callback));
+            cancelHandles.push(cancel);
+            return {cancel};
+        });
+        const flushTransitions = () => {
+            act(() => {
+                const callbacks = [...pendingCallbacks];
+                pendingCallbacks.clear();
+                for (const callback of callbacks) {
+                    callback();
+                }
+            });
+        };
         const {rerender} = await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
+        await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
+        expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+        expect(mockRunAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: true}));
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        // When the user leaves before the transition finishes, cleanup must cancel the old navigation
         mockIsFocused = false;
         rerender({});
+        expect(cancelHandles.at(0)).toHaveBeenCalledTimes(1);
+        expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+        flushTransitions();
 
-        // When completion arrives while blurred, including a result sent separately from JOB_DONE
-        if (separateResultUpdate) {
-            await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000');
-        }
-        await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:06.000', RESULT);
-        await act(async () => {
-            await Onyx.set(SYNC_PROGRESS_KEY, syncProgress(JOB_DONE, '2026-08-26 10:00:07.000', undefined, CONST.POLICY.CONNECTIONS.NAME.XERO));
-            await waitForBatchedUpdates();
-        });
-
-        // Then navigation waits for this screen and survives replacement of the shared entry
+        // Then no results open over the other screen
         expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockBuildDynamicRoute).not.toHaveBeenCalled();
+
+        // When the user returns, a fresh transition can open the held result
         mockIsFocused = true;
         rerender({});
+        expect(mockRunAfterTransitions).toHaveBeenCalledTimes(2);
+        expect(mockNavigate).not.toHaveBeenCalled();
+        flushTransitions();
+
+        // Then the result opens once and is consumed, even if focus changes again
         expect(mockBuildDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(RESULTS_ROUTE);
-
-        // When focus changes again, the completed run must not reopen its results
         mockIsFocused = false;
         rerender({});
         mockIsFocused = true;
         rerender({});
+        flushTransitions();
+        expect(mockRunAfterTransitions).toHaveBeenCalledTimes(2);
         expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('opens nothing for a run observed only while blurred', async () => {
-        // Given a mounted screen that never watched this run while focused
+    it('opens the results screen over an RHP that is still open', async () => {
+        // Given a sync started from the HR panel, which leaves the modal state visible for as long as the RHP is open
+        await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.MODAL, {isVisible: true, willAlertModalBecomeVisible: false});
+            await waitForBatchedUpdates();
+        });
+
+        // When the sync finishes
+        await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
+
+        // Then the results open right away on top of the panel, since nothing is opening over it
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens nothing on a screen that was covered for the whole sync', async () => {
+        // Given Connections covered by its HR panel while a sync runs and finishes, so the panel is the one showing the results
         mockIsFocused = false;
         const {rerender} = await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
-
-        // When the run finishes before the user visits the screen
         await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
+
+        // When the panel closes and Connections is focused again
         mockIsFocused = true;
         rerender({});
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
 
-        // Then visiting the screen must not open results for an unwatched run
+        // Then Connections opens nothing, so the results are never opened a second time
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('opens nothing on a screen that was covered partway through the sync', async () => {
+        // Given Connections watching a sync that started while it was showing, then covered by its HR panel before the sync finishes
+        const {rerender} = await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
+        mockIsFocused = false;
+        rerender({});
+        await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
+
+        // When the panel closes and Connections is focused again
+        mockIsFocused = true;
+        rerender({});
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // Then Connections opens nothing, because the panel on top already showed these results
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 

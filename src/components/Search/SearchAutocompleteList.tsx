@@ -42,7 +42,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ForwardedRef, RefObject} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -182,6 +181,14 @@ function SearchRouterItem({
     );
 }
 
+function useRouterSearchOptions(params: Parameters<typeof getSearchOptions>[0] | undefined) {
+    // The hook boundary lets React Compiler cache this search on its own inputs, apart from the sections built from it.
+    // The hook calls no other hooks, so it opts into compilation explicitly.
+    'use memo';
+
+    return params ? getSearchOptions(params).options : defaultListOptions;
+}
+
 function SearchAutocompleteList({
     autocompleteQueryValue,
     inputQueryValue,
@@ -205,11 +212,14 @@ function SearchAutocompleteList({
     });
 
     const {isBetaEnabled} = usePermissions();
-    const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
+    // React Compiler treats a call result as mutable, and one created before later hooks stops it from caching the search
+    // options below. Negating it makes it a primitive.
+    const isDefaultRoomsBetaEnabled = !!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
+    const isTravelApprovalBetaEnabled = !!isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
         selector: expensifyLoginsSelector,
@@ -258,8 +268,6 @@ function SearchAutocompleteList({
         isSearching: !!autocompleteQueryValue.trim(),
     });
 
-    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
-
     useEffect(() => {
         return () => {
             cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
@@ -279,10 +287,10 @@ function SearchAutocompleteList({
         }
     }, [isLoadingOptions]);
 
-    const searchOptions =
+    const searchOptions = useRouterSearchOptions(
         listOptions === null
-            ? defaultListOptions
-            : getSearchOptions({
+            ? undefined
+            : {
                   dateFnsLocale,
                   convertToDisplayString,
                   convertToDisplayStringWithoutCurrency,
@@ -318,7 +326,8 @@ function SearchAutocompleteList({
                   translate,
                   getReportByID,
                   rules,
-              }).options;
+              },
+    );
 
     // Deduped once and read everywhere the order is needed, so a repeated reportID ranks at its first position.
     const orderedSearchResultReportIDs: string[] = searchResultReportIDs?.length ? [...new Set(searchResultReportIDs)] : [];
@@ -374,14 +383,11 @@ function SearchAutocompleteList({
     const hasCommittedListRef = useRef(false);
     const committedListOptionsRef = useRef(listOptions);
     // Commit the query span in a layout effect so the span's end time reflects when the list is laid out
-    // for this query before paint. The list's first commit after the loading skeleton is cancelled so open latency
-    // stays with ManualOpenSearchRouter. While the skeleton is shown, the list is not rendered, so the span keeps waiting for it.
+    // for this query before paint. The list's first commit is cancelled so open latency
+    // stays with ManualOpenSearchRouter.
     // While options are still loading, searchOptions is the empty default list, so committing would record a bogus zero-result query.
     // Cancel instead of waiting so Onyx cold-load time does not get folded into query latency.
     useLayoutEffect(() => {
-        if (!isRecentSearchesDataLoaded) {
-            return;
-        }
         const isListMountCommit = !hasCommittedListRef.current;
         hasCommittedListRef.current = true;
         // useFilteredOptions rebuilds listOptions on the first query after open or clear, and when an Onyx dependency changes.
@@ -393,7 +399,7 @@ function SearchAutocompleteList({
             return;
         }
         markSearchRouterQueryCommitted(autocompleteQueryValue, {localResultCount, areOptionsRebuilt}, isListMountCommit);
-    }, [autocompleteQueryValue, localResultCount, listOptions, isRecentSearchesDataLoaded, isLoadingOptions]);
+    }, [autocompleteQueryValue, localResultCount, listOptions, isLoadingOptions]);
     const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
@@ -441,6 +447,7 @@ function SearchAutocompleteList({
         getReportByID,
         draftComments,
         isDefaultRoomsBetaEnabled,
+        isTravelApprovalBetaEnabled,
         countryCode,
         loginList,
         policies,
@@ -630,7 +637,7 @@ function SearchAutocompleteList({
         });
     }
     const nextStyledRecentReports = recentReportsOptions.map((option) => {
-        const report = getReportOrDraftReport(option.reportID, undefined, undefined, undefined, reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]);
+        const report = getReportOrDraftReport({reportID: option.reportID, report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]});
         const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
         const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
         const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
@@ -759,12 +766,11 @@ function SearchAutocompleteList({
         loadAllRecentReports();
     }, [trimmedAutocompleteQueryValue, isLoadingOptions, recentReportsOptions.length, hasMoreRecentReports, loadAllRecentReports]);
 
-    const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
 
     const noResultsFoundText = translate('common.noResultsFound');
-    const shouldAnnounceNoResults = !isLoading && suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
+    const shouldAnnounceNoResults = suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldAnnounceNoResults, autocompleteQueryValue);
 
     const recentReportKeys = new Set(styledRecentReports.map((report) => report.keyForList));
@@ -878,16 +884,6 @@ function SearchAutocompleteList({
         lastProgrammaticFocusKeyRef.current = firstRecentReportKey;
         innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, true);
     }, [autocompleteQueryValue, firstRecentReportFlatIndex, firstRecentReportKey, normalizedReferenceText, shouldHighlightFirstItem]);
-
-    if (isLoading) {
-        return (
-            <OptionsListSkeletonView
-                fixedNumItems={4}
-                shouldStyleAsTable
-                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-            />
-        );
-    }
 
     return (
         <SelectionListWithSections<AutocompleteListItem>
