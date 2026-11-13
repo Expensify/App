@@ -34,5 +34,4 @@ function deriveOdometerReceipt(startImage: FileObject | string | null | undefine
     };
 }
 
-export type {OdometerReceiptDerivation};
 export default deriveOdometerReceipt;

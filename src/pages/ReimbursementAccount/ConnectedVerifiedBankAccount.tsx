@@ -106,8 +106,8 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
                                         </View>
                                     </MenuItem.Leading>
                                     <MenuItem.Content>
-                                        <MenuItem.Title>{bankAccountOwnerName ?? ''}</MenuItem.Title>
-                                        <MenuItem.Description>{formattedBankAccountNumber}</MenuItem.Description>
+                                        <MenuItem.Title forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{bankAccountOwnerName ?? ''}</MenuItem.Title>
+                                        <MenuItem.Description forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{formattedBankAccountNumber}</MenuItem.Description>
                                     </MenuItem.Content>
                                 </MenuItem.Row>
                             </MenuItem.Root>
@@ -116,6 +116,7 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
                         <View style={styles.mhn5}>
                             {shouldShowChangeBankAccount && (
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECTED_CHANGE_BANK_ACCOUNT}
                                     title={translate('workspace.bankAccount.changeBankAccount')}
                                     icon={icons.Bank}
                                     onPress={handleChangeBankAccount}
@@ -123,6 +124,7 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
                                 />
                             )}
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECTED_DISCONNECT_BANK_ACCOUNT}
                                 title={translate('workspace.bankAccount.disconnectBankAccount')}
                                 icon={icons.Close}
                                 onPress={requestResetBankAccount}

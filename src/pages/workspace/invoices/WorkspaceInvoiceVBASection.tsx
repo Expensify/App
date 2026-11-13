@@ -210,6 +210,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
     if (shouldShowMakeDefaultButton) {
         items.push({
             text: translate('walletPage.setDefaultConfirmation'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INVOICES.BANK_ACCOUNT_MENU_MAKE_DEFAULT,
             icon: icons.Star,
             onSelected: () => {
                 makeDefaultPaymentMethod();
@@ -219,6 +220,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
     }
     items.push({
         text: translate('common.delete'),
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INVOICES.BANK_ACCOUNT_MENU_DELETE,
         icon: icons.Trashcan,
         onSelected: () => {
             closeModal(() => {
