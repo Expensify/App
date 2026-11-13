@@ -1,5 +1,6 @@
 import WiseGlobalReimbursementsBanner from '@components/WiseGlobalReimbursementsBanner';
 
+import useLastFocusedValue from '@hooks/useLastFocusedValue';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -30,7 +31,8 @@ function WalletWiseGlobalReimbursementsBanner() {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isDismissed = true] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isBannerDismissedSelector});
 
-    const bankAccountID = getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList);
+    // Saving the first onboarding page in the RHP retires the banner, so it waits for the RHP to close instead of vanishing behind it
+    const bankAccountID = useLastFocusedValue(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList));
 
     if (!isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS) || shouldSuppressPromotionalUI || isDismissed || !bankAccountID) {
         return null;
