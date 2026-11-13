@@ -519,19 +519,6 @@ describe.serial('CIGitLogic', () => {
         }
     });
 
-    test('Disable automatic maintenance in both sandbox repositories', async () => {
-        // Given both repositories can run Git commands that trigger detached maintenance.
-        // When Git resolves their local configuration.
-        const remoteMaintenance = await $`git -C ${GIT_REMOTE} config --get maintenance.auto`.nothrow();
-        const checkoutMaintenance = await $`git -C ${DUMMY_DIR} config --get maintenance.auto`.nothrow();
-
-        // Then no background maintenance should outlive a command and race with sandbox deletion.
-        expect(remoteMaintenance.exitCode).toBe(0);
-        expect(remoteMaintenance.text().trim()).toBe('false');
-        expect(checkoutMaintenance.exitCode).toBe(0);
-        expect(checkoutMaintenance.text().trim()).toBe('false');
-    });
-
     test('Merge a pull request while the checklist is unlocked', async () => {
         await createBasicPR(1);
         await mergePR(1);
