@@ -163,7 +163,6 @@ function useOdometerNavigation({
     return async ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
-        // The caller's odometer and distance draft merges are not awaited yet, so this still reads the draft IDs from before them.
         const [
             lastSelectedDistanceRates,
             quickAction,
