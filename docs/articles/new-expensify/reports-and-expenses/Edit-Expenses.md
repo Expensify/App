@@ -29,6 +29,8 @@ The one exception is receipts: a Workspace Admin can attach or replace a receipt
 4. Make your update. 
 5. Click **Save**.
 
+With a configured Zoho Books connection, you can also change the vendor assigned to a non-reimbursable expense.
+
 On the web, you can also edit an expense directly from the table without opening it. Hover over **date**, **merchant**, **description**, **category**, **tag**, or **amount** and click the pencil icon that appears to edit the value inline. 
 
 ---
