@@ -575,6 +575,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Brak wyników. Spróbuj zmienić filtry lub zapytanie wyszukiwania',
         unableToDisplayChart: 'Nie można wyświetlić wykresu',
         webGLNotSupported: 'Twoja przeglądarka nie obsługuje WebGL. Włącz ją albo zmień przeglądarkę.',
+        webAssemblyNotSupported: 'WebAssembly jest niedostępne w Twojej przeglądarce. Spróbuj innej przeglądarki, aby wyświetlić wykresy.',
         chartFailedToLoad: 'Nie udało się załadować wykresu. Odśwież stronę i spróbuj ponownie.',
         apiKey: 'Klucz API',
         exportsTo: 'Eksporty do',
@@ -8368,6 +8369,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             statusExpired: 'Wygasła',
             statusInactive: 'Nieaktywna',
             unit: 'Jednostka',
+            ukFuelRateTaxError: 'Dodaj stawkę podatku 20%, aby śledzić podatek dla brytyjskich zalecanych stawek paliwowych.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Dodaj stawkę podatku 20% w ${integrationName}, aby śledzić podatek dla brytyjskich zalecanych stawek paliwowych.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Aby korzystać z tej funkcji, włącz podatki w przestrzeni roboczej. Przejdź do sekcji <a href="#">Więcej funkcji</a>, aby to zmienić.</muted-text>',
             deleteDistanceRate: 'Usuń stawkę za dystans',
@@ -11228,6 +11232,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             category: 'Kategoria',
             tag: 'Tag',
         },
+        switchToTableView: 'Przełącz na widok tabeli',
+        switchToExpenseView: 'Przełącz na widok wydatku',
     },
     report: {
         newReport: {

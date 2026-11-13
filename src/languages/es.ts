@@ -44,6 +44,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Cancelar',
         unableToDisplayChart: 'No se puede mostrar el gráfico',
         webGLNotSupported: 'Tu navegador no es compatible con WebGL. Por favor, habilítalo o cambia de navegador.',
+        webAssemblyNotSupported: 'WebAssembly no está disponible en tu navegador. Prueba con otro navegador para ver los gráficos.',
         chartFailedToLoad: 'No se pudo cargar el gráfico. Actualiza la página e inténtalo de nuevo.',
         dismiss: 'Descartar',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionar la columna ${columnName}`,
@@ -8496,6 +8497,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             statusExpired: 'Expirado',
             statusInactive: 'Inactivo',
             unit: 'Unidad',
+            ukFuelRateTaxError: 'Añade una tasa impositiva del 20% para registrar los impuestos de las tarifas de combustible recomendadas del Reino Unido.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Añade una tasa impositiva del 20% en ${integrationName} para registrar los impuestos de las tarifas de combustible recomendadas del Reino Unido.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a <a href="#">Más funcionalidades</a> para hacer ese cambio.</muted-text>',
             deleteDistanceRate: 'Eliminar tasa de distancia',
@@ -11159,6 +11163,8 @@ ${reportName}`,
             category: 'Categoría',
             tag: 'Etiqueta',
         },
+        switchToTableView: 'Cambiar a vista de tabla',
+        switchToExpenseView: 'Cambiar a vista de gasto',
     },
     report: {
         newReport: {

@@ -571,6 +571,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Keine Ergebnisse. Bitte passen Sie Ihre Filter oder Suchanfrage an',
         unableToDisplayChart: 'Diagram kann nicht angezeigt werden',
         webGLNotSupported: 'Ihr Browser unterstützt WebGL nicht. Bitte aktivieren Sie es oder wechseln Sie den Browser.',
+        webAssemblyNotSupported: 'WebAssembly ist in Ihrem Browser nicht verfügbar. Versuchen Sie einen anderen Browser, um Diagramme anzuzeigen.',
         chartFailedToLoad: 'Das Diagramm konnte nicht geladen werden. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.',
         apiKey: 'API-Schlüssel',
         exportsTo: 'Exportiert nach',
@@ -8405,6 +8406,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             statusExpired: 'Abgelaufen',
             statusInactive: 'Inaktiv',
             unit: 'Einheit',
+            ukFuelRateTaxError: 'Bitte füge einen Steuersatz von 20 % hinzu, um die Steuer für die britischen Advisory Fuel Rates zu erfassen.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Bitte füge in ${integrationName} einen Steuersatz von 20 % hinzu, um die Steuer für die britischen Advisory Fuel Rates zu erfassen.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Steuern müssen im Workspace aktiviert sein, um diese Funktion zu verwenden. Gehe zu <a href="#">Weitere Funktionen</a>, um das zu ändern.</muted-text>',
             deleteDistanceRate: 'Entfernungsrate löschen',
@@ -11275,6 +11279,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             category: 'Kategorie',
             tag: 'Tag',
         },
+        switchToTableView: 'Zur Tabellenansicht wechseln',
+        switchToExpenseView: 'Zur Ausgabenansicht wechseln',
     },
     report: {
         newReport: {

@@ -49,7 +49,7 @@ function TabsAdapter({items, value, onInputChange = () => {}, errorText, forward
                 accessibilityLabel={accessibilityLabel}
             >
                 <TabSelectorBase
-                    tabs={items.map((item) => ({key: item.value, title: item.label}))}
+                    tabs={items.map((item) => ({key: item.value, title: item.label, sentryLabel: CONST.SENTRY_LABEL.DYNAMIC_FORM.TABS_ITEM}))}
                     activeTabKey={value === '' ? undefined : value}
                     onTabPress={onInputChange}
                     equalWidth

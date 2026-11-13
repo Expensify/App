@@ -565,6 +565,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: '无结果。请尝试调整筛选条件或搜索内容',
         unableToDisplayChart: '无法显示图表',
         webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
+        webAssemblyNotSupported: '您的浏览器中无法使用 WebAssembly。请尝试使用其他浏览器查看图表。',
         chartFailedToLoad: '无法加载图表。请刷新页面后重试。',
         apiKey: 'API 密钥',
         exportsTo: '导出到',
@@ -8031,6 +8032,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             statusExpired: '已过期',
             statusInactive: '未启用',
             unit: '单位',
+            ukFuelRateTaxError: '请添加20%的税率，以跟踪英国建议燃油费率的税额。',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) => `请在${integrationName}中添加20%的税率，以跟踪英国建议燃油费率的税额。`,
             taxFeatureNotEnabledMessage: '<muted-text>必须在工作区中启用税费才能使用此功能。前往<a href="#">更多功能</a>进行更改。</muted-text>',
             deleteDistanceRate: '删除距离费率',
             areYouSureDelete: () => ({
@@ -10741,6 +10744,8 @@ ${reportName}`,
             category: '类别',
             tag: '标签',
         },
+        switchToTableView: '切换到表格视图',
+        switchToExpenseView: '切换到报销视图',
     },
     report: {
         newReport: {

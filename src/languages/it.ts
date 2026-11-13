@@ -570,6 +570,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Nessun risultato. Prova a modificare i filtri o la ricerca',
         unableToDisplayChart: 'Impossibile visualizzare il grafico',
         webGLNotSupported: 'Il tuo browser non supporta WebGL. Abilitalo oppure passa a un altro browser.',
+        webAssemblyNotSupported: 'WebAssembly non è disponibile nel tuo browser. Prova un altro browser per visualizzare i grafici.',
         chartFailedToLoad: 'Impossibile caricare il grafico. Aggiorna la pagina e riprova.',
         apiKey: 'Chiave API',
         exportsTo: 'Esporta in',
@@ -8356,6 +8357,9 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             statusExpired: 'Scaduto',
             statusInactive: 'Inattivo',
             unit: 'Unit',
+            ukFuelRateTaxError: 'Aggiungi un’aliquota del 20% per monitorare le imposte sulle tariffe carburante consigliate del Regno Unito.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Aggiungi un’aliquota del 20% in ${integrationName} per monitorare le imposte sulle tariffe carburante consigliate del Regno Unito.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Per usare questa funzione devi abilitare le imposte nello spazio di lavoro. Vai su <a href="#">Altre funzionalità</a> per effettuare questa modifica.</muted-text>',
             deleteDistanceRate: 'Elimina tariffa chilometrica',
@@ -11223,6 +11227,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             category: 'Categoria',
             tag: 'Etichetta',
         },
+        switchToTableView: 'Passa alla vista tabella',
+        switchToExpenseView: 'Passa alla vista spesa',
     },
     report: {
         newReport: {

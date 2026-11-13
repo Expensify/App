@@ -570,6 +570,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Geen resultaten. Probeer je filters of zoekopdracht aan te passen',
         unableToDisplayChart: 'Grafiek kan niet worden weergegeven',
         webGLNotSupported: 'Je browser ondersteunt WebGL niet. Schakel het in of gebruik een andere browser.',
+        webAssemblyNotSupported: 'WebAssembly is niet beschikbaar in je browser. Probeer een andere browser om grafieken te bekijken.',
         chartFailedToLoad: 'De grafiek kon niet worden geladen. Vernieuw de pagina en probeer het opnieuw.',
         apiKey: 'API-sleutel',
         exportsTo: 'Exporteert naar',
@@ -8335,6 +8336,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             statusExpired: 'Verlopen',
             statusInactive: 'Inactief',
             unit: 'Eenheid',
+            ukFuelRateTaxError: 'Voeg een belastingtarief van 20% toe om belasting bij te houden voor de Britse adviesbrandstoftarieven.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Voeg een belastingtarief van 20% toe in ${integrationName} om belasting bij te houden voor de Britse adviesbrandstoftarieven.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Belastingen moeten in de workspace zijn ingeschakeld om deze functie te gebruiken. Ga naar <a href="#">Meer functies</a> om dat te wijzigen.</muted-text>',
             deleteDistanceRate: 'Afstandstarief verwijderen',
@@ -11195,6 +11199,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             category: 'Categorie',
             tag: 'Label',
         },
+        switchToTableView: 'Overschakelen naar tabelweergave',
+        switchToExpenseView: 'Overschakelen naar uitgavenweergave',
     },
     report: {
         newReport: {
