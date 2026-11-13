@@ -1,4 +1,4 @@
-/** A Spend table heading that opens its column's menu when pressed: sorting, hiding and editing the columns, and resetting their sizes. */
+/** A Spend table heading that opens its column's menu when pressed: sorting, pinning, hiding and editing the columns, and resetting their sizes. */
 import Icon from '@components/Icon';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -27,6 +27,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {HideSearchColumn} from './hooks/useHideSearchColumn';
+import type {PinSearchColumn} from './hooks/usePinSearchColumn';
 
 import {useSortableColumn} from './SortableColumnContext';
 import {SortableHeaderLabel} from './SortableHeaderText';
@@ -36,7 +37,7 @@ const MENU_ANCHOR_ALIGNMENT: AnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-type SearchColumnMenuProps = HideSearchColumn;
+type SearchColumnMenuProps = HideSearchColumn & Omit<PinSearchColumn, 'pinnedColumns'>;
 
 /** The column's heading. Pressing it opens the column menu, which holds the sort options. */
 function SearchColumnMenuTrigger() {
@@ -133,11 +134,11 @@ function SearchColumnMenuTrigger() {
 }
 
 /** A `SortableTableHeader` child that turns each column's heading into the column's menu. */
-function SearchColumnMenu({hidableColumns, hideColumn}: SearchColumnMenuProps) {
+function SearchColumnMenu({hidableColumns, hideColumn, getPinnedSide, pinColumn}: SearchColumnMenuProps) {
     const {columnName, sorting} = useSortableColumn();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Checkmark', 'Columns', 'EyeDisabled', 'RotateLeft']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Checkmark', 'Columns', 'EyeDisabled', 'Pin', 'RotateLeft']);
     const resetColumnWidths = useColumnResizeController()?.resetColumnWidths;
 
     // `success` colors the checkmark of the active order, and would color the arrow beside it too. The arrow keeps its usual colors.
@@ -145,6 +146,10 @@ function SearchColumnMenu({hidableColumns, hideColumn}: SearchColumnMenuProps) {
 
     const isAscendingActive = sorting?.activeSortOrder === CONST.SEARCH.SORT_ORDER.ASC;
     const isDescendingActive = sorting?.activeSortOrder === CONST.SEARCH.SORT_ORDER.DESC;
+
+    const pinnedSide = getPinnedSide?.(columnName);
+    const isPinnedLeft = pinnedSide === CONST.SEARCH.PINNED_COLUMN_SIDE.LEFT;
+    const isPinnedRight = pinnedSide === CONST.SEARCH.PINNED_COLUMN_SIDE.RIGHT;
 
     return (
         <PopoverMenu.Root>
@@ -172,6 +177,23 @@ function SearchColumnMenu({hidableColumns, hideColumn}: SearchColumnMenuProps) {
                             accessibilityState={{selected: isDescendingActive}}
                             onSelect={() => sorting.onSort(CONST.SEARCH.SORT_ORDER.DESC)}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_SORT_DESCENDING}
+                        />
+                        <PopoverMenu.Separator />
+                    </>
+                )}
+                {!!getPinnedSide && (
+                    <>
+                        <PopoverMenu.Item
+                            text={translate(isPinnedLeft ? 'search.columnMenu.unpin' : 'search.columnMenu.pinLeft')}
+                            icon={icons.Pin}
+                            onSelect={() => pinColumn(columnName, isPinnedLeft ? undefined : CONST.SEARCH.PINNED_COLUMN_SIDE.LEFT)}
+                            sentryLabel={isPinnedLeft ? CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_UNPIN : CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN_LEFT}
+                        />
+                        <PopoverMenu.Item
+                            text={translate(isPinnedRight ? 'search.columnMenu.unpin' : 'search.columnMenu.pinRight')}
+                            icon={icons.Pin}
+                            onSelect={() => pinColumn(columnName, isPinnedRight ? undefined : CONST.SEARCH.PINNED_COLUMN_SIDE.RIGHT)}
+                            sentryLabel={isPinnedRight ? CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_UNPIN : CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN_RIGHT}
                         />
                         <PopoverMenu.Separator />
                     </>

@@ -53,6 +53,7 @@ import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
     canEditSearchColumns,
+    getPinnedColumnLayout,
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
     getValidGroupBy,
@@ -125,6 +126,7 @@ import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useHideSearchColumn from './hooks/useHideSearchColumn';
 import useLiveRowLimit from './hooks/useLiveRowLimit';
+import usePinSearchColumn from './hooks/usePinSearchColumn';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
@@ -1020,6 +1022,11 @@ function Search({
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
     const {hidableColumns, hideColumn} = useHideSearchColumn(queryJSON, columnsToShow);
+    const {pinnedColumns, getPinnedSide, pinColumn} = usePinSearchColumn(queryJSON);
+    // Only a table whose column menu offers pin items honors pins, so grouped tables and tables without the beta keep their own order.
+    const shouldPinColumns = shouldShowColumnMenu && !!getPinnedSide;
+    // Pinning only moves columns the table already shows, so it reorders them at once instead of fading them like a column change.
+    const pinnedColumnLayout = getPinnedColumnLayout(columnsToShow, shouldPinColumns ? pinnedColumns : {left: [], right: []});
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
@@ -1622,7 +1629,7 @@ function Search({
         <View style={[searchTablePaddingRightStyle, styles.flex1, styles.alignSelfStretch]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
-                columns={columnsToShow}
+                columns={pinnedColumnLayout.columns}
                 type={type}
                 onSortPress={onSortPress}
                 sortOrder={sortOrder}
@@ -1646,6 +1653,8 @@ function Search({
                     <SearchColumnMenu
                         hidableColumns={hidableColumns}
                         hideColumn={hideColumn}
+                        getPinnedSide={getPinnedSide}
+                        pinColumn={pinColumn}
                     />
                 )}
             </SearchTableHeader>
@@ -1666,7 +1675,7 @@ function Search({
     const commonViewProps: CommonSearchViewProps = {
         queryJSON,
         data: stableSortedData,
-        columns: columnsToShow,
+        columns: pinnedColumnLayout.columns,
         onSelectRow,
         canSelectMultiple,
         SearchTableHeader: searchTableHeader,
