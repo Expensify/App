@@ -1,0 +1,30 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -6636,7 +6636,10 @@
+ function ScrollAdjust() {
+   var _a3;
+   const ctx = useStateContext();
+-  const bias = 1e7;
++  // The bias keeps this anchor below the scroll offset, so native maintainVisibleContentPosition always anchors to it.
++  // Native layout stores positions as 32-bit floats, which hold 10,000,000 only to the nearest whole point. That
++  // rounded each adjustment by up to half a point, and the visible items moved by the difference.
++  const bias = 1e6;
+   const [scrollAdjust, scrollAdjustUserOffset] = useArr$(["scrollAdjust", "scrollAdjustUserOffset"]);
+   const scrollOffset = (scrollAdjust || 0) + (scrollAdjustUserOffset || 0) + bias;
+   const horizontal = !!((_a3 = ctx.state) == null ? void 0 : _a3.props.horizontal);
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -6615,7 +6615,10 @@
+ function ScrollAdjust() {
+   var _a3;
+   const ctx = useStateContext();
+-  const bias = 1e7;
++  // The bias keeps this anchor below the scroll offset, so native maintainVisibleContentPosition always anchors to it.
++  // Native layout stores positions as 32-bit floats, which hold 10,000,000 only to the nearest whole point. That
++  // rounded each adjustment by up to half a point, and the visible items moved by the difference.
++  const bias = 1e6;
+   const [scrollAdjust, scrollAdjustUserOffset] = useArr$(["scrollAdjust", "scrollAdjustUserOffset"]);
+   const scrollOffset = (scrollAdjust || 0) + (scrollAdjustUserOffset || 0) + bias;
+   const horizontal = !!((_a3 = ctx.state) == null ? void 0 : _a3.props.horizontal);

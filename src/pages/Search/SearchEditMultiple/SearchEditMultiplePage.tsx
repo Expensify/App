@@ -36,6 +36,7 @@ import {
     getTagArrayFromName,
     getTaxName,
     hasSplitExpenseInSelection,
+    isCardTransactionReimbursableEditable,
     isDistanceRequest,
     isManagedCardTransaction,
     isPerDiemRequest,
@@ -156,11 +157,17 @@ function SearchEditMultiplePage() {
     });
 
     const areSelectedTransactionsReimbursable = selectedTransactionContexts.every(({transaction, report, transactionPolicy}) => {
+        if (!isCardTransactionReimbursableEditable(transaction)) {
+            return false;
+        }
+
         // Unreported expenses have no policy yet but reimbursable is always applicable
         if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             return true;
         }
-        return !isIOUReport(report) && !isInvoiceReport(report) && transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction);
+
+        // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
+        return !isIOUReport(report) && !isInvoiceReport(report) && (isManagedCardTransaction(transaction) || transactionPolicy?.disabledFields?.reimbursable === false);
     });
 
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, mergedReports);
@@ -380,7 +387,7 @@ function SearchEditMultiplePage() {
                         <MenuItemField
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAX_FIELD}
                             name={policy?.taxRates?.name ?? translate('common.tax')}
-                            value={draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : ''}
+                            value={draftTransaction?.taxCode ? getTaxName(translate, policy, draftTransaction) : ''}
                             onPress={isTaxDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
                             isDisabled={isTaxDisabled}
                         />

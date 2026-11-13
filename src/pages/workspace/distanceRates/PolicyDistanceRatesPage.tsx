@@ -22,6 +22,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -30,16 +31,18 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearCreateDistanceRateItemAndError,
     clearDeleteDistanceRateError,
+    clearPolicyDistanceRateErrorFields,
     deletePolicyDistanceRates,
     openPolicyDistanceRatesPage,
     setPolicyDistanceRatesEnabled,
 } from '@libs/actions/Policy/DistanceRate';
-import {renameDistanceRateInline, updateDistanceRateValueInline} from '@libs/actions/Policy/InlineEdit';
+import {renameDistanceRateInline, updateDistanceRateValueInline, updateDistanceTaxClaimableValueInline} from '@libs/actions/Policy/InlineEdit';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, isTaxTrackingEnabled, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -66,9 +69,10 @@ function PolicyDistanceRatesPage({
         params: {policyID},
     },
 }: PolicyDistanceRatesPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'DotIndicator', 'Gear', 'Plus', 'Trashcan']);
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {pageGutter} = useLayoutSpacing();
     const {translate, toLocaleDigit} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -262,6 +266,11 @@ function PolicyDistanceRatesPage({
             clearDeleteDistanceRateError(policyID, customUnitID, rateID);
             return;
         }
+        const errorFields = customUnitRates[rateID]?.errorFields;
+        if (errorFields && Object.keys(errorFields).length > 0) {
+            clearPolicyDistanceRateErrorFields(policyID, customUnitID, rateID, Object.fromEntries(Object.keys(errorFields).map((field) => [field, null])));
+            return;
+        }
         clearCreateDistanceRateItemAndError(policyID, customUnitID, rateID);
     };
 
@@ -284,6 +293,8 @@ function PolicyDistanceRatesPage({
         const isDeleting = resolvedPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         const rateCurrency = rate.currency ?? CONST.CURRENCY.USD;
         const taxReclaimableAmount = getTaxReclaimableAmount(rate);
+        const taxRateExternalID = rate.attributes?.taxRateExternalID;
+        const hasTaxRate = !!taxRateExternalID && !!policy?.taxRates?.taxes[taxRateExternalID];
 
         return {
             keyForList: rate.customUnitRateID,
@@ -296,9 +307,10 @@ function PolicyDistanceRatesPage({
             taxReclaimableAmount,
             formattedTaxReclaimable: taxReclaimableAmount !== undefined ? convertAmountToDisplayString(taxReclaimableAmount, rateCurrency) : '',
             pendingAction: resolvedPendingAction ?? undefined,
-            errors: rate.errors ?? undefined,
+            errors: rate.errors ?? getLatestErrorFieldForAnyField(rate),
             canEditName: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
             canEditRate: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
+            canEditTaxReclaimable: canWriteDistanceRates && !isDeleting && !isSelectionModeActive && (hasTaxRate || !!rate.attributes?.taxClaimablePercentage),
             action: () => openRateDetailsByID(rate.customUnitRateID),
             dismissError: () => dismissErrorByID(rate.customUnitRateID),
             onToggleEnabled: (value: boolean) => updateDistanceRateEnabled(value, rate.customUnitRateID),
@@ -314,6 +326,12 @@ function PolicyDistanceRatesPage({
                 }
                 showInlineEditError(updateDistanceRateValueInline(translate, policyID, customUnit, rate, newRate, toLocaleDigit));
             },
+            onChangeTaxReclaimable: (newAmount: string) => {
+                if (!customUnit) {
+                    return;
+                }
+                showInlineEditError(updateDistanceTaxClaimableValueInline(translate, policyID, customUnit, rate, newAmount));
+            },
         };
     });
 
@@ -322,6 +340,7 @@ function PolicyDistanceRatesPage({
             {
                 text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS_DELETE,
                 icon: icons.Trashcan,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
@@ -348,6 +367,7 @@ function PolicyDistanceRatesPage({
             options.push({
                 text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS.DISABLE,
                 icon: icons.Close,
                 shouldSkipFocusRestore: !canDisableOrDeleteSelectedRates,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? disableRates() : showWarningModal()),
@@ -359,6 +379,7 @@ function PolicyDistanceRatesPage({
             options.push({
                 text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS.ENABLE,
                 icon: icons.Checkmark,
                 onSelected: enableRates,
             });
@@ -368,15 +389,7 @@ function PolicyDistanceRatesPage({
     };
 
     const isLoading = !isOffline && customUnit === undefined;
-
-    const secondaryActions = [
-        {
-            icon: icons.Gear,
-            text: translate('common.settings'),
-            onSelected: openSettings,
-            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-        },
-    ];
+    const hasFuelRateTaxError = shouldShowUKFuelRateTaxError(policy);
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
@@ -393,15 +406,19 @@ function PolicyDistanceRatesPage({
                         <Button.Icon src={icons.Plus} />
                         <Button.Text>{translate('workspace.distanceRates.addRate')}</Button.Text>
                     </Button>
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        shouldUseOptionIcon
-                        customText={translate('common.more')}
+                    <Button
+                        onPress={openSettings}
+                        accessibilityLabel={translate('common.settings')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        wrapperStyle={styles.flexGrow0}
-                    />
+                        style={styles.flexGrow0}
+                    >
+                        <Button.Icon
+                            src={hasFuelRateTaxError ? icons.DotIndicator : icons.Gear}
+                            fill={hasFuelRateTaxError ? theme.danger : undefined}
+                            hoverFill={hasFuelRateTaxError ? theme.danger : undefined}
+                        />
+                        <Button.Text>{translate('common.settings')}</Button.Text>
+                    </Button>
                 </>
             ) : (
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>

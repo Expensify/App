@@ -26,7 +26,8 @@ const SENTRY_LABELS: Record<GettingStartedItemKey, {row: SentryLabel; checkbox: 
         checkbox: CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_CHECKBOX.CREATE_WORKSPACE,
         beginButton: CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_BEGIN_BUTTON.CREATE_WORKSPACE,
     },
-    createExpense: {
+    // Keeps the CreateExpense labels from before the step was renamed so its Sentry history carries over.
+    addFirstReceipt: {
         row: CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_ROW.CREATE_EXPENSE,
         checkbox: CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_CHECKBOX.CREATE_EXPENSE,
         beginButton: CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_BEGIN_BUTTON.CREATE_EXPENSE,

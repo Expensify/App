@@ -27,7 +27,7 @@ import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenExpenseR
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -428,7 +428,7 @@ function IOURequestEditReportCommon({
     } else {
         autoReportOption = (
             <MenuItem.Root
-                onPress={callFunctionIfActionIsAllowed(handleAutoReport, false, session)}
+                onPress={callIfAuthenticated(handleAutoReport, session)}
                 sentryLabel={autoReportSentryLabel}
             >
                 <MenuItem.Row>
