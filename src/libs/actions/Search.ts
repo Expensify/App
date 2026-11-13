@@ -125,6 +125,7 @@ import {approveMoneyRequest} from './IOU/ReportWorkflow';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
+import {trackSearchSnapshotAccess} from './SearchSnapshotCache';
 
 type OnyxSearchResponse = {
     data: SearchResults['data'];
@@ -1455,6 +1456,7 @@ function search({
     }
     const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal, shouldReturnTripRooms: isTripRoomsSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
+    trackSearchSnapshotAccess([queryJSON.hash]);
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
     const {backendQueryJSON, limit} = getBackendQueryJSON(queryJSON);
@@ -1505,6 +1507,8 @@ function search({
     const startRequest = () =>
         makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
+                // The response rewrites the snapshot, so it needs an access record even if it was evicted mid-flight
+                trackSearchSnapshotAccess([queryJSON.hash]);
                 const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const;
                 // To-do responses list the other collections first and the snapshot last.
                 const response = result?.onyxData?.find((update) => update.key === snapshotKey)?.value as OnyxSearchResponse | undefined;

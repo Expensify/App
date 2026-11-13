@@ -1,6 +1,7 @@
 import CONST from '@src/CONST';
 
 import Log from './Log';
+import ClearUntrackedSearchSnapshots from './migrations/ClearUntrackedSearchSnapshots';
 import MoveFilesOutOfDocuments from './migrations/MoveFilesOutOfDocuments';
 import MoveSearchQueryByHashToSnapshots from './migrations/MoveSearchQueryByHashToSnapshots';
 import RemoveSearchRowFieldsFromTransactions from './migrations/RemoveSearchRowFieldsFromTransactions';
@@ -26,6 +27,7 @@ export default function () {
             MoveSearchQueryByHashToSnapshots,
             RenameLegacySageIntacctExportDate,
             RemoveSearchRowFieldsFromTransactions,
+            ClearUntrackedSearchSnapshots,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the

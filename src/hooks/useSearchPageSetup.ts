@@ -3,6 +3,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {clearPageRequestedSearch, markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
+import {trackSearchPageSnapshotAccess} from '@libs/actions/SearchSnapshotCache';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
@@ -39,7 +40,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const prevIsOffline = usePrevious(isOffline);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
-    const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchKey, currentDefaultSearchQueryJSON} = useSearchQueryContext();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     const isInPreloadedTab = useIsInPreloadedTab();
     // Set while the tab is preloaded and kept until its first-open request goes out, which can take more than one render.
@@ -90,6 +91,17 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         }
         isFirstOpenOfPreloadedTabRef.current = true;
     }, [isInPreloadedTab]);
+
+    // An unmodified saved or suggested search keeps its snapshot outside the cache cap
+    const isSavedOrSuggestedQuery = hash !== undefined && currentDefaultSearchQueryJSON?.hash === hash;
+
+    // A cached query is shown without a new request, so opening it has to mark its snapshot as used here.
+    useEffect(() => {
+        if (hash === undefined) {
+            return;
+        }
+        trackSearchPageSnapshotAccess(hash, isSavedOrSuggestedQuery);
+    }, [hash, isSavedOrSuggestedQuery]);
 
     // Fire search() when the query changes (hash). This runs at the page level so the
     // API request starts in parallel with the skeleton, before Search mounts its 14+ useOnyx hooks.

@@ -230,6 +230,7 @@ import type SearchFilters from './SearchFilters';
 import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
+import type SearchSnapshotAccess from './SearchSnapshotAccess';
 import type SearchTagFiltersPaginationState from './SearchTagFiltersPaginationState';
 import type SecurityGroup from './SecurityGroup';
 import type {DomainSecurityGroupMembership} from './SecurityGroup';
@@ -479,6 +480,7 @@ export type {
     PolicyJoinMember,
     PolicyRoomsMetadata,
     SearchResults,
+    SearchSnapshotAccess,
     SearchTagFiltersPaginationState,
     ReviewDuplicates,
     PrivateSubscription,

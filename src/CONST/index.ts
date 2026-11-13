@@ -8299,6 +8299,8 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        /** How many snapshots of ordinary searches stay cached. Saved and suggested searches don't count toward it */
+        MAX_CACHED_SNAPSHOTS: 25,
         TAG_FILTER_PAGE_SIZE: 200,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',

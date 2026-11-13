@@ -806,6 +806,9 @@ const ONYXKEYS = {
     /** Stores the current search page context (e.g., whether to show the search query) */
     SEARCH_CONTEXT: 'searchContext',
 
+    /** When each cached Search snapshot was last used, by query hash, so the least recently used ones can be evicted */
+    SEARCH_SNAPSHOT_ACCESS: 'searchSnapshotAccess',
+
     /** Stores report IDs selected for the Search Merge Reports flow so they survive app refreshes. */
     SEARCH_MERGE_REPORT_IDS: 'searchMergeReportIDs',
 
@@ -1815,6 +1818,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SEARCH_FILTERS]: OnyxTypes.SearchFilters;
     [ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH]: boolean;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
+    [ONYXKEYS.SEARCH_SNAPSHOT_ACCESS]: OnyxTypes.SearchSnapshotAccess;
     [ONYXKEYS.SEARCH_MERGE_REPORT_IDS]: string[];
     [ONYXKEYS.SEARCH_FOOTER_CONVERSION]: OnyxTypes.SearchFooterConversion;
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- the key stays typed while the migration still reads it
