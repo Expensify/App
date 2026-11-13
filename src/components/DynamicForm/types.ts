@@ -80,6 +80,9 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
     /** Pages whose `onPageSubmit` save has not gone through, so a new visit starts on the first one shown instead of where the draft leaves off */
     unsavedPageKeys?: string[];
 
+    /** Shows a spinner in place of the current page, such as while the screen waits for a save that can add pages */
+    isLoading?: boolean;
+
     /** When the step indicator shows: `auto` from three shown pages on, `stepper` always, `pages` never */
     layout?: DynamicFormLayout;
 

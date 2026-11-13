@@ -39,7 +39,13 @@ function getOnyxData(step: string, saveID: string): OnyxData<typeof ONYXKEYS.REI
                 value: {wiseOnboardingUnsavedPages: {[step]: null}},
             },
         ],
+        // The request queue applies only the failure data when it gives up on a save after its retries, so the save stops running here too
         failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES,
+                value: {[saveID]: null},
+            },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,

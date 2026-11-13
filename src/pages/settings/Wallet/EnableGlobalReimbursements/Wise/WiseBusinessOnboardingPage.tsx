@@ -244,6 +244,11 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         Navigation.navigate(buildRoute(unansweredRequirementPageKey), {forceReplace: true});
     }, [unansweredRequirementPageKey, buildRoute]);
 
+    // The business page's save can add or remove requirement pages, so every page after it shows a spinner until the save returns and until the user is moved to a new page
+    const subPage = route.params.subPage;
+    const isAfterBusinessPage = !!subPage && subPage !== CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE && subPage !== CONST.WISE.ONBOARDING_STEP.BUSINESS;
+    const isWaitingForRequirements = isAfterBusinessPage && ((isSaving && unsavedPageKeys.includes(CONST.WISE.ONBOARDING_STEP.BUSINESS)) || !!unansweredRequirementPageKey);
+
     if (isWaitingForConnection) {
         return (
             <ScreenWrapper testID="WiseBusinessOnboardingPage">
@@ -284,6 +289,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             // Confirm waits while a page is saving, and a visit after a page did not save opens on that page
             isSavingPages={isSaving}
             unsavedPageKeys={unsavedPageKeys}
+            isLoading={isWaitingForRequirements}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}
             onSubmit={() => {

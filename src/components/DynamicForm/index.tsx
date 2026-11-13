@@ -67,6 +67,7 @@ function DynamicFormFlow({
     isRefreshingRequirements,
     refreshError,
     unsavedPageKeys,
+    isLoading,
     layout = 'auto',
     hasConfirmation = true,
     shouldDisableNextWhenOffline,
@@ -359,7 +360,7 @@ function DynamicFormFlow({
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
             shouldShowOfflineIndicatorInWideScreen={shouldDisableNextWhenOffline}
         >
-            {isDraftLoading || isRedirecting || isClearingEarlierVisit || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
+            {isLoading || isDraftLoading || isRedirecting || isClearingEarlierVisit || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>

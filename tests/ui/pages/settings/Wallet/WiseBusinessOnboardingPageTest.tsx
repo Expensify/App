@@ -647,6 +647,122 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-wealth-info'), {forceReplace: true});
     });
 
+    it('shows a spinner in place of the confirmation page while the business page saves, and until the user is moved to the requirement page it returns', async () => {
+        // Given the user moved on from the business page to the confirmation page before its save answered
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flow shows a spinner, since the save can add pages the user has to answer before the summary
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(true);
+
+        // When the save answers with the enhanced due diligence requirements
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                    wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: null},
+                    achData: {wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}},
+                }),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user is sent to the first requirement page, and the spinner stays until they get there, so the summary does not flash
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-wealth-info'), {forceReplace: true});
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(true);
+    });
+
+    it('shows the confirmation page once the business page saves without new requirements', async () => {
+        // Given the confirmation page waiting for the business page's save
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the save answers without requirements, as for an industry that needs no enhanced due diligence
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: null}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user stays and sees the summary
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(false);
+        expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the confirmation page while a page other than the business page saves', async () => {
+        // Given the user edited the representative page from the confirmation page and came back before its save answered
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE]: true}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the summary stays, with only Confirm waiting, since that save cannot add pages
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        expect(flowProps?.isLoading).toBe(false);
+        expect(flowProps?.isSavingPages).toBe(true);
+    });
+
+    it('shows a spinner in place of a requirement page while the business page saves, since the save can remove it', async () => {
+        // Given enhanced due diligence on the device from an earlier save, and the user moved on to its first page after picking an industry that does not need it
+        await renderPage({
+            reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            subPage: 'business-source-of-wealth-info',
+        });
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flow shows a spinner instead of a page the save is about to drop
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(true);
+
+        // When the save answers without requirements
+        await act(() => Promise.all([Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}), Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, REIMBURSEMENT_ACCOUNT)]));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the spinner is gone and the flow has no requirement pages left, so it moves the user on from the page that no longer exists
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(false);
+        expect(getFlowPageKeys()).toEqual(['representative', 'business']);
+    });
+
+    it('keeps the business page while its own save runs', async () => {
+        // Given the user went back to the business page while its save is running
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: CONST.WISE.ONBOARDING_STEP.BUSINESS});
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page stays, so the user can change the industry again
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(false);
+    });
+
     it('leaves the user on the confirmation page once every requirement page has an answer', async () => {
         // Given both requirement pages answered on an earlier visit
         await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
