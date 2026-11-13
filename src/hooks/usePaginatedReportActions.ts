@@ -11,6 +11,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useState} from 'react';
 
 import useInitial from './useInitial';
+import useLinkedActionTransactionThread from './useLinkedActionTransactionThread';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 
@@ -50,6 +51,8 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     });
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`);
 
+    const {isLinkedActionInMergedTransactionThread} = useLinkedActionTransactionThread(report, sortedAllReportActions, reportActionID);
+
     // Default (regular inbox chats): snapshot lastReadTime at first render.
     const [firstRenderLastReadTime] = useState(report?.lastReadTime);
     // Concierge only: snapshot the first non-undefined lastReadTime. On a cold open the report can be
@@ -63,7 +66,8 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         }
 
         if (reportActionID) {
-            return reportActionID;
+            // Anchoring to an action that isn't in this report returns an empty page, so render the newest window instead.
+            return isLinkedActionInMergedTransactionThread ? undefined : reportActionID;
         }
 
         if (!shouldLinkToOldestUnreadReportAction) {
