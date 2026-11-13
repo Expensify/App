@@ -569,6 +569,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: '結果がありません。フィルターや検索キーワードを調整してお試しください',
         unableToDisplayChart: 'グラフを表示できません',
         webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。有効にするか、別のブラウザに切り替えてください。',
+        webAssemblyNotSupported: 'お使いのブラウザでは WebAssembly を利用できません。グラフを表示するには、別のブラウザをお試しください。',
         chartFailedToLoad: 'グラフを読み込めませんでした。ページを再読み込みして、もう一度お試しください。',
         apiKey: 'API キー',
         exportsTo: 'エクスポート先',
@@ -7824,6 +7825,13 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 onWaitlist: '順番待ちリストに登録されています',
                 waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
             },
+            integrationWaitlist: {
+                comingSoon: '近日公開予定',
+                joinWaitlist: 'ウェイトリストに参加',
+                onWaitlist: '順番待ちリストに登録されています',
+                onTheList: 'リストに登録されています！',
+                waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
+            },
             setup: '接続',
             connectToSandbox: 'Sandbox に接続',
             lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
@@ -8231,6 +8239,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             statusExpired: '期限切れ',
             statusInactive: '無効',
             unit: '単位',
+            ukFuelRateTaxError: '英国の推奨燃料料金の税金を追跡するには、20%の税率を追加してください。',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) => `英国の推奨燃料料金の税金を追跡するには、${integrationName}に20%の税率を追加してください。`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>この機能を利用するには、ワークスペースで税金設定を有効にする必要があります。設定を変更するには、<a href="#">その他の機能</a>に移動してください。</muted-text>',
             deleteDistanceRate: '距離レートを削除',
@@ -10776,7 +10786,9 @@ ${reportName}`,
             completed: '完了',
             amount: {
                 lessThan: (amount?: string) => `${amount ?? ''} 未満`,
+                lessThanOrEqualTo: (amount?: string) => `${amount ?? ''} 以下`,
                 greaterThan: (amount?: string) => `${amount ?? ''}より大きい`,
+                greaterThanOrEqualTo: (amount?: string) => `${amount ?? ''} 以上`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `${greaterThan} 以上 ${lessThan} 未満`;
@@ -11026,6 +11038,8 @@ ${reportName}`,
             category: 'カテゴリ',
             tag: 'タグ',
         },
+        switchToTableView: 'テーブル表示に切り替え',
+        switchToExpenseView: '経費表示に切り替え',
     },
     report: {
         newReport: {

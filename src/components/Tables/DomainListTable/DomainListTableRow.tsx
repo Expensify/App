@@ -46,6 +46,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
         threeDotMenuItems.push({
             icon: icons.Globe,
             text: translate('domain.goToDomain'),
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.LIST.THREE_DOT_MENU_ITEM.GO_TO_DOMAIN,
             onSelected: item.action,
         });
     }
@@ -54,6 +55,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
         threeDotMenuItems.push({
             icon: icons.Globe,
             text: translate('domain.verifyDomain.title'),
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.LIST.THREE_DOT_MENU_ITEM.VERIFY_DOMAIN,
             onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.domainAccountID)),
         });
     }

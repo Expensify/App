@@ -1,6 +1,7 @@
 import isTablet from '@libs/isTablet';
 
 const isTabletDevice = isTablet();
+const isMobilePhoneWeb = false;
 
 /**
  * Returns whether the device is currently in landscape orientation.
@@ -9,3 +10,5 @@ const isTabletDevice = isTablet();
 export default function isInLandscapeMode(windowWidth: number, windowHeight: number): boolean {
     return !isTabletDevice && windowWidth > windowHeight;
 }
+
+export {isMobilePhoneWeb};

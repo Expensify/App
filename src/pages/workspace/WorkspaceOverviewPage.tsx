@@ -78,6 +78,8 @@ import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils
 
 import variables from '@styles/variables';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -239,6 +241,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const getRulesDocumentMenuItems = (openPicker: (options: {onPicked: (files: FileObject[]) => void}) => void): PopoverMenuItem[] => [
         {
             text: translate('common.replace'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT_MENU_REPLACE,
             icon: expensifyIcons.Upload,
             shouldCallAfterModalHide: true,
             onSelected: () => {
@@ -249,6 +252,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         },
         {
             text: translate('common.remove'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT_MENU_REMOVE,
             icon: expensifyIcons.Trashcan,
             onSelected: () => {
                 if (!policyID || !rulesDocumentURL) {
@@ -413,6 +417,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (canUnarchive) {
             secondaryActions.push({
                 value: 'unarchive',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_UNARCHIVE,
                 text: translate('workspace.common.unarchive'),
                 icon: expensifyIcons.ArrowCircleClockwise,
                 // The confirmation modal is handled by UnarchiveWorkspaceFlow, which mounts when this is set.
@@ -422,6 +427,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (canLeave) {
             secondaryActions.push({
                 value: 'leave',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_LEAVE,
                 text: translate('common.leave'),
                 icon: expensifyIcons.Exit,
                 onSelected: () => close(handleLeave),
@@ -433,11 +439,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             text: translate('common.share'),
             icon: expensifyIcons.QrCode,
             onSelected: isAccountLocked ? showLockedAccountModal : onPressShare,
-            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.SHARE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_SHARE,
         });
         if (isOwner) {
             secondaryActions.push({
                 value: canArchivePolicies ? 'archive' : 'delete',
+                sentryLabel: canArchivePolicies ? CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_ARCHIVE : CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_DELETE,
                 text: translate(canArchivePolicies ? 'workspace.common.archive' : 'common.delete'),
                 icon: canArchivePolicies ? expensifyIcons.Box : expensifyIcons.Trashcan,
                 onSelected: () => {
@@ -464,6 +471,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (isCurrentUserAdmin && !isCurrentUserOwner && shouldRenderTransferOwnerButton(fundList)) {
             secondaryActions.push({
                 value: 'transferOwner',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_TRANSFER_OWNER,
                 text: translate('workspace.people.transferOwner'),
                 icon: expensifyIcons.Transfer,
                 onSelected: startChangeOwnershipFlow,
@@ -472,6 +480,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (canLeave) {
             secondaryActions.push({
                 value: 'leave',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_LEAVE,
                 text: translate('common.leave'),
                 icon: expensifyIcons.Exit,
                 onSelected: () => close(handleLeave),
@@ -659,16 +668,21 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             }}
                         >
                             <MentionReportContext.Provider value={mentionReportContextValue}>
-                                <MenuItemWithTopDescription
-                                    title={policyDescription}
-                                    description={translate('workspace.editor.descriptionInputLabel')}
+                                <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressDescription}
-                                    shouldRenderAsHTML
-                                />
+                                    onPress={readOnly ? undefined : callIfAuthenticated(onPressDescription, session)}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('workspace.editor.descriptionInputLabel')}>
+                                            {!!policyDescription && <MenuItem.FieldValueHTML>{policyDescription}</MenuItem.FieldValueHTML>}
+                                        </MenuItemField.Content>
+                                        {!readOnly && (
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        )}
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             </MentionReportContext.Provider>
                         </OfflineWithFeedback>
                     )}
@@ -970,16 +984,22 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
                         {(isPolicyAdmin || hasCustomRulesText) && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
-                                <MenuItemWithTopDescription
-                                    title={policy?.customRules ?? ''}
-                                    description={translate('workspace.rules.customRules.policyText')}
+                                <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription, shouldShowRulesDocumentSubSection && styles.mt4]}
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
-                                    shouldRenderAsHTML
-                                />
+                                    style={shouldShowRulesDocumentSubSection && styles.mt4}
+                                    onPress={readOnly ? undefined : callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID)), session)}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('workspace.rules.customRules.policyText')}>
+                                            {!!policy?.customRules && <MenuItem.FieldValueHTML>{policy.customRules}</MenuItem.FieldValueHTML>}
+                                        </MenuItemField.Content>
+                                        {!readOnly && (
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        )}
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             </OfflineWithFeedback>
                         )}
                     </Section>

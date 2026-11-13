@@ -3,7 +3,8 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import {deepEqual} from 'fast-equals';
 
 /**
- * Returns the IDs of reports whose derived attributes changed between two snapshots, or `undefined` when none did.
+ * Returns the IDs of reports whose derived attributes changed between two snapshots (including entries that were
+ * removed), or `undefined` when none did.
  *
  * The derived value is rewritten with Onyx.set on every recompute, which re-creates entries even when nothing changed,
  * so entries are compared by value rather than by reference.
@@ -20,6 +21,12 @@ function getReportAttributesUpdates(
     for (const [reportID, attributes] of Object.entries(reportAttributes)) {
         const previousAttributes = prevReportAttributes?.[reportID];
         if (previousAttributes === attributes || deepEqual(previousAttributes, attributes)) {
+            continue;
+        }
+        updatedReportIDs.push(reportID);
+    }
+    for (const reportID of Object.keys(prevReportAttributes ?? {})) {
+        if (reportID in reportAttributes) {
             continue;
         }
         updatedReportIDs.push(reportID);

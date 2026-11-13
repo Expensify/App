@@ -1526,6 +1526,7 @@ const CONST = {
         BUSINESS_CENTRAL: 'businessCentral',
         DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
+        SAGE_ACCOUNTING: 'sageAccounting',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
@@ -1546,6 +1547,7 @@ const CONST = {
         RESIZABLE_RHP: 'resizableRHP',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
+        SINGLE_EXPENSE_TABLE_VIEW: 'singleExpenseTableView',
         FLAT_NAV: 'flatNav',
         CATEGORY_VISIBILITY: 'categoryVisibility',
         RECEIPT_TRANSLATION: 'receiptTranslation',
@@ -2093,6 +2095,7 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
+            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2676,6 +2679,10 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
+        },
+        SINGLE_EXPENSE_REPORT_VIEW: {
+            EXPENSE: 'expense',
+            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -5589,6 +5596,7 @@ const CONST = {
                 ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
                 EXACT_ONLINE: 'exactOnline',
+                SAGE_ACCOUNTING: 'sageAccounting',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5630,6 +5638,7 @@ const CONST = {
                 zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
                 exactOnline: 'Exact Online',
+                sageAccounting: 'Sage Accounting',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -5659,6 +5668,10 @@ const CONST = {
                     this.NAME.ZOHO_BOOKS,
                     this.NAME.BUSINESS_CENTRAL,
                 ] as const;
+            },
+            // Integrations that aren't available yet, so the Connections page offers their waitlist instead of connecting
+            get WAITLIST_CONNECTION_NAMES() {
+                return [this.NAME.SAGE_ACCOUNTING] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
@@ -9312,7 +9325,9 @@ const CONST = {
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
+            LESS_THAN_OR_EQUAL_TO: 'LessThanOrEqualTo',
             GREATER_THAN: 'GreaterThan',
+            GREATER_THAN_OR_EQUAL_TO: 'GreaterThanOrEqualTo',
             EQUAL_TO: 'EqualTo',
         },
         DATE_PRESETS: {
@@ -9951,6 +9966,7 @@ const CONST = {
         HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
+        HAS_UK_FUEL_RATE_TAX_ERROR: 'hasUKFuelRateTaxError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
         HAS_REIMBURSEMENT_EXPORT_ERROR: 'hasReimbursementExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
