@@ -1322,7 +1322,7 @@ describe('BankAccountUtils', () => {
             expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBeUndefined();
         });
 
-        it('keeps the banner when the only started onboarding belongs to an account pending deletion', () => {
+        it('returns undefined while the account with started onboarding is pending deletion', () => {
             // Given an eligible account and an account with started Wise onboarding that was deleted offline
             const bankAccountList = createMock<BankAccountList>({
                 accountOne: buildBankAccount(1, '2026-03-01 10:00:00'),
@@ -1335,8 +1335,8 @@ describe('BankAccountUtils', () => {
             });
 
             // When picking the account for the Wallet banner
-            // Then the eligible account is returned, since Wallet no longer offers to continue the deleted account's onboarding
-            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(1);
+            // Then nothing is returned, so the banner doesn't show up before the server confirms the deletion
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBeUndefined();
         });
 
         it('returns undefined when no account is eligible', () => {

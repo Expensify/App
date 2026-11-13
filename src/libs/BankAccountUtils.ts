@@ -293,13 +293,10 @@ function isWiseOnboardingSubmitted(accountData: AccountData | undefined): boolea
 /**
  * Whether the admin saved part of the Wise onboarding for any of their bank accounts. The server sets Wise as the provider on the first saved page,
  * and from then on Wallet shows the account's setup so the admin can return to it.
+ * An account deleted offline still counts until the server removes it, so the banners don't show up before the deletion goes through.
  */
 function hasStartedWiseOnboarding(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
-    return Object.values(bankAccountList ?? {}).some(
-        (bankAccount) =>
-            bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE,
-    );
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE);
 }
 
 /**
