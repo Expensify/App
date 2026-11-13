@@ -8572,6 +8572,12 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                // Search only, because the report view already shows each expense's converted amount in its Total column.
+                CONVERTED_AMOUNT: {
+                    column: this.TABLE_COLUMNS.CONVERTED_AMOUNT,
+                    search: true,
+                    reportView: false,
+                },
                 REPORT_ID: {
                     column: this.TABLE_COLUMNS.REPORT_ID,
                     search: true,
