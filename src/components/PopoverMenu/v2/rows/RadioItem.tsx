@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -32,7 +32,7 @@ type RadioItemOwnProps = {
     rightIcon?: IconAsset;
 };
 
-type RadioItemProps = RadioItemOwnProps & MenuItemForwardProps & WithSentryLabelWhenPressable<'onSelect'>;
+type RadioItemProps = RadioItemOwnProps & MenuItemForwardProps & WithRequiredSentryLabel;
 
 /** Single-select row with a radio indicator; pass `rightIcon` to replace the indicator. */
 function RadioItem({

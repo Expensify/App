@@ -16,7 +16,8 @@ import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
-type BadgeProps = WithSentryLabelWhenPressable & {
+// `pressable`, not `onPress`, decides whether the badge renders a pressable: onPress defaults to a noop.
+type BadgeProps = WithSentryLabelWhenPressable<'pressable'> & {
     success?: boolean;
     error?: boolean;
 

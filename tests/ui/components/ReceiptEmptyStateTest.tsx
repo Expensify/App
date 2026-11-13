@@ -42,7 +42,10 @@ describe('ReceiptEmptyState', () => {
             // Given an editable wide receipt panel with alternative actions.
             render(
                 <Wrapper>
-                    <ReceiptEmptyState isDisplayedInWideRHP />
+                    <ReceiptEmptyState
+                        isDisplayedInWideRHP
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    />
                 </Wrapper>,
             );
 
@@ -60,6 +63,7 @@ describe('ReceiptEmptyState', () => {
                 <Wrapper>
                     <ReceiptEmptyState
                         isDisplayedInWideRHP
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         setReceiptFile={jest.fn()}
                     />
                 </Wrapper>,
@@ -102,6 +106,7 @@ describe('ReceiptEmptyState', () => {
                 <Wrapper>
                     <ReceiptEmptyState
                         isDisplayedInWideRHP
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         isThumbnail={false}
                         setReceiptFile={jest.fn()}
                     />
@@ -118,6 +123,7 @@ describe('ReceiptEmptyState', () => {
                 <Wrapper>
                     <ReceiptEmptyState
                         isDisplayedInWideRHP={false}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         isThumbnail={false}
                     />
                 </Wrapper>,

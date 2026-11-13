@@ -21,7 +21,8 @@ import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent, PressableStateCallbackType, ViewStyle} from 'react-native';
 
@@ -35,16 +36,24 @@ import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {TableActionsContext, useTableContext, useTableRowSemanticID} from './TableContext';
 
-type TableRowProps = WithSentryLabelWhenPressable<'onPress' | 'onLongPress'> &
-    Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel' | 'sentryLabel'> & {
+// An interactive row handles presses, Enter/Space and the long press that starts mobile selection on its own, even
+// without onPress or onLongPress, so it always needs a label.
+type TableRowInteractivityProps =
+    | (WithRequiredSentryLabel & {
+          /** Whether or not the table row is pressable or not */
+          interactive: true;
+      })
+    | (WithSentryLabel & {
+          interactive: false;
+      });
+
+type TableRowProps = TableRowInteractivityProps &
+    Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel' | 'sentryLabel' | 'interactive'> & {
         /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
         accessible?: true;
 
         /** Describes the row's content to assistive technology, e.g. `Workspace name: Acme, Owner: Jane Doe`. */
         accessibilityLabel: string;
-
-        /** Whether or not the table row is pressable or not */
-        interactive: boolean;
 
         disabled?: boolean;
         rowIndex: number;

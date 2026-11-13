@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -30,7 +30,7 @@ type ItemOwnProps = {
     rightIcon?: IconAsset;
 };
 
-type ItemProps = ItemOwnProps & MenuItemForwardProps & WithSentryLabelWhenPressable<'onSelect'>;
+type ItemProps = ItemOwnProps & MenuItemForwardProps & WithRequiredSentryLabel;
 
 function Item({text, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, sentryLabel, ...rest}: ItemProps): React.ReactElement | null {
     useContentClose(Item.displayName);

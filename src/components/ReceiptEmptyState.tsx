@@ -23,7 +23,8 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReceiptAlternativeMethods from './ReceiptAlternativeMethods';
 import Text from './Text';
 
-type ReceiptEmptyStateProps = WithSentryLabelWhenPressable & {
+// A wide RHP renders the placeholder as a pressable that opens the file picker, even without onPress.
+type ReceiptEmptyStateProps = WithSentryLabelWhenPressable<'onPress' | 'isDisplayedInWideRHP'> & {
     /** Callback to be called on onPress */
     onPress?: () => void;
 

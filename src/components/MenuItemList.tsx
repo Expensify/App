@@ -7,6 +7,7 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
@@ -21,17 +22,19 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 
 type MenuItemLink = string | (() => Promise<string>);
 
-type MenuItemWithLink = MenuItemProps & {
-    link?: MenuItemLink;
+// A link adds a context menu on secondary interaction, so the item needs a label even without onPress.
+type MenuItemWithLink = MenuItemProps &
+    WithSentryLabelWhenPressable<'link'> & {
+        link?: MenuItemLink;
 
-    /** A unique key for the menu item */
-    key?: string;
+        /** A unique key for the menu item */
+        key?: string;
 
-    pendingAction?: OnyxCommon.PendingAction | null;
-    onPendingActionDismiss?: () => void;
-    error?: OnyxCommon.Errors | null;
-    shouldForceOpacity?: boolean;
-};
+        pendingAction?: OnyxCommon.PendingAction | null;
+        onPendingActionDismiss?: () => void;
+        error?: OnyxCommon.Errors | null;
+        shouldForceOpacity?: boolean;
+    };
 
 type MenuItemListProps = {
     /** An array of props that are pass to individual MenuItem components */

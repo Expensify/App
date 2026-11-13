@@ -1163,7 +1163,10 @@ describe('PopoverMenu V2', () => {
                     onOpenChange={onOpenChange}
                 >
                     <PopoverMenu.Content>
-                        <PopoverMenu.Item text="Plain" />
+                        <PopoverMenu.Item
+                            text="Plain"
+                            sentryLabel={sentryLabel}
+                        />
                     </PopoverMenu.Content>
                 </Harness>,
             );
