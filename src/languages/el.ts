@@ -2123,6 +2123,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} αναφορές`,
             };
         },
+        payViaABA: 'Πληρωμή μέσω ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `Ο/Η ${name} δεν έχει τραπεζικό λογαριασμό σε AUD. Παρακαλούμε ζητήστε τους να προσθέσουν έναν και δοκιμάστε ξανά.`,
+        submittersMissingABADepositAccount: 'Ένας ή περισσότεροι αποστολείς δεν έχουν τραπεζικό λογαριασμό σε AUD. Παρακαλούμε ζητήστε τους να προσθέσουν έναν και προσπαθήστε ξανά.',
     },
     transactionMerge: {
         listPage: {

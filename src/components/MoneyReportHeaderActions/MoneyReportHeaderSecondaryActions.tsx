@@ -29,6 +29,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePaymentOptions from '@hooks/usePaymentOptions';
+import usePayViaABA from '@hooks/usePayViaABA';
 import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
@@ -56,7 +57,7 @@ import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
-import {sortPoliciesByName} from '@libs/PolicyUtils';
+import {shouldLoadPayViaABAData, sortPoliciesByName} from '@libs/PolicyUtils';
 import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
 import {getFilteredReportActionsForReportView, hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
@@ -73,6 +74,7 @@ import {
 import {isPending} from '@libs/TransactionUtils';
 
 import {payInvoice} from '@userActions/IOU/PayMoneyRequest';
+import {openPaymentMethods} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -107,6 +109,7 @@ const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
 function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef, isDisabled}: MoneyReportHeaderSecondaryActionsProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
+    const {payReportsViaABA} = usePayViaABA();
 
     const {translate, localeCompare} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
@@ -164,6 +167,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {payWithWiseQuote} = usePayWithWiseQuote();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isSingleExpenseTableViewBetaEnabled = isBetaEnabled(CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW);
+    const isPayViaABABetaEnabled = isBetaEnabled(CONST.BETAS.PAY_VIA_ABA);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     // While offline, keep pending-delete transactions so a queued-for-delete expense still counts as a real transaction until the delete syncs.
@@ -215,9 +219,15 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             const holdMenuParams = {
                 requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
+                paymentMethod,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 onConfirm: () => startAnimation(),
             };
+            // Verify before opening the hold menu for Pay via ABA,since it isn't verified before reaching here like other payment methods
+            if (paymentMethod === CONST.PAYMENT_METHODS.ABA && !isUserValidated) {
+                verifyAccountAndResume(() => openHoldMenu(holdMenuParams));
+                return;
+            }
             if (getPlatform() === CONST.PLATFORM.IOS) {
                 // TransitionTracker.runAfterTransitions delays modal until current interaction completes, preventing visual glitches on iOS
                 TransitionTracker.runAfterTransitions({
@@ -256,6 +266,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isTrackIntentUser,
                 rules,
             });
+        } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+            if (moneyRequestReport?.reportID) {
+                payReportsViaABA([moneyRequestReport.reportID], policy, {onPaid: startAnimation});
+            }
         } else {
             payWithWiseQuote({
                 bankAccountList,
@@ -490,6 +504,15 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
+    const shouldLoadABAData = secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY) && shouldLoadPayViaABAData(policy, isPayViaABABetaEnabled);
+
+    const handleOptionsMenuShow = () => {
+        if (!shouldLoadABAData) {
+            return;
+        }
+        openPaymentMethods();
+    };
+
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         const runPaymentSelection = () =>
             selectPaymentType({
@@ -541,6 +564,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             applicableSecondaryActions={applicableSecondaryActions}
             dropdownMenuRef={dropdownMenuRef}
             isDisabled={isDisabled}
+            onOptionsMenuShow={handleOptionsMenuShow}
             onOptionsMenuHide={handleOptionsMenuHide}
             ref={kycWallRef}
             shouldPutHeaderTextAfterBackButton

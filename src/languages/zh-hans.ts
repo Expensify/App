@@ -1982,6 +1982,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} 份报销单`,
             };
         },
+        payViaABA: '通过 ABA 支付',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} 没有 AUD 银行账户。请让 TA 添加一个后再重试。`,
+        submittersMissingABADepositAccount: '一个或多个提交人没有 AUD 银行账户。请让他们添加一个后再试一次。',
     },
     transactionMerge: {
         listPage: {

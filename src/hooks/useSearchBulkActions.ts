@@ -18,6 +18,7 @@ import {getBankAccountToSetUpBeforePaying, payInvoice, payMoneyRequest} from '@l
 import type {PayMoneyRequestFunctionParams} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {openPaymentMethods} from '@libs/actions/PaymentMethods';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
     exportSearchItemsToCSV,
@@ -62,7 +63,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canPayViaABA, getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy, shouldLoadPayViaABAData} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -180,6 +181,7 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import {getParticipantsInvoiceReport} from './useParticipantsInvoiceReport';
 import usePaymentContext from './usePaymentContext';
+import usePayViaABA from './usePayViaABA';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
@@ -945,17 +947,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const selectedBulkCurrency = payScopedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, payScopedReports, selectedTransactions, selectedBulkCurrency);
 
-    const onlyShowPayElsewhere = useMemo(() => {
+    const hasMultipleCurrencies = useMemo(() => {
         const selectedCurrencies =
             payScopedReports.length > 0
                 ? payScopedReports.map((report) => report.currency).filter(Boolean)
                 : Object.values(selectedTransactions)
                       .map((transaction) => transaction.currency)
                       .filter(Boolean);
-        if (new Set(selectedCurrencies).size > 1) {
-            return true;
-        }
+        return new Set(selectedCurrencies).size > 1;
+    }, [payScopedReports, selectedTransactions]);
 
+    const onlyShowPayElsewhere = useMemo(() => {
         const firstPolicyID = payScopedPolicyIDs.at(0);
         const selectedPolicy = firstPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`] : undefined;
         const transactionsByReportID = getTransactionsByReportID(currentSearchResults?.data ?? {});
@@ -1004,8 +1006,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactionReportIDs,
         payScopedReportIDs,
         bankAccountList,
-        payScopedReports,
-        selectedTransactions,
         currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
     ]);
@@ -1013,6 +1013,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const selectedBulkPayReportID = payScopedReportIDs.at(0) ?? selectedTransactionReportIDs.at(0);
     const selectedBulkPayReport = selectedBulkPayReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedBulkPayReportID}`] : undefined;
     const selectedBulkPayChatReportID = selectedBulkPayReport?.chatReportID;
+    // Since ABA files pay from one workspace's withdrawal account, we only show it if all the reports are from one workspace.
+    // Selecting all items is not supported for now, it will be added in the second release.
+    const bulkPayPolicy = payScopedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${payScopedPolicyIDs.at(0)}`] : undefined;
+    const shouldShowPayViaABAOption = !areAllMatchingItemsSelected && canPayViaABA(bulkPayPolicy, isBetaEnabled(CONST.BETAS.PAY_VIA_ABA));
+    const shouldLoadBulkPayViaABAData = shouldLoadPayViaABAData(bulkPayPolicy, isBetaEnabled(CONST.BETAS.PAY_VIA_ABA));
+    const {payReportsViaABA} = usePayViaABA();
+
+    // The bulk pay menus have no hook for when they open, so the Pay via ABA data is loaded when the selection is made instead
+    useEffect(() => {
+        if (!shouldLoadBulkPayViaABAData) {
+            return;
+        }
+        openPaymentMethods();
+    }, [shouldLoadBulkPayViaABAData]);
+
     const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: payScopedPolicyIDs.at(0),
         selectedReportID: selectedBulkPayReportID,
@@ -1022,6 +1037,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
         onlyShowPayElsewhere: onlyShowPayElsewhere || areAllMatchingItemsSelected,
+        hasMultipleCurrencies,
+        shouldShowPayViaABAOption,
     });
 
     const {hash} = queryJSON ?? {};
@@ -1896,6 +1913,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                           };
                       });
 
+            if (additionalData?.paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+                // Paying several expenses from one report only needs the report in the file once
+                const reportIDs = [...new Set(itemsToPay.map((item) => item.reportID).filter((reportID): reportID is string => !!reportID))];
+                payReportsViaABA(reportIDs, bulkPayPolicy);
+                clearSelectedTransactions();
+                return;
+            }
+
             let paidReportCount = 0;
             const expensePayments: PayMoneyRequestFunctionParams[] = [];
             for (const item of itemsToPay) {
@@ -2118,6 +2143,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             ownerBillingGracePeriodEnd,
             amountOwed,
             policies,
+            bulkPayPolicy,
             showDelegateNoAccessModal,
             allReports,
             allReportActions,
@@ -2143,6 +2169,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            payReportsViaABA,
         ],
     );
 

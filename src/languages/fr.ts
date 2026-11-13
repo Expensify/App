@@ -2085,6 +2085,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} notes de frais`,
             };
         },
+        payViaABA: 'Payer via ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} n’a pas de compte bancaire en AUD. Veuillez lui demander d’en ajouter un, puis réessayez.`,
+        submittersMissingABADepositAccount: 'Un ou plusieurs déclarants n’ont pas de compte bancaire en AUD. Veuillez leur demander d’en ajouter un, puis réessayez.',
     },
     transactionMerge: {
         listPage: {

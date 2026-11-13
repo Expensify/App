@@ -2051,6 +2051,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} レポート`,
             };
         },
+        payViaABA: 'ABA で支払う',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} はAUDの銀行口座をお持ちではありません。口座を追加してもらい、もう一度お試しください。`,
+        submittersMissingABADepositAccount: '1 人以上の申請者が AUD 銀行口座を登録していません。口座を追加するよう依頼してから、もう一度お試しください。',
     },
     transactionMerge: {
         listPage: {
