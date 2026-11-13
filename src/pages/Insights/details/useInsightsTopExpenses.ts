@@ -59,8 +59,8 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
 
     const onRefreshKeyChange = useEffectEvent(retry);
 
-    // An expense edit moves the spend signature and can change which expenses match, so the list refetches.
-    // A change made while an expense is open on top waits until the list is visible again.
+    // An expense edit moves the spend signature and can change which expenses match, so the list is fetched again.
+    // A change made while an expense is open on top waits until the user is back on the list.
     const refreshKey = [queryJSON?.hash, isOffline, spendDataSignature?.expenses ?? 0].join('|');
     const lastRefreshKeyRef = useRef<string | undefined>(undefined);
     useEffect(() => {
