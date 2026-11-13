@@ -1,5 +1,3 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
@@ -32,8 +29,8 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     },
 }: WorkspaceCompanyCardStatementCloseDatePageProps) {
     const {translate} = useLocalize();
-    const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const [cardFeeds] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -65,10 +62,6 @@ function WorkspaceCompanyCardStatementCloseDatePage({
 
         clearErrorField(feed, domainOrWorkspaceAccountID, 'statementPeriodEndDay');
     };
-
-    if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <AccessOrNotFoundWrapper

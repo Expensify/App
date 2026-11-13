@@ -30,7 +30,6 @@ import {clearBulkUpdateTransactionStartDateSuccess, clearBulkUpdateTransactionSt
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect, useEffectEvent, useRef} from 'react';
 
@@ -49,15 +48,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const companyCards = useCompanyCards({policyID});
-    const {
-        allCardFeeds,
-        feedName,
-        selectedFeed,
-        bankName,
-        isFeedPending,
-        isFeedAdded,
-        onyxMetadata: {cardListMetadata},
-    } = companyCards;
+    const {allCardFeeds, feedName, selectedFeed, bankName, isFeedPending} = companyCards;
 
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
@@ -103,7 +94,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     // Offline that response can never arrive, so we consider the policy loaded to avoid showing a spinner that would never resolve.
     const isPolicyLoaded = !!policy && (policy.policyAccountID !== undefined || isOffline);
 
-    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
+    const isLoading = !isOffline && !allCardFeeds;
 
     const hasFeedsLoaded = !!allCardFeeds && Object.keys(allCardFeeds).length > 0;
 
