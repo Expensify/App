@@ -325,6 +325,7 @@ function MoneyRequestReportTransactionItemBody({
                             shouldUseFullHeightEditableCellHoverTarget={!shouldUseNarrowTransactionRow}
                             shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                             onCheckboxPress={toggleTransaction}
+                            checkboxSentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_TRANSACTION_ITEM_CHECKBOX}
                             columns={columns}
                             isDisabled={!isSelectable}
                             style={[transactionRowStyle, hasTransactionErrors && styles.offlineFeedbackPending]}

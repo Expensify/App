@@ -15,6 +15,7 @@ import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate'
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -26,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 
@@ -124,7 +126,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     };
 
     const showGpsInProgressModal = async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
-        const result = await showConfirmModal({
+        const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
             title: translate('gps.switchAccountWarningTripInProgress.title'),
             prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
             confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),
@@ -157,8 +159,8 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
 
     const createBaseMenuItem = (
         personalDetails: PersonalDetails | undefined,
-        errors?: Errors,
-        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
+        errors: Errors | undefined,
+        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> & WithRequiredSentryLabel,
     ): PopoverMenuItem => {
         const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
@@ -177,7 +179,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         };
     };
 
-    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
+    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true, sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.CURRENT_ACCOUNT});
     const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
         delegators
             .filter(({email}) => email !== currentUserPersonalDetails.login)
@@ -187,6 +189,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                 const personalDetails = personalDetailsByLogin[email];
                 return createBaseMenuItem(personalDetails, error, {
                     badgeText: translate('delegate.role', role),
+                    sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.SWITCH_TO_DELEGATOR,
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);
@@ -218,6 +221,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
 
             return [
                 createBaseMenuItem(personalDetailsByLogin[delegate], error, {
+                    sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.SWITCH_BACK,
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);

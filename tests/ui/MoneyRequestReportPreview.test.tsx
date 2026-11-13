@@ -643,6 +643,26 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
+        it('opens the only expense on top of its report when single-expense reports use the table view', async () => {
+            // Given a single-expense report and a user who picked the table view, where the expense is a row of the report
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            setReportPreviewData({transactions: [mockSecondTransaction]});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW]);
+                await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
+            });
+
+            // When the user presses the expense in the preview
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            // Then its thread opens on top of the report, as it does for an expense on a multi-expense report
+            expect(navigateSpy).toHaveBeenCalledTimes(2);
+            expect(navigateSpy).toHaveBeenNthCalledWith(1, narrowReportRoute());
+            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
+        });
+
         it('keeps the pressed expense out of the split stack on narrow layouts', async () => {
             // Deploy blocker #97183: removeScreenByKey only filters the root navigator, so a nested split screen can never be removed.
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
@@ -1263,6 +1283,72 @@ describe('MoneyRequestReportPreview', () => {
             // A single-expense report opens the report itself, never the lone expense thread.
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
             expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockTransaction.transactionID}`, backTo: ''}));
+        });
+
+        it('takes the carousel over from another screen when opening a single-expense report', async () => {
+            // Given a carousel seeded by the Spend page's results, which also hold an expense outside this report
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            setReportPreviewData({transactions: [mockTransaction]});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            await act(async () => {
+                await TransactionThreadNavigation.setActiveTransactionIDs([mockTransaction.transactionID, 'selfDMTransactionID'], {
+                    source: TransactionThreadNavigation.CAROUSEL_SOURCE.search(1),
+                });
+            });
+            const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
+
+            renderPage({});
+            await waitForBatchedUpdatesWithAct();
+            setCurrentWidth();
+            await act(async () => {
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the lone expense is pressed, which opens the report itself
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
+            fireEvent.press(screen.getByText(transactionDisplayAmount));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the carousel only holds this report's expense, so the report's header shows no arrows paging to the
+            // Spend page's other expense
+            expect(setActiveTransactionIDsSpy).toHaveBeenLastCalledWith([mockTransaction.transactionID], {
+                source: TransactionThreadNavigation.CAROUSEL_SOURCE.reportPreview(mockIOUReport.reportID),
+            });
+            expect(TransactionThreadNavigation.getActiveTransactionIDs().ids).toEqual([mockTransaction.transactionID]);
+        });
+
+        it('takes the carousel over from another screen when "View" opens a single-expense report', async () => {
+            // Given a carousel seeded by the Spend page's results, which also hold an expense outside this report
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            setReportPreviewData({transactions: [mockTransaction]});
+            await act(async () => {
+                await TransactionThreadNavigation.setActiveTransactionIDs([mockTransaction.transactionID, 'selfDMTransactionID'], {
+                    source: TransactionThreadNavigation.CAROUSEL_SOURCE.search(1),
+                });
+            });
+            const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
+
+            renderPage({});
+            await waitForBatchedUpdatesWithAct();
+            setCurrentWidth();
+            await act(async () => {
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When "View" is pressed, which opens the report through the preview's action buttons rather than the card
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.view')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the carousel only holds this report's expense, the same as pressing the card, so the report's header
+            // shows no arrows paging to the Spend page's other expense
+            expect(setActiveTransactionIDsSpy).toHaveBeenLastCalledWith([mockTransaction.transactionID], {
+                source: TransactionThreadNavigation.CAROUSEL_SOURCE.reportPreview(mockIOUReport.reportID),
+            });
+            expect(TransactionThreadNavigation.getActiveTransactionIDs().ids).toEqual([mockTransaction.transactionID]);
         });
     });
 });

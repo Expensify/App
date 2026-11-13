@@ -79,7 +79,9 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
         }
 
         let cancelled = false;
-        generateThumbnail(sourceUri)
+        // Thumbnails are generated one at a time, so by the time this one's turn comes the row may be gone, or another
+        // consumer of the same receipt may have filled the cache. Either way there is nothing left to decode.
+        generateThumbnail(sourceUri, {shouldSkip: () => cancelled || thumbnailCache.has(sourceUri)})
             .then((uri) => {
                 if (cancelled) {
                     return;

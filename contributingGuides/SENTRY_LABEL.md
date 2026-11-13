@@ -2,7 +2,9 @@
 
 Every pressable component takes a `sentryLabel` prop. On web it is rendered as the `data-sentry-label` attribute. Label values live in `CONST.SENTRY_LABEL`, and the prop's `SentryLabel` type accepts nothing else, so type any prop or map that passes a label along as `SentryLabel` too, not `string`. Don't cast a string to it.
 
-Lint (`no-restricted-syntax`) requires the label on every pressable. It also requires it on `Button`, `MenuItem` and the other wrappers that forward it to a pressable whenever they get a press handler, and always on wrappers that handle their own press, like `ThreeDotsMenu`. The lists of wrappers are in `oxlint.config.mts`. When you write a component that forwards `sentryLabel` to a pressable, add it there. Inputs and wrappers that fall back to a default label aren't checked yet. Usages that had no label when the rule was added are grandfathered in the [seatbelt baseline](LINTING.md#seatbelt). Add a label when you touch one.
+When you write a component that forwards `sentryLabel` to a pressable, make the prop required with `WithRequiredSentryLabel`, so TypeScript checks every usage, including ones that pass props through a spread. Keep it optional only when the component falls back to a default label, or for inputs. In tests, pass `CONST.SENTRY_LABEL.TEST.LABEL` to these components. Tests send nothing to Sentry, so they share one label instead of copying the production ones. Never use it in app code.
+
+Older wrappers still have an optional prop, so lint (`no-restricted-syntax`) checks them instead. It requires the label on every pressable, on `Button`, `MenuItem` and the other wrappers that forward it to a pressable whenever they get a press handler, and always on wrappers that handle their own press, like `ThreeDotsMenu`. The lists of these wrappers are in `oxlint.config.mts`. Don't add new components to them. Once all usages of a listed wrapper have a label, make its prop required and remove it from the lists. Inputs and wrappers that fall back to a default label aren't checked, and neither are story files (`*.stories.tsx`), which never send anything to Sentry. Usages that had no label when the rule was added are grandfathered in the [seatbelt baseline](LINTING.md#seatbelt). Add a label when you touch one.
 
 The attribute is used by:
 
@@ -19,17 +21,20 @@ Labels have two or three parts in PascalCase, joined by hyphens:
 
 ### Two or three parts
 
-Decide by how the element is rendered:
+A third part only adds the [`inp.category`](#inpcategory) aggregate: every label is its own series in Sentry either way. So use three parts only when that aggregate means something, which is when one fix would speed up every variant. Ask: if someone made this category's INP faster, would the fix help every item in it?
 
-- **Three parts** when one element is rendered as several variants and data decides which one: the items of a menu or dropdown inside an area, rows mapped from a list of options, or a button whose action comes from a lookup (e.g. by action type). Each variant does different work, and their shared `<Area>-<Action>` becomes their [`inp.category`](#inpcategory). Examples: `WorkspaceRules-NewRuleMenuItem-FlagForReview`, `Search-ActionCellAction-Submit`, `Search-CreateMenu-TrackDistance`.
-- **Two parts** when the element has its own JSX usage and always does the same thing. Sibling buttons on one page are separate elements, not variants, even when their names share a prefix: `WorkspaceRules-MerchantRuleSave` and `WorkspaceRules-MerchantRuleDelete`, not `WorkspaceRules-MerchantRule-Save`.
-- **Two parts** also for the items of a menu that is an area of its own, like `MoreMenu`, `ContextMenu`, `FABMenu` or `NavigationTabBar`: the menu is the `<Area>` and the item is the `<Action>`, e.g. `MoreMenu-Delete`, `NavigationTabBar-Inbox`. A submenu inside it is an element again, so its items get three parts: `MoreMenu-AddExpenseMenu-TrackDistance`.
+1. **One JSX element that always does the same thing: two parts.** Sibling buttons on one page are separate elements, even when their names share a prefix: `WorkspaceRules-MerchantRuleSave` and `WorkspaceRules-MerchantRuleDelete`, not `WorkspaceRules-MerchantRule-Save`. When one element switches its handler on a flag, give each handler its own label. When only its copy changes, keep one.
+2. **One element rendered as variants picked from a list fixed in code, where the variants cause the same kind of work: three parts**, `<Area>-<Element>-<Variant>`. This covers tabs, option rows that each open a page, a payment method picker, a row action looked up by type (`Search-ActionCellAction-Submit`, `-Approve`, `-Pay`), and bulk actions that update the same list (`WorkspaceTags-BulkActions-Delete`, `-Disable`, `-Enable`). The handlers may differ, as long as the render work is alike.
+3. **Menus whose items do unrelated things: two parts for each item**, `<Area>-<Menu><Item>`. This covers "More" and three-dots menus, and any menu that mixes navigation, downloads, modals and deletes: `WorkspaceTags-MoreMenuImportSpreadsheet`, `WorkspaceTags-MoreMenuDownloadCSV`, `WorkspaceList-ThreeDotMenuDuplicate`. An aggregate over them would mix unrelated costs. Keeping the menu in the name still lets you query the whole menu in Sentry with `*WorkspaceTags-MoreMenu*`.
+4. **Rows rendered from runtime data (one per workspace, card, member or bank account): one label shared by all rows**, never one label per row. See [No IDs or user data](#no-ids-or-user-data).
+5. **Menus that are an area of their own: two parts**, `<Menu>-<Item>`. These are menu components reused across many screens, like `MoreMenu`, `ContextMenu`, `FABMenu`, `NavigationTabBar` and `TabSelector`: `MoreMenu-Delete`, `NavigationTabBar-Inbox`. A page's own "More" menu or tab bar belongs to the page's area instead, and follows 2 or 3. A submenu inside an area menu is an element again: `MoreMenu-AddExpenseMenu-TrackDistance`.
+6. **The button that opens a menu gets two parts** of its own, e.g. `WorkspaceTags-BulkActionsDropdown` next to its items `WorkspaceTags-BulkActions-Delete`.
 
 Then check:
 
-- A category needs at least two variants. An element with one variant gets two parts.
-- The variant goes in `<Detail>`, never at the end of `<Action>`: `Report-AttachmentPickerMenu-CreateExpense`, not `Report-AttachmentPickerMenuCreateExpense`. For a single element, the whole name goes in `<Action>`: `SelectionList-ListHeaderSelectAll`, not `SelectionList-ListHeader-SelectAll`.
-- `<Detail>` is the variant, not the place. When the same menu is shown in two places, each place gets its own `<Area>-<Action>`, because the same press does different work in each (see [step 2 of the INP workflow](INP_IMPROVEMENT_WORKFLOW.md#2-evaluate-whether-the-data-sentry-label-grouping-is-correct)). For example, `Report-EmptyStateAddExpenseMenu-CreateExpense` and `Report-ListFooterAddExpenseMenu-CreateExpense`.
+- A category needs at least two variants, so an element with one variant gets two parts (`WorkspaceAgents-BulkActionsDelete`). When a second variant is added, rename it to three parts and list the rename in the PR.
+- For three-part labels, the variant goes in `<Detail>`, never at the end of `<Action>`: `Report-AttachmentPickerMenu-CreateExpense`, not `Report-AttachmentPickerMenuCreateExpense`. Rule 3 is the exception, because those items aren't variants of one interaction. For a single element, the whole name goes in `<Action>`: `SelectionList-ListHeaderSelectAll`, not `SelectionList-ListHeader-SelectAll`.
+- `<Detail>` is the variant, not the place. When the same menu is shown in two places and a press does different work in each, each place gets its own `<Area>-<Action>` (see [step 2 of the INP workflow](INP_IMPROVEMENT_WORKFLOW.md#2-evaluate-whether-the-data-sentry-label-grouping-is-correct)). For example, `Report-EmptyStateAddExpenseMenu-CreateExpense` and `Report-ListFooterAddExpenseMenu-CreateExpense`. When it's the same component doing the same work, e.g. one hook that builds the Pay submenu for several screens, keep one set of labels: Sentry groups INP spans by `transaction` (the page) and FullStory by URL, so each place can still be told apart.
 
 In `CONST.SENTRY_LABEL`, put the variants of one element in a nested object keyed by variant, and keep single elements as flat keys:
 
@@ -46,6 +51,8 @@ SEARCH: {
 `tests/unit/SentryLabelSchemaTest.ts` fails when a label doesn't have two or three PascalCase parts, or when a category has only one variant.
 
 Renaming a label starts a new series in Sentry and loses its history, and it breaks the FullStory element definitions that select it. List renamed labels in the PR description.
+
+A few labels from before these rules don't follow them and are kept to preserve their history. For example, `Search-EmptyState-*` groups unrelated empty state buttons, but FullStory element definitions select it. Don't copy them for new labels.
 
 ## `inp.category`
 

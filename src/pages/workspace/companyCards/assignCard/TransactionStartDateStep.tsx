@@ -130,6 +130,7 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                                 addBottomSafeAreaPadding
                                 footerContent={
                                     <Button
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_TRANSACTION_START_DATE_SUBMIT}
                                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         size={CONST.BUTTON_SIZE.LARGE}
                                         onPress={submit}

@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
@@ -32,7 +33,8 @@ import {View} from 'react-native';
 
 type MenuItemRootProps = PropsWithChildren &
     WithSentryLabel &
-    WithTestID & {
+    WithTestID &
+    ForwardedFSClassProps & {
         /** Function to fire when the row is pressed */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
@@ -79,6 +81,7 @@ function MenuItemRoot({
     accessibilityState,
     shouldBeAccessible = true,
     ref,
+    forwardedFSClass,
 }: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -97,7 +100,7 @@ function MenuItemRoot({
         shouldSuppressCopyableTextRowPress,
     } = useCopyableTextRowPress({shouldTrackTouchStart: true});
 
-    const {accessibilityLabel: rowAccessibilityLabel, accessibilityHint, registries: accessibilityRegistries} = useMenuItemAccessibility(accessibilityLabel);
+    const {accessibilityLabel: rowAccessibilityLabel, accessibilityHint, fsClass: rowFSClass, registries: accessibilityRegistries} = useMenuItemAccessibility(accessibilityLabel);
     const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
 
     useRemoveNonInteractiveClickHandler(pressableRef, isInteractive);
@@ -175,6 +178,8 @@ function MenuItemRoot({
                         accessibilityLabel={rowAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
                         accessibilityState={accessibilityState}
+                        // Masked leaves report themselves after the first render, so a preset that names the row up front passes its mask here
+                        forwardedFSClass={forwardedFSClass === CONST.FULLSTORY.CLASS.MASK ? forwardedFSClass : rowFSClass}
                         accessible={shouldBeAccessible}
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}
