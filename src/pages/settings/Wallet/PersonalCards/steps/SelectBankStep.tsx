@@ -6,6 +6,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
+import useActiveServer from '@hooks/useActiveServer';
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -13,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getActiveServer} from '@libs/ApiUtils';
 import {getPersonalBankCardDetailsImage} from '@libs/CardUtils';
 
 import variables from '@styles/variables';
@@ -37,7 +37,7 @@ function SelectBankStep() {
     const {isOffline} = useNetwork();
 
     const [addNewPersonalCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
-    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
+    const {activeServer} = useActiveServer();
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.PERSONAL_CARDS.BANKS> | null | undefined>(addNewPersonalCard?.data?.selectedBank);
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.PERSONAL_CARDS.BANKS.OTHER;
@@ -63,6 +63,8 @@ function SelectBankStep() {
 
     const data = Object.values(CONST.PERSONAL_CARDS.BANKS)
         .filter((bank) => {
+            // Keep Mock Bank available for non-production testing; hide it only
+            // when both the build environment and resolved server are production.
             if (bank === CONST.PERSONAL_CARDS.BANKS.MOCK_BANK) {
                 return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || activeServer !== CONST.SERVER.PRODUCTION;
             }
