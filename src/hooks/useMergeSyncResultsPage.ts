@@ -1,6 +1,5 @@
 import type {HRConnectionName} from '@libs/merge/HRUtils';
 import type {RecruitingConnectionName} from '@libs/merge/RecruitingUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
@@ -14,6 +13,7 @@ import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 import useOnyx from './useOnyx';
+import useScreenBoundDynamicRoute from './useScreenBoundDynamicRoute';
 
 function getSyncResultsRoutePath(connectionName: ConnectionName | undefined) {
     if (CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES.some((hrConnectionName) => hrConnectionName === connectionName)) {
@@ -45,6 +45,7 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
     const didWatchSyncRunRef = useRef(false);
     // Only a modal opening on top holds the results back. `isVisible` stays on for as long as an RHP is open, so it would keep the HR panel from ever opening them.
     const [isModalOpenOnTop] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const syncConnectionName = connectionSyncProgress?.connectionName;
     const openSyncResultsScreen = useEffectEvent((syncResult: PolicyConnectionSyncProgress['result'], syncedConnectionName: PolicyConnectionSyncProgress['connectionName']) => {
@@ -55,7 +56,7 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
 
         // The result payload stays in Onyx; the screen re-reads it from the `policyID` it inherits
         // from the workspace route, so nothing rich has to be serialized into navigation params.
-        Navigation.navigate(createDynamicRoute(routePath));
+        Navigation.navigate(buildDynamicRoute(routePath));
     });
 
     useEffect(() => {
@@ -83,8 +84,10 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
             didWatchSyncRunRef.current = false;
         }
 
+        // Hold results already captured while focused so they don't open on top of another screen.
+        // Completions received after blur are still discarded above.
         const pendingSyncResult = pendingSyncResultRef.current;
-        if (!pendingSyncResult || isModalOpenOnTop) {
+        if (!pendingSyncResult || isModalOpenOnTop || !isFocused) {
             return;
         }
 
