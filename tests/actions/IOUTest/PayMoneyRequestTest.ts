@@ -9,7 +9,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
-import saveTextFile from '@libs/saveTextFile';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -74,7 +73,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native');
-jest.mock('@libs/saveTextFile');
 
 jest.mock('@src/libs/actions/Report/reportActionSubscribers', () => ({
     ...jest.requireActual<Record<string, unknown>>('@src/libs/actions/Report/reportActionSubscribers'),
@@ -3118,19 +3116,19 @@ describe('actions/IOU/PayMoneyRequest', () => {
             appendSpy.mockRestore();
         });
 
-        it('saves the ABA file for a single report, named the way Classic names it', async () => {
+        it('returns the ABA file for a single report, named the way Classic names it', async () => {
             // Given a single report to pay
             const onDownloadFailed = jest.fn();
 
             // When it's paid via ABA
-            await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed});
+            const abaFile = await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed});
 
-            // Then the PayViaABA command is posted for that report, paying held expenses too by default, and its response is saved as the report's ABA file
+            // Then the PayViaABA command is posted for that report, paying held expenses too by default, and its response is returned as the report's ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123');
             expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'true');
             const [, payViaABARequest] = getPayViaABACalls().at(0) ?? [];
             expect(payViaABARequest?.method).toBe(CONST.NETWORK.METHOD.POST);
-            expect(saveTextFile).toHaveBeenCalledWith({fileName: 'ABA_Report_123.aba', content: 'ABA file'});
+            expect(abaFile).toEqual({fileName: 'ABA_Report_123.aba', content: 'ABA file'});
             expect(onDownloadFailed).not.toHaveBeenCalled();
         });
 
@@ -3181,28 +3179,28 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const onPaid = jest.fn();
 
             // When it's paid via ABA
-            await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed, onPaid});
+            const abaFile = await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed, onPaid});
             await waitForBatchedUpdates();
 
-            // Then the user is told why with the backend's error, nothing is saved, and the report isn't shown as paid
+            // Then the user is told why with the backend's error, there's no file to save, and the report isn't shown as paid
             expect(onDownloadFailed).toHaveBeenCalledWith(expect.objectContaining({message: CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT}));
-            expect(saveTextFile).not.toHaveBeenCalled();
+            expect(abaFile).toBeUndefined();
             expect(onPaid).not.toHaveBeenCalled();
             const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
             expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
         });
 
-        it('saves one ABA file for several reports, named with the date', async () => {
+        it('returns one ABA file for several reports, named with the date', async () => {
             // Given several reports to pay, leaving their held expenses for later
             const reportIDs = ['123', '456'];
 
             // When they're paid via ABA
-            await payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false, onDownloadFailed: jest.fn()});
+            const abaFile = await payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false, onDownloadFailed: jest.fn()});
 
             // Then one file pays them all, named the way Classic names a bulk ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123,456');
             expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'false');
-            expect(saveTextFile).toHaveBeenCalledWith({fileName: `ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`, content: 'ABA file'});
+            expect(abaFile?.fileName).toBe(`ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`);
         });
 
         it('navigates to the restricted action page instead of downloading when billable actions are restricted', () => {

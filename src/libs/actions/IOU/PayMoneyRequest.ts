@@ -30,7 +30,6 @@ import {
     isIOUReport,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import saveTextFile from '@libs/saveTextFile';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
@@ -1047,11 +1046,16 @@ type PayViaABAFunctionParams = {
     onPaid?: () => void;
 };
 
+type ABAFile = {
+    fileName: string;
+    content: string;
+};
+
 /**
- * Downloads the ABA file for paying the given reports. The backend marks them as "paid elsewhere" when it creates the file.
- * Resolves once the download has finished or failed.
+ * Gets the ABA file for paying the given reports, leaving it to the caller to save. The backend marks them as "paid elsewhere"
+ * when it creates the file. Resolves with the file, or with nothing when the download fails or the user can't pay.
  */
-async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
+async function payViaABA(params: PayViaABAFunctionParams): Promise<ABAFile | undefined> {
     const {
         reportIDs,
         policy,
@@ -1069,7 +1073,7 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-        return;
+        return undefined;
     }
 
     completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
@@ -1085,6 +1089,7 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
 
     // The file download doesn't go through the write queue, so we wait for queued writes to reach the server first
     await API.waitForWrites(WRITE_COMMANDS.PAY_VIA_ABA);
+    let content: string;
     try {
         const response = await fetch(getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), {method: CONST.NETWORK.METHOD.POST, body: formData, credentials: 'same-origin'});
         if (isErrorResponseForFileDownload(response.headers.get('content-type'), fileName)) {
@@ -1093,13 +1098,13 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
         if (!response.ok) {
             throw new Error('Failed to download the ABA file');
         }
-        await saveTextFile({fileName, content: await response.text()});
+        content = await response.text();
     } catch (error) {
         onDownloadFailed(error instanceof HttpsError ? error : undefined);
-        return;
+        return undefined;
     }
 
-    // A successful download means the reports are paid, so we mark them as paid now to stop the Pay button
+    // The backend only sends the file once it has paid the reports, so we mark them as paid now to stop the Pay button
     // reappearing before the BE's pusher updates arrive.
     Onyx.update(
         reportIDs.map((reportID) => ({
@@ -1109,6 +1114,7 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
         })),
     );
     onPaid?.();
+    return {fileName, content};
 }
 
 function markReportPaymentReceived(

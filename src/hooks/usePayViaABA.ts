@@ -3,6 +3,7 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import type HttpsError from '@libs/Errors/HttpsError';
 import {getDisplayNameForParticipant, getReportOrDraftReport} from '@libs/ReportUtils';
+import saveTextFile from '@libs/saveTextFile';
 
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
 
@@ -60,6 +61,14 @@ function usePayViaABA() {
         return name ? translate('iou.missingABADepositAccount', {name}) : translate('iou.submittersMissingABADepositAccount');
     };
 
+    const showDownloadFailedModal = (reportIDs: string[], error?: HttpsError) => {
+        showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: getDownloadFailedPrompt(reportIDs, error),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
     const downloadABAFile = (reportIDs: string[], policy: OnyxEntry<Policy>, {shouldReimburseHeldTransactions, onPaid}: PayReportsViaABAOptions) => {
         setIsDownloadingABAFile(true);
         payViaABA({
@@ -75,14 +84,11 @@ function usePayViaABA() {
             amountOwed,
             ownerBillingGracePeriodEnd,
             onPaid,
-            onDownloadFailed: (error) => {
-                showDecisionModal({
-                    title: translate('common.downloadFailedTitle'),
-                    prompt: getDownloadFailedPrompt(reportIDs, error),
-                    secondOptionText: translate('common.buttonConfirm'),
-                });
-            },
-        }).finally(() => setIsDownloadingABAFile(false));
+            onDownloadFailed: (error) => showDownloadFailedModal(reportIDs, error),
+        })
+            .then((abaFile) => (abaFile ? saveTextFile(abaFile) : undefined))
+            .catch(() => showDownloadFailedModal(reportIDs))
+            .finally(() => setIsDownloadingABAFile(false));
     };
 
     // Pay via ABA is always picked from a menu, so anything blocking it is shown once that menu has closed

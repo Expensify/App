@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePayViaABA from '@hooks/usePayViaABA';
 
 import HttpsError from '@libs/Errors/HttpsError';
+import saveTextFile from '@libs/saveTextFile';
 
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
 
@@ -47,6 +48,8 @@ jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
     __esModule: true,
     default: (presentModal: () => void) => presentModal(),
 }));
+
+jest.mock('@libs/saveTextFile');
 
 jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/PayMoneyRequest'),
@@ -98,6 +101,38 @@ describe('usePayViaABA', () => {
                 amountOwed: 100,
             }),
         );
+    });
+
+    it('saves the ABA file once the reports are paid', async () => {
+        // Given an ABA file that downloads
+        const abaFile = {fileName: 'ABA_Report_123.aba', content: 'ABA file'};
+        jest.mocked(payViaABA).mockResolvedValueOnce(abaFile);
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the report is paid via ABA
+        await act(async () => result.current.payReportsViaABA(['123'], policy));
+
+        // Then the file is saved for the user to upload to their bank
+        expect(saveTextFile).toHaveBeenCalledWith(abaFile);
+    });
+
+    it("tells the user when the ABA file can't be saved", async () => {
+        // Given an ABA file that downloads but can't be saved
+        jest.mocked(payViaABA).mockResolvedValueOnce({fileName: 'ABA_Report_123.aba', content: 'ABA file'});
+        jest.mocked(saveTextFile).mockRejectedValueOnce(new Error('Save failed'));
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the report is paid via ABA
+        await act(async () => result.current.payReportsViaABA(['123'], policy));
+
+        // Then the user is told the download failed, so they know they don't have the file
+        expect(mockShowDecisionModal).toHaveBeenCalledWith({
+            title: translateLocal('common.downloadFailedTitle'),
+            prompt: translateLocal('common.downloadFailedDescription'),
+            secondOptionText: translateLocal('common.buttonConfirm'),
+        });
     });
 
     it('tells the user when the ABA file fails to download', async () => {
@@ -200,7 +235,7 @@ describe('usePayViaABA', () => {
         let finishDownload: () => void = () => {};
         jest.mocked(payViaABA).mockReturnValueOnce(
             new Promise((resolve) => {
-                finishDownload = resolve;
+                finishDownload = () => resolve(undefined);
             }),
         );
         const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
