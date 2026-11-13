@@ -867,9 +867,12 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
 /**
  * A new member has no category restriction, so they can use every category. Add them to each category limited to some
  * members, so their category visibility is right before the backend sends visibleTo, and offline.
+ * An invitee without personal details gets a temporary accountID that the backend replaces with the real one, so that
+ * temporary ID is removed again once the invite succeeds.
  */
-function buildInvitedMembersCategoryVisibilityOnyxData(policyID: string, policyCategories: OnyxEntry<PolicyCategories>, accountIDs: number[]) {
+function buildInvitedMembersCategoryVisibilityOnyxData(policyID: string, policyCategories: OnyxEntry<PolicyCategories>, accountIDs: number[], temporaryAccountIDs: Set<number>) {
     const optimisticCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const successCategories: Record<string, NullishDeep<PolicyCategory>> = {};
     const failureCategories: Record<string, NullishDeep<PolicyCategory>> = {};
     for (const [categoryName, category] of Object.entries(policyCategories ?? {})) {
         const visibleTo = category.visibleTo;
@@ -882,16 +885,17 @@ function buildInvitedMembersCategoryVisibilityOnyxData(policyID: string, policyC
         }
         optimisticCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenAccountIDs.map((accountID) => [accountID, true]))};
         failureCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenAccountIDs.map((accountID) => [accountID, null]))};
-    }
 
-    if (isEmptyObject(optimisticCategories)) {
-        return {optimisticData: [], failureData: []};
+        const hiddenTemporaryAccountIDs = hiddenAccountIDs.filter((accountID) => temporaryAccountIDs.has(accountID));
+        if (hiddenTemporaryAccountIDs.length > 0) {
+            successCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenTemporaryAccountIDs.map((accountID) => [accountID, null]))};
+        }
     }
 
     const key = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}` as const;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: optimisticCategories}];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: failureCategories}];
-    return {optimisticData, failureData};
+    const buildUpdates = (categories: Record<string, NullishDeep<PolicyCategory>>): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES>> =>
+        isEmptyObject(categories) ? [] : [{onyxMethod: Onyx.METHOD.MERGE, key, value: categories}];
+    return {optimisticData: buildUpdates(optimisticCategories), successData: buildUpdates(successCategories), failureData: buildUpdates(failureCategories)};
 }
 
 function buildAddMembersToWorkspaceOnyxData(
@@ -917,7 +921,6 @@ function buildAddMembersToWorkspaceOnyxData(
     const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, hasPolicyAdminsRoomsAccess(effectiveRole) ? accountIDs : []);
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUser.accountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
-    const categoryVisibilityOnyxData = buildInvitedMembersCategoryVisibilityOnyxData(policyID, policyCategories, accountIDs);
 
     const doesPersonalDetailExistByAccountID: Record<number, boolean> = {};
     const newPersonalDetailAccountIDs = new Set<number>();
@@ -934,6 +937,7 @@ function buildAddMembersToWorkspaceOnyxData(
     for (const accountID of accountIDs) {
         doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
     }
+    const categoryVisibilityOnyxData = buildInvitedMembersCategoryVisibilityOnyxData(policyID, policyCategories, accountIDs, newPersonalDetailAccountIDs);
 
     // Roles that cannot create expenses don't get a workspace chat, so don't build an optimistic one.
     const membersChats = canRoleCreateExpenses(effectiveRole)
@@ -997,7 +1001,13 @@ function buildAddMembersToWorkspaceOnyxData(
     );
 
     const successData: Array<
-        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT>
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+          >
         | PersonalDetailsOnyxUpdate
     > = [
         {
@@ -1014,6 +1024,7 @@ function buildAddMembersToWorkspaceOnyxData(
         ...announceRoomChat.onyxSuccessData,
         ...(announceRoomMembers.successData ?? []),
         ...(adminRoomMembers.successData ?? []),
+        ...categoryVisibilityOnyxData.successData,
     );
 
     const failureData: Array<

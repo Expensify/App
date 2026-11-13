@@ -682,6 +682,37 @@ describe('actions/PolicyMember', () => {
             expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true});
         });
 
+        it('removes the temporary accountID of an invitee without personal details from limited categories once the invite succeeds', async () => {
+            // Given a workspace where Fuel is limited to one member, and two invitees: one with personal details and one without, who gets a temporary accountID
+            const policyID = '1';
+            const existingAccountID = 1111;
+            const knownAccountID = 1234;
+            const temporaryAccountID = 9999;
+            const knownEmail = 'known@gmail.com';
+            const unknownEmail = 'unknown@gmail.com';
+            const policy = createRandomPolicy(Number(policyID));
+            const policyCategories = {Fuel: {name: 'Fuel', enabled: true, visibleTo: {[existingAccountID]: true}}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When both are invited and the request succeeds
+            Member.addMembersToWorkspace(
+                {[knownEmail]: knownAccountID, [unknownEmail]: temporaryAccountID},
+                getPersonalDetailsOnyxDataForOptimisticUsers([unknownEmail], [temporaryAccountID], TestHelper.formatPhoneNumber),
+                'Welcome',
+                policy,
+                [existingAccountID],
+                CONST.POLICY.ROLE.USER,
+                currentUser,
+                {},
+                {policyCategories},
+            );
+            await waitForBatchedUpdates();
+
+            // Then the temporary accountID is gone, since the backend sends the real one, while the known invitee keeps access
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true, [knownAccountID]: true});
+        });
+
         it('uses new personal details onyx data to decide new-member success-data participants instead of the deprecated copy', () => {
             const policyID = '1';
             const policy = {...createRandomPolicy(Number(policyID))};
