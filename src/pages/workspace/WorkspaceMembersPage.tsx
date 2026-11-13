@@ -70,6 +70,7 @@ import {
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
+    canReimburserChangeRole,
     canRolePay,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
@@ -472,7 +473,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // Role assignment is a Collect/Control capability. Submit locks every member to Editor.
     const canAssignMemberRole = isGroupPolicy(policy) && !isSubmitWorkspace;
 
-    const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin ?? '', payerRole));
     const policyRoles = Object.values(CONST.POLICY.ROLE);
     const data: WorkspaceMemberRowData[] = filteredMembers.map(({policyEmployee, accountID, details}) => {
         const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
@@ -489,7 +489,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
         const isCurrentUser = accountID === session?.accountID;
         const isReimburser = isPolicyReimburser(policy, login);
-        const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== policyEmployee.role);
         const canEditRole =
             canAssignMemberRole &&
             !isSelectionModeActive &&
@@ -497,7 +496,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             !isOwner &&
             !isCurrentUser &&
             canMemberAssignRole(policy, currentUserLogin ?? '', policyEmployee.role) &&
-            (!isReimburser || canReimburserChangeRole);
+            (!isReimburser || canReimburserChangeRole(policy, currentUserLogin ?? '', policyEmployee.role));
         const approver = shouldShowApproverColumn ? firstApproverByMemberEmail[login] : undefined;
         const approverAccountID = approver ? resolveMemberAccountID(approver.email, policyMemberEmailsToAccountIDs) : undefined;
         const approverDisplayName = approver && Str.isSMSLogin(approver.displayName) ? formatPhoneNumber(approver.displayName) : (approver?.displayName ?? '');

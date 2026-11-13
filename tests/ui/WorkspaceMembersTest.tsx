@@ -1130,6 +1130,40 @@ describe('WorkspaceMembers', () => {
     });
 
     describe('Inline role editing', () => {
+        it.each([
+            [CONST.POLICY.TYPE.TEAM, false],
+            [CONST.POLICY.TYPE.CORPORATE, true],
+        ])('only offers editing the admin payer role when another payer role is selectable on %s', async (type, canEditRole) => {
+            // Given an admin payer on a workspace where Payments Admin is only available on Control.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    type,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    reimburser: adminEmail,
+                });
+            });
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+                createMock<ResponsiveLayoutResult>({
+                    isSmallScreenWidth: false,
+                    shouldUseNarrowLayout: false,
+                    isMediumScreenWidth: false,
+                    isLargeScreenWidth: true,
+                }),
+            );
+
+            // When the payer is shown in the wide members table.
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            const payerRow = await screen.findByLabelText(new RegExp(`^Admin User, ${adminEmail}`));
+
+            // Then only a payer with an alternative selectable role gets an inline edit control.
+            const editControls = within(payerRow).UNSAFE_queryAllByProps({accessibilityLabel: TestHelper.translateLocal('common.edit')});
+            expect(editControls.length > 0).toBe(canEditRole);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
         it('lets a just-invited member be role-edited before their account resolves', async () => {
             // Given a member invited with optimistic personal details, which is how a new invite stays until the
             // account resolves, including while the invite is still offline

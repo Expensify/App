@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import * as Link from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {generateAccountID} from '@libs/UserUtils';
@@ -519,7 +520,7 @@ describe('WorkspaceMemberDetailsPage', () => {
     });
 
     it('should not lock the Role field for an Authorized Payer who is already an Admin so they can be changed to Payments Admin', async () => {
-        // The admin member is the workspace Authorized Payer — Payments Admin is also a valid payer, so a lateral change is allowed.
+        // Given a Control workspace whose admin payer can also hold the Payments Admin role.
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
@@ -527,6 +528,7 @@ describe('WorkspaceMemberDetailsPage', () => {
             });
         });
 
+        // When the payer's details are opened.
         const {unmount} = renderPage({policyID: policy.id, accountID: String(adminPayerAccountID)});
         await waitForBatchedUpdatesWithAct();
 
@@ -534,16 +536,17 @@ describe('WorkspaceMemberDetailsPage', () => {
             expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
         });
 
-        // The locked hint must NOT be shown — an admin payer can still be changed to Payments Admin, another valid payer role.
+        // Then the payer can change roles without a lock hint.
+        expect(screen.getByTestId('member-role-menu-item')).not.toBeDisabled();
         expect(screen.queryByText(/Role can/)).not.toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should keep the Role field interactive for an admin Authorized Payer on a non-Control workspace because Editor also holds the payments permission', async () => {
-        // On a Team (non-Control) workspace, Payments Admin is not assignable, but Editor also holds the WORKFLOWS_PAYMENTS
-        // permission, so an admin payer still has another valid payer role to switch to. The Role row must stay interactive.
+    it('should lock the Role field with a hint for an admin Authorized Payer on a Collect workspace', async () => {
+        // Given a Collect workspace where Editor can pay but is not offered in the role picker.
+        const openLinkSpy = jest.spyOn(Link, 'openLink').mockImplementation(() => {});
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                 type: CONST.POLICY.TYPE.TEAM,
@@ -552,6 +555,7 @@ describe('WorkspaceMemberDetailsPage', () => {
             });
         });
 
+        // When the payer's details are opened.
         const {unmount} = renderPage({policyID: policy.id, accountID: String(adminPayerAccountID)});
         await waitForBatchedUpdatesWithAct();
 
@@ -561,9 +565,16 @@ describe('WorkspaceMemberDetailsPage', () => {
 
         const roleItem = await screen.findByTestId('member-role-menu-item');
 
-        // Editor is another payer role the admin payer can switch to, so the row is interactive with no lock hint.
-        expect(roleItem).not.toBeDisabled();
-        expect(screen.queryByText(/Role can/)).not.toBeOnTheScreen();
+        // Then the role cannot be changed and the hint links to payment workflows.
+        expect(roleItem).toBeDisabled();
+        expect(screen.getByText(/Role can't be changed because this member is a/)).toBeOnTheScreen();
+        fireEvent.press(screen.getByText('payer'), {preventDefault: jest.fn()});
+        expect(openLinkSpy).toHaveBeenCalledWith(
+            expect.stringContaining(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id, CONST.TAB.WORKFLOWS.PAYMENTS)),
+            expect.any(String),
+            false,
+            expect.anything(),
+        );
 
         unmount();
         await waitForBatchedUpdatesWithAct();

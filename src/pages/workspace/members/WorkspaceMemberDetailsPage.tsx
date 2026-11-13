@@ -24,6 +24,7 @@ import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -57,11 +58,11 @@ import {
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
+    canReimburserChangeRole,
     hasActiveExpensifyCard,
     isControlPolicy,
     isPolicyAdmin,
     isPolicyApprover,
-    PAYER_ROLES,
     shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
@@ -129,6 +130,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {isBetaEnabled} = usePermissions();
     const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
     const {formatPhoneNumber, translate, localeCompare, toLocaleOrdinalWithWords} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -184,10 +186,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberLoginToCopy = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin;
     const isReimburser = isPolicyReimburser(policy, memberLogin);
     const isExpensifyCardholder = hasActiveExpensifyCard(policy, memberLogin);
-    // Only let the Authorized Payer change roles when there is another payer role they can actually move to.
-    const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
-    const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
-    const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
+    const isReimburserRoleLocked = isReimburser && !canReimburserChangeRole(policy, currentUserLogin, member?.role);
+    const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && !isReimburserRoleLocked;
+    const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.PAYMENTS)}`;
     const shouldShowCategoryVisibility = isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) && isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
     const [policyCategoriesVisibility] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: policyCategoriesVisibilitySelector});
 
@@ -548,6 +549,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 shouldShowRightIcon={canEditSelectedMemberRole}
                                 shouldGreyOutWhenDisabled={false}
                                 shouldUseDefaultCursorWhenDisabled
+                                hintText={isReimburserRoleLocked ? translate('common.roleCannotBeChanged', workspaceWorkflowsPageURL) : undefined}
+                                shouldRenderHintAsHTML
                                 pressableTestID="member-role-menu-item"
                                 onPress={() => {
                                     if (
