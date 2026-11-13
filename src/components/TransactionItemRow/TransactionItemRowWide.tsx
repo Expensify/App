@@ -28,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getVendorDisplayName, isTaxCodeCustomized} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getReimbursableTotal, isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, getTransactionDisplayAmount, getTransactionPolicyConvertedDisplayAmount, isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
@@ -582,6 +582,28 @@ function TransactionItemRowWide({
                         />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT: {
+                const effectiveReport = report ?? transactionItem.report;
+                const effectivePolicy = policy ?? transactionItem.policy;
+                const hasPolicyConvertedAmount = transactionItem.policyConvertedAmount != null;
+                // Expenses created offline have no workspace amount from the server yet, so they show their own amount and currency until the next search.
+                const convertedAmount = hasPolicyConvertedAmount
+                    ? getTransactionPolicyConvertedDisplayAmount(transactionItem, effectiveReport, effectivePolicy)
+                    : getTransactionDisplayAmount(transactionItem, effectiveReport, effectivePolicy);
+                const convertedCurrency = (hasPolicyConvertedAmount ? transactionItem.policyCurrency : undefined) ?? getCurrency(transactionItem);
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
+                    >
+                        <AmountCell
+                            total={convertedAmount}
+                            currency={convertedCurrency}
+                            isScanning={isScanning(transactionItem)}
+                        />
+                    </View>
+                );
+            }
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
                 return (
                     <View
