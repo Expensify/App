@@ -1112,6 +1112,7 @@ const SENTRY_LABEL = {
         LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeaderSelectAll',
         SPEND_RULE_LIST_ITEM_CHECKBOX: 'SpendRuleListItem-Checkbox',
         CONFIRM_BUTTON: 'SelectionList-ConfirmButton',
+        SEARCH_INPUT: 'SelectionList-SearchInput',
     },
     CONTEXT_MENU: {
         REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',

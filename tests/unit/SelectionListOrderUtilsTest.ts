@@ -38,6 +38,23 @@ describe('SelectionListOrderUtils', () => {
             expect(valuesOf(reorderedItems).at(0)).toBe('item-3');
         });
 
+        it('reorders a short list when a lower pin threshold is passed (boundary is inclusive)', () => {
+            // Given a list below the global threshold with a caller-provided threshold it reaches
+            const items = buildItems(2);
+
+            // When the pin is requested from the first item
+            const reorderedItems = moveInitialSelectionToTop(items, ['item-1'], 1);
+
+            // Then the selection still moves to the top
+            expect(valuesOf(reorderedItems)).toEqual(['item-1', 'item-0']);
+        });
+
+        it('keeps a short list untouched when a passed lower threshold is not reached', () => {
+            const items = buildItems(2);
+
+            expect(moveInitialSelectionToTop(items, ['item-1'], 3)).toEqual(items);
+        });
+
         it('moves the initially selected values to the top while preserving source order', () => {
             const items = buildItems(CONST.STANDARD_LIST_ITEM_LIMIT + 2);
             const selectedValues = [`item-${CONST.STANDARD_LIST_ITEM_LIMIT}`, `item-${CONST.STANDARD_LIST_ITEM_LIMIT + 1}`];
