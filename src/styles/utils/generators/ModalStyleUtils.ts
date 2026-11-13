@@ -3,6 +3,7 @@ import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import {isMobile} from '@libs/Browser';
 import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
 
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
@@ -253,7 +254,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     // Workaround for Safari not supporting interactive-widget=resizes-content, sets max height of a container modal.
                     // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
                     // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
-                    ...(isMobile() ? {maxHeight: `${windowDimensions.windowHeight}px`, height: 'fit-content'} : {}),
+                    ...(isMobile() ? toViewStyle({maxHeight: `${windowDimensions.windowHeight}px`, height: 'fit-content'}) : {}),
                 };
 
                 if (shouldUseModalPaddingStyle) {

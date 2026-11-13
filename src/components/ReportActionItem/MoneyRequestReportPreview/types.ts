@@ -5,7 +5,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {ListRenderItem} from '@shopify/flash-list';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {DimensionValue, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 type TransactionPreviewCarouselStyle = {
@@ -13,7 +13,7 @@ type TransactionPreviewCarouselStyle = {
 };
 
 type TransactionPreviewStandaloneStyle = {
-    [key in keyof TransactionPreviewStyleType]: string;
+    [key in keyof TransactionPreviewStyleType]: DimensionValue;
 };
 
 type MoneyRequestReportPreviewStyleType = {

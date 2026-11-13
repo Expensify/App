@@ -1,3 +1,5 @@
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
+
 import type {ViewStyle} from 'react-native';
 
 /**
@@ -57,17 +59,17 @@ export default {
         maxHeight: '100%',
     },
 
-    mh45vh: {
+    mh45vh: toViewStyle({
         maxHeight: '45vh',
-    },
+    }),
 
-    mh65vh: {
+    mh65vh: toViewStyle({
         maxHeight: '65vh',
-    },
+    }),
 
-    mh85vh: {
+    mh85vh: toViewStyle({
         maxHeight: '85vh',
-    },
+    }),
 
     mnh100: {
         minHeight: '100%',
@@ -171,7 +173,7 @@ export default {
         width: 'auto',
     },
 
-    wFitContent: {
+    wFitContent: toViewStyle({
         width: 'fit-content',
-    },
+    }),
 } satisfies Record<string, ViewStyle>;

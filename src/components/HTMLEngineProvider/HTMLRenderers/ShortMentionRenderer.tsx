@@ -4,7 +4,6 @@ import useShortMentionsList from '@hooks/useShortMentionsList';
 
 import CONST from '@src/CONST';
 
-import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 import React from 'react';
@@ -28,7 +27,7 @@ function ShortMentionRenderer(props: CustomRendererProps<TText | TPhrasing>) {
     }
 
     return (
-        <Text style={props.style as TextStyle}>
+        <Text style={props.style}>
             <TNodeChildrenRenderer tnode={props.tnode} />
         </Text>
     );

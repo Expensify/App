@@ -18,7 +18,6 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {TextStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
@@ -75,7 +74,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     }
     const isCurrentRoomMention = reportID === currentReportIDValue;
 
-    const flattenStyle = StyleSheet.flatten(style as TextStyle);
+    const flattenStyle = StyleSheet.flatten(style);
     const {color, ...styleWithoutColor} = flattenStyle;
 
     return (

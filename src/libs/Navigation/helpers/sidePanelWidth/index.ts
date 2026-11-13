@@ -2,8 +2,9 @@
  * The side panel width a drag paints straight onto the DOM, ahead of React, as a CSS variable that styles fall back from.
  * The page beside a docked panel is inset by that width times how far the panel is docked, so it follows a drag without the drag knowing whether the panel is docked.
  */
-import createLiveSizeVariable, {toDimensionValue} from '@libs/Navigation/helpers/createLiveSizeVariable';
+import createLiveSizeVariable from '@libs/Navigation/helpers/createLiveSizeVariable';
 import type {LiveSizeVariable} from '@libs/Navigation/helpers/createLiveSizeVariable';
+import {toDimensionValue} from '@libs/WebOnlyStyleUtils';
 
 import type {DimensionValue} from 'react-native';
 

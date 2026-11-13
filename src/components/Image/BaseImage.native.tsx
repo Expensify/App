@@ -4,7 +4,7 @@ import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 
 import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 
-import type {ImageProps as ExpoImageProps, ImageLoadEventData} from 'expo-image';
+import type {ImageLoadEventData} from 'expo-image';
 
 import {Image as ExpoImage} from 'expo-image';
 import {useContext, useEffect, useRef} from 'react';
@@ -50,7 +50,7 @@ function BaseImage({onLoad, source, style, recyclingKey, ...props}: BaseImagePro
             onLoad={onLoad ? imageLoadedSuccessfully : undefined}
             source={source}
             recyclingKey={recyclingKey ?? getImageRecyclingKey(source)}
-            style={style as ExpoImageProps['style']}
+            style={style}
             {...props}
         />
     );

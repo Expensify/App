@@ -78,7 +78,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
 
     return (
         <Text
-            style={[style as TextStyle, linkStyle]}
+            style={[style, linkStyle]}
             onPress={navigateToConciergeChat}
             onKeyDown={handleKeyDown}
             suppressHighlighting

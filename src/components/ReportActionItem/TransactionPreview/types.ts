@@ -1,13 +1,13 @@
 import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {DimensionValue, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-// string type union is here for percentage values
+// Not just numbers: previews take percentages, and on desktop a CSS `min()` expression typed with `toDimensionValue`
 type TransactionPreviewStyleType = {
-    width: number | string;
-    maxWidth?: number | string;
+    width: DimensionValue;
+    maxWidth?: DimensionValue;
 };
 
 type TransactionPreviewProps = {

@@ -8,6 +8,8 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
+
 import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
@@ -67,14 +69,14 @@ function getColumnScrollOverrideProps(overflowXAutoStyle: ViewStyle, overridePro
  * Pins the page header to the scroller's left edge so it stays put while the columns move under it. Held at the
  * measured table width: a box spanning the scroll range has nothing to pin within, and a percentage resolves to it.
  */
-const columnScrollPageHeaderStyle = {position: 'sticky', left: 0} as ViewStyle;
+const columnScrollPageHeaderStyle = toViewStyle({position: 'sticky', left: 0});
 
 /**
  * Sticks the shared list-header box at minus the page header's height, so exactly that much scrolls off and leaves the
  * column header flush against the scroller. `zIndex` lifts it above the rows, which paint later in tree order.
  */
 function getColumnScrollListHeaderStyle(pageHeaderHeight: number): ViewStyle {
-    return {position: 'sticky', top: -pageHeaderHeight, zIndex: 1} as ViewStyle;
+    return toViewStyle({position: 'sticky', top: -pageHeaderHeight, zIndex: 1});
 }
 
 type ViewabilityInfo = {
