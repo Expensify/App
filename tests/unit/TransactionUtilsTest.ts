@@ -4288,6 +4288,42 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getAmountWithDisplaySign', () => {
+        it('shows an IOU amount as positive', () => {
+            // Given an amount stored as negative on an IOU, which can never be negative
+            const storedAmount = -100;
+
+            // When it is signed for display outside an expense report or tracked expense
+            const displayAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount);
+
+            // Then it shows as positive
+            expect(displayAmount).toBe(100);
+        });
+
+        it('flips the stored sign for expense reports and tracked expenses', () => {
+            // Given an expense stored with the opposite sign, as expense reports and tracked expenses store it
+            const storedAmount = -100;
+
+            // When it is signed for display on an expense report and as a tracked expense
+            const expenseReportAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount, true);
+            const trackedExpenseAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount, false, true);
+
+            // Then both show the flipped sign, so a refund stored as positive would show as negative
+            expect(expenseReportAmount).toBe(100);
+            expect(trackedExpenseAmount).toBe(100);
+            expect(TransactionUtils.getAmountWithDisplaySign(100, true)).toBe(-100);
+        });
+
+        it('shows zero without a negative sign', () => {
+            // Given a zero amount on an expense report
+            // When it is signed for display
+            const displayAmount = TransactionUtils.getAmountWithDisplaySign(0, true);
+
+            // Then it is plain zero, so the cell never shows -0
+            expect(Object.is(displayAmount, 0)).toBe(true);
+        });
+    });
+
     describe('hasTaxRateWithMatchingValue', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
