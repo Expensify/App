@@ -1160,8 +1160,6 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeSpendCategoriesSubText: 'Ausgaben organisieren und klassifizieren',
             customizeExpenseCategories: 'Passen Sie Ihre Ausgabenkategorien an',
             customizeExpenseCategoriesSubText: 'Fügen Sie die Kategorien Ihres Unternehmens hinzu, um Ihre Ausgaben zu kodieren',
-            createExpense: 'Ausgabe erstellen',
-            createExpenseSubText: 'Scannen Sie eine Ausgabe, ziehen Sie sie per Drag &amp; Drop herein oder geben Sie sie manuell über die + Schaltfläche ein',
             linkPersonalCard: 'Persönliche Karte verknüpfen',
             linkPersonalCardSubText: 'Spesen automatisch importieren',
             configureApprovals: 'Genehmigungsworkflow konfigurieren',
@@ -1180,6 +1178,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Berichtsfreigaben festlegen',
             setupTravel: 'Reisen einrichten',
             setupTravelSubText: 'Reisespezifische Regeln konfigurieren',
+            addFirstReceipt: 'Fügen Sie Ihren ersten Beleg hinzu',
+            addFirstReceiptSubText: 'Beleg scannen oder manuell eingeben',
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1508,6 +1508,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: 'Diesen Beleg entfernen',
         removeExpenseConfirmation: 'Möchtest du diesen Beleg wirklich entfernen? Diese Aktion kann nicht rückgängig gemacht werden.',
         addExpense: 'Ausgabe hinzufügen',
+        createAnExpense: 'Ausgabe erstellen',
         chooseRecipient: 'Empfänger auswählen',
         createExpenseWithAmount: ({amount}: {amount: string}) => `${amount}-Ausgabe erstellen`,
         confirmDetails: 'Details bestätigen',
