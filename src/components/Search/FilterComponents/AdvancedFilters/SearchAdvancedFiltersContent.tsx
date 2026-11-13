@@ -1,5 +1,6 @@
 import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
 
+import {getAmountFilterValues} from '@libs/SearchAmountFilterUtils';
 import {getFilterFormValues} from '@libs/SearchQueryUtils';
 import {getFilterNegatableValue, isAmountFilterKey, isDateFilterKey, isTextFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
@@ -49,11 +50,7 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
             <AmountFilter
                 key={baseFilterKey}
                 baseFilterKey={baseFilterKey}
-                value={{
-                    [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`],
-                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`],
-                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`],
-                }}
+                value={getAmountFilterValues(baseFilterKey, values)}
                 buttonText={buttonText}
                 onChange={onChange}
             />

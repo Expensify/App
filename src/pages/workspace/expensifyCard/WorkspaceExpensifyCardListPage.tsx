@@ -283,6 +283,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             icon: icons.Export,
             text: translate('workspace.expensifyCard.exportAsCSV'),
             value: CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.BULK_ACTIONS_EXPORT_CSV,
             onSelected: () => {
                 const selectedCards = cardRows.filter((row) => validatedSelectedCardKeys.includes(row.keyForList)).map((row) => row.card);
                 exportExpensifyCardListToCSV({
@@ -322,6 +323,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                   text: translate('common.settings'),
                   onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID)),
                   value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_MENU_SETTINGS,
               },
           ]
         : [];
@@ -373,7 +375,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         isSplitButton={false}
                         shouldUseOptionIcon
                         wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
+                        sentryLabel={secondaryActions.length > 1 ? CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN : CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_MENU_SETTINGS}
                     />
                 )}
             </View>
@@ -459,6 +461,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             {
                                 buttonText: translate('workspace.expensifyCard.issueCard'),
                                 buttonAction: handleIssueCardPress,
+                                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.EMPTY_STATE_ISSUE_CARD,
                                 buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 innerStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
                                 hoverStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,

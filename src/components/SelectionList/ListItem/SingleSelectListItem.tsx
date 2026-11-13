@@ -45,9 +45,12 @@ function SingleSelectListItem<TItem extends ListItem>({
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
 
     // The primitives default to single-line styles.pre; multiline rows override it with preWrap and the indent padding.
+    const hasAlternateText = !!item.alternateText || !!item.alternateTextComponent;
     const titleStyle = [
         isTitleMultiline && styles.preWrap,
-        item.alternateText || item.alternateTextComponent ? styles.mb1 : null,
+        // With a title element the gap below the title moves to the shared row, so the element centers on the title text.
+        hasAlternateText && !item.titleRightElement ? styles.mb1 : null,
+        !!item.titleRightElement && styles.flexShrink1,
         isDisabled && styles.colorMuted,
         isTitleMultiline ? StyleUtils.getPaddingLeft(paddingLeft) : null,
         item.titleStyles,
@@ -80,11 +83,22 @@ function SingleSelectListItem<TItem extends ListItem>({
                         />
                     ) : undefined)}
                 <View style={[styles.flex1, styles.alignItemsStart, !!item.rightElement && styles.pr3]}>
-                    <ListItemComposed.Title
-                        text={fullTitle ?? ''}
-                        style={titleStyle}
-                        numberOfLines={titleNumberOfLines}
-                    />
+                    {item.titleRightElement ? (
+                        <View style={[styles.flexRow, styles.mw100, hasAlternateText && styles.mb1]}>
+                            <ListItemComposed.Title
+                                text={fullTitle ?? ''}
+                                style={titleStyle}
+                                numberOfLines={titleNumberOfLines}
+                            />
+                            {item.titleRightElement}
+                        </View>
+                    ) : (
+                        <ListItemComposed.Title
+                            text={fullTitle ?? ''}
+                            style={titleStyle}
+                            numberOfLines={titleNumberOfLines}
+                        />
+                    )}
 
                     {!!item.alternateTextComponent && item.alternateTextComponent}
                     {!item.alternateTextComponent && !!item.alternateText && (

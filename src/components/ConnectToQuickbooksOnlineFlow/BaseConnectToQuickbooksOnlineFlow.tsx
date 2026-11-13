@@ -90,11 +90,13 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
                 {
                     icon: icons.LinkCopy,
                     text: translate('workspace.accounting.setup'),
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.CONNECTION_OPTIONS.SETUP,
                     onSelected: () => selectConnection(false),
                 },
                 {
                     icon: icons.LinkCopy,
                     text: translate('workspace.accounting.connectToSandbox'),
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.CONNECTION_OPTIONS.CONNECT_TO_SANDBOX,
                     onSelected: () => selectConnection(true),
                 },
             ]}
