@@ -84,6 +84,9 @@ policyID
   = "policyID"
   / "workspace"i { return "policyID"; }
 submitted = "submitted"i { return "submitted"; }
+anySubmission
+  = "anySubmission"i { return "anySubmission"; }
+  / "any-submission"i { return "anySubmission"; }
 approved = "approved"i { return "approved"; }
 anyApproval
   = "anyApproval"i { return "anyApproval"; }

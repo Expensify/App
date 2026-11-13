@@ -351,6 +351,7 @@ function filterOutRangesWithCorrectValue(
             return booleanList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:

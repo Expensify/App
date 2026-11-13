@@ -3154,6 +3154,44 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('anySubmission date filter', () => {
+        test.each([
+            {formKey: FILTER_KEYS.ANY_SUBMISSION_ON, value: 'last-month', expected: 'anySubmission:last-month'},
+            {formKey: FILTER_KEYS.ANY_SUBMISSION_ON, value: '2026-02-10', expected: 'anySubmission:2026-02-10'},
+            {formKey: FILTER_KEYS.ANY_SUBMISSION_AFTER, value: '2026-02-01', expected: 'anySubmission>2026-02-01'},
+            {formKey: FILTER_KEYS.ANY_SUBMISSION_BEFORE, value: '2026-02-28', expected: 'anySubmission<2026-02-28'},
+            {formKey: FILTER_KEYS.ANY_SUBMISSION_RANGE, value: '2026-02-01,2026-02-28', expected: 'anySubmission>=2026-02-01 anySubmission<=2026-02-28'},
+            {formKey: FILTER_KEYS.ANY_SUBMISSION_NOT, value: 'last-month', expected: '-anySubmission:last-month'},
+        ])('preserves $formKey when editing a Spend drill-down', ({formKey, value, expected}) => {
+            // Given a chart drill-down narrowed by historical submission dates
+            const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [formKey]: value};
+
+            // When its form becomes a query and is restored for editing
+            const query = buildQueryStringFromFilterFormValues(form);
+            const queryJSON = buildSearchQueryJSON(query);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+            const restored = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the action date survives both conversions without becoming a report date
+            expect(query).toBe(`type:expense ${expected}`);
+            expect(restored[formKey]).toBe(value);
+            expect(buildQueryStringFromFilterFormValues(restored)).toContain(expected);
+        });
+
+        test('does not send historical submission dates to expense-report Search', () => {
+            // Given an action date that Auth only supports on expenses
+            const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [FILTER_KEYS.ANY_SUBMISSION_ON]: 'last-month'};
+
+            // When a report query is built
+            const query = buildQueryStringFromFilterFormValues(form);
+
+            // Then the unsupported expense filter is omitted
+            expect(query).toBe('type:expense-report');
+        });
+    });
+
     describe('shouldHighlight', () => {
         it('returns false if either input is empty', () => {
             expect(shouldHighlight('', 'test')).toBe(false);
@@ -6625,7 +6663,7 @@ describe('SearchQueryUtils', () => {
             expect(shouldRefetch).toBe(false);
         });
 
-        test.each(['approver:1', 'anyApproval:this-month', 'submitted:this-month', 'approved:this-month'])('returns true for the %s filter', (filter) => {
+        test.each(['approver:1', 'anyApproval:this-month', 'anySubmission:this-month', 'submitted:this-month', 'approved:this-month'])('returns true for the %s filter', (filter) => {
             // Given a query filtered by an approver or a workflow date, whose matches change when a report is submitted, approved or forwarded
             const queryJSON = buildSearchQueryJSON(`type:expense ${filter}`);
 

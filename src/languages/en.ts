@@ -11375,6 +11375,7 @@ const translations = {
             submitted: 'Submitted',
             approved: 'Approved',
             anyApproval: 'Any approval',
+            anySubmission: 'Any submission',
             firstApprover: 'First approver',
             firstApproved: 'First approved',
             paidBy: 'Paid by',

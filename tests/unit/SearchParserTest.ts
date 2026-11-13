@@ -2041,6 +2041,21 @@ function parseSearchQueryWithoutRawFilters(query: string): Record<string, unknow
 }
 
 describe('search parser', () => {
+    test.each(['anySubmission', 'any-submission'])('parses historical submission dates through %s', (key) => {
+        // Given an Insights drill-down scoped to historical submission actions
+        const query = `type:expense ${key}>=2026-02-01 ${key}<=2026-02-28`;
+
+        // When Search parses its action dates
+        const result = parseSearchQueryWithoutRawFilters(query);
+
+        // Then both bounds keep the action date rather than the report's current submitted date
+        expect(result.filters).toEqual({
+            operator: 'and',
+            left: {operator: 'gte', left: 'anySubmission', right: '2026-02-01'},
+            right: {operator: 'lte', left: 'anySubmission', right: '2026-02-28'},
+        });
+    });
+
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
         // Given a raw search query string typed by the user (including filter aliases such as any-approval)
 
