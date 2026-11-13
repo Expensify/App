@@ -110,7 +110,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
 
     const disableState = !isTaskModifiable;
     const isDisableInteractive = disableState || !isOpen;
-    const canEditAssignee = !disableState && !isDisableInteractive;
+    const canEditAssignee = !isDisableInteractive;
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const contextMenuStateValue = {
         anchor: null,
