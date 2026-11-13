@@ -5236,6 +5236,10 @@ ${amount} para ${merchant} - ${date}`,
                 hardApproval: (time: string) => `Se cancela automáticamente en ${time} si no se aprueba.`,
             },
         },
+        bookingCount: ({count}: {count: number}) => ({
+            one: '1 reserva',
+            other: `${count} reservas`,
+        }),
     },
     proactiveAppReview: {
         title: '¿Te gusta New Expensify?',

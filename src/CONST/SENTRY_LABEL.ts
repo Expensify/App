@@ -1274,6 +1274,7 @@ const SENTRY_LABEL = {
     TRIP_ROOM_PREVIEW: {
         CARD: 'TripRoomPreview-Card',
         RESERVATION: 'TripRoomPreview-Reservation',
+        BOOKING: 'TripRoomPreview-Booking',
         VIEW_BUTTON: 'TripRoomPreview-ViewButton',
     },
     TRIP_DETAILS: {

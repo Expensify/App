@@ -5060,6 +5060,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             status: {outstanding: '未结', approved: '已批准', rejected: '已拒绝', canceled: '已取消'},
             deadline: {softApproval: (time: string) => `将在 ${time} 后自动批准。在此之前可免费取消。`, hardApproval: (time: string) => `若未获批准，将在 ${time} 后自动取消。`},
         },
+        bookingCount: ({count}: {count: number}) => ({
+            one: '1 个预订',
+            other: `${count} 个预订`,
+        }),
     },
     workspace: {
         common: {

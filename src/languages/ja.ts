@@ -5187,6 +5187,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 hardApproval: (time: string) => `承認されない場合は ${time} で自動的にキャンセルされます。`,
             },
         },
+        bookingCount: ({count}: {count: number}) => ({
+            one: '1件の予約',
+            other: `${count}件の予約`,
+        }),
     },
     workspace: {
         common: {

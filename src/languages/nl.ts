@@ -5232,6 +5232,10 @@ ${amount} voor ${merchant} - ${date}`,
                 hardApproval: (time: string) => `Wordt automatisch geannuleerd over ${time} als deze niet is goedgekeurd.`,
             },
         },
+        bookingCount: ({count}: {count: number}) => ({
+            one: '1 boeking',
+            other: `${count} boekingen`,
+        }),
     },
     workspace: {
         common: {

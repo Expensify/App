@@ -5375,6 +5375,10 @@ const translations = {
         viewTripDetails: 'View trip details',
         trip: 'Trip',
         trips: 'Trips',
+        bookingCount: ({count}: {count: number}) => ({
+            one: '1 booking',
+            other: `${count} bookings`,
+        }),
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
