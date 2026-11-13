@@ -56,6 +56,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
     const [lastFourDigits, setLastFourDigits] = useState('');
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [shouldShowPersonalDetails, setShouldShowPersonalDetails] = useState(false);
+    const [hasEnteredWrongDigits, setHasEnteredWrongDigits] = useState(false);
 
     const inactiveCard = cardList?.[cardID];
 
@@ -94,6 +95,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
         if (cardError && inactiveCard?.cardID) {
             clearCardListErrors(inactiveCard?.cardID);
             setShouldShowPersonalDetails(false);
+            setHasEnteredWrongDigits(true);
         }
 
         setLastFourDigits(text);
@@ -159,7 +161,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
                     value={lastFourDigits}
                     onChangeText={onCodeInput}
                     onFulfill={submitAndNavigateToNextPage}
-                    shouldSubmitOnComplete={!cardError}
+                    shouldSubmitOnComplete={!hasEnteredWrongDigits && !cardError}
                     errorText={canShowError ? formError || cardError : ''}
                     ref={activateCardCodeInputRef}
                 />
