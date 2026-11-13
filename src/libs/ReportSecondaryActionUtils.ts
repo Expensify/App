@@ -20,6 +20,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
+import {isSingleTransactionReport} from './MoneyRequestReportUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
@@ -53,6 +54,7 @@ import {
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isPayAction,
+    isSentMoneyReportAction,
 } from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
@@ -77,6 +79,7 @@ import {
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
+    isExportInProgress,
     isExported as isExportedUtils,
     isHoldCreator,
     isInvoiceReport as isInvoiceReportUtils,
@@ -1239,6 +1242,12 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
+    // Reports with more than one expense always use the table view, so the switch only applies to single-expense reports.
+    // "Pay someone" reports always use the expense view, because their expense is the report itself.
+    if (isSingleTransactionReport(report, reportTransactions) && !reportActions?.some(isSentMoneyReportAction)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
     if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, submitterLogin, policy, cardList, reportActions ?? [], true)) {
@@ -1258,9 +1267,10 @@ function getReportAccountingExportActions(
     report: Report,
     bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
 ): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
-    if (isExportAction(currentUserLogin, report, policy)) {
+    if (isExportAction(currentUserLogin, report, policy) && !isExportInProgress(reportActions)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 

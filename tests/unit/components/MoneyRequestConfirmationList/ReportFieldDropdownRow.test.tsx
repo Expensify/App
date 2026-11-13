@@ -23,11 +23,6 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, l
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 jest.mock('@hooks/useReportAttributes', () => ({useDerivedReportNameByReportID: () => undefined}));
 
-let mockIsAnchoredDropdownsBetaEnabled = true;
-jest.mock('@hooks/usePermissions', () => () => ({
-    isBetaEnabled: (beta: string) => mockIsAnchoredDropdownsBetaEnabled && beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.ANCHORED_FIELD_DROPDOWNS,
-}));
-
 // The reports the user could move the expense to. The row only offers a choice when there is one.
 let mockOutstandingReports: Report[] = [];
 jest.mock('@hooks/useOutstandingReports', () => () => mockOutstandingReports);
@@ -100,7 +95,6 @@ describe('ReportField', () => {
     });
 
     beforeEach(async () => {
-        mockIsAnchoredDropdownsBetaEnabled = true;
         // A new expense's row only offers a choice once there is more than one report it could go on.
         mockOutstandingReports = [outstandingReport, otherOutstandingReport];
         mockShouldOpenInDropdown = undefined;
@@ -116,7 +110,7 @@ describe('ReportField', () => {
     });
 
     it('opens the report list in place while creating an expense', async () => {
-        // Given a workspace with two outstanding reports the expense could go on, and the anchored dropdowns beta on
+        // Given a workspace with two outstanding reports the expense could go on
         // When the expense form renders the report row
         renderReportRow();
 
@@ -125,19 +119,6 @@ describe('ReportField', () => {
             expect(mockShouldOpenInDropdown).toBe(true);
         });
         expect(mockDropdownTransactionID).toBe(TRANSACTION_ID);
-    });
-
-    it('keeps the full-page selector when the beta is off', async () => {
-        // Given the same workspace, for a user without the anchored dropdowns beta
-        mockIsAnchoredDropdownsBetaEnabled = false;
-
-        // When the form renders the report row
-        renderReportRow();
-
-        // Then the row opens the full-page selector as before
-        await waitFor(() => {
-            expect(mockShouldOpenInDropdown).toBe(false);
-        });
     });
 
     it('does not open the list when there is no report to choose', async () => {

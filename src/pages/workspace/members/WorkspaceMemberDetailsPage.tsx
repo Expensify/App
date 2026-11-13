@@ -188,7 +188,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
     const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
     const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
-    const shouldShowCategoryVisibility = isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) && isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
+    const shouldShowCategoryVisibility = isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
     const [policyCategoriesVisibility] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: policyCategoriesVisibilitySelector});
 
     const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(shouldShowCategoryVisibility ? policyID : undefined);
@@ -493,13 +493,17 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentCenter, styles.gap2, styles.mb5]}>
                                 {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
                                     shouldRenderTransferOwnerButton(fundList) && (
-                                        <ButtonDisabledWhenOffline onPress={startChangeOwnershipFlow}>
+                                        <ButtonDisabledWhenOffline
+                                            onPress={startChangeOwnershipFlow}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_TRANSFER_OWNER}
+                                        >
                                             <Button.Icon src={icons.Transfer} />
                                             <Button.Text>{translate('workspace.people.transferOwner')}</Button.Text>
                                         </ButtonDisabledWhenOffline>
                                     )
                                 ) : (
                                     <Button
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_REMOVE}
                                         onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
                                         isDisabled={!canRemoveSelectedMember}
                                     >
@@ -508,7 +512,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </Button>
                                 )}
                                 {shouldShowMessageButton && (
-                                    <Button onPress={messageAction.onSelected}>
+                                    <Button
+                                        onPress={messageAction.onSelected}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_MESSAGE}
+                                    >
                                         <Button.Icon src={icons.CommentBubbles} />
                                         <Button.Text>{translate('common.message')}</Button.Text>
                                     </Button>
@@ -524,6 +531,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             </MenuItemField>
                             <OfflineWithFeedback pendingAction={details.pendingFields?.displayName}>
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_DISPLAY_NAME}
                                     name={translate('displayNamePage.headerTitle')}
                                     value={hasDisplayNameSet ? displayName : ''}
                                     onPress={canSetDisplayName ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_MEMBER_DISPLAY_NAME.path)) : undefined}
@@ -532,6 +540,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             </OfflineWithFeedback>
                             {shouldShowLocalTime && !!details.timezone && <AutoUpdateTime timezone={details.timezone} />}
                             <MenuItemWithTopDescription
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_ROLE}
                                 disabled={!canEditSelectedMemberRole}
                                 title={translate(`workspace.common.roleName`, member?.role)}
                                 interactive={canEditSelectedMemberRole}
@@ -573,6 +582,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             {isApprovalsEnabled && !shouldHideApprovalWorkflows && (
                                 <OfflineWithFeedback pendingAction={approverPendingActionByMemberEmail[memberLogin]}>
                                     <MenuItem.Root
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_APPROVER}
                                         onPress={shouldAllowApproverEdit ? openMemberApprovalWorkflow : undefined}
                                         testID="member-approver-menu-item"
                                     >
@@ -600,6 +610,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             )}
                             {shouldShowOfficeLocation && (
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_OFFICE_LOCATION}
                                     name={translate('workspace.people.officeLocation')}
                                     onPress={canChangeOfficeLocation ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_OFFICE_LOCATION.getRoute(policyID, accountID)) : undefined}
                                     testID="member-office-location-menu-item"
@@ -612,6 +623,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             )}
                             {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (
                                 <MenuItemWithTopDescription
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_WORK_ARRANGEMENT}
                                     disabled={!canWriteMembers}
                                     title={getWorkArrangementLabel(translate, memberWorkArrangement)}
                                     interactive={canWriteMembers}
@@ -627,6 +639,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
                                         <MenuItemField
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CUSTOM_FIELD_1}
                                             name={translate('workspace.common.customField1')}
                                             onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1')) : undefined}
                                             testID="member-customField1-menu-item"
@@ -635,6 +648,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </OfflineWithFeedback>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
                                         <MenuItemField
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CUSTOM_FIELD_2}
                                             name={translate('workspace.common.customField2')}
                                             onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2')) : undefined}
                                             testID="member-customField2-menu-item"
@@ -646,6 +660,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             {!isAnonymousUserSession() && (
                                 <View style={styles.mb5}>
                                     <MenuItemNavigation
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CHAT_HISTORY}
                                         title={translate(getChatHistoryTranslationKey(isCustomAgent, memberLogin))}
                                         icon={icons.History}
                                         onPress={() => navigateToChatHistory(accountID)}
@@ -675,6 +690,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                 pendingAction={memberCard.pendingAction}
                                             >
                                                 <MenuItem
+                                                    sentryLabel={
+                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK
+                                                            ? CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CARD_ROW.EXPENSIFY_CARD
+                                                            : CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CARD_ROW.COMPANY_CARD
+                                                    }
                                                     key={memberCard.cardID}
                                                     pressableTestID={`card-${memberCard.cardID}`}
                                                     title={cardTitle ?? customCardNames?.[memberCard.cardID] ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}

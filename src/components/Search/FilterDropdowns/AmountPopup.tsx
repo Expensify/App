@@ -7,7 +7,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
+import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterFormValues, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -75,9 +75,17 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
         [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: translate('search.filters.amount.equalTo'),
         [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: translate('search.filters.amount.greaterThan'),
         [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: translate('search.filters.amount.lessThan'),
+        [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO]: translate('search.filters.amount.greaterThanOrEqualTo'),
+        [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO]: translate('search.filters.amount.lessThanOrEqualTo'),
     };
 
-    const modifierConfig = [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN, CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
+    const modifierConfig = [
+        CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO,
+        CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN,
+        CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN,
+        CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO,
+        CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO,
+    ];
 
     const formatAmount = (amount: string | undefined) => {
         return getAmountFilterDisplayValue(amount, convertToDisplayStringWithoutCurrency);
@@ -97,12 +105,29 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
 
             // When setting an Equal To value, clear Greater Than and Less Than to avoid conflicting filters.
             if (selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO) {
-                setAmountValues({[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: '', [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: '', [selectedModifier]: newAmount});
+                setAmountValues({
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: '',
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: '',
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO]: undefined,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO]: undefined,
+                    [selectedModifier]: newAmount,
+                });
             }
 
-            // When setting Greater Than or Less Than, clear Equal To to avoid conflicting filters.
-            if (selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN || selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN) {
-                setAmountValues((prevAmountValues) => ({...prevAmountValues, [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: '', [selectedModifier]: newAmount}));
+            // Editing an active comparison keeps other raw-query constraints; a new operator replaces its counterpart.
+            if (selectedModifier !== CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO) {
+                const oppositeModifier = {
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN,
+                }[selectedModifier];
+                setAmountValues((prevAmountValues) => ({
+                    ...prevAmountValues,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: '',
+                    [oppositeModifier]: prevAmountValues[selectedModifier] ? prevAmountValues[oppositeModifier] : undefined,
+                    [selectedModifier]: newAmount,
+                }));
             }
             goBack();
         };
@@ -119,16 +144,10 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
         );
     }
 
-    const onChange = (values: SearchAmountValues) => {
-        const formValues: Record<string, string | undefined> = {};
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO];
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
-        updateFilterForm(formValues);
+    const applyChanges = () => {
+        updateFilterForm(getAmountFilterFormValues(baseFilterKey, amountValues));
         closeOverlay();
     };
-
-    const applyChanges = () => onChange(amountValues);
 
     return (
         <BasePopup

@@ -1,3 +1,4 @@
+import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
@@ -47,6 +48,7 @@ const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
     const shouldScrollMainHeader = useIsMobileWebLandscape();
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
@@ -177,7 +179,7 @@ function HomePage() {
                         keyboardShouldPersistTaps="handled"
                     >
                         {shouldScrollMainHeader && topBar}
-                        {!shouldUseNarrowLayout && (
+                        {!shouldUseNarrowLayout && !shouldUseFlatNavigationBar && (
                             <View style={styles.centeredContentWidthLimiter}>
                                 <QuickCreationActionsBar />
                             </View>

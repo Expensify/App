@@ -44,6 +44,7 @@ function getImportMerchantRulesOption({
         icon,
         text: translate('workspace.rules.merchantRules.importRulesTitle'),
         value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.MORE_MENU_IMPORT_SPREADSHEET,
         onSelected: () => {
             if (!canWriteRules) {
                 showReadOnlyModal();

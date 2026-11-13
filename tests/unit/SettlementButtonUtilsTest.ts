@@ -31,6 +31,7 @@ describe('useSettlementButtonPaymentMethods', () => {
             icon: icons.current.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PERSONAL,
         });
     });
 
@@ -41,6 +42,7 @@ describe('useSettlementButtonPaymentMethods', () => {
             icon: icons.current.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PERSONAL,
         });
     });
 
@@ -52,6 +54,7 @@ describe('useSettlementButtonPaymentMethods', () => {
             value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             shouldUpdateSelectedIndex: false,
             key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.BUSINESS,
         });
     });
 
@@ -63,6 +66,7 @@ describe('useSettlementButtonPaymentMethods', () => {
             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             shouldUpdateSelectedIndex: false,
             key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PAY_ELSEWHERE,
         });
     });
 

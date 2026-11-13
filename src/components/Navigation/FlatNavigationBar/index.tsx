@@ -1,4 +1,5 @@
 import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
+import EnvironmentBadge from '@components/EnvironmentBadge';
 import Hoverable from '@components/Hoverable';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import getTabAccessibilityLabel from '@components/Navigation/NavigationTabBar/getTabAccessibilityLabel';
@@ -36,7 +37,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import FlatNavAccountStatus from './FlatNavAccountStatus';
-import FlatNavCreateMenuButtons from './FlatNavCreateMenuButtons';
+import FlatNavCreateButton from './FlatNavCreateButton';
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
@@ -85,7 +86,10 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                     >
                         <View style={styles.flatNavigationBarHeader}>
                             <FlatNavLogo onPress={navigateToHome} />
-                            <FlatNavCreateMenuButtons />
+                            <EnvironmentBadge style={styles.flatNavigationBarEnvironmentBadge} />
+                        </View>
+                        <View style={styles.flatNavigationBarCreateButtonContainer}>
+                            <FlatNavCreateButton />
                         </View>
                         <ScrollView
                             style={styles.flex1}
