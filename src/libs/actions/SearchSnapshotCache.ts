@@ -10,8 +10,8 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-/** The query the Search page shows. Its rows' searches (e.g. expanded groups) must not evict it */
-let currentPageHash: string | undefined;
+/** When the Search page opened its query. Snapshots used since then (the query and its expanded groups) are on screen and can't be evicted */
+let currentPageOpenedAt = Infinity;
 
 /** Each update reads the access record the previous one wrote, so calls fired together don't overwrite each other */
 let accessQueue = Promise.resolve();
@@ -19,7 +19,7 @@ let accessQueue = Promise.resolve();
 /** Unpinned snapshots outside the most recently used MAX_CACHED_SNAPSHOTS */
 function getEvictedHashes(access: SearchSnapshotAccess): string[] {
     return Object.keys(access)
-        .filter((hash) => hash !== currentPageHash && !access[hash].isPinned)
+        .filter((hash) => access[hash].lastAccessed < currentPageOpenedAt && !access[hash].isPinned)
         .sort((a, b) => access[b].lastAccessed - access[a].lastAccessed)
         .slice(CONST.SEARCH.MAX_CACHED_SNAPSHOTS);
 }
@@ -56,8 +56,27 @@ function trackSearchSnapshotAccess(hashes: number[], isPinned = false) {
 
 /** Same as trackSearchSnapshotAccess, for the query the Search page shows */
 function trackSearchPageSnapshotAccess(hash: number, isPinned: boolean) {
-    currentPageHash = hash.toString();
+    currentPageOpenedAt = Date.now();
     return trackSearchSnapshotAccess([hash], isPinned);
 }
 
-export {trackSearchSnapshotAccess, trackSearchPageSnapshotAccess};
+/** Lets the snapshots the Search page used be evicted again once it shows another query or closes */
+function leaveSearchPage() {
+    currentPageOpenedAt = Infinity;
+}
+
+/** Returns the snapshot of a saved search that was edited or deleted to the evictable pool */
+function unpinSearchSnapshot(hash: number) {
+    accessQueue = accessQueue.then(async () => {
+        const access = await readOnceOnyxValue(ONYXKEYS.SEARCH_SNAPSHOT_ACCESS);
+        if (!access?.[hash]) {
+            return;
+        }
+        await Onyx.merge(ONYXKEYS.SEARCH_SNAPSHOT_ACCESS, {[hash]: {isPinned: false}}).catch((error: unknown) =>
+            Log.hmmm('[Search] failed to unpin a cached snapshot', {error: String(error)}),
+        );
+    });
+    return accessQueue;
+}
+
+export {trackSearchSnapshotAccess, trackSearchPageSnapshotAccess, leaveSearchPage, unpinSearchSnapshot};

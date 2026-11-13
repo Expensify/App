@@ -1,4 +1,4 @@
-import {trackSearchPageSnapshotAccess, trackSearchSnapshotAccess} from '@libs/actions/SearchSnapshotCache';
+import {leaveSearchPage, trackSearchPageSnapshotAccess, trackSearchSnapshotAccess, unpinSearchSnapshot} from '@libs/actions/SearchSnapshotCache';
 import ClearUntrackedSearchSnapshots from '@libs/migrations/ClearUntrackedSearchSnapshots';
 
 import CONST from '@src/CONST';
@@ -52,6 +52,10 @@ describe('trackSearchSnapshotAccess', () => {
         await waitForBatchedUpdates();
     });
 
+    afterEach(() => {
+        leaveSearchPage();
+    });
+
     it('evicts the least recently used snapshots past the cap', async () => {
         // Given An empty cache
         // When More distinct searches run at once than the cap allows, each newer than the last
@@ -88,16 +92,38 @@ describe('trackSearchSnapshotAccess', () => {
         expect(hashes).toHaveLength(MAX + 1);
     });
 
-    it('keeps the query the Search page shows when its rows run more searches than the cap', async () => {
+    it('keeps the snapshots the Search page uses until it shows another query', async () => {
         // Given The page shows a query
         await writeSnapshot(500);
         await trackSearchPageSnapshotAccess(500, false);
 
         // When More groups are expanded than the cap allows, each running its own search
-        await cacheSearches(range(1, MAX + 1));
+        await cacheSearches(range(1, MAX + 5));
 
-        // Then The visible query's snapshot is not removed from under it
-        expect(await getSnapshotHashes()).toContain(500);
+        // Then Neither the query nor its expanded groups are removed from under the page
+        expect(await getSnapshotHashes()).toEqual([...range(1, MAX + 5), 500]);
+
+        // When The page moves on to another query
+        leaveSearchPage();
+        await writeSnapshot(999);
+        await trackSearchPageSnapshotAccess(999, false);
+
+        // Then The previous page's snapshots are evictable again, so the cap holds besides the new page
+        const hashes = await getSnapshotHashes();
+        expect(hashes).toContain(999);
+        expect(hashes).toHaveLength(MAX + 1);
+    });
+
+    it('evicts a saved search snapshot again once the saved search is edited or deleted', async () => {
+        // Given A pinned saved search
+        await cacheSearches([1000], true);
+
+        // When The saved search is deleted and more ordinary searches run than the cap allows
+        await unpinSearchSnapshot(1000);
+        await cacheSearches(range(1, MAX));
+
+        // Then Its snapshot was the least recently used, so it is evicted like any other
+        expect(await getSnapshotHashes()).not.toContain(1000);
     });
 
     it('drops snapshots cached before their use was tracked, once', async () => {

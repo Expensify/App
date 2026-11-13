@@ -3,7 +3,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {clearPageRequestedSearch, markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
-import {trackSearchPageSnapshotAccess} from '@libs/actions/SearchSnapshotCache';
+import {leaveSearchPage, trackSearchPageSnapshotAccess} from '@libs/actions/SearchSnapshotCache';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
@@ -101,6 +101,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             return;
         }
         trackSearchPageSnapshotAccess(hash, isSavedOrSuggestedQuery);
+        return leaveSearchPage;
     }, [hash, isSavedOrSuggestedQuery]);
 
     // Fire search() when the query changes (hash). This runs at the page level so the
