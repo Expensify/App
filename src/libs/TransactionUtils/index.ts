@@ -52,6 +52,7 @@ import {
     buildNewTransactionAfterReviewingDuplicates,
     canMergeDuplicates,
     compareDuplicateTransactionFields,
+    doesReportKeepExpensesAfterMerge,
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
 } from './duplicates';
@@ -1941,6 +1942,7 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildMergeDuplicatesParams,
     canMergeDuplicates,
+    doesReportKeepExpensesAfterMerge,
     getReimbursable,
     hasNonReimbursableTransactions,
     isPayAtEndExpense,
