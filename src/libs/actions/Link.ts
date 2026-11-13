@@ -529,7 +529,7 @@ function openReportFromDeepLink(
                 // anonymous session can never fulfill them even though report routes are otherwise anonymous-accessible
                 // (canAnonymousUserAccessRoute would allow it). Force a real sign-in first; the deep link is re-processed
                 // after sign-in. Without this the user lands on /r/:id?secureKey with no join, stuck loading/404.
-                if (isAnonymousUser()) {
+                if (isAnonymousUser(currentSession)) {
                     signOutAndRedirectToSignIn(currentSession, true);
                     return;
                 }
@@ -573,12 +573,12 @@ function openReportFromDeepLink(
             key: ONYXKEYS.NVP_ONBOARDING,
             callback: (val: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>) => {
                 latestOnboarding = val;
-                if (!isPending || (!val && !isAnonymousUser())) {
+                if (!isPending || (!val && !isAnonymousUser(currentSession))) {
                     return;
                 }
 
                 // Capture once. Use the raw flag, not the selector, which returns `true` for the empty NVP a fresh sign-up briefly has.
-                if (!isAuthenticated && initialHasCompletedGuidedSetupFlow === undefined && val && !isAnonymousUser()) {
+                if (!isAuthenticated && initialHasCompletedGuidedSetupFlow === undefined && val && !isAnonymousUser(currentSession)) {
                     initialHasCompletedGuidedSetupFlow = val.hasCompletedGuidedSetupFlow;
                 }
 
@@ -587,7 +587,7 @@ function openReportFromDeepLink(
                         return;
                     }
 
-                    if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
+                    if (route && isAnonymousUser(currentSession) && !canAnonymousUserAccessRoute(route)) {
                         signOutAndRedirectToSignIn(currentSession, true);
                         return;
                     }
@@ -628,7 +628,14 @@ function openReportFromDeepLink(
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
                             if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
                                 // TODO: Pass guideAccountIDs in Phase B. findLastAccessedReport reaches hasExpensifyGuidesEmails, which falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-                                const lastAccessedReportID = findLastAccessedReport(false, undefined, isAnonymousUser(), shouldOpenOnAdminRoom(), reportID, reportNameValuePairs)?.reportID;
+                                const lastAccessedReportID = findLastAccessedReport(
+                                    false,
+                                    undefined,
+                                    isAnonymousUser(currentSession),
+                                    shouldOpenOnAdminRoom(),
+                                    reportID,
+                                    reportNameValuePairs,
+                                )?.reportID;
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
@@ -756,7 +763,7 @@ function openReportFromDeepLink(
                         openDeepLink();
                     };
 
-                    if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser() || shouldSkipOnboarding) {
+                    if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser(currentSession) || shouldSkipOnboarding) {
                         handleDeeplinkNavigation();
                     }
                 });

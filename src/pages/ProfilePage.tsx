@@ -104,7 +104,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const isCurrentUser = currentUserAccountID === accountID;
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
-    const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
+    const reportKey = isAnonymousUserSession(session) || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
 
     const [report] = useOnyx(reportKey);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
@@ -207,7 +207,7 @@ function ProfilePage({route}: ProfilePageProps) {
     }
 
     // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
-    if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
+    if ((!isCurrentUser || report) && !isAnonymousUserSession(session)) {
         promotedActions.push(
             PromotedActions.message({
                 reportID: report?.reportID,
@@ -274,7 +274,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
 
                         {/* Don't display email if current user is anonymous */}
-                        {!(isCurrentUser && isAnonymousUserSession()) && login ? (
+                        {!(isCurrentUser && isAnonymousUserSession(session)) && login ? (
                             <MenuItemField
                                 name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                 value={formattedLogin}
@@ -324,7 +324,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={() => switchToDelegator(login, ROUTES.HOME)}
                             />
                         )}
-                        {!!accountID && !isAnonymousUserSession() && (
+                        {!!accountID && !isAnonymousUserSession(session) && (
                             <MenuItemNavigation
                                 sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.CHAT_HISTORY}
                                 title={translate(getChatHistoryTranslationKey(isCustomAgent, login))}

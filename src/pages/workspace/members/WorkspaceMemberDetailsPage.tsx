@@ -25,6 +25,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
@@ -86,7 +87,6 @@ import variables from '@styles/variables';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {clearPolicyMemberCategoryVisibilityError} from '@userActions/Policy/Category';
 import {clearWorkspaceOwnerChangeFlow, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
-import {isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -148,6 +148,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isSupportalSession = useIsSupportalSession();
+    const isAnonymousUser = useIsAnonymousUser();
 
     const routeAccountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByAccountID(policy, routeAccountID);
@@ -209,7 +210,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const shouldShowLocalTime = shouldShowLocalTimeUtil({accountID, timezone: details.timezone, isCustomAgent, isValidated: !!details.validated});
 
     // Like ProfilePage, your own row only offers Message when your self DM already exists, so we never optimistically create one
-    const shouldShowMessageButton = (!isSelectedMemberCurrentUser || !!hasSelfDMReport) && !isAnonymousUserSession();
+    const shouldShowMessageButton = (!isSelectedMemberCurrentUser || !!hasSelfDMReport) && !isAnonymousUser;
     const messageAction = PromotedActions.message({
         reportID: isSelectedMemberCurrentUser ? selfDMReportID : memberChatReportID,
         accountID,
@@ -657,7 +658,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </OfflineWithFeedback>
                                 </>
                             )}
-                            {!isAnonymousUserSession() && (
+                            {!isAnonymousUser && (
                                 <View style={styles.mb5}>
                                     <MenuItemNavigation
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CHAT_HISTORY}

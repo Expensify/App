@@ -325,8 +325,7 @@ function callSAMLSignOut(params: LogOutParams, authToken: string): Promise<void 
 /**
  * Checks if the account is an anonymous account.
  */
-function isAnonymousUser(sessionParam?: OnyxEntry<Session>): boolean {
-    const session = sessionParam === undefined ? deprecatedSession : sessionParam;
+function isAnonymousUser(session: OnyxEntry<Session>): boolean {
     return session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 }
 
