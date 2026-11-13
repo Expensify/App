@@ -1546,7 +1546,6 @@ const CONST = {
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
-        SINGLE_EXPENSE_TABLE_VIEW: 'singleExpenseTableView',
         FLAT_NAV: 'flatNav',
         RECEIPT_TRANSLATION: 'receiptTranslation',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
@@ -2093,7 +2092,6 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2695,10 +2693,6 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
-        },
-        SINGLE_EXPENSE_REPORT_VIEW: {
-            EXPENSE: 'expense',
-            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
