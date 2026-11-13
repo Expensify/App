@@ -59,7 +59,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
@@ -94,7 +94,7 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = ForwardedFSClassProps &
-    WithSentryLabel &
+    WithSentryLabelWhenPressable<'onPress' | 'onSecondaryInteraction'> &
     Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
         ref?: PressableRef | Ref<ComponentRef<typeof View>>;
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
@@ -115,7 +115,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         isBadgeCondensed?: boolean;
 
         isBadgeError?: boolean;
-        onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
         /** Used to apply offline styles to child text components */
         style?: StyleProp<ViewStyle>;
@@ -463,7 +462,6 @@ function MenuItem({
     isBadgeStrong,
     isBadgeCondensed,
     isBadgeError,
-    onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
     style,
@@ -1150,8 +1148,6 @@ function MenuItem({
                                                                 success={isBadgeSuccess}
                                                                 isStrong={isBadgeStrong}
                                                                 isCondensed={isBadgeCondensed}
-                                                                onPress={onBadgePress}
-                                                                pressable={!!onBadgePress}
                                                             />
                                                         )}
                                                         {furtherDetailsComponent}
@@ -1173,8 +1169,6 @@ function MenuItem({
                                                         isStrong={isBadgeStrong}
                                                         isCondensed={isBadgeCondensed}
                                                         error={isBadgeError}
-                                                        onPress={onBadgePress}
-                                                        pressable={!!onBadgePress}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -1287,8 +1281,6 @@ function MenuItem({
                                                 success={isBadgeSuccess}
                                                 isStrong={isBadgeStrong}
                                                 isCondensed={isBadgeCondensed}
-                                                onPress={onBadgePress}
-                                                pressable={!!onBadgePress}
                                             />
                                         )}
                                         {!!errorText && (

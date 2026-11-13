@@ -5,7 +5,7 @@ import getPlatform from '@libs/getPlatform';
 import type {ButtonVariant} from '@styles/utils/types';
 
 import CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, Ref} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -18,7 +18,7 @@ import type {ButtonProps} from './Button/types';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
-type FormAlertWithSubmitButtonProps = WithSentryLabel & {
+type FormAlertWithSubmitButtonProps = WithRequiredSentryLabel & {
     /** Error message to display above button */
     message?: string;
 

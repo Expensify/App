@@ -47,7 +47,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import {differenceInDays} from 'date-fns';
 import React, {useEffect, useState} from 'react';
@@ -55,7 +55,7 @@ import {StyleSheet, View} from 'react-native';
 
 import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
 
-type BaseMenuItem = WithSentryLabel & {
+type BaseMenuItem = WithRequiredSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     action: () => void | Promise<void>;

@@ -83,6 +83,8 @@ async function seedStoryOnyxData() {
 
 const STORY_TOOLTIP_DETAILS: DisplayNameWithTooltip[] = [{displayName: 'John Doe', accountID: STORY_ACCOUNT_ID, login: 'john@example.com'}];
 
+const sentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
+
 function noop() {}
 
 function Label({children}: {children: string}) {
@@ -195,10 +197,14 @@ function Comparison() {
                         numberOfLinesTitle={5}
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>List values</MenuItem.FieldName>
@@ -216,6 +222,7 @@ function Comparison() {
                         onPress={noop}
                         value="Engineering, Design, Product, Marketing, Sales, Support, Finance"
                         numberOfLinesValue={5}
+                        sentryLabel={sentryLabel}
                     />
                 }
             />
@@ -261,10 +268,14 @@ function Comparison() {
                         titleStyle={styles.flex1}
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>Tax amount</MenuItem.FieldName>
@@ -281,6 +292,7 @@ function Comparison() {
                         name="Tax amount"
                         onPress={noop}
                         value="$4.20"
+                        sentryLabel={sentryLabel}
                     />
                 }
             />
@@ -294,12 +306,16 @@ function Comparison() {
                             icon={icons.Download}
                             onPress={noop}
                             wrapperStyle={styles.sectionMenuItemTopDescription}
+                            sentryLabel={sentryLabel}
                         />
                     </Section>
                 }
                 composable={
                     <Section title="Share">
-                        <MenuItemSectionRoot onPress={noop}>
+                        <MenuItemSectionRoot
+                            onPress={noop}
+                            sentryLabel={sentryLabel}
+                        >
                             <MenuItem.Row>
                                 <MenuItem.Leading>
                                     <MenuItem.Icon src={icons.Download} />
@@ -402,10 +418,14 @@ function Comparison() {
                         shouldBlockSelection
                         shouldShowContextMenuHint
                         shouldShowRightIcon
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <MenuItem.Icon src={icons.Gear} />
@@ -430,10 +450,14 @@ function Comparison() {
                         description="Sort by"
                         title="Date"
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>Sort by</MenuItem.FieldName>
@@ -453,10 +477,14 @@ function Comparison() {
                         interactive
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>Name</MenuItem.FieldName>
@@ -473,6 +501,7 @@ function Comparison() {
                         name="Name"
                         onPress={noop}
                         value="Standard rate"
+                        sentryLabel={sentryLabel}
                     />
                 }
             />
@@ -486,10 +515,14 @@ function Comparison() {
                         shouldShowRightIcon
                         onPress={noop}
                         brickRoadIndicator={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>Export as</MenuItem.FieldName>
@@ -507,6 +540,7 @@ function Comparison() {
                         name="Export as"
                         onPress={noop}
                         value="Vendor bill"
+                        sentryLabel={sentryLabel}
                     >
                         <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
                     </MenuItemField>
@@ -523,10 +557,14 @@ function Comparison() {
                         onPress={noop}
                         brickRoadIndicator={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
                         errorText="Please select a country"
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItemField.Row
                             name="Country"
                             value="United States"
@@ -573,10 +611,14 @@ function Comparison() {
                         onPress={noop}
                         errorText="Please select a limit type"
                         hintText="Resets every month"
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItemField.Row
                             name="Limit type"
                             value="Smart limit"
@@ -626,10 +668,14 @@ function Comparison() {
                         description="Display"
                         title="Comfortable"
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>Display</MenuItem.FieldName>
@@ -648,12 +694,14 @@ function Comparison() {
                         title="Admin"
                         disabled
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
                     <MenuItem.Root
                         onPress={noop}
                         isDisabled
+                        sentryLabel={sentryLabel}
                     >
                         <MenuItem.Row>
                             <MenuItem.Content>
@@ -675,12 +723,14 @@ function Comparison() {
                         pressableTestID="menuItemComparisonStoryPressable"
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
                     <MenuItem.Root
                         onPress={noop}
                         testID="menuItemComparisonStoryPressable"
+                        sentryLabel={sentryLabel}
                     >
                         <MenuItem.Row>
                             <MenuItem.Content>
@@ -699,6 +749,7 @@ function Comparison() {
                         onPress={noop}
                         testID="menuItemComparisonStoryPressable"
                         value="John Doe"
+                        sentryLabel={sentryLabel}
                     />
                 }
             />
@@ -714,6 +765,7 @@ function Comparison() {
                         pressableTestID="menuItemComparisonStoryPressableWide"
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
@@ -721,6 +773,7 @@ function Comparison() {
                         onPress={noop}
                         isDisabled
                         testID="menuItemComparisonStoryPressableWide"
+                        sentryLabel={sentryLabel}
                     >
                         <MenuItem.Row>
                             <MenuItem.Content>
@@ -740,6 +793,7 @@ function Comparison() {
                         isDisabled
                         testID="menuItemComparisonStoryPressableWide"
                         value="Chase ••••1234"
+                        sentryLabel={sentryLabel}
                     />
                 }
             />
@@ -754,6 +808,7 @@ function Comparison() {
                                 rightLabel="Required"
                                 shouldShowRightIcon
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                         <Variant label="title present">
@@ -763,6 +818,7 @@ function Comparison() {
                                 rightLabel="Required"
                                 shouldShowRightIcon
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                     </>
@@ -770,7 +826,10 @@ function Comparison() {
                 composable={
                     <>
                         <Variant label="no value">
-                            <MenuItem.Root onPress={noop}>
+                            <MenuItem.Root
+                                onPress={noop}
+                                sentryLabel={sentryLabel}
+                            >
                                 <MenuItem.Row>
                                     <MenuItem.Content>
                                         <MenuItem.FieldNamePlaceholder>Share somewhere</MenuItem.FieldNamePlaceholder>
@@ -783,7 +842,10 @@ function Comparison() {
                             </MenuItem.Root>
                         </Variant>
                         <Variant label="value present">
-                            <MenuItem.Root onPress={noop}>
+                            <MenuItem.Root
+                                onPress={noop}
+                                sentryLabel={sentryLabel}
+                            >
                                 <MenuItem.Row>
                                     <MenuItem.Content>
                                         <MenuItem.FieldName>Share somewhere</MenuItem.FieldName>
@@ -803,6 +865,7 @@ function Comparison() {
                             <MenuItemField
                                 name="Share somewhere"
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             >
                                 <MenuItem.RightLabel>Required</MenuItem.RightLabel>
                             </MenuItemField>
@@ -812,6 +875,7 @@ function Comparison() {
                                 name="Share somewhere"
                                 onPress={noop}
                                 value="#announce"
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                     </>
@@ -825,10 +889,14 @@ function Comparison() {
                         title="Account ending in 1234"
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldValue>Account ending in 1234</MenuItem.FieldValue>
@@ -849,10 +917,14 @@ function Comparison() {
                         title="A value long enough that it has to truncate on a single line"
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>A field name long enough to need a second line before it truncates</MenuItem.FieldName>
@@ -869,6 +941,7 @@ function Comparison() {
                         name="A field name long enough to need a second line before it truncates"
                         onPress={noop}
                         value="A value long enough that it has to truncate on a single line"
+                        sentryLabel={sentryLabel}
                     />
                 }
             />
@@ -884,6 +957,7 @@ function Comparison() {
                                     title="Date"
                                     shouldShowRightIcon
                                     onPress={noop}
+                                    sentryLabel={sentryLabel}
                                 />
                             </Variant>
                             <Variant label="title={undefined}">
@@ -891,6 +965,7 @@ function Comparison() {
                                     description="Group by"
                                     shouldShowRightIcon
                                     onPress={noop}
+                                    sentryLabel={sentryLabel}
                                 />
                             </Variant>
                         </>
@@ -898,7 +973,10 @@ function Comparison() {
                     composable={
                         <>
                             <Variant label="value present">
-                                <MenuItem.Root onPress={noop}>
+                                <MenuItem.Root
+                                    onPress={noop}
+                                    sentryLabel={sentryLabel}
+                                >
                                     <MenuItem.Row>
                                         <MenuItem.Content>
                                             <MenuItem.FieldName>Sort by</MenuItem.FieldName>
@@ -911,7 +989,10 @@ function Comparison() {
                                 </MenuItem.Root>
                             </Variant>
                             <Variant label="no value">
-                                <MenuItem.Root onPress={noop}>
+                                <MenuItem.Root
+                                    onPress={noop}
+                                    sentryLabel={sentryLabel}
+                                >
                                     <MenuItem.Row>
                                         <MenuItem.Content>
                                             <MenuItem.FieldNamePlaceholder>Group by</MenuItem.FieldNamePlaceholder>
@@ -931,12 +1012,14 @@ function Comparison() {
                                     name="Sort by"
                                     onPress={noop}
                                     value="Date"
+                                    sentryLabel={sentryLabel}
                                 />
                             </Variant>
                             <Variant label="no value">
                                 <MenuItemField
                                     name="Group by"
                                     onPress={noop}
+                                    sentryLabel={sentryLabel}
                                 />
                             </Variant>
                         </>
@@ -959,12 +1042,14 @@ function Comparison() {
                         titleWithTooltips={STORY_TOOLTIP_DETAILS}
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
                     <MenuItemWithLabel
                         label="Assignee"
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
@@ -1039,10 +1124,14 @@ function Comparison() {
                         numberOfLinesDescription={1}
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <UserAvatar
@@ -1067,6 +1156,7 @@ function Comparison() {
                         avatarSource={icons.FallbackAvatar}
                         accountID={STORY_ACCOUNT_ID}
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
             />
@@ -1086,6 +1176,7 @@ function Comparison() {
                                 displayInDefaultIconColor
                                 shouldShowRightIcon
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                         <Variant label="disabled">
@@ -1097,6 +1188,7 @@ function Comparison() {
                                 shouldShowRightIcon
                                 disabled
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                     </>
@@ -1109,6 +1201,7 @@ function Comparison() {
                                 description="123 Main St, Springfield, IL 62704"
                                 accountID={CONST.DEFAULT_NUMBER_ID}
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                         <Variant label="isDisabled">
@@ -1118,6 +1211,7 @@ function Comparison() {
                                 accountID={CONST.DEFAULT_NUMBER_ID}
                                 isDisabled
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                     </>
@@ -1133,6 +1227,7 @@ function Comparison() {
                                 description="Vacation delegate"
                                 shouldShowRightIcon
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                         <Variant label="With title (supporting-size description)">
@@ -1141,6 +1236,7 @@ function Comparison() {
                                 description="Vacation delegate"
                                 shouldShowRightIcon
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                     </>
@@ -1148,7 +1244,10 @@ function Comparison() {
                 composable={
                     <>
                         <Variant label="variant='placeholder'">
-                            <MenuItem.Root onPress={noop}>
+                            <MenuItem.Root
+                                onPress={noop}
+                                sentryLabel={sentryLabel}
+                            >
                                 <MenuItem.Row>
                                     <MenuItem.Content>
                                         <MenuItem.FieldNamePlaceholder>Vacation delegate</MenuItem.FieldNamePlaceholder>
@@ -1160,7 +1259,10 @@ function Comparison() {
                             </MenuItem.Root>
                         </Variant>
                         <Variant label="default variant, with a title">
-                            <MenuItem.Root onPress={noop}>
+                            <MenuItem.Root
+                                onPress={noop}
+                                sentryLabel={sentryLabel}
+                            >
                                 <MenuItem.Row>
                                     <MenuItem.Content>
                                         <MenuItem.Title>John Doe</MenuItem.Title>
@@ -1188,6 +1290,7 @@ function Comparison() {
                                 icon={icons.FallbackAvatar}
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                         <Variant label="SMALL (28)">
@@ -1199,6 +1302,7 @@ function Comparison() {
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 avatarSize={CONST.AVATAR_SIZE.SMALL}
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                         <Variant label="X_SMALL (24)">
@@ -1210,6 +1314,7 @@ function Comparison() {
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 avatarSize={CONST.AVATAR_SIZE.X_SMALL}
                                 onPress={noop}
+                                sentryLabel={sentryLabel}
                             />
                         </Variant>
                     </>
@@ -1217,7 +1322,10 @@ function Comparison() {
                 composable={
                     <>
                         <Variant label="DEFAULT (40)">
-                            <MenuItem.Root onPress={noop}>
+                            <MenuItem.Root
+                                onPress={noop}
+                                sentryLabel={sentryLabel}
+                            >
                                 <MenuItem.Row>
                                     <MenuItem.Leading>
                                         <UserAvatar
@@ -1233,7 +1341,10 @@ function Comparison() {
                             </MenuItem.Root>
                         </Variant>
                         <Variant label="SMALL (28)">
-                            <MenuItem.Root onPress={noop}>
+                            <MenuItem.Root
+                                onPress={noop}
+                                sentryLabel={sentryLabel}
+                            >
                                 <MenuItem.Row>
                                     <MenuItem.Leading>
                                         <UserAvatar
@@ -1250,7 +1361,10 @@ function Comparison() {
                             </MenuItem.Root>
                         </Variant>
                         <Variant label="X_SMALL (24)">
-                            <MenuItem.Root onPress={noop}>
+                            <MenuItem.Root
+                                onPress={noop}
+                                sentryLabel={sentryLabel}
+                            >
                                 <MenuItem.Row>
                                     <MenuItem.Leading>
                                         <UserAvatar
@@ -1282,12 +1396,14 @@ function Comparison() {
                         isLabelHoverable={false}
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
                     <MenuItemWithLabel
                         label="Send from"
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
@@ -1319,12 +1435,14 @@ function Comparison() {
                         titleWithTooltips={STORY_TOOLTIP_DETAILS}
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
                     <MenuItemWithLabel
                         label="Assignee"
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
@@ -1362,12 +1480,14 @@ function Comparison() {
                         rightLabel="Required"
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
                     <MenuItemWithLabel
                         label="Share"
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
@@ -1399,6 +1519,7 @@ function Comparison() {
                         avatarSize={CONST.AVATAR_SIZE.X_SMALL}
                         disabled
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
@@ -1406,6 +1527,7 @@ function Comparison() {
                         label="Assignee"
                         isDisabled
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
@@ -1431,10 +1553,14 @@ function Comparison() {
                     <MenuItem
                         title="Settings"
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.Title>Settings</MenuItem.Title>
@@ -1451,10 +1577,14 @@ function Comparison() {
                         title="Settings"
                         icon={icons.Gear}
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <MenuItem.Icon src={icons.Gear} />
@@ -1470,6 +1600,7 @@ function Comparison() {
                         title="Settings"
                         icon={icons.Gear}
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
             />
@@ -1482,10 +1613,14 @@ function Comparison() {
                         icon={icons.Gear}
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <MenuItem.Icon src={icons.Gear} />
@@ -1504,6 +1639,7 @@ function Comparison() {
                         title="Settings"
                         icon={icons.Gear}
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
             />
@@ -1517,10 +1653,14 @@ function Comparison() {
                         icon={icons.Gear}
                         shouldShowRightIcon
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <MenuItem.Icon src={icons.Gear} />
@@ -1546,10 +1686,14 @@ function Comparison() {
                         description="Expensify Inc"
                         icon={icons.Gear}
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <MenuItem.Icon src={icons.Gear} />
@@ -1577,6 +1721,7 @@ function Comparison() {
                                     variant={CONST.BUTTON_VARIANT.DANGER}
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={noop}
+                                    sentryLabel={sentryLabel}
                                 >
                                     <Button.Text>Revoke</Button.Text>
                                 </Button>
@@ -1595,6 +1740,7 @@ function Comparison() {
                                     variant={CONST.BUTTON_VARIANT.DANGER}
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={noop}
+                                    sentryLabel={sentryLabel}
                                 >
                                     <Button.Text>Revoke</Button.Text>
                                 </Button>
@@ -1611,10 +1757,14 @@ function Comparison() {
                         title="Settings"
                         description="Manage your preferences"
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel={sentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.Title>Settings</MenuItem.Title>
@@ -1657,12 +1807,14 @@ function Comparison() {
                         shouldShowRightIcon
                         disabled
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
                     <MenuItem.Root
                         onPress={noop}
                         isDisabled
+                        sentryLabel={sentryLabel}
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
@@ -1683,6 +1835,7 @@ function Comparison() {
                         icon={icons.Gear}
                         isDisabled
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
             />
@@ -1694,12 +1847,14 @@ function Comparison() {
                         title="Settings"
                         icon={icons.Gear}
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
                 composable={
                     <MenuItem.Root
                         onPress={noop}
                         accessibilityLabel="Settings"
+                        sentryLabel={sentryLabel}
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
@@ -1716,6 +1871,7 @@ function Comparison() {
                         title={'Settings'}
                         icon={icons.Gear}
                         onPress={noop}
+                        sentryLabel={sentryLabel}
                     />
                 }
             />
@@ -1729,10 +1885,14 @@ function Comparison() {
                             icon={icons.Gear}
                             shouldShowRightIcon
                             onPress={noop}
+                            sentryLabel={sentryLabel}
                         />
                     }
                     composable={
-                        <MenuItem.Root onPress={noop}>
+                        <MenuItem.Root
+                            onPress={noop}
+                            sentryLabel={sentryLabel}
+                        >
                             <MenuItem.Row>
                                 <MenuItem.Leading>
                                     <MenuItem.Icon src={icons.Gear} />
@@ -1751,6 +1911,7 @@ function Comparison() {
                             title="Edit columns"
                             icon={icons.Gear}
                             onPress={noop}
+                            sentryLabel={sentryLabel}
                         />
                     }
                 />
@@ -1766,10 +1927,14 @@ function Comparison() {
                             icon={icons.Gear}
                             shouldShowRightIcon
                             onPress={noop}
+                            sentryLabel={sentryLabel}
                         />
                     }
                     composable={
-                        <MenuItem.Root onPress={noop}>
+                        <MenuItem.Root
+                            onPress={noop}
+                            sentryLabel={sentryLabel}
+                        >
                             <MenuItem.Row>
                                 <MenuItem.Leading>
                                     <MenuItem.Icon src={icons.Gear} />

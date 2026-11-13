@@ -346,6 +346,7 @@ function WithConfirmButton(props: SelectionListWithSectionsProps<ListItem>) {
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {}}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 >
                     <Button.Text>Confirm</Button.Text>
                 </Button>

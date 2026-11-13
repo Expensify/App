@@ -27,7 +27,7 @@ describe('ToggleDistanceUnitButton', () => {
 
     test('should trigger onPress when tapped quickly', () => {
         // Given the component is rendered
-        renderButton({onPress: onPressMock, accessibilityLabel: 'ToggleDistanceUnitButton'});
+        renderButton({onPress: onPressMock, accessibilityLabel: 'ToggleDistanceUnitButton', sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL});
         const pressable = screen.getByTestId('pressable');
 
         // When touch starts on the button
@@ -47,7 +47,7 @@ describe('ToggleDistanceUnitButton', () => {
 
     test('should not trigger onPress when dragged', () => {
         // Given the component is rendered
-        renderButton({onPress: onPressMock, accessibilityLabel: 'ToggleDistanceUnitButton'});
+        renderButton({onPress: onPressMock, accessibilityLabel: 'ToggleDistanceUnitButton', sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL});
         const pressable = screen.getByTestId('pressable');
 
         // When touch start on the button

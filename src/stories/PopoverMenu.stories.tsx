@@ -7,6 +7,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 // eslint-disable-next-line no-restricted-imports
 import themeColors from '@styles/theme/themes/dark';
 
+import CONST from '@src/CONST';
+
 import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React from 'react';
@@ -34,6 +36,7 @@ function Template(props: PopoverMenuProps) {
                 title="Add payment Methods"
                 icon={icons.Plus}
                 onPress={toggleVisibility}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 wrapperStyle={isVisible ? [{backgroundColor: themeColors.border}] : []}
             />
             <SafeAreaProvider>
@@ -47,11 +50,13 @@ function Template(props: PopoverMenuProps) {
                             text: 'Bank account',
                             icon: icons.Bank,
                             onSelected: toggleVisibility,
+                            sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
                         },
                         {
                             text: 'Debit card',
                             icon: icons.CreditCard,
                             onSelected: toggleVisibility,
+                            sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
                         },
                     ]}
                 />

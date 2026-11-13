@@ -6,6 +6,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/CollectDepositAccount/types';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 function Success({onNext}: CustomSubPageProps) {
@@ -18,6 +20,7 @@ function Success({onNext}: CustomSubPageProps) {
                 heading={translate('addPersonalBankAccountPage.successTitle')}
                 description={translate('addPersonalBankAccountPage.successMessage')}
                 buttonText={translate('common.continue')}
+                buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.COLLECT_DEPOSIT_ACCOUNT_SUCCESS_CONTINUE}
                 onButtonPress={onNext}
             />
         </ScrollView>

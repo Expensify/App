@@ -44,6 +44,7 @@ Default.args = {
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={CONST.BUTTON_SIZE.LARGE}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             onPress={() => {
                 alert('Submitted');
             }}

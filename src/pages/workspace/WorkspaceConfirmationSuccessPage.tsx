@@ -7,6 +7,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 function WorkspaceConfirmationSuccessPage() {
@@ -30,6 +32,7 @@ function WorkspaceConfirmationSuccessPage() {
                 description={translate('workspace.createdForClient.description')}
                 descriptionStyle={[styles.ph5, styles.textSupporting]}
                 buttonText={translate('common.buttonConfirm')}
+                buttonSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_SUCCESS_CONFIRM}
                 onButtonPress={closePage}
             />
         </ScreenWrapper>

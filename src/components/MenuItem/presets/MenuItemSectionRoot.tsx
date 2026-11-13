@@ -16,6 +16,8 @@ type MenuItemSectionRootProps = MenuItemRootProps & {
 /** A `MenuItem.Root` that spans the full width of a `Section`, ignoring the section's own horizontal padding */
 function MenuItemSectionRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style, ref}: MenuItemSectionRootProps) {
     const {cardEdgeToEdge, cardMenuItemInset} = useLayoutSpacing();
+    // Built in one object so TypeScript keeps sentryLabel tied to onPress, which MenuItemRoot requires together.
+    const pressProps = onPress ? {onPress, sentryLabel} : {sentryLabel};
 
     return (
         <View
@@ -23,9 +25,8 @@ function MenuItemSectionRoot({children, onPress, isDisabled = false, sentryLabel
             style={cardEdgeToEdge}
         >
             <MenuItemRoot
-                onPress={onPress}
+                {...pressProps}
                 isDisabled={isDisabled}
-                sentryLabel={sentryLabel}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
                 style={style}

@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 
 import CONST from '@src/CONST';
-import type {SentryLabel} from '@src/types/utils/SentryLabel';
+import type {SentryLabel, WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -17,7 +17,7 @@ import Badge from './Badge';
 import Button from './Button';
 import Text from './Text';
 
-type AgentPromotionalBannerProps = {
+type AgentPromotionalBannerProps = WithSentryLabelWhenPressable<'onCtaPress', 'ctaSentryLabel'> & {
     /** Title shown next to the bot illustration. */
     title: string;
 
@@ -36,9 +36,6 @@ type AgentPromotionalBannerProps = {
     /** Called when the CTA is pressed. Required when `ctaText` is set. */
     onCtaPress?: () => void;
 
-    /** Sentry label for the CTA. Required when `ctaText` is set. */
-    ctaSentryLabel?: SentryLabel;
-
     /** Extra styles applied to the outer container. */
     style?: StyleProp<ViewStyle>;
 };
@@ -50,7 +47,8 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
     const illustrations = useMemoizedLazyIllustrations(['AiBot']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
 
-    const hasCta = !!ctaText && !!onCtaPress;
+    // The props type requires ctaSentryLabel with onCtaPress, checking it only narrows the type.
+    const hasCta = !!ctaText && !!onCtaPress && !!ctaSentryLabel;
 
     const titleNode = (
         <View style={[styles.flexRow, styles.flexShrink1]}>

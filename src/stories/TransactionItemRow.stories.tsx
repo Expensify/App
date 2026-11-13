@@ -79,7 +79,7 @@ const story: Meta<typeof TransactionItemRow> = {
 };
 
 function Template(
-    {transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip, shouldShowCheckbox, columns}: TransactionItemRowProps,
+    {transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip, shouldShowCheckbox = false, columns}: TransactionItemRowProps,
     {parameters}: {parameters: {useLightTheme?: boolean}},
 ) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
@@ -98,6 +98,7 @@ function Template(
                         taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         onCheckboxPress={() => {}}
                         shouldShowCheckbox={shouldShowCheckbox}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         columns={columns}
                         onButtonPress={() => {}}
                     />

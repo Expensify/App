@@ -12,7 +12,7 @@ type ConfirmButtonProps = {
     children: string;
 
     /** Sentry label for the confirm button */
-    sentryLabel?: SentryLabel;
+    sentryLabel: SentryLabel;
 
     /** Style for the button container, e.g. flex1 when sharing a ButtonRow */
     style?: StyleProp<ViewStyle>;

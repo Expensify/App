@@ -165,7 +165,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         shouldUseNarrowLayout && canCreateRooms ? (
             <View style={[pageGutter, styles.pb3]}>
                 <Button
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS_CREATE}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS.CREATE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
                     style={styles.w100}
@@ -194,7 +194,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 >
                     {!shouldUseNarrowLayout && canCreateRooms && (
                         <Button
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS_CREATE}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS.CREATE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
                         >

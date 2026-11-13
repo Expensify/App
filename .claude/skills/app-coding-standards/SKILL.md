@@ -68,6 +68,7 @@ Before committing, stage everything with `git add -A`. Then start a general-purp
 - [CONSISTENCY-18](rules/consistency-18-comment-non-obvious-code.md) — Comment code that is not self-explanatory
 - [CONSISTENCY-19](rules/consistency-19-copy-grammar-and-case.md) — User-facing copy is grammatical and sentence case
 - [CONSISTENCY-20](rules/consistency-20-function-names.md) — Name functions with a verb that says what they do
+- [CONSISTENCY-21](rules/consistency-21-sentry-label-type.md) — Type a forwarded sentryLabel with the SentryLabel helpers
 
 ### Clean React Patterns
 - [CLEAN-REACT-PATTERNS-1](rules/clean-react-1-composition-over-config.md) — Composition over configuration

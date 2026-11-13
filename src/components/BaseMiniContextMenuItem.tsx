@@ -8,7 +8,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {PressableStateCallbackType} from 'react-native';
 
@@ -20,7 +20,7 @@ import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
-type BaseMiniContextMenuItemProps = WithSentryLabel & {
+type BaseMiniContextMenuItemProps = WithRequiredSentryLabel & {
     /**
      * Text to display when hovering the menu item
      */

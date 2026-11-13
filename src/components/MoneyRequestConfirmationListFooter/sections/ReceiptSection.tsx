@@ -135,6 +135,7 @@ function ReceiptSection({
 
     return (
         <ReceiptEmptyState
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RECEIPT_EMPTY_STATE}
             onPress={() => {
                 if (!transactionID) {
                     return;

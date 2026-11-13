@@ -43,6 +43,7 @@ function StoryTrigger({iconSrc, label, accessibilityLabel}: {iconSrc: React.Comp
                 style={triggerStyle}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={accessibilityLabel}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             >
                 <Icon
                     src={iconSrc}
@@ -70,11 +71,13 @@ function Default() {
                         text="Bank account"
                         icon={icons.Bank}
                         onSelect={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                     <PopoverMenu.Item
                         text="Debit card"
                         icon={icons.CreditCard}
                         onSelect={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </PopoverMenu.Content>
             </PopoverMenu.Root>
@@ -98,11 +101,13 @@ function WithHeader() {
                         text="Bank account"
                         icon={icons.Bank}
                         onSelect={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                     <PopoverMenu.Item
                         text="Debit card"
                         icon={icons.CreditCard}
                         onSelect={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </PopoverMenu.Content>
             </PopoverMenu.Root>
@@ -125,11 +130,13 @@ function WithSubmenu() {
                         text="Bank account"
                         icon={icons.Bank}
                         onSelect={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                     <PopoverMenu.Sub id="cards">
                         <PopoverMenu.Sub.Trigger
                             text="Cards"
                             icon={icons.CreditCard}
+                            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         />
                         <PopoverMenu.Sub.Content>
                             <PopoverMenu.Sub.BackButton text="Cards" />
@@ -137,11 +144,13 @@ function WithSubmenu() {
                                 text="Debit card"
                                 icon={icons.CreditCard}
                                 onSelect={() => {}}
+                                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                             />
                             <PopoverMenu.Item
                                 text="Credit card"
                                 icon={icons.CreditCard}
                                 onSelect={() => {}}
+                                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                             />
                         </PopoverMenu.Sub.Content>
                     </PopoverMenu.Sub>
@@ -149,6 +158,7 @@ function WithSubmenu() {
                         text="Wallet"
                         icon={icons.Wallet}
                         onSelect={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </PopoverMenu.Content>
             </PopoverMenu.Root>
@@ -177,6 +187,7 @@ function WithRadioItems() {
                             isSelected={selected === speed}
                             onSelect={() => setSelected(speed)}
                             shouldPutLeftPaddingWhenNoIcon
+                            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         />
                     ))}
                 </PopoverMenu.Content>
@@ -204,6 +215,7 @@ function ScrollableVariant() {
                             key={item}
                             text={item}
                             onSelect={() => {}}
+                            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         />
                     ))}
                 </PopoverMenu.ScrollableContent>
@@ -228,16 +240,19 @@ function GroupedWithSeparator() {
                             text="Bank account"
                             icon={icons.Bank}
                             onSelect={() => {}}
+                            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         />
                         <PopoverMenu.Item
                             text="Debit card"
                             icon={icons.CreditCard}
                             onSelect={() => {}}
+                            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         />
                         <PopoverMenu.Item
                             text="Wallet"
                             icon={icons.Wallet}
                             onSelect={() => {}}
+                            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         />
                     </PopoverMenu.Group>
                     <PopoverMenu.Separator />
@@ -245,6 +260,7 @@ function GroupedWithSeparator() {
                         text="Remove account"
                         icon={icons.Trashcan}
                         onSelect={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </PopoverMenu.Content>
             </PopoverMenu.Root>
@@ -267,12 +283,14 @@ function DisabledRow() {
                         text="Bank account"
                         icon={icons.Bank}
                         onSelect={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                     <PopoverMenu.Item
                         text="Debit card (coming soon)"
                         icon={icons.CreditCard}
                         onSelect={() => {}}
                         disabled
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </PopoverMenu.Content>
             </PopoverMenu.Root>
@@ -291,6 +309,7 @@ function WithSecondaryInteraction() {
                         onSecondaryInteraction={() => {}}
                         style={triggerStyle}
                         accessibilityLabel="Right-click or long-press to open menu"
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     >
                         <Icon
                             src={icons.Plus}
@@ -305,11 +324,13 @@ function WithSecondaryInteraction() {
                         text="Copy"
                         icon={icons.Copy}
                         onSelect={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                     <PopoverMenu.Item
                         text="Delete"
                         icon={icons.Trashcan}
                         onSelect={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </PopoverMenu.Content>
             </PopoverMenu.Root>

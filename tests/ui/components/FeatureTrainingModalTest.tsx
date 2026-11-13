@@ -63,7 +63,7 @@ describe('FeatureTrainingModal', () => {
                         <FeatureTrainingModal>
                             <FeatureTraining.Illustration videoURL={CONST.FEATURE_TRAINING['track-expenses'].VIDEO_URL} />
                             <FeatureTraining.Body>
-                                <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
+                                <FeatureTraining.ConfirmButton sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
                             </FeatureTraining.Body>
                         </FeatureTrainingModal>
                     </ComposeProviders>,
@@ -79,7 +79,7 @@ describe('FeatureTrainingModal', () => {
                     <FeatureTrainingModal>
                         <FeatureTraining.Illustration image={illustrations.HoldExpense} />
                         <FeatureTraining.Body>
-                            <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
+                            <FeatureTraining.ConfirmButton sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
                         </FeatureTraining.Body>
                     </FeatureTrainingModal>
                 );
@@ -94,7 +94,7 @@ describe('FeatureTrainingModal', () => {
                     <FeatureTrainingModal>
                         <FeatureTraining.Illustration />
                         <FeatureTraining.Body>
-                            <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
+                            <FeatureTraining.ConfirmButton sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
                         </FeatureTraining.Body>
                     </FeatureTrainingModal>,
                 ),

@@ -9,6 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 function SuccessStep() {
@@ -36,6 +38,7 @@ function SuccessStep() {
                         heading={translate('personalCard.personalCardAdded')}
                         description={translate('personalCard.personalCardAddedDescription')}
                         buttonText={translate('common.continue')}
+                        buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.PERSONAL_CARD_ADDED_CONTINUE}
                         onButtonPress={exitFlow}
                     />
                 </ScrollView>

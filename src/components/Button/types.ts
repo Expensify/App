@@ -5,7 +5,7 @@ import type {StartWithLoading} from '@hooks/usePressLoading';
 import type {ButtonVariant} from '@styles/utils/types';
 
 import type CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type React from 'react';
@@ -102,7 +102,7 @@ type ButtonStyleProps = {
     variant?: ButtonVariant;
 };
 
-type BaseButtonProps = WithSentryLabel &
+type BaseButtonProps = WithSentryLabelWhenPressable<'onPress' | 'onLongPress'> &
     ButtonEventsProps &
     ButtonBehaviorProps &
     ButtonStyleProps & {

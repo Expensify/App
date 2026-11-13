@@ -3,6 +3,7 @@ import {fireEvent, render, screen, within} from '@testing-library/react-native';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 
+import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import React from 'react';
@@ -41,7 +42,10 @@ describe('ReceiptEmptyState', () => {
             // Given an editable wide receipt panel with alternative actions.
             render(
                 <Wrapper>
-                    <ReceiptEmptyState isDisplayedInWideRHP />
+                    <ReceiptEmptyState
+                        isDisplayedInWideRHP
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    />
                 </Wrapper>,
             );
 
@@ -59,6 +63,7 @@ describe('ReceiptEmptyState', () => {
                 <Wrapper>
                     <ReceiptEmptyState
                         isDisplayedInWideRHP
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         setReceiptFile={jest.fn()}
                     />
                 </Wrapper>,
@@ -82,6 +87,7 @@ describe('ReceiptEmptyState', () => {
                     <ReceiptEmptyState
                         isDisplayedInWideRHP={false}
                         onPress={onPress}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -100,6 +106,7 @@ describe('ReceiptEmptyState', () => {
                 <Wrapper>
                     <ReceiptEmptyState
                         isDisplayedInWideRHP
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         isThumbnail={false}
                         setReceiptFile={jest.fn()}
                     />
@@ -116,6 +123,7 @@ describe('ReceiptEmptyState', () => {
                 <Wrapper>
                     <ReceiptEmptyState
                         isDisplayedInWideRHP={false}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         isThumbnail={false}
                     />
                 </Wrapper>,

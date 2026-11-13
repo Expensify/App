@@ -5,6 +5,8 @@ import type {AmountFormFieldRef} from '@components/AmountFormField';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 
+import CONST from '@src/CONST';
+
 import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
@@ -42,6 +44,7 @@ function ContextReadout() {
                 onPress={() => {
                     setNumber('7');
                 }}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />
             <PressableWithFeedback
                 accessibilityLabel="Set numbers rapidly"
@@ -51,6 +54,7 @@ function ContextReadout() {
                     setNumber('7');
                     setNumber('99');
                 }}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />
             <PressableWithFeedback
                 accessibilityLabel="Toggle sign"
@@ -59,6 +63,7 @@ function ContextReadout() {
                 onPress={() => {
                     toggleSign();
                 }}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />
         </View>
     );

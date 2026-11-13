@@ -16,7 +16,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
 import type {GestureResponderEvent} from 'react-native';
@@ -24,7 +24,7 @@ import type {GestureResponderEvent} from 'react-native';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
-type MenuItemAvatarNavigationProps = WithSentryLabel &
+type MenuItemAvatarNavigationProps = WithRequiredSentryLabel &
     WithTestID &
     ForwardedFSClassProps & {
         /** The title text of the row. Typically the name of whoever the avatar belongs to */

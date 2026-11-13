@@ -9,6 +9,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -22,7 +23,8 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReceiptAlternativeMethods from './ReceiptAlternativeMethods';
 import Text from './Text';
 
-type ReceiptEmptyStateProps = {
+// A wide RHP renders the placeholder as a pressable that opens the file picker, even without onPress.
+type ReceiptEmptyStateProps = WithSentryLabelWhenPressable<'onPress' | 'isDisplayedInWideRHP'> & {
     /** Callback to be called on onPress */
     onPress?: () => void;
 
@@ -71,6 +73,7 @@ function ReceiptPlaceholderPlusIcon({circleFill, plusFill, size}: {circleFill: s
 // Returns an SVG icon indicating that the user should attach a receipt
 function ReceiptEmptyState({
     onPress,
+    sentryLabel,
     disabled = false,
     isThumbnail = false,
     isInMoneyRequestView = false,
@@ -120,6 +123,7 @@ function ReceiptEmptyState({
                     <Wrapper
                         accessibilityRole={isInteractive ? 'button' : undefined}
                         accessibilityLabel={translate('receipt.upload')}
+                        sentryLabel={sentryLabel}
                         onPress={() => {
                             if (isDisplayedInWideRHP) {
                                 openPicker({

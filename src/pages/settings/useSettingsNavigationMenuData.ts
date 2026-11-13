@@ -18,7 +18,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -27,7 +27,7 @@ import type {ValueOf} from 'type-fest';
 type SettingsTopLevelScreens = keyof typeof SETTINGS_TO_RHP;
 
 /** Shared descriptor for a Settings menu row. */
-type MenuData = WithSentryLabel & {
+type MenuData = WithRequiredSentryLabel & {
     /** Translation key used for the row label. */
     translationKey: TranslationPaths;
 
@@ -45,9 +45,6 @@ type MenuData = WithSentryLabel & {
 
     /** External link associated with the row. */
     link?: string | (() => Promise<string>);
-
-    /** Visual type used to render the icon. */
-    iconType?: typeof CONST.ICON_TYPE_ICON | typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
     /** Additional styles applied to the icon. */
     iconStyles?: StyleProp<ViewStyle>;

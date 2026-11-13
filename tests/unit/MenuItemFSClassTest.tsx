@@ -27,7 +27,10 @@ describe('MenuItem FullStory class', () => {
         // Given a composable row with a masked value, like the connected bank account summary
         render(
             <OnyxListItemProvider>
-                <MenuItem.Root onPress={jest.fn()}>
+                <MenuItem.Root
+                    onPress={jest.fn()}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                >
                     <MenuItem.Row>
                         <MenuItem.Content>
                             <MenuItem.FieldName>{FIELD_NAME}</MenuItem.FieldName>
@@ -50,7 +53,10 @@ describe('MenuItem FullStory class', () => {
         // Given a composable row whose name and value are both readable
         render(
             <OnyxListItemProvider>
-                <MenuItem.Root onPress={jest.fn()}>
+                <MenuItem.Root
+                    onPress={jest.fn()}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                >
                     <MenuItem.Row>
                         <MenuItem.Content>
                             <MenuItem.FieldName>{FIELD_NAME}</MenuItem.FieldName>
@@ -77,6 +83,7 @@ describe('MenuItem FullStory class', () => {
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     onPress={jest.fn()}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             </OnyxListItemProvider>,
@@ -100,6 +107,7 @@ describe('MenuItem FullStory class', () => {
                     description={FIELD_NAME}
                     title={FIELD_VALUE}
                     onPress={jest.fn()}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             </OnyxListItemProvider>,
