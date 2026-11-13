@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useLastFocusedValue from '@hooks/useLastFocusedValue';
+import useDeferUntilScreenRevealed from '@hooks/useDeferUntilScreenRevealed';
 
 let mockIsFocused = true;
 jest.mock('@hooks/useIsScreenFocused', () => ({
@@ -18,10 +18,10 @@ type HookProps = {value: number | undefined};
 
 function renderBankAccountIDHook(initialBankAccountID: number | undefined) {
     const initialProps: HookProps = {value: initialBankAccountID};
-    return renderHook(({value}: HookProps) => useLastFocusedValue(value), {initialProps});
+    return renderHook(({value}: HookProps) => useDeferUntilScreenRevealed(value), {initialProps});
 }
 
-describe('useLastFocusedValue', () => {
+describe('useDeferUntilScreenRevealed', () => {
     beforeEach(() => {
         mockIsFocused = true;
         mockShouldUseNarrowLayout = false;

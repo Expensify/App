@@ -1,7 +1,7 @@
 import WiseGlobalReimbursementsBanner from '@components/WiseGlobalReimbursementsBanner';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLastFocusedValue from '@hooks/useLastFocusedValue';
+import useDeferUntilScreenRevealed from '@hooks/useDeferUntilScreenRevealed';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -42,7 +42,7 @@ function WorkspaceWiseGlobalReimbursementsBanner({policyID}: WorkspaceWiseGlobal
     const [isDismissed = true] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isBannerDismissedSelector});
 
     // Saving the first onboarding page in the RHP retires the banner, so it waits for the RHP to close instead of vanishing behind it
-    const bankAccountID = useLastFocusedValue(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList));
+    const bankAccountID = useDeferUntilScreenRevealed(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList));
 
     if (!isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS) || !isPolicyAdmin(policy, currentUserLogin) || shouldSuppressPromotionalUI || isDismissed || !bankAccountID) {
         return null;
