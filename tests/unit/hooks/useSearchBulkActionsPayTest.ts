@@ -836,6 +836,26 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         );
     });
 
+    it('skips a flagged report when the bank account comes without the global reimbursements flag', async () => {
+        // Given the mixed selection from the first test, paid from an account the backend sent without the flag, which it treats as not enabled
+        const bankAccountWithoutFlag = makeBankAccount(BANK_ACCOUNT_ID, 'XXXXXX1234', false);
+        delete bankAccountWithoutFlag.accountData?.additionalData?.isGlobalReimbursementEnabled;
+        await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+            [BANK_ACCOUNT_ID]: bankAccountWithoutFlag,
+            [ENABLED_BANK_ACCOUNT_ID]: makeBankAccount(ENABLED_BANK_ACCOUNT_ID, 'XXXXXX9999', true),
+        });
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then only the second report is paid, because the backend would reject paying the first one
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '3'})}));
+
+        // And the modal lists the skipped report instead of the backend opening the onboarding after a failed payment
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} Report needing GR`}));
+    });
+
     it('pays every report and shows no modal when the global reimbursements beta is off', async () => {
         // Given the same selection, but an admin without the global reimbursements beta
         mockEnabledBetas = new Set();

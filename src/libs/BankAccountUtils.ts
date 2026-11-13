@@ -231,12 +231,10 @@ function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData |
 
 /**
  * Whether a payment from this account would be rejected until global reimbursements are set up, so the onboarding should open instead of paying.
- * Only an explicit `false` counts, so an account without the flag still goes to the backend, which makes the final call.
+ * An account without the flag counts too, because the backend only pays through global reimbursements once the flag is `true`.
  */
 function shouldSetUpGlobalReimbursementsBeforePaying(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
-    return (
-        bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === false && isBankAccountEligibleForGlobalReimbursements(bankAccount.accountData, bankAccount.bankCurrency)
-    );
+    return isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
 }
 
 /**
