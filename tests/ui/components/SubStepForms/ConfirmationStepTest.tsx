@@ -15,20 +15,20 @@ jest.mock('@hooks/useThemeStyles', () => () => new Proxy({}, {get: () => ({})}))
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useSafeAreaPaddings', () => () => ({paddingTop: 0, paddingBottom: 0, insets: undefined, safeAreaPaddingBottomStyle: {}}));
 
-jest.mock('@components/MenuItemWithTopDescription', () => {
+jest.mock('@components/MenuItem', () => {
     const reactNative = jest.requireActual<ReactNative>('react-native');
     const RNPressable = reactNative.Pressable;
-    const RNView = reactNative.View;
     return {
         __esModule: true,
-        default: ({pressableTestID, title, description}: {pressableTestID?: string; title: string; description: string}) => (
-            <RNPressable testID={pressableTestID}>
-                <RNView testID={`${pressableTestID}-title`}>{title}</RNView>
-                <RNView testID={`${pressableTestID}-description`}>{description}</RNView>
-            </RNPressable>
-        ),
+        default: {Root: RNPressable, Chevron: () => null, BrickRoadIndicator: () => null, HelpText: () => null},
     };
 });
+jest.mock('@components/MenuItem/presets/MenuItemField', () => {
+    const {Text: RNText} = jest.requireActual<ReactNative>('react-native');
+    return {__esModule: true, default: {Row: ({name, value}: {name: string; value: string}) => <RNText>{`${name}: ${value}`}</RNText>}};
+});
+jest.mock('@hooks/useOnyx', () => () => [undefined]);
+jest.mock('@userActions/Session', () => ({callIfAuthenticated: (callback: () => void) => callback}));
 
 jest.mock('@components/RenderHTML', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/DotIndicatorMessage', () => ({__esModule: true, default: () => null}));
@@ -79,7 +79,7 @@ describe('ConfirmationStep — caller-provided id contract', () => {
         ];
         renderStep(after);
         expect(screen.getByTestId('legal-name')).toBeOnTheScreen();
-        expect(screen.getByTestId('legal-name-title').props.children).toBe('Jane Smith');
+        expect(screen.getByText('Legal name: Jane Smith')).toBeOnTheScreen();
     });
 
     it('honors an explicit `testID` over the id', () => {

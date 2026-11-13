@@ -2,14 +2,16 @@ import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWrapper from '@components/FormAlertWrapper';
+import MenuItem from '@components/MenuItem';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,10 +19,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -180,6 +186,7 @@ function ConfirmationStep({
 }: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
     const [wasLoading, setWasLoading] = useState(!!isLoading);
@@ -242,21 +249,24 @@ function ConfirmationStep({
         }
         const {id, description, title, shouldShowRightIcon, onPress, interactive, disabled, brickRoadIndicator, errorText, testID, accessibilityLabel} = row;
         return (
-            <MenuItemWithTopDescription
+            <MenuItem.Root
                 key={id}
-                pressableTestID={testID ?? id}
-                description={description}
-                title={title}
-                shouldShowRightIcon={shouldShowRightIcon}
-                onPress={onPress}
-                interactive={interactive}
-                disabled={disabled}
+                testID={testID ?? id}
+                onPress={interactive !== false ? callIfAuthenticated(onPress, session) : undefined}
+                isDisabled={disabled}
                 sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.EDIT}
-                brickRoadIndicator={brickRoadIndicator}
-                errorText={errorText}
                 accessibilityLabel={accessibilityLabel}
-                forwardedFSClass={forwardedFSClass}
-            />
+            >
+                <MenuItemField.Row
+                    name={description}
+                    value={title}
+                    forwardedFSClass={forwardedFSClass}
+                >
+                    {!!brickRoadIndicator && <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />}
+                    {shouldShowRightIcon && <MenuItem.Chevron />}
+                </MenuItemField.Row>
+                {!!errorText && <MenuItem.HelpText message={errorText} isError />}
+            </MenuItem.Root>
         );
     };
 
