@@ -21,7 +21,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCompanyCardErrorField, resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {renameCompanyCardInline} from '@libs/actions/Policy/InlineEdit';
-import {formatMaskedCardName, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import {formatMaskedCardName, getCardLastUpdated, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
@@ -53,7 +54,7 @@ import WorkspaceCompanyCardsTableControls from './WorkspaceCompanyCardsTableCont
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
 
-type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'exportAccount' | 'actions';
+type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'exportAccount' | 'lastUpdated' | 'actions';
 
 type WorkspaceCompanyCardsTableHandle = {
     clearSelection: () => void;
@@ -102,7 +103,7 @@ function WorkspaceCompanyCardsTable({
 }: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
@@ -262,6 +263,18 @@ function WorkspaceCompanyCardsTable({
         },
         ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceCompanyCardTableItemData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
         {
+            key: 'lastUpdated',
+            label: translate('workspace.moreFeatures.companyCards.lastUpdated'),
+            sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => (item.lastUpdatedText ? [{text: item.lastUpdatedText, fontSize: fontScale.text}] : []),
+                shouldFitContent: true,
+            },
+        },
+        {
             key: 'actions',
             label: '',
             sortable: false,
@@ -282,6 +295,7 @@ function WorkspaceCompanyCardsTable({
         },
     ];
 
+    const currentLocalYear = getLocalDateFromDatetime().getFullYear();
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingOnyxCardList
         ? []
         : (companyCardEntries ?? [])
@@ -301,6 +315,16 @@ function WorkspaceCompanyCardsTable({
                   const hasVisibleCardErrors = !isEmptyObject(cardErrors ?? {});
                   const rowErrors = hasTransactionStartDateErrors ? {...cardErrors, ...transactionStartDateErrors} : cardErrors;
 
+                  // Unassigned cards have no sync history, so their cell stays empty.
+                  let lastUpdatedText: string | undefined;
+                  let lastUpdatedTooltip: string | undefined;
+                  if (assignedCard) {
+                      const {text, localDate} = getCardLastUpdated(assignedCard, translate, getLocalDateFromDatetime);
+                      // A sync time shows the Spend date abbreviation, with the details page timestamp in the tooltip.
+                      lastUpdatedText = localDate ? DateUtils.formatLocalDateToMonthDayWithOptionalYear(localDate, currentLocalYear, dateFnsLocale) : text;
+                      lastUpdatedTooltip = localDate ? text : undefined;
+                  }
+
                   return {
                       cardName,
                       keyForList: `${cardName}_${cardID ?? 'unassigned'}_${encryptedCardNumber}`,
@@ -313,6 +337,8 @@ function WorkspaceCompanyCardsTable({
                       cardholder,
                       // Unassigned cards have no details page and so no Accounting section to match, hence no title.
                       exportAccountTitle: shouldShowExportAccountColumn && assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
+                      lastUpdatedText,
+                      lastUpdatedTooltip,
                       errors: rowErrors,
                       pendingAction: assignedCard?.pendingAction ?? assignedCard?.pendingFields?.scrapeMinDate,
                       canEditName,
@@ -392,6 +418,13 @@ function WorkspaceCompanyCardsTable({
 
             // Most cards share the default export account, so ties fall back to the card name for a stable order.
             return (exportAccountComparison !== 0 ? exportAccountComparison : cardNameComparison) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'lastUpdated') {
+            // lastScrape is a UTC "yyyy-MM-dd HH:mm:ss" string, so string order is time order. Never synced cards sort as oldest.
+            const lastScrapeComparison = localeCompare(a.assignedCard?.lastScrape ?? '', b.assignedCard?.lastScrape ?? '');
+
+            return (lastScrapeComparison !== 0 ? lastScrapeComparison : cardNameComparison) * orderMultiplier;
         }
 
         return 0;

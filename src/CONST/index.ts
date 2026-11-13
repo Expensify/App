@@ -131,7 +131,6 @@ type UnofferedOnboardingAccountingConnection =
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
-    // Still behind the ZOHO_BOOKS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
     // Still behind the DIGITS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
@@ -1525,9 +1524,9 @@ const CONST = {
         VENDOR_MATCHING: 'vendorMatching',
         INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
-        ZOHO_BOOKS: 'zohoBooks',
         DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
+        SAGE_ACCOUNTING: 'sageAccounting',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
@@ -1539,16 +1538,18 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_AI: 'insightsAI',
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
+        INSIGHTS_EFFICIENCY: 'insightsEfficiency',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
-        ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        PINNABLE_TABLE_COLUMNS: 'pinnableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
-        RESIZABLE_RHP: 'resizableRHP',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
+        SINGLE_EXPENSE_TABLE_VIEW: 'singleExpenseTableView',
         FLAT_NAV: 'flatNav',
         CATEGORY_VISIBILITY: 'categoryVisibility',
+        RECEIPT_TRANSLATION: 'receiptTranslation',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
@@ -1873,7 +1874,7 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     QA_NEW_EXPENSIFY_URL: 'https://qa.new.exops.io',
-    PR_TESTING_NEW_EXPENSIFY_URL: `https://${CI.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
+    ADHOC_NEW_EXPENSIFY_URL: `https://${CI.PULL_REQUEST_NUMBER}.adhoc.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     CHASE_ACCOUNT_NUMBER_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account',
     WHATS_NEW_URL: `${USE_EXPENSIFY_URL}/blog?category=Product%20Updates`,
@@ -2019,6 +2020,31 @@ const CONST = {
 
         // Elements with this data attribute pause the hover zoom while the pointer is over them
         HOVER_ZOOM_EXCLUDED_ELEMENT: 'receipt-hover-zoom-excluded',
+
+        TRANSLATION_SCAN_DURATION: 1000,
+        TRANSLATION_SCAN_LINE_HEIGHT: 8,
+        TRANSLATION_SCAN_TINT_OPACITY: 0.2,
+        TRANSLATION_ROW_TYPE: {
+            HEADING: 'heading',
+            TEXT: 'text',
+            LABEL_VALUE: 'labelValue',
+            ITEM: 'item',
+            TOTAL: 'total',
+            DIVIDER: 'divider',
+        },
+        TRANSLATION_ROW_ALIGN: {
+            LEFT: 'left',
+            CENTER: 'center',
+        },
+        TRANSLATION_STATE: {
+            TRANSLATED: 'translated',
+            UNREADABLE: 'unreadable',
+            ALREADY_IN_LANGUAGE: 'alreadyInLanguage',
+        },
+        TRANSLATION_REQUEST_STATE: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+        },
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -2068,6 +2094,7 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
+            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2323,6 +2350,7 @@ const CONST = {
                     SET_AUTO_REIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
+                    SET_CATEGORY_VISIBILITY: 'POLICYCHANGELOG_SET_CATEGORY_VISIBILITY',
                     SHARED_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_SHARED_BUDGET_NOTIFICATION',
                     UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
                     UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
@@ -2650,6 +2678,10 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
+        },
+        SINGLE_EXPENSE_REPORT_VIEW: {
+            EXPENSE: 'expense',
+            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -5168,6 +5200,12 @@ const CONST = {
         RULE_CONDITIONS: {
             MATCHES: 'matches',
         },
+
+        // Expensify Classic stores this in an employee's forwardsTo or overLimitForwardsTo when it sends reports to nobody
+        EMPLOYEE_NO_ONE: 'no one',
+
+        // Approval limit, in cents, up to which Expensify Classic admins mean every report to go to the over-limit approver
+        EVERY_REPORT_OVER_LIMIT_APPROVAL_LIMIT: 100,
         FIELDS: {
             TAG: 'tag',
             CATEGORY: 'category',
@@ -5385,6 +5423,15 @@ const CONST = {
             IS_RECRUITING_ENABLED: 'isRecruitingEnabled',
             IS_MCP_ENABLED: 'isMCPEnabled',
         },
+        CATEGORY_VISIBILITY: {
+            // Change log lists with this many entries or more show a count instead, with the full list at the top of the thread
+            MAX_LISTED_ITEMS: 10,
+            REASON: {
+                SET_BY_ADMIN: 'setByAdmin',
+                CATEGORIES_DELETED: 'categoriesDeleted',
+                CATEGORIES_DISABLED: 'categoriesDisabled',
+            },
+        },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
             BENEFITS: 'Benefits',
@@ -5554,6 +5601,7 @@ const CONST = {
                 ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
                 EXACT_ONLINE: 'exactOnline',
+                SAGE_ACCOUNTING: 'sageAccounting',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5595,6 +5643,7 @@ const CONST = {
                 zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
                 exactOnline: 'Exact Online',
+                sageAccounting: 'Sage Accounting',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -5624,6 +5673,10 @@ const CONST = {
                     this.NAME.ZOHO_BOOKS,
                     this.NAME.BUSINESS_CENTRAL,
                 ] as const;
+            },
+            // Integrations that aren't available yet, so the Connections page offers their waitlist instead of connecting
+            get WAITLIST_CONNECTION_NAMES() {
+                return [this.NAME.SAGE_ACCOUNTING] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
@@ -8373,6 +8426,7 @@ const CONST = {
         SORT_BY_COLUMNS: {
             CATEGORY_GL_CODE: 'glcode',
             TAG_GL_CODE: 'tagglcode',
+            AVERAGE_TIME: 'groupaverageduration',
         },
         GROUP_BY: {
             FROM: 'from',
@@ -8389,6 +8443,12 @@ const CONST = {
             APPROVER: 'approver',
             // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
             VIOLATION: 'violation',
+            PAID_BY: 'paid-by',
+        },
+        WORKFLOW_STAGES: {
+            CREATED_SUBMITTED: 'created-submitted',
+            SUBMITTED_APPROVED: 'submitted-approved',
+            APPROVED_PAID: 'approved-paid',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -8748,6 +8808,10 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                PAID_BY: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8811,6 +8875,7 @@ const CONST = {
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 VIOLATION: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                PAID_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -8864,6 +8929,11 @@ const CONST = {
         get TRIP_FILTER_STATUSES() {
             // Approval statuses only show as badges, so the Status filter keeps to where the trip is in time
             return [this.TRIP_STATUS.UPCOMING, this.TRIP_STATUS.DONE, this.TRIP_STATUS.CANCELED] as const;
+        },
+        TABLE_COLUMN_ALIGNMENT: {
+            START: 'start',
+            CENTER: 'center',
+            END: 'end',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -9003,6 +9073,10 @@ const CONST = {
             AMOUNT: 'amount',
             COUNT: 'count',
         },
+        CHART_COUNT_DIMENSION: {
+            EXPENSE: 'expense',
+            REPORT: 'report',
+        },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
             STATUS: 'status',
@@ -9035,6 +9109,7 @@ const CONST = {
             APPROVED: 'approved',
             ANY_APPROVAL: 'anyApproval',
             PAID: 'paid',
+            WORKFLOW_STAGE: 'workflowStage',
             EXPORTED: 'exported',
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawalType',
@@ -9255,7 +9330,9 @@ const CONST = {
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
+            LESS_THAN_OR_EQUAL_TO: 'LessThanOrEqualTo',
             GREATER_THAN: 'GreaterThan',
+            GREATER_THAN_OR_EQUAL_TO: 'GreaterThanOrEqualTo',
             EQUAL_TO: 'EqualTo',
         },
         DATE_PRESETS: {
@@ -9779,6 +9856,11 @@ const CONST = {
             UPDATE: 'update',
             REMOVE: 'remove',
         },
+        /** Which reports an approver after the first one gets */
+        APPROVER_CONDITION: {
+            ALWAYS: 'always',
+            OVER_AMOUNT: 'overAmount',
+        },
     },
 
     RULES: {
@@ -9894,6 +9976,7 @@ const CONST = {
         HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
+        HAS_UK_FUEL_RATE_TAX_ERROR: 'hasUKFuelRateTaxError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
         HAS_REIMBURSEMENT_EXPORT_ERROR: 'hasReimbursementExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
@@ -10285,6 +10368,9 @@ const CONST = {
         /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
         DRAG_SLOP: 3,
 
+        /** How far, in px, one arrow key press on a focused handle moves its edge. */
+        KEYBOARD_STEP: 8,
+
         /** Width of the strip straddling a pane's edge that picks up a drag, as wide as the RHP floating card's gutter. */
         PANE_HIT_WIDTH: 12,
 
@@ -10355,9 +10441,6 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
-
-            /** How far, in px, one arrow key press on a focused column edge moves it. */
-            KEYBOARD_STEP: 8,
 
             /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
             GRIP_HEIGHT_RATIO: 0.4,
@@ -10453,10 +10536,12 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+            EFFICIENCY: 'efficiency',
             COMPLIANCE: 'compliance',
         },
         SEARCH_KEY: {
             SPEND: 'insightsSpend',
+            EFFICIENCY: 'insightsEfficiency',
             COMPLIANCE: 'insightsCompliance',
         },
         GRAPH: {
@@ -10468,6 +10553,10 @@ const CONST = {
             TOP_VIOLATIONS: 'topViolations',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
+            WORKFLOW_EFFICIENCY: 'workflowEfficiency',
+            LONGEST_TO_SUBMIT: 'longestToSubmit',
+            SLOWEST_TO_APPROVE: 'slowestToApprove',
+            MOST_TIME_TO_PAY: 'mostTimeToPay',
         },
         AI_INSIGHT: {
             SIGNAL: {

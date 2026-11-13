@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 
@@ -168,8 +169,8 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
 
     const createBaseMenuItem = (
         personalDetails: PersonalDetails | undefined,
-        errors?: Errors,
-        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
+        errors: Errors | undefined,
+        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> & WithRequiredSentryLabel,
     ): AccountSwitcherMenuItem => {
         const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
@@ -189,7 +190,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         };
     };
 
-    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
+    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true, sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.CURRENT_ACCOUNT});
     const delegatorMenuItems: AccountSwitcherMenuItem[] = sortAlphabetically(
         delegators
             .filter(({email}) => email !== currentUserPersonalDetails.login)
@@ -199,6 +200,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                 const personalDetails = personalDetailsByLogin[email];
                 return createBaseMenuItem(personalDetails, error, {
                     badgeText: translate('delegate.role', role),
+                    sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.SWITCH_TO_DELEGATOR,
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);
@@ -230,6 +232,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
 
             return [
                 createBaseMenuItem(personalDetailsByLogin[delegate], error, {
+                    sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.SWITCH_BACK,
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);

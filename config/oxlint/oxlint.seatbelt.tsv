@@ -59,7 +59,6 @@
 "../../src/components/AddressForm.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/AddressForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/AddressSearch/isCurrentTargetInsideContainer.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/AgentRules/AgentRulesList.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/AmountForm.tsx"	"@typescript-eslint/no-deprecated/CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX"	1
 "../../src/components/AmountForm.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolForm"	1
 "../../src/components/AmountForm.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolFormRef"	1
@@ -77,7 +76,6 @@
 "../../src/components/AttachmentPicker/index.native.tsx"	"react-hooks/refs"	1
 "../../src/components/AttachmentPicker/index.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/AttachmentPicker/index.tsx"	"react-hooks/refs"	1
-"../../src/components/AttachmentPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Attachments/AttachmentCarousel/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Attachments/AttachmentCarousel/Pager/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Attachments/AttachmentCarousel/useCarouselArrows.ts"	"no-restricted-syntax"	1
@@ -95,7 +93,6 @@
 "../../src/components/BookTravelButton.tsx"	"no-restricted-imports"	1
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/CategoryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Charts/hooks/useChartLabelFormats.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Charts/hooks/useChartLabelMeasurements.ts"	"rulesdir/no-raw-typography"	1
 "../../src/components/ColumnsSettingsList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ColumnsSettingsList.tsx"	"no-restricted-imports"	1
@@ -111,7 +108,6 @@
 "../../src/components/CountryPicker/CountrySelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/CountryPicker/CountrySelectorModal.tsx"	"no-restricted-imports"	1
 "../../src/components/CountryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/CountrySelector.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/CurrencyPicker.tsx"	"no-restricted-imports"	1
 "../../src/components/CurrencySelector.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/CustomUnitDefaultCategorySelector/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
@@ -124,6 +120,7 @@
 "../../src/components/DatePicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DatePicker/index.tsx"	"react-hooks/refs"	1
 "../../src/components/DatePicker/index.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/components/DecisionModal.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
 "../../src/components/DialogLabelContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DisplayNames/DisplayNamesWithTooltip.tsx"	"react-hooks/refs"	6
 "../../src/components/DistanceRequest/DistanceRequestRenderItem.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
@@ -217,6 +214,8 @@
 "../../src/components/MenuItemList.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/Modal/BaseModal.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Modal/Global/ConfirmModalWrapper.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/components/Modal/Global/DecisionModalWrapper.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
+"../../src/components/Modal/Global/HoldMenuModalWrapper.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
 "../../src/components/Modal/Global/ModalContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Modal/ReanimatedModal/Container/index.web.tsx"	"react-hooks/refs"	1
 "../../src/components/MoneyReportHeader.tsx"	"no-restricted-imports"	1
@@ -340,7 +339,6 @@
 "../../src/components/Rule/TextBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/SAMLLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
 "../../src/components/ScreenWrapper/index.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/components/Search/chartGroupByConfig.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../src/components/Search/FilterComponents/AdvancedFilters/DateFilterContent.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterComponents/AmountFilterInput.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolForm"	1
 "../../src/components/Search/FilterComponents/AmountFilterInput.tsx"	"no-restricted-imports"	1
@@ -349,7 +347,6 @@
 "../../src/components/Search/FilterComponents/DateFilterBase.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterComponents/DateFilterBase.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Search/FilterComponents/DatePresetFilterBase.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	2
-"../../src/components/Search/FilterComponents/DatePresetFilterBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/FilterComponents/RangeDatePicker.tsx"	"react-hooks/purity"	2
 "../../src/components/Search/FilterComponents/ReportField/index.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/Search/FilterComponents/ReportField/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -421,9 +418,7 @@
 "../../src/components/SpendRules/configuration/SpendRuleMerchantsBase.tsx"	"no-restricted-imports"	1
 "../../src/components/SpendRules/configuration/SpendRulesCurrencyBase.tsx"	"no-restricted-imports"	1
 "../../src/components/StatePicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/StatePicker/StateSelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/StatePicker/StateSelectorModal.tsx"	"no-restricted-imports"	1
-"../../src/components/StateSelector.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/SubStepForms/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/SubStepForms/ConfirmationStep.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/SubStepForms/CountryFullStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -483,7 +478,6 @@
 "../../src/components/TextWithTooltip/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ThreeDotsMenu/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ThreeDotsMenu/index.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/TimeModalPicker.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/TimeModalPicker.tsx"	"no-restricted-imports"	1
 "../../src/components/TimePicker/TimePicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/components/TimePicker/TimePicker.tsx"	"react-hooks/set-state-in-effect"	1
@@ -532,7 +526,6 @@
 "../../src/Expensify.tsx"	"react-hooks/refs"	1
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
-"../../src/hooks/useAccountIndicatorChecks.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useAdvancedSearchFilters.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useAnimatedHighlightStyle/index.ts"	"react-hooks/set-state-in-effect"	2
 "../../src/hooks/useAssignCard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -602,7 +595,6 @@
 "../../src/hooks/usePolicyData/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/hooks/usePolicyData/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePolicyForMovingExpenses.ts"	"rulesdir/no-onyx-loading-status"	1
-"../../src/hooks/usePreferredCurrency.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePrevious.ts"	"react-hooks/refs"	1
 "../../src/hooks/usePrivateSubscription.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -623,7 +615,6 @@
 "../../src/hooks/useSeedMyExpensesSearch.ts"	"rulesdir/no-onyx-loading-status"	2
 "../../src/hooks/useSelfDMReport.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/refs"	5
-"../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useSingleExecution/index.native.ts"	"react-hooks/refs"	1
 "../../src/hooks/useStableIndexedHandler.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/hooks/useStableIndexedHandler.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -690,7 +681,6 @@
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/libs/actions/IOU/PayMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/PerDiem.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -754,7 +744,7 @@
 "../../src/libs/actions/Policy/PerDiem.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Plan.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
-"../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
+"../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-imports"	2
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-syntax"	9
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-imports"	1
@@ -774,7 +764,7 @@
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/reportAction.originalMessage"	1
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/videoAttributeCache"	1
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
-"../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
+"../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	18
 "../../src/libs/actions/Report/index.ts"	"no-restricted-syntax"	7
 "../../src/libs/actions/Report/index.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/actions/Report/index.ts"	"unicorn/prefer-string-replace-all"	1
@@ -835,7 +825,6 @@
 "../../src/libs/ComposerFocusManager.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ComposerUtils/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/computeReportName.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/CountryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/CurrencyUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/DateUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/DateUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -852,7 +841,7 @@
 "../../src/libs/ExpenseRuleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/fileDownload/DownloadUtils.ts"	"no-restricted-syntax"	1
 "../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-misused-promises"	1
-"../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/fileDownload/getImageManipulator/index.native.ts"	"@typescript-eslint/no-deprecated/manipulateAsync"	1
 "../../src/libs/fileDownload/getImageManipulator/index.ts"	"@typescript-eslint/no-deprecated/manipulateAsync"	1
 "../../src/libs/fileDownload/getImageResolution.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1019,15 +1008,15 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/originalMessage"	23
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	7
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	16
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	31
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	30
 "../../src/libs/ReportUtils.ts"	"import/no-cycle"	5
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	13
 "../../src/libs/sanitizeLogParams.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
-"../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	48
+"../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	47
 "../../src/libs/SearchQueryUtils.ts"	"unicorn/prefer-string-replace-all"	1
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
-"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	70
+"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	64
 "../../src/libs/SearchUIUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ShortcutManager/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1048,7 +1037,6 @@
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/TransactionUtils/index.ts"	"import/no-cycle"	6
-"../../src/libs/TransactionUtils/tax.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/TransactionUtils/tax.ts"	"import/no-cycle"	1
 "../../src/libs/TransactionUtils/violations.ts"	"import/no-cycle"	2
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-imports"	1
@@ -1064,8 +1052,8 @@
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
 "../../src/pages/AddExistingExpense.tsx"	"no-restricted-imports"	1
 "../../src/pages/AddPersonalBankAccountPage/substeps/AddressStep.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/pages/AddPersonalBankAccountPage/substeps/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../src/pages/AddressPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/pages/AddPersonalBankAccountPage/substeps/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../src/pages/AddressPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/AddressPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/AddressPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/AvatarCropPage.tsx"	"rulesdir/no-onyx-loading-status"	1
@@ -1128,7 +1116,6 @@
 "../../src/pages/DynamicReferralDetailsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/DynamicReportDetailsPage/ReportDetailsTitleSection.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportParticipantRoleSelectionPage.tsx"	"no-restricted-imports"	1
@@ -1165,7 +1152,6 @@
 "../../src/pages/home/UpcomingTravelSection/UpcomingTravelItem.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/home/UpcomingTravelSection/useUpcomingTravelReservations.ts"	"react-hooks/purity"	1
 "../../src/pages/home/YourSpendSection/CardRow.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
-"../../src/pages/home/YourSpendSection/SpendSummaryRow.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/home/YourSpendSection/useYourSpendData.ts"	"no-restricted-imports"	1
 "../../src/pages/inbox/cleanStaleReportActionBackToParam.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/inbox/conciergeDraftState.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1183,7 +1169,6 @@
 "../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"react-hooks/refs"	8
 "../../src/pages/inbox/report/DynamicReportDetailsExportPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/inbox/report/LinkPreviewer.tsx"	"@typescript-eslint/no-deprecated/fontSize"	3
 "../../src/pages/inbox/report/ReactionList/HeaderReactionList.tsx"	"no-restricted-syntax"	1
 "../../src/pages/inbox/report/ReportActionCompose/AttachmentPickerWithMenuItems.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -1307,9 +1292,7 @@
 "../../src/pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/MissingPersonalDetails/index.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/MissingPersonalDetails/MissingPersonalDetailsContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/MissingPersonalDetails/MissingPersonalDetailsContent.tsx"	"no-restricted-imports"	1
-"../../src/pages/MissingPersonalDetails/MissingPersonalDetailsValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"react-hooks/refs"	4
@@ -1318,7 +1301,6 @@
 "../../src/pages/MultifactorAuthentication/PromptPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/MultifactorAuthentication/RevokePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/MultifactorAuthentication/ValidateCodePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/NewChatConfirmPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/NewChatConfirmPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/NewChatConfirmPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/NewChatPage/useGroupChatDraftParticipantSync.ts"	"rulesdir/no-onyx-loading-status"	1
@@ -1439,7 +1421,6 @@
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/settings/Profile/Contacts/DynamicContactMethodsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/Contacts/DynamicNewContactMethodPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/CustomStatus/SetDatePage.tsx"	"no-restricted-imports"	1
@@ -1457,10 +1438,8 @@
 "../../src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/PersonalDetails/DynamicStateSelectionPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Profile/PersonalDetails/PersonalAddressPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Profile/PersonalDetails/PersonalAddressPage.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsConfirmValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
+"../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsPage.tsx"	"react-hooks/purity"	2
 "../../src/pages/settings/Profile/ProfilePage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
@@ -1495,7 +1474,6 @@
 "../../src/pages/settings/Security/MergeAccounts/MergeResultPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/SecuritySettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/TwoFactorAuth/DynamicSuccessPage.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/settings/Security/TwoFactorAuth/EnabledPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/settings/Security/TwoFactorAuth/EnabledPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/settings/Security/TwoFactorAuth/SuccessPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Security/TwoFactorAuth/TwoFactorAuthWrapper.tsx"	"no-restricted-imports"	1
@@ -1534,7 +1512,6 @@
 "../../src/pages/settings/Wallet/AddCardToDigitalWalletPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Wallet/AddDebitCardPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/BankAccountPurposePage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Wallet/BankAccountPurposePage/substeps/BankAccountPurpose.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	2
 "../../src/pages/settings/Wallet/BankAccountPurposePage/substeps/CountrySelection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/CardAddedToWalletPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ChooseTransferAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1547,7 +1524,6 @@
 "../../src/pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsSignPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/ChangePINPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Wallet/ImportTransactionsCardNamePage.tsx"	"no-restricted-imports"	1
@@ -1561,7 +1537,6 @@
 "../../src/pages/settings/Wallet/InternationalDepositAccount/subPages/Confirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/InternationalDepositAccount/utils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"rulesdir/no-onyx-loading-status"	2
@@ -1604,8 +1579,6 @@
 "../../src/pages/settings/Wallet/UpdatePersonalBankAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/UpdatePersonalBankAccountPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/UpdatePersonalBankAccountPage.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/settings/Wallet/WalletPage/CardDetails.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	4
-"../../src/pages/settings/Wallet/WalletPage/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"no-restricted-imports"	2
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1694,14 +1667,12 @@
 "../../src/pages/workspace/accounting/AccountingContext/default.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/AccountingSetupWebViewPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/businessCentral/BusinessCentralPrerequisitesPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/accounting/campfire/CampfireExistingConnectionsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/accounting/campfire/CampfireExistingConnectionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/campfire/export/CampfireExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/certinia/CertiniaExistingConnectionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/certinia/import/CertiniaDimensionMappingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/accounting/dualentry/DualEntryExistingConnectionsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/accounting/dualentry/DualEntryExistingConnectionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/dualentry/export/DualEntryExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ExactOnlineWaitlistButton.tsx"	"rulesdir/no-onyx-loading-status"	4
@@ -1809,7 +1780,6 @@
 "../../src/pages/workspace/archiveWorkspace/UnarchiveWorkspaceFlow.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/categories/CategoryGLCodePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/CategoryPayrollCodePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicCategoryApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicCategoryDefaultTaxRatePage.tsx"	"no-restricted-imports"	1
@@ -1902,7 +1872,6 @@
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/DynamicWorkspaceConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/DynamicWorkspaceInvitePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/DynamicWorkspacePlanTypeSelectionPage.tsx"	"no-restricted-imports"	1
@@ -1914,7 +1883,6 @@
 "../../src/pages/workspace/expensifyCard/DynamicWorkspaceExpensifyCardDetailsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/expensifyCard/DynamicWorkspaceExpensifyCardDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/expensifyCard/DynamicWorkspaceSettlementAccountPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/expensifyCard/issueNew/CardTypeStep.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	2
 "../../src/pages/workspace/expensifyCard/issueNew/LimitTypeStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/issueNew/spendRules/SetSpendRulesStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/issueNew/spendRules/SetSpendRulesStep.tsx"	"react-hooks/purity"	2
@@ -1923,7 +1891,6 @@
 "../../src/pages/workspace/expensifyCard/WorkspaceCardSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceCardsListLabel.tsx"	"react-hooks/purity"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardAddWorkEmailPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardFeedSelectorPage.tsx"	"no-restricted-imports"	1
@@ -1938,7 +1905,6 @@
 "../../src/pages/workspace/fields/FieldsSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/fields/FieldsTypeSelectorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/fields/FieldsValueSettingsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/fields/WorkspaceFieldsSection.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/hr/HRApprovalModePageBase.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/hr/merge/MergeHRGroupsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/hr/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1982,24 +1948,19 @@
 "../../src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/receiptPartners/DynamicInviteReceiptPartnerPolicyPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/reports/InitialListValueSelector/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/reports/ReportsDefaultTitle.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/reports/TypeSelector/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/reports/TypeSelector/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/reports/WorkspaceReportsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/rooms/WorkspaceRoomsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/rules/AgentRules/AddAgentRulePage.tsx"	"react/no-unstable-nested-components"	1
 "../../src/pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPageBase.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/rules/IndividualExpenseRulesSectionRevamp.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/pages/workspace/rules/MerchantRules/ExpenseDefaultTypePage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/MerchantRules/MerchantRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
-"../../src/pages/workspace/rules/RulesNewPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/SpendRules/SpendRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/tags/DynamicEditTagPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagGLCodePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagGLCodePage.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/workspace/tags/DynamicTagSettingsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/tags/DynamicTagSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicWorkspaceEditTagsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicWorkspaceViewTagsPage.tsx"	"no-restricted-imports"	1
@@ -2032,12 +1993,10 @@
 "../../src/pages/workspace/travel/WorkspaceTravelBillingExportPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/travel/WorkspaceTravelBillingFeedSelectorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/travel/WorkspaceTravelBillingMonthlyLimitPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/travel/WorkspaceTravelBillingSection.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/travel/WorkspaceTravelBillingSettlementAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/travel/WorkspaceTravelBillingSettlementAccountPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/travel/WorkspaceTravelBillingSettlementFrequencyPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/upgrade/GenericFeaturesView.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/pages/workspace/upgrade/UpgradeIntro.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/upgrade/WorkspaceUpgradePage.tsx"	"no-restricted-imports"	2
 "../../src/pages/workspace/vendors/WorkspaceVendorsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/withPolicy.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -2046,7 +2005,6 @@
 "../../src/pages/workspace/withPolicyAndFullscreenLoading.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/withPolicyConnections.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/workflows/approvals/ApprovalWorkflowEditor.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
-"../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApprovalLimitPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApprovalLimitPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsCreatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage.tsx"	"no-restricted-imports"	1
@@ -2067,7 +2025,7 @@
 "../../src/pages/workspace/WorkspaceOverviewClientIDPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceOverviewCurrencyPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceOverviewDescriptionPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	3
+"../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/WorkspaceOverviewSharePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -2224,8 +2182,6 @@
 "../../tests/perf-test/MoneyRequestReportActionsList.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/perf-test/MoneyRequestReportTransactionRowWrites.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/perf-test/ReportActionCompose.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../tests/ui/AgentRulesSectionTest.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
-"../../tests/ui/AgentRulesSectionTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/ui/AgentsPromoBannersTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/ui/AmountFormTest.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolFormRef"	1
 "../../tests/ui/AncestorReportActionItemTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
@@ -2330,6 +2286,7 @@
 "../../tests/unit/CollectDepositAccountUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/CompanyCardsRBRTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/components/Avatar/connected/ChatThreadAvatarTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	6
+"../../tests/unit/components/DecisionModalWrapperTest.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
 "../../tests/unit/components/Form/FormProvider.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/components/Form/FormProvider.test.tsx"	"import/no-duplicates"	1
 "../../tests/unit/components/HTMLEngineProvider/VictoryChartAttributesParsers.test.ts"	"rulesdir/no-raw-typography"	1
@@ -2346,6 +2303,7 @@
 "../../tests/unit/CopyPolicySettingsUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/CreateReportMenuItemTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/DateUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/unit/DecisionModalTest.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
 "../../tests/unit/DistanceRateTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/unit/DistanceRequestUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/ExpenseDefaultRuleUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -2467,7 +2425,7 @@
 "../../tests/unit/ReportUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/ReportUtilsThreadSummaryTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/unit/resolveTransactionThreadReportTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
-"../../tests/unit/Search/AmountFilterContentTest.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolForm"	21
+"../../tests/unit/Search/AmountFilterContentTest.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolForm"	6
 "../../tests/unit/Search/AmountFilterContentTest.tsx"	"no-restricted-imports"	1
 "../../tests/unit/Search/applyShiftRangeBatchToSelectionTest.ts"	"@typescript-eslint/consistent-generic-constructors"	2
 "../../tests/unit/Search/LazyGroupSelectionTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1

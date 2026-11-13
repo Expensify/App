@@ -62,6 +62,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
         value: item.value,
         description: item.description ?? (item.isRequired ? translate('common.required') : undefined),
         isSelected: spreadsheet?.columns?.[columnIndex] === item.value,
+        sentryLabel: CONST.SENTRY_LABEL.IMPORT_SPREADSHEET.COLUMN_ROLE_OPTION,
     }));
 
     const columnValuesString = column

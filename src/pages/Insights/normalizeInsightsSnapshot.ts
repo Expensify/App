@@ -16,6 +16,7 @@ const GROUP_FIELD_NAMES: Partial<Record<SearchGroupBy, 'accountID' | 'violation'
     [CONST.SEARCH.GROUP_BY.FROM]: 'accountID',
     [CONST.SEARCH.GROUP_BY.APPROVER]: 'accountID',
     [CONST.SEARCH.GROUP_BY.VIOLATION]: 'violation',
+    [CONST.SEARCH.GROUP_BY.PAID_BY]: 'accountID',
 };
 
 /** Copies each group's `value` into the field its grouping names, leaving groups that already have it untouched. */

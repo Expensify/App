@@ -167,6 +167,7 @@ function WorkspaceDistanceRatesTable({
               {
                   icon: icons.Plus,
                   buttonText: translate('workspace.distanceRates.addRate'),
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.EMPTY_STATE_ADD_RATE,
 
                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   buttonAction: () => {
