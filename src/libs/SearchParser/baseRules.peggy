@@ -268,3 +268,12 @@ wordBoundary
 footerCount = ("footerCount"i / "footer-count"i) { return "footerCount"; }
 footerCurrency = ("footerCurrency"i / "footer-currency"i) { return "footerCurrency"; }
 footerTotal = ("footerTotal"i / "footer-total"i) { return "footerTotal"; }
+
+leftPinnedColumns = ("leftPinnedColumns"i / "left-pinned-columns"i) {
+  isColumnsContext = true;
+  return "leftPinnedColumns";
+}
+rightPinnedColumns = ("rightPinnedColumns"i / "right-pinned-columns"i) {
+  isColumnsContext = true;
+  return "rightPinnedColumns";
+}

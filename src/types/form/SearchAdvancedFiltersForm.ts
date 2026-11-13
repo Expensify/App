@@ -4,6 +4,7 @@ import type {
     ReportFieldNegatedKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
+    SearchColumnType,
     SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchFooterCount,
@@ -295,6 +296,8 @@ const FILTER_KEYS = {
     REPORT_FIELD: 'reportField',
 
     COLUMNS: 'columns',
+    LEFT_PINNED_COLUMNS: 'leftPinnedColumns',
+    RIGHT_PINNED_COLUMNS: 'rightPinnedColumns',
     LIMIT: 'limit',
 
     FOOTER_COUNT: 'footerCount',
@@ -447,6 +450,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.ATTENDEE_NOT,
         FILTER_KEYS.COLUMNS,
+        FILTER_KEYS.LEFT_PINNED_COLUMNS,
+        FILTER_KEYS.RIGHT_PINNED_COLUMNS,
         FILTER_KEYS.LIMIT,
         FILTER_KEYS.FOOTER_COUNT,
         FILTER_KEYS.FOOTER_TOTAL,
@@ -545,6 +550,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.ORDER_DEAL_NUMBERS_NOT,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.COLUMNS,
+        FILTER_KEYS.LEFT_PINNED_COLUMNS,
+        FILTER_KEYS.RIGHT_PINNED_COLUMNS,
         FILTER_KEYS.FOOTER_COUNT,
         FILTER_KEYS.FOOTER_TOTAL,
         FILTER_KEYS.FOOTER_CURRENCY,
@@ -652,6 +659,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.COLUMNS,
+        FILTER_KEYS.LEFT_PINNED_COLUMNS,
+        FILTER_KEYS.RIGHT_PINNED_COLUMNS,
     ]),
 
     [CONST.SEARCH.DATA_TYPES.TRIP]: new Set([
@@ -749,6 +758,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.COLUMNS,
+        FILTER_KEYS.LEFT_PINNED_COLUMNS,
+        FILTER_KEYS.RIGHT_PINNED_COLUMNS,
     ]),
 
     [CONST.SEARCH.DATA_TYPES.CHAT]: new Set([
@@ -816,6 +827,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.VIEW]: SearchView;
         [FILTER_KEYS.TYPE]: SearchDataTypes;
         [FILTER_KEYS.COLUMNS]: SearchCustomColumnIds[];
+        [FILTER_KEYS.LEFT_PINNED_COLUMNS]: SearchColumnType[];
+        [FILTER_KEYS.RIGHT_PINNED_COLUMNS]: SearchColumnType[];
 
         [FILTER_KEYS.STATUS]: string[];
         [FILTER_KEYS.STATUS_NOT]: string[];

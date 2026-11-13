@@ -327,6 +327,10 @@ function peg$parse(input, options) {
   var peg$c140 = "footer-currency";
   var peg$c141 = "footertotal";
   var peg$c142 = "footer-total";
+  var peg$c143 = "leftpinnedcolumns";
+  var peg$c144 = "left-pinned-columns";
+  var peg$c145 = "rightpinnedcolumns";
+  var peg$c146 = "right-pinned-columns";
 
   var peg$r0 = /^[^ \t\r\n\xA0]/;
   var peg$r1 = /^[ \t\r\n\xA0,:=<>!]/;
@@ -509,6 +513,10 @@ function peg$parse(input, options) {
   var peg$e162 = peg$literalExpectation("footer-currency", true);
   var peg$e163 = peg$literalExpectation("footerTotal", true);
   var peg$e164 = peg$literalExpectation("footer-total", true);
+  var peg$e165 = peg$literalExpectation("leftPinnedColumns", true);
+  var peg$e166 = peg$literalExpectation("left-pinned-columns", true);
+  var peg$e167 = peg$literalExpectation("rightPinnedColumns", true);
+  var peg$e168 = peg$literalExpectation("right-pinned-columns", true);
 
   var peg$f0 = function(filters) { return applyDefaults(filters); };
   var peg$f1 = function(head, tail) {
@@ -755,6 +763,14 @@ function peg$parse(input, options) {
   var peg$f131 = function() { return "footerCount"; };
   var peg$f132 = function() { return "footerCurrency"; };
   var peg$f133 = function() { return "footerTotal"; };
+  var peg$f134 = function() {
+  isColumnsContext = true;
+  return "leftPinnedColumns";
+};
+  var peg$f135 = function() {
+  isColumnsContext = true;
+  return "rightPinnedColumns";
+};
   var peg$currPos = options.peg$currPos | 0;
   var peg$savedPos = peg$currPos;
   var peg$posDetailsCache = [{ line: 1, column: 1 }];
@@ -1490,6 +1506,12 @@ function peg$parse(input, options) {
                 s1 = peg$parseview();
                 if (s1 === peg$FAILED) {
                   s1 = peg$parsecompare();
+                  if (s1 === peg$FAILED) {
+                    s1 = peg$parseleftPinnedColumns();
+                    if (s1 === peg$FAILED) {
+                      s1 = peg$parserightPinnedColumns();
+                    }
+                  }
                 }
               }
             }
@@ -5686,6 +5708,64 @@ function peg$parse(input, options) {
     return s0;
   }
 
+  function peg$parseleftPinnedColumns() {
+    var s0, s1;
+
+    s0 = peg$currPos;
+    s1 = input.substr(peg$currPos, 17);
+    if (s1.toLowerCase() === peg$c143) {
+      peg$currPos += 17;
+    } else {
+      s1 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$e165); }
+    }
+    if (s1 === peg$FAILED) {
+      s1 = input.substr(peg$currPos, 19);
+      if (s1.toLowerCase() === peg$c144) {
+        peg$currPos += 19;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$e166); }
+      }
+    }
+    if (s1 !== peg$FAILED) {
+      peg$savedPos = s0;
+      s1 = peg$f134();
+    }
+    s0 = s1;
+
+    return s0;
+  }
+
+  function peg$parserightPinnedColumns() {
+    var s0, s1;
+
+    s0 = peg$currPos;
+    s1 = input.substr(peg$currPos, 18);
+    if (s1.toLowerCase() === peg$c145) {
+      peg$currPos += 18;
+    } else {
+      s1 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$e167); }
+    }
+    if (s1 === peg$FAILED) {
+      s1 = input.substr(peg$currPos, 20);
+      if (s1.toLowerCase() === peg$c146) {
+        peg$currPos += 20;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$e168); }
+      }
+    }
+    if (s1 !== peg$FAILED) {
+      peg$savedPos = s0;
+      s1 = peg$f135();
+    }
+    s0 = s1;
+
+    return s0;
+  }
+
   
   const GROUP_BY_DEFAULT_SORT = {
     from: "groupFrom",
@@ -5735,7 +5815,7 @@ function peg$parse(input, options) {
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency", "compare"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "leftPinnedColumns", "rightPinnedColumns", "limit", "view", "footerCount", "footerTotal", "footerCurrency", "compare"
   ]);
 
   function isDefaultSortValue(sortBy) {
