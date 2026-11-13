@@ -109,6 +109,9 @@ type Response<TKey extends OnyxKey> = {
     accountID?: number;
     email?: string;
 
+    /** The workspaces CheckBulkTransferPolicyBillingOwner allows a billing transfer for */
+    policyIDs?: string[];
+
     /** If there is older data to load for pagination commands */
     hasOlderActions?: boolean;
 

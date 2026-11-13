@@ -9286,4 +9286,82 @@ describe('actions/Policy', () => {
             expect(ReportUtils.getMoneyRequestSpendBreakdown(optimisticReport).totalDisplaySpend).toBe(5000);
         });
     });
+
+    describe('queueBulkLeavePolicy', () => {
+        it('marks the workspaces as leaving and keeps them until the backend removes them', async () => {
+            // Given two workspaces the user is a member of
+            const firstPolicy = {...createRandomPolicy(1), id: 'bulkLeave1', pendingAction: null};
+            const secondPolicy = {...createRandomPolicy(2), id: 'bulkLeave2', pendingAction: null};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${firstPolicy.id}`, firstPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${secondPolicy.id}`, secondPolicy);
+            mockFetch?.pause?.();
+
+            // When the user leaves both at once
+            Policy.queueBulkLeavePolicy(ESH_EMAIL, [firstPolicy, secondPolicy]);
+            await waitForBatchedUpdates();
+
+            // Then both show as pending removal while the request is queued
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${firstPolicy.id}`))?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${secondPolicy.id}`))?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+            // And they are still there after the request succeeds, because the queued job removes them later
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${firstPolicy.id}`)).toBeDefined();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${secondPolicy.id}`)).toBeDefined();
+        });
+
+        it('restores the workspaces with an error when the request fails', async () => {
+            // Given a workspace the user is a member of
+            const policy = {...createRandomPolicy(3), id: 'bulkLeaveFail', pendingAction: null};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When leaving it fails
+            mockFetch?.fail?.();
+            Policy.queueBulkLeavePolicy(ESH_EMAIL, [policy]);
+            await waitForBatchedUpdates();
+
+            // Then the workspace is no longer pending removal and the user sees why
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingAction).toBeFalsy();
+            expect(updatedPolicy?.employeeList?.[ESH_EMAIL]?.errors).toBeTruthy();
+        });
+    });
+
+    describe('queueBulkArchivePolicy', () => {
+        it('archives the workspaces right away', async () => {
+            // Given two workspaces the user owns
+            const firstPolicy = {...createRandomPolicy(4), id: 'bulkArchive1', archivedDate: undefined};
+            const secondPolicy = {...createRandomPolicy(5), id: 'bulkArchive2', archivedDate: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${firstPolicy.id}`, firstPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${secondPolicy.id}`, secondPolicy);
+
+            // When both are archived at once
+            Policy.queueBulkArchivePolicy([firstPolicy.id, secondPolicy.id]);
+            await waitForBatchedUpdates();
+
+            // Then both are archived and no longer pending once the request succeeds
+            for (const policyID of [firstPolicy.id, secondPolicy.id]) {
+                const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                expect(updatedPolicy?.archivedDate).toBeTruthy();
+                expect(updatedPolicy?.pendingAction).toBeFalsy();
+            }
+        });
+
+        it('restores the archived workspaces with an error when the request fails', async () => {
+            // Given a workspace the user owns
+            const policy = {...createRandomPolicy(6), id: 'bulkArchiveFail', archivedDate: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When archiving it fails
+            mockFetch?.fail?.();
+            Policy.queueBulkArchivePolicy([policy.id]);
+            await waitForBatchedUpdates();
+
+            // Then the workspace is active again and shows the error
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.archivedDate).toBeFalsy();
+            expect(updatedPolicy?.errors).toBeTruthy();
+        });
+    });
 });

@@ -1,3 +1,4 @@
+import type {DropdownOption, WorkspacesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
@@ -49,6 +50,7 @@ type WorkspaceRowData = TableData & {
     type: ValueOf<typeof CONST.POLICY.TYPE>;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
     isEligibleToCopy: boolean;
+    isReimburser: boolean;
     iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
@@ -61,17 +63,17 @@ type WorkspaceListTableProps = {
     workspaces: WorkspaceRowData[];
     headerComponent?: React.ReactElement;
 
-    /** Called when the user picks Delete in a row menu, so the page can mount the delete flow */
-    onDeleteWorkspace: (policyID: string) => void;
+    /** IDs of the selected workspaces */
+    selectedKeys: string[];
 
-    /** Called when the user picks Archive in a row menu, so the page can mount the archive flow */
-    onArchiveWorkspace: (policyID: string) => void;
+    /** Receives the full list of selected IDs, not only the row that changed */
+    onRowSelectionChange: (selectedRowKeys: string[]) => void;
 
-    /** ID of the workspace with a deletion in progress, if any */
-    pendingDeletePolicyID?: string;
+    /** The actions offered in the floating bar for the selected workspaces */
+    bulkActionOptions: Array<DropdownOption<WorkspacesBulkActionType>>;
 };
 
-export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, headerComponent, selectedKeys, onRowSelectionChange, bulkActionOptions}: WorkspaceListTableProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const {contentInsetAdjustmentBehavior} = useTabRootScrollProps();
     const styles = useThemeStyles();
@@ -148,9 +150,6 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
                 item={item}
                 rowIndex={index}
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-                onDeleteWorkspace={onDeleteWorkspace}
-                onArchiveWorkspace={onArchiveWorkspace}
-                pendingDeletePolicyID={pendingDeletePolicyID}
             />
         );
     };
@@ -221,6 +220,9 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
             contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
+            selectionEnabled
+            selectedKeys={selectedKeys}
+            onRowSelectionChange={onRowSelectionChange}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
@@ -237,6 +239,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
 
             <Table.Header />
             <Table.Body />
+            <Table.BulkActionBar options={bulkActionOptions} />
         </Table>
     );
 }

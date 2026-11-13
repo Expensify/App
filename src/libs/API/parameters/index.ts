@@ -308,6 +308,7 @@ export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEve
 export type {default as TransferWalletBalanceParams} from './TransferWalletBalanceParams';
 export type {default as DeleteWorkspaceParams} from './DeleteWorkspaceParams';
 export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
+export type {default as QueueBulkArchivePolicyParams} from './QueueBulkArchivePolicyParams';
 export type {default as UnarchivePolicyParams} from './UnarchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
@@ -471,6 +472,7 @@ export type {default as ConvertTrackedExpenseToRequestParams} from './ConvertTra
 export type {default as ShareTrackedExpenseParams} from './ShareTrackedExpenseParams';
 export type {default as CategorizeTrackedExpenseParams} from './CategorizeTrackedExpenseParams';
 export type {default as LeavePolicyParams} from './LeavePolicyParams';
+export type {default as QueueBulkLeavePolicyParams} from './QueueBulkLeavePolicyParams';
 export type {default as OpenPolicyAccountingPageParams} from './OpenPolicyAccountingPageParams';
 export type {default as DismissViolationParams} from './DismissViolationParams';
 export type {default as SearchParams} from './Search';
@@ -586,6 +588,9 @@ export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategor
 export type {default as ImportMembersSpreadsheetParams} from './ImportMembersSpreadsheet';
 export type {default as ImportMerchantRulesSpreadsheetParams} from './ImportMerchantRulesSpreadsheet';
 export type {default as ExportMembersSpreadsheetParams} from './ExportMembersSpreadsheetParams';
+export type {default as QueueBulkExportPolicyMembersParams} from './QueueBulkExportPolicyMembersParams';
+export type {default as QueueBulkTransferPolicyBillingOwnerParams} from './QueueBulkTransferPolicyBillingOwnerParams';
+export type {default as CheckBulkTransferPolicyBillingOwnerParams} from './CheckBulkTransferPolicyBillingOwnerParams';
 export type {default as ImportTagsSpreadsheetParams} from './ImportTagsSpreadsheet';
 export type {default as ExportCategoriesSpreadsheetParams} from './ExportCategoriesSpreadsheet';
 export type {default as ExportTagsSpreadsheetParams} from './ExportTagsSpreadsheet';

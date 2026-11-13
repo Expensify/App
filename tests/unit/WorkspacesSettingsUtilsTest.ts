@@ -1,5 +1,15 @@
 import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
-import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
+import {
+    getBrickRoadForPolicy,
+    getBulkActionSkippedWarning,
+    getBulkArchiveWorkspacesConsequences,
+    getBulkLeaveWorkspacesConsequences,
+    getChatTabBrickRoad,
+    getChatTabBrickRoadReportID,
+    getLeaveWorkspaceConfirmationPrompt,
+    getWorkspacesBulkActions,
+} from '@libs/WorkspacesSettingsUtils';
+import type {WorkspacesBulkActionContext, WorkspacesBulkActionRow} from '@libs/WorkspacesSettingsUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -285,6 +295,232 @@ describe('WorkspacesSettingsUtils', () => {
         it('returns default key when user has no special role', () => {
             const policy = createMock<Policy>({});
             expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmation');
+        });
+    });
+
+    describe('getBulkLeaveWorkspacesConsequences', () => {
+        const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => [path, ...parameters].join(':');
+        const userEmail = 'user@example.com';
+        const buildWorkspace = (policy: Policy) => ({policy, isApproverOfOutstandingReports: false});
+
+        it('lists each consequence once, in the same order as the leave warnings', () => {
+            // Given two workspaces the user administers, one they audit and one where they approve
+            const workspaces = [
+                buildWorkspace(createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN})),
+                buildWorkspace(createMock<Policy>({approver: userEmail})),
+                buildWorkspace(createMock<Policy>({role: CONST.POLICY.ROLE.AUDITOR})),
+                buildWorkspace(createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN})),
+            ];
+
+            // When the bulk leave consequences are built
+            const consequences = getBulkLeaveWorkspacesConsequences(workspaces, userEmail, translate);
+
+            // Then the admin consequence shows once even though two workspaces share it, so the list stays short
+            expect(consequences).toEqual(['common.leaveWorkspacesConsequenceAuditor', 'common.leaveWorkspacesConsequenceAdmin', 'common.leaveWorkspacesConsequenceApprover']);
+        });
+
+        it('has no consequence for a workspace the user pays for', () => {
+            // Given the user is the payer of one workspace and a member of another
+            const workspaces = [buildWorkspace(createMock<Policy>({achAccount: {reimburser: userEmail}})), buildWorkspace(createMock<Policy>({}))];
+
+            // When the bulk leave consequences are built
+            const consequences = getBulkLeaveWorkspacesConsequences(workspaces, userEmail, translate);
+
+            // Then only the member consequence is listed, because the payer can't leave and the flow explains that in a note
+            expect(consequences).toEqual(['common.leaveWorkspacesConsequenceMember']);
+        });
+    });
+
+    describe('getBulkActionSkippedWarning', () => {
+        it('says how many of the selected workspaces the action applies to', () => {
+            // Given an action that applies to one of three selected workspaces
+            // When the skipped warning is built
+            const warning = getBulkActionSkippedWarning(1, 3, TestHelper.translateLocal);
+
+            // Then it tells the user the rest are left out
+            expect(warning).toBe('This applies to 1 of the 3 selected workspaces.');
+        });
+
+        it('is undefined when the action applies to every selected workspace', () => {
+            // Given an action that skips none of the selected workspaces
+            // When the skipped warning is built
+            const warning = getBulkActionSkippedWarning(2, 2, TestHelper.translateLocal);
+
+            // Then there is nothing to tell the user
+            expect(warning).toBeUndefined();
+        });
+    });
+
+    describe('getBulkArchiveWorkspacesConsequences', () => {
+        const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => [path, ...parameters].join(':');
+
+        it('lists the Expensify Card and other card consequences once each', () => {
+            // Given two workspaces with Expensify Cards, one with other cards and one without any cards
+            const workspaces = [
+                {hasExpensifyCards: true, hasCards: true},
+                {hasExpensifyCards: false, hasCards: true},
+                {hasExpensifyCards: false, hasCards: false},
+                {hasExpensifyCards: true, hasCards: true},
+            ];
+
+            // When the bulk archive consequences are built
+            const consequences = getBulkArchiveWorkspacesConsequences(workspaces, translate);
+
+            // Then both kinds of card changes are listed once, however many workspaces share them
+            expect(consequences).toEqual([
+                'workspace.common.archiveConsequenceExpensifyCardLimits',
+                'workspace.common.archiveConsequenceDeclinePurchases',
+                'workspace.common.archiveConsequenceUnassignCards',
+                'workspace.common.archiveConsequenceDeleteCardExpenses',
+            ]);
+        });
+
+        it('only lists the Expensify Card changes for a workspace that has both kinds of cards', () => {
+            // Given a workspace with Expensify Cards and other cards
+            // When the bulk archive consequences are built
+            const consequences = getBulkArchiveWorkspacesConsequences([{hasExpensifyCards: true, hasCards: true}], translate);
+
+            // Then it matches the single workspace archive confirmation, which only mentions the Expensify Cards
+            expect(consequences).toEqual(['workspace.common.archiveConsequenceExpensifyCardLimits', 'workspace.common.archiveConsequenceDeclinePurchases']);
+        });
+
+        it('has no consequences when none of the workspaces have cards', () => {
+            // Given workspaces without any cards
+            const workspaces = [
+                {hasExpensifyCards: false, hasCards: false},
+                {hasExpensifyCards: false, hasCards: false},
+            ];
+
+            // When the bulk archive consequences are built
+            const consequences = getBulkArchiveWorkspacesConsequences(workspaces, translate);
+
+            // Then there is no card change to list
+            expect(consequences).toEqual([]);
+        });
+    });
+
+    describe('getWorkspacesBulkActions', () => {
+        const currentUserAccountID = 1;
+        const context: WorkspacesBulkActionContext = {
+            currentUserAccountID,
+            isRestrictedToPreferredPolicy: false,
+            canArchivePolicies: true,
+            canRenderTransferOwnerButton: true,
+        };
+        const buildRow = (overrides: Partial<WorkspacesBulkActionRow>): WorkspacesBulkActionRow => ({
+            policyID: 'owned',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            ownerAccountID: currentUserAccountID,
+            isArchived: false,
+            isDefault: false,
+            isJoinRequestPending: false,
+            isEligibleToCopy: true,
+            isReimburser: false,
+            ...overrides,
+        });
+        const ownedWorkspace = buildRow({});
+        const otherOwnersWorkspace = buildRow({policyID: 'other', ownerAccountID: 2});
+
+        it('offers every applicable action in the fixed order when one workspace is selected', () => {
+            // Given one selected workspace the user owns and administers
+
+            // When the bulk actions are built
+            const actions = getWorkspacesBulkActions([ownedWorkspace], context);
+
+            // Then the single workspace actions are offered before Archive, and Transfer owner and Leave are left out because the user owns it
+            expect(actions.map((action) => action.type)).toEqual([
+                CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.SET_AS_DEFAULT,
+                CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS,
+                CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.COPY_SETTINGS,
+                CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DUPLICATE,
+                CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.ARCHIVE,
+            ]);
+        });
+
+        it('drops the single workspace actions and keeps the qualifying workspaces when several are selected', () => {
+            // Given one owned workspace and one owned by someone else are selected
+
+            // When the bulk actions are built
+            const actions = getWorkspacesBulkActions([ownedWorkspace, otherOwnersWorkspace], context);
+
+            // Then each action is offered once and runs only on the workspaces it applies to, so the rest are skipped
+            expect(actions).toEqual([
+                {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS, policyIDs: ['owned', 'other']},
+                {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER, policyIDs: ['other']},
+                {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.ARCHIVE, policyIDs: ['owned']},
+                {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE, policyIDs: ['other']},
+            ]);
+        });
+
+        it('offers Delete for one workspace only when archiving is not available', () => {
+            // Given the archive beta is off
+            const contextWithoutArchive = {...context, canArchivePolicies: false};
+
+            // When one owned workspace is selected, and then two
+            const singleSelectionTypes = getWorkspacesBulkActions([ownedWorkspace], contextWithoutArchive).map((action) => action.type);
+            const multipleSelectionTypes = getWorkspacesBulkActions([ownedWorkspace, buildRow({policyID: 'owned2'})], contextWithoutArchive).map((action) => action.type);
+
+            // Then Delete replaces Archive, and like today it works on one workspace at a time
+            expect(singleSelectionTypes).toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DELETE);
+            expect(singleSelectionTypes).not.toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.ARCHIVE);
+            expect(multipleSelectionTypes).not.toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DELETE);
+        });
+
+        it('offers Unarchive and Transfer owner only on an archived workspace', () => {
+            // Given an archived workspace the user owns, and an archived one they only administer
+            const archivedOwned = buildRow({isArchived: true});
+            const archivedAdministered = buildRow({policyID: 'other', ownerAccountID: 2, isArchived: true});
+
+            // When each one is selected on its own
+            const ownedTypes = getWorkspacesBulkActions([archivedOwned], context).map((action) => action.type);
+            const administeredTypes = getWorkspacesBulkActions([archivedAdministered], context).map((action) => action.type);
+
+            // Then the owner can unarchive it and an admin can transfer it, but nothing that changes an archived workspace is offered
+            expect(ownedTypes).toEqual([CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE]);
+            expect(administeredTypes).toEqual([CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER]);
+        });
+
+        it('offers Export members only to roles that can manage members', () => {
+            // Given a workspace where the user is a plain member, and a Collect workspace where they are a People Admin
+            const memberWorkspace = buildRow({policyID: 'member', role: CONST.POLICY.ROLE.USER, ownerAccountID: 2});
+            const peopleAdminOnTeam = buildRow({policyID: 'team', role: CONST.POLICY.ROLE.PEOPLE_ADMIN, type: CONST.POLICY.TYPE.TEAM, ownerAccountID: 2});
+            const peopleAdminOnControl = buildRow({policyID: 'control', role: CONST.POLICY.ROLE.PEOPLE_ADMIN, ownerAccountID: 2});
+
+            // When all three are selected
+            const exportAction = getWorkspacesBulkActions([memberWorkspace, peopleAdminOnTeam, peopleAdminOnControl], context).find(
+                (action) => action.type === CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS,
+            );
+
+            // Then only the Control workspace is exported, matching who sees Download CSV on the Members page
+            expect(exportAction?.policyIDs).toEqual(['control']);
+        });
+
+        it('skips the workspaces the user reimburses when leaving several at once', () => {
+            // Given two workspaces owned by someone else, and the user is the reimburser on one of them
+            const reimbursedWorkspace = buildRow({policyID: 'reimbursed', ownerAccountID: 2, isReimburser: true});
+
+            // When both are selected, and then only the reimbursed one
+            const multipleLeaveAction = getWorkspacesBulkActions([otherOwnersWorkspace, reimbursedWorkspace], context).find(
+                (action) => action.type === CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE,
+            );
+            const singleSelectionTypes = getWorkspacesBulkActions([reimbursedWorkspace], context).map((action) => action.type);
+
+            // Then the bulk leave skips the reimbursed workspace, while selecting it alone keeps Leave so its flow can explain the block
+            expect(multipleLeaveAction?.policyIDs).toEqual(['other']);
+            expect(singleSelectionTypes).toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE);
+        });
+
+        it('hides Set as default and Leave for the preferred workspace when the user is restricted to it', () => {
+            // Given the user is restricted to their preferred workspace, which someone else owns
+            const restrictedContext = {...context, isRestrictedToPreferredPolicy: true, preferredPolicyID: 'other'};
+
+            // When that workspace is selected
+            const types = getWorkspacesBulkActions([otherOwnersWorkspace], restrictedContext).map((action) => action.type);
+
+            // Then neither action is offered, as the restriction already prevents both today
+            expect(types).not.toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.SET_AS_DEFAULT);
+            expect(types).not.toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE);
         });
     });
 });

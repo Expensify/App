@@ -16,6 +16,8 @@ import type {ValueOf} from 'type-fest';
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
+type WorkspacesBulkActionType = DeepValueOf<typeof CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES>;
+
 type RoomMemberBulkActionType = DeepValueOf<typeof CONST.REPORT.ROOM_MEMBERS_BULK_ACTION_TYPES>;
 
 type DomainMemberBulkActionType = DeepValueOf<typeof CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES>;
@@ -200,6 +202,7 @@ type ButtonWithDropdownMenuRef = {
 
 export type {
     WorkspaceMemberBulkActionType,
+    WorkspacesBulkActionType,
     DomainMemberBulkActionType,
     RoomMemberBulkActionType,
     WorkspaceDistanceRatesBulkActionType,

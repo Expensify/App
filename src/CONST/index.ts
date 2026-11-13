@@ -5265,10 +5265,25 @@ const CONST = {
             ACTIVE: 'active',
             ARCHIVED: 'archived',
         },
-        THREE_DOT_MENU_ACTION: {
-            LEAVE: 'leave',
-            TRANSFER_OWNERSHIP: 'transferOwnership',
+        WORKSPACES_BULK_ACTION_TYPES: {
+            SET_AS_DEFAULT: 'setAsDefault',
+            EXPORT_MEMBERS: 'exportMembers',
+            TRANSFER_OWNER: 'transferOwner',
+            COPY_SETTINGS: 'copySettings',
+            DUPLICATE: 'duplicate',
+            ARCHIVE: 'archive',
+            DELETE: 'delete',
             UNARCHIVE: 'unarchive',
+            LEAVE: 'leave',
+        },
+        LEAVE_WORKSPACE_WARNINGS: {
+            MEMBER: 'member',
+            AUDITOR: 'auditor',
+            ADMIN: 'admin',
+            APPROVER: 'approver',
+            EXPORTER: 'exporter',
+            TECHNICAL_CONTACT: 'technicalContact',
+            PAYER: 'payer',
         },
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
