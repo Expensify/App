@@ -25,7 +25,7 @@ import {
     isSubmitPolicy,
     isWorkspaceProvisionedForTravel,
 } from '@libs/PolicyUtils';
-import {generateReportID, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
+import {generateReportID, isMoneyRequestReport, isReportOwner, isSelfDM} from '@libs/ReportUtils';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
@@ -126,7 +126,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
                     return true;
                 }
                 const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                return report?.ownerAccountID === currentUserAccountID && (isMoneyRequestReport(report) || isSelfDM(report));
+                return isReportOwner(report, currentUserAccountID) && (isMoneyRequestReport(report) || isSelfDM(report));
             }),
     });
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
