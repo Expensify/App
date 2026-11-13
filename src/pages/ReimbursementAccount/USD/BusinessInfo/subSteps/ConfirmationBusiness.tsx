@@ -12,20 +12,17 @@ import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {hasKey} from '@libs/ObjectUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import type {CONST as COMMON_CONST} from 'expensify-common';
-
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
-
-type States = keyof typeof COMMON_CONST.STATES;
 
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.BUSINESS_INFO_STEP;
 const BUSINESS_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT.SUBSTEP_INDEX.BUSINESS_INFO;
@@ -59,6 +56,9 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
     };
 
     const values = getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
+    // The form stores both fields as plain strings, so only known keys can build a translation path.
+    const incorporationType = values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE];
+    const incorporationState = values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE];
 
     const defaultCheckboxState = reimbursementAccountDraft?.[BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS] ?? false;
 
@@ -114,11 +114,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_TYPE);
                 }}
-                value={
-                    values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]
-                        ? translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)
-                        : undefined
-                }
+                value={hasKey(CONST.INCORPORATION_TYPES, incorporationType) ? translate(`businessInfoStep.incorporationType.${incorporationType}`) : undefined}
             />
             <MenuItemField
                 sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_INCORPORATION_DATE}
@@ -134,7 +130,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_STATE);
                 }}
-                value={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] ? translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`) : undefined}
+                value={hasKey(COMMON_CONST.STATES, incorporationState) ? translate(`allStates.${incorporationState}.stateName`) : undefined}
             />
             <MenuItemField
                 sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_INDUSTRY_CODE}
