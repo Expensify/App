@@ -195,6 +195,12 @@ function getMovedFromOrToReportMessage(
     }
 }
 
+/**
+ * The fields a rules modified message can name. A rule can set more than these, the vendor for one, and the backend
+ * sends back whatever it applied, so a field with no label here is left out rather than rendered without one.
+ */
+const RULES_MODIFIED_FIELDS_WITH_LABELS = new Set<string>(['amount', 'category', 'comment', 'description', 'merchant', 'tag', 'tax']);
+
 function getRulesModifiedMessage(
     translate: LocalizedTranslate,
     fields: PolicyRulesModifiedFields | PersonalRulesModifiedFields,
@@ -214,7 +220,7 @@ function getRulesModifiedMessage(
             standaloneFragments.push(translate('iou.rulesModifiedFields.reimbursable', !!modifiedFields[key]));
         } else if (key === 'billable') {
             standaloneFragments.push(translate('iou.rulesModifiedFields.billable', !!modifiedFields[key]));
-        } else {
+        } else if (RULES_MODIFIED_FIELDS_WITH_LABELS.has(key)) {
             listKeys.push(key);
         }
     }

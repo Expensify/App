@@ -1,6 +1,9 @@
 // Bare operands store integer hundredths, such as "1250" for 12.50.
 // Operands with a comparison currency store decimal major units, such as "12.50 USD".
+import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
+
 import CONST from '@src/CONST';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import {convertToBackendAmount, convertToFrontendAmountAsString} from './CurrencyUtils';
 
@@ -8,6 +11,22 @@ type AmountFilterValue = {
     amount: string;
     currency?: string;
 };
+
+function getAmountFilterValues(filterKey: SearchAmountFilterKeys, form: Partial<SearchAdvancedFiltersForm> = {}): SearchAmountValues {
+    const values: SearchAmountValues = {};
+    for (const modifier of Object.values(CONST.SEARCH.AMOUNT_MODIFIERS)) {
+        values[modifier] = form[`${filterKey}${modifier}`];
+    }
+    return values;
+}
+
+function getAmountFilterFormValues(filterKey: SearchAmountFilterKeys, values: SearchAmountValues = {}): Partial<SearchAdvancedFiltersForm> {
+    const form: Partial<SearchAdvancedFiltersForm> = {};
+    for (const modifier of Object.values(CONST.SEARCH.AMOUNT_MODIFIERS)) {
+        form[`${filterKey}${modifier}`] = values[modifier];
+    }
+    return form;
+}
 
 /** Whether this amount filter supports FX comparisons. */
 function supportsAmountFilterCurrency(filterKey: string): boolean {
@@ -47,4 +66,12 @@ function getAmountFilterDisplayValue(value: string | undefined, formatAmount: (a
     return parsed.currency ? `${formattedAmount} ${parsed.currency}` : formattedAmount;
 }
 
-export {supportsAmountFilterCurrency, parseAmountFilterValue, getAmountFilterInputValue, formatAmountFilterValue, getAmountFilterDisplayValue};
+export {
+    supportsAmountFilterCurrency,
+    parseAmountFilterValue,
+    getAmountFilterInputValue,
+    formatAmountFilterValue,
+    getAmountFilterDisplayValue,
+    getAmountFilterValues,
+    getAmountFilterFormValues,
+};

@@ -36,6 +36,7 @@ import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -134,6 +135,11 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
     const isFocused = useIsFocused();
     const [shouldNavigateOnFocus, setShouldNavigateOnFocus] = useState(false);
 
+    // Read the path when navigating, the rendered listPath can still be the route of a screen just closed over this one
+    const goBackToContactMethods = () => {
+        Navigation.goBack(stripDynamicRouteSuffixFromPath(Navigation.getActiveRoute(), DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.path));
+    };
+
     useEffect(() => {
         if (prevValidatedDate || !loginData?.validatedDate) {
             return;
@@ -142,13 +148,13 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
         if (isFocused) {
             // Navigate to methods page on successful validateCode verification.
             // The validatedDate property indicates successful validateCode verification.
-            Navigation.goBack(listPath);
+            goBackToContactMethods();
         } else {
             // Set flag to navigate when screen regains focus
             setShouldNavigateOnFocus(true);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Omitting `isFocused` since we don't want this effect to on focus transitions
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, listPath]);
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod]);
 
     // Handle navigation when screen regains focus and flag is set
     useEffect(() => {
@@ -156,7 +162,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
             return;
         }
         setShouldNavigateOnFocus(false);
-        Navigation.goBack(listPath);
+        goBackToContactMethods();
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Only fire on focus transitions
     }, [isFocused]);
 
@@ -216,6 +222,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
             menuItems.push({
                 icon: icons.Trashcan,
                 text: translate('common.remove'),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_THREE_DOTS_REMOVE,
                 onSelected: () => close(turnOnDeleteModal),
             });
         }

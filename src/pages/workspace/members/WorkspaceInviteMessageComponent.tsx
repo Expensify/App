@@ -56,10 +56,9 @@ import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
@@ -98,7 +97,7 @@ function WorkspaceInviteMessageComponent({
     const headerTitle = isWorkflowApprovalExpensesFromRoute ? translate('workflowsExpensesFromPage.title') : translate('workspace.inviteMessage.confirmDetails');
     const subtitle = isWorkflowApprovalExpensesFromRoute ? undefined : policyName;
 
-    const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -108,8 +107,8 @@ function WorkspaceInviteMessageComponent({
     const [welcomeNote, setWelcomeNote] = useState<string>();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
-    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
-    const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
+    const [workspaceInviteMessageDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
     const [workspaceInviteWorkArrangementDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`);
     const [workspaceInviteRoleDraftFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
     const currentUserLogin = currentUserPersonalDetails.login ?? '';
@@ -123,6 +122,7 @@ function WorkspaceInviteMessageComponent({
     const workspaceInviteRoleDraft = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : draftInviteRole;
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
@@ -153,8 +153,6 @@ function WorkspaceInviteMessageComponent({
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path));
     };
 
-    const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
-
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
         .map((personalDetail) => {
@@ -179,9 +177,6 @@ function WorkspaceInviteMessageComponent({
     };
 
     useEffect(() => {
-        if (isOnyxLoading) {
-            return;
-        }
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
             setWelcomeNote(getDefaultWelcomeNote());
             return;
@@ -197,11 +192,10 @@ function WorkspaceInviteMessageComponent({
 
         Navigation.goBack(backTo);
 
-        // We only want to run this useEffect when the onyx values have loaded
-        // We navigate back to the main members screen when the invitation has been sent
-        // This is decided when onyx values have loaded and if `invitedEmailsToAccountIDsDraft` is empty
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOnyxLoading]);
+        // Sending the invitation clears `invitedEmailsToAccountIDsDraft`, so opening this page with an empty draft means
+        // the invitation was already sent and we navigate back to the members screen
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- the drafts are only read once, when the page opens
+    }, []);
 
     const sendInvitation = () => {
         Keyboard.dismiss();
@@ -224,8 +218,11 @@ function WorkspaceInviteMessageComponent({
                 avatar: currentUserPersonalDetails?.avatar,
             },
             filteredReportActions,
-            shouldShowApproverRow ? validatedApprover : undefined,
-            shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
+            {
+                approverEmail: shouldShowApproverRow ? validatedApprover : undefined,
+                hasOfficeWorkArrangement: shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
+                policyCategories,
+            },
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearWorkspaceInviteWorkArrangementDraft(policyID);
@@ -282,7 +279,7 @@ function WorkspaceInviteMessageComponent({
 
     const validate = (): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> => {
         const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> = {};
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft) && !isOnyxLoading) {
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft)) {
             errorFields.welcomeMessage = translate('workspace.inviteMessage.inviteNoMembersError');
         }
         return errorFields;

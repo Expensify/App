@@ -56,10 +56,10 @@ const PLAN_UPDATE_OUTCOME = {
 } as const;
 
 const PLAN_TYPE_SAVE_SENTRY_LABELS = {
-    [PLAN_UPDATE_OUTCOME.UPGRADE]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_SAVE.UPGRADE,
-    [PLAN_UPDATE_OUTCOME.DOWNGRADE]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_SAVE.DOWNGRADE,
-    [PLAN_UPDATE_OUTCOME.DOWNGRADE_BLOCKED]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_SAVE.DOWNGRADE_BLOCKED,
-    [PLAN_UPDATE_OUTCOME.NO_CHANGE]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_SAVE.NO_CHANGE,
+    [PLAN_UPDATE_OUTCOME.UPGRADE]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_UPGRADE,
+    [PLAN_UPDATE_OUTCOME.DOWNGRADE]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_DOWNGRADE,
+    [PLAN_UPDATE_OUTCOME.DOWNGRADE_BLOCKED]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_DOWNGRADE_BLOCKED,
+    [PLAN_UPDATE_OUTCOME.NO_CHANGE]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_NO_CHANGE,
 };
 
 function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
@@ -89,7 +89,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
 
     const isCurrentPolicySubmit = isSubmitPolicy(policy);
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
-        .filter((type) => {
+        .filter((type): type is PersonalPolicyTypeExcludedProps => {
             if (type === CONST.POLICY.TYPE.PERSONAL) {
                 return false;
             }
@@ -103,8 +103,8 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         })
         .map<WorkspacePlanTypeItem>((policyType) => ({
             value: policyType,
-            text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.label`),
-            alternateText: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.description`),
+            text: translate(`workspace.planTypePage.planTypes.${policyType}.label`),
+            alternateText: translate(`workspace.planTypePage.planTypes.${policyType}.description`),
             keyForList: policyType,
             isSelected: policyType === currentPlan,
             actionElement:

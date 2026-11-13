@@ -72,5 +72,4 @@ const CARD_FEED_COLORS: Record<string, CardArtworkColors> = {
 /** Colors for generic-light-large.svg — used when no feed entry matches. */
 const GENERIC_CARD_COLORS: CardArtworkColors = {background: '#a2a9a3', text: colors.productLight900};
 
-export type {CardArtworkColors};
 export {CARD_FEED_COLORS, GENERIC_CARD_COLORS};

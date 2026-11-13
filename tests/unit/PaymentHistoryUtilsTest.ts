@@ -97,6 +97,26 @@ describe('getPaymentHistoryRows', () => {
         expect(rows.at(0)?.state).toBe(CONST.PAYMENT_HISTORY.STATE.REFUNDED);
     });
 
+    it('marks a plain invoicing2018 bill as an unsettled invoice, so the table can hide its Paid badge', () => {
+        // Given a plain invoice bill, an ordinary paid bill, and an invoice that was later refunded
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {billingType: CONST.BILLING.TYPE_INVOICING}),
+            createPurchase(2, '2026-03-01'),
+            createPurchase(3, '2026-04-01', {billingType: CONST.BILLING.TYPE_INVOICING}),
+            createPurchase(4, '2026-05-01', {billingType: CONST.BILLING.TYPE_REFUND, refundPurchaseID: 3}),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then only the plain invoice is flagged: the ordinary paid bill is not, and the refunded invoice keeps its refund state instead of Paid
+        expect(rows.find((row) => row.purchaseID === 1)?.isUnsettledInvoice).toBe(true);
+        expect(rows.find((row) => row.purchaseID === 2)?.isUnsettledInvoice).toBe(false);
+        const refundedInvoice = rows.find((row) => row.purchaseID === 3);
+        expect(refundedInvoice?.isUnsettledInvoice).toBe(false);
+        expect(refundedInvoice?.state).toBe(CONST.PAYMENT_HISTORY.STATE.REFUNDED);
+    });
+
     it('marks failed bills and shows tax only when it was charged', () => {
         // Given a failed bill that includes tax, a taxed bill for an exempt account, and a plain paid bill
         const purchaseList = [

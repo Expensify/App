@@ -134,13 +134,17 @@ function isSelectableTaxCode(policy: OnyxEntry<Policy>, taxCode: string | undefi
     return !!taxRate && !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
-    const isSyncTaxEnabled =
+/** Whether tax rates are imported rather than maintained on the workspace. */
+function isPolicyTaxImported(policy: OnyxEntry<Policy>): boolean {
+    return (
         !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
         !!policy?.connections?.xero?.config?.importTaxRates ||
-        !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
+        !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax
+    );
+}
 
-    return (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled;
+function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
+    return (policy?.tax?.trackingEnabled ?? false) || isPolicyTaxImported(policy);
 }
 
 /**
@@ -165,6 +169,7 @@ export {
     resolveCurrentTaxCode,
     isSelectableTaxCode,
     isPolicyTaxEnabled,
+    isPolicyTaxImported,
     isTaxCodeCustomized,
 };
 export {getAllTaxRatesNamesAndKeys as getAllTaxRates};

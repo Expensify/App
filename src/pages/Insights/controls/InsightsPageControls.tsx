@@ -59,6 +59,7 @@ function InsightsPageControls({filters, defaultFilters, onChange, isPolicyAvaila
             />
             <InsightsCompareControl
                 value={filters.compare}
+                defaultValue={defaultFilters.compare}
                 onChange={(compare) => onChange({compare})}
             />
             <InsightsWorkspaceControl

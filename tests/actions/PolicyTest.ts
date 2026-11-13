@@ -2,7 +2,7 @@ import type {GuidedSetupTask} from '@libs/actions/Report';
 import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {isPolicyPayer} from '@libs/PolicyUtils';
+import {isPolicyPayer, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on ReportUtils without replacing the production module.
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -37,6 +37,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import {
@@ -791,6 +792,59 @@ describe('actions/Policy', () => {
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
+        });
+
+        it('duplicate workspace keeps Rules off when the DuplicatePolicy response turns it on after the policy merge', async () => {
+            // Given a Control workspace with Rules disabled
+            const fakePolicy: PolicyType = {...createRandomPolicy(20, CONST.POLICY.TYPE.CORPORATE), areRulesEnabled: false};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            // And a DuplicatePolicy response that, like production when categories are copied, merges the new policy with Rules off
+            // and then sends a single {areRulesEnabled: true} merge for the same policy
+            mockFetch.mockAPICommand('DuplicatePolicy', () => ({
+                onyxData: [
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`, value: {areRulesEnabled: false}},
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`, value: {areRulesEnabled: true}},
+                ],
+            }));
+            mockFetch.pause();
+
+            // When the workspace is duplicated with Categories selected and Rules unselected
+            Policy.duplicateWorkspace(fakePolicy, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'Rules Off Workspace',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                personalDetailsByLogins: {},
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: true,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                    codingRules: false,
+                },
+                localCurrency: 'USD',
+            });
+            await waitForBatchedUpdates();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then Rules is still off after the response is applied, so it never shows in the new workspace's menu
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(policy?.areRulesEnabled).toBe(false);
         });
 
         it('duplicate workspace with 3+ members creates optimistic announce chat using currentUserAccountID', async () => {
@@ -6463,6 +6517,79 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeUndefined();
         });
     });
+    describe('dismissUKFuelRateTaxError', () => {
+        it.each([false, true])('clears a dismissal failure locally before allowing retry, with warning already dismissed: %s', async (isDismissed) => {
+            // Given a failed dismissal plus unrelated workspace and rate-save errors
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit?.attributes) {
+                throw new Error('Expected distance unit attributes');
+            }
+            unit.attributes.isUKFuelRateTaxErrorDismissed = isDismissed;
+            unit.errorFields = {isUKFuelRateTaxErrorDismissed: {dismissalFailure: 'Dismissal failed'}, taxEnabled: {taxSettingFailure: 'Tax setting failed'}};
+            unit.rates.fuel.errorFields = {taxRateExternalID: {rateSaveFailure: 'Rate-save failed'}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+
+            try {
+                // When the admin closes the error row
+                Policy.dismissUKFuelRateTaxError(policy.id, unit);
+                await waitForBatchedUpdates();
+                const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                const updatedUnit = updated?.customUnits?.distance;
+
+                // Then only the request error clears, without another API call or changes to the warning/save errors
+                expect(apiWriteSpy).not.toHaveBeenCalled();
+                expect(updatedUnit?.errorFields?.isUKFuelRateTaxErrorDismissed).toBeUndefined();
+                expect(updatedUnit?.attributes?.isUKFuelRateTaxErrorDismissed).toBe(isDismissed);
+                expect(shouldShowUKFuelRateTaxError(updated)).toBe(!isDismissed);
+                expect(updatedUnit?.errorFields?.taxEnabled).toEqual({taxSettingFailure: 'Tax setting failed'});
+                expect(updatedUnit?.rates.fuel.errorFields?.taxRateExternalID).toEqual({rateSaveFailure: 'Rate-save failed'});
+
+                // When the warning is closed again after clearing the failure
+                if (!updatedUnit) {
+                    throw new Error('Expected updated distance unit');
+                }
+                Policy.dismissUKFuelRateTaxError(policy.id, updatedUnit);
+
+                // Then a retry can reach the API normally
+                expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DISMISS_UK_FUEL_RATE_TAX_ERROR, expect.anything(), expect.anything());
+            } finally {
+                apiWriteSpy.mockRestore();
+            }
+        });
+
+        it.each([false, true])('hides the warning optimistically and handles failure: %s', async (shouldFail) => {
+            // Given a workspace with an invalid UK fuel VAT mapping
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit) {
+                throw new Error('Expected distance unit');
+            }
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+            mockFetch.pause();
+            if (shouldFail) {
+                mockFetch.fail();
+            }
+            // When the admin dismisses the warning
+            Policy.dismissUKFuelRateTaxError(policy.id, unit);
+            await waitForBatchedUpdates();
+            let updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            // Then the warning disappears immediately, with the unit's other attributes preserved
+            expect(shouldShowUKFuelRateTaxError(updated)).toBe(false);
+            expect(updated?.customUnits?.distance.attributes?.isUKFuelRateTaxErrorDismissed).toBe(true);
+            expect(updated?.customUnits?.distance.attributes?.taxEnabled).toBe(true);
+            expect(updated?.customUnits?.distance.pendingFields?.isUKFuelRateTaxErrorDismissed).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            await mockFetch.resume();
+            updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(shouldShowUKFuelRateTaxError(updated)).toBe(shouldFail);
+            expect(updated?.customUnits?.distance.pendingFields?.isUKFuelRateTaxErrorDismissed).toBeUndefined();
+            expect(!!updated?.customUnits?.distance.errorFields?.isUKFuelRateTaxErrorDismissed).toBe(shouldFail);
+        });
+    });
+
     describe('enableDistanceRequestTax', () => {
         it('should enable distance request tax optimistically and succeed', async () => {
             // Given a policy with a custom unit and tax disabled
