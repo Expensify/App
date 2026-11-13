@@ -26,6 +26,18 @@ import createRandomPolicy from '../utils/collections/policies';
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
 const {EQUAL_TO, CONTAINS, AND, OR, GREATER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
+const CURRENCY = CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY;
+const TAX_RATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE;
+const REIMBURSABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
+const BILLABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE;
+const SUBMITTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
+const DATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
+const AMOUNT = CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT;
+const HAS = CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS;
+const CARD_ID = CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID;
+const {NOT_EQUAL_TO} = CONST.SEARCH.SYNTAX_OPERATORS;
+const MERCHANT_TYPE = 'merchantType';
+const {LOWER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
 
 const POLICY_ID = 'ABC123';
 const OTHER_POLICY_ID = 'DEF456';
@@ -215,18 +227,156 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
 
         it('round trips every condition', () => {
-            // Given a form matching on all three fields
+            // Given a form matching on all four fields
             const formValues: ExpenseDefaultFormValues = {
                 merchantToMatch: 'Starbucks',
                 matchType: CONTAINS,
                 categoriesToMatch: ['Coffee'],
                 tagsToMatch: ['Team A', 'Team B'],
+                currenciesToMatch: ['USD', 'EUR'],
+                taxRatesToMatch: [TAX_KEY],
+                reimbursableToMatch: true,
+                billableToMatch: false,
+                submittersToMatch: ['12345'],
+                merchantTypesToMatch: [CONST.RULES.MERCHANT_TYPE.AIRLINES],
+                dateToMatch: '2026-01-15',
+                dateMatchType: GREATER_THAN,
                 category: 'Coffee',
             };
 
             // When the built rule is read back
             // Then the form gets the same conditions it wrote
             expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
+        });
+
+        it('stores a boolean condition the way search spells it', () => {
+            // Given a form matching only on expenses that are reimbursable and not billable
+            const rule = buildExpenseDefaultRule({reimbursableToMatch: true, billableToMatch: false, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then each boolean is stored as the yes/no word search uses, rather than as a JSON boolean
+            expect(rule?.filters).toEqual({
+                operator: AND,
+                left: {left: REIMBURSABLE, operator: EQUAL_TO, right: 'yes'},
+                right: {left: BILLABLE, operator: EQUAL_TO, right: 'no'},
+            });
+        });
+
+        it('keeps a false boolean condition rather than treating it as unset', () => {
+            // Given a form matching only on expenses that are not reimbursable
+            const rule = buildExpenseDefaultRule({reimbursableToMatch: false, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the condition survives, because false is a real match rather than a cleared field
+            expect(rule?.filters).toEqual({left: REIMBURSABLE, operator: EQUAL_TO, right: 'no'});
+        });
+
+        it('builds a rule that matches on merchant types alone', () => {
+            // Given a form whose only condition is two merchant categories
+            const rule = buildExpenseDefaultRule({merchantTypesToMatch: [CONST.RULES.MERCHANT_TYPE.AIRLINES, CONST.RULES.MERCHANT_TYPE.HOTELS], category: 'Travel'}, policy);
+
+            // When its filters are read
+            // Then they are ORed on the rules engine's own merchant type key, which search has no equivalent for
+            expect(rule?.filters).toEqual({left: MERCHANT_TYPE, operator: EQUAL_TO, right: ['airlines', 'hotels']});
+        });
+
+        it('compares the expense date with the operator the picker chose', () => {
+            // Given a form matching on expenses dated before a day
+            const rule = buildExpenseDefaultRule({dateToMatch: '2026-01-15', dateMatchType: LOWER_THAN, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the date carries the chosen operator rather than defaulting to an equality match
+            expect(rule?.filters).toEqual({left: DATE, operator: LOWER_THAN, right: '2026-01-15'});
+        });
+
+        it('defaults an unset date match type to matching the day itself', () => {
+            // Given a form with a date but no match type, which is what the picker leaves behind
+            const rule = buildExpenseDefaultRule({dateToMatch: '2026-01-15', category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the date is compared for equality, which is the On option the picker preselects
+            expect(rule?.filters).toEqual({left: DATE, operator: EQUAL_TO, right: '2026-01-15'});
+        });
+
+        it('compares the expense amount with the operator the picker chose', () => {
+            // Given a form matching on expenses over an amount
+            const rule = buildExpenseDefaultRule({amountToMatch: '3000', amountMatchType: GREATER_THAN, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the amount carries the chosen operator rather than defaulting to an equality match
+            expect(rule?.filters).toEqual({left: AMOUNT, operator: GREATER_THAN, right: '3000'});
+        });
+
+        it('keeps a zero amount condition rather than reading it as a cleared field', () => {
+            // Given a form matching on expenses over nothing, which is every expense that costs something
+            const rule = buildExpenseDefaultRule({amountToMatch: '0', amountMatchType: GREATER_THAN, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the comparison survives, because zero is an amount rather than an empty input
+            expect(rule?.filters).toEqual({left: AMOUNT, operator: GREATER_THAN, right: '0'});
+        });
+
+        it('defaults an unset amount match type to matching the amount itself', () => {
+            // Given a form with an amount but no match type, which is what the picker leaves behind
+            const rule = buildExpenseDefaultRule({amountToMatch: '3000', category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the amount is compared for equality, which is the Equal to option the picker preselects
+            expect(rule?.filters).toEqual({left: AMOUNT, operator: EQUAL_TO, right: '3000'});
+        });
+
+        it("matches on expenses missing a part when the picker chose doesn't have", () => {
+            // Given a form matching on expenses that carry no receipt
+            const rule = buildExpenseDefaultRule({hasToMatch: ['receipt'], hasMatchType: NOT_EQUAL_TO, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the check is negated rather than defaulting to a presence match
+            expect(rule?.filters).toEqual({left: HAS, operator: NOT_EQUAL_TO, right: ['receipt']});
+        });
+
+        it('defaults an unset has match type to requiring the part to be present', () => {
+            // Given a form listing parts but no match type, which is what the picker leaves behind
+            const rule = buildExpenseDefaultRule({hasToMatch: ['receipt', 'tag'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the parts are required, which is the Has option the picker preselects
+            expect(rule?.filters).toEqual({left: HAS, operator: EQUAL_TO, right: ['receipt', 'tag']});
+        });
+
+        it('builds a rule that matches on the cards an expense was paid with', () => {
+            // Given a form matching on two of the workspace's cards
+            const rule = buildExpenseDefaultRule({cardsToMatch: ['11111', '22222'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then both card IDs sit on one comparison, which the engine matches as an OR
+            expect(rule?.filters).toEqual({left: CARD_ID, operator: EQUAL_TO, right: ['11111', '22222']});
+        });
+
+        it('builds a rule that matches on a submitter alone', () => {
+            // Given a form whose only condition is who submitted the expense
+            const rule = buildExpenseDefaultRule({submittersToMatch: ['12345', '67890'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the submitters are ORed on the `from` key, which is what search uses for the submitter
+            expect(rule?.filters).toEqual({left: SUBMITTER, operator: EQUAL_TO, right: ['12345', '67890']});
+        });
+
+        it('builds a rule that matches on a tax rate alone', () => {
+            // Given a form whose only condition is a tax rate
+            const rule = buildExpenseDefaultRule({taxRatesToMatch: [TAX_KEY], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the single tax rate condition is the whole tree
+            expect(rule?.filters).toEqual({left: TAX_RATE, operator: EQUAL_TO, right: [TAX_KEY]});
+        });
+
+        it('builds a rule that matches on a currency alone', () => {
+            // Given a form whose only condition is a currency
+            const rule = buildExpenseDefaultRule({currenciesToMatch: ['USD'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the single currency condition is the whole tree, ORing the values it was given
+            expect(rule?.filters).toEqual({left: CURRENCY, operator: EQUAL_TO, right: ['USD']});
         });
     });
 
@@ -288,6 +438,7 @@ describe('ExpenseDefaultRuleUtils', () => {
                 merchants: [{value: 'Starbucks', isExactMatch: false}],
                 categories: ['Coffee', 'Travel'],
                 tags: ['Team A'],
+                others: [],
             });
         });
 
@@ -308,6 +459,7 @@ describe('ExpenseDefaultRuleUtils', () => {
                 ],
                 categories: [],
                 tags: [],
+                others: [],
             });
         });
 
@@ -328,14 +480,26 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When it is summarized
             // Then nothing is reported, rather than the code being labelled as a merchant
-            expect(getExpenseDefaultConditionSummary(filters)).toEqual({merchants: [], categories: [], tags: []});
+            expect(getExpenseDefaultConditionSummary(filters)).toEqual({merchants: [], categories: [], tags: [], others: []});
+        });
+
+        it('groups a condition the table has no column of its own for', () => {
+            // Given a rule matching on a currency and an amount, neither of which has a named group
+            const rule = buildExpenseDefaultRule({currenciesToMatch: ['GBP'], amountToMatch: '3000', amountMatchType: GREATER_THAN, category: 'Coffee'}, policy);
+
+            // When its conditions are summarized
+            // Then both come back with the operator they carry, so the table can word each one
+            expect(getExpenseDefaultConditionSummary(rule?.filters).others).toEqual([
+                {field: CURRENCY, operator: EQUAL_TO, values: ['GBP']},
+                {field: AMOUNT, operator: GREATER_THAN, values: ['3000']},
+            ]);
         });
 
         it('reports nothing for a rule with no filters', () => {
             // Given a rule whose filters never loaded
             // When it is summarized
             // Then every field is empty
-            expect(getExpenseDefaultConditionSummary(undefined)).toEqual({merchants: [], categories: [], tags: []});
+            expect(getExpenseDefaultConditionSummary(undefined)).toEqual({merchants: [], categories: [], tags: [], others: []});
         });
     });
 
@@ -392,6 +556,11 @@ describe('ExpenseDefaultRuleUtils', () => {
                 },
             ],
             ['a condition on an operator the form has no control for', {filters: {left: FIELD.CATEGORY, operator: CONTAINS, right: 'Coffee'}}],
+            ['a currency condition the picker cannot express, which only ever selects whole currencies', {filters: {left: CURRENCY, operator: CONTAINS, right: ['USD']}}],
+            ['a boolean condition whose value is neither yes nor no', {filters: {left: REIMBURSABLE, operator: EQUAL_TO, right: 'true'}}],
+            ['a boolean condition carrying more than one value', {filters: {left: BILLABLE, operator: EQUAL_TO, right: ['yes', 'no']}}],
+            ['a date range, which needs two comparisons on one field', {filters: {left: DATE, operator: CONST.SEARCH.SYNTAX_OPERATORS.RANGE, right: '2026-01-01'}}],
+            ['an amount range, which needs two comparisons on one field', {filters: {left: AMOUNT, operator: CONST.SEARCH.SYNTAX_OPERATORS.RANGE, right: '3000'}}],
             ['a filter on a field the form has no input for', {filters: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, operator: EQUAL_TO, right: '5812'}}],
             ['an operator the form has no control for', {filters: {left: FIELD.MERCHANT, operator: GREATER_THAN, right: 'Starbucks'}}],
             ['a list of merchants, which the form has one input for', {filters: {left: FIELD.MERCHANT, operator: OR, right: ['Starbucks', 'Costa']}}],

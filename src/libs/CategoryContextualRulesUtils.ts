@@ -15,6 +15,8 @@ import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import type {ExpenseDefaultConditionNames} from './MerchantTypeRulesUtils';
+
 import {getRuleDeletionPendingAction} from './CategoryTaxRulesUtils';
 import {getCategoryExpenseDefaultRules, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID, isEditableExpenseDefaultRule} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
@@ -72,6 +74,7 @@ function getCategoryContextualRules({
     translate,
     convertToDisplayString,
     isOffline,
+    conditionNames,
 }: {
     policy: Policy | undefined;
     /** Read for the pending delete of the category a tax default depends on. */
@@ -83,6 +86,8 @@ function getCategoryContextualRules({
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     /** Offline keeps optimistically deleted rules listed so the pending delete is visible. */
     isOffline: boolean;
+    /** Names for the members and cards a rule matches on, which the policy alone cannot resolve. */
+    conditionNames?: ExpenseDefaultConditionNames;
 }): CategoryContextualRule[] {
     if (!policy?.id || !category) {
         return [];
@@ -150,7 +155,7 @@ function getCategoryContextualRules({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.TAX,
             summary,
             // The category is left out, since naming the page the admin is already on reads as noise.
-            conditionSummary: getExpenseDefaultConditionText(rule.filters, translate, true),
+            conditionSummary: getExpenseDefaultConditionText(rule.filters, translate, convertToDisplayString, true, policy, conditionNames),
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute(ruleID),
             pendingAction: rulePendingAction,
             isDisabled: isRulePendingDelete || !isRuleOpenable,

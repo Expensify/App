@@ -21,6 +21,7 @@ const policy: Policy = {...createRandomPolicy(0), id: 'policy1'};
 const merchantIs: RuleFilterNode = {left: FIELD.MERCHANT, operator: EQUAL_TO, right: 'Apple'};
 const categoryIs: RuleFilterNode = {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Travel'};
 const tagIs: RuleFilterNode = {left: FIELD.TAG, operator: EQUAL_TO, right: 'Engineering'};
+const currencyIs: RuleFilterNode = {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, operator: EQUAL_TO, right: ['GBP']};
 
 const buildRule = (filters: RuleFilterNode): Rule => ({
     scope: CONST.RULES.SCOPE.POLICY,
@@ -72,5 +73,21 @@ describe('Merchant rule section', () => {
         // When the rules table groups it
         // Then the merchant no longer decides the section, because the rule is narrower than the merchant alone
         expect(getSection(filters)).toBe(SECTION.MULTIPLE_CONDITIONS);
+    });
+
+    it('keeps a rule that matches on a category and a field with no section of its own out of the categories section', () => {
+        // Given a rule matching on a category and a currency, which applies to less than the category alone
+        const filters: RuleFilterNode = {operator: AND, left: categoryIs, right: currencyIs};
+
+        // When the rules table groups it
+        // Then it is listed under the multiple conditions section rather than reading as a plain category rule
+        expect(getSection(filters)).toBe(SECTION.MULTIPLE_CONDITIONS);
+    });
+
+    it('keeps a rule matching only on a field with no section of its own out of the merchants section', () => {
+        // Given a rule whose only condition is a currency, which no heading covers
+        // When the rules table groups it
+        // Then it falls to the catch-all rather than being filed under a field it does not match on
+        expect(getSection(currencyIs)).toBe(SECTION.MULTIPLE_CONDITIONS);
     });
 });
