@@ -129,15 +129,13 @@ function useMoneyRequestReportSortedTransactions({
         }
     }
 
+    // Some sort values, like the vendor name, scan a whole workspace list to resolve, so each transaction's value is
+    // resolved once here instead of twice on every comparison.
+    const sortValueByTransactionID = new Map(
+        transactions.map((transaction) => [transaction.transactionID, getTransactionSortValue(translate, transaction, sortBy, report, policy, policyCategories, policyTagLists)]),
+    );
     const sortedTransactions: TransactionWithOptionalHighlight[] = [...transactions].sort((a, b) =>
-        compareValues(
-            getTransactionSortValue(translate, a, sortBy, report, policy, policyCategories, policyTagLists),
-            getTransactionSortValue(translate, b, sortBy, report, policy, policyCategories, policyTagLists),
-            sortOrder,
-            sortBy,
-            localeCompare,
-            true,
-        ),
+        compareValues(sortValueByTransactionID.get(a.transactionID), sortValueByTransactionID.get(b.transactionID), sortOrder, sortBy, localeCompare, true),
     );
 
     const resolvedTransactions = resolveTransactionCardFields(sortedTransactions, cardList, translate);

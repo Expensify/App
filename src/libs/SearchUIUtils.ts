@@ -143,6 +143,7 @@ import {
     getSubmitToAccountID,
     getTagGLCode,
     getValidConnectedIntegration,
+    getVendorDisplayName,
     isArchivedOrPendingDeletePolicy,
     isControlPolicy,
     isGroupPolicy,
@@ -4408,6 +4409,17 @@ function getSortedTransactionData(
         return data.sort((a, b) => {
             const aValue = a.report?.reportName ?? '';
             const bValue = b.report?.reportName ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.VENDOR) {
+        // Resolving a vendor name scans the workspace's whole synced vendor list, so each row's name is resolved once
+        // here instead of twice on every comparison.
+        const vendorNameByTransactionID = new Map(data.map((item) => [item.transactionID, getVendorDisplayName(item.policy, item.comment?.vendor)]));
+        return data.sort((a, b) => {
+            const aValue = vendorNameByTransactionID.get(a.transactionID) ?? '';
+            const bValue = vendorNameByTransactionID.get(b.transactionID) ?? '';
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
