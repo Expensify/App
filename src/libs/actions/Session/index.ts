@@ -95,26 +95,26 @@ import updateSessionAuthTokens from './updateSessionAuthTokens';
 
 const INVALID_TOKEN = 'pizza';
 
-let deprecatedSession: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
 
 let isHybridAppSetupFinished = false;
 let hasSwitchedAccountInHybridMode = false;
 
-Onyx.connect({
+// Use connectWithoutView since this only reacts to session changes outside React: it stamps a missing creationDate, resolves waitForUserSignIn and hands the new auth token to OldDot in HybridApp
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        deprecatedSession = value ?? {};
-
-        if (!deprecatedSession.creationDate) {
-            deprecatedSession.creationDate = new Date().getTime();
+        if (value && !value.creationDate) {
+            // eslint-disable-next-line no-param-reassign -- Image's getImageSource needs creationDate to attach the auth token. Writes that don't set it rely on this in-memory stamp; it isn't persisted, so it resets to now on each launch.
+            value.creationDate = new Date().getTime();
         }
-        if (deprecatedSession.authToken && authPromiseResolver) {
+        const authToken = value?.authToken;
+        if (authToken && authPromiseResolver) {
             authPromiseResolver(true);
             authPromiseResolver = null;
         }
-        if (CONFIG.IS_HYBRID_APP && isHybridAppSetupFinished && deprecatedSession.authToken && !isAnonymousUser(value)) {
-            HybridAppModule.sendAuthToken({authToken: deprecatedSession.authToken});
+        if (CONFIG.IS_HYBRID_APP && isHybridAppSetupFinished && authToken && !isAnonymousUser(value)) {
+            HybridAppModule.sendAuthToken({authToken});
         }
     },
 });
