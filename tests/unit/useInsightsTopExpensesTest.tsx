@@ -163,18 +163,39 @@ describe('useInsightsTopExpenses', () => {
             expect(search).toHaveBeenCalledTimes(1);
         });
 
-        it('requests again when the panel regains focus', async () => {
-            // Given a panel that requested its query and then lost focus to an expense opened from it
+        it('requests nothing when the panel regains focus without an expense change', async () => {
+            // Given a panel that requested its query and lost focus to an expense opened from it
             const {rerender} = renderTopExpenses(QUERY);
             await waitForBatchedUpdatesWithAct();
             mockIsFocused = false;
             rerender({query: QUERY});
             await waitForBatchedUpdatesWithAct();
 
-            // Then it sends nothing while hidden
+            // When the user goes back without changing anything
+            mockIsFocused = true;
+            rerender({query: QUERY});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it doesn't request again, since the stored expenses are still current
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('requests again once visible after an expense changed behind it', async () => {
+            // Given a panel that requested its query and lost focus to an expense opened from it
+            const {rerender} = renderTopExpenses(QUERY);
+            await waitForBatchedUpdatesWithAct();
+            mockIsFocused = false;
+            rerender({query: QUERY});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the expense is edited while the panel is hidden
+            await Onyx.set(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE, {expenses: 1, cardExpenses: 0});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it waits, since nobody sees the list
             expect(search).toHaveBeenCalledTimes(1);
 
-            // When the user goes back to the panel
+            // When the user goes back
             mockIsFocused = true;
             rerender({query: QUERY});
             await waitForBatchedUpdatesWithAct();

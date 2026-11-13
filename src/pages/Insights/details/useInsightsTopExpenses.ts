@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 const TOP_EXPENSES_STATE = {
     READY: 'ready',
@@ -48,6 +48,7 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
 
     const retry = () => {
         if (!queryJSON || isOffline) {
@@ -56,15 +57,19 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
         search({queryJSON, searchKey: undefined, offset: 0, isLoading: false});
     };
 
-    const onQueryNetworkOrFocusChange = useEffectEvent(retry);
+    const onRefreshKeyChange = useEffectEvent(retry);
 
-    // Refetching on focus updates the list when an edit made from it changes which expenses match the query
+    // An expense edit moves the spend signature and can change which expenses match, so the list refetches.
+    // A change made while an expense is open on top waits until the list is visible again.
+    const refreshKey = [queryJSON?.hash, isOffline, spendDataSignature?.expenses ?? 0].join('|');
+    const lastRefreshKeyRef = useRef<string | undefined>(undefined);
     useEffect(() => {
-        if (!isFocused) {
+        if (!isFocused || refreshKey === lastRefreshKeyRef.current) {
             return;
         }
-        onQueryNetworkOrFocusChange();
-    }, [queryJSON?.hash, isOffline, isFocused]);
+        lastRefreshKeyRef.current = refreshKey;
+        onRefreshKeyChange();
+    }, [refreshKey, isFocused]);
 
     const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
     const hasErrors = Object.keys(snapshot?.errors ?? {}).length > 0;
