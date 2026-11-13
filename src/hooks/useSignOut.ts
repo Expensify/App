@@ -62,8 +62,8 @@ function useSignOut() {
         });
     };
 
-    const signOutImmediately = () => {
-        Onyx.get(ONYXKEYS.SESSION).then((session) => signOutAndRedirectToSignIn(session));
+    const signOutImmediately = async () => {
+        signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
     };
 
     const runSignOut = async ({shouldAlwaysConfirm = false}: SignOutOptions = {}) => {

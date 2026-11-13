@@ -54,8 +54,8 @@ function AnonymousReportFooter({reportID}: AnonymousReportFooterProps) {
                     <Button
                         sentryLabel={CONST.SENTRY_LABEL.ANONYMOUS_REPORT_FOOTER.SIGN_IN_BUTTON}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={() => {
-                            Onyx.get(ONYXKEYS.SESSION).then((session) => signOutAndRedirectToSignIn(session));
+                        onPress={async () => {
+                            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
                         }}
                     >
                         <Button.Text>{translate('common.signIn')}</Button.Text>

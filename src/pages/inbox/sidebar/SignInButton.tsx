@@ -21,8 +21,8 @@ function SignInButton() {
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}
-            onPress={() => {
-                Onyx.get(ONYXKEYS.SESSION).then((session) => signOutAndRedirectToSignIn(session));
+            onPress={async () => {
+                signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
             }}
             sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}
         >
@@ -30,8 +30,8 @@ function SignInButton() {
                 <Button
                     sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={() => {
-                        Onyx.get(ONYXKEYS.SESSION).then((session) => signOutAndRedirectToSignIn(session));
+                    onPress={async () => {
+                        signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
                     }}
                 >
                     <Button.Text>{translate('common.signIn')}</Button.Text>

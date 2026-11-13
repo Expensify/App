@@ -85,11 +85,9 @@ function GenericErrorPage({error}: {error?: Error}) {
                                     {isAuthenticated && (
                                         <Button
                                             sentryLabel={CONST.SENTRY_LABEL.ERROR_PAGE.SIGN_OUT}
-                                            onPress={() => {
-                                                Onyx.get(ONYXKEYS.SESSION).then((session) => {
-                                                    signOutAndRedirectToSignIn(session);
-                                                    refreshPage();
-                                                });
+                                            onPress={async () => {
+                                                signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
+                                                refreshPage();
                                             }}
                                         >
                                             <Button.Text>{translate('initialSettingsPage.signOut')}</Button.Text>
