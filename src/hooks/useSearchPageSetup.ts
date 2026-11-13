@@ -179,8 +179,13 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
 
     useFocusEffect(dropPageRequestOnBlur);
 
+    // Returning to a cached query changes nothing the fetch effect depends on, so the shown hash is set here.
     // An RHP over Search blurs the page while the user is still on it, so only leaving Search for another fullscreen page counts.
-    function forgetShownHashOnLeave() {
+    function trackShownHash() {
+        if (isSnapshotDataLoaded && !isInitialSearchPending) {
+            shownHashRef.current = hash;
+        }
+
         return () => {
             if (isSearchTopmostFullScreenRoute()) {
                 return;
@@ -189,7 +194,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         };
     }
 
-    useFocusEffect(forgetShownHashOnLeave);
+    useFocusEffect(trackShownHash);
 
     // Stable callback: useFocusEffect re-subscribes on a new identity and would fire an extra request.
     useFocusEffect(

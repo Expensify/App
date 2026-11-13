@@ -56,6 +56,13 @@ function blurScreen() {
     }
 }
 
+/** Runs the focus effects, like React Navigation does when the screen regains focus. */
+function focusScreen() {
+    for (const effect of mockFocusEffects) {
+        effect();
+    }
+}
+
 function makeUnresolvedSearchResults(hash: number, isLoading: boolean): SearchResults {
     const searchResults: SearchResults = {
         data: {personalDetailsList: {}},
@@ -206,6 +213,31 @@ describe('useSearchPageSetup', () => {
         // Then the page sends its flagged request, because the next visit has not saved the recent search yet
         await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
         expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({shouldSaveRecentSearch: true}));
+    });
+
+    it('does not re-request a refetch after the user returns to the same cached query', async () => {
+        // Given a page showing a settled snapshot
+        const queryJSON = getQueryJSON();
+        const {rerender} = renderHook(
+            ({state}) => {
+                mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, false, state);
+                useSearchPageSetup(queryJSON);
+            },
+            {initialProps: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED as SearchResults['search']['state']}},
+        );
+        await Promise.resolve();
+
+        // When the user leaves Search, comes back to the same cached query, and an edit starts a refetch of it
+        mockIsSearchTopmostFullScreenRoute = false;
+        blurScreen();
+        mockIsSearchTopmostFullScreenRoute = true;
+        focusScreen();
+        mockIsFirstPageSearchInFlight.mockReturnValue(true);
+        rerender({state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+        await Promise.resolve();
+
+        // Then the page does not re-fire that refetch, because returning changed nothing the fetch effect depends on
+        expect(mockSearch).not.toHaveBeenCalled();
     });
 
     it('does not count a snapshot that settled while another tab was active as shown', async () => {
