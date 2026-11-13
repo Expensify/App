@@ -2,12 +2,11 @@ import Button from '@components/Button';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
+import useCloseDomainAccountModal from '@hooks/useCloseDomainAccountModal';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useDecisionModal from '@hooks/useDecisionModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -58,7 +57,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'CircularArrowBackwards']);
     const {showConfirmModal} = useConfirmModal();
-    const {showDecisionModal} = useDecisionModal();
+    const {showCloseAccountModal: showCloseDomainAccountModal} = useCloseDomainAccountModal();
 
     const securityGroupSelector = (domain: OnyxEntry<Domain>) => selectSecurityGroupForAccount(accountID)(domain);
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -89,32 +88,8 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const lockDomainErrorMessage = Object.values(lockDomainError).at(0);
 
     const showCloseAccountModal = async () => {
-        const decision = await showDecisionModal({
-            title: translate('domain.members.closeAccount', {count: 1}),
-            prompt: translate('domain.members.closeAccountInfo', {count: 1}),
-            secondOptionText: translate('domain.members.safeCloseAccount', {count: 1}),
-            firstOptionText: translate('domain.members.forceCloseAccount', {count: 1}),
-            isFirstOptionDanger: true,
-            isSecondOptionSuccess: true,
-            shouldReportDismiss: true,
-        });
-
-        if (decision.action === ModalActions.DISMISS || !userSecurityGroup) {
-            return;
-        }
-
-        const shouldForceCloseAccount = decision.action === ModalActions.CONFIRM;
-        const result = await showConfirmModal({
-            title: translate('domain.members.closeAccount', {count: 1}),
-            prompt: translate('domain.members.closeAccountPrompt'),
-            confirmText: translate('domain.members.closeAccount', {count: 1}),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-            shouldShowCancelButton: true,
-        });
-
-        if (result.action !== ModalActions.CONFIRM) {
-            showCloseAccountModal();
+        const shouldForceCloseAccount = await showCloseDomainAccountModal(1);
+        if (shouldForceCloseAccount === undefined || !userSecurityGroup) {
             return;
         }
         closeUserAccount(domainAccountID, domainName ?? '', memberLogin, accountID, userSecurityGroup, shouldForceCloseAccount);
