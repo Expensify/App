@@ -2,6 +2,7 @@ import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/Con
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
+import SplitCategoryTaxController from '@components/MoneyRequestConfirmationList/SplitCategoryTaxController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import ManualFooter from '@components/MoneyRequestConfirmationListFooter/variants/ManualFooter';
@@ -25,6 +26,7 @@ function ManualConfirmationList(props: MoneyRequestConfirmationListProps) {
         >
             <TaxController {...data.taxControllerProps} />
             <SplitBillController {...data.splitBillControllerProps} />
+            <SplitCategoryTaxController {...data.splitCategoryTaxControllerProps} />
             <FieldAutoSelector {...data.fieldAutoSelectProps} />
         </ConfirmationListLayout>
     );

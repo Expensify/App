@@ -6,7 +6,7 @@ import type {Policy} from '@src/types/onyx';
 import type {RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
@@ -32,7 +32,7 @@ const SUBMITTER_ACCOUNT_ID = '12345';
 const CARD_ID = '88888';
 const conditionNames = {submitters: {[SUBMITTER_ACCOUNT_ID]: 'Alice Smith'}, cards: {[CARD_ID]: 'Visa ending 1234'}};
 
-const getConditionText = (filters: RuleFilterNode) => getExpenseDefaultConditionText(filters, translateLocal, false, policy, conditionNames);
+const getConditionText = (filters: RuleFilterNode) => getExpenseDefaultConditionText(filters, translateLocal, convertToDisplayString, false, policy, conditionNames);
 
 describe('Expense default condition text', () => {
     beforeEach(() => {

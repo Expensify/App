@@ -4,6 +4,8 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useBlockedBrowserBackHandler from '@hooks/useBlockedBrowserBackHandler';
 import useContinueJoinWorkspaceOnboarding from '@hooks/useContinueJoinWorkspaceOnboarding';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -15,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {createJoinWorkspaceOnboardingContent, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import {createJoinWorkspaceOnboardingContent, setOnboardingErrorMessage, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -113,6 +115,25 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
 
         Navigation.goBack(backTo ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
     };
+
+    // Android's system back and a browser back that OnboardingGuard blocked run the header back logic, otherwise the press does nothing visible.
+    const goBackToPreviousStep = () => {
+        // The Concierge task flow shows a close button instead of back, so its press keeps the default behavior.
+        if (isConciergeTaskFlow) {
+            return false;
+        }
+        handleBackButtonPress();
+        return true;
+    };
+
+    useAndroidBackButtonHandler(goBackToPreviousStep);
+    useBlockedBrowserBackHandler(() => {
+        if (!goBackToPreviousStep()) {
+            return;
+        }
+        // The guard saved its back button message when it blocked the press, and the previous step would show it.
+        setOnboardingErrorMessage(null);
+    });
 
     const navigateToNextOnboardingStep = (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
         if (isVsb || isSmb) {

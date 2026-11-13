@@ -1,5 +1,6 @@
 import WorkspaceExpenseDefaultsTable from '@components/Tables/WorkspaceExpenseDefaultsTable';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useExpenseDefaultConditionNames from '@hooks/useExpenseDefaultConditionNames';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -23,6 +24,7 @@ type RulesExpenseDefaultsTabProps = {
 
 function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, headerComponent}: RulesExpenseDefaultsTabProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -36,6 +38,7 @@ function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelec
         rules,
         policyTags,
         translate,
+        convertToDisplayString,
         isOffline,
         onNavigate: Navigation.navigate,
         conditionNames,

@@ -399,11 +399,22 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
         });
 
-        it('leaves out an amount of zero, which is not a default', () => {
-            // Given a rule whose amount was cleared
-            // When it is built
-            // Then nothing is set, so the rule has no default and is not built
-            expect(buildExpenseDefaultRule({merchantToMatch: 'Starbucks', amount: '0'}, policy)).toBeUndefined();
+        it('stores an amount of zero, which is a default like any other', () => {
+            // Given a rule setting the amount to nothing at all, which is how an admin zeroes an expense out
+            const rule = buildExpenseDefaultRule({merchantToMatch: 'Starbucks', amount: '0'}, policy);
+
+            // When the action is read
+            // Then zero is stored rather than dropped, and it is not negated into -0
+            expect(Object.values(rule?.actions ?? {})).toEqual([{name: ACTION.SET, field: FIELD.AMOUNT, value: 0}]);
+        });
+
+        it('round trips an amount of zero', () => {
+            // Given a rule setting the amount to zero
+            const formValues: ExpenseDefaultFormValues = {merchantToMatch: 'Starbucks', matchType: CONTAINS, amount: '0'};
+
+            // When it is read back
+            // Then the editor still opens it and shows the zero, rather than treating it as a rule it cannot represent
+            expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
         });
 
         it('is read-only for a rule that sets a credit', () => {
@@ -923,17 +934,19 @@ describe('ExpenseDefaultRuleUtils', () => {
     });
     describe('getCategoryOnlyExpenseDefaultTaxID', () => {
         const policyID = '1';
-        const buildRule = (filters: RuleFilterNode): Rule => ({
+        const buildRule = (filters: RuleFilterNode, taxID = 'id_TAX_RATE_1', created?: string, priority?: number): Rule => ({
             scope: CONST.RULES.SCOPE.POLICY,
             scopeID: policyID,
             triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
             filters,
+            created,
+            priority,
             actions: toIndexMap([
                 {
                     name: CONST.RULES.ACTIONS.SET,
                     field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    value: {field_id_TAX: {externalID: 'id_TAX_RATE_1'}},
+                    value: {field_id_TAX: {externalID: taxID}},
                 },
             ]),
         });
@@ -955,6 +968,73 @@ describe('ExpenseDefaultRuleUtils', () => {
             // Then both get the rule's rate, because the rules engine reads the values as alternatives
             expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Travel')).toBe('id_TAX_RATE_1');
             expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Meals')).toBe('id_TAX_RATE_1');
+        });
+
+        it('takes the newest rule whichever order the collection happens to list two rules for the category in', () => {
+            // Given two rules on the same category, created a day apart and setting different rates
+            const categoryFilter = {left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']} satisfies RuleFilterNode;
+            const older = buildRule(categoryFilter, 'id_TAX_RATE_1', '2026-01-01T00:00:00Z');
+            const newer = buildRule(categoryFilter, 'id_TAX_RATE_2', '2026-01-02T00:00:00Z');
+
+            // When the rate is resolved from a collection listing the newer one first, and from one listing the older one first
+            const newerFirst = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}2`]: newer, [`${ONYXKEYS.COLLECTION.RULE}1`]: older}, policyID, 'Travel');
+            const olderFirst = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}1`]: older, [`${ONYXKEYS.COLLECTION.RULE}2`]: newer}, policyID, 'Travel');
+
+            // Then the newer rule's rate wins both times, because the engine applies the older one first and the
+            // newer one writes over it, and the rate does not depend on the order the response arrived in
+            expect(newerFirst).toBe('id_TAX_RATE_2');
+            expect(olderFirst).toBe('id_TAX_RATE_2');
+        });
+
+        it('applies a rule that carries no age after one that does', () => {
+            // Given two rules on the same category, one of them stored without a created timestamp
+            const categoryFilter = {left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']} satisfies RuleFilterNode;
+            const aged = buildRule(categoryFilter, 'id_TAX_RATE_1', '2026-01-01T00:00:00Z');
+            const ageless = buildRule(categoryFilter, 'id_TAX_RATE_2');
+
+            // When the rate is resolved from a collection listing the ageless one first
+            const taxID = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}2`]: ageless, [`${ONYXKEYS.COLLECTION.RULE}1`]: aged}, policyID, 'Travel');
+
+            // Then the ageless rule's rate wins, because an unknown age does not predate anything and so is applied
+            // last, over the rate the aged rule set
+            expect(taxID).toBe('id_TAX_RATE_2');
+        });
+
+        it('keeps the rate an earlier rule set when a later rule on the same category sets no tax', () => {
+            // Given an older rule setting a tax on the category and a newer one setting only its billable flag
+            const categoryFilter = {left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']} satisfies RuleFilterNode;
+            const taxed = buildRule(categoryFilter, 'id_TAX_RATE_1', '2026-01-01T00:00:00Z');
+            const billableAction: ExpenseDefaultAction = {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.BILLABLE, value: true};
+            const untaxed: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: policyID,
+                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                filters: categoryFilter,
+                created: '2026-01-02T00:00:00Z',
+                actions: toIndexMap([billableAction]),
+            };
+
+            // When the rate is resolved
+            const taxID = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}1`]: taxed, [`${ONYXKEYS.COLLECTION.RULE}2`]: untaxed}, policyID, 'Travel');
+
+            // Then the older rule's rate stands, because the engine writes each field the rules set and the newer
+            // rule sets no tax to write over it
+            expect(taxID).toBe('id_TAX_RATE_1');
+        });
+
+        it('takes the rule the backend applies last when a migrated rule outranks a newer one', () => {
+            // Given a category tax default migrated from the old policy rules, which carries the higher priority the
+            // migration gives it, and a newer rule on the same category written by the merchant rule editor
+            const categoryFilter = {left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']} satisfies RuleFilterNode;
+            const migrated = buildRule(categoryFilter, 'id_TAX_RATE_1', '2026-01-01T00:00:00Z', 40000);
+            const newer = buildRule(categoryFilter, 'id_TAX_RATE_2', '2026-01-02T00:00:00Z', CONST.RULES.EXPENSE_DEFAULT.PRIORITY);
+
+            // When the rate is resolved
+            const taxID = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}1`]: migrated, [`${ONYXKEYS.COLLECTION.RULE}2`]: newer}, policyID, 'Travel');
+
+            // Then the migrated rule's rate wins despite being the older of the two, because the backend orders by
+            // priority before age and so applies it last
+            expect(taxID).toBe('id_TAX_RATE_1');
         });
 
         it('ignores a rule that matches every category except this one', () => {

@@ -320,6 +320,7 @@ function useSelectedTransactionsActions({
                 text: translate('search.bulkActions.editMultiple'),
                 icon: expensifyIcons.Pencil,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.EDIT,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_EDIT_MULTIPLE,
                 onSelected: () => {
                     initBulkEditDraftTransaction(selectedTransactionIDs);
                     Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP);
@@ -344,7 +345,16 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getTransactionIOUAction(selectedTransaction, selectedTransaction.transactionID);
             const holdReportAction = getReportAction(iouReportAction?.childReportID, `${selectedTransaction?.comment?.hold ?? ''}`);
-            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, holdReportAction, selectedTransaction, policy, currentUserAccountID, rules);
+            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                report,
+                iouReportAction,
+                holdReportAction,
+                selectedTransaction,
+                policy,
+                currentUserAccountID,
+                rules,
+                getLoginByAccountID(report?.ownerAccountID, personalDetails),
+            );
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
@@ -355,6 +365,7 @@ function useSelectedTransactionsActions({
                 text: translate('iou.hold'),
                 icon: expensifyIcons.Stopwatch,
                 value: HOLD,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_HOLD,
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
@@ -374,6 +385,7 @@ function useSelectedTransactionsActions({
                 text: translate('iou.unhold'),
                 icon: expensifyIcons.Stopwatch,
                 value: UNHOLD,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_UNHOLD,
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
@@ -391,6 +403,8 @@ function useSelectedTransactionsActions({
                             transactionID,
                             transaction,
                             reportID: action.childReportID,
+                            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`],
                             policy,
                             isOffline,
                             currentUserLogin: login ?? '',
@@ -414,6 +428,7 @@ function useSelectedTransactionsActions({
                 text: translate('search.bulkActions.reject'),
                 icon: expensifyIcons.ThumbsDown,
                 value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_REJECT,
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
@@ -450,6 +465,7 @@ function useSelectedTransactionsActions({
                     text: template.name,
                     icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
+                    sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_EXPORT_TEMPLATE,
                     onSelected: isBasicExport
                         ? () => {
                               if (!report) {
@@ -488,6 +504,7 @@ function useSelectedTransactionsActions({
 
         options.push({
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_EXPORT,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: expensifyIcons.Export,
@@ -525,11 +542,13 @@ function useSelectedTransactionsActions({
                     text: translate('common.merge'),
                     icon: expensifyIcons.ArrowCollapse,
                     value: MERGE,
+                    sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_MERGE,
                     onSelected: () =>
                         setupMergeTransactionDataAndNavigate(
                             transactionID,
                             selectedTransactionsList,
                             localeCompare,
+                            translate,
                             getCurrencyDecimals,
                             [],
                             false,
@@ -546,6 +565,7 @@ function useSelectedTransactionsActions({
                 text: translate('iou.moveExpenses'),
                 icon: expensifyIcons.DocumentMerge,
                 value: MOVE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_MOVE_EXPENSES,
                 onSelected: () => {
                     const shouldTurnOffSelectionMode = allTransactionsLength - selectedTransactionIDs.length <= 1;
                     const route = createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID, shouldTurnOffSelectionMode));
@@ -581,6 +601,7 @@ function useSelectedTransactionsActions({
                 text: translate('iou.split'),
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_SPLIT,
                 onSelected: () => {
                     initSplitExpense(
                         firstTransaction,
@@ -603,6 +624,7 @@ function useSelectedTransactionsActions({
                 text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionIDs.length}),
                 icon: expensifyIcons.ExpenseCopy,
                 value: DUPLICATE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_DUPLICATE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (exceedsBulkDuplicateLimit) {
@@ -663,6 +685,7 @@ function useSelectedTransactionsActions({
                 text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
                 icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
+                sentryLabel: shouldShowEditSplitOnDeleteAction ? CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_SPLIT : CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_DELETE,
                 shouldSkipDeleteModal: shouldShowEditSplitOnDeleteAction,
                 onSelected: () => {
                     if (shouldShowEditSplitOnDeleteAction) {

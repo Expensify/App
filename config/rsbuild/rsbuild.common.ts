@@ -1,7 +1,7 @@
 import type {RsbuildConfig} from '@rsbuild/core';
 import type {DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
 
-import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
+import {InjectManifest} from '@aaroon/workbox-rspack-plugin';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
@@ -105,6 +105,8 @@ const INCLUDED_NODE_MODULES = [
     'expo-video',
     'expo-image',
     'expo-image-manipulator',
+    // Lets knip see that expo-modules-core is used. Remove together with this entry.
+    /** @type {import('expo-modules-core')} */
     'expo-modules-core',
     'victory-native',
     '@shopify/react-native-skia',
@@ -185,7 +187,10 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
         },
         resolve: {
             alias: {
+                // The JSDoc types in this block only let knip see that these packages are used. Remove each with its alias.
+                /** @type {import('lodash-es')} */
                 lodash: 'lodash-es',
+                /** @type {import('react-web-config')} */
                 'react-native-config': 'react-web-config',
                 'react-native$': 'react-native-web',
                 // Use victory-native source files instead of pre-compiled dist (which uses CommonJS exports)
@@ -303,6 +308,8 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                     // This prevents import error coming from react-native-tab-view/lib/module/TabView.js
                     // where Pager is imported without extension due to having platform-specific implementations
                     {
+                        // Lets knip see that react-native-tab-view is used. Remove together with this rule.
+                        /** @type {import('react-native-tab-view')} */
                         test: /\.js$/,
                         resolve: {fullySpecified: false},
                         include: [path.resolve(dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],
@@ -521,9 +528,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     ...(isDevelopment
                         ? []
                         : [
-                              new GenerateSW({
-                                  clientsClaim: true,
-                                  skipWaiting: true,
+                              new InjectManifest({
+                                  swSrc: path.resolve(dirname, '../../web/service-worker.ts'),
+                                  swDest: 'service-worker.js',
                                   // Cap is generous on purpose: the vendor (~6.5 MiB), main (~5.5 MiB),
                                   // authScreens.prefetch (~10.1 MiB) chunks and the canvaskit wasm (~7.7 MiB) are
                                   // all critical for offline boot, so we precache the lot. JS chunks are
@@ -535,24 +542,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   // worker requests the original URLs and the CDN transparently serves the Brotli copy,
                                   // so adding the twins to the precache as well would download every chunk twice.
                                   exclude: [/\.map$/, /^manifest.*\.js$/, /\.br$/],
-                                  // Single-page app: any unmatched navigation should serve the cached app shell.
-                                  navigateFallback: '/index.html',
-                                  // Don't fall back for asset-like or .well-known requests.
-                                  navigateFallbackDenylist: [/^\/_/, /^\/\.well-known/, /\/[^/?]+\.[^/]+$/],
-                                  runtimeCaching: [
-                                      {
-                                          // Same-origin user media (receipts, chat attachments) — cache opportunistically
-                                          // so they're viewable on offline refresh. The function below is serialized into
-                                          // the generated service worker, so it executes in the SW context where
-                                          // `sameOrigin` is the appropriate Workbox match (no need to read `self.location`).
-                                          urlPattern: ({sameOrigin, url, request}) => sameOrigin && (request.destination === 'image' || /\/(receipts|chat-attachments)\//.test(url.pathname)),
-                                          handler: 'StaleWhileRevalidate',
-                                          options: {
-                                              cacheName: 'user-media',
-                                              expiration: {maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60},
-                                          },
-                                      },
-                                  ],
                               }),
                           ]),
                     // Inject <link rel="prefetch/preload" /> into HTML.

@@ -1,6 +1,7 @@
 import type {SearchCompareMode, SearchDatePreset} from '@components/Search/types';
 
 import CONST from '@src/CONST';
+import type {InsightsDashboardID} from '@src/types/onyx';
 
 // Running total's grouping value. Kept out of CONST.SEARCH.GROUP_BY so no Search surface can type or suggest it, but Insights still serializes it into its saved query and reads it back.
 const INSIGHTS_RUNNING_TOTAL_GROUP_BY = 'runningTotal';
@@ -28,10 +29,24 @@ type InsightsFilters = {
     compare?: SearchCompareMode;
 };
 
-const DEFAULT_INSIGHTS_FILTERS: Omit<InsightsFilters, 'groupCurrency'> = {
-    date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
-    policyIDs: [],
-    groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+const DEFAULT_INSIGHTS_FILTERS: Record<InsightsDashboardID, Omit<InsightsFilters, 'groupCurrency'>> = {
+    [CONST.INSIGHTS.DASHBOARD.SPEND]: {
+        date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
+        policyIDs: [],
+        groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+        compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+    },
+    [CONST.INSIGHTS.DASHBOARD.EFFICIENCY]: {
+        date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+        policyIDs: [],
+        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+    },
+    [CONST.INSIGHTS.DASHBOARD.COMPLIANCE]: {
+        date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
+        policyIDs: [],
+        groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+        compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+    },
 };
 
 const INSIGHTS_GROUP_BY_OPTIONS = [CONST.SEARCH.GROUP_BY.DAY, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.QUARTER, CONST.SEARCH.GROUP_BY.YEAR] as const;

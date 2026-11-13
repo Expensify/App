@@ -6,6 +6,7 @@ import {hasInvoicingDetails} from '@userActions/Policy/Policy';
 
 import type {IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -42,6 +43,9 @@ type UseConfirmationCtaTextParams = {
 
     /** Whether the transaction is a per-diem request */
     isPerDiemRequest: boolean;
+
+    /** Sentry label of the confirm button, which the single option shares */
+    sentryLabel: SentryLabel;
 };
 
 /**
@@ -63,6 +67,7 @@ function useConfirmationCtaText({
     receiptPath,
     isDistanceRequestWithPendingRoute,
     isPerDiemRequest,
+    sentryLabel,
 }: UseConfirmationCtaTextParams): Array<DropdownOption<string>> {
     const {translate} = useLocalize();
 
@@ -90,6 +95,7 @@ function useConfirmationCtaText({
         {
             text: text[0].toUpperCase() + text.slice(1),
             value: iouType,
+            sentryLabel,
         },
     ];
 }

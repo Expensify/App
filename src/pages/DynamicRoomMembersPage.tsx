@@ -273,6 +273,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 count: selectedMembers.length,
             }),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.ROOM_MEMBERS_SELECTION_REMOVE,
             icon: icons.RemoveMembers,
             shouldSkipFocusRestore: true,
             onSelected: showRemoveMembersModal,
@@ -284,6 +285,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         <View style={styles.w100}>
             {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                 <ButtonWithDropdownMenu<RoomMemberBulkActionType>
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.ROOM_MEMBERS_SELECTION_DROPDOWN}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
@@ -297,6 +299,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 />
             ) : (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.ROOM_MEMBERS_INVITE_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={inviteUser}
                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}

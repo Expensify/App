@@ -244,7 +244,43 @@ function isPolicyScopedRule(rule: Rule | undefined, policyID: string | undefined
 }
 
 /**
- * Returns the policy's expense default rules, with each rule's ID parsed out of its Onyx key.
+ * The order rules are applied in, which the backend decides by `priority` first and the client has to match.
+ *
+ * A category tax default migrated from the old `policy.rules.expenseRules` carries a priority of 40000 while one
+ * written by the merchant rule editor carries 10000, so a migrated rule is applied after a newer rule and writes
+ * over it. Rules sharing a priority go oldest first, falling back to the ID for two created in the same moment.
+ * Leaving the rules in Onyx key order instead would hand the outcome to whichever one the `GetRules` response
+ * happened to list first, which is not an order the client picks or can repeat.
+ */
+function compareByApplicationOrder({ruleID: ruleIDA, rule: ruleA}: RuleWithID, {ruleID: ruleIDB, rule: ruleB}: RuleWithID): number {
+    const priorityA = ruleA.priority ?? CONST.RULES.EXPENSE_DEFAULT.PRIORITY;
+    const priorityB = ruleB.priority ?? CONST.RULES.EXPENSE_DEFAULT.PRIORITY;
+    if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+    }
+
+    if (ruleA.created !== ruleB.created) {
+        // An age the rule does not carry is not an age that predates anything, so it goes last rather than
+        // outranking a rule that does carry one.
+        if (!ruleA.created) {
+            return 1;
+        }
+        if (!ruleB.created) {
+            return -1;
+        }
+        return ruleA.created < ruleB.created ? -1 : 1;
+    }
+
+    if (ruleIDA === ruleIDB) {
+        return 0;
+    }
+
+    return ruleIDA < ruleIDB ? -1 : 1;
+}
+
+/**
+ * Returns the policy's expense default rules, in the order they are applied, with each rule's ID parsed out of
+ * its Onyx key.
  *
  * A rule deleted offline sticks around until the request goes through. `shouldExcludeRulesPendingDelete` leaves
  * those out, for callers that would otherwise keep offering a deleted rule.
@@ -266,7 +302,7 @@ function getPolicyExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | un
         rules.push({ruleID: onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length), rule});
     }
 
-    return rules;
+    return rules.sort(compareByApplicationOrder);
 }
 
 /** Builds the `tax` action value, which carries the rate's name and value alongside its external ID for display. */
@@ -295,11 +331,12 @@ function buildTaxActionValue(taxKey: string | undefined, policy: Policy | undefi
  */
 function buildAmountActionValue(amount: string | undefined): number | undefined {
     const amountInCents = Number(amount);
-    if (!amount || !Number.isFinite(amountInCents) || amountInCents === 0) {
+    if (!amount || !Number.isFinite(amountInCents)) {
         return undefined;
     }
 
-    return -Math.abs(amountInCents);
+    // Zero is a default an admin can set, and negating it would store -0.
+    return amountInCents === 0 ? 0 : -Math.abs(amountInCents);
 }
 
 /** A merchant rule as this editor builds it, which is the stored shape minus the fields the server fills in. */
@@ -763,7 +800,8 @@ function getExpenseDefaultFormValues(rule: Rule | ExpenseDefaultRule | undefined
 
         if (field === FIELD.AMOUNT) {
             // A rule setting a credit rather than an expense has no input in the form, so it stays read-only.
-            if (typeof value !== 'number' || value >= 0) {
+            // Zero is not a credit, so it reads back as the amount it is.
+            if (typeof value !== 'number' || value > 0) {
                 return undefined;
             }
             formValues.amount = String(Math.abs(value));
@@ -891,6 +929,10 @@ function getCategoryOnlyFilterValues(rule: Rule): Array<string | number> {
  * Only a rule matching on the category alone counts. A rule that also matches on a merchant or a tag is narrower
  * than the category, so taking its tax here would put that rate on expenses the rule never meant to reach.
  *
+ * The engine applies every matching rule in turn and each one writes over what the last left, so where two rules
+ * put a tax on the same category the newest is the rate the expense ends up with. Stopping at the first match
+ * would predict a rate the server then replaces.
+ *
  * A rule pending delete is skipped, so an expense does not pick up a rate that is on its way out.
  */
 function getCategoryOnlyExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): string | undefined {
@@ -898,18 +940,17 @@ function getCategoryOnlyExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule
         return undefined;
     }
 
+    let appliedTaxID: string | undefined;
+
     for (const {rule} of getPolicyExpenseDefaultRules(rulesCollection, policyID, true)) {
         if (!getCategoryOnlyFilterValues(rule).includes(categoryName)) {
             continue;
         }
 
-        const taxID = getExpenseDefaultTaxID(rule);
-        if (taxID) {
-            return taxID;
-        }
+        appliedTaxID = getExpenseDefaultTaxID(rule) ?? appliedTaxID;
     }
 
-    return undefined;
+    return appliedTaxID;
 }
 
 /** Whether the policy has an expense default that puts a tax rate on a category. */

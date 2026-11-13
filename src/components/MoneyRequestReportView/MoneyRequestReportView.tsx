@@ -29,6 +29,7 @@ import {cancelSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 
 import {AgentZeroStatusProvider} from '@pages/inbox/AgentZeroStatusContext';
+import CollapsibleReportHeader from '@pages/inbox/report/CollapsibleReportHeader';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
 import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
@@ -124,8 +125,6 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     const isAppLoadPending = useIsAppLoadPending();
     const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
 
@@ -228,14 +227,17 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
 
     return (
         <View style={styles.flex1}>
-            <OfflineWithFeedback
-                pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
-                errors={reportErrors}
-                needsOffscreenAlphaCompositing
-                shouldShowErrorMessages={false}
-            >
-                <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
-            </OfflineWithFeedback>
+            {/* Outermost, so its wrapper is a sibling of the list's and the sliding header can stack above the list. */}
+            <CollapsibleReportHeader>
+                <OfflineWithFeedback
+                    pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
+                    errors={reportErrors}
+                    needsOffscreenAlphaCompositing
+                    shouldShowErrorMessages={false}
+                >
+                    <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
+                </OfflineWithFeedback>
+            </CollapsibleReportHeader>
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}
                 errors={reportErrors}
@@ -268,7 +270,6 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
                                 <>
                                     <ReportActionsList
                                         reportID={report.reportID}
-                                        conciergeChat={conciergeChat}
                                         onLayout={onLayout}
                                     />
                                     <UserTypingEventListener report={report} />
