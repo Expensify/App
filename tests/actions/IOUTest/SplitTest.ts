@@ -1317,7 +1317,7 @@ describe('split expense', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
             reportAction: iouAction,
-            updatedTransaction: splitTransaction ? {...splitTransaction, amount: 100, modifiedAmount: 100, modifiedCurrency: CONST.CURRENCY.USD} : undefined,
+            updatedTransaction: splitTransaction ? {...splitTransaction, amount: 100, modifiedAmount: 100, modifiedCurrency: CONST.CURRENCY.USD, isMerchantSet: true} : undefined,
             sessionAccountID: RORY_ACCOUNT_ID,
             isASAPSubmitBetaEnabled: false,
             quickAction: undefined,
@@ -1342,9 +1342,10 @@ describe('split expense', () => {
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
 
-        // Then the split goes back to being a scan request so the user can retry from the original state
+        // Then the split goes back to being a scan request so the user can retry from the original state, without the draft's typed-merchant flag, which a scan would read as an unconfirmed amount
         splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
         expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
+        expect(splitTransaction?.isMerchantSet).toBeUndefined();
         expect(splitTransaction?.errors).toBeTruthy();
     });
 

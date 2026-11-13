@@ -1,5 +1,5 @@
 import type {ConfirmationFieldErrors, SiblingFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
-import getConfirmationFieldErrors, {getSiblingFieldErrors, hasBlockingFieldErrors, NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import getConfirmationFieldErrors, {getSiblingFieldErrors, hasFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 
@@ -198,8 +198,8 @@ function useConfirmationValidation({
         currentUserAccountID: currentUserPersonalDetails.accountID,
     };
     const fieldErrors = getConfirmationFieldErrors(transaction, {...fieldErrorParams, iouAmount, iouMerchant});
-    const siblingFieldErrors = fieldErrors === NO_FIELD_ERRORS ? getSiblingFieldErrors(siblingTransactions, {...fieldErrorParams, participants: transaction?.participants}) : undefined;
-    const validate = (paymentType?: PaymentMethodType): ValidationResult | null => {
+    const siblingFieldErrors = !hasFieldErrors(fieldErrors) ? getSiblingFieldErrors(siblingTransactions, {...fieldErrorParams, participants: transaction?.participants}) : undefined;
+    const validateReceiptOnScreen = (paymentType?: PaymentMethodType): ValidationResult | null => {
         if (!!routeError || !transactionID) {
             return null;
         }
@@ -208,7 +208,7 @@ function useConfirmationValidation({
             return {errorKey: 'iou.error.noParticipantSelected'};
         }
 
-        if (hasBlockingFieldErrors(fieldErrors, siblingFieldErrors)) {
+        if (hasFieldErrors(fieldErrors)) {
             return {isFieldError: true};
         }
 
@@ -315,6 +315,15 @@ function useConfirmationValidation({
             return null;
         }
         return {errorKey: null};
+    };
+
+    // Create submits every receipt, so another receipt's field errors block it too, but only once the receipt on screen passes all its checks.
+    const validate = (paymentType?: PaymentMethodType): ValidationResult | null => {
+        const result = validateReceiptOnScreen(paymentType);
+        if (siblingFieldErrors && result && 'errorKey' in result && result.errorKey === null) {
+            return {isFieldError: true};
+        }
+        return result;
     };
 
     return {validate, fieldErrors, siblingFieldErrors};

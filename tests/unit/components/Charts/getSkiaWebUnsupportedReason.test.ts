@@ -1,3 +1,5 @@
+import type getUnsupportedReason from '@components/Charts/SkiaWebChart/getSkiaWebUnsupportedReason';
+
 type GLStub = {
     FRAGMENT_SHADER: number;
     HIGH_FLOAT: number;
@@ -44,21 +46,28 @@ function mockCanvas(getContext: jest.Mock) {
     return mockCanvases([getContext]);
 }
 
-describe('isSkiaWebSupported', () => {
-    let isSkiaWebSupported: () => boolean;
+describe('getSkiaWebUnsupportedReason', () => {
+    let getSkiaWebUnsupportedReason: typeof getUnsupportedReason;
     let originalWebGL2: PropertyDescriptor | undefined;
+    let originalWebAssembly: PropertyDescriptor | undefined;
 
     beforeEach(async () => {
         // jsdom omits the WebGL2 API, so define it to emulate a modern browser where CanvasKit (and this
         // probe) request a webgl2 context. Individual tests delete it to cover the legacy WebGL1 path.
         originalWebGL2 = Object.getOwnPropertyDescriptor(globalThis, 'WebGL2RenderingContext');
+        originalWebAssembly = Object.getOwnPropertyDescriptor(globalThis, 'WebAssembly');
         Object.defineProperty(globalThis, 'WebGL2RenderingContext', {value: class {}, configurable: true, writable: true});
         // The probe caches a long-lived context in module scope, so reset the module between tests.
         jest.resetModules();
-        isSkiaWebSupported = (await import('@components/Charts/SkiaWebChart/isSkiaWebSupported')).default;
+        getSkiaWebUnsupportedReason = (await import('@components/Charts/SkiaWebChart/getSkiaWebUnsupportedReason')).default;
     });
 
     afterEach(() => {
+        if (originalWebAssembly) {
+            Object.defineProperty(globalThis, 'WebAssembly', originalWebAssembly);
+        } else {
+            Reflect.deleteProperty(globalThis, 'WebAssembly');
+        }
         if (originalWebGL2) {
             Object.defineProperty(globalThis, 'WebGL2RenderingContext', originalWebGL2);
         } else {
@@ -67,21 +76,34 @@ describe('isSkiaWebSupported', () => {
         jest.restoreAllMocks();
     });
 
-    it('should return true when the WebGL2 context reports a shader precision format', () => {
+    it.each([undefined, null, {}, {instantiate: false}])('should skip Skia before probing WebGL when WebAssembly is unavailable: %s', (webAssembly) => {
+        // Given a browser whose security policy disables WebAssembly or its instantiate API
+        Object.defineProperty(globalThis, 'WebAssembly', {value: webAssembly, configurable: true});
+        const createElement = jest.spyOn(document, 'createElement');
+
+        // When checking whether CanvasKit can load
+        const reason = getSkiaWebUnsupportedReason();
+
+        // Then report the actual missing capability without creating a WebGL context
+        expect(reason).toBe('common.webAssemblyNotSupported');
+        expect(createElement).not.toHaveBeenCalled();
+    });
+
+    it('should allow Skia when the WebGL2 context reports a shader precision format', () => {
         const gl = makeGl(VALID_FORMAT);
         mockCanvas(jest.fn((contextId: string) => (contextId === 'webgl2' ? gl : null)));
 
-        expect(isSkiaWebSupported()).toBe(true);
+        expect(getSkiaWebUnsupportedReason()).toBeUndefined();
         expect(gl.getShaderPrecisionFormat).toHaveBeenCalledWith(FRAGMENT_SHADER, HIGH_FLOAT);
     });
 
-    it('should return false when a WebGL2 context cannot be created', () => {
+    it('should report unsupported WebGL when a WebGL2 context cannot be created', () => {
         // CanvasKit requests webgl2 whenever the WebGL2 API exists and never falls back to webgl1, so a
         // browser that exposes the API but cannot create the context crashes with "failed to create webgl
         // context". Skip Skia instead of green-lighting a webgl1 context the renderer will not use.
         mockCanvas(jest.fn(() => null));
 
-        expect(isSkiaWebSupported()).toBe(false);
+        expect(getSkiaWebUnsupportedReason()).toBe('common.webGLNotSupported');
     });
 
     it('should probe the WebGL1 context when the WebGL2 API is unavailable', () => {
@@ -90,28 +112,28 @@ describe('isSkiaWebSupported', () => {
         const gl = makeGl(VALID_FORMAT);
         mockCanvas(jest.fn((contextId: string) => (contextId === 'webgl' ? gl : null)));
 
-        expect(isSkiaWebSupported()).toBe(true);
+        expect(getSkiaWebUnsupportedReason()).toBeUndefined();
     });
 
-    it('should return false when a live context cannot provide a shader precision format', () => {
+    it('should report unsupported WebGL when a live context cannot provide a shader precision format', () => {
         // The actual crash scenario: getShaderPrecisionFormat returns null on a context that is NOT lost.
         mockCanvas(jest.fn(() => makeGl(null)));
 
-        expect(isSkiaWebSupported()).toBe(false);
+        expect(getSkiaWebUnsupportedReason()).toBe('common.webGLNotSupported');
     });
 
-    it('should return true when the null format comes from a lost context (transient, not a verdict)', () => {
+    it('should allow Skia when the null format comes from a lost context (transient, not a verdict)', () => {
         mockCanvas(jest.fn(() => makeGl(null, {lost: true})));
 
-        expect(isSkiaWebSupported()).toBe(true);
+        expect(getSkiaWebUnsupportedReason()).toBeUndefined();
     });
 
-    it('should return true when probing throws', () => {
+    it('should allow Skia when probing throws', () => {
         jest.spyOn(document, 'createElement').mockImplementation(() => {
             throw new Error('createElement blew up');
         });
 
-        expect(isSkiaWebSupported()).toBe(true);
+        expect(getSkiaWebUnsupportedReason()).toBeUndefined();
     });
 
     it('should reuse a single probe context across calls instead of creating one per call', () => {
@@ -119,9 +141,9 @@ describe('isSkiaWebSupported', () => {
         // probe must reuse one context.
         const createElement = mockCanvas(jest.fn(() => makeGl(VALID_FORMAT)));
 
-        isSkiaWebSupported();
-        isSkiaWebSupported();
-        isSkiaWebSupported();
+        getSkiaWebUnsupportedReason();
+        getSkiaWebUnsupportedReason();
+        getSkiaWebUnsupportedReason();
 
         expect(createElement).toHaveBeenCalledTimes(1);
     });
@@ -130,19 +152,19 @@ describe('isSkiaWebSupported', () => {
         const gl = makeGl(VALID_FORMAT);
         const createElement = mockCanvas(jest.fn(() => gl));
 
-        expect(isSkiaWebSupported()).toBe(true);
+        expect(getSkiaWebUnsupportedReason()).toBeUndefined();
 
         // The same (reused) context now returns null, e.g. getShaderPrecisionFormat was overridden.
         gl.getShaderPrecisionFormat.mockReturnValue(null);
-        expect(isSkiaWebSupported()).toBe(false);
+        expect(getSkiaWebUnsupportedReason()).toBe('common.webGLNotSupported');
         expect(createElement).toHaveBeenCalledTimes(1);
     });
 
     it('should recreate the probe context after the previous one is lost', () => {
         const createElement = mockCanvases([jest.fn(() => makeGl(VALID_FORMAT, {lost: true})), jest.fn(() => makeGl(VALID_FORMAT))]);
 
-        isSkiaWebSupported();
-        isSkiaWebSupported();
+        getSkiaWebUnsupportedReason();
+        getSkiaWebUnsupportedReason();
 
         expect(createElement).toHaveBeenCalledTimes(2);
     });

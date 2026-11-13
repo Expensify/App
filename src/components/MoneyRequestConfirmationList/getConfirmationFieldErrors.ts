@@ -146,11 +146,16 @@ function getConfirmationFieldErrors(transaction: OnyxEntry<OnyxTypes.Transaction
     };
 }
 
+/** Checks emptiness by content, so it gives the same answer whether or not the map is the shared `NO_FIELD_ERRORS` */
+function hasFieldErrors(fieldErrors: ConfirmationFieldErrors): boolean {
+    return Object.keys(fieldErrors).length > 0;
+}
+
 /** Returns the first other receipt of a multi-scan with a field error, since Create submits every receipt at once. */
 function getSiblingFieldErrors(siblingTransactions: OnyxTypes.Transaction[] | undefined, {participants, ...params}: GetSiblingFieldErrorsParams): SiblingFieldErrors | undefined {
     for (const sibling of siblingTransactions ?? []) {
         const fieldErrors = getConfirmationFieldErrors({...sibling, participants}, {...params, iouAmount: getConfirmationAmount(sibling), iouMerchant: getMerchant(sibling)});
-        if (fieldErrors !== NO_FIELD_ERRORS) {
+        if (hasFieldErrors(fieldErrors)) {
             return {transactionID: sibling.transactionID, fieldErrors};
         }
     }
@@ -159,9 +164,9 @@ function getSiblingFieldErrors(siblingTransactions: OnyxTypes.Transaction[] | un
 
 /** Whether a field error blocks confirming, on the receipt on screen or on another receipt of a multi-scan. */
 function hasBlockingFieldErrors(fieldErrors: ConfirmationFieldErrors, siblingFieldErrors: SiblingFieldErrors | undefined): boolean {
-    return Object.keys(fieldErrors).length > 0 || !!siblingFieldErrors;
+    return hasFieldErrors(fieldErrors) || !!siblingFieldErrors;
 }
 
 export default getConfirmationFieldErrors;
-export {NO_FIELD_ERRORS, getSiblingFieldErrors, hasBlockingFieldErrors};
+export {NO_FIELD_ERRORS, getSiblingFieldErrors, hasBlockingFieldErrors, hasFieldErrors};
 export type {ConfirmationField, ConfirmationFieldErrors, GetConfirmationFieldErrorsParams, SiblingFieldErrors};

@@ -91,6 +91,11 @@ type UseFormErrorManagementResult = {
     errorMessage: string | undefined;
 };
 
+/** Whether the attendees or tax amount field shows this error itself, so the footer leaves it out */
+function isErrorShownOnItsOwnField(error: TranslationPaths | ''): boolean {
+    return error === 'violations.missingAttendees' || error === 'iou.error.invalidTaxAmount';
+}
+
 /**
  * Owns the form-error state for the Money Request confirmation flow.
  *
@@ -216,12 +221,7 @@ function useFormErrorManagement({
             // The debounced value lags the live one after a fix, so it is checked too, or the amount error would flash into the footer for that moment (#96565).
             return debouncedFormError && !isShownOnAmountField(debouncedFormError) ? translate(debouncedFormError) : undefined;
         }
-        // Don't show error at the bottom of the form for missing attendees — the field surfaces it inline.
-        if (formError === 'violations.missingAttendees') {
-            return undefined;
-        }
-        // The tax amount error is a parameterized message surfaced inline on the tax amount field, so skip it here.
-        if (formError === 'iou.error.invalidTaxAmount') {
+        if (isErrorShownOnItsOwnField(formError)) {
             return undefined;
         }
         return formError ? translate(formError) : undefined;
@@ -242,3 +242,4 @@ function useFormErrorManagement({
 }
 
 export default useFormErrorManagement;
+export {isErrorShownOnItsOwnField};

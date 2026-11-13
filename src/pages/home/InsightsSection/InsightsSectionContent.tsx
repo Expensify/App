@@ -86,6 +86,7 @@ function InsightsSectionContent() {
                         menuItems={[
                             {
                                 text: translate('common.view'),
+                                sentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.INSIGHTS_OVERFLOW_MENU_VIEW,
                                 icon: icons.Expand,
                                 onSelected: navigateToInsights,
                                 shouldCallAfterModalHide: true,

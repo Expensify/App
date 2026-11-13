@@ -10,8 +10,7 @@ import {KeyboardEvents} from 'react-native-keyboard-controller';
 
 import type {UseScrollToFocusedInput} from './types';
 
-/** Extra space (px) left between the focused input and the top of the visible list area after scrolling. */
-const EXTRA_SCROLL_PADDING = 16;
+import getScrollDeltaToReveal, {EXTRA_SCROLL_PADDING} from './getScrollDeltaToReveal';
 
 type MeasureInWindowCallback = (x: number, y: number, width: number, height: number) => void;
 
@@ -119,15 +118,11 @@ const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardSho
         }
         scroller.measureInWindow((scrollerX, scrollerY, scrollerWidth, scrollerHeight) => {
             view.measureInWindow((viewX, viewY, viewWidth, viewHeight) => {
-                const visibleTop = scrollerY + EXTRA_SCROLL_PADDING;
-                const visibleBottom = scrollerY + scrollerHeight - EXTRA_SCROLL_PADDING;
-                if (viewY < visibleTop) {
-                    list.scrollToOffset({offset: scrollOffsetRef.current + viewY - visibleTop, animated: true});
+                const delta = getScrollDeltaToReveal({top: viewY, height: viewHeight}, {top: scrollerY, height: scrollerHeight});
+                if (delta === 0) {
                     return;
                 }
-                if (viewY + viewHeight > visibleBottom) {
-                    list.scrollToOffset({offset: scrollOffsetRef.current + viewY + viewHeight - visibleBottom, animated: true});
-                }
+                list.scrollToOffset({offset: scrollOffsetRef.current + delta, animated: true});
             });
         });
     };

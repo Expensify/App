@@ -216,6 +216,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
             menuItems.push({
                 icon: icons.Trashcan,
                 text: translate('common.remove'),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_THREE_DOTS_REMOVE,
                 onSelected: () => close(turnOnDeleteModal),
             });
         }

@@ -1174,6 +1174,34 @@ describe('useConfirmationValidation', () => {
             expect(result.current.siblingFieldErrors).toEqual({transactionID: 'other-txn', fieldErrors: {amount: 'common.error.invalidAmount'}});
         });
 
+        it('runs every check on the receipt on screen before another receipt with a field error blocks confirmation', () => {
+            // Given a multi-scan on a Control workspace whose receipt on screen is in a category that requires attendees but has none, while another receipt holds a typed merchant that isn't allowed
+            const controlPolicy: OnyxTypes.Policy = {...createRandomPolicy(1), type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true};
+            const policyCategories = {Meals: createMock<OnyxTypes.PolicyCategory>({name: 'Meals', enabled: true, areAttendeesRequired: true})};
+            const siblingTransactions = [createSiblingReceipt({...COMPLETE_SCAN_FIELDS, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT})];
+            const params = createScanValidationParams(COMPLETE_SCAN_FIELDS, {
+                iouAmount: 1000,
+                iouMerchant: 'Starbucks',
+                iouCategory: 'Meals',
+                policy: controlPolicy,
+                policyCategories,
+                currentUserPersonalDetails: createMock<CurrentUserPersonalDetails>({accountID: 1, email: 'owner@example.com'}),
+                siblingTransactions,
+            });
+            const {result, rerender} = renderHook((props: UseConfirmationValidationParams) => useConfirmationValidation(props), {initialProps: params});
+
+            // When the user confirms from the receipt on screen
+            // Then its missing attendees block first, so this receipt is fixed before Create moves on to the other one
+            expect(result.current.validate()).toEqual({errorKey: 'violations.missingAttendees'});
+
+            // When an attendee is added and the user confirms again
+            rerender({...params, iouAttendees: [{email: 'guest@example.com', displayName: 'Guest', avatarUrl: ''}]});
+
+            // Then the other receipt's merchant blocks confirmation, since Create submits both receipts
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.siblingFieldErrors).toEqual({transactionID: 'other-txn', fieldErrors: {merchant: 'iou.error.invalidMerchant'}});
+        });
+
         it('requires nothing on surfaces that do not expose the scan fields (splits, test receipts)', () => {
             // Those surfaces never showed the three fields, so a flag set elsewhere must not hold them to the rule.
             const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams({isAmountSet: true, amount: 1000}, {canEnterScanFieldsManually: false, iouAmount: 1000})));

@@ -340,6 +340,7 @@ function PolicyDistanceRatesPage({
             {
                 text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS_DELETE,
                 icon: icons.Trashcan,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
@@ -366,6 +367,7 @@ function PolicyDistanceRatesPage({
             options.push({
                 text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS.DISABLE,
                 icon: icons.Close,
                 shouldSkipFocusRestore: !canDisableOrDeleteSelectedRates,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? disableRates() : showWarningModal()),
@@ -377,6 +379,7 @@ function PolicyDistanceRatesPage({
             options.push({
                 text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS.ENABLE,
                 icon: icons.Checkmark,
                 onSelected: enableRates,
             });

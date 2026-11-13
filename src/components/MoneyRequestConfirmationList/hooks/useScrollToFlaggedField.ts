@@ -27,7 +27,7 @@ function useScrollToFlaggedField(listRef: RefObject<SelectionListWithSectionsHan
     const [viewToReveal, setViewToReveal] = useState<ViewToReveal | null>(null);
     const revealedViewRef = useRef<ViewToReveal | null>(null);
 
-    // The scroll waits for the render that shows the error, because revealing it can open "Show more" first. When it brings another receipt on screen, the pager keeps showing the previous one for a render while the next one loads, so it also waits for that receipt.
+    // The scroll waits until the flagged receipt is on screen with its error rendered, since revealing can open "Show more" or switch receipts first.
     useEffect(() => {
         if (!viewToReveal || viewToReveal === revealedViewRef.current || viewToReveal.transactionID !== transactionIDOnScreen) {
             return;

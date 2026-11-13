@@ -1,6 +1,8 @@
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
+import {hasFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
+import {isErrorShownOnItsOwnField} from '@components/MoneyRequestConfirmationList/hooks/useFormErrorManagement';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
@@ -9,6 +11,8 @@ import ScanFooter from '@components/MoneyRequestConfirmationListFooter/variants/
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 
 import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
+
+import type {TranslationPaths} from '@src/languages/types';
 
 import React, {useState} from 'react';
 
@@ -42,8 +46,14 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
 
     // The fields expand during render when they hold a value or an error, so the expense never paints collapsed, even after a remount, and Create never looks like it did nothing.
     const hasManuallyEnteredFields = canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction);
-    const hasInlineFieldError = Object.keys(data.footerProps.errorState.fieldErrors).length > 0;
-    if (transactionID && !showMoreFields && (hasManuallyEnteredFields || hasInlineFieldError)) {
+    const {formError, fieldErrors} = data.footerProps.errorState;
+    // The attendees and tax amount fields sit behind "Show more". Every receipt shares one form error, so it opens only the receipt on screen when it is raised.
+    const [lastFormError, setLastFormError] = useState<TranslationPaths | ''>('');
+    const isNewErrorOnCollapsedField = formError !== lastFormError && isErrorShownOnItsOwnField(formError);
+    if (formError !== lastFormError) {
+        setLastFormError(formError);
+    }
+    if (transactionID && !showMoreFields && (hasManuallyEnteredFields || hasFieldErrors(fieldErrors) || isNewErrorOnCollapsedField)) {
         setRevealedTransactionIDs([...revealedTransactionIDs, transactionID]);
     }
 

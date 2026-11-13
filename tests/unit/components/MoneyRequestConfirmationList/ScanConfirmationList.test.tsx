@@ -6,15 +6,18 @@ import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestCo
 import ScanConfirmationList from '@components/MoneyRequestConfirmationList/variants/ScanConfirmationList';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import React from 'react';
 
 let mockFieldErrors: ConfirmationFieldErrors = {};
+let mockFormError: TranslationPaths | '' = '';
+let mockTransactionID = 'txn1';
 
 jest.mock('@components/MoneyRequestConfirmationList/hooks/useConfirmationListData', () => () => ({
-    layoutProps: {transactionID: 'txn1'},
-    footerProps: {errorState: {fieldErrors: mockFieldErrors}},
+    layoutProps: {transactionID: mockTransactionID},
+    footerProps: {errorState: {fieldErrors: mockFieldErrors, formError: mockFormError}},
     taxControllerProps: {},
     splitBillControllerProps: {},
     fieldAutoSelectProps: {},
@@ -57,6 +60,8 @@ function isLastRenderCompact(): boolean | undefined {
 describe('ScanConfirmationList', () => {
     beforeEach(() => {
         mockFieldErrors = {};
+        mockFormError = '';
+        mockTransactionID = 'txn1';
         mockedLayout.mockClear();
     });
 
@@ -80,5 +85,29 @@ describe('ScanConfirmationList', () => {
 
         // Then the fields expand, so the amount shows its error under the input
         expect(isLastRenderCompact()).toBe(false);
+    });
+
+    it('opens "Show more" for an attendee error only on the receipt it was raised on', () => {
+        // Given a multi-scan whose receipt on screen has its fields collapsed
+        const {rerender} = render(<ScanConfirmationList {...listProps} />);
+
+        // When a confirm is blocked by missing attendees, an error only the attendees field behind "Show more" shows
+        mockFormError = 'violations.missingAttendees';
+        rerender(<ScanConfirmationList {...listProps} />);
+
+        // Then the fields expand, so the error is on screen
+        expect(isLastRenderCompact()).toBe(false);
+
+        // When the user pages to another receipt while that error is still set
+        mockTransactionID = 'txn2';
+        rerender(
+            <ScanConfirmationList
+                {...listProps}
+                transaction={{...untouchedScan, transactionID: 'txn2'}}
+            />,
+        );
+
+        // Then that receipt stays collapsed, since every receipt shares the form error and this one doesn't have it
+        expect(isLastRenderCompact()).toBe(true);
     });
 });

@@ -3,7 +3,7 @@
  * fields a blocked confirm brings into view.
  */
 import type {ConfirmationField, ConfirmationFieldErrors, SiblingFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
-import {hasBlockingFieldErrors, NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import {hasBlockingFieldErrors, hasFieldErrors, NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 
 import {useState} from 'react';
 
@@ -54,7 +54,7 @@ function useConfirmationFieldErrors({
         setShouldShowFieldErrors(true);
 
         // The receipt on screen is fixed first, so another receipt is only brought on screen once this one has nothing left to fix.
-        const hasFieldErrorsOnScreen = Object.keys(fieldErrors).length > 0;
+        const hasFieldErrorsOnScreen = hasFieldErrors(fieldErrors);
         if (!hasFieldErrorsOnScreen && siblingFieldErrors) {
             onSwitchToTransaction?.(siblingFieldErrors.transactionID);
         }

@@ -967,6 +967,8 @@ function completeSplitBill({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 ...updatedTransaction,
+                // Only the confirmation reads this draft flag. A saved scan would take it as an unconfirmed amount, and a failed request can't remove it.
+                isMerchantSet: null,
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.OPEN,
                 },
