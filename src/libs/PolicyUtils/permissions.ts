@@ -319,6 +319,11 @@ function canRolePay(role: string | undefined): boolean {
  */
 const PAYER_ROLES = Object.values(CONST.POLICY.ROLE).filter(canRolePay);
 
+/** Only roles offered by the picker count as alternatives, even if other roles have permission to pay. */
+function canReimburserChangeRole(policy: OnyxInputOrEntry<Policy>, login: string, currentRole: string | undefined): boolean {
+    return getSelectableRoles(policy, login, [...PAYER_ROLES]).some((role) => role !== currentRole);
+}
+
 function canRoleCreateExpenses(role: string | undefined): boolean {
     return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
 }
@@ -416,6 +421,7 @@ export {
     getPolicyRole,
     getHighestPolicyRole,
     canRolePay,
+    canReimburserChangeRole,
     canRoleCreateExpenses,
     canCreateExpensesOnPolicy,
     canSubmitOwnReportOnPolicy,
