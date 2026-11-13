@@ -379,7 +379,7 @@ function initMoneyRequest({
     hasOnlyPersonalPolicies,
     draftTransactionIDs,
     defaultParticipants,
-}: InitMoneyRequestParams) {
+}: InitMoneyRequestParams): Partial<Transaction> | undefined {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const currency = overrideCurrency ?? policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -405,7 +405,7 @@ function initMoneyRequest({
     }
 
     const comment: Comment = {};
-    let requestCategory: string | null = null;
+    let requestCategory: string | undefined;
 
     // Set up initial distance expense state
     if (
@@ -460,7 +460,7 @@ function initMoneyRequest({
         if (!isFromGlobalCreate) {
             const {customUnitID, category} = getCustomUnitID(report, parentReport, policy);
             comment.customUnit = {...comment.customUnit, customUnitID};
-            requestCategory = category ?? null;
+            requestCategory = category;
         }
     }
 

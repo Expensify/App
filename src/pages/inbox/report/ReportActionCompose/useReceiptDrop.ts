@@ -63,16 +63,21 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
     const delegateAccountID = useDelegateAccountID();
 
     const onFilesValidated = (files: FileObject[]) => {
-        if (files.length === 0) {
+        // Dropped files come from the browser, so they are always Files. Check all of them before any draft is written.
+        if (files.length === 0 || !files.every((file): file is FileObject & File => file instanceof File)) {
             return;
         }
 
         if (shouldAddOrReplaceReceipt && transactionID) {
-            const source = URL.createObjectURL(files.at(0) as Blob);
+            const file = files.at(0);
+            if (!file) {
+                return;
+            }
+            const source = URL.createObjectURL(file);
             replaceReceipt({
                 isVendorMatchingBetaEnabled,
                 transaction,
-                file: files.at(0) as File,
+                file,
                 source,
                 transactionPolicy: policy,
                 transactionPolicyCategories: policyCategories,
@@ -98,12 +103,12 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         });
 
         for (const [index, file] of files.entries()) {
-            const source = URL.createObjectURL(file as Blob);
+            const source = URL.createObjectURL(file);
             const newTransaction =
                 index === 0
-                    ? (initialTransaction as Partial<OnyxTypes.Transaction>)
+                    ? initialTransaction
                     : buildOptimisticTransactionAndCreateDraft({
-                          initialTransaction: initialTransaction as Partial<OnyxTypes.Transaction>,
+                          initialTransaction: initialTransaction ?? {},
                           reportID,
                       });
             const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
