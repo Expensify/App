@@ -254,6 +254,8 @@ function replaceReceipt({
     logReceiptCaptured({file, captureSource: 'replace', receiptTraceId});
 
     const oldReceipt = transaction?.receipt ?? {};
+    // Replacing a failed-scan receipt whose amount was never filled in: upgrade to SCAN_READY so the UI shows "Scanning" instead of 0.00, mirroring the backend.
+    // If the user already entered an amount, keep it OPEN so re-scanning does not overwrite that amount.
     const isFailedScanPlaceholder = !state && !isSameReceipt && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && isFailedScanAmountPlaceholder(transaction);
     const receiptOptimistic = {
         source,
@@ -350,9 +352,13 @@ function replaceReceipt({
 
     if (transactionPolicy && isGroupPolicy(transactionPolicy) && newTransaction) {
         const currentTransactionViolations = transactionViolations ?? [];
+        // Restarting the scan clears the stale scan-failure violation; failureData restores it on rollback.
+        const optimisticTransactionViolations = isFailedScanPlaceholder
+            ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.SMARTSCAN_FAILED)
+            : currentTransactionViolations;
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction: newTransaction,
-            transactionViolations: currentTransactionViolations,
+            transactionViolations: optimisticTransactionViolations,
             policy: transactionPolicy,
             policyTagList: transactionPolicyTagList ?? {},
             policyCategories: transactionPolicyCategories ?? {},

@@ -295,7 +295,7 @@ describe('actions/IOU/Receipt', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the optimistic state stays OPEN so a rescan does not overwrite the user's confirmed amount
+            // Then the optimistic state stays OPEN so re-scanning does not overwrite the user's confirmed amount
             const updatedTransaction = await getUpdatedTransaction(transactionID);
             expect(updatedTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
         });
