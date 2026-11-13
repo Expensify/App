@@ -10,18 +10,21 @@ import CONFIG from '@src/CONFIG';
 import type {SignOutReason} from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {RequestsKeptOnSAMLSignOut} from '@src/types/onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {isDelegateSessionSelector, isSupportalSessionSelector} from '@selectors/Session';
 import Onyx from 'react-native-onyx';
 
 import {resetSignInFlow} from './HybridApp';
+import {canPersistRequest, getAllIncludingOngoing as getAllPersistedRequestsIncludingOngoing} from './PersistedRequests';
 
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
 let currentSessionAuthToken: string | undefined;
 let currentSessionEmail: string | undefined;
 let currentIsAgentSession = false;
+let currentSessionAccountID: number | undefined;
 let currentCredentialsValidateCode: string | undefined;
 let lastAuthTokenWrittenAt = 0;
 let lastAuthTokenWrittenEmail: string | undefined;
@@ -50,6 +53,7 @@ Onyx.connectWithoutView({
         currentSessionAuthToken = session?.authToken;
         currentSessionEmail = session?.email;
         currentIsAgentSession = isSupportalSessionSelector(session) || isDelegateSessionSelector(session);
+        currentSessionAccountID = session?.accountID;
     },
 });
 
@@ -88,6 +92,7 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
     logReceiptQueueSnapshot('signOut', signOutReason);
 
     const keysToPreserve: OnyxKey[] = [...KEYS_TO_PRESERVE_ON_SIGN_OUT];
+    let requestsKeptOnSAMLSignOut: RequestsKeptOnSAMLSignOut | undefined;
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
     // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch to go back online while signed out.
@@ -121,11 +126,26 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         // A forced re-auth is involuntary, so an in-progress trip and the current page survive it.
         keysToPreserve.push(ONYXKEYS.GPS_DRAFT_DETAILS);
         keysToPreserve.push(ONYXKEYS.LAST_VISITED_PATH);
+
+        // Every tab empties the request queue on sign-out, so unsent requests are set aside under the account that owns them.
+        // A tab signed out after another one has no session left, so it only keeps what the first tab set aside.
+        keysToPreserve.push(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT);
+        keysToPreserve.push(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+        // A request holding a file can't be stored on web, and it would fail the whole write
+        const requests = getAllPersistedRequestsIncludingOngoing().filter(canPersistRequest);
+        if (currentSessionAccountID) {
+            requestsKeptOnSAMLSignOut = {accountID: currentSessionAccountID, requests};
+        }
     }
 
     const clearStartedAt = Date.now();
     const emailAtClearStart = currentSessionEmail;
     return Onyx.clear(keysToPreserve).then(async () => {
+        // Set aside only once the session is gone, otherwise this tab sends them again into the queue the clear empties
+        if (requestsKeptOnSAMLSignOut) {
+            await Onyx.set(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT, requestsKeptOnSAMLSignOut);
+        }
+
         if (lastAuthTokenWrittenAt > clearStartedAt) {
             Log.hmmm('[SignInRedirect] Sign-out clear finished after a new sign-in started', {
                 signOutReason,

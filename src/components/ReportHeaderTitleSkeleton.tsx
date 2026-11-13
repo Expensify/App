@@ -1,4 +1,6 @@
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
+import useHeaderAvatarSize from '@hooks/useHeaderAvatarSize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,11 +19,11 @@ function ReportHeaderTitleSkeleton({shouldAnimate = true}: ReportHeaderTitleSkel
     const theme = useTheme();
     const styles = useThemeStyles();
     const {contentHeaderHeight: height} = useContentHeaderHeight();
-    const radius = 20;
+    const StyleUtils = useStyleUtils();
+    const avatarSize = StyleUtils.getAvatarSize(useHeaderAvatarSize());
+    const radius = avatarSize / 2;
     const circleY = height / 2;
-    const circleTopY = circleY - radius;
-    const circleBottomY = circleY + radius;
-
+    const titleOffsetX = avatarSize + 15;
     return (
         <SkeletonViewContentLoader
             animate={shouldAnimate}
@@ -31,17 +33,17 @@ function ReportHeaderTitleSkeleton({shouldAnimate = true}: ReportHeaderTitleSkel
             foregroundColor={theme.skeletonLHNOut}
         >
             <Circle
-                cx="20"
+                cx={radius}
                 cy={circleY}
                 r={radius}
             />
             <SkeletonRect
-                transform={[{translateX: 55}, {translateY: circleTopY + 8}]}
+                transform={[{translateX: titleOffsetX}, {translateY: circleY - 12}]}
                 width="30%"
                 height="8"
             />
             <SkeletonRect
-                transform={[{translateX: 55}, {translateY: circleBottomY - 12}]}
+                transform={[{translateX: titleOffsetX}, {translateY: circleY + 8}]}
                 width="40%"
                 height="8"
             />
