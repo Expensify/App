@@ -2,7 +2,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-import {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
+import {buildReportIDToNameMap, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
@@ -3851,17 +3851,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
 
     // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
     Promise.resolve().then(() =>
-        editReportComment(
-            originalReport,
-            syncedAction,
-            textForNewComment,
-            isOriginalReportArchived,
-            currentUserLogin,
-            getAllPersonalDetails(),
-            currentUserAccountID,
-            videoAttributeCache,
-            reportIDToName,
-        ),
+        editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache, reportIDToName),
     );
     return true;
 });
@@ -3873,7 +3863,6 @@ function editReportComment(
     textForNewComment: string,
     isOriginalReportArchived: boolean | undefined,
     currentUserLogin: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
@@ -3899,7 +3888,7 @@ function editReportComment(
     }
     const htmlForNewComment = restoreAttachmentAnchorLabels(
         restoreAttachmentAnchorAttributes(
-            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache),
+            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, getAllPersonalDetails(), videoAttributeCache),
             originalCommentHTML,
         ),
         draftForNewComment,
@@ -4037,7 +4026,9 @@ function editReportComment(
             currentUserAccountID,
             isOriginalReportArchived,
             videoAttributeCache,
-            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
+            // The caller's map only has rooms the original HTML mentions by reportID. An offline message mentions rooms
+            // by name, and the synced copy this edit is compared against mentions them by reportID, so look them up here.
+            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(buildReportIDToNameMap(allReports), textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;

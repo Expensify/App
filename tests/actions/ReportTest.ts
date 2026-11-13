@@ -1764,7 +1764,7 @@ describe('actions/Report', () => {
         };
 
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
-        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, '', TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -1859,7 +1859,7 @@ describe('actions/Report', () => {
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
         const currentUserEmail = 'test@test.com';
-        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, currentUserEmail, undefined, TEST_USER_ACCOUNT_ID);
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, currentUserEmail, TEST_USER_ACCOUNT_ID);
         await waitForBatchedUpdates();
 
         const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
@@ -1931,7 +1931,7 @@ describe('actions/Report', () => {
         };
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -2992,7 +2992,7 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -3053,7 +3053,7 @@ describe('actions/Report', () => {
             setHasRadio(false);
             await seedUploadingComment();
 
-            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', undefined, 1);
+            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', 1);
             await waitForBatchedUpdates();
 
             // Then that edit is parked until the upload lands instead of being sent
@@ -3061,7 +3061,7 @@ describe('actions/Report', () => {
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.textForNewComment).toBe(editKeepingAttachment);
 
             // When a second edit removes the attachment
-            Report.editReportComment({reportID}, await getAction(), 'hello removed', undefined, '', undefined, 1);
+            Report.editReportComment({reportID}, await getAction(), 'hello removed', undefined, '', 1);
             await waitForBatchedUpdates();
 
             // Then the parked edit is dropped
@@ -3081,7 +3081,7 @@ describe('actions/Report', () => {
             setHasRadio(false);
             await seedUploadingComment();
 
-            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', undefined, 1);
+            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', 1);
             await waitForBatchedUpdates();
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeDefined();
 
@@ -3109,8 +3109,8 @@ describe('actions/Report', () => {
             // Given a comment whose attachment is still uploading
             // When an edit is deferred on the upload and a second edit removes the attachment before Onyx echoes
             // the deferral back, which is the only thing the clear is allowed to read
-            Report.editReportComment({reportID}, action, editKeepingAttachment, undefined, '', undefined, 1);
-            Report.editReportComment({reportID}, action, 'hello removed', undefined, '', undefined, 1);
+            Report.editReportComment({reportID}, action, editKeepingAttachment, undefined, '', 1);
+            Report.editReportComment({reportID}, action, 'hello removed', undefined, '', 1);
             await waitForBatchedUpdates();
 
             // Then the superseded edit is not left armed
@@ -3181,6 +3181,7 @@ describe('actions/Report', () => {
             setHasRadio(false);
             const roomReportID = '456';
             const reportIDToName = {[roomReportID]: '#admins'};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${roomReportID}`, {reportID: roomReportID, reportName: '#admins'});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                 [reportActionID]: {
@@ -3196,10 +3197,11 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            // When the user changes the caption and then changes it back, so the restoring edit is the one parked on the upload
-            Report.editReportComment({reportID}, await getAction(), `hello #admins changed\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, reportIDToName);
+            // When the user changes the caption and then changes it back, so the restoring edit is the one parked on the upload.
+            // The composer passes an empty map, since the original HTML mentions the room by name and not by reportID.
+            Report.editReportComment({reportID}, await getAction(), `hello #admins changed\n\n[file.csv](${localSource})`, undefined, '', 1, undefined, {});
             await waitForBatchedUpdates();
-            Report.editReportComment({reportID}, await getAction(), `hello #admins\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, reportIDToName);
+            Report.editReportComment({reportID}, await getAction(), `hello #admins\n\n[file.csv](${localSource})`, undefined, '', 1, undefined, {});
             await waitForBatchedUpdates();
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.reportIDToName).toEqual(reportIDToName);
 
@@ -3258,13 +3260,13 @@ describe('actions/Report', () => {
         const getAction = async () => (await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`))?.[reportActionID];
 
         // When it is renamed while still offline
-        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[renamed.csv](${localUri})`, undefined, '', undefined, 1);
+        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[renamed.csv](${localUri})`, undefined, '', 1);
         await waitForBatchedUpdates();
 
         expect(queuedFileName()).toBe('renamed.csv');
 
         // And then renamed back to the name the picker gave it
-        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[original.csv](${localUri})`, undefined, '', undefined, 1);
+        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[original.csv](${localUri})`, undefined, '', 1);
         await waitForBatchedUpdates();
 
         // Then the file that uploads carries the name the comment now shows
@@ -3289,7 +3291,7 @@ describe('actions/Report', () => {
         };
 
         // When it is renamed to a label whose underscores the parser would read as emphasis
-        Report.editReportComment({reportID}, action, `[_my_report_.csv](${attachmentURL})`, undefined, '', undefined, 1);
+        Report.editReportComment({reportID}, action, `[_my_report_.csv](${attachmentURL})`, undefined, '', 1);
 
         // Then the queued edit carries the label as plain text inside the anchor
         const request = PersistedRequests.getAll().at(0);
@@ -3320,9 +3322,9 @@ describe('actions/Report', () => {
             reportID,
         };
 
-        Report.editReportComment(originalReport, action, 'value1', undefined, '', undefined, 1);
-        Report.editReportComment(originalReport, action, 'value2', undefined, '', undefined, 1);
-        Report.editReportComment(originalReport, action, 'value3', undefined, '', undefined, 1);
+        Report.editReportComment(originalReport, action, 'value1', undefined, '', 1);
+        Report.editReportComment(originalReport, action, 'value2', undefined, '', 1);
+        Report.editReportComment(originalReport, action, 'value3', undefined, '', 1);
 
         const requests = PersistedRequests?.getAll();
 
@@ -3383,18 +3385,7 @@ describe('actions/Report', () => {
         };
 
         // Edit the comment to add a short mention
-        Report.editReportComment(
-            originalReport,
-            newReportAction,
-            'Initial comment with @bob',
-            undefined,
-            TEST_USER_LOGIN,
-            {
-                [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN},
-                [MENTIONED_USER_ACCOUNT_ID]: {accountID: MENTIONED_USER_ACCOUNT_ID, login: MENTIONED_USER_LOGIN, displayName: 'Bob'},
-            },
-            TEST_USER_ACCOUNT_ID,
-        );
+        Report.editReportComment(originalReport, newReportAction, 'Initial comment with @bob', undefined, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -3434,9 +3425,9 @@ describe('actions/Report', () => {
         const originalReport = {reportID: '123'};
         const currentUserEmail = 'user@test.com';
 
-        Report.editReportComment(originalReport, action, 'value1', undefined, currentUserEmail, undefined, 1);
-        Report.editReportComment(originalReport, action, 'value2', undefined, currentUserEmail, undefined, 1);
-        Report.editReportComment(originalReport, action, 'value3', undefined, currentUserEmail, undefined, 1);
+        Report.editReportComment(originalReport, action, 'value1', undefined, currentUserEmail, 1);
+        Report.editReportComment(originalReport, action, 'value2', undefined, currentUserEmail, 1);
+        Report.editReportComment(originalReport, action, 'value3', undefined, currentUserEmail, 1);
 
         const requests = PersistedRequests?.getAll();
         expect(requests.length).toBe(1);
@@ -3485,7 +3476,7 @@ describe('actions/Report', () => {
         // Given a whisper aimed at the user, which is newer than the comment being edited
         const visibleWhisperReportID = '77001';
         const commentUnderVisibleWhisper = await setUpReport(visibleWhisperReportID, CURRENT_USER_ACCOUNT_ID);
-        Report.editReportComment({reportID: visibleWhisperReportID}, commentUnderVisibleWhisper, 'after edit', undefined, '', undefined, CURRENT_USER_ACCOUNT_ID);
+        Report.editReportComment({reportID: visibleWhisperReportID}, commentUnderVisibleWhisper, 'after edit', undefined, '', CURRENT_USER_ACCOUNT_ID);
         await waitForBatchedUpdates();
 
         // Then editing the older comment leaves the report's last message alone
@@ -3494,7 +3485,7 @@ describe('actions/Report', () => {
         // Given a whisper aimed at somebody else, which the user cannot see
         const hiddenWhisperReportID = '77002';
         const commentUnderHiddenWhisper = await setUpReport(hiddenWhisperReportID, OTHER_ACCOUNT_ID);
-        Report.editReportComment({reportID: hiddenWhisperReportID}, commentUnderHiddenWhisper, 'after edit', undefined, '', undefined, CURRENT_USER_ACCOUNT_ID);
+        Report.editReportComment({reportID: hiddenWhisperReportID}, commentUnderHiddenWhisper, 'after edit', undefined, '', CURRENT_USER_ACCOUNT_ID);
         await waitForBatchedUpdates();
 
         // Then the edited comment is the last visible action, so the report's last message follows it

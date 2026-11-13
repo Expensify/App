@@ -13,6 +13,8 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
 import * as LHNTestUtils from '../../utils/LHNTestUtils';
+import * as TestHelper from '../../utils/TestHelper';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -189,6 +191,53 @@ describe('useEditMessage', () => {
 
         // Then the list already owns the scroll request before the editor can unmount.
         expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+    });
+
+    it('saves with the names of only the rooms the original message mentions', async () => {
+        // Given an original message that mentions one room, and another room it does not mention
+        const mentionedReportID = '111';
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mentionedReportID}`, {reportID: mentionedReportID, reportName: '#mentioned'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}222`, {reportID: '222', reportName: '#other'});
+        });
+        const reportAction = LHNTestUtils.getFakeReportAction();
+        const {hook} = renderUseEditMessage({
+            reportAction: {...reportAction, message: [{type: 'COMMENT', text: '#mentioned', html: `<mention-report reportID="${mentionedReportID}"/>`}]},
+        });
+
+        // When the edit is saved
+        act(() => hook.result.current.publishDraft('Updated message'));
+
+        // Then the unchanged check gets the mentioned room, which is all it needs to turn the original HTML back into markdown
+        expect(mockEditReportComment.mock.calls.at(0)?.[7]).toEqual({[mentionedReportID]: '#mentioned'});
+    });
+
+    it('does not re-render when an unrelated report or personal details change', async () => {
+        // Given an edit of a message that mentions no rooms
+        let renderCount = 0;
+        const report = LHNTestUtils.getFakeReport();
+        const props: HookProps = {
+            reportID: report.reportID,
+            originalReportID: report.reportID,
+            reportAction: LHNTestUtils.getFakeReportAction(),
+            debouncedCommentMaxLengthValidation: makeDebouncedValidator({flushResult: true}),
+            composerRef: {current: createMock<ComposerRef>({blur: jest.fn()})},
+        };
+        renderHook(() => {
+            renderCount++;
+            return useEditMessage(props);
+        });
+        await waitForBatchedUpdates();
+        const renderCountBefore = renderCount;
+
+        // When another report and the personal details list are written
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}999`, {reportID: '999', reportName: '#unrelated', lastReadTime: '2026-11-10 10:00:00.000'});
+            await TestHelper.setPersonalDetails('someone@test.com', 5);
+        });
+
+        // Then publishDraft keeps its inputs, so the composer reading it from context does not re-render
+        expect(renderCount).toBe(renderCountBefore);
     });
 
     it('does not scroll after deleting a non-newest message draft', () => {

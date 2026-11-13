@@ -2,12 +2,12 @@ import type {ComposerRef} from '@components/Composer/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
-import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
+import {useMentionedReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 
 import {clearAllReportActionDrafts, editReportComment} from '@libs/actions/Report';
+import {getReportActionHtml} from '@libs/ReportActionsUtils';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
@@ -46,10 +46,10 @@ function useEditMessage({
 
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const actionOwnerReportID = originalReportID ?? reportID;
-    const [personalDetails] = useAllPersonalDetails();
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
     const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
-    const reportIDToName = useReportIDToNameMap();
+    // Only the rooms mentioned in the original message are needed to tell whether the edit changed it.
+    const reportIDToName = useMentionedReportIDToNameMap(getReportActionHtml(reportAction));
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 
@@ -105,7 +105,6 @@ function useEditMessage({
             trimmedNewDraft,
             isOriginalReportArchived,
             email ?? '',
-            personalDetails,
             currentUserAccountID,
             Object.fromEntries(draftMessageVideoAttributeCache),
             reportIDToName,

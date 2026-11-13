@@ -23,10 +23,29 @@ function getReportIDToNameMapForRoomsInMarkdown(reportIDToName: ReportIDToNameMa
     return map;
 }
 
-/** Builds a map of reportID to report name from COLLECTION.REPORT. */
-function buildReportIDToNameMap(reports: OnyxCollection<Report> | undefined): ReportIDToNameMap {
+const MENTION_REPORT_ID_REGEX = /<mention-report[^>]*\sreportID="?(\d+)"?/gi;
+const EMPTY_REPORT_ID_TO_NAME_MAP: ReportIDToNameMap = {};
+
+/** Unique reportIDs referenced by <mention-report reportID=...> tags in the given HTML string */
+function getMentionedReportIDs(htmlString: string | undefined): string[] {
+    if (!htmlString?.includes('<mention-report')) {
+        return [];
+    }
+    const reportIDs = new Set<string>();
+    for (const match of htmlString.matchAll(MENTION_REPORT_ID_REGEX)) {
+        reportIDs.add(match[1]);
+    }
+    return [...reportIDs];
+}
+
+/**
+ * Builds a map of reportID to report name from COLLECTION.REPORT.
+ * When reportIDs is passed, only those reports are looked up.
+ */
+function buildReportIDToNameMap(reports: OnyxCollection<Report> | undefined, reportIDs?: string[]): ReportIDToNameMap {
     const map: ReportIDToNameMap = {};
-    for (const report of Object.values(reports ?? {})) {
+    const reportsToMap = reportIDs ? reportIDs.map((reportID) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) : Object.values(reports ?? {});
+    for (const report of reportsToMap) {
         if (!report) {
             continue;
         }
@@ -41,5 +60,15 @@ function useReportIDToNameMap(): ReportIDToNameMap {
     return buildReportIDToNameMap(reports);
 }
 
+/**
+ * Same as useReportIDToNameMap, but only maps the reports mentioned in the given HTML string.
+ * The selector re-renders the caller only when the names of those reports change.
+ */
+function useMentionedReportIDToNameMap(htmlString: string | undefined): ReportIDToNameMap {
+    const mentionedReportIDs = getMentionedReportIDs(htmlString);
+    const [reportIDToName = EMPTY_REPORT_ID_TO_NAME_MAP] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => buildReportIDToNameMap(reports, mentionedReportIDs)});
+    return reportIDToName;
+}
+
 export default useReportIDToNameMap;
-export {buildReportIDToNameMap, getReportIDToNameMapForRoomsInMarkdown};
+export {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown, useMentionedReportIDToNameMap};
