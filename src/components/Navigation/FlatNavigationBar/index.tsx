@@ -181,15 +181,12 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                             {/* The header stays out of the peek, so pressing the toggle never races the bar widening under the pointer. */}
                             <Hoverable onHoverIn={startPeek}>
                                 <View
-                                    testID="FlatNavPeekableBody"
+                                    testID="FlatNavPeekBody"
                                     style={styles.flex1}
                                     onFocus={startPeekOnKeyboardFocus}
                                     onBlur={endPeekUnlessStaying}
                                 >
-                                    <View
-                                        testID="FlatNavPeekableItems"
-                                        style={styles.flex1}
-                                    >
+                                    <View style={styles.flex1}>
                                         <View style={styles.flatNavigationBarCreateButtonContainer}>
                                             <FlatNavCreateButton
                                                 isCompact={isVisuallyCollapsed}

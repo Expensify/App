@@ -564,7 +564,7 @@ describe('FlatNavigationBar', () => {
 
             // When navigation items gain focus via keyboard navigation
             mockHasKeyboardFocusInside = true;
-            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar peeks open to reveal labels for keyboard users
@@ -572,7 +572,7 @@ describe('FlatNavigationBar', () => {
 
             // When focus leaves the navigation items
             mockHasKeyboardFocusInside = false;
-            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'blur', {
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'blur', {
                 nativeEvent: {},
             });
             await waitForBatchedUpdatesWithAct();
@@ -587,12 +587,12 @@ describe('FlatNavigationBar', () => {
             renderBar(NAVIGATION_TABS.HOME);
             await waitForBatchedUpdatesWithAct();
             mockHasKeyboardFocusInside = true;
-            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
             await waitForBatchedUpdatesWithAct();
 
             // When focus moves to another item inside the bar, e.g. tabbing from Home to Inbox
             mockIsFocusMovingInside = true;
-            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'blur', {
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'blur', {
                 currentTarget: {},
                 nativeEvent: {relatedTarget: {}},
             });
@@ -608,7 +608,7 @@ describe('FlatNavigationBar', () => {
             renderBar(NAVIGATION_TABS.HOME);
             await waitForBatchedUpdatesWithAct();
             mockHasKeyboardFocusInside = true;
-            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
             await waitForBatchedUpdatesWithAct();
 
             // When the pointer passes over the bar and leaves it
@@ -630,7 +630,7 @@ describe('FlatNavigationBar', () => {
                 mockInnerHoverIn?.();
             });
             await waitForBatchedUpdatesWithAct();
-            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
             await waitForBatchedUpdatesWithAct();
 
             // When the pointer leaves the bar
@@ -668,7 +668,7 @@ describe('FlatNavigationBar', () => {
             expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
 
             // And the modal then restores focus to the Create button, which is not keyboard focus
-            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar stays collapsed, because only keyboard focus may start a peek
