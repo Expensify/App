@@ -206,7 +206,7 @@ type GetValidOptionsSharedConfig = {
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     action?: IOUAction;
     shouldBoldTitleByDefault?: boolean;
-    selectedOptions?: Option[];
+    selectedOptions?: readonly Option[];
 };
 
 type GetValidReportsConfig = {

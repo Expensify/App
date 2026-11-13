@@ -2,6 +2,7 @@ import {getCompanyCardColumnMappings} from '@libs/importSpreadsheetUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 
@@ -15,7 +16,7 @@ type ImportFinalModalResult = {
 function setSpreadsheetData(
     data: string[][],
     fileURI: string,
-    fileType: string,
+    fileType: ImportedSpreadsheet['fileType'],
     fileName: string,
     isImportingMultiLevelTags: boolean,
     importTransactionSettings?: ImportTransactionSettings,

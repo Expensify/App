@@ -1,3 +1,6 @@
+import type {Option} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
+
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
 
 import useSearchSelectorBase from './base';
@@ -10,7 +13,7 @@ import useSearchSelectorBase from './base';
  * @param config - Configuration object for the hook
  * @returns Object with search and selection utilities
  */
-function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorReturn {
+function useSearchSelector<TSelected extends Option = OptionData>(config: UseSearchSelectorConfig<TSelected>): UseSearchSelectorReturn<TSelected> {
     return useSearchSelectorBase(config);
 }
 
