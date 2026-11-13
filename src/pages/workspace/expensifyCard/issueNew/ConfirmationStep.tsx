@@ -24,7 +24,7 @@ import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -262,7 +262,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                 )}
                 {isPhoneNumberStepShown && (
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(() => editStep(CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER), false, session)}
+                        onPress={callIfAuthenticated(() => editStep(CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER), session)}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.ISSUE_CARD_PHONE_NUMBER}
                     >
                         <MenuItemField.Row
