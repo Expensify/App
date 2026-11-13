@@ -1,0 +1,38 @@
+diff --git a/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/ReactEmbeddedViewManager.kt b/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/ReactEmbeddedViewManager.kt
+--- a/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/ReactEmbeddedViewManager.kt
++++ b/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/ReactEmbeddedViewManager.kt
+@@ -14,6 +14,7 @@ class ReactEmbeddedViewManager : SimpleViewManager<ReactEmbeddedView>(),
+ 
+     private val manualDelegate = object : ViewManagerDelegate<ReactEmbeddedView> {
+ 
++        @Suppress("ACCIDENTAL_OVERRIDE") // RN 0.88: ViewManagerDelegate signatures changed; upstream 26.12.0 suppresses the same way
+         override fun setProperty(view: ReactEmbeddedView, propName: String, value: Any?) {
+             when (propName) {
+                 "embeddedId" -> setEmbeddedId(view, value as? String)
+@@ -21,6 +22,7 @@ class ReactEmbeddedViewManager : SimpleViewManager<ReactEmbeddedView>(),
+             }
+         }
+ 
++        @Suppress("ACCIDENTAL_OVERRIDE") // RN 0.88: ViewManagerDelegate signatures changed; upstream 26.12.0 suppresses the same way
+         override fun receiveCommand(
+             view: ReactEmbeddedView,
+             commandName: String,
+diff --git a/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/ReactMessageViewManager.kt b/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/ReactMessageViewManager.kt
+--- a/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/ReactMessageViewManager.kt
++++ b/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/ReactMessageViewManager.kt
+@@ -14,6 +14,7 @@ class ReactMessageViewManager : SimpleViewManager<ReactMessageView>(),
+ 
+     private val delegate = object : ViewManagerDelegate<ReactMessageView> {
+ 
++        @Suppress("ACCIDENTAL_OVERRIDE") // RN 0.88: ViewManagerDelegate signatures changed; upstream 26.12.0 suppresses the same way
+         override fun setProperty(view: ReactMessageView, propName: String, value: Any?) {
+             when (propName) {
+                 "messageId" -> setMessageId(view, value as? String)
+@@ -21,6 +22,7 @@ class ReactMessageViewManager : SimpleViewManager<ReactMessageView>(),
+             }
+         }
+ 
++        @Suppress("ACCIDENTAL_OVERRIDE") // RN 0.88: ViewManagerDelegate signatures changed; upstream 26.12.0 suppresses the same way
+         override fun receiveCommand(
+             view: ReactMessageView,
+             commandName: String,

@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
+index bcdbee9..b854262 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
+@@ -360,6 +360,7 @@ internal constructor(
+       // thus prevent the RemoveDeleteTree worker from deleting this
+       // View in the future.
+       if (currParentView is ViewGroup) {
++        currParentView.endViewTransition(view)
+         currParentView.removeView(view)
+       }
+       erroneouslyReaddedReactTags.add(tag)

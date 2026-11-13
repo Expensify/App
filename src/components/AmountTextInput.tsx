@@ -12,6 +12,9 @@ import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
 import TextInput from './TextInput';
 
+/** Key press event of the amount input. `ctrlKey` is only set on web, where the native event is a DOM KeyboardEvent */
+type AmountTextInputKeyPressEvent = NativeSyntheticEvent<TextInputKeyPressEvent['nativeEvent'] & Partial<Pick<KeyboardEvent, 'ctrlKey'>>>;
+
 type AmountTextInputProps = {
     /** Formatted amount in local currency  */
     formattedAmount: string;
@@ -30,7 +33,7 @@ type AmountTextInputProps = {
     disableKeyboard?: boolean;
 
     /** Function to call to handle key presses in the text input */
-    onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
+    onKeyPress?: (event: AmountTextInputKeyPressEvent) => void;
 
     containerStyle?: StyleProp<ViewStyle>;
 
@@ -95,7 +98,7 @@ function AmountTextInput({
             selection={selection}
             onSelectionChange={onSelectionChange}
             accessibilityLabel={accessibilityLabel ?? translate('iou.amount')}
-            onKeyPress={onKeyPress as (event: TextInputKeyPressEvent) => void}
+            onKeyPress={onKeyPress}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
             // On iPad, even if the soft keyboard is hidden, the keyboard suggestion is still shown.
             // Setting both autoCorrect and spellCheck to false will hide the suggestion.
@@ -112,3 +115,4 @@ function AmountTextInput({
 }
 
 export default AmountTextInput;
+export type {AmountTextInputKeyPressEvent};

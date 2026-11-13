@@ -1,0 +1,29 @@
+diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
+index c20e183..76482f1 100644
+--- a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
++++ b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
+@@ -103,7 +103,7 @@ val downloadHermes by
+     tasks.registering(Download::class) {
+       src(
+           providers.provider {
+-            "https://github.com/facebook/hermes/tarball/${hermesVersionProvider.get()}"
++            "https://github.com/meta/hermes/tarball/${hermesVersionProvider.get()}"
+           },
+       )
+       onlyIfModified(true)
+@@ -118,13 +118,8 @@ val unzipHermes by
+     tasks.registering(Copy::class) {
+       dependsOn(downloadHermes)
+       from(tarTree(downloadHermesDest)) {
+-        eachFile {
+-          // We flatten the unzip as the tarball contains a `facebook-hermes-<SHA>`
+-          // folder at the top level.
+-          if (this.path.startsWith("facebook-hermes-")) {
+-            this.path = this.path.substringAfter("/")
+-          }
+-        }
++        eachFile { path = path.substringAfter("/") }
++        includeEmptyDirs = false
+       }
+       into(hermesDir)
+     }

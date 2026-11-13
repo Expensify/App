@@ -192,6 +192,13 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                 'victory-native': path.resolve(dirname, '../../node_modules/victory-native/src/index.ts'),
                 // Required for @shopify/react-native-skia web support
                 'react-native/Libraries/Image/AssetRegistry': false,
+                // RN 0.87+ moved the asset registry into core (react-native/asset-registry, a Flow file) and no longer
+                // depends on @react-native/assets-registry. expo-asset/expo-image import the new path, react-native-svg
+                // still imports the old package. On web both should resolve to react-native-web's registry.
+                // Drop the @react-native/assets-registry alias (and the package in package.json and knip.json) once
+                // react-native-svg stops importing it on web: https://github.com/software-mansion/react-native-svg/issues/3087
+                'react-native/asset-registry': 'react-native-web/dist/modules/AssetRegistry',
+                '@react-native/assets-registry/registry': 'react-native-web/dist/modules/AssetRegistry',
                 // @sentry/react-native references the optional expo-updates module. We do not install it,
                 // so web/Storybook bundles should treat it as unavailable instead of failing resolution.
                 'expo-updates': false,
