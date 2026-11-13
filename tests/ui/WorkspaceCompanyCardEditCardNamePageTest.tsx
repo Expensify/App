@@ -96,6 +96,7 @@ function pageElement() {
         <WorkspaceCompanyCardEditCardNamePage
             // @ts-expect-error - Minimal test stub; the page reads route.params and calls navigation.getState() in the submit handler
             route={{key: 'test', name: SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME, params: {policyID: 'p1', cardID: CARD_ID, feed: 'visa'}}}
+            // @ts-expect-error - Stub navigation that only implements getState
             navigation={{getState: () => ({})}}
         />
     );

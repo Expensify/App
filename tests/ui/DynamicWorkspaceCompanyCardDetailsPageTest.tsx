@@ -145,6 +145,7 @@ function pageElement() {
         <DynamicWorkspaceCompanyCardDetailsPage
             // @ts-expect-error - Minimal test stub; the page reads route.params only and does not use the navigation prop
             route={{key: 'test', name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS, params: {policyID: 'p1', cardID: CARD_ID, feedName: FEED, bank: BANK}}}
+            // @ts-expect-error - Empty stub; the page does not use the navigation prop
             navigation={{}}
         />
     );
@@ -156,9 +157,9 @@ describe('DynamicWorkspaceCompanyCardDetailsPage', () => {
     beforeEach(() => {
         capturedMenuItemFields = [];
         mockMenuItemField.mockClear();
-        mockMenuItemField.mockImplementation(({name, value}: {name?: string; value?: string}) => {
-            capturedMenuItemFields.push({name: name ?? '', value});
-            return null;
+        mockMenuItemField.mockImplementation(({name, value}) => {
+            capturedMenuItemFields.push({name, value});
+            return React.createElement(React.Fragment);
         });
     });
 
