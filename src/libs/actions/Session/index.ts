@@ -1650,7 +1650,7 @@ function clearTwoFactorAuthSecretKey() {
  */
 function waitForUserSignIn(): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
-        if (deprecatedSession.authToken) {
+        if (hasAuthToken()) {
             resolve(true);
         } else {
             authPromiseResolver = resolve;
