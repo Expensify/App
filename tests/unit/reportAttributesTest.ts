@@ -26,8 +26,13 @@ jest.mock('@libs/ReportUtils', () => ({
     })),
     generateIsEmptyReport: jest.fn(() => false),
     getPendingDeleteMemberAccountIDs: jest.fn(() => []),
+    hasViolations: jest.fn(() => false),
     hasVisibleReportFieldViolations: jest.fn(() => false),
     isArchivedReport: jest.fn(() => false),
+    isOpenReport: jest.fn(() => false),
+    isPolicyAdmin: jest.fn(() => false),
+    isPolicyExpenseChat: jest.fn(() => false),
+    isProcessingReport: jest.fn(() => false),
     isSupportTicket: jest.fn(() => false),
     isValidReport: jest.fn(() => true),
     parseReportRouteParams: jest.fn(() => ({reportID: ''})),
@@ -56,6 +61,14 @@ const basePolicy = createMock<Policy>({
     autoReimbursementLimit: 1000,
     autoReimbursement: {limit: 500},
 });
+const createReportPreviewAction = (reportActionID: string, linkedReportID: string, created: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> => ({
+    reportActionID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+    created,
+    originalMessage: {linkedReportID},
+    message: [{type: 'COMMENT', text: ''}],
+});
+
 describe('hasPolicyRelevantFieldChanged', () => {
     describe('null / undefined edge cases', () => {
         it('returns false when both are null', () => {
@@ -136,14 +149,6 @@ describe('hasPolicyRelevantFieldChanged', () => {
 });
 
 describe('getOldestPreviewActionID', () => {
-    const createReportPreviewAction = (reportActionID: string, linkedReportID: string, created: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> => ({
-        reportActionID,
-        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-        created,
-        originalMessage: {linkedReportID},
-        message: [{type: 'COMMENT', text: ''}],
-    });
-
     it('returns undefined when reportIDs is undefined', () => {
         expect(getOldestPreviewActionID(undefined, {}, {})).toBeUndefined();
     });
@@ -803,6 +808,93 @@ describe('reportAttributes compute — policy change code flow', () => {
         // so both pick up the recomputed name instead of keeping their stale seeded value.
         expect(result?.reports.expense1?.reportName).toBe('Test Report');
         expect(result?.reports.chat1?.reportName).toBe('Test Report');
+    });
+
+    it("doesn't go over every report again when an unrelated chat changes while a settled report keeps its error", () => {
+        // Given a chat whose only child with an error is settled, so the chat's other children are looked up for a violation to fix
+        const {default: SidebarUtils} = jest.requireMock<{default: {getReasonAndReportActionThatHasRedBrickRoad: jest.Mock}}>('@libs/SidebarUtils');
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad.mockImplementation(({report}: {report: Report}) => (report.reportID === 'settled1' ? {reason: 'hasErrors'} : undefined));
+        const settledReport = createMock<Report>({reportID: 'settled1', chatReportID: 'chat1', parentReportID: 'chat1', parentReportActionID: 'preview1', participants: {}});
+        const chatReport = createMock<Report>({reportID: 'chat1', chatReportID: undefined, participants: {}});
+        const otherChat = createMock<Report>({reportID: 'dm1', chatReportID: undefined, participants: {}});
+        const reportsWithSettledError: OnyxCollection<Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}settled1`]: settledReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: chatReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}dm1`]: otherChat,
+        };
+        const reportActions: OnyxCollection<ReportActions> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}chat1`]: {preview1: createReportPreviewAction('preview1', 'settled1', '2024-01-01 12:00:00')},
+        };
+        const firstArgs = buildArgs(undefined, reportsWithSettledError);
+        firstArgs[4] = reportActions;
+        const firstResult = config.compute(firstArgs, {currentValue: undefined, sourceValues: undefined});
+        expect(firstResult?.reports.chat1?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.FIX);
+
+        // When only the unrelated chat changes, with every full read of the reports counted
+        let fullReadCount = 0;
+        const updatedOtherChat = {...otherChat, lastMessageText: 'hi'};
+        const reportsAfterUpdate = new Proxy(
+            {...reportsWithSettledError, [`${ONYXKEYS.COLLECTION.REPORT}dm1`]: updatedOtherChat},
+            {
+                ownKeys: (target) => {
+                    fullReadCount++;
+                    return Reflect.ownKeys(target);
+                },
+            },
+        );
+        const secondArgs = buildArgs(undefined, reportsAfterUpdate);
+        secondArgs[4] = reportActions;
+        const secondResult = config.compute(secondArgs, {
+            currentValue: firstResult,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}dm1`]: updatedOtherChat}},
+        });
+
+        // Then the chat keeps its Fix badge without going over every report, since the list of its child reports is kept from the first run
+        expect(secondResult?.reports.chat1?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.FIX);
+        expect(fullReadCount).toBe(0);
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad.mockImplementation(() => undefined);
+    });
+
+    it('points the chat Fix badge at a report with a violation that moved into the chat after the first run', () => {
+        // Given a chat whose only child with an error is settled, and an open report with a violation that sits in another chat
+        const {default: SidebarUtils} = jest.requireMock<{default: {getReasonAndReportActionThatHasRedBrickRoad: jest.Mock}}>('@libs/SidebarUtils');
+        const {hasViolations, isOpenReport} = jest.requireMock<{hasViolations: jest.Mock; isOpenReport: jest.Mock}>('@libs/ReportUtils');
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad.mockImplementation(({report}: {report: Report}) => (report.reportID === 'settled1' ? {reason: 'hasErrors'} : undefined));
+        isOpenReport.mockImplementation((report: Report) => report?.reportID === 'open1');
+        hasViolations.mockImplementation((reportID: string) => reportID === 'open1');
+        const settledReport = createMock<Report>({reportID: 'settled1', chatReportID: 'chat1', parentReportID: 'chat1', parentReportActionID: 'preview1', participants: {}});
+        const openReport = createMock<Report>({reportID: 'open1', chatReportID: 'chat2', parentReportID: 'chat2', parentReportActionID: 'preview2', participants: {}});
+        const reportsBeforeMove: OnyxCollection<Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}settled1`]: settledReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}open1`]: openReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: createMock<Report>({reportID: 'chat1', chatReportID: undefined, participants: {}}),
+            [`${ONYXKEYS.COLLECTION.REPORT}chat2`]: createMock<Report>({reportID: 'chat2', chatReportID: undefined, participants: {}}),
+        };
+        const reportActions: OnyxCollection<ReportActions> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}chat1`]: {
+                preview1: createReportPreviewAction('preview1', 'settled1', '2024-01-01 12:00:00'),
+                preview3: createReportPreviewAction('preview3', 'open1', '2024-01-01 12:00:00'),
+            },
+        };
+        const firstArgs = buildArgs(undefined, reportsBeforeMove);
+        firstArgs[4] = reportActions;
+        const firstResult = config.compute(firstArgs, {currentValue: undefined, sourceValues: undefined});
+        expect(firstResult?.reports.chat1?.actionTargetReportActionID).toBe('preview1');
+
+        // When the open report moves into the first chat
+        const movedReport = {...openReport, chatReportID: 'chat1', parentReportID: 'chat1', parentReportActionID: 'preview3'};
+        const secondArgs = buildArgs(undefined, {...reportsBeforeMove, [`${ONYXKEYS.COLLECTION.REPORT}open1`]: movedReport});
+        secondArgs[4] = reportActions;
+        const secondResult = config.compute(secondArgs, {
+            currentValue: firstResult,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}open1`]: movedReport}},
+        });
+
+        // Then the Fix badge takes the user to the report they can fix, which only works if the kept list of the chat's reports picked up the move
+        expect(secondResult?.reports.chat1?.actionTargetReportActionID).toBe('preview3');
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad.mockImplementation(() => undefined);
+        isOpenReport.mockImplementation(() => false);
+        hasViolations.mockImplementation(() => false);
     });
 
     describe('reportMetadata', () => {
