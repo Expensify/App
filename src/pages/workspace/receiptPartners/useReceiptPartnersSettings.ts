@@ -21,10 +21,13 @@ import {useEffect} from 'react';
 type UseReceiptPartnersSettingsOptions = {
     /** Runs once the user confirms disconnecting and takes over calling `disconnect`, so the panel can close before the connection is removed */
     onDisconnectConfirmed?: (disconnect: () => void) => void;
+
+    /** Runs right after Uber's revoke page opens, so the panel can close before Uber's REVOKED webhook disconnects the workspace */
+    onRevokePageOpened?: () => void;
 };
 
 /** State and actions for the workspace's receipt partner connections, used by the Connections receipt partners panel */
-function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: UseReceiptPartnersSettingsOptions = {}) {
+function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed, onRevokePageOpened}: UseReceiptPartnersSettingsOptions = {}) {
     const icons = useMemoizedLazyExpensifyIcons(['Key', 'NewWindow', 'Trashcan']);
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -74,6 +77,8 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
     };
 
     const getOverflowMenu = (integration: string): PopoverMenuItem[] => {
+        const uberOrganizationID = integrations?.uber?.organizationID;
+        const uberRevokeFormData = integrations?.uber?.revokeFormData;
         switch (integration) {
             case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER:
                 if (shouldShowEnterCredentialsError) {
@@ -88,6 +93,26 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
                                 }),
                             shouldCallAfterModalHide: true,
                             disabled: isOffline,
+                            iconRight: icons.NewWindow,
+                        },
+                    ];
+                }
+
+                if (uberOrganizationID) {
+                    // Uber requires one of its org admins to confirm the revoke on its own page, which also shows the confirmation. We disconnect
+                    // on our side when Uber sends the REVOKED webhook, so nothing changes if the admin closes the page without confirming.
+                    // The item stays disabled until the server sends the revoke query, so a connected workspace never skips the revoke on Uber's side.
+                    return [
+                        {
+                            icon: icons.Trashcan,
+                            text: translate('workspace.accounting.disconnect'),
+                            onSelected: () => {
+                                // Safari blocks the new tab unless it opens before navigating away, so the link opens first
+                                openExternalLink(`${CONST.UBER_REVOKE_URL}?${uberRevokeFormData}&org_uuid=${encodeURIComponent(uberOrganizationID)}`);
+                                onRevokePageOpened?.();
+                            },
+                            shouldCallAfterModalHide: true,
+                            disabled: isOffline || !uberRevokeFormData,
                             iconRight: icons.NewWindow,
                         },
                     ];
