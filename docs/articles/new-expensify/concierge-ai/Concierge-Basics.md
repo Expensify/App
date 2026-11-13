@@ -36,6 +36,8 @@ You can also contact Concierge by:
 
 Just start chatting—no special commands required. Ask a question, give an instruction, or upload a receipt.
 
+In your Concierge chat, each question opens its own thread, and Concierge replies there. To see earlier messages, select **View chat history**. To ask a new question from a thread, select **New chat**.
+
 Here are a few examples you can type:
 - “How do I change my Workspace settings?”  
 - “Create a $12 lunch expense for today.”  
