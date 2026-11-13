@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 
 import Clipboard from '@react-native-clipboard/clipboard';
 
-import type {CanSetHtml, SetHtml, SetString} from './types';
+import type {SetHtml, SetString} from './types';
 
 type ComposerSelection = {
     start: number;
@@ -23,15 +23,24 @@ type NullableObject<T> = {[K in keyof T]: T[K] | null};
 
 type OriginalSelection = ComposerSelection | NullableObject<AnchorSelection>;
 
-const canSetHtml: CanSetHtml =
-    () =>
-    (...args: ClipboardItems) =>
-        navigator?.clipboard?.write([...args]);
+function canSetHtml(): boolean {
+    if (typeof document === 'undefined') {
+        return false;
+    }
+
+    // Safari cannot use clipboard.write for HTML because it strips leading whitespace. execCommand is the supported path there.
+    if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
+        return true;
+    }
+
+    return typeof navigator?.clipboard?.write === 'function';
+}
 
 /**
  * Deprecated method to write the content as HTML to clipboard.
+ * Returns false when the browser refused the copy so the caller can keep the plain-text flavor.
  */
-function setHTMLSync(html: string, text: string) {
+function setHTMLSync(html: string, text: string): boolean {
     const node = document.createElement('span');
     node.textContent = html;
     node.style.all = 'unset';
@@ -51,7 +60,7 @@ function setHTMLSync(html: string, text: string) {
     const selection = window?.getSelection();
 
     if (selection === null) {
-        return;
+        return false;
     }
 
     const firstAnchorChild = selection.anchorNode?.firstChild;
@@ -77,11 +86,13 @@ function setHTMLSync(html: string, text: string) {
     range.selectNodeContents(node);
     selection.addRange(range);
 
+    let didCopy = false;
     try {
-        document.execCommand('copy');
+        didCopy = document.execCommand('copy');
     } catch (e) {
-        // The 'copy' command can throw a SecurityError exception, we ignore this exception on purpose.
+        // The 'copy' command can throw a SecurityError exception.
         // See https://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#the-copy-command for more details.
+        didCopy = false;
     }
 
     selection.removeAllRanges();
@@ -97,18 +108,28 @@ function setHTMLSync(html: string, text: string) {
     }
 
     document.body.removeChild(node);
+    return didCopy;
 }
 
 /**
- * Writes the content as HTML if the web client supports it.
+ * Sets a string on the Clipboard object via react-native-web
+ */
+const setString: SetString = (text) => {
+    Clipboard.setString(text);
+};
+
+/**
+ * Writes HTML and plain text together when the browser supports it.
+ * An empty HTML flavor, a missing API, or a failed write keeps the plain text instead of dropping the copy.
  */
 const setHtml: SetHtml = (html: string, text: string) => {
-    if (!html || !text) {
+    if (!text) {
         return;
     }
 
-    if (!canSetHtml()) {
-        throw new Error('clipboard.write is not supported on this platform, thus HTML cannot be copied.');
+    if (!html || !canSetHtml()) {
+        setString(text);
+        return;
     }
 
     if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
@@ -116,27 +137,31 @@ const setHtml: SetHtml = (html: string, text: string) => {
         // whitespaces in the start of line are stripped away. We use the deprecated method to copy
         // contents as HTML and keep whitespaces in the start of line on Safari.
         // See https://webkit.org/blog/10855/async-clipboard-api/ for more details.
-        setHTMLSync(html, text);
-    } else {
-        const htmlNonClosingTags = html
-            .replaceAll(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
-            .replaceAll(/<mention-user accountID="(\d+)" *\/>/gi, '<mention-user accountID="$1"></mention-user>');
+        if (!setHTMLSync(html, text)) {
+            setString(text);
+        }
+        return;
+    }
 
-        navigator.clipboard.write([
+    const htmlNonClosingTags = html
+        .replaceAll(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
+        .replaceAll(/<mention-user accountID="(\d+)" *\/>/gi, '<mention-user accountID="$1"></mention-user>');
+
+    try {
+        const writeResult = navigator.clipboard.write([
             new ClipboardItem({
-                /* eslint-disable @typescript-eslint/naming-convention */
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- Clipboard MIME types are the required keys.
                 'text/html': new Blob([htmlNonClosingTags], {type: 'text/html'}),
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- Clipboard MIME types are the required keys.
                 'text/plain': new Blob([text], {type: 'text/plain'}),
             }),
         ]);
+        Promise.resolve(writeResult).catch(() => {
+            setString(text);
+        });
+    } catch {
+        setString(text);
     }
-};
-
-/**
- * Sets a string on the Clipboard object via react-native-web
- */
-const setString: SetString = (text) => {
-    Clipboard.setString(text);
 };
 
 export default {

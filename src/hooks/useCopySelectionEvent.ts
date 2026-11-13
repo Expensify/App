@@ -1,5 +1,5 @@
 import {isMobileChrome} from '@libs/Browser';
-import getClipboardText from '@libs/Clipboard/getClipboardText';
+import formatClipboardContent from '@libs/Clipboard/formatClipboardContent';
 import SelectionScraper from '@libs/SelectionScraper';
 
 import CONST from '@src/CONST';
@@ -62,11 +62,17 @@ function copySelectionToClipboard(event: ClipboardEvent) {
         return;
     }
 
-    const clipboardText = getClipboardText(selection);
+    const {html, plainText} = formatClipboardContent({html: selection});
+    if (!plainText) {
+        return;
+    }
+
     event.preventDefault();
     event.clipboardData.clearData();
-    event.clipboardData.setData('text/html', selection);
-    event.clipboardData.setData('text/plain', clipboardText);
+    if (html) {
+        event.clipboardData.setData('text/html', html);
+    }
+    event.clipboardData.setData('text/plain', plainText);
 }
 
 let copySelectionEventConsumerCount = 0;
