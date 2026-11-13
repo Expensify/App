@@ -7,7 +7,7 @@ import path from 'node:path';
 import type {OxlintConfig, OxlintDiagnostic} from '../../scripts/lint/oxlint/OxlintLinter';
 import type {LintMessage, LinterResult} from '../../scripts/lint/types';
 
-import {oxlintCodeToESLintRuleID} from '../../config/oxlint/ruleNames.mjs';
+import oxlintCodeToESLintRuleID from '../../config/oxlint/ruleNames.mjs';
 import JSONFormatter from '../../scripts/lint/formatters/JSONFormatter';
 import StylishFormatter from '../../scripts/lint/formatters/StylishFormatter';
 import Linter from '../../scripts/lint/Linter';
@@ -325,7 +325,7 @@ describe('normalizeOxlintDiagnostics', () => {
             ['eslint(no-restricted-imports)', 'no-restricted-imports'],
             ['react(jsx-key)', 'react/jsx-key'],
             ['hosted(naming-convention)', '@typescript-eslint/naming-convention'],
-            ['eslint(no-object-constructor)', 'no-new-object'],
+            ['core(no-new-object)', 'no-new-object'],
             ['react-hooks(rules-of-hooks)', 'react-hooks/rules-of-hooks'],
         ];
         const diagnostics = expected.map(([code]) => oxlintDiagnostic({code}));

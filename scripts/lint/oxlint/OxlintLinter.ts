@@ -6,7 +6,7 @@ import path from 'node:path';
 import type {LintFileResult, LintMessage, LintSeverity, LinterResult} from '../types';
 
 // eslint-disable-next-line import/extensions
-import {oxlintCodeToESLintRuleID} from '../../../config/oxlint/ruleNames.mjs';
+import oxlintCodeToESLintRuleID from '../../../config/oxlint/ruleNames.mjs';
 import Linter from '../Linter';
 import {LINT_SEVERITY} from '../types';
 

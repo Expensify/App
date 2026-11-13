@@ -78,9 +78,7 @@
         "html-entities",
         "@fullstory/babel-plugin-react-native",
         "@fullstory/babel-plugin-annotate-react",
-        "eslint-plugin-react-hooks",
-        "eslint-plugin-jsdoc",
-        "eslint-plugin-storybook",
+        "eslint-plugin-es",
         "@dword-design/eslint-plugin-import-alias",
         "bun",
         "shellcheck",
@@ -88,8 +86,5 @@
         "diff-so-fancy",
         "@babel/plugin-proposal-class-properties"
     ],
-    "ignoreBinaries": ["mkcert", "openssl", "xdg-open"],
-    "ignoreIssues": {
-        "config/oxlint/ruleNames.mjs": ["exports"]
-    }
+    "ignoreBinaries": ["mkcert", "openssl", "xdg-open"]
 }
