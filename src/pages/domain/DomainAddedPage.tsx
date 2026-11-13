@@ -16,6 +16,7 @@ import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/typ
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -54,6 +55,7 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
                 description={translate('domain.domainAdded.description')}
                 descriptionStyle={styles.textSupporting}
                 buttonText={translate('domain.domainAdded.configure')}
+                buttonSentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADDED_CONFIGURE}
                 onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID))}
             />
         </ScreenWrapper>

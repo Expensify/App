@@ -4,9 +4,9 @@ import type {ButtonProps} from '@components/Button';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
-type ConfirmationPageButtonProps = WithSentryLabelWhenPressable &
+type ConfirmationPageButtonProps = WithRequiredSentryLabel &
     Pick<ButtonProps, 'isDisabled' | 'isLoading'> & {
         text: string;
         onPress?: () => void;

@@ -261,6 +261,7 @@ function UpdatePersonalBankAccountPage() {
                         heading={translate('addPersonalBankAccount.updateSuccessTitle')}
                         description={translate('addPersonalBankAccount.updateSuccessMessage')}
                         buttonText={translate('common.continue')}
+                        buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.UPDATE_PERSONAL_BANK_ACCOUNT_SUCCESS_CONTINUE}
                         onButtonPress={exitFlow}
                     />
                 </ScrollView>

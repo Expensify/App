@@ -95,6 +95,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                         description={translate('bankAccount.bbaAddedDescription')}
                         headingStyle={styles.mh5}
                         buttonText={translate('common.confirm')}
+                        buttonSentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECT_BANK_ACCOUNT_ADDED_CONFIRM}
                         onButtonPress={() => Navigation.dismissModal()}
                     />
                 </ScreenWrapper>

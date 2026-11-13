@@ -278,6 +278,7 @@ function DynamicReviewPage() {
                     heading={translate('iou.noDuplicatesTitle')}
                     description={translate('iou.noDuplicatesDescription')}
                     buttonText={translate('common.buttonConfirm')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.TRANSACTION_DUPLICATE.NO_DUPLICATES_CONFIRM}
                     onButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                 />
             </ScreenWrapper>

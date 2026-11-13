@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import {requestUnlockAccount} from '@userActions/User';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -38,6 +39,7 @@ function UnlockAccountPage() {
                     description={translate('unlockAccountPage.chatToConciergeToUnlock')}
                     descriptionStyle={styles.colorMuted}
                     buttonText={translate('unlockAccountPage.chatWithConcierge')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.UNLOCK_ACCOUNT_CHAT_WITH_CONCIERGE}
                     onButtonPress={() => {
                         requestUnlockAccount(currentUserPersonalDetails.accountID);
                         Navigation.navigate(ROUTES.CONCIERGE);

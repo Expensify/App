@@ -198,6 +198,7 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
                     heading={translate('workspace.receiptPartners.uber.readyToRoll')}
                     description={translate('workspace.receiptPartners.uber.takeBusinessRideMessage')}
                     buttonText={translate('common.buttonConfirm')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.UBER_INVITE_READY_CONFIRM}
                     onButtonPress={() => Navigation.goBack(backPath)}
                     descriptionStyle={styles.colorMuted}
                 />

@@ -30,6 +30,7 @@ function SuccessPageBase({onButtonPress, onBackButtonPress}: SuccessPageBaseProp
                 heading={translate('twoFactorAuth.enabled')}
                 description={translate('twoFactorAuth.congrats')}
                 buttonText={translate('common.buttonConfirm')}
+                buttonSentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.SUCCESS_CONFIRM}
                 onButtonPress={onButtonPress}
                 containerStyle={styles.flex1}
             />

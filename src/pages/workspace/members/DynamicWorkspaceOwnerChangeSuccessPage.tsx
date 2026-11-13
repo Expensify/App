@@ -64,6 +64,7 @@ function DynamicWorkspaceOwnerChangeSuccessPage({route}: DynamicWorkspaceOwnerCh
                     description={translate('workspace.changeOwner.successDescription')}
                     descriptionStyle={styles.textSupporting}
                     buttonText={translate('common.buttonConfirm')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.OWNER_CHANGE_SUCCESS_CONFIRM}
                     onButtonPress={closePage}
                 />
             </ScreenWrapper>
