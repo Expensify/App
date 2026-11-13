@@ -18,7 +18,6 @@ import type {
     ReportAction,
     ReportActions,
     ReportAttributesDerivedValue,
-    ReportMetadata,
     TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
@@ -295,7 +294,6 @@ type GetOptionsConfig = {
     countryCode?: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-    reportMetadata?: OnyxCollection<ReportMetadata>;
     sortedActions?: Record<string, ReportAction[]>;
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions?: Record<string, ReportAction>;

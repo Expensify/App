@@ -696,7 +696,6 @@ describe('useTodoCounts', () => {
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations: {},
-                reportMetadata: undefined,
                 transactions: {},
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_EMAIL,

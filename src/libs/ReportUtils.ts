@@ -5520,7 +5520,7 @@ function requiresAttentionFromCurrentUser(
     currentUserLogin: string,
     currentUserAccountID: number,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
-    reportMetadata: OnyxEntry<ReportMetadata>,
+    pendingExpenseActionMetadata: OnyxEntry<ReportMetadata>,
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
 ) {
@@ -5529,7 +5529,7 @@ function requiresAttentionFromCurrentUser(
         currentUserLogin,
         currentUserAccountID,
         transactionViolations,
-        reportMetadata,
+        reportMetadata: pendingExpenseActionMetadata,
         parentReportAction,
         isReportArchived,
     });
@@ -11515,7 +11515,7 @@ type ShouldReportBeInOptionListParams = {
     /** Needed when `requiresAttention` is not pre-computed: the SUBMIT badge is suppressed when every expense was auto-rejected, which is only knowable from the violations. */
     transactionViolations?: OnyxCollection<TransactionViolations>;
     /** Needed when `requiresAttention` is not pre-computed: an approve already pending in a dynamic external workflow suppresses the green dot. */
-    reportMetadata: OnyxEntry<ReportMetadata>;
+    pendingExpenseActionMetadata: OnyxEntry<ReportMetadata>;
     /** Pre-computed isEmpty flag from reportAttributes derived value. When provided, skips the module-level reportAttributesDerivedValue read inside isEmptyReport. */
     derivedIsEmptyReport: boolean | undefined;
     hasGuidesEmails: boolean;
@@ -11540,7 +11540,7 @@ function reasonForReportToBeInOptionList({
     conciergeReportID,
     requiresAttention,
     transactionViolations,
-    reportMetadata,
+    pendingExpenseActionMetadata,
     derivedIsEmptyReport,
     hasGuidesEmails,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
@@ -11619,7 +11619,15 @@ function reasonForReportToBeInOptionList({
 
     if (
         requiresAttention ??
-        requiresAttentionFromCurrentUser(report, currentUserLogin ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, transactionViolations, reportMetadata, undefined, isReportArchived)
+        requiresAttentionFromCurrentUser(
+            report,
+            currentUserLogin ?? '',
+            currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            transactionViolations,
+            pendingExpenseActionMetadata,
+            undefined,
+            isReportArchived,
+        )
     ) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }

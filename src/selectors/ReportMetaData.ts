@@ -55,23 +55,6 @@ const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCol
     return result;
 };
 
-const pendingExpenseActionByReportSelector = (reportMetadata: OnyxCollection<ReportMetadata>): OnyxCollection<ReportMetadata> => {
-    const result: Record<string, ReportMetadata> = {};
-
-    for (const [key, metadata] of Object.entries(reportMetadata ?? {})) {
-        // Keys are left whole so callers can index this like the raw collection. Reports with no expense action in
-        // flight are the overwhelming majority, and dropping them keeps this equal across the loading-flag writes that
-        // churn this collection, so subscribers stop recomputing on them.
-        if (!metadata?.pendingExpenseAction) {
-            continue;
-        }
-
-        result[key] = {pendingExpenseAction: metadata.pendingExpenseAction};
-    }
-
-    return result;
-};
-
 const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
     reportMetadata ? {pendingExpenseAction: reportMetadata.pendingExpenseAction} : undefined;
 
@@ -94,7 +77,6 @@ export {
     pendingNewTransactionIDsSelector,
     pendingChatMembersSelector,
     pendingExpenseActionSelector,
-    pendingExpenseActionByReportSelector,
     optionRowReportMetadataSelector,
     pendingDeleteMemberAccountIDsSelector,
     pendingDeleteMemberAccountIDsByReportIDSelector,

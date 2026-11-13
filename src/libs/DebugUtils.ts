@@ -1582,7 +1582,7 @@ function getReasonForShowingRowInLHN({
     hasGuidesEmails,
     derivedIsEmptyReport,
     transactionViolations,
-    reportMetadata,
+    pendingExpenseActionMetadata,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1598,7 +1598,7 @@ function getReasonForShowingRowInLHN({
     conciergeReportID: string | undefined;
     derivedIsEmptyReport: boolean | undefined;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
-    reportMetadata: OnyxEntry<ReportMetadata>;
+    pendingExpenseActionMetadata: OnyxEntry<ReportMetadata>;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1622,7 +1622,7 @@ function getReasonForShowingRowInLHN({
         derivedIsEmptyReport,
         hasGuidesEmails,
         transactionViolations,
-        reportMetadata,
+        pendingExpenseActionMetadata,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {

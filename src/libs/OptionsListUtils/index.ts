@@ -90,7 +90,6 @@ import type {
     Report,
     ReportAction,
     ReportAttributesDerivedValue,
-    ReportMetadata,
     Rule,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
@@ -1939,7 +1938,7 @@ function isValidReport(
     chatReport: OnyxEntry<Report>,
     hasGuidesEmails: boolean,
     derivedIsEmptyReport: boolean | undefined,
-    reportMetadata: OnyxEntry<ReportMetadata>,
+    derivedRequiresAttention: boolean | undefined,
 ): boolean {
     const {
         isDefaultRoomsBetaEnabled = false,
@@ -1988,7 +1987,11 @@ function isValidReport(
         hasGuidesEmails,
         derivedIsEmptyReport,
         transactionViolations,
-        reportMetadata,
+        requiresAttention: derivedRequiresAttention,
+        // The metadata is only read when `requiresAttention` is missing, which here means reportAttributes has not
+        // computed this report yet. reportAttributes already depends on REPORT_METADATA and applies the same
+        // pending-DEW-approve check, so a subscription here would only cover that moment.
+        pendingExpenseActionMetadata: undefined,
     });
 
     if (!shouldBeInOptionList) {
@@ -2392,7 +2395,6 @@ function getValidOptions(
         countryCode = CONST.DEFAULT_COUNTRY_CODE,
         visibleReportActionsData = EMPTY_VISIBLE_REPORT_ACTIONS,
         reportAttributesDerived,
-        reportMetadata,
         sortedActions,
         transactionThreadIDs,
         lastActions,
@@ -2502,7 +2504,7 @@ function getValidOptions(
                 // TODO: Pass guideAccountIDs in Phase B. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
                 isDefaultRoom(report.item) ? hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined) : false,
                 report.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined,
-                reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
+                report.reportID ? reportAttributesDerived?.[report.reportID]?.requiresAttention : undefined,
             );
         };
 
@@ -2773,7 +2775,6 @@ type SearchOptionsConfig = {
     currentUserEmail: string;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-    reportMetadata?: OnyxCollection<ReportMetadata>;
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     sortedActions: Record<string, ReportAction[]> | undefined;
     transactionThreadIDs?: Record<string, string | undefined>;
@@ -2814,7 +2815,6 @@ function getSearchOptions({
     currentUserAccountID,
     currentUserEmail,
     reportAttributesDerived,
-    reportMetadata,
     personalDetails,
     allPolicyTags,
     sortedActions,
@@ -2867,7 +2867,6 @@ function getSearchOptions({
             countryCode,
             visibleReportActionsData,
             reportAttributesDerived,
-            reportMetadata,
             allPolicyTags,
             sortedActions,
             transactionThreadIDs,

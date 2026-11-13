@@ -24,7 +24,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PermissionStatus} from 'react-native-permissions';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {pendingExpenseActionByReportSelector} from '@selectors/ReportMetaData';
 import {useState} from 'react';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
@@ -195,7 +194,6 @@ function useSearchSelectorBase({
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-    const [reportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {selector: pendingExpenseActionByReportSelector});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
@@ -313,7 +311,6 @@ function useSearchSelectorBase({
                     currentUserEmail,
                     personalDetails,
                     reportAttributesDerived: reportAttributesDerived?.reports,
-                    reportMetadata,
                     allPolicyTags,
                     sortedActions,
                     transactionThreadIDs,
@@ -357,7 +354,6 @@ function useSearchSelectorBase({
                         includeRecentReports: !shouldAllowNameOnlyOptions,
                         countryCode,
                         reportAttributesDerived: reportAttributesDerived?.reports,
-                        reportMetadata,
                         allPolicyTags,
                         sortedActions,
                         transactionThreadIDs,
@@ -403,7 +399,6 @@ function useSearchSelectorBase({
                         personalDetails,
                         countryCode,
                         reportAttributesDerived: reportAttributesDerived?.reports,
-                        reportMetadata,
                         allPolicyTags,
                         visibleReportActionsData,
                         sortedActions,
@@ -448,7 +443,6 @@ function useSearchSelectorBase({
                         personalDetails,
                         countryCode,
                         reportAttributesDerived: reportAttributesDerived?.reports,
-                        reportMetadata,
                         allPolicyTags,
                         sortedActions,
                         transactionThreadIDs,
