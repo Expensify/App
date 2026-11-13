@@ -1,4 +1,5 @@
-import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU/DeleteMoneyRequest';
+import * as ClearReportActionErrorsActions from '@libs/actions/ClearReportActionErrors';
+import {cleanUpMoneyRequest, deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -503,6 +504,76 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(iouReport).toHaveProperty('chatReportID');
         });
 
+        it('cleanUpMoneyRequest forwards the reports parameter to clearAllRelatedReportActionErrors', async () => {
+            // Given a second expense on the IOU report, so the report is not deleted and the error
+            // clearing runs synchronously instead of inside the navigation transition callback
+            requestMoney({
+                isVendorMatchingBetaEnabled: false,
+                conciergeChat: undefined,
+                report: chatReport,
+                participantParams: {
+                    payeeEmail: TEST_USER_LOGIN,
+                    payeeAccountID: TEST_USER_ACCOUNT_ID,
+                    participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: '',
+                    comment,
+                },
+                shouldGenerateTransactionThreadReport: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
+                existingTransactionDraft: undefined,
+                isSelfTourViewed: false,
+                quickAction: undefined,
+                personalDetails: {},
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Given a spy on the error-clearing function and the report hierarchy data a component caller would pass
+            const spy = jest.spyOn(ClearReportActionErrorsActions, 'clearAllRelatedReportActionErrors');
+            const parentHierarchicalReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`]: {parentReportID: iouReport?.parentReportID, parentReportActionID: iouReport?.parentReportActionID},
+            };
+
+            // When cleaning up the expense with the parentHierarchicalReports parameter supplied
+            if (transaction && createIOUAction && iouReport?.reportID) {
+                cleanUpMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    reportAction: createIOUAction,
+                    reportID: iouReport.reportID,
+                    transactionThreadReport: thread,
+                    iouReport,
+                    iouReportTransactions: [transaction],
+                    chatReport,
+                    isChatIOUReportArchived: false,
+                    originalReportID: iouReport.reportID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    isOffline: false,
+                    isSingleTransactionView: true,
+                    parentHierarchicalReports,
+                });
+            }
+            await waitForBatchedUpdates();
+
+            // Then the parentHierarchicalReports parameter should be forwarded so the ancestor walk reads the caller's data
+            expect(spy).toHaveBeenCalledWith(expect.objectContaining({reportID: iouReport?.reportID, isOffline: false, reports: parentHierarchicalReports}));
+            spy.mockRestore();
+        });
+
         it('delete the transaction thread if there are no visible comments in the thread', async () => {
             // Given all promises are resolved
             await waitForBatchedUpdates();
@@ -676,6 +747,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 updateMoneyRequestAmountAndCurrency({
                     isVendorMatchingBetaEnabled: false,
                     transactionID: transaction.transactionID,
+                    transaction,
                     transactions: {},
                     transactionThreadReport: thread,
                     parentReport: iouReport,

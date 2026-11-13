@@ -31,6 +31,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: '["server/victory-chart-renderer"]'
 
       - name: Build victory-chart-renderer Linux x64 binary
         run: npm run server:vcr:build:linux

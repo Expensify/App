@@ -167,6 +167,7 @@ function SavedSearchList() {
                 title={item.title ?? ''}
                 icon={item.icon}
                 focused={item.focused}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM}
                 onPress={(event) => {
                     if (item.disabled || !item.onPress || !event) {
                         return;
