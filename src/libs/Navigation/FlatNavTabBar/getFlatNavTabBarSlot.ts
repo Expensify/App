@@ -1,12 +1,6 @@
 /**
- * Resolves which of the five flat nav tab bar slots is highlighted for the focused tab route. It is platform neutral,
- * meant for both the native and the mWeb bar, and takes the same `FlatNavTabBarFocus` as `getMoreMenuItems` so More is
- * never highlighted with no active entry in its menu.
- *
- * The Search navigator takes the slot of its active visible section. A search outside every visible section falls back
- * to Expenses, which the Search tab opens on: that covers Insights chart searches such as topSpenders, a search of a
- * section the user cannot see (a saved search while the Saved section is hidden, an Accounting deep link for a user
- * without Accounting), and no search at all. Account has no slot, so it resolves to undefined.
+ * Resolves the highlighted flat nav tab bar slot. The Search navigator takes the slot of its active section and falls
+ * back to Expenses, the section the Search tab opens on, when its search is in no visible section.
  */
 import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
 import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
@@ -23,7 +17,7 @@ const FLAT_NAV_TAB_BAR_SLOT_BY_SECTION: Record<FlatNavSectionID, FlatNavTabBarSl
     [FLAT_NAV.SECTION.EXPENSES]: FLAT_NAV_TAB_BAR_SLOT.EXPENSES,
     [FLAT_NAV.SECTION.REPORTS]: FLAT_NAV_TAB_BAR_SLOT.REPORTS,
     [FLAT_NAV.SECTION.ACCOUNTING]: FLAT_NAV_TAB_BAR_SLOT.MORE,
-    // Where Travel sits in the mobile bar is not decided yet, so it stays with Expenses, the Search tab's default.
+    // Travel has no slot of its own, so it highlights Expenses, the section the Search tab opens on.
     [FLAT_NAV.SECTION.TRAVEL]: FLAT_NAV_TAB_BAR_SLOT.EXPENSES,
     [FLAT_NAV.SECTION.SAVED]: FLAT_NAV_TAB_BAR_SLOT.MORE,
 };

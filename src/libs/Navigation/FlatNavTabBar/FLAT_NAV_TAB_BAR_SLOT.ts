@@ -1,9 +1,6 @@
 import type {ValueOf} from 'type-fest';
 
-/**
- * The five items of the flat nav tab bar, meant for both the native and the mWeb bar. A slot is not a route: Expenses and
- * Reports both show the Search navigator, and More stands for several routes.
- */
+/** The items of the flat nav tab bar. A slot is not a route: Expenses and Reports share the Search navigator, and More stands for several routes. */
 const FLAT_NAV_TAB_BAR_SLOT = {
     HOME: 'home',
     INBOX: 'inbox',

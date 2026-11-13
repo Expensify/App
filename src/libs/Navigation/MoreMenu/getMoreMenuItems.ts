@@ -1,7 +1,6 @@
 /**
- * The entries of the More menu of the flat nav tab bar, in render order, with the one the user is on marked. Meant for
- * both the native and the mWeb bar. It holds no visibility rules of its own: Accounting and Saved follow the visible
- * flat nav sections and the caller says whether Insights is available.
+ * The entries of the More menu of the flat nav tab bar, in render order, with the one the user is on marked. Accounting
+ * and Saved are listed only when their flat nav section is visible.
  */
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 
@@ -25,10 +24,9 @@ type MoreMenuItemBase = {
 type MoreMenuSectionItem = MoreMenuItemBase & {
     id: MoreMenuSectionItemID;
 
-    /** The visible flat nav section the entry opens, for `navigateToSection` of `useFlatNavNavigation` */
+    /** The flat nav section the entry opens */
     section: FlatNavSection;
 
-    /** Todo count of the section, from `FlatNavSection.badgeText`. Undefined when it has no todo items or its count is 0. */
     badgeText?: string;
 };
 
@@ -39,7 +37,7 @@ type MoreMenuInsightsItem = MoreMenuItemBase & {
 type MoreMenuWorkspacesItem = MoreMenuItemBase & {
     id: typeof MORE_MENU.ITEM.WORKSPACES;
 
-    /** Color of the status dot. Undefined when the Workspaces indicator has no status, so no dot is drawn. */
+    /** Color of the status dot, undefined for no dot */
     indicatorColor?: string;
 };
 
@@ -49,20 +47,13 @@ type GetMoreMenuItemsParams = FlatNavTabBarFocus & {
     /** The sections the user can see, from `buildFlatNavSections` */
     sections: FlatNavSection[];
 
-    isInsightsAvailable: boolean;
-
-    /** The Workspaces tab dot color, the same value the tab bar draws. Undefined draws no dot. */
+    /** The Workspaces tab dot color, undefined for no dot */
     workspacesDotColor?: string;
 };
 
 const SECTION_ITEM_IDS: readonly MoreMenuSectionItemID[] = [MORE_MENU.ITEM.ACCOUNTING, MORE_MENU.ITEM.SAVED];
 
-/**
- * Takes the same focus as `getFlatNavTabBarSlot`. `useActiveFlatNavItem` only clears the section off Search when its
- * caller passes the right `isSearchFocused`, so the section is ignored here unless Search is the focused route, which
- * is also the only route where the slot reads it.
- */
-function getMoreMenuItems({sections, isInsightsAvailable, focusedTabRouteName, activeFlatNavSectionID, workspacesDotColor}: GetMoreMenuItemsParams): MoreMenuItem[] {
+function getMoreMenuItems({sections, focusedTabRouteName, activeFlatNavSectionID, workspacesDotColor}: GetMoreMenuItemsParams): MoreMenuItem[] {
     const activeSectionID = focusedTabRouteName === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR ? activeFlatNavSectionID : undefined;
 
     const items: MoreMenuItem[] = [];
@@ -80,18 +71,18 @@ function getMoreMenuItems({sections, isInsightsAvailable, focusedTabRouteName, a
             badgeText: section.badgeText,
         });
     }
-    if (isInsightsAvailable) {
-        items.push({id: MORE_MENU.ITEM.INSIGHTS, translationPath: 'common.insights', iconName: 'PieChart', isActive: focusedTabRouteName === SCREENS.INSIGHTS});
-    }
-    items.push({
-        id: MORE_MENU.ITEM.WORKSPACES,
-        translationPath: 'common.workspacesTabTitle',
-        iconName: 'Buildings',
-        isActive: focusedTabRouteName === NAVIGATORS.WORKSPACE_NAVIGATOR,
-        indicatorColor: workspacesDotColor,
-    });
+    items.push(
+        {id: MORE_MENU.ITEM.INSIGHTS, translationPath: 'common.insights', iconName: 'PieChart', isActive: focusedTabRouteName === SCREENS.INSIGHTS},
+        {
+            id: MORE_MENU.ITEM.WORKSPACES,
+            translationPath: 'common.workspacesTabTitle',
+            iconName: 'Buildings',
+            isActive: focusedTabRouteName === NAVIGATORS.WORKSPACE_NAVIGATOR,
+            indicatorColor: workspacesDotColor,
+        },
+    );
     return items;
 }
 
 export default getMoreMenuItems;
-export type {GetMoreMenuItemsParams, MoreMenuItem};
+export type {GetMoreMenuItemsParams};

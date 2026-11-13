@@ -24,7 +24,7 @@ function getSection(id: FlatNavSectionID): FlatNavSection {
 }
 
 function getItems(overrides: Partial<GetMoreMenuItemsParams> = {}) {
-    return getMoreMenuItems({sections: ALL_SECTIONS, isInsightsAvailable: true, focusedTabRouteName: SCREENS.HOME, activeFlatNavSectionID: undefined, ...overrides});
+    return getMoreMenuItems({sections: ALL_SECTIONS, focusedTabRouteName: SCREENS.HOME, activeFlatNavSectionID: undefined, ...overrides});
 }
 
 function getActiveItemIDs(overrides: Partial<GetMoreMenuItemsParams>) {
@@ -73,15 +73,6 @@ describe('getMoreMenuItems', () => {
         expect(items.map((item) => item.id)).toEqual([MORE_MENU.ITEM.INSIGHTS, MORE_MENU.ITEM.WORKSPACES]);
     });
 
-    it('should drop Insights when it is not available', () => {
-        // Given a user the caller found without access to Insights
-        // When the More entries are built
-        const items = getItems({isInsightsAvailable: false});
-
-        // Then Insights is not listed
-        expect(items.map((item) => item.id)).not.toContain(MORE_MENU.ITEM.INSIGHTS);
-    });
-
     it('should draw the Workspaces dot with the color the tab bar uses', () => {
         // Given the Workspaces dot color the tab bar draws, and no dot at all
         // When the Workspaces entry is built for each
@@ -113,7 +104,7 @@ describe('getMoreMenuItems', () => {
         // When the More entries are built
         const activeItemIDs = getActiveItemIDs({focusedTabRouteName: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, activeFlatNavSectionID});
 
-        // Then that section is active
+        // Then that section is active, so the menu shows which of its entries put More in the highlighted slot
         expect(activeItemIDs).toEqual([itemID]);
     });
 
@@ -128,7 +119,7 @@ describe('getMoreMenuItems', () => {
         // When the More entries are built
         const activeItemIDs = getActiveItemIDs({focusedTabRouteName, activeFlatNavSectionID});
 
-        // Then no More entry is active
+        // Then no More entry is active, because More is not the highlighted slot there
         expect(activeItemIDs).toEqual([]);
     });
 });

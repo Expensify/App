@@ -25,7 +25,7 @@ describe('getFlatNavTabBarSlot', () => {
         // When its slot is resolved
         const result = getFlatNavTabBarSlot({focusedTabRouteName: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, activeFlatNavSectionID: undefined});
 
-        // Then nothing is highlighted
+        // Then nothing is highlighted, since Account opens from the top bar and no slot stands for it
         expect(result).toBeUndefined();
     });
 
