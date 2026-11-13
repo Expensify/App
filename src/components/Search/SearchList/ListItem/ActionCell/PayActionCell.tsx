@@ -50,7 +50,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
-    const {payReportsViaABA, isDownloadingABAFile} = usePayViaABA();
+    const {payReportsViaABA} = usePayViaABA();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -248,7 +248,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
                 isDisabled={isOffline || shouldDisablePointerEvents}
                 stayNormalOnDisable={shouldDisablePointerEvents}
-                isLoading={isLoading || isDownloadingABAFile}
+                isLoading={isLoading}
                 onlyShowPayElsewhere={shouldOnlyShowElsewhere}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION.PAY}
             />
