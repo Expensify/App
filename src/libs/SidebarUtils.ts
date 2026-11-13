@@ -39,6 +39,7 @@ import type {OptionData} from './ReportUtils';
 
 import {isAnonymousUser} from './actions/Session';
 import DateUtils from './DateUtils';
+import isInConciergeConversation from './isInConciergeConversation';
 import Log from './Log';
 import {shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
@@ -151,6 +152,8 @@ type ShouldDisplayReportInLHNParams = {
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
     isBillPayBetaEnabled?: boolean;
+    /** Hides the Concierge DM and its threads, which the Concierge page lists instead */
+    shouldHideConciergeConversations?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     draftComment: OnyxEntry<string>;
     transactions: OnyxCollection<Transaction>;
@@ -172,6 +175,7 @@ function shouldDisplayReportInLHN({
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
     isBillPayBetaEnabled = false,
+    shouldHideConciergeConversations = false,
     transactionViolations,
     draftComment,
     transactions,
@@ -189,6 +193,10 @@ function shouldDisplayReportInLHN({
     }
 
     if (isUnsupportedReportType(report.type, isBillPayBetaEnabled)) {
+        return {shouldDisplay: false};
+    }
+
+    if (shouldHideConciergeConversations && isInConciergeConversation(report.reportID, conciergeReportID, reports)) {
         return {shouldDisplay: false};
     }
 
@@ -333,6 +341,7 @@ function getReportsToDisplayInLHN({
     policies,
     isDefaultRoomsBetaEnabled,
     isBillPayBetaEnabled = false,
+    shouldHideConciergeConversations = false,
     priorityMode,
     draftComments,
     transactionViolations,
@@ -351,6 +360,7 @@ function getReportsToDisplayInLHN({
     policies: OnyxCollection<Policy>;
     isDefaultRoomsBetaEnabled: boolean;
     isBillPayBetaEnabled?: boolean;
+    shouldHideConciergeConversations?: boolean;
     priorityMode: OnyxEntry<PriorityMode>;
     draftComments: OnyxCollection<string>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
@@ -386,6 +396,7 @@ function getReportsToDisplayInLHN({
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
             isBillPayBetaEnabled,
+            shouldHideConciergeConversations,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,
@@ -426,6 +437,8 @@ type UpdateReportsToDisplayInLHNProps = {
 
     /** Defaults to false, so bills stay hidden unless the caller has the newDotBillPay beta */
     isBillPayBetaEnabled?: boolean;
+    /** Hides the Concierge DM and its threads, which the Concierge page lists instead */
+    shouldHideConciergeConversations?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
@@ -448,6 +461,7 @@ function updateReportsToDisplayInLHN({
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
     isBillPayBetaEnabled = false,
+    shouldHideConciergeConversations = false,
     transactionViolations,
     reportNameValuePairs,
     reportAttributes,
@@ -493,6 +507,7 @@ function updateReportsToDisplayInLHN({
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
             isBillPayBetaEnabled,
+            shouldHideConciergeConversations,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,

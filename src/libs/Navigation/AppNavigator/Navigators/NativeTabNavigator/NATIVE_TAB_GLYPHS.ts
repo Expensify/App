@@ -80,5 +80,10 @@ const NATIVE_TAB_GLYPHS = {
 /** A tab of the native tab bar, by its route name. */
 type NativeTabName = keyof typeof NATIVE_TAB_GLYPHS;
 
+function isNativeTabName(name: string): name is NativeTabName {
+    return name in NATIVE_TAB_GLYPHS;
+}
+
 export default NATIVE_TAB_GLYPHS;
+export {isNativeTabName};
 export type {NativeTabGlyph, NativeTabName};

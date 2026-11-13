@@ -5,6 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import useIsInConciergePage from './useIsInConciergePage';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useOpenConciergeAnywhere from './useOpenConciergeAnywhere';
@@ -17,6 +18,7 @@ function useOpenSupportTicket() {
     const {translate} = useLocalize();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const isInConciergePage = useIsInConciergePage();
 
     const openConcierge = () => {
         // The customer is already in the Concierge chat, so opening it again would show it twice.
@@ -27,7 +29,7 @@ function useOpenSupportTicket() {
     };
 
     const openSupportTicketOrConcierge = () => {
-        const request = openSupportTicket();
+        const request = openSupportTicket(undefined, conciergeReportID, isInConciergePage);
 
         // openSupportTicket opens the pending ticket before it resolves, so this is that screen's own route.
         const pendingTicketRoute = Navigation.getActiveRoute();

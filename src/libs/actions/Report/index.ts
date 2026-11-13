@@ -452,6 +452,7 @@ type AddCommentParams = {
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
     shouldNavigateToConciergeThread?: boolean;
+    isInConciergePage?: boolean;
 };
 
 type AddActionsParams = {
@@ -471,6 +472,7 @@ type AddActionsParams = {
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
     shouldNavigateToConciergeThread?: boolean;
+    isInConciergePage?: boolean;
 };
 
 type AddAttachmentWithCommentParams = {
@@ -488,6 +490,7 @@ type AddAttachmentWithCommentParams = {
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
     shouldNavigateToConciergeThread?: boolean;
+    isInConciergePage?: boolean;
 };
 
 type MergeReportsProps = {
@@ -925,6 +928,7 @@ function addActions({
     conciergeReportID,
     conciergeThreadReportID,
     shouldNavigateToConciergeThread = true,
+    isInConciergePage = false,
 }: AddActionsParams) {
     if (!report?.reportID) {
         return;
@@ -1338,7 +1342,7 @@ function addActions({
             if (!shouldNavigateToConciergeThread) {
                 return;
             }
-            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
+            Navigation.navigate(isInConciergePage ? ROUTES.CONCIERGE_CONVERSATION.getRoute(conciergeThreadReportID) : getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
         });
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
@@ -1360,6 +1364,7 @@ function addAttachmentWithComment({
     conciergeReportID,
     conciergeThreadReportID,
     shouldNavigateToConciergeThread,
+    isInConciergePage,
 }: AddAttachmentWithCommentParams) {
     if (!report?.reportID) {
         return;
@@ -1389,6 +1394,7 @@ function addAttachmentWithComment({
             conciergeReportID,
             conciergeThreadReportID,
             shouldNavigateToConciergeThread,
+            isInConciergePage,
         });
         handlePlaySound();
         return;
@@ -1446,6 +1452,7 @@ function addComment({
     conciergeReportID,
     conciergeThreadReportID,
     shouldNavigateToConciergeThread,
+    isInConciergePage,
 }: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
@@ -1465,6 +1472,7 @@ function addComment({
         conciergeReportID,
         conciergeThreadReportID,
         shouldNavigateToConciergeThread,
+        isInConciergePage,
     });
 }
 
@@ -5156,7 +5164,7 @@ function isNoSupportRepAvailableResponse(response: {jsonCode?: number | string; 
     return response?.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message === NO_SUPPORT_REP_AVAILABLE_MESSAGE;
 }
 
-function openSupportTicket(resolvedSupportTicketReportID?: string) {
+function openSupportTicket(resolvedSupportTicketReportID?: string, conciergeReportID?: string, isInConciergePage = false) {
     const newSupportTicketReportID = resolvedSupportTicketReportID ? undefined : generateReportID();
     const parameters: CreateSupportTicketParams = resolvedSupportTicketReportID ? {resolvedSupportTicketReportID, idempotencyKey: Str.guid()} : {newSupportTicketReportID};
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE> = newSupportTicketReportID
@@ -5172,7 +5180,8 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
-                      value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
+                      // The server creates the ticket under the Concierge DM, so links to it open where Concierge conversations do
+                      value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET, parentReportID: conciergeReportID},
                   },
               ],
               successData: [
@@ -5201,7 +5210,11 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method -- Reopening must wait for the server-selected report ID before navigating.
     const request = API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters, onyxData);
     if (newSupportTicketReportID) {
-        Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
+        Navigation.navigate(
+            isInConciergePage
+                ? ROUTES.CONCIERGE_CONVERSATION.getRoute(newSupportTicketReportID, undefined, true)
+                : getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}),
+        );
     }
 
     return request
@@ -9572,6 +9585,7 @@ export {
     flagReportNavigatedAway,
     clearReportNavigatedAway,
     navigateToAndOpenChildReport,
+    createChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToAndCreateGroupChat,

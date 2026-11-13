@@ -523,6 +523,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Delegado de férias',
         expensifyLogo: 'Logo da Expensify',
         concierge: {
+            title: 'Concierge',
             greeting: 'Oi, como posso ajudar?',
             showHistory: 'Mostrar histórico',
             subtitle: 'Seu assistente de IA pessoal',

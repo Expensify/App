@@ -88,6 +88,7 @@ function ReportActionItemParentAction({
     });
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
@@ -111,7 +112,7 @@ function ReportActionItemParentAction({
 
     return (
         <View style={[styles.pRelative]}>
-            <AnimatedEmptyStateBackground />
+            {!isConciergeThread && <AnimatedEmptyStateBackground />}
             <OfflineWithFeedback
                 shouldDisableOpacity
                 errors={
@@ -120,9 +121,10 @@ function ReportActionItemParentAction({
                 errorRowStyles={styles.ml10}
                 onClose={onCloseParentReportActionItem}
             >
-                {ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction, shouldDisplayNewMarker}) => (
+                {ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction, shouldDisplayNewMarker}, index) => (
                     <AncestorReportActionItem
                         key={ancestorReportAction.reportActionID}
+                        shouldHideThreadDivider={isConciergeThread && index === 0}
                         report={ancestorReport}
                         reportAction={ancestorReportAction}
                         shouldDisplayNewMarker={shouldDisplayNewMarker}

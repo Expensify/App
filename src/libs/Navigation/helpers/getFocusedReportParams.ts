@@ -94,7 +94,7 @@ function getFocusedReportParams(state: State): FocusedReportParams | undefined {
             return getSearchFullscreenMoneyRequestReportParams(activeTab);
         }
 
-        if (activeTab.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+        if (activeTab.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || activeTab.name === NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR) {
             return getReportsSplitFocusedReportParams(activeTab);
         }
 

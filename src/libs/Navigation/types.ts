@@ -57,6 +57,7 @@ type SplitNavigatorSidebarScreen = keyof typeof SIDEBAR_TO_SPLIT;
 type SplitNavigatorParamList = {
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SettingsSplitNavigatorParamList;
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: ReportsSplitNavigatorParamList;
+    [NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR]: ConciergeSplitNavigatorParamList;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: WorkspaceSplitNavigatorParamList;
     [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: DomainSplitNavigatorParamList;
 };
@@ -1011,6 +1012,12 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.ENABLE]: {policyID: string; subPage?: string; action?: 'edit'};
 };
 
+/** The Concierge page shows the same report screen as the Inbox, for the Concierge DM and its threads */
+type ConciergeSplitNavigatorParamList = {
+    [SCREENS.CONCIERGE_SIDEBAR]: undefined;
+    [SCREENS.REPORT]: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+};
+
 type ReportsSplitNavigatorParamList = {
     [SCREENS.INBOX]: undefined;
     [SCREENS.REPORT]: {
@@ -1352,6 +1359,7 @@ type TabNavigatorParamList = {
               shouldDeferInitialReportActions?: true;
           }
         | undefined;
+    [NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR]: NavigatorScreenParams<ConciergeSplitNavigatorParamList> | undefined;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
@@ -1791,6 +1799,7 @@ export type {
     ReportChangeWorkspaceNavigatorParamList,
     ReportSettingsNavigatorParamList,
     ReportsSplitNavigatorParamList,
+    ConciergeSplitNavigatorParamList,
     RestrictedActionParamList,
     ShareNavigatorParamList,
     RightModalNavigatorParamList,

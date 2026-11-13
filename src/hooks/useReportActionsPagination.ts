@@ -48,7 +48,7 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction, conciergeReportID);
 
     const {
         reportActions: unfilteredReportActions,

@@ -69,7 +69,8 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         hasUnreadMessageFromOthers: hasUnreadConciergeMessageFromOthers,
     } = useConciergeAskState(reportID);
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
-    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction, conciergeReportID);
 
     const isReportArchived = useReportIsArchived(reportID);
     const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);

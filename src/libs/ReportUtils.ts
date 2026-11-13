@@ -2692,6 +2692,8 @@ function findLastAccessedReport(
     excludeReportID?: string,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reports?: OnyxCollection<Report>,
+    // The Concierge DM whose conversations are skipped, because the Concierge page shows them instead of the Inbox
+    excludedConciergeReportID?: string,
 ): LastAccessedReport | undefined {
     const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
     const reportsCollection = reports ?? deprecatedAllReports ?? {};
@@ -2705,6 +2707,10 @@ function findLastAccessedReport(
 
     const isEligible = (report: OnyxEntry<Report>) => {
         if (excludeReportID && report?.reportID === excludeReportID) {
+            return false;
+        }
+
+        if (excludedConciergeReportID && (report?.reportID === excludedConciergeReportID || report?.parentReportID === excludedConciergeReportID)) {
             return false;
         }
 
@@ -2993,11 +2999,12 @@ function isThreadMemberProtectedByParentReport(parentReport: OnyxInputOrEntry<Re
 }
 
 /**
- * Checks if a report aligns its action list to the top (transaction threads, money request / invoice reports).
+ * Checks if a report aligns its action list to the top (transaction threads, Concierge threads, money request / invoice reports).
  */
-function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
+function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>, conciergeReportID?: string): boolean {
     const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
-    return isTransactionThreadReport || isMoneyRequestReport(report) || isInvoiceReport(report);
+    const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
+    return isTransactionThreadReport || isConciergeThread || isMoneyRequestReport(report) || isInvoiceReport(report);
 }
 
 /**

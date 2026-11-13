@@ -190,6 +190,7 @@ const SENTRY_LABEL = {
     NAVIGATION_TAB_BAR: {
         EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
         INBOX: 'NavigationTabBar-Inbox',
+        CONCIERGE: 'NavigationTabBar-Concierge',
         REPORTS: 'NavigationTabBar-Reports',
         INSIGHTS: 'NavigationTabBar-Insights',
         WORKSPACES: 'NavigationTabBar-Workspaces',
@@ -200,6 +201,10 @@ const SENTRY_LABEL = {
         FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
         FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
         SUPPORTAL_SWITCHER_BUTTON: 'NavigationTabBar-SupportalSwitcherButton',
+    },
+    CONCIERGE_SIDEBAR: {
+        NEW_CHAT: 'ConciergeSidebar-NewChat',
+        CONVERSATION: 'ConciergeSidebar-Conversation',
     },
     FAB_MENU: {
         CREATE_EXPENSE: 'FABMenu-CreateExpense',
@@ -433,6 +438,7 @@ const SENTRY_LABEL = {
         DETAILS_BUTTON: 'HeaderView-DetailsButton',
         JOIN_BUTTON: 'HeaderView-JoinButton',
         NEW_CONCIERGE_CHAT_BUTTON: 'HeaderView-NewConciergeChatButton',
+        CONCIERGE_HISTORY_BUTTON: 'HeaderView-ConciergeHistoryButton',
         CHRONOS_TIMER_MENU_START_TIMER: 'HeaderView-ChronosTimerMenuStartTimer',
         CHRONOS_TIMER_MENU_STOP_TIMER: 'HeaderView-ChronosTimerMenuStopTimer',
         CHRONOS_TIMER_MENU_SCHEDULE_OOO: 'HeaderView-ChronosTimerMenuScheduleOOO',

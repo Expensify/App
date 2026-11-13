@@ -193,6 +193,7 @@ export default {
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 260,
     inboxSideBarWidth: 360,
+    conciergeSideBarWidth: 340,
     superWideRHPLeftMargin: 360,
     // RHP panel width. Kept separate from sideBarWidth (the LHN) so the two can differ.
     rhpWidth: 440,
