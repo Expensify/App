@@ -7,6 +7,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -35,6 +37,7 @@ function RuleTaxesDisabledEmptyState({policyID}: RuleTaxesDisabledEmptyStateProp
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const illustrations = useMemoizedLazyIllustrations(['Coins']);
     const policyData = usePolicyData(policyID);
+    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const {showConfirmModal} = useConfirmModal();
     const isConnectedToAccounting = hasAccountingConnections(policyData.policy);
 
@@ -54,7 +57,7 @@ function RuleTaxesDisabledEmptyState({policyID}: RuleTaxesDisabledEmptyStateProp
             return;
         }
 
-        enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, policyData.policy?.taxRates, policyData);
+        enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, {policy: policyData.policy, governmentMileageRates, policyData});
     };
 
     return (

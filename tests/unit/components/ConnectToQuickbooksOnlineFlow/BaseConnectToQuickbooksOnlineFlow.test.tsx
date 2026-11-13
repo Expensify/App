@@ -157,12 +157,15 @@ describe('BaseConnectToQuickbooksOnlineFlow', () => {
     });
 
     it('disables policy taxes once when the flow starts', async () => {
+        // Given a workspace starting a QBO connection
+        // When the shared connection flow mounts
         renderFlow();
 
         await waitFor(() => {
             expect(mockEnablePolicyTaxes).toHaveBeenCalledTimes(1);
         });
 
-        expect(mockEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false, false);
+        // Then taxes are disabled without requesting optimistic government rates
+        expect(mockEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false, false, {});
     });
 });
