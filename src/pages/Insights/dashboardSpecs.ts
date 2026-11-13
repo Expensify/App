@@ -282,12 +282,15 @@ function getUpgradeablePolicyIDsInScope(policiesInScope: Policy[], login: string
         .map((policy) => policy.id);
 }
 
-/** Returns the dashboards the user can open, ignoring the workspace filter. */
+/**
+ * Returns the dashboards the user can open, ignoring the workspace filter.
+ * Workspaces deleted offline stay in Onyx until the server confirms, so they don't count, or a dashboard would vanish only on reconnect.
+ */
 function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined, isBetaEnabled: (beta: Beta) => boolean): InsightsDashboardID[] {
-    const allPolicies = Object.values(policies ?? {});
+    const activePolicies = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && !isArchivedOrPendingDeletePolicy(policy));
     return Object.values(CONST.INSIGHTS.DASHBOARD).filter((dashboardID) => {
         const {beta, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || allPolicies.some((policy) => !!policy && isPolicyEligible(policy, login)));
+        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || activePolicies.some((policy) => isPolicyEligible(policy, login)));
     });
 }
 
