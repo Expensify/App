@@ -17518,11 +17518,11 @@ describe('Trip search', () => {
         report_3: buildTrip('3', {reportName: 'Oslo React Meetup', startDate: '2026-11-04T00:00:00'}),
     };
 
-    const getTripSections = (shouldReturnTripRooms: boolean) =>
+    const getTripSections = (shouldReturnTripRooms: boolean, data: OnyxTypes.SearchResults['data'] = tripData) =>
         SearchUIUtils.getSections({
             dateFnsLocale: undefined,
             type: CONST.SEARCH.DATA_TYPES.TRIP,
-            data: tripData,
+            data,
             currentAccountID: 628,
             currentUserEmail: 'travel-admin@cplustest.com',
             translate: translateLocal,
@@ -17547,6 +17547,30 @@ describe('Trip search', () => {
             expect.objectContaining({keyForList: '1', tripName: 'Tokyo Sales Conference', formattedTraveler: 'Travel Employee', status: CONST.SEARCH.TRIP_STATUS.UPCOMING}),
         );
         expect(rows.find((row) => row.reportID === '2')?.formattedTraveler).toBe('Travel Admin');
+    });
+
+    it('shows and sorts by the trip fare instead of the room total', () => {
+        // Given a trip whose room total was overwritten to 0 when the room was opened, while its fare is still in the trip payload
+        const data = createMock<OnyxTypes.SearchResults['data']>({
+            ...tripData,
+            report_1: buildTrip('1', {total: 0}),
+            reportNameValuePairs_1: {tripData: {payload: {tripPaymentInfo: {totalFare: {amount: 2956.71, currencyCode: 'EUR'}}}}},
+        });
+
+        // When the search results are turned into rows and sorted by total
+        const [rows] = getSectionsByType(getTripSections(true, data), SearchUIUtils.isTripListItemType);
+        const sorted = getSortedSectionsByType(
+            SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, rows, localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.SORT_ORDER.DESC, undefined, {
+                shouldReturnTripRooms: true,
+            }),
+            SearchUIUtils.isTripListItemType,
+        );
+
+        // Then the row shows the fare in cents, rounded since the fare is a float, and sorts by it like the backend does
+        expect(sorted.at(0)).toEqual(expect.objectContaining({reportID: '1', total: 295671, currency: 'EUR'}));
+
+        // And trips without a payload keep the room total
+        expect(sorted.find((row) => row.reportID === '2')?.total).toBe(159732);
     });
 
     it('keeps the expense rows for a trip search without the beta', () => {
