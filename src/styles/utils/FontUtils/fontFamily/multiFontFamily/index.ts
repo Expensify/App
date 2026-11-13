@@ -79,8 +79,8 @@ const fontFamily: FontFamilyStyles = {
 };
 
 if (getOperatingSystem() === CONST.OS.WINDOWS) {
-    for (const key of Object.keys(fontFamily)) {
-        fontFamily[key as keyof FontFamilyStyles].fontFamily = fontFamily[key as keyof FontFamilyStyles].fontFamily.replace('Segoe UI Emoji', 'Windows Segoe UI Emoji');
+    for (const font of Object.values(fontFamily)) {
+        font.fontFamily = font.fontFamily.replace('Segoe UI Emoji', 'Windows Segoe UI Emoji');
     }
 }
 

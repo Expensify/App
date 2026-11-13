@@ -228,8 +228,10 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     );
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
 
-    const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
-    const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
+    // The SELECTED_TAB collection is typed with the IOU request tabs, but this page stores a split tab in it.
+    const selectedSplitTab: string | undefined = selectedTab;
+    const isPercentageMode = selectedSplitTab === CONST.TAB.SPLIT.PERCENTAGE;
+    const isDateMode = selectedSplitTab === CONST.TAB.SPLIT.DATE;
     const childTransactions = getChildTransactions(allTransactions, transactionID);
     const isDraftSelfDMContext = isSelfDM(draftTransactionReport);
     const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
