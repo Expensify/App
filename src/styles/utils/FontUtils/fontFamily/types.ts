@@ -1,4 +1,38 @@
-import type {TextStyle} from 'react-native';
+// Duplicated from React Native `TextStyle` so these stay the RN unions under both the legacy types and the Strict API.
+// Indexing `TextStyle['fontStyle' | 'fontWeight']` widens to csstype (`"-moz-initial"`, bare `string`) once the Strict API is enabled.
+type FontStyle = 'normal' | 'italic';
+
+type FontWeight =
+    | 'normal'
+    | 'bold'
+    | '100'
+    | '200'
+    | '300'
+    | '400'
+    | '500'
+    | '600'
+    | '700'
+    | '800'
+    | '900'
+    | 100
+    | 200
+    | 300
+    | 400
+    | 500
+    | 600
+    | 700
+    | 800
+    | 900
+    | 'ultralight'
+    | 'thin'
+    | 'light'
+    | 'medium'
+    | 'regular'
+    | 'semibold'
+    | 'condensedBold'
+    | 'condensed'
+    | 'heavy'
+    | 'black';
 
 type FontFamilyKey =
     | 'SYSTEM'
@@ -16,10 +50,11 @@ type FontFamilyKey =
 
 type FontFamily = {
     fontFamily: string;
-    fontStyle?: TextStyle['fontStyle'];
-    fontWeight?: TextStyle['fontWeight'];
+    fontStyle?: FontStyle;
+    fontWeight?: FontWeight;
 };
 
 type FontFamilyStyles = Record<FontFamilyKey, FontFamily>;
 
 export default FontFamilyStyles;
+export type {FontWeight};
