@@ -92,6 +92,12 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const closeFrameIdRef = useRef<number | null>(null);
     const prevIsCreateMenuVisibleRef = useRef(isCreateMenuVisible);
 
+    // Only keyboard focus counts: an item clicked with the mouse keeps focus too, and must not hold the bar open after the pointer leaves.
+    const hasKeyboardFocusInside = () => {
+        const element = barContainerRef.current;
+        return isHTMLElement(element) && !!element.querySelector(':focus-visible');
+    };
+
     useEffect(() => {
         if (isCreateMenuVisible && closeFrameIdRef.current !== null) {
             cancelAnimationFrame(closeFrameIdRef.current);
@@ -108,7 +114,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                 closeFrameIdRef.current = null;
                 const element = barContainerRef.current;
                 const isHovered = isHTMLElement(element) && element.matches(':hover');
-                if (!isHovered) {
+                if (!isHovered && !hasKeyboardFocusInside()) {
                     endPeek();
                 }
             });
@@ -116,12 +122,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
         prevIsCreateMenuVisibleRef.current = isCreateMenuVisible;
     }, [endPeek, isCreateMenuVisible]);
-
-    // Only keyboard focus counts: an item clicked with the mouse keeps focus too, and must not hold the bar open after the pointer leaves.
-    const hasKeyboardFocusInside = () => {
-        const element = barContainerRef.current;
-        return isHTMLElement(element) && !!element.querySelector(':focus-visible');
-    };
 
     const endPeekIfIdle = () => {
         if (isCreateMenuVisible || hasKeyboardFocusInside()) {

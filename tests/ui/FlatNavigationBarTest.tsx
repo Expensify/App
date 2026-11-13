@@ -462,6 +462,33 @@ describe('FlatNavigationBar', () => {
             expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
         });
 
+        it('keeps the bar peeking after the create menu closes if an item has keyboard focus', async () => {
+            // Given a collapsed bar currently peeking with the Create menu open and no hover over the bar
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockCreateButtonProps?.showCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the menu closes while an item inside the bar retains keyboard focus
+            mockIsElementHovered = false;
+            mockHasKeyboardFocusInside = true;
+            act(() => {
+                mockCreateButtonProps?.hideCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking so the keyboard user still sees labels
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
         it('cancels the collapse frame if the create menu reopens immediately in the same frame', async () => {
             // Given a collapsed bar currently peeking with the Create menu open
             await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
