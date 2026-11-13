@@ -10,21 +10,16 @@ import type {TextStyle, ViewStyle} from 'react-native';
 import type {WebStyle} from 'react-native-web';
 
 type WebWidenedStyleKey =
-    | 'bottom'
     | 'display'
     | 'height'
     | 'left'
     | 'lineHeight'
     | 'maxHeight'
     | 'maxWidth'
-    | 'minHeight'
-    | 'minWidth'
     | 'overflow'
-    | 'paddingBottom'
     | 'paddingLeft'
     | 'paddingRight'
     | 'position'
-    | 'right'
     | 'top'
     | 'verticalAlign'
     | 'width';
