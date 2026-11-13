@@ -16,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
 import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shouldHidePayAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isChatThread, isSupportTicket} from '@libs/ReportUtils';
@@ -24,10 +23,8 @@ import {isArchivedReport, isChatThread, isSupportTicket} from '@libs/ReportUtils
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
-import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 import AskConciergeWelcome from '@pages/inbox/report/AskConciergeWelcome';
 import CollapsedReportHeaderSpacer from '@pages/inbox/report/CollapsibleReportHeader/CollapsedReportHeaderSpacer';
-import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
 import {useReportActionsListActions, useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import ReportActionsListHeader from '@pages/inbox/report/ReportActionsListHeader';
 import ReportActionsListPaddingView from '@pages/inbox/report/ReportActionsListPaddingView';
@@ -72,7 +69,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         sortedVisibleReportActions: unfilteredVisibleReportActions,
         isConciergeHiddenHistory,
         shouldShowConciergeWelcome,
-        isConciergeHistoryExpanded,
     } = useReportActionsListState();
 
     // Remove rows hidden by the renderer before calculating summary counts, headers, and scroll positions.
@@ -87,7 +83,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const {sessionStartTime} = useSidePanelState();
-    const {collapseHistory: collapseConciergeHistory} = useConciergeChatHistoryActions();
 
     const recordTimeToMeasureItemLayout = useReportActionsListTelemetry({reportID, onLayout});
 
@@ -190,23 +185,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     });
 
     const listHeaderComponent = (
-        <>
-            {isConciergeHistoryExpanded && (
-                <ConciergeChatHistoryToggle
-                    isHistoryShown
-                    onPress={() => {
-                        collapseConciergeHistory();
-                        if (linkedReportActionID) {
-                            Navigation.setParams({reportActionID: ''}, route.key);
-                        }
-                    }}
-                />
-            )}
-            <ReportActionsListHeader
-                reportID={reportID}
-                isDraftPendingCompletion={isDraftPendingCompletion}
-            />
-        </>
+        <ReportActionsListHeader
+            reportID={reportID}
+            isDraftPendingCompletion={isDraftPendingCompletion}
+        />
     );
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
@@ -227,12 +209,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     }
 
     if (shouldShowConciergeWelcome) {
-        return (
-            <AskConciergeWelcome
-                reportID={reportID}
-                onShowPreviousMessages={onShowPreviousMessages}
-            />
-        );
+        return <AskConciergeWelcome reportID={reportID} />;
     }
 
     return (

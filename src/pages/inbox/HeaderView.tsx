@@ -18,6 +18,7 @@ import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
@@ -421,6 +422,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // A Concierge screen on narrow already carries the new chat and history buttons, so search and the side panel
     // would crowd the header rather than add anything.
     const isNarrowConciergeScreen = (isConciergeChat || isConciergeThread) && shouldUseNarrowLayout;
+    // A blank Concierge chat is already the new chat the button would open.
+    const {shouldShowWelcome: isOnNewConciergeChat} = useConciergeAskState(report?.reportID);
     const shouldDisplaySearchRouter = !shouldMirrorSidePanelHeader && !isNarrowConciergeScreen && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurposeSelected);
@@ -578,7 +581,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {shouldShowConciergeHistoryButton && (
                                         // The pair reads as one control, so they sit flush rather than taking the row's gap.
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {newConciergeChatIconButton}
+                                            {!isOnNewConciergeChat && newConciergeChatIconButton}
                                             {conciergeHistoryButton}
                                         </View>
                                     )}

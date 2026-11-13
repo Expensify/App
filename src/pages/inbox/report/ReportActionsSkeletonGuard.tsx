@@ -67,12 +67,7 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
     });
 
     if ((shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton) && state.shouldShowConciergeWelcome) {
-        return (
-            <AskConciergeWelcome
-                reportID={reportID}
-                onShowPreviousMessages={actions.handleShowPreviousMessages}
-            />
-        );
+        return <AskConciergeWelcome reportID={reportID} />;
     }
 
     if (shouldShowLoadingSkeleton) {
