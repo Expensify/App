@@ -3,12 +3,16 @@
  * keeps what the user types while they type, and saves it when the input is left. Shared by the amount and tax amount
  * inputs so both treat an untouched, cleared or invalid input the same way.
  */
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useMirroredInputValue from '@hooks/useMirroredInputValue';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {getBackendAmountFromInput} from '@libs/MoneyRequestUtils';
 
-import {useState} from 'react';
+import type {RefObject} from 'react';
+
+import {useRef, useState} from 'react';
 
 type UseSavedAmountInputParams = {
     /** Saved amount, signed and in the smallest currency unit */
@@ -42,6 +46,12 @@ type UseSavedAmountInputResult = {
 
     /** For the input's blur: validates and saves what the user typed */
     saveTypedAmount: () => void;
+
+    /** For the input's ref, which `blurInput` acts on */
+    inputRef: RefObject<BaseTextInputRef | null>;
+
+    /** For the input's submit: the input submits rather than blurs on Enter, so this blurs it to save the typed amount */
+    blurInput: () => void;
 };
 
 function useSavedAmountInput({amount, decimals, getAmountError, onSave}: UseSavedAmountInputParams): UseSavedAmountInputResult {
@@ -103,7 +113,12 @@ function useSavedAmountInput({amount, decimals, getAmountError, onSave}: UseSave
         }
     };
 
-    return {inputValue, inputError, inputKey: `${shownSavedValue}-${resetCount}`, startEditing, applyTypedAmount, saveTypedAmount};
+    const inputRef = useRef<BaseTextInputRef>(null);
+    const blurInput = () => {
+        inputRef.current?.blur();
+    };
+
+    return {inputValue, inputError, inputKey: `${shownSavedValue}-${resetCount}`, startEditing, applyTypedAmount, saveTypedAmount, inputRef, blurInput};
 }
 
 export default useSavedAmountInput;

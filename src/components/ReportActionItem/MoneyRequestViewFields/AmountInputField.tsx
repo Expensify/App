@@ -98,7 +98,7 @@ function AmountInputField({
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
     const getAmountError = (newAmount: number) => (isValidMoneyRequestAmount(newAmount, iouType, allowNegative, isP2P) ? '' : translate('iou.error.invalidAmount'));
-    const {inputValue, inputError, inputKey, startEditing, applyTypedAmount, saveTypedAmount} = useSavedAmountInput({
+    const {inputValue, inputError, inputKey, startEditing, applyTypedAmount, saveTypedAmount, inputRef, blurInput} = useSavedAmountInput({
         amount,
         decimals,
         getAmountError,
@@ -138,10 +138,12 @@ function AmountInputField({
                     allowNegative={allowNegative}
                 >
                     <AmountFormField.Input
+                        ref={inputRef}
                         label={label}
                         prefixCharacter={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
                         onFocus={startEditing}
                         onBlur={saveTypedAmount}
+                        onSubmitEditing={blurInput}
                     >
                         <AmountFormField.SignFlipButton shouldUseBorderlessStyle />
                         {isCurrencyEditable && (

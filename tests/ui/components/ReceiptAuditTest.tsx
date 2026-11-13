@@ -37,7 +37,7 @@ describe('ReceiptAudit', () => {
 
     it('heads the receipt like the other sections, with the audit result muted beside it', () => {
         // Given a receipt the audit found an issue with
-        const mutedColor = renderHook(() => useTheme()).result.current.textSupporting;
+        const {text: standardColor, textSupporting: mutedColor} = renderHook(() => useTheme()).result.current;
 
         // When the receipt audit is rendered
         render(
@@ -50,7 +50,7 @@ describe('ReceiptAudit', () => {
         );
 
         // Then "Receipt" reads as a heading like "Details", and only the audit result stays muted
-        expect(screen.getByText(translateLocal('common.receipt'))).not.toHaveStyle({color: mutedColor});
+        expect(screen.getByText(translateLocal('common.receipt'))).toHaveStyle({color: standardColor});
         expect(screen.getByText(new RegExp(translateLocal('iou.receiptIssuesFound', {count: 1})))).toHaveStyle({color: mutedColor});
     });
 });

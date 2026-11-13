@@ -331,17 +331,17 @@ describe('MoneyRequestView edit fields', () => {
         };
         await setupTestData(true);
         // Read before the view renders, as a later render would replace the view on the screen
-        const mutedColor = renderHook(() => useTheme()).result.current.textSupporting;
+        const standardColor = renderHook(() => useTheme()).result.current.text;
 
         // When the expense view renders
         renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the merchant reads like any other text rather than muted, since the field's disabled fill already marks it as locked
+        // Then the merchant takes the standard text color rather than the muted one, since the field's disabled fill already marks it as locked
         await waitFor(() => {
             expect(screen.getByText('Coffee Shop')).toBeOnTheScreen();
         });
-        expect(screen.getByText('Coffee Shop')).not.toHaveStyle({color: mutedColor});
+        expect(screen.getByText('Coffee Shop')).toHaveStyle({color: standardColor});
     });
 
     it('shows the category and tag from the report policy as dropdown fields when nothing is selected yet', async () => {

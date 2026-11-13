@@ -52,7 +52,7 @@ function TaxAmountInputField({transaction, updateParams, policy, taxAmount, curr
     // The tax amount page caps the tax at what the expense's tax rate works out to, as the create form does.
     const maxTaxAmount = getCalculatedTaxAmount(policy, transaction, currency, decimals);
     const getAmountError = (newTaxAmount: number) => (newTaxAmount > maxTaxAmount ? translate('iou.error.invalidTaxAmount', convertToDisplayString(maxTaxAmount, currency)) : '');
-    const {inputValue, inputError, inputKey, startEditing, applyTypedAmount, saveTypedAmount} = useSavedAmountInput({
+    const {inputValue, inputError, inputKey, startEditing, applyTypedAmount, saveTypedAmount, inputRef, blurInput} = useSavedAmountInput({
         amount: taxAmount,
         decimals,
         getAmountError,
@@ -69,10 +69,12 @@ function TaxAmountInputField({transaction, updateParams, policy, taxAmount, curr
                 onInputChange={applyTypedAmount}
             >
                 <AmountFormField.Input
+                    ref={inputRef}
                     label={label}
                     prefixCharacter={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
                     onFocus={startEditing}
                     onBlur={saveTypedAmount}
+                    onSubmitEditing={blurInput}
                 />
             </AmountFormField>
         </View>
