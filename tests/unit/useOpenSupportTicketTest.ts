@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import {useAskConciergeActions} from '@hooks/useIsInAskConcierge';
 import useOpenSupportTicket from '@hooks/useOpenSupportTicket';
 
 import {isNoSupportRepAvailableResponse, openSupportTicket} from '@libs/actions/Report';
@@ -18,6 +19,7 @@ jest.mock('@libs/Growl', () => ({error: jest.fn()}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useOnyx', () => () => [CONCIERGE_REPORT_ID]);
 jest.mock('@hooks/useOpenConciergeAnywhere', () => () => ({openConciergeAnywhere: mockOpenConciergeAnywhere}));
+jest.mock('@hooks/useIsInAskConcierge', () => ({useAskConciergeActions: jest.fn(() => ({}))}));
 
 const mockOpenSupportTicket = jest.mocked(openSupportTicket);
 const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
@@ -30,6 +32,7 @@ const mockIsNoSupportRepAvailableResponse = jest.mocked(isNoSupportRepAvailableR
 describe('useOpenSupportTicket', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.mocked(useAskConciergeActions).mockReturnValue({});
     });
 
     it('returns nothing from the callback so a menu row does not wait on the ticket request', () => {
@@ -186,5 +189,78 @@ describe('useOpenSupportTicket', () => {
 
         // Then nothing is popped from the page they are on
         expect(Navigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('uses the Concierge thread opener when the ticket is requested inside Concierge', async () => {
+        // Given a conversation embedded in the Concierge screen
+        const openConciergeThread = jest.fn();
+        jest.mocked(useAskConciergeActions).mockReturnValue({openConciergeThread});
+        mockOpenSupportTicket.mockResolvedValue({jsonCode: 200});
+        mockIsNoSupportRepAvailableResponse.mockReturnValue(false);
+        const {result} = renderHook(() => useOpenSupportTicket());
+
+        // When the customer asks to talk to a human
+        await act(async () => {
+            result.current.openSupportTicketOrConcierge();
+        });
+
+        // Then ticket creation uses the embedded opener rather than leaving for Inbox
+        expect(mockOpenSupportTicket).toHaveBeenCalledWith(undefined, openConciergeThread);
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(mockOpenConciergeAnywhere).not.toHaveBeenCalled();
+    });
+
+    it('ignores repeated presses while creation is pending and allows retrying after failure', async () => {
+        // Given an embedded conversation with a pending ticket request
+        jest.mocked(useAskConciergeActions).mockReturnValue({openConciergeThread: jest.fn()});
+        let rejectRequest: ((error: Error) => void) | undefined;
+        mockOpenSupportTicket.mockReturnValueOnce(
+            new Promise((_resolve, reject) => {
+                rejectRequest = reject;
+            }),
+        );
+        const {result} = renderHook(() => useOpenSupportTicket());
+
+        // When the customer presses twice before creation completes
+        result.current.openSupportTicketOrConcierge();
+        result.current.openSupportTicketOrConcierge();
+
+        // Then only one ticket is requested, and a failed request can be retried
+        expect(mockOpenSupportTicket).toHaveBeenCalledTimes(1);
+        await act(async () => {
+            rejectRequest?.(new Error('network'));
+        });
+        mockOpenSupportTicket.mockResolvedValueOnce(undefined);
+        await act(async () => {
+            result.current.openSupportTicketOrConcierge();
+        });
+        expect(mockOpenSupportTicket).toHaveBeenCalledTimes(2);
+    });
+
+    it.each(['no-rep', 'server', 'network'])('keeps the original Concierge conversation open after a %s failure', async (failure) => {
+        // Given a failed ticket request inside Concierge, which never opened a pending ticket route
+        jest.mocked(useAskConciergeActions).mockReturnValue({openConciergeThread: jest.fn()});
+        mockGetActiveRoute.mockReturnValue(CHAT_ROUTE);
+        mockIsNoSupportRepAvailableResponse.mockReturnValue(failure === 'no-rep');
+        if (failure === 'network') {
+            mockOpenSupportTicket.mockRejectedValue(new Error('network'));
+        } else {
+            mockOpenSupportTicket.mockResolvedValue({jsonCode: 666});
+        }
+        const {result} = renderHook(() => useOpenSupportTicket());
+
+        // When creation fails while the original conversation is still visible
+        await act(async () => {
+            result.current.openSupportTicketOrConcierge();
+        });
+
+        // Then no page is popped and no duplicate Concierge panel is opened
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(mockOpenConciergeAnywhere).not.toHaveBeenCalled();
+        if (failure === 'no-rep') {
+            expect(Growl.error).toHaveBeenCalledWith({bodyText: 'supportTicket.noSupportRepAvailable'});
+        } else {
+            expect(Growl.error).not.toHaveBeenCalled();
+        }
     });
 });

@@ -5156,7 +5156,7 @@ function isNoSupportRepAvailableResponse(response: {jsonCode?: number | string; 
     return response?.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message === NO_SUPPORT_REP_AVAILABLE_MESSAGE;
 }
 
-function openSupportTicket(resolvedSupportTicketReportID?: string) {
+function openSupportTicket(resolvedSupportTicketReportID?: string, openCreatedSupportTicket?: (reportID: string) => void) {
     const newSupportTicketReportID = resolvedSupportTicketReportID ? undefined : generateReportID();
     const parameters: CreateSupportTicketParams = resolvedSupportTicketReportID ? {resolvedSupportTicketReportID, idempotencyKey: Str.guid()} : {newSupportTicketReportID};
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE> = newSupportTicketReportID
@@ -5200,12 +5200,20 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
     // Start the request before navigating so the optimistic support-ticket metadata is available for the pending LHN title.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method -- Reopening must wait for the server-selected report ID before navigating.
     const request = API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters, onyxData);
-    if (newSupportTicketReportID) {
+    if (newSupportTicketReportID && !openCreatedSupportTicket) {
         Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
     }
 
     return request
         .then((response) => {
+            if (openCreatedSupportTicket) {
+                // Embedded Concierge reports do not have a pending-creation route, so wait until the ticket can be fetched.
+                const reportID = newSupportTicketReportID ?? response?.reportID;
+                if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && reportID) {
+                    openCreatedSupportTicket(reportID);
+                }
+                return response;
+            }
             if (resolvedSupportTicketReportID && response?.reportID) {
                 Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
             }
