@@ -502,6 +502,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Diese einreichende Person hat ein Bankkonto in einer anderen Währung als USD. Aktiviere globale Rückerstattungen, um den Bericht zu bezahlen, oder bitte sie, ein USD-Bankkonto hinzuzufügen.',
         purchaseAmount: 'Kaufbetrag',
+        convertedAmount: 'Umgerechneter Betrag',
         originalAmount: 'Ursprünglicher Betrag',
         frequency: 'Häufigkeit',
         link: 'Link',

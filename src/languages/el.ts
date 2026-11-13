@@ -502,6 +502,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Αυτός ο υποβάλλων έχει τραπεζικό λογαριασμό που δεν είναι σε USD. Ενεργοποιήστε τις διεθνείς αποζημιώσεις για να πληρώσετε την αναφορά, ή ζητήστε του να προσθέσει τραπεζικό λογαριασμό σε USD.',
         purchaseAmount: 'Ποσό αγοράς',
+        convertedAmount: 'Μετατραπέν ποσό',
         originalAmount: 'Αρχικό ποσό',
         frequency: 'Συχνότητα',
         link: 'Σύνδεσμος',
