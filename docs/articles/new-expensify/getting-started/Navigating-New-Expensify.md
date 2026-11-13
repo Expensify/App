@@ -219,7 +219,7 @@ You can start common actions from **Search** instead of using the **➕ Create**
 2. Type the name of the action you want to start, such as **Create expense**, **Create report**, **Track distance**, **Start chat**, or **Book travel**. You can also type **go** or **go to** before the name, such as **go to book travel**.
 3. Select the action to start it.
 
-Only the actions available to you appear. **Book travel** appears only when Expensify Travel is enabled on your active workspace, and it opens the same booking tool as the **Book travel** option in the **➕ Create** button.
+Only the actions available to you appear. **Book travel** appears when any of your accessible workspaces has Expensify Travel enabled and set up, just like the **Book travel** option in the **➕ Create** button. If your default workspace has Travel disabled, either option explains why you can't book travel yet.
 
 Learn how to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
 
@@ -263,7 +263,7 @@ Yes. Select the **Search** icon, type **Book travel**, then select the **Book tr
 
 ## Why don’t I see Book travel in Search?
 
-**Book travel** appears only when Expensify Travel is enabled on your active workspace. If a different workspace has Expensify Travel enabled, make that workspace active and search again. If no workspace has it enabled, ask a workspace admin to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
+**Book travel** appears when any of your accessible workspaces has Expensify Travel enabled and set up. If none do, ask a workspace admin to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace). If your default workspace has Travel disabled, selecting **Book travel** explains why you can't book travel yet.
 
 ## Where do I manage workspace settings?
 
