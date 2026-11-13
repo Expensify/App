@@ -11,6 +11,7 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {InsightsDetailsParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -54,6 +55,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
         chartSpec && isResolved
             ? resolveInsightsDetailsItem({
                   groupBy: chartSpec.groupBy ?? getQueryGroupBy(filters),
+                  dateFilterKey: getSearchTimeGroupingDateKey(chartQueryJSON),
                   itemKey,
                   periodEnd,
                   member,

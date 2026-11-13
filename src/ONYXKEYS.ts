@@ -666,6 +666,9 @@ const ONYXKEYS = {
     // Whether the MoveFilesOutOfDocuments migration has rewritten attachment record paths, so later launches skip the collection scan
     ATTACHMENT_RECORD_PATHS_MIGRATED: 'attachmentRecordPathsMigrated',
 
+    /** Whether cached time groups using the old expense-date grouping have been removed. */
+    SEARCH_TIME_GROUPING_MIGRATED: 'searchTimeGroupingMigrated',
+
     // Stores last visited path
     LAST_VISITED_PATH: 'lastVisitedPath',
 
@@ -2092,6 +2095,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
     [ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN]: boolean;
     [ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED]: boolean;
+    [ONYXKEYS.SEARCH_TIME_GROUPING_MIGRATED]: boolean;
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;

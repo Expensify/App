@@ -1,10 +1,11 @@
 /** Converts a clicked chart group to the URL params the Details panel names it by, and back to its title and Spend filter. */
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
-import type {GroupedItem, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import type {GroupedItem, SearchDateFilterKeys, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
+import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
 import {adjustTimeRangeToDateFilters} from '@libs/SearchUIUtils';
 import {isInvalidMerchantValue, isValidDate} from '@libs/ValidationUtils';
 
@@ -34,6 +35,7 @@ type InsightsDetailsItemParams = {
 
 type ResolveInsightsDetailsItemParams = InsightsDetailsItemParams & {
     groupBy: SearchGroupBy;
+    dateFilterKey?: SearchDateFilterKeys;
 
     /** The member a Top spenders item names */
     member: OnyxEntry<PersonalDetails>;
@@ -58,9 +60,10 @@ function getInsightsDetailsItemParams(item: GroupedItem, queryJSON: Readonly<Sea
     if (!range) {
         return undefined;
     }
+    const dateFilterKey = getSearchTimeGroupingDateKey(queryJSON);
     const {start, end} = adjustTimeRangeToDateFilters(
         range,
-        queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
+        queryJSON.flatFilters.filter((filter) => filter.key === dateFilterKey),
     );
     return {itemKey: start, periodEnd: end};
 }
@@ -83,7 +86,15 @@ function getPeriodTitle(groupBy: SearchGroupBy, range: {start: string; end: stri
 }
 
 /** Resolves the key in the Details panel's URL to the item's title and the filter narrowing the chart's query to it. */
-function resolveInsightsDetailsItem({groupBy, itemKey, periodEnd, member, dateFnsLocale, translate}: ResolveInsightsDetailsItemParams): InsightsDetailsItem | undefined {
+function resolveInsightsDetailsItem({
+    groupBy,
+    itemKey,
+    periodEnd,
+    member,
+    dateFnsLocale,
+    translate,
+    dateFilterKey = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+}: ResolveInsightsDetailsItemParams): InsightsDetailsItem | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM: {
             const name = member?.displayName ?? member?.login;
@@ -106,7 +117,7 @@ function resolveInsightsDetailsItem({groupBy, itemKey, periodEnd, member, dateFn
                 return undefined;
             }
             const range = {start: itemKey, end: periodEnd};
-            return {title: getPeriodTitle(groupBy, range, dateFnsLocale), filterQuery: `date>=${range.start} date<=${range.end}`};
+            return {title: getPeriodTitle(groupBy, range, dateFnsLocale), filterQuery: `${dateFilterKey}>=${range.start} ${dateFilterKey}<=${range.end}`};
         }
     }
 }

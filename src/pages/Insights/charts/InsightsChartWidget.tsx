@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
@@ -131,7 +132,7 @@ function InsightsChartWidget({
         const content = buildInsightsChartCSV({
             data,
             groupBy,
-            dateFilterStart: getDateFilterRange(queryJSON).start,
+            dateFilterStart: getDateFilterRange(queryJSON, getSearchTimeGroupingDateKey(queryJSON)).start,
             currency: filters.groupCurrency,
             getCurrencyDecimals,
             translate,

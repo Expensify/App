@@ -7169,6 +7169,21 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('getDateFilterRange', () => {
+        test.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION, CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL])('reads %s bounds without mixing expense dates', (dateKey) => {
+            // Given an action period that differs from the expense date
+            const queryJSON = buildSearchQueryJSON(`type:expense date:2025-01-01 ${dateKey}>=2026-02-01 ${dateKey}<=2026-02-28`);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When a Compliance chart asks for its own date range
+            const range = getDateFilterRange(queryJSON, dateKey);
+
+            // Then chart labels and exports follow the action period while existing callers keep expense dates
+            expect(range).toEqual({start: '2026-02-01', end: '2026-02-28'});
+            expect(getDateFilterRange(queryJSON)).toEqual({start: '2025-01-01', end: '2025-01-01'});
+        });
+
         test('returns start and end for an on-date filter', () => {
             const queryJSON = buildSearchQueryJSON('type:expense date:2025-03-15');
 
