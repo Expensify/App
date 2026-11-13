@@ -8,6 +8,7 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -56,15 +57,20 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     const {selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const hasSelectedTransactions = !!selectedTransactionIDs.length;
-    const isTransactionThread = !!transactionThreadReportID;
 
+    // In the table view a single-expense report lists its expense as a selectable row, so it acts like a multi-expense report here.
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(moneyRequestReport?.reportID);
+    const isTransactionThread = !!transactionThreadReportID && !shouldUseTableViewForSingleExpense;
+
+    // The table view keeps the selection, as its single expense is a selectable row. This component remounts on resize and when
+    // a page opens over a narrow layout, and a report can drop to one expense, all while the selection is still needed.
     useEffect(() => {
-        if (!transactionThreadReportID) {
+        if (!isTransactionThread) {
             return;
         }
 
         clearSelectedTransactions(true);
-    }, [transactionThreadReportID]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [isTransactionThread]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Report-level actions must not be usable while expenses are selected, otherwise they get mixed up with the bulk expense actions.
     const shouldDisableReportActions = hasSelectedTransactions && !isTransactionThread;

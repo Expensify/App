@@ -93,11 +93,13 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const spendRuleTabs = [
         {
             key: CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_SPEND_RULE_TAB.COPY_EXISTING,
             title: translate('workspace.card.issueNewCard.copyExisting'),
             icon: icons.Copy,
         },
         {
             key: CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_SPEND_RULE_TAB.CREATE_NEW,
             title: translate('workspace.card.issueNewCard.createNew'),
             icon: icons.Pencil,
         },

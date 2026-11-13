@@ -76,9 +76,6 @@ type IOURequestEditReportCommonProps = {
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
-
-    /** Leaves a new expense off any report. Offered next to the new report option when passed */
-    selectNoReport?: () => void;
     isPerDiemRequest: boolean;
     isTimeRequest?: boolean;
     isUnreportedManagedCardTransaction?: boolean;
@@ -126,7 +123,6 @@ function IOURequestEditReportCommon({
     isUnreported,
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
     createReport,
-    selectNoReport,
     isPerDiemRequest,
     isTimeRequest = false,
     isUnreportedManagedCardTransaction = false,
@@ -442,33 +438,9 @@ function IOURequestEditReportCommon({
         );
     }
 
-    const noReportOption = selectNoReport ? (
-        <MenuItem.Root
-            onPress={selectNoReport}
-            sentryLabel={CONST.SENTRY_LABEL.REPORT_PICKER.NO_REPORT}
-        >
-            <MenuItem.Row>
-                <MenuItem.Leading>
-                    <MenuItem.Icon src={icons.Close} />
-                </MenuItem.Leading>
-                <MenuItem.Content>
-                    <MenuItem.Title>{translate('common.none')}</MenuItem.Title>
-                </MenuItem.Content>
-            </MenuItem.Row>
-        </MenuItem.Root>
-    ) : undefined;
-
-    const newReportOption = createReportOption ?? autoReportOption;
-    const headerOptionCount = (newReportOption ? 1 : 0) + (noReportOption ? 1 : 0);
-    const listHeaderContent =
-        headerOptionCount > 0 ? (
-            <>
-                {newReportOption}
-                {noReportOption}
-            </>
-        ) : undefined;
+    const listHeaderContent = createReportOption ?? autoReportOption;
     const isSearchable = !hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const listSize: ReportListSize = {rowCount: eligibleReports.length + headerOptionCount, isSearchable};
+    const listSize: ReportListSize = {rowCount: eligibleReports.length + (listHeaderContent ? 1 : 0), isSearchable};
 
     let shouldShowNotFoundPage;
     if (listHeaderContent) {

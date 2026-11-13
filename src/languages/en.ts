@@ -102,6 +102,7 @@ const translations = {
         unableToDisplayChart: 'Unable to display chart',
         // @context Shown below "Unable to display chart". "WebGL" is a graphics technology name; keep it untranslated.
         webGLNotSupported: "Your browser doesn't support WebGL. Please enable it or switch browsers.",
+        webAssemblyNotSupported: 'WebAssembly is unavailable in your browser. Try another browser to view charts.',
         // @context Shown below "Unable to display chart" when the chart renderer failed to load, e.g. after an app update while the page stayed open.
         chartFailedToLoad: 'The chart could not be loaded. Please refresh the page and try again.',
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
@@ -8583,6 +8584,13 @@ const translations = {
                 onWaitlist: 'You’re on the waitlist',
                 waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Coming soon',
+                joinWaitlist: 'Join waitlist',
+                onWaitlist: 'You’re on the waitlist',
+                onTheList: 'You’re on the list!',
+                waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
+            },
             setup: 'Connect',
             connectToSandbox: 'Connect to sandbox',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
@@ -9162,6 +9170,9 @@ const translations = {
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
+            ukFuelRateTaxError: 'Please add a 20% tax rate to track tax on the UK Advisory Fuel Rates.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Please add a 20% tax rate in ${integrationName} to track tax on the UK Advisory Fuel Rates.`,
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
@@ -11235,6 +11246,7 @@ const translations = {
             sortAscending: 'Sort ascending',
             sortDescending: 'Sort descending',
             hideColumn: 'Hide column',
+            resetColumnSizes: 'Reset column sizes',
         },
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
@@ -11575,6 +11587,8 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
+        switchToTableView: 'Switch to table view',
+        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {
