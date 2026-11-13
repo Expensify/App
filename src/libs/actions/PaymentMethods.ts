@@ -25,7 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
-import type {BankAccountList, CardList, FundList, PolicyMemberBankAccounts} from '@src/types/onyx';
+import type {BankAccountList, CardList, FundList, PolicyMemberBankAccounts, UserWallet} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type Policy from '@src/types/onyx/Policy';
 import type Session from '@src/types/onyx/Session';
@@ -341,7 +341,7 @@ function setPaymentMethodCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CU
  * Call the API to transfer wallet balance.
  *
  */
-function transferWalletBalance(paymentMethod: PaymentMethod) {
+function transferWalletBalance(paymentMethod: PaymentMethod, userWallet: OnyxEntry<UserWallet>) {
     const paymentMethodIDKey =
         paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
 
@@ -349,7 +349,7 @@ function transferWalletBalance(paymentMethod: PaymentMethod) {
         [paymentMethodIDKey]: paymentMethod.methodID,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TRANSFER>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TRANSFER | typeof ONYXKEYS.USER_WALLET>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.WALLET_TRANSFER,
@@ -358,9 +358,14 @@ function transferWalletBalance(paymentMethod: PaymentMethod) {
                 errors: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {currentBalance: 0, availableBalance: 0},
+        },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TRANSFER>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TRANSFER | typeof ONYXKEYS.USER_WALLET>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.WALLET_TRANSFER,
@@ -370,9 +375,15 @@ function transferWalletBalance(paymentMethod: PaymentMethod) {
                 paymentMethodType: paymentMethod.accountType,
             },
         },
+        {
+            // Keep a response containing pre-transfer balances from enabling another transfer before the wallet refresh.
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {currentBalance: 0, availableBalance: 0},
+        },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TRANSFER>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TRANSFER | typeof ONYXKEYS.USER_WALLET>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.WALLET_TRANSFER,
@@ -380,6 +391,11 @@ function transferWalletBalance(paymentMethod: PaymentMethod) {
                 loading: false,
                 shouldShowSuccess: false,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {currentBalance: userWallet?.currentBalance ?? null, availableBalance: userWallet?.availableBalance ?? null},
         },
     ];
 
@@ -395,7 +411,6 @@ function resetWalletTransferData() {
         selectedAccountType: '',
         selectedAccountID: null,
         filterPaymentMethodType: null,
-        loading: false,
         shouldShowSuccess: false,
     });
 }
@@ -414,6 +429,7 @@ function saveWalletTransferMethodType(filterPaymentMethodType?: FilterMethodPaym
 
 function dismissSuccessfulTransferBalancePage() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowSuccess: false});
+    getPaymentMethods();
     Navigation.goBack();
 }
 

@@ -1,8 +1,10 @@
-import {makeDefaultPaymentMethod} from '@libs/actions/PaymentMethods';
+import {dismissSuccessfulTransferBalancePage, makeDefaultPaymentMethod, resetWalletTransferData, transferWalletBalance} from '@libs/actions/PaymentMethods';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, UserWallet} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -55,6 +57,82 @@ describe('actions/PaymentMethods', () => {
 
     afterEach(() => {
         mockFetch?.resume?.();
+        jest.restoreAllMocks();
+    });
+
+    describe('transferWalletBalance', () => {
+        const wallet: UserWallet = {
+            currentBalance: 5000,
+            availableBalance: 4000,
+            tierName: CONST.WALLET.TIER_NAME.GOLD,
+            currentStep: CONST.WALLET.STEP.ACTIVATE,
+            walletLinkedAccountID: BANK_ACCOUNT_ID,
+            walletLinkedAccountType: 'bankAccount',
+        };
+        const bankAccount = createMockPaymentMethod({methodID: BANK_ACCOUNT_ID, accountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT});
+
+        test('reserves the balance while a transfer is pending, including after reopening the page', async () => {
+            // Given a positive wallet balance and a slow transfer response
+            await Onyx.merge(ONYXKEYS.USER_WALLET, wallet);
+            mockFetch.pause?.();
+
+            // When the user submits a transfer and reopens the page before it finishes
+            transferWalletBalance(bankAccount, wallet);
+            await waitForBatchedUpdates();
+            resetWalletTransferData();
+            await waitForBatchedUpdates();
+
+            // Then neither the stale balance nor resetting the page can enable another transfer
+            expect(await getOnyxValue(ONYXKEYS.USER_WALLET)).toMatchObject({...wallet, currentBalance: 0, availableBalance: 0});
+            expect(await getOnyxValue(ONYXKEYS.WALLET_TRANSFER)).toMatchObject({loading: true, shouldShowSuccess: false});
+        });
+
+        test('keeps the transferred balance at zero after a successful response', async () => {
+            // Given a successful response that still contains the pre-transfer balance
+            await Onyx.merge(ONYXKEYS.USER_WALLET, wallet);
+            mockFetch.mockAPICommand?.(WRITE_COMMANDS.TRANSFER_WALLET_BALANCE, () => ({
+                onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.USER_WALLET, value: wallet}],
+            }));
+
+            // When the server confirms the transfer
+            transferWalletBalance(bankAccount, wallet);
+            await waitForBatchedUpdates();
+
+            // Then a second visit cannot offer the same funds again
+            expect(await getOnyxValue(ONYXKEYS.USER_WALLET)).toMatchObject({...wallet, currentBalance: 0, availableBalance: 0});
+            expect(await getOnyxValue(ONYXKEYS.WALLET_TRANSFER)).toMatchObject({loading: false, shouldShowSuccess: true});
+        });
+
+        test('restores both previous balances when a transfer fails', async () => {
+            // Given unequal current and available balances so rollback must preserve each value
+            await Onyx.merge(ONYXKEYS.USER_WALLET, wallet);
+            mockFetch.fail?.();
+
+            // When the backend rejects the transfer
+            transferWalletBalance(bankAccount, wallet);
+            await waitForBatchedUpdates();
+
+            // Then the funds remain available for retry and no success screen is shown
+            expect(await getOnyxValue(ONYXKEYS.USER_WALLET)).toMatchObject(wallet);
+            expect(await getOnyxValue(ONYXKEYS.WALLET_TRANSFER)).toMatchObject({loading: false, shouldShowSuccess: false});
+        });
+
+        test('refreshes the authoritative wallet balance when dismissing success', async () => {
+            // Given a completed transfer whose wallet should be refreshed on return
+            await Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false, shouldShowSuccess: true});
+            const goBack = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+            const refresh = jest.fn(() => ({jsonCode: 200}));
+            mockFetch.mockAPICommand?.(READ_COMMANDS.OPEN_PAYMENTS_PAGE, refresh);
+
+            // When the user dismisses the confirmation
+            dismissSuccessfulTransferBalancePage();
+            await waitForBatchedUpdates();
+
+            // Then returning to Wallet also requests fresh payment data
+            expect(refresh).toHaveBeenCalledTimes(1);
+            expect(goBack).toHaveBeenCalledTimes(1);
+            expect(await getOnyxValue(ONYXKEYS.WALLET_TRANSFER)).toMatchObject({shouldShowSuccess: false});
+        });
     });
 
     describe('makeDefaultPaymentMethod', () => {
