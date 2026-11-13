@@ -77,6 +77,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
+import type {SearchKey} from './SearchKeyUtils';
 
 import {getStandardExportTemplateDisplayName} from './AccountingUtils';
 import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
@@ -94,6 +95,7 @@ import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parseAmountFilterValue, supportsAmountFilterCurrency} from './SearchAmountFilterUtils';
+import {TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -3440,7 +3442,30 @@ function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | und
     return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
 }
 
-function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) {
+/** Checks whether filter edits still belong to an explicitly selected search. */
+function doesQueryMatchSearchContext(queryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined, searchKey?: SearchKey) {
+    if (!searchKey || !TODO_SEARCH_KEYS.has(searchKey)) {
+        return doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON);
+    }
+
+    if (!queryJSON || !defaultQueryJSON || queryJSON.type !== defaultQueryJSON.type) {
+        return false;
+    }
+
+    // To-do searches keep their identity when defaults such as To are cleared through advanced filters.
+    // Their defining action must still match, so a different or negated action cannot keep a stale tab name.
+    const actionFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION).flatMap((filter) => filter.filters);
+    const defaultActionFilters = defaultQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION).flatMap((filter) => filter.filters);
+    return (
+        actionFilters.length === 1 &&
+        defaultActionFilters.length === 1 &&
+        actionFilters[0].operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO &&
+        defaultActionFilters[0].operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO &&
+        actionFilters[0].value === defaultActionFilters[0].value
+    );
+}
+
+function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string, searchKey?: SearchKey) {
     if (!lastQuery) {
         return defaultQuery;
     }
@@ -3457,7 +3482,7 @@ function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) 
         return defaultQuery;
     }
 
-    if (!doesQueryMatchDefaultFilterKeysAndType(lastQueryJSON, defaultQueryJSON)) {
+    if (!doesQueryMatchSearchContext(lastQueryJSON, defaultQueryJSON, searchKey)) {
         return defaultQuery;
     }
 
@@ -3556,6 +3581,7 @@ export {
     getFilterFromQuery,
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,
+    doesQueryMatchSearchContext,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     shouldRefetchSearchOnReportActionChange,

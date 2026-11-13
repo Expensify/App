@@ -2,8 +2,8 @@ import {renderHook} from '@testing-library/react-native';
 
 import useSearchKeyParam from '@components/Search/hooks/useSearchKeyParam';
 
-import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
+import {buildQueryStringWithResetFilters, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -219,6 +219,56 @@ describe('useSearchKeyParam', () => {
 
     describe('searchKey route param', () => {
         const savedSearches = {[SAVED_SEARCH_ID]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`, name: 'My search'}};
+
+        it.each([...TODO_SEARCH_KEYS])('keeps %s and its Reset defaults when other default filters are cleared', (searchKey) => {
+            // Given an explicitly selected to-do tab with its original default query
+            const defaultQuery = getSuggestedSearches()[searchKey].searchQuery;
+            const {result, rerender} = renderSearchKeyParam(defaultQuery, {searchKey});
+            mockSetParams.mockClear();
+
+            // When advanced filters remove the user restriction and add other refinements
+            const editedQuery = `type:expense-report action:${searchKey} status:approved policyID:456`;
+            rerender(editedQuery);
+
+            // Then the tab and its original Reset defaults survive without writing a Reports key
+            expect(result.current.currentSearchKey).toBe(searchKey);
+            expect(result.current.currentDefaultSearchQueryJSON?.hash).toBe(buildSearchQueryJSON(defaultQuery)?.hash);
+            expect(mockSetParams).not.toHaveBeenCalled();
+
+            const editedQueryJSON = buildSearchQueryJSON(editedQuery);
+            const defaultQueryJSON = result.current.currentDefaultSearchQueryJSON;
+            if (!editedQueryJSON) {
+                throw new Error('Expected a valid edited query');
+            }
+            const resetQuery = buildQueryStringWithResetFilters(editedQueryJSON, defaultQueryJSON);
+            rerender(resetQuery);
+            expect(result.current.currentSearchKey).toBe(searchKey);
+            expect(buildSearchQueryJSON(resetQuery)?.hash).toBe(buildSearchQueryJSON(defaultQuery)?.hash);
+        });
+
+        it('keeps Approve when a query without To is opened directly', () => {
+            // Given a restored Approve query with To cleared
+            const query = 'type:expense-report action:approve status:approved';
+
+            // When the route explicitly identifies the Approve tab
+            const {result} = renderSearchKeyParam(query, {searchKey: CONST.SEARCH.SEARCH_KEYS.APPROVE});
+
+            // Then the hook does not infer Reports from the missing default key
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            expect(mockSetParams).not.toHaveBeenCalled();
+        });
+
+        it.each(['type:expense-report', 'type:expense-report -action:approve', 'type:expense-report action:pay', 'type:expense action:approve'])(
+            'does not retain a stale Approve key for %s',
+            (query) => {
+                // Given an Approve route whose query no longer has the defining action and type
+                // When the hook validates the explicit key
+                const {result} = renderSearchKeyParam(query, {searchKey: CONST.SEARCH.SEARCH_KEYS.APPROVE});
+
+                // Then it derives the destination rather than trusting the stale Approve key
+                expect(result.current.currentSearchKey).not.toBe(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            },
+        );
 
         it('wins over the key derived from the query', () => {
             // The query is the "Reconciliation" default query, so it would otherwise resolve to that key.

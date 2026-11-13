@@ -7,7 +7,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import Navigation, {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getSearchKeyForDataType, isExistingSearchKey, savedSearchIDToSearchKey, searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, doesQueryMatchDefaultFilterKeysAndType, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, doesQueryMatchSearchContext, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
@@ -104,7 +104,7 @@ function useSearchKeyParam(currentSearchQueryJSON: SearchQueryJSON | undefined, 
     // A saved search is exempt from that validation, because it's the user's own query and they're free to change
     // it however they like without it becoming a different search.
     const isSearchKeyFromParamValid =
-        !!searchKeyFromParam && (!!searchKeyToSavedSearchID(searchKeyFromParam) || doesQueryMatchDefaultFilterKeysAndType(currentSearchQueryJSON, paramDefaultSearchQueryJSON));
+        !!searchKeyFromParam && (!!searchKeyToSavedSearchID(searchKeyFromParam) || doesQueryMatchSearchContext(currentSearchQueryJSON, paramDefaultSearchQueryJSON, searchKeyFromParam));
 
     const currentSearchKey = isSearchKeyFromParamValid ? searchKeyFromParam : getSearchKeyForQuery(currentSearchQueryJSON);
     const currentDefaultSearchQueryJSON = isSearchKeyFromParamValid ? paramDefaultSearchQueryJSON : getDefaultSearchQueryJSON(currentSearchKey);
