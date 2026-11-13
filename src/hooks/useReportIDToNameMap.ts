@@ -45,12 +45,9 @@ function buildMentionedRoomPlaceholderMap(html: string | undefined): ReportIDToN
     return Object.fromEntries(getMentionedReportIDs(html).map((reportID) => [reportID, MENTIONED_ROOM_PLACEHOLDER]));
 }
 
-function getReportName(report: Report): string {
-    return report.reportName ?? report.reportID;
-}
-
 /**
  * Builds a map of reportID to report name from COLLECTION.REPORT.
+ * The map is keyed by the reportID taken from the Onyx key, not report.reportID, because a partial update can cache a report without its reportID.
  *
  * @param reportIDs - when passed, only these reports are looked up, so callers that know which rooms their HTML mentions avoid a pass over every report
  */
@@ -60,16 +57,17 @@ function buildReportIDToNameMap(reports: OnyxCollection<Report> | undefined, rep
         for (const reportID of reportIDs) {
             const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             if (report) {
-                map[report.reportID] = getReportName(report);
+                map[reportID] = report.reportName ?? reportID;
             }
         }
         return map;
     }
-    for (const report of Object.values(reports ?? {})) {
+    for (const [key, report] of Object.entries(reports ?? {})) {
         if (!report) {
             continue;
         }
-        map[report.reportID] = getReportName(report);
+        const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT.length);
+        map[reportID] = report.reportName ?? reportID;
     }
     return map;
 }

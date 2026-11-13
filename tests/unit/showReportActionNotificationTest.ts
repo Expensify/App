@@ -174,9 +174,10 @@ describe('showReportActionNotification', () => {
     });
 
     it('passes the names of the rooms the comment mentions to showCommentNotification', async () => {
-        // Given a comment that mentions one room by reportID, and another room the comment doesn't mention
+        // Given a comment that mentions one room by reportID, and another room the comment doesn't mention.
+        // The mentioned room is cached from a partial update with only its name, so the map must be keyed by the mentioned reportID
         await setupReport();
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MENTIONED_ROOM_ID}`, {reportID: MENTIONED_ROOM_ID, reportName: '#admins'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MENTIONED_ROOM_ID}`, {reportName: '#admins'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_ROOM_ID}`, {reportID: OTHER_ROOM_ID, reportName: '#announce'});
         await waitForBatchedUpdates();
         const html = `hello <mention-report reportID="${MENTIONED_ROOM_ID}"></mention-report>`;

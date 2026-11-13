@@ -236,6 +236,23 @@ describe('buildReportIDToNameMap', () => {
         expect(map).toEqual({[adminsRoomID]: '#admins'});
     });
 
+    it('keys a report cached without its reportID by the reportID it was looked up with', () => {
+        // Given a room cached from a partial update that only sent its name, so the report has no reportID
+        const partialRoomID = '4';
+        const reportsWithPartialRoom: OnyxCollection<Report> = {
+            ...reports,
+            [`${ONYXKEYS.COLLECTION.REPORT}${partialRoomID}`]: {reportName: '#partial'} as Report,
+        };
+
+        // When building the map for that room, and for every report
+        const mentionedMap = buildReportIDToNameMap(reportsWithPartialRoom, [partialRoomID]);
+        const fullMap = buildReportIDToNameMap(reportsWithPartialRoom);
+
+        // Then the room is mapped under its reportID instead of undefined, so its mention isn't shown as #Hidden
+        expect(mentionedMap).toEqual({[partialRoomID]: '#partial'});
+        expect(fullMap[partialRoomID]).toBe('#partial');
+    });
+
     it('returns an empty map when no reportIDs are passed in the list', () => {
         // Given HTML that doesn't mention any room
         // When building the map for an empty list
