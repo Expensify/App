@@ -10,7 +10,6 @@ import {buildOxlintConfig} from 'eslint-config-expensify/oxlint';
 import {reactCompilerRuleNames} from 'eslint-config-expensify/oxlint/utils';
 import storybookPlugin from 'eslint-plugin-storybook';
 
-import {APP_HOSTED_RULE_IDS_BY_NAME} from './config/oxlint/appHostedRules.mjs';
 import {RULE_BY_CATEGORY} from './config/oxlint/reactCompilerRust.mjs';
 
 // React Compiler rules run as `rc/<name>` (config/oxlint/plugins/rc-rules.mjs), from the Rust compiler, instead of oxlint's
@@ -303,7 +302,6 @@ export default await buildOxlintConfig({
         hosted: './config/oxlint/plugins/hosted-rules.mjs',
         rulesdir: './config/oxlint/plugins/expensify-rules.mjs',
     },
-    extraRunningNames: ['rc/', ...Object.keys(APP_HOSTED_RULE_IDS_BY_NAME).map((name) => `hosted/${name}`)],
     env: {node: true, browser: true, audioworklet: true, jest: true},
     globals: {__DEV__: 'readonly'},
     jsPlugins: [

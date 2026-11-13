@@ -1,7 +1,8 @@
 /**
- * The App's hosted rules, listed once. plugins/hosted-rules.mjs builds the `hosted` plugin from it, ruleNames.mjs maps
- * the rule names back to ESLint IDs, and oxlint.config.mts lets overrides use the names. Several entry points load this
- * file, so keep it free of imports.
+ * The App's hosted rules, listed once. plugins/hosted-rules.mjs builds the `hosted` plugin from it, and ruleNames.mjs maps
+ * the rule names back to ESLint IDs. To host another ESLint rule, add its ESLint ID to APP_HOSTED_ESLINT_RULE_IDS, then
+ * enable it as `hosted/<name>` in an oxlint.config.mts override. Several entry points load this file, so keep it free of
+ * imports.
  */
 
 // ESLint plugin rules that no preset turns on but oxlint.config.mts does. oxlint has no native version of either.

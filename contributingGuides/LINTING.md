@@ -158,7 +158,7 @@ Commit the updated `config/oxlint/oxlint.seatbelt.tsv` alongside the rename. The
     - **oxlint doesn't have it, and it comes from react, import, jsdoc, @typescript-eslint or react-hooks.** oxlint keeps those plugin names for its own rules, so ESLint's version runs inside the App's `hosted` plugin. Write the `hosted/` name.
       If `oxlint/generated/rules.json` in `eslint-config-expensify` already lists the rule, that is all. Otherwise:
 
-        1. Add its ESLint ID to `APP_HOSTED_ESLINT_RULE_IDS` in `config/oxlint/appHostedRules.mjs`. `oxlint.config.mts` then adds its `hosted/` name to `extraRunningNames`. Without this step the config fails with `hosted rules in generated/rules.json do not include it`.
+        1. Add its ESLint ID to `APP_HOSTED_ESLINT_RULE_IDS` in `config/oxlint/appHostedRules.mjs`. Without this step the config fails with oxlint's `Rule '<name>' not found in plugin 'hosted'`.
 
             ```js
             // config/oxlint/appHostedRules.mjs
