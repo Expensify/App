@@ -18,7 +18,7 @@ import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IO
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {IntroSelected, OdometerDraft, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
+import type {OdometerDraft, PersonalDetailsList, Policy, Report, Transaction} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Unit} from '@src/types/onyx/Policy';
 
@@ -26,6 +26,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import Onyx from 'react-native-onyx';
 
 type UseOdometerNavigationParams = {
     /** Type of IOU flow (request, split, track, etc.). */
@@ -88,12 +89,6 @@ type UseOdometerNavigationParams = {
     /** Resolved policy from `usePolicyForMovingExpenses` — the workspace a new report should land in. */
     policyForMovingExpenses: OnyxEntry<Policy>;
 
-    /** Recently-used waypoints — passed through so the next screen can suggest them. */
-    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
-
-    /** Onboarding selection — passed through to downstream API calls. */
-    introSelected: OnyxEntry<IntroSelected>;
-
     /** Personal policy's output currency — used as the fallback when no workspace is selected. */
     personalOutputCurrency: string | undefined;
 };
@@ -136,28 +131,15 @@ function useOdometerNavigation({
     translate,
     selfDMReport,
     policyForMovingExpenses,
-    recentWaypoints,
-    introSelected,
     personalOutputCurrency,
-}: UseOdometerNavigationParams): (options: NavigateOptions) => void {
+}: UseOdometerNavigationParams): (options: NavigateOptions) => Promise<void> {
     const {isOffline} = useNetwork();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const moneyRequestReportTransactions = useReportTransactions(report?.reportID);
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
@@ -178,9 +160,36 @@ function useOdometerNavigation({
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
-    return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
+    return async ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
+        const [
+            lastSelectedDistanceRates,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            amountOwed,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
+            rules,
+            recentWaypoints,
+            introSelected,
+            allTransactionDrafts,
+            onboarding,
+            conciergeChat,
+        ] = await Onyx.multiGet([
+            ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            ONYXKEYS.RECENTLY_USED_CURRENCIES,
+            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.NVP_RECENT_WAYPOINTS,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+            ONYXKEYS.NVP_ONBOARDING,
+            `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
+        ]);
 
         handleMoneyRequestStepDistanceNavigation({
             isVendorMatchingBetaEnabled,
@@ -220,15 +229,15 @@ function useOdometerNavigation({
             recentWaypoints,
             unit,
             personalOutputCurrency,
-            draftTransactionIDs,
-            isSelfTourViewed: !!isSelfTourViewed,
+            draftTransactionIDs: validTransactionDraftIDsSelector(allTransactionDrafts),
+            isSelfTourViewed: hasSeenTourSelector(onboarding),
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeChat,
             optimisticTransactionID,
             optimisticChatReportID,
-            isTrackIntentUser,
+            isTrackIntentUser: isTrackIntentUserSelector(introSelected),
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,

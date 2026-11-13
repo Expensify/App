@@ -46,6 +46,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type IOURequestStepDistanceGPSProps from './types';
 
@@ -71,23 +72,17 @@ function IOURequestStepDistanceGPS({
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isInLandscapeMode = useIsInLandscapeMode();
 
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isArchived = useReportIsArchived(report?.reportID);
     const moneyRequestReportTransactions = useReportTransactions(report?.reportID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [personalDetails] = useAllPersonalDetails();
     const reportAttributesDerived = useReportAttributes();
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -102,10 +97,8 @@ function IOURequestStepDistanceGPS({
     const policy = usePolicy(report?.policyID);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
         iouType,
@@ -125,8 +118,6 @@ function IOURequestStepDistanceGPS({
 
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
@@ -142,7 +133,19 @@ function IOURequestStepDistanceGPS({
         translate,
     });
 
-    const navigateToNextStep = () => {
+    const navigateToNextStep = async () => {
+        const [lastSelectedDistanceRates, quickAction, policyRecentlyUsedCurrencies, recentWaypoints, rules, introSelected, allTransactionDrafts, onboarding, conciergeChat] =
+            await Onyx.multiGet([
+                ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+                ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                ONYXKEYS.COLLECTION.RULE,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+                ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                ONYXKEYS.NVP_ONBOARDING,
+                `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
+            ]);
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
         const originalDistance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit);
         const modifiedDistance = gpsDraftDetails?.modifiedDistance !== undefined ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.modifiedDistance, unit) : undefined;
@@ -192,15 +195,15 @@ function IOURequestStepDistanceGPS({
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
-            draftTransactionIDs,
-            isSelfTourViewed: !!isSelfTourViewed,
+            draftTransactionIDs: validTransactionDraftIDsSelector(allTransactionDrafts),
+            isSelfTourViewed: hasSeenTourSelector(onboarding),
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeChat,
             optimisticTransactionID,
             optimisticChatReportID,
-            isTrackIntentUser,
+            isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,

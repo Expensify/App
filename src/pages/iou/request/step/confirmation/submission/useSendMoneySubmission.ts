@@ -1,7 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useOnyx from '@hooks/useOnyx';
-import useReportTransactions from '@hooks/useReportTransactions';
 
 import {resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
@@ -9,7 +7,6 @@ import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismis
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -35,11 +32,9 @@ type UseSendMoneySubmissionParams = {
 function useSendMoneySubmission({transaction, receiptFiles, report, participants, currentUserPersonalDetails, setIsConfirmed, onExpenseWriteWillStart}: UseSendMoneySubmissionParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
-    const reportTransactions = useReportTransactions(report?.reportID);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
 
     function sendMoney(paymentMethod: PaymentMethodType | undefined, options: SendMoneyOptions) {
-        const {shouldHandleNavigation, resolvedReportIDs, shouldStartTracking} = options;
+        const {shouldHandleNavigation, resolvedReportIDs, shouldStartTracking, quickAction, hasReportTransactions} = options;
         const currency = transaction?.currency;
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
         const participant = participants?.at(0);
@@ -83,7 +78,7 @@ function useSendMoneySubmission({transaction, receiptFiles, report, participants
             return;
         }
         if (shouldHandleNavigation) {
-            dismissModalAndOpenReportInInboxTab(chatReportID, undefined, reportTransactions.length > 0);
+            dismissModalAndOpenReportInInboxTab(chatReportID, undefined, hasReportTransactions);
         }
     }
 
