@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'キャンセル',
         dismiss: '閉じる',
         resizeColumn: ({columnName}: {columnName: string}) => `${columnName}列のサイズを変更`,
-        columnWidth: ({width}: {width: number}) => `${width}ピクセル`,
+        resizePanel: 'パネルのサイズを変更',
+        widthInPixels: ({width}: {width: number}) => `${width}ピクセル`,
         proceed: '続行',
         unshare: '共有を解除',
         yes: 'はい',
@@ -568,6 +569,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: '結果がありません。フィルターや検索キーワードを調整してお試しください',
         unableToDisplayChart: 'グラフを表示できません',
         webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。有効にするか、別のブラウザに切り替えてください。',
+        webAssemblyNotSupported: 'お使いのブラウザでは WebAssembly を利用できません。グラフを表示するには、別のブラウザをお試しください。',
         chartFailedToLoad: 'グラフを読み込めませんでした。ページを再読み込みして、もう一度お試しください。',
         apiKey: 'API キー',
         exportsTo: 'エクスポート先',
@@ -1246,6 +1248,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'すべて表示',
         topExpenses: '上位の経費',
         noExpensesInRange: 'この範囲内に経費はありません',
+        efficiency: '効率',
+        workflowEfficiency: 'ワークフロー効率',
+        longestToSubmit: '提出まで最も長い順',
+        slowestToApprove: '承認が最も遅い',
+        mostTimeToPay: '支払いまで最も時間がかかる',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -2038,6 +2045,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'この経費を復元しました',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `新しいワークスペース「${policyName}」の距離単価を更新しました`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} レポート`,
+                other: (count: number) => `${formattedCount ?? count} レポート`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -7812,6 +7825,13 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 onWaitlist: '順番待ちリストに登録されています',
                 waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
             },
+            integrationWaitlist: {
+                comingSoon: '近日公開予定',
+                joinWaitlist: 'ウェイトリストに参加',
+                onWaitlist: '順番待ちリストに登録されています',
+                onTheList: 'リストに登録されています！',
+                waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
+            },
             setup: '接続',
             connectToSandbox: 'Sandbox に接続',
             lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
@@ -8219,6 +8239,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             statusExpired: '期限切れ',
             statusInactive: '無効',
             unit: '単位',
+            ukFuelRateTaxError: '英国の推奨燃料料金の税金を追跡するには、20%の税率を追加してください。',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) => `英国の推奨燃料料金の税金を追跡するには、${integrationName}に20%の税率を追加してください。`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>この機能を利用するには、ワークスペースで税金設定を有効にする必要があります。設定を変更するには、<a href="#">その他の機能</a>に移動してください。</muted-text>',
             deleteDistanceRate: '距離レートを削除',
@@ -9564,6 +9586,7 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: 'エンティティ',
             updateCurrencyTitle: 'ワークスペースの通貨を更新しますか？',
             updateCurrencyPrompt: 'Digits は現在、USD で運営されている米国拠点の企業のみご利用いただけます。',
             importDescription: 'インポートする Digits の設定を選択してください。',
@@ -9936,6 +9959,25 @@ ${reportName}`,
             return `「${categoryName}」カテゴリの明細付きレシートを${newValue}に変更しました（以前は${oldValue}）`;
         },
         setCategoryName: (oldName: string, newName: string) => `カテゴリ名を「${oldName}」から「${newName}」に変更しました`,
+        setCategoryVisibility: (members: string, categories: string) => `${members}が${categories}のみを表示できるように設定しました`,
+        changedCategoryVisibility: (members: string, categories: string) => `${members} が ${categories} のみを表示するように変更しました`,
+        clearedCategoryVisibility: (members: string) => `${members} がすべてのカテゴリを表示できるように変更しました`,
+        quotedCategoryName: (categoryName: string) => `「${categoryName}」`,
+        oneCategory: (categoryName: string) => `${categoryName} カテゴリ`,
+        someCategories: (categoryList: string) => `カテゴリ${categoryList}`,
+        everyone: '全員',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 件のカテゴリ',
+            other: `${count} 個のカテゴリ`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: 'メンバー 1 人',
+            other: `${count} 名のメンバー`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `カテゴリ：${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `メンバー：${memberList}`,
+        categoryVisibilityReasonDeleted: '。唯一のカテゴリが削除されたためです。必要に応じてカテゴリの表示設定を更新してください。',
+        categoryVisibilityReasonDisabled: '、そのユーザーの唯一のカテゴリが無効になっているためです。必要に応じてカテゴリの表示設定を更新してください。',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `カテゴリ「${categoryName}」から説明のヒント「${oldValue}」を削除しました`;
@@ -10744,7 +10786,9 @@ ${reportName}`,
             completed: '完了',
             amount: {
                 lessThan: (amount?: string) => `${amount ?? ''} 未満`,
+                lessThanOrEqualTo: (amount?: string) => `${amount ?? ''} 以下`,
                 greaterThan: (amount?: string) => `${amount ?? ''}より大きい`,
+                greaterThanOrEqualTo: (amount?: string) => `${amount ?? ''} 以上`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `${greaterThan} 以上 ${lessThan} 未満`;
@@ -10801,6 +10845,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: '違反',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: '支払元',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -10857,6 +10902,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
             [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: '違反',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: '支払者',
         },
         moneyRequestReport: {emptyStateTitle: 'まだ経費がありません', accessPlaceHolder: '詳細を開く'},
         noCategory: 'カテゴリなし',
@@ -10992,6 +11038,8 @@ ${reportName}`,
             category: 'カテゴリ',
             tag: 'タグ',
         },
+        switchToTableView: 'テーブル表示に切り替え',
+        switchToExpenseView: '経費表示に切り替え',
     },
     report: {
         newReport: {

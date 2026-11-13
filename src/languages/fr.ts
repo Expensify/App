@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Annuler',
         dismiss: 'Fermer',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionner la colonne ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        resizePanel: 'Redimensionner le panneau',
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Continuer',
         unshare: 'Arrêter le partage',
         yes: 'Oui',
@@ -569,6 +570,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
         unableToDisplayChart: 'Impossible d’afficher le graphique',
         webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
+        webAssemblyNotSupported: 'WebAssembly n’est pas disponible dans votre navigateur. Essayez un autre navigateur pour afficher les graphiques.',
         chartFailedToLoad: 'Le graphique n’a pas pu être chargé. Veuillez actualiser la page et réessayer.',
         apiKey: 'Clé API',
         exportsTo: 'Exports vers',
@@ -1265,6 +1267,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Tout afficher',
         topExpenses: 'Dépenses principales',
         noExpensesInRange: 'Aucune dépense dans cette plage',
+        efficiency: 'Efficacité',
+        workflowEfficiency: 'Efficacité du flux de travail',
+        longestToSubmit: 'Le plus long à soumettre',
+        slowestToApprove: 'Plus lent à approuver',
+        mostTimeToPay: 'Délai de paiement le plus long',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2072,6 +2079,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'a restauré cette dépense',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `les taux kilométriques ont été mis à jour pour le nouvel espace de travail - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} note de frais`,
+                other: (count: number) => `${formattedCount ?? count} notes de frais`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -7998,6 +8011,13 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 onWaitlist: 'Vous êtes sur la liste d’attente',
                 waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Bientôt disponible',
+                joinWaitlist: 'Rejoindre la liste d’attente',
+                onWaitlist: 'Vous êtes sur la liste d’attente',
+                onTheList: 'Vous êtes sur la liste !',
+                waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
+            },
             setup: 'Connecter',
             connectToSandbox: 'Se connecter à Sandbox',
             lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
@@ -8413,6 +8433,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             statusExpired: 'Expiré',
             statusInactive: 'Inactif',
             unit: 'Unité',
+            ukFuelRateTaxError: 'Veuillez ajouter un taux de taxe de 20 % pour suivre la taxe sur les tarifs de carburant recommandés au Royaume-Uni.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Veuillez ajouter un taux de taxe de 20 % dans ${integrationName} pour suivre la taxe sur les tarifs de carburant recommandés au Royaume-Uni.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Les taxes doivent être activées sur l’espace de travail pour utiliser cette fonctionnalité. Rendez-vous dans <a href="#">Plus de fonctionnalités</a> pour effectuer cette modification.</muted-text>',
             deleteDistanceRate: 'Supprimer le taux de distance',
@@ -9802,6 +9825,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
         },
         digits: {
+            entity: 'Entité',
             updateCurrencyTitle: 'Mettre à jour la devise de l’espace de travail ?',
             updateCurrencyPrompt: 'Digits n’est actuellement disponible que pour les entreprises basées aux États-Unis qui opèrent en USD.',
             importDescription: 'Choisissez quelles configurations Digits importer.',
@@ -10188,6 +10212,25 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             return `a modifié les reçus détaillés de la catégorie « ${categoryName} » en ${newValue} (auparavant ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `a renommé la catégorie « ${oldName} » en « ${newName} »`,
+        setCategoryVisibility: (members: string, categories: string) => `a configuré ${members} pour ne voir que ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `a modifié ${members} pour qu’ils ne voient que ${categories}`,
+        clearedCategoryVisibility: (members: string) => `a modifié ${members} pour voir toutes les catégories`,
+        quotedCategoryName: (categoryName: string) => `« ${categoryName} »`,
+        oneCategory: (categoryName: string) => `la catégorie ${categoryName}`,
+        someCategories: (categoryList: string) => `les catégories ${categoryList}`,
+        everyone: 'tout le monde',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 catégorie',
+            other: `${count} catégories`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 membre',
+            other: `${count} membres`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Catégories : ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Membres : ${memberList}`,
+        categoryVisibilityReasonDeleted: ', car leur seule catégorie a été supprimée. Mettez à jour la visibilité de leur catégorie si nécessaire.',
+        categoryVisibilityReasonDisabled: ', car leur seule catégorie a été désactivée. Mettez à jour la visibilité de leurs catégories si nécessaire.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `a supprimé l’indication de description « ${oldValue} » de la catégorie « ${categoryName} »`;
@@ -11007,7 +11050,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             completed: 'Terminé',
             amount: {
                 lessThan: (amount?: string) => `Inférieur à ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Inférieur ou égal à ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Supérieur à ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Supérieur ou égal à ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Entre ${greaterThan} et ${lessThan}`;
@@ -11064,6 +11109,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateur',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infraction',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payé par',
             },
             feed: 'Fil',
             withdrawalType: {
@@ -11126,6 +11172,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateurs',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infractions',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payeurs',
         },
         moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',
@@ -11266,6 +11313,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             category: 'Catégorie',
             tag: 'Tag',
         },
+        switchToTableView: 'Passer à la vue tableau',
+        switchToExpenseView: 'Passer à la vue dépense',
     },
     report: {
         newReport: {

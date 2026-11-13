@@ -24,6 +24,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, getSortedReportActions, getSystemMessageDisplayState, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
@@ -92,6 +93,7 @@ import {
     doReportsHaveMatchingReportFieldValues,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
+    generateReportAttributes,
     getActionErrorsByTransaction,
     getAllPolicyExpenseChatReportActions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
@@ -23517,7 +23519,15 @@ describe('ReportUtils', () => {
                 actorAccountID: currentUserAccountID,
                 originalMessage: {IOUTransactionID: transactionID, amount: 1000, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
             });
-            const staleTransaction = {...createRandomTransaction(1), transactionID, merchant: 'Stale merchant', modifiedMerchant: '', amount: 1000, currency: CONST.CURRENCY.USD};
+            const staleTransaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReport.reportID,
+                merchant: 'Stale merchant',
+                modifiedMerchant: '',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, staleTransaction);
             await waitForBatchedUpdates();
             const params = {reportOrID: iouReport, iouReportAction: iouAction, shouldConsiderScanningReceiptOrPendingRoute: true, policy: undefined};
@@ -23533,7 +23543,7 @@ describe('ReportUtils', () => {
             // Then the preview uses the passed transaction
             expect(result).toContain('Fresh merchant');
 
-            // When the passed transaction belongs to another action, the module-level copy is still used
+            // When the passed transaction belongs to another action, the copy in the report's own transactions is used
             const mismatchedResult = getReportPreviewMessage(
                 translateLocal,
                 convertToDisplayString,
@@ -23868,6 +23878,157 @@ describe('ReportUtils', () => {
 
                 // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
                 expect(result).toContain('HiddenParticipantMarker');
+            });
+        });
+
+        describe('linkedTransaction', () => {
+            const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+
+            const groupChat: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'linked-transaction-group-chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+
+            const buildTransaction = (transactionID: string, reportID: string, merchant: string): Transaction => ({
+                transactionID,
+                reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                merchant,
+                modifiedMerchant: '',
+                created: '2026-10-14',
+                comment: {comment: ''},
+            });
+
+            const buildIOUAction = (
+                transactionID: string,
+                type: typeof CONST.IOU.REPORT_ACTION_TYPE.SPLIT | typeof CONST.IOU.REPORT_ACTION_TYPE.TRACK | typeof CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            ): ReportAction => ({
+                ...createRandomReportAction(Number(transactionID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: transactionID,
+                    type,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participantAccountIDs: [currentUserAccountID],
+                },
+            });
+
+            it('uses the passed transaction for a split action in a group chat', async () => {
+                // Given a split action in a group chat whose transaction is stored outside the chat (split transactions use SPLIT_REPORT_ID)
+                // and is not in Onyx, so only the passed transaction can produce the split preview
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChat.reportID}`, groupChat);
+                const splitAction = buildIOUAction('710001', CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
+                const splitTransaction = buildTransaction('710001', CONST.REPORT.SPLIT_REPORT_ID, 'Lunch');
+
+                // When the preview is built with the transaction passed in
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: groupChat,
+                        iouReportAction: splitAction,
+                        policy: undefined,
+                        linkedTransaction: splitTransaction,
+                    },
+                    formatPhoneNumber,
+                );
+
+                // Then the preview shows the split amount and merchant from that transaction
+                expect(result).toBe(englishTranslate('iou.didSplitAmount', convertToDisplayString(1000, CONST.CURRENCY.USD), 'Lunch'));
+            });
+
+            it('reads the transaction from Onyx when none is passed', async () => {
+                // Given a split action whose transaction is in Onyx, and a caller (e.g. Search) that does not pass `linkedTransaction` yet
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChat.reportID}`, groupChat);
+                const splitAction = buildIOUAction('710002', CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}710002`, buildTransaction('710002', CONST.REPORT.SPLIT_REPORT_ID, 'Dinner'));
+                await waitForBatchedUpdates();
+
+                // When the preview is built without a transaction
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: groupChat,
+                        iouReportAction: splitAction,
+                        policy: undefined,
+                    },
+                    formatPhoneNumber,
+                );
+
+                // Then the preview still shows the split amount and merchant, so Search keeps working until it passes the transaction
+                expect(result).toBe(englishTranslate('iou.didSplitAmount', convertToDisplayString(1000, CONST.CURRENCY.USD), 'Dinner'));
+            });
+
+            it('uses the passed transaction for a track action in a self DM', async () => {
+                // Given a track action in a self DM whose unreported transaction is not in Onyx, so only the passed transaction can produce the preview
+                const selfDM: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'linked-transaction-self-dm',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDM.reportID}`, selfDM);
+                const trackAction = buildIOUAction('710003', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+                // Unreported transactions store the amount with the opposite sign, like expense reports
+                const trackTransaction = {...buildTransaction('710003', CONST.REPORT.UNREPORTED_REPORT_ID, 'Taxi'), amount: -1000};
+
+                // When the preview is built with the transaction passed in
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: selfDM,
+                        iouReportAction: trackAction,
+                        policy: undefined,
+                        linkedTransaction: trackTransaction,
+                    },
+                    formatPhoneNumber,
+                );
+
+                // Then the preview shows the tracked amount and merchant from that transaction
+                expect(result).toBe(englishTranslate('iou.trackedAmount', convertToDisplayString(1000, CONST.CURRENCY.USD), 'Taxi'));
+            });
+
+            it("reads the transaction of an IOU report's action from the report's own transactions", async () => {
+                // Given an IOU report whose expense is still being scanned. Its transaction belongs to the report,
+                // so the general path finds it in the report's transactions without a passed `linkedTransaction`.
+                const iouReport: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'linked-transaction-iou-report',
+                    type: CONST.REPORT.TYPE.IOU,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                const iouAction = buildIOUAction('710004', CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}710004`, {
+                    ...buildTransaction('710004', iouReport.reportID, CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT),
+                    amount: 0,
+                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'receipt.jpg'},
+                });
+                await waitForBatchedUpdates();
+
+                // When the preview is built for that action
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        policy: undefined,
+                    },
+                    formatPhoneNumber,
+                );
+
+                // Then the preview shows the receipt scanning state from that transaction
+                expect(result).toBe(englishTranslate('iou.receiptScanning', {count: 1}));
             });
         });
 
@@ -27303,6 +27464,109 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
             await waitForBatchedUpdates();
+        });
+    });
+
+    describe('generateReportAttributes', () => {
+        const reportID = 'generateReportAttributes-expense';
+        const chatReportID = 'generateReportAttributes-chat';
+        const transactionThreadReportID = 'generateReportAttributes-thread';
+
+        const expenseReport: Report = {
+            ...createRandomReport(41),
+            reportID,
+            chatReportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            parentReportID: undefined,
+            parentReportActionID: undefined,
+        };
+        const chatReport: Report = {...createRandomReport(42, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: chatReportID};
+
+        const liveIOUAction: ReportAction = {
+            ...createRandomReportAction(41),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: transactionThreadReportID,
+            originalMessage: {
+                IOUReportID: reportID,
+                IOUTransactionID: 'generateReportAttributes-txn-live',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+            },
+        };
+
+        // A second IOU action that was deleted while offline, so it is still pending deletion
+        const pendingDeleteIOUAction: ReportAction = {
+            ...createRandomReportAction(42),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            message: [{type: 'COMMENT', html: '', text: ''}],
+            originalMessage: {
+                IOUReportID: reportID,
+                IOUTransactionID: 'generateReportAttributes-txn-deleted',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+            },
+        };
+
+        const buildReportActions = (actions: ReportAction[]): OnyxCollection<ReportActions> => ({
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: Object.fromEntries(actions.map((action) => [action.reportActionID, action])),
+        });
+
+        const callGenerateReportAttributes = (reportActions: OnyxCollection<ReportActions>, isOffline: boolean) =>
+            generateReportAttributes({
+                report: expenseReport,
+                chatReport,
+                reportActions,
+                transactionViolations: {},
+                isReportArchived: false,
+                allTransactions: {},
+                policies: {},
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                isOffline,
+            });
+
+        afterEach(() => {
+            setHasRadio(true);
+        });
+
+        it('should return the transaction thread reportID when the report has a single live IOU action', () => {
+            // Given an expense report with exactly one live IOU action
+            const reportActions = buildReportActions([liveIOUAction]);
+
+            // When the attributes are generated, both online and offline
+            const onlineResult = callGenerateReportAttributes(reportActions, false);
+            const offlineResult = callGenerateReportAttributes(reportActions, true);
+
+            // Then the report is a one-transaction report regardless of the network state, because there is nothing pending deletion
+            expect(onlineResult.oneTransactionThreadReportID).toBe(transactionThreadReportID);
+            expect(offlineResult.oneTransactionThreadReportID).toBe(transactionThreadReportID);
+        });
+
+        it('should count an IOU action pending deletion when offline', () => {
+            // Given an expense report with one live IOU action and one IOU action pending deletion
+            const reportActions = buildReportActions([liveIOUAction, pendingDeleteIOUAction]);
+
+            // When the attributes are generated while offline
+            const result = callGenerateReportAttributes(reportActions, true);
+
+            // Then the pending-delete action is still shown offline, so there are two IOU actions and this is no longer a one-transaction report.
+            // This proves isOffline reaches getOneTransactionThreadReportID.
+            expect(result.oneTransactionThreadReportID).toBeUndefined();
+        });
+
+        it('should use the passed isOffline instead of the module-level network state', () => {
+            // Given the device reports it has no network, so the module-level network state is offline
+            setHasRadio(false);
+            const reportActions = buildReportActions([liveIOUAction, pendingDeleteIOUAction]);
+
+            // When the caller explicitly passes isOffline as false
+            const result = callGenerateReportAttributes(reportActions, false);
+
+            // Then the passed value wins and the pending-delete action is ignored, so the function no longer depends on the deprecated network subscription
+            expect(result.oneTransactionThreadReportID).toBe(transactionThreadReportID);
         });
     });
 
