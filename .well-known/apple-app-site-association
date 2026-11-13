@@ -30,6 +30,10 @@
                         "comment": "Web Cloudflare Access sign-in callback, see CONST.CLOUDFLARE_ACCESS"
                     },
                     {
+                        "/": "/partners/plaid/oauth_ios",
+                        "comment": "Native Plaid OAuth return, must stay above the oauth_state_id exclude"
+                    },
+                    {
                         "?": {"oauth_state_id": "?*"},
                         "exclude": true,
                         "comment": "Web Plaid OAuth return, the Plaid session lives in the browser tab"
