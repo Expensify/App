@@ -96,6 +96,14 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         return isHTMLElement(element) && !!element.querySelector(':focus-visible');
     };
 
+    // Closing the Create menu hands focus back to its button, and that focus must not reopen a peek the pointer has already left.
+    const startPeekOnKeyboardFocus = () => {
+        if (!hasKeyboardFocusInside()) {
+            return;
+        }
+        startPeek();
+    };
+
     // The menu's overlay covers the bar until its modal is gone, so the bar never reads as hovered before then.
     // Checking any earlier ends the peek under a pointer that is still on the bar, and the bar then peeks right back.
     const endPeekIfPointerAndFocusLeft = () => {
@@ -175,7 +183,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 <View
                                     testID="FlatNavPeekableBody"
                                     style={styles.flex1}
-                                    onFocus={startPeek}
+                                    onFocus={startPeekOnKeyboardFocus}
                                     onBlur={endPeekUnlessStaying}
                                 >
                                     <View

@@ -563,6 +563,7 @@ describe('FlatNavigationBar', () => {
             expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
 
             // When navigation items gain focus via keyboard navigation
+            mockHasKeyboardFocusInside = true;
             fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
             await waitForBatchedUpdatesWithAct();
 
@@ -570,6 +571,7 @@ describe('FlatNavigationBar', () => {
             expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
 
             // When focus leaves the navigation items
+            mockHasKeyboardFocusInside = false;
             fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'blur', {
                 nativeEvent: {},
             });
@@ -584,6 +586,7 @@ describe('FlatNavigationBar', () => {
             await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
             renderBar(NAVIGATION_TABS.HOME);
             await waitForBatchedUpdatesWithAct();
+            mockHasKeyboardFocusInside = true;
             fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
             await waitForBatchedUpdatesWithAct();
 
@@ -619,9 +622,13 @@ describe('FlatNavigationBar', () => {
         });
 
         it('collapses when the pointer leaves after an item was focused by a mouse click', async () => {
-            // Given a collapsed bar peeking with focus inside that is not keyboard focus, as after clicking an item
+            // Given a collapsed bar peeking under the pointer, with an item focused by a mouse click
             await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
             renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
             await waitForBatchedUpdatesWithAct();
             fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
             await waitForBatchedUpdatesWithAct();
@@ -633,6 +640,38 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar collapses, because mouse focus must not hold it open
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+        });
+
+        it('stays collapsed when the closing create menu hands focus back to its button without the keyboard', async () => {
+            // Given a collapsed bar that peeked under the pointer while the Create menu was open
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockCreateButtonProps?.showCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the menu is dismissed with a click outside, which ends the peek once its modal is gone
+            act(() => {
+                mockCreateButtonProps?.hideCreateMenu?.();
+            });
+            act(() => {
+                mockCreateButtonProps?.onCreateMenuHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+
+            // And the modal then restores focus to the Create button, which is not keyboard focus
+            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays collapsed, because only keyboard focus may start a peek
             expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
         });
     });
