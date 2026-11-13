@@ -1,5 +1,6 @@
 import {isRecord} from '@libs/ObjectUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxState from '@src/types/onyx/OnyxState';
 
@@ -601,6 +602,8 @@ const onyxKeysToMaskFragileData = new Set<string>([
 // ============================================================
 // Masking helpers
 // ============================================================
+const BENEFICIAL_OWNER_KEY_PREFIX = `${CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX}_`;
+
 const keysToMask = new Set([
     'accountNumber',
     'addressCity',
@@ -611,6 +614,7 @@ const keysToMask = new Set([
     'avatar',
     'avatarURL',
     'bank',
+    'cardCVV',
     'cardName',
     'cardNumber',
     'childReportName',
@@ -618,9 +622,11 @@ const keysToMask = new Set([
     'comment',
     'description',
     'displayName',
+    'dob',
     'edits',
     'encryptedAuthToken',
     'firstName',
+    'intacctPassword',
     'lastMessageHtml',
     'lastMessageText',
     'lastName',
@@ -629,8 +635,11 @@ const keysToMask = new Set([
     'merchant',
     'modifiedMerchant',
     'name',
+    'netSuiteTokenID',
+    'netSuiteTokenSecret',
     'oldPolicyName',
     'owner',
+    'password',
     'phoneNumber',
     'plaidAccessToken',
     'plaidAccountID',
@@ -640,7 +649,10 @@ const keysToMask = new Set([
     'primaryLogin',
     'reportName',
     'routingNumber',
+    'securityCode',
     'source',
+    'ssn',
+    'ssnLast4',
     'state',
     'street',
     'supportAuthToken',
@@ -773,6 +785,16 @@ const maskEmail = (email: string, emailMap: Map<string, string>) => {
 
 const isMaskableNode = (value: unknown): value is Record<string, unknown> | readonly unknown[] | null => value === null || Array.isArray(value) || isRecord(value);
 
+/**
+ * Beneficial owner form fields are stored as `beneficialOwner_<ownerID>_<fieldName>`, so they only match keysToMask by their field name.
+ */
+function getFieldNameToMask(key: string): string {
+    if (!key.startsWith(BENEFICIAL_OWNER_KEY_PREFIX)) {
+        return key;
+    }
+    return key.split('_').at(-1) ?? key;
+}
+
 function maskFragileData(data: Record<string, unknown>, emailMap: Map<string, string>, parentKey?: string): Record<string, unknown>;
 function maskFragileData(data: Record<string, unknown> | readonly unknown[] | null, emailMap: Map<string, string>, parentKey?: string): Record<string, unknown> | unknown[] | null;
 function maskFragileData(data: Record<string, unknown> | readonly unknown[] | null, emailMap: Map<string, string>, parentKey?: string): Record<string, unknown> | unknown[] | null {
@@ -832,7 +854,7 @@ function maskFragileData(data: Record<string, unknown> | readonly unknown[] | nu
             maskedData[destinationKey] = maskValuePreservingLength(value);
         } else if (parentKey && nodesToFullyMask.has(parentKey) && isMaskableNode(value)) {
             maskedData[destinationKey] = maskFragileData(value, emailMap, parentKey);
-        } else if (keysToMask.has(sourceKey)) {
+        } else if (keysToMask.has(getFieldNameToMask(sourceKey))) {
             if (Array.isArray(value)) {
                 maskedData[destinationKey] = value.map(() => MASKING_PATTERN);
             } else if (value === null || isRecord(value)) {

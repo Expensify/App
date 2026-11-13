@@ -100,6 +100,7 @@ function RilletSetupPage({route}: RilletSetupPageProps) {
                             spellCheck={false}
                             secureTextEntry={formItem === INPUT_IDS.API_KEY}
                             autoCorrect={false}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     </View>
                 ))}

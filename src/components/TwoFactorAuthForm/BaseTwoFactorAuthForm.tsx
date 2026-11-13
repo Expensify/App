@@ -214,6 +214,7 @@ function BaseTwoFactorAuthForm({
                     accessibilityLabel={translate('recoveryCodeForm.recoveryCode')}
                     role={CONST.ROLE.PRESENTATION}
                     testID="recoveryCodeInput"
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             ) : (
                 <ValidateCodeInput
