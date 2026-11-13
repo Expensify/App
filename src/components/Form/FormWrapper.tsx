@@ -94,6 +94,7 @@ function FormWrapper({
     isSubmitButtonNeutral = false,
     formID,
     shouldUseScrollView = true,
+    shouldConstrainWebContentHeight = false,
     scrollContextEnabled = false,
     disablePressOnEnter = false,
     enterKeyEventListenerPriority = 1,
@@ -123,6 +124,7 @@ function FormWrapper({
     const errorAnnouncementKey = getErrorAnnouncementKey();
     const fallbackAnnouncementMessage = getFallbackAnnouncementMessage();
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const shouldConstrainContentHeight = isWeb && shouldConstrainWebContentHeight;
 
     const onFixTheErrorsLinkPressed = () => {
         const errorFields = !isEmptyObject(errors) ? errors : (serverErrorFields ?? {});
@@ -235,7 +237,7 @@ function FormWrapper({
         <FormElement
             key={formID}
             ref={formContentRef}
-            style={[style, styles.pb5]}
+            style={[style, styles.pb5, shouldConstrainContentHeight && styles.flex1]}
             onLayout={() => {
                 if (!shouldScrollToEnd) {
                     return;
@@ -279,7 +281,7 @@ function FormWrapper({
             {scrollContextEnabled ? (
                 <ScrollViewWithContext
                     style={[styles.w100, styles.flex1]}
-                    contentContainerStyle={styles.flexGrow1}
+                    contentContainerStyle={[styles.flexGrow1, shouldConstrainContentHeight && styles.flex1]}
                     keyboardShouldPersistTaps="handled"
                     scrollsChildToFocus={shouldScrollChildToFocus}
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
@@ -291,7 +293,7 @@ function FormWrapper({
             ) : (
                 <ScrollView
                     style={[styles.w100, styles.flex1]}
-                    contentContainerStyle={styles.flexGrow1}
+                    contentContainerStyle={[styles.flexGrow1, shouldConstrainContentHeight && styles.flex1]}
                     keyboardShouldPersistTaps="handled"
                     scrollsChildToFocus={shouldScrollChildToFocus}
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}

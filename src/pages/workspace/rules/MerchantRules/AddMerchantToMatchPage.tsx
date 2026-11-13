@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -15,6 +16,7 @@ import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import StringUtils from '@libs/StringUtils';
 import {isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -24,7 +26,6 @@ import type SCREENS from '@src/SCREENS';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
@@ -39,7 +40,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     const currentValue = form?.merchantToMatch ?? '';
     const matchType = form?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
@@ -98,28 +99,37 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                 onBackButtonPress={goBack}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
+                submitFlexEnabled={false}
                 style={[styles.flex1]}
                 formID={ONYXKEYS.FORMS.MERCHANT_RULE_FORM}
-                validate={validate}
-                onSubmit={onSave}
+                validate={(values) => validate({...values, [MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH]: StringUtils.lineBreaksToSpaces(values[MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH])})}
+                onSubmit={(values) => onSave({...values, [MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH]: StringUtils.lineBreaksToSpaces(values[MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH])})}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 submitButtonStyles={[styles.ph5]}
                 shouldUseStrictHtmlTagValidation
             >
-                <View style={styles.mb5}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH}
-                        name={MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH}
-                        defaultValue={currentValue}
-                        label={translate('common.merchant')}
-                        accessibilityLabel={translate('common.merchant')}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                        containerStyles={[styles.ph5]}
-                    />
-                </View>
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb5}
+                >
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH}
+                            name={MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH}
+                            defaultValue={currentValue}
+                            label={translate('common.merchant')}
+                            accessibilityLabel={translate('common.merchant')}
+                            role={CONST.ROLE.PRESENTATION}
+                            ref={inputCallbackRef}
+                            containerStyles={[styles.ph5]}
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                            autoGrowSingleLine
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
                 <MenuItemField
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_MATCH_TYPE}
                     name={translate('workspace.rules.merchantRules.matchType')}

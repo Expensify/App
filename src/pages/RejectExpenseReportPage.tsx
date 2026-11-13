@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -24,8 +25,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-
-import variables from '@styles/variables';
 
 import {rejectExpenseReport} from '@userActions/IOU/RejectMoneyRequest';
 
@@ -158,6 +157,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 formID={ONYXKEYS.FORMS.REPORT_REJECT_FORM}
                 submitButtonText={translate('iou.rejectReport.title')}
                 style={[styles.flexGrow1, styles.ph5]}
@@ -167,26 +167,33 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 buttonVariant={CONST.BUTTON_VARIANT.DANGER}
+                submitFlexEnabled={false}
                 shouldRenderFooterAboveSubmit
                 footerContent={selectionError ? <FormHelpMessage message={selectionError} /> : undefined}
             >
                 <View style={styles.mb3}>
                     <Text>{translate('iou.rejectReport.description')}</Text>
                 </View>
-                <View style={styles.mb6}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.COMMENT}
-                        valueType="string"
-                        name="comment"
-                        defaultValue={undefined}
-                        label={translate('iou.rejectReport.rejectReason')}
-                        accessibilityLabel={translate('iou.rejectReport.rejectReason')}
-                        ref={inputCallbackRef}
-                        autoGrowHeight
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                    />
-                </View>
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb6}
+                >
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.COMMENT}
+                            valueType="string"
+                            name="comment"
+                            defaultValue={undefined}
+                            label={translate('iou.rejectReport.rejectReason')}
+                            accessibilityLabel={translate('iou.rejectReport.rejectReason')}
+                            ref={inputCallbackRef}
+                            autoGrowHeight
+                            shouldSubmitForm
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
                 {hasPreviousApprover && (
                     <View style={styles.mb6}>
                         <Text style={[styles.mb3]}>{translate('iou.rejectReport.selectTarget')}</Text>

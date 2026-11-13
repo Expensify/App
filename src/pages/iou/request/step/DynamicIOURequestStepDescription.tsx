@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -30,8 +31,6 @@ import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import shouldForceKeyboardIfAlreadyFocused from '@libs/shouldForceKeyboardIfAlreadyFocused';
 import {hasReceipt} from '@libs/TransactionUtils';
 
-import variables from '@styles/variables';
-
 import {setMoneyRequestDescription} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestDescription} from '@userActions/IOU/UpdateMoneyRequest';
@@ -49,7 +48,6 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -214,6 +212,8 @@ function DynamicIOURequestStepDescription({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <FormProvider
+                shouldConstrainWebContentHeight
+                submitFlexEnabled={false}
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                 onSubmit={updateComment}
@@ -223,28 +223,33 @@ function DynamicIOURequestStepDescription({
                 shouldHideFixErrorsAlert
                 keyboardSubmitBehavior={KEYBOARD_SUBMIT_BEHAVIOR}
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        valueType="string"
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
-                        name={INPUT_IDS.MONEY_REQUEST_COMMENT}
-                        defaultValue={currentDescriptionInMarkdown}
-                        onValueChange={updateDescriptionRef}
-                        label={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        role={CONST.ROLE.PRESENTATION}
-                        editable={!isDiscardModalVisible}
-                        autoGrowHeight
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                        shouldSubmitForm
-                        type="markdown"
-                        excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
-                        ref={inputCallbackRef}
-                        hint={descriptionHint}
-                        shouldRenderHintAsHTML={!!descriptionHint}
-                    />
-                </View>
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb4}
+                >
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            valueType="string"
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
+                            name={INPUT_IDS.MONEY_REQUEST_COMMENT}
+                            defaultValue={currentDescriptionInMarkdown}
+                            onValueChange={updateDescriptionRef}
+                            label={translate('moneyRequestConfirmationList.whatsItFor')}
+                            accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
+                            role={CONST.ROLE.PRESENTATION}
+                            editable={!isDiscardModalVisible}
+                            autoGrowHeight
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                            shouldSubmitForm
+                            type="markdown"
+                            excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
+                            ref={inputCallbackRef}
+                            hint={descriptionHint}
+                            shouldRenderHintAsHTML={!!descriptionHint}
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </StepScreenWrapper>
     );

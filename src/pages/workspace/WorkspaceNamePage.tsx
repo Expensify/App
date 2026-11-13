@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -5,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateGeneralSettings} from '@libs/actions/Policy/Policy';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import StringUtils from '@libs/StringUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -19,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceSettingsForm';
 
 import React from 'react';
-import {Keyboard, View} from 'react-native';
+import {Keyboard} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
 
@@ -32,6 +35,13 @@ function WorkspaceNamePage({policy}: Props) {
     const styles = useThemeStyles();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput(true);
+
+    // The workspace name is a single-line value, so validate and save it with any pasted line breaks turned into spaces.
+    const normalizeNameValues = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => ({
+        ...values,
+        [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME]),
+    });
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
         if (!policy || policy.isPolicyUpdating) {
@@ -74,28 +84,37 @@ function WorkspaceNamePage({policy}: Props) {
                 />
 
                 <FormProvider
+                    shouldConstrainWebContentHeight
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={translate('workspace.editor.save')}
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
-                    validate={validate}
-                    onSubmit={submit}
+                    validate={(values) => validate(normalizeNameValues(values))}
+                    onSubmit={(values) => submit(normalizeNameValues(values))}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.common.workspaceName')}
-                            accessibilityLabel={translate('workspace.common.workspaceName')}
-                            defaultValue={policy?.name}
-                            spellCheck={false}
-                            autoFocus
-                        />
-                    </View>
+                    <AutoGrowHeightInputContainer
+                        shouldKeepMinimumHeight
+                        style={styles.mb4}
+                    >
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('workspace.common.workspaceName')}
+                                accessibilityLabel={translate('workspace.common.workspaceName')}
+                                defaultValue={policy?.name}
+                                spellCheck={false}
+                                ref={inputCallbackRef}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
