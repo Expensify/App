@@ -6,8 +6,9 @@ import DeleteTransactionNavigateBackHandler from '@pages/inbox/DeleteTransaction
 
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 
 import type * as Navigation from '@react-navigation/native';
 
@@ -27,13 +28,17 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
     }),
 }));
 
-jest.mock('@libs/ReportUtils', () => ({
-    ...jest.requireActual<Record<string, unknown>>('@libs/ReportUtils'),
-    isReportTransactionThread: jest.fn((report?: Report) => !!report?.parentReportActionID),
-}));
-
 const THREAD_REPORT_ID = '1';
 const CHAT_REPORT_ID = '2';
+const EXPENSE_REPORT_ID = '3';
+const IOU_ACTION_ID = '4';
+const IOU_ACTION = {
+    reportActionID: IOU_ACTION_ID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2026-01-01 00:00:00.000',
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the backend still sends originalMessage on report actions
+    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD', IOUTransactionID: '5'},
+} as ReportAction;
 const REPORT_URL = 'r/123';
 const NEXT_REPORT_URL = 'r/456';
 const DUPLICATES_REVIEW_URL = 'r/123/duplicates/review';
@@ -65,8 +70,10 @@ describe('DeleteTransactionNavigateBackHandler', () => {
 
     beforeEach(async () => {
         await Onyx.clear();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`, {reportID: THREAD_REPORT_ID, parentReportID: '3', parentReportActionID: '4'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`, {reportID: THREAD_REPORT_ID, parentReportID: EXPENSE_REPORT_ID, parentReportActionID: IOU_ACTION_ID});
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {reportID: CHAT_REPORT_ID});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {reportID: EXPENSE_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`, {[IOU_ACTION_ID]: IOU_ACTION});
         await waitForBatchedUpdates();
     });
 
@@ -153,5 +160,50 @@ describe('DeleteTransactionNavigateBackHandler', () => {
 
         // Then the URL stays, since only a deleted transaction thread should clear it on unmount
         expect(await getNavigateBackUrl()).toBe(REPORT_URL);
+    });
+
+    it('clears the navigate back URL when the parent data loads after the thread', async () => {
+        // Given a thread screen that mounts before its parent expense report and action are loaded
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, null);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`, null);
+        const {unmount} = render(<DeleteTransactionNavigateBackHandler reportID={THREAD_REPORT_ID} />);
+        await waitForBatchedUpdates();
+
+        // When the parent data arrives and then the deleted expense is popped
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {reportID: EXPENSE_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`, {[IOU_ACTION_ID]: IOU_ACTION});
+        await Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, REPORT_URL);
+        await waitForBatchedUpdates();
+        unmount();
+        await flushClear();
+
+        // Then the screen is still treated as a transaction thread and the URL is cleared
+        expect(await getNavigateBackUrl()).toBeUndefined();
+    });
+
+    it('does not clear a newer deletion URL from a clear whose frame is still queued', async () => {
+        // Given an unmount clear that already passed the transition and queued its animation frame
+        let queuedFrame: FrameRequestCallback | undefined;
+        const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementationOnce((callback) => {
+            queuedFrame = callback;
+            return 1;
+        });
+        const cancelAnimationFrameSpy = jest.spyOn(global, 'cancelAnimationFrame');
+        const {unmount} = render(<DeleteTransactionNavigateBackHandler reportID={THREAD_REPORT_ID} />);
+        await Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, REPORT_URL);
+        await waitForBatchedUpdates();
+        unmount();
+        await waitForBatchedUpdates();
+        expect(queuedFrame).toBeDefined();
+
+        // When the next expense is deleted before that frame runs
+        setDeleteTransactionNavigateBackUrl(NEXT_REPORT_URL);
+        await waitForBatchedUpdates();
+
+        // Then the queued frame is cancelled and the new URL stays
+        expect(cancelAnimationFrameSpy).toHaveBeenCalledWith(1);
+        expect(await getNavigateBackUrl()).toBe(NEXT_REPORT_URL);
+        requestAnimationFrameSpy.mockRestore();
+        cancelAnimationFrameSpy.mockRestore();
     });
 });

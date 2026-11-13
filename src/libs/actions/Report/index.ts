@@ -7446,15 +7446,31 @@ function clearDeleteTransactionNavigateBackUrl() {
     Onyx.merge(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, null);
 }
 
-function clearDeleteTransactionNavigateBackUrlAfterTransitions(onTransitionsEnd: () => void) {
+function clearDeleteTransactionNavigateBackUrlAfterTransitions(shouldClear: () => Promise<boolean>) {
     pendingDeleteTransactionNavigateBackUrlClear?.cancel();
-    pendingDeleteTransactionNavigateBackUrlClear = TransitionTracker.runAfterTransitions({
+    let isCancelled = false;
+    let frameID: number | undefined;
+    const transitionHandle = TransitionTracker.runAfterTransitions({
         callback: () => {
-            pendingDeleteTransactionNavigateBackUrlClear = undefined;
-            onTransitionsEnd();
+            shouldClear().then((shouldClearUrl) => {
+                if (isCancelled || !shouldClearUrl) {
+                    return;
+                }
+                frameID = requestAnimationFrame(clearDeleteTransactionNavigateBackUrl);
+            });
         },
         waitForUpcomingTransition: true,
     });
+    pendingDeleteTransactionNavigateBackUrlClear = {
+        cancel: () => {
+            isCancelled = true;
+            transitionHandle.cancel();
+            if (frameID === undefined) {
+                return;
+            }
+            cancelAnimationFrame(frameID);
+        },
+    };
 }
 
 type DeleteAppReportProps = {

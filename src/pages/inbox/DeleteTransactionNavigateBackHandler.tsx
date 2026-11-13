@@ -1,14 +1,18 @@
 import useClearDeleteTransactionNavigateBackUrlOnUnmount from '@hooks/useClearDeleteTransactionNavigateBackUrlOnUnmount';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isReportTransactionThread} from '@libs/ReportUtils';
+import {isReportTransactionThreadNew} from '@libs/ReportUtils';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview} from '@libs/TransactionNavigationUtils';
 
 import {clearDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect} from 'react';
@@ -18,6 +22,9 @@ type DeleteTransactionNavigateBackHandlerProps = {
     reportID: string | undefined;
 };
 
+const parentIDsSelector = (report: OnyxEntry<Report>) => report && {parentReportID: report.parentReportID, parentReportActionID: report.parentReportActionID};
+const typeAndChatTypeSelector = (report: OnyxEntry<Report>) => report && {type: report.type, chatType: report.chatType};
+
 /**
  * Component that does not render anything but isolates the RAM_ONLY_PENDING_TRANSACTION_DELETE_URL
  * subscription from ReportScreen. Clears the URL after interactions complete
@@ -26,7 +33,10 @@ type DeleteTransactionNavigateBackHandlerProps = {
 function DeleteTransactionNavigateBackHandler({reportID}: DeleteTransactionNavigateBackHandlerProps) {
     const isFocused = useIsFocused();
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL);
-    const [isTransactionThread = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: isReportTransactionThread});
+    const [reportParentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: parentIDsSelector});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportParentIDs?.parentReportID)}`, {selector: typeAndChatTypeSelector});
+    const parentReportAction = useParentReportAction(reportParentIDs);
+    const isTransactionThreadReport = isReportTransactionThreadNew(reportParentIDs, parentReport, parentReportAction);
 
     useEffect(() => {
         if (isFocused || !deleteTransactionNavigateBackUrl) {
@@ -45,7 +55,7 @@ function DeleteTransactionNavigateBackHandler({reportID}: DeleteTransactionNavig
         return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
-    useClearDeleteTransactionNavigateBackUrlOnUnmount(isTransactionThread);
+    useClearDeleteTransactionNavigateBackUrlOnUnmount(isTransactionThreadReport);
 
     return null;
 }

@@ -1,6 +1,6 @@
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview} from '@libs/TransactionNavigationUtils';
 
-import {clearDeleteTransactionNavigateBackUrl, clearDeleteTransactionNavigateBackUrlAfterTransitions} from '@userActions/Report';
+import {clearDeleteTransactionNavigateBackUrlAfterTransitions} from '@userActions/Report';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -14,15 +14,10 @@ function useClearDeleteTransactionNavigateBackUrlOnUnmount(shouldClear: boolean)
             return;
         }
         return () =>
-            clearDeleteTransactionNavigateBackUrlAfterTransitions(() => {
+            clearDeleteTransactionNavigateBackUrlAfterTransitions(() =>
                 // Read when the clear fires, the unmounted screen may never have received the URL.
-                Onyx.get(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL).then((url) => {
-                    if (!url || doesDeleteNavigateBackUrlIncludeDuplicatesReview(url)) {
-                        return;
-                    }
-                    requestAnimationFrame(clearDeleteTransactionNavigateBackUrl);
-                });
-            });
+                Onyx.get(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL).then((url) => !!url && !doesDeleteNavigateBackUrlIncludeDuplicatesReview(url)),
+            );
     }, [shouldClear]);
 }
 
