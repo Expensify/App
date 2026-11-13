@@ -160,6 +160,26 @@ describe('useTravelBillingFundID', () => {
         });
     });
 
+    it('resolves the workspace fund while a settlement account change is pending on a domain travel billing feed that lists only other workspaces', async () => {
+        // Given a domain linked to the workspace through its US card program, whose TRAVEL_US program lists only another workspace and has a pending settlement account change
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});
+        await Onyx.merge(getTravelBillingCardSettingsKey(domainFundID), {
+            [CONST.COUNTRY.US]: {linkedPolicyIDs: [policyID], paymentBankAccountID: 67890},
+            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {...travelBillingSettings, linkedPolicyIDs: [otherPolicyID]},
+            pendingFields: {paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        });
+        await waitForBatchedUpdates();
+
+        // When the hook resolves the travel billing fund
+        const {result} = renderHook(() => useTravelBillingFundID(policyID));
+        await waitForBatchedUpdates();
+
+        // Then it returns the workspace, because the pending change belongs to the other workspace's feed and stays pending if it fails
+        await waitFor(() => {
+            expect(result.current).toBe(workspaceFundID);
+        });
+    });
+
     it('resolves the default domain fund when the domain linked through its card program has no travel billing feed', async () => {
         // Given a domain linked to the workspace through its US card program and no TRAVEL_US program anywhere
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});

@@ -32,12 +32,15 @@ function findLinkedTravelBillingFundID(cardSettings: OnyxCollection<ExpensifyCar
 
 /** True when the settings have a TRAVEL_US program whose linkedPolicyIDs leaves out the policy, or that has no list at all. */
 function isTravelBillingUnlinkedFromPolicy(settings: OnyxEntry<ExpensifyCardSettings>, policyID: string | undefined): boolean {
-    // A pending settlement account save writes the program without linkedPolicyIDs until the server links the policy.
-    if (settings?.pendingFields?.paymentBankAccountID) {
+    const travelSettings = settings?.[CONST.TRAVEL.PROGRAM_TRAVEL_US];
+    if (!policyID || !travelSettings) {
         return false;
     }
-    const travelSettings = settings?.[CONST.TRAVEL.PROGRAM_TRAVEL_US];
-    return !!policyID && !!travelSettings && !isPolicyIDInLinkedExpensifyCardPolicyList(travelSettings.linkedPolicyIDs, policyID);
+    // A pending first settlement account save writes the program without linkedPolicyIDs until the server links the policy.
+    if (!travelSettings.linkedPolicyIDs && settings?.pendingFields?.paymentBankAccountID) {
+        return false;
+    }
+    return !isPolicyIDInLinkedExpensifyCardPolicyList(travelSettings.linkedPolicyIDs, policyID);
 }
 
 /**
