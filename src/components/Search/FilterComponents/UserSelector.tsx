@@ -6,11 +6,13 @@ import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelect
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {openSearchUserFiltersPage} from '@libs/actions/Search';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
@@ -21,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import ListFilterWrapper from './ListFilterViewWrapper';
 
@@ -30,15 +32,23 @@ type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyID: Filter | undefined;
 };
 
+// The pagination state is always replaced wholesale, never mutated, so every reset can share this object.
+const EMPTY_PAGINATION = {hasMore: false, nextCursor: '', isLoadingMore: false};
+
 function UserSelector({value = [], isNegatable, policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const shouldFocusInputOnScreenFocus = autoFocus && canFocusInputOnScreenFocus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearching, setIsSearching] = useState(ready && !isOffline);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [pagination, setPagination] = useState(EMPTY_PAGINATION);
+    const [serverScopedLoginsByPolicy, setServerScopedLoginsByPolicy] = useState<{policyIDs: string; logins: string[]}>({policyIDs: '', logins: []});
+    const requestSeqRef = useRef(0);
+
     const initialSelectedAccountIDs = value.reduce<Set<string>>((acc, id) => {
         const participant = personalDetails?.[id];
         if (!participant) {
@@ -56,15 +66,19 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     // top on first render without repinning rows that are toggled afterwards.
     const initialSelectedValues = useInitialValue(() => value);
 
-    // When the workspace filter is set, only suggest the members of the selected workspaces. Users that were already
-    // selected when the filter opened are kept in the list even when they aren't members, so they can still be deselected here.
+    const selectedPolicies = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : undefined;
+    const policyIDs = selectedPolicies ? selectedPolicies.map((policy) => policy.id).join(',') : '';
+    const serverScopedLogins = serverScopedLoginsByPolicy.policyIDs === policyIDs ? serverScopedLoginsByPolicy.logins : [];
+
+    // When the workspace filter is set, only suggest the members of the selected workspaces and people returned by
+    // the server for those workspaces' reports (such as removed members). Users that were already selected when the
+    // filter opened are kept in the list even when they aren't members, so they can still be deselected here.
     const workspaceMemberLogins = (() => {
-        if (!policyID?.value?.length) {
+        if (!selectedPolicies) {
             return undefined;
         }
 
         const logins = new Set<string>();
-        const selectedPolicies = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
         for (const policy of selectedPolicies) {
             if (policy.employeeList) {
                 const employeeLogins = Object.keys(policy.employeeList);
@@ -78,6 +92,9 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
             }
             logins.add(policy.owner);
         }
+        for (const login of serverScopedLogins) {
+            logins.add(login);
+        }
         for (const accountID of initialSelectedValues) {
             const login = personalDetails?.[accountID]?.login;
             if (login) {
@@ -87,7 +104,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         return logins.size ? logins : undefined;
     })();
 
-    const {searchTerm, setSearchTerm, selectedOptions, availableOptions, totalOptionsCount, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, availableOptions, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         initialSelected: initialSelectedAccountIDs,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -99,6 +116,71 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         onSelectionChange: onChange,
         shouldKeepSelectedInAvailableOptions: true,
     });
+
+    const trimmedSearchTerm = debouncedSearchTerm.trim();
+
+    // Reset pagination synchronously (without an effect) whenever the search params change, so a new
+    // search never reuses the previous query's cursor. See https://react.dev/reference/react/useState#storing-information-from-previous-renders
+    const [prevSearchParams, setPrevSearchParams] = useState({trimmedSearchTerm, policyIDs, isOffline});
+    if (prevSearchParams.trimmedSearchTerm !== trimmedSearchTerm || prevSearchParams.policyIDs !== policyIDs || prevSearchParams.isOffline !== isOffline) {
+        setPrevSearchParams({trimmedSearchTerm, policyIDs, isOffline});
+        setPagination(EMPTY_PAGINATION);
+        setIsSearching(ready && !isOffline);
+    }
+
+    const applyUserFiltersResponse = (requestSeq: number, {hasMore, nextCursor, logins}: {hasMore: boolean; nextCursor: string; logins: string[]}) => {
+        if (requestSeq !== requestSeqRef.current) {
+            return;
+        }
+        setIsSearching(false);
+        if (policyIDs && logins.length > 0) {
+            setServerScopedLoginsByPolicy((prev) => ({
+                policyIDs,
+                logins: prev.policyIDs === policyIDs ? Array.from(new Set([...prev.logins, ...logins])) : logins,
+            }));
+        }
+        setPagination({hasMore, nextCursor, isLoadingMore: false});
+    };
+
+    // Shared by the effect that fetches the first page and by loadMoreUsers. An empty cursor means a new
+    // search, so the request cancels in-flight ones and a failure resets the whole pagination.
+    const fetchUserFiltersPage = (cursor: string, requestSeq: number) => {
+        const isFirstPage = cursor === '';
+        openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor, policyIDs: policyIDs || undefined}, isFirstPage)
+            .then((result) => applyUserFiltersResponse(requestSeq, result))
+            .catch(() => {
+                if (requestSeq !== requestSeqRef.current) {
+                    return;
+                }
+                if (isFirstPage) {
+                    setIsSearching(false);
+                    setPagination(EMPTY_PAGINATION);
+                } else {
+                    setPagination((prev) => ({...prev, isLoadingMore: false}));
+                }
+            });
+    };
+
+    useEffect(() => {
+        if (!ready || isOffline) {
+            return;
+        }
+
+        const requestSeq = ++requestSeqRef.current;
+
+        fetchUserFiltersPage('', requestSeq);
+    }, [ready, isOffline, trimmedSearchTerm, policyIDs, fetchUserFiltersPage]);
+
+    const loadMoreUsers = () => {
+        if (isOffline || !pagination.hasMore || pagination.isLoadingMore || isSearching) {
+            return;
+        }
+
+        const requestSeq = requestSeqRef.current;
+        setPagination((prev) => ({...prev, isLoadingMore: true}));
+
+        fetchUserFiltersPage(pagination.nextCursor, requestSeq);
+    };
 
     // The current user and selected public-profile users without a login are excluded from personalDetails, so include them in the list when present.
     const availablePersonalDetails = availableOptions.currentUserOption ? [availableOptions.currentUserOption, ...availableOptions.personalDetails] : availableOptions.personalDetails;
@@ -119,26 +201,23 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         toggleSelection(option);
     };
 
-    const isLoadingNewOptions = !!isSearchingForReports;
-    const shouldShowSearchInput = totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const isLoadingNewOptions = isSearching || pagination.isLoadingMore;
 
-    const textInputOptions = shouldShowSearchInput
-        ? {
-              value: searchTerm,
-              label: translate('selectionList.searchForSomeone'),
-              onChangeText: setSearchTerm,
-              headerMessage,
-              disableAutoFocus: !shouldFocusInputOnScreenFocus,
-              style: {
-                  containerStyle: selectionListTextInputStyle,
-              },
-          }
-        : undefined;
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('selectionList.searchForSomeone'),
+        onChangeText: setSearchTerm,
+        headerMessage,
+        disableAutoFocus: !shouldFocusInputOnScreenFocus,
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
+    };
 
     return (
         <ListFilterWrapper
             itemCount={listData.length}
-            isSearchable={shouldShowSearchInput}
+            isSearchable
             isNegatable={isNegatable}
         >
             <SelectionList
@@ -150,6 +229,8 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                 shouldUpdateFocusedIndex
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
+                onEndReached={pagination.hasMore && !isOffline ? loadMoreUsers : undefined}
+                onEndReachedThreshold={0.75}
                 style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                 footerContent={footer}
                 shouldFooterBeInsideList={shouldFooterBeInsideList}
