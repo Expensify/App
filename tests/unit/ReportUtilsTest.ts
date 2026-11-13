@@ -4866,6 +4866,271 @@ describe('ReportUtils', () => {
                 // outstanding-child flag but no report preview action is loaded yet, so there is no action badge.
                 expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
             });
+
+            describe('when the chat iouReportID points at an empty open draft', () => {
+                const chatReportID = '7400';
+                const heldExpenseReportID = '7401';
+                const openDraftReportID = '7402';
+                const heldTransactionThreadReportID = '7403';
+                const unloadedSiblingReportID = '7404';
+                const loadedSiblingReportID = '7405';
+
+                // The submitted child is all held. The chat's iouReportID names a different open draft with no
+                // transactions, which is the shape after submit. The draft must not keep the approver's green dot.
+                const seedHeldSubmittedChild = async (
+                    holderAccountID: number,
+                    {
+                        includeOpenDraftPreview = true,
+                        unloadedSiblingStatusNum,
+                        includeLoadedSiblingWithoutTransactions = false,
+                        asSubmitter = false,
+                    }: {
+                        includeOpenDraftPreview?: boolean;
+                        unloadedSiblingStatusNum?: ReportAction['childStatusNum'];
+                        includeLoadedSiblingWithoutTransactions?: boolean;
+                        asSubmitter?: boolean;
+                    } = {},
+                ) => {
+                    const expenseOwnerAccountID = asSubmitter ? currentUserAccountID : otherUserAccountID;
+                    const expenseManagerAccountID = asSubmitter ? otherUserAccountID : currentUserAccountID;
+                    const heldExpenseReport: Report = {
+                        ...LHNTestUtils.getFakeReport(),
+                        reportID: heldExpenseReportID,
+                        chatReportID,
+                        policyID: '1',
+                        ownerAccountID: expenseOwnerAccountID,
+                        managerID: expenseManagerAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    };
+
+                    const openDraftReport: Report = {
+                        ...LHNTestUtils.getFakeReport(),
+                        reportID: openDraftReportID,
+                        chatReportID,
+                        policyID: '1',
+                        ownerAccountID: expenseOwnerAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    };
+
+                    const policyExpenseChat = {
+                        ...createPolicyExpenseChat(7400, false),
+                        reportID: chatReportID,
+                        policyID: '1',
+                        ownerAccountID: expenseOwnerAccountID,
+                        hasOutstandingChildRequest: true,
+                        iouReportID: openDraftReportID,
+                    };
+
+                    const buildReportPreview = (
+                        reportActionID: string,
+                        childReportID: string,
+                        created: string,
+                        childStatusNum: NonNullable<ReportAction['childStatusNum']>,
+                    ): ReportAction => ({
+                        reportActionID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                        created,
+                        actorAccountID: otherUserAccountID,
+                        childReportID,
+                        childStatusNum,
+                        childType: CONST.REPORT.TYPE.EXPENSE,
+                        childManagerAccountID: expenseManagerAccountID,
+                        shouldShow: true,
+                        message: [{type: 'COMMENT', html: 'Expense report', text: 'Expense report'}],
+                        originalMessage: {linkedReportID: childReportID},
+                    });
+
+                    const chatReportActions: Record<string, ReportAction> = {
+                        preview_7401: buildReportPreview('preview_7401', heldExpenseReportID, '2024-01-01 00:00:00.000', CONST.REPORT.STATUS_NUM.SUBMITTED),
+                    };
+                    if (includeOpenDraftPreview) {
+                        chatReportActions.preview_7402 = buildReportPreview('preview_7402', openDraftReportID, '2024-01-02 00:00:00.000', CONST.REPORT.STATUS_NUM.OPEN);
+                    }
+                    if (unloadedSiblingStatusNum !== undefined) {
+                        chatReportActions.preview_7404 = buildReportPreview('preview_7404', unloadedSiblingReportID, '2024-01-03 00:00:00.000', unloadedSiblingStatusNum);
+                    }
+                    if (includeLoadedSiblingWithoutTransactions) {
+                        chatReportActions.preview_7405 = buildReportPreview('preview_7405', loadedSiblingReportID, '2024-01-04 00:00:00.000', CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    }
+
+                    const heldTransaction = {
+                        ...createRandomTransaction(7401),
+                        transactionID: '7401',
+                        reportID: heldExpenseReportID,
+                        status: CONST.TRANSACTION.STATUS.POSTED,
+                        comment: {hold: 'hold_7401'},
+                    };
+
+                    const heldMoneyRequestAction: ReportAction = {
+                        reportActionID: 'mr_7401',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2024-01-01 00:00:00.000',
+                        actorAccountID: expenseOwnerAccountID,
+                        childReportID: heldTransactionThreadReportID,
+                        originalMessage: {
+                            IOUTransactionID: '7401',
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            amount: 100,
+                            currency: 'USD',
+                        },
+                    };
+
+                    const holdAction: ReportAction = {
+                        reportActionID: 'hold_7401',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                        created: '2024-01-01 00:00:00.000',
+                        actorAccountID: holderAccountID,
+                    };
+
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                        id: '1',
+                        type: CONST.POLICY.TYPE.TEAM,
+                        role: asSubmitter ? CONST.POLICY.ROLE.USER : CONST.POLICY.ROLE.ADMIN,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                        harvesting: {enabled: false},
+                    });
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, policyExpenseChat);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${heldExpenseReportID}`, heldExpenseReport);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openDraftReportID}`, openDraftReport);
+                    if (includeLoadedSiblingWithoutTransactions) {
+                        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${loadedSiblingReportID}`, {...heldExpenseReport, reportID: loadedSiblingReportID});
+                    }
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}7401`, heldTransaction);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, chatReportActions);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${heldExpenseReportID}`, {mr_7401: heldMoneyRequestAction});
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${heldTransactionThreadReportID}`, {hold_7401: holdAction});
+                    await waitForBatchedUpdates();
+
+                    return policyExpenseChat;
+                };
+
+                it('does not require attention when the submitter held the only submitted child', async () => {
+                    // Given a submitted expense the employee put on hold, while the chat still points at an empty open draft
+                    const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID);
+
+                    // When the approver's attention is derived without opening the chat
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+
+                    // Then the held expense is not a to-do, because the empty draft has no expense of its own
+                    expect(requiresAttention).toBe(false);
+                });
+
+                it('still requires attention and shows APPROVE when the current user placed the hold', async () => {
+                    // Given the approver placed the hold on the only submitted expense
+                    const policyExpenseChat = await seedHeldSubmittedChild(currentUserAccountID);
+
+                    // When attention and the badge are derived
+                    const {reportAction, actionBadge} =
+                        getReasonAndReportActionThatRequiresAttention({
+                            optionOrReport: policyExpenseChat,
+                            currentUserLogin: currentUserEmail,
+                            currentUserAccountID,
+                            transactionViolations: undefined,
+                            reportMetadata: undefined,
+                        }) ?? {};
+
+                    // Then the row stays, with Approve on the held expense, because the approver can remove their own hold
+                    expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+                    expect(reportAction?.childReportID).toBe(heldExpenseReportID);
+                    expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+                });
+
+                it('does not require attention when the empty open draft has no preview of its own', async () => {
+                    // Given the held expense is the only preview, and the open draft has no preview of its own
+                    const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {includeOpenDraftPreview: false});
+
+                    // When attention is derived
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+
+                    // Then the chat is still not a to-do
+                    expect(requiresAttention).toBe(false);
+                });
+
+                it('still requires attention when an outstanding sibling preview is not loaded', async () => {
+                    // Given a second submitted preview whose report is not loaded
+                    const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {unloadedSiblingStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+
+                    // When attention is derived
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+
+                    // Then the chat stays in to-do, because that sibling may still need approval
+                    expect(requiresAttention).toBe(true);
+                });
+
+                it('does not require attention when the unloaded sibling preview is reimbursed', async () => {
+                    // Given the unloaded sibling preview is already reimbursed
+                    const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {unloadedSiblingStatusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+
+                    // When attention is derived
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+
+                    // Then that settled preview does not keep the chat in to-do
+                    expect(requiresAttention).toBe(false);
+                });
+
+                it('still requires attention when a submitted sibling is loaded without its transactions', async () => {
+                    // Given a submitted sibling report is already loaded, but its transaction has not arrived
+                    const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {includeLoadedSiblingWithoutTransactions: true});
+
+                    // When attention is derived from the transaction cache, which has no row for that sibling
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+
+                    // Then the chat stays in to-do, because the missing transactions cannot be treated as a hold
+                    expect(requiresAttention).toBe(true);
+                });
+
+                it('uses the caller transaction snapshot when the cache has not caught up', async () => {
+                    // Given the same loaded sibling, with its approvable transaction present only in the caller snapshot
+                    const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {includeLoadedSiblingWithoutTransactions: true});
+                    const siblingTransaction = {
+                        ...createRandomTransaction(7405),
+                        transactionID: '7405',
+                        reportID: loadedSiblingReportID,
+                        status: CONST.TRANSACTION.STATUS.POSTED,
+                        comment: {},
+                    };
+
+                    // When the badge is derived with that snapshot instead of the cache
+                    const {reportAction, actionBadge} =
+                        getReasonAndReportActionThatRequiresAttention({
+                            optionOrReport: policyExpenseChat,
+                            currentUserLogin: currentUserEmail,
+                            currentUserAccountID,
+                            transactionViolations: undefined,
+                            reportMetadata: undefined,
+                            reportsTransactions: {[loadedSiblingReportID]: [siblingTransaction]},
+                        }) ?? {};
+
+                    // Then Approve lands on the sibling, because the snapshot shows it is not held
+                    expect(reportAction?.childReportID).toBe(loadedSiblingReportID);
+                    expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+                });
+
+                it('shows ADD when the submitter has an empty report beside one the approver held', async () => {
+                    // Given the approver held the submitted expense, and the submitter's chat also has an empty open report
+                    const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {asSubmitter: true});
+
+                    // When the submitter's attention is derived
+                    const {reportAction, actionBadge} =
+                        getReasonAndReportActionThatRequiresAttention({
+                            optionOrReport: policyExpenseChat,
+                            currentUserLogin: currentUserEmail,
+                            currentUserAccountID,
+                            transactionViolations: undefined,
+                            reportMetadata: undefined,
+                        }) ?? {};
+
+                    // Then the empty report keeps its Add badge, because the submitter can still add an expense
+                    expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+                    expect(reportAction?.childReportID).toBe(openDraftReportID);
+                    expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.ADD);
+                });
+            });
         });
 
         describe('when an older sibling expense report is all on hold', () => {
@@ -14281,6 +14546,59 @@ describe('ReportUtils', () => {
             // AND include actionBadge (APPROVE) since it's a processing expense report the user can approve
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+        });
+
+        it('uses the caller transaction snapshot for the assignee expense badge', async () => {
+            // Given the cached expense is approvable, while the caller snapshot says that expense is on hold
+            const policyID = 'testPolicy124';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                type: CONST.POLICY.TYPE.TEAM,
+            };
+            const expenseReport: Report = {
+                ...createExpenseReport(60001),
+                policyID,
+                hasParentAccess: false,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const cachedTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+            const snapshotTransaction: Transaction = {
+                ...cachedTransaction,
+                comment: {hold: 'hold_60001'},
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${cachedTransaction.transactionID}`, cachedTransaction);
+            await waitForBatchedUpdates();
+
+            // When attention is derived from the snapshot rather than the cache
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: expenseReport,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                reportMetadata: undefined,
+                isReportArchived: isReportArchived.current,
+                reportsTransactions: {[expenseReport.reportID]: [snapshotTransaction]},
+            });
+
+            // Then Approve is withheld, because the held snapshot is newer than the approvable cache
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            expect(result?.actionBadge).toBeUndefined();
         });
 
         it('should use allReportActionsParam when provided instead of module-level Onyx data', async () => {
