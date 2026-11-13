@@ -241,7 +241,6 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                     <MoneyRequestView
                         expensePolicy={targetTransactionPolicy}
                         parentReportID={targetTransactionReport?.reportID}
-                        shouldShowAnimatedBackground={false}
                         readonly
                         updatedTransaction={mergedTransactionData as unknown as OnyxEntry<Transaction>}
                         mergeTransactionID={transactionID}

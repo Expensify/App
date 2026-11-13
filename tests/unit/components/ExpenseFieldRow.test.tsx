@@ -280,6 +280,28 @@ describe('ExpenseFieldRow', () => {
             expect(row).toHaveStyle({borderWidth: result.current.moneyRequestFieldRow.borderWidth});
             expect(row).toHaveStyle(result.current.moneyRequestFieldRowDisabled);
         });
+
+        it('stacks the field name right on its value, as a text input does', () => {
+            // Given a field holding a value
+            render(
+                <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    name={FIELD_NAME}
+                    value={FIELD_VALUE}
+                    isInteractive={false}
+                    onPress={jest.fn()}
+                />,
+            );
+
+            // When the form renders it
+            let contentCell = screen.getByText(FIELD_NAME).parent;
+            while (contentCell && String(contentCell.type) !== 'View') {
+                contentCell = contentCell.parent;
+            }
+
+            // Then nothing separates the name from the value, so the row is as tall as a text input beside it
+            expect(contentCell).toHaveStyle({gap: 0});
+        });
     });
 
     describe('layout reporting', () => {

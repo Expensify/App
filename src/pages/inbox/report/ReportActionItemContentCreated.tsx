@@ -5,6 +5,7 @@ import SupportTicketView from '@components/ReportActionItem/SupportTicketView';
 import TaskView from '@components/ReportActionItem/TaskView';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import SpacerView from '@components/SpacerView';
+import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 
 import useLocalize from '@hooks/useLocalize';
@@ -36,9 +37,12 @@ type ReportActionItemContentCreatedProps = {
     transactionID: string | undefined;
     draftMessage: string | undefined;
     shouldHideThreadDividerLine: boolean;
+
+    /** Whether the report shows anything below this action, such as a comment or a system message */
+    hasActionsAfterCreated: boolean;
 };
 
-function ReportActionItemContentCreated({parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
+function ReportActionItemContentCreated({parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine, hasActionsAfterCreated}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const contextMenuStateValue = useShowContextMenuState();
@@ -58,6 +62,31 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
             shouldShow={!shouldHideThreadDividerLine}
             style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
         />
+    );
+
+    // The comments below an expense get a heading like the expense's other sections, once there is anything to head.
+    const expenseThreadDivider = hasActionsAfterCreated && (
+        <>
+            {/* An unread comment's "New" line takes the rule's place, as it does below every other created action. */}
+            {!shouldHideThreadDividerLine && (
+                <View
+                    testID="expense-comments-rule"
+                    style={[styles.reportHorizontalRule, styles.borderBottom, styles.mv3]}
+                />
+            )}
+            <View
+                style={[styles.mh5, styles.pt4, styles.pb2, styles.userSelectNone]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
+                <Text variant="labelStrong">{translate('common.comments')}</Text>
+            </View>
+            {shouldHideThreadDividerLine && (
+                <UnreadActionIndicator
+                    reportActionID={report?.reportID}
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                />
+            )}
+        </>
     );
 
     const disabledStateValue = {...contextMenuStateValue, isDisabled: true};
@@ -101,9 +130,8 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
                                 transactionThreadReport={report}
                                 parentReportID={report?.parentReportID}
                                 expensePolicy={policy}
-                                shouldShowAnimatedBackground
                             />
-                            {renderThreadDivider}
+                            {expenseThreadDivider}
                         </View>
                     </ShowContextMenuActionsContext.Provider>
                 </ShowContextMenuStateContext.Provider>
@@ -168,7 +196,7 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
                 transactionThreadReport={transactionThreadReport}
                 action={action}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                threadDivider={renderThreadDivider}
+                threadDivider={expenseThreadDivider}
             />
         );
     }

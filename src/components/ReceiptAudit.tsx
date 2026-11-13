@@ -40,10 +40,12 @@ function ReceiptAudit({notes, shouldShowAuditResult, hasReceiptUploadError = fal
     }
 
     return (
-        <View style={[styles.ph5, styles.mbn1]}>
+        // With the receipt's 12px top margin this leaves the 16px gap every section heading has below it
+        <View style={[styles.ph5, styles.mb1]}>
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Text
-                    style={[styles.textLabelSupporting, styles.userSelectNone]}
+                    variant="labelStrong"
+                    style={styles.userSelectNone}
                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 >
                     {translate('common.receipt')}

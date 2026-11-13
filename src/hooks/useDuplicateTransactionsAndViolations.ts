@@ -165,4 +165,5 @@ function useLiveDuplicateTransactionsAndViolations(transactionIDs: string[]): Du
 }
 
 export {useLiveDuplicateTransactionsAndViolations};
+export type {DuplicateTransactionsAndViolations};
 export default useDuplicateTransactionsAndViolations;

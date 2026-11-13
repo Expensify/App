@@ -51,6 +51,23 @@ function addLeadingZero(amount: string, shouldAllowNegative = false): string {
     return amount.startsWith('.') ? `0${amount}` : amount;
 }
 
+/** The backend amount for what was typed in an inline amount field, or null when the field is empty or holds only a sign. */
+function getBackendAmountFromInput(value: string): number | null {
+    const isNegative = value.startsWith('-');
+    const cleanAmount = value.replace('-', '').trim();
+    if (!cleanAmount) {
+        return null;
+    }
+
+    const numericAmount = Number.parseFloat(cleanAmount);
+    if (Number.isNaN(numericAmount)) {
+        return null;
+    }
+
+    const absoluteBackendAmount = convertToBackendAmount(numericAmount);
+    return isNegative ? -absoluteBackendAmount : absoluteBackendAmount;
+}
+
 /**
  * Check if amount is a decimal up to 3 digits
  */
@@ -290,6 +307,7 @@ function isConfirmationDateMissing(
 }
 
 export {
+    getBackendAmountFromInput,
     addLeadingZero,
     isConfirmationAmountMissing,
     isConfirmationDateMissing,

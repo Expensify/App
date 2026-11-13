@@ -16,8 +16,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import {View} from 'react-native';
 
-import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
-
 type MoneyReportContentCreatedProps = {
     /** The IOU/Expense/Invoice report */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -61,7 +59,6 @@ function MoneyReportContentCreated({report, policy, transaction, transactionThre
         <OfflineWithFeedback pendingAction={action?.pendingAction}>
             {hasThread ? (
                 <View style={[styles.pRelative, styles.moneyRequestView]}>
-                    <AnimatedEmptyStateBackground />
                     <MoneyReportView
                         report={report}
                         policy={policy}
@@ -79,7 +76,6 @@ function MoneyReportContentCreated({report, policy, transaction, transactionThre
                                     transactionThreadReport={transactionThreadReport}
                                     parentReportID={transactionThreadReport?.parentReportID}
                                     expensePolicy={policy}
-                                    shouldShowAnimatedBackground={false}
                                 />
                                 {threadDivider}
                             </View>

@@ -139,6 +139,9 @@ type ReportActionItemProps = {
 
     shouldHideThreadDividerLine?: boolean;
 
+    /** Whether the report shows anything below its created action, such as a comment or a system message */
+    hasActionsAfterCreated?: boolean;
+
     /** Report action ID that was referenced in the deeplink to report  */
     linkedReportActionID?: string;
 
@@ -187,6 +190,7 @@ function ReportActionItem({
     parentReportAction,
     shouldDisplayNewMarker,
     shouldHideThreadDividerLine = false,
+    hasActionsAfterCreated = true,
     onPress = undefined,
     isFirstVisibleReportAction = false,
     isThreadReportParentAction = false,
@@ -503,6 +507,7 @@ function ReportActionItem({
                         transactionID={createdTransactionID}
                         draftMessage={draftMessage}
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                        hasActionsAfterCreated={hasActionsAfterCreated}
                     />
                 </ShowContextMenuActionsContext.Provider>
             </ShowContextMenuStateContext.Provider>
@@ -567,6 +572,7 @@ function ReportActionItem({
                             transactionID={createdTransactionID}
                             draftMessage={draftMessage}
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                            hasActionsAfterCreated={hasActionsAfterCreated}
                         />
                     )}
                     <PressableWithSecondaryInteraction

@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from '@components/ShowContextMenuContext';
@@ -127,6 +127,23 @@ describe('MoneyReportContentCreated', () => {
         // and never with `isTotalPending=true`. Assert against every call to be safe.
         const calls = mockMoneyReportView.mock.calls.map((c) => c[0]);
         expect(calls.every((p) => p?.isTotalPending !== true)).toBe(true);
+    });
+
+    it('shows no empty-state background above a one-expense report, which opens on the expense fields', async () => {
+        // Given a report holding one expense, whose thread is loaded so the report shows that expense's fields
+        const report = buildExpenseReport();
+        const transaction = LHNTestUtils.getFakeTransaction(report.reportID, 1500);
+        const threadReport = buildExpenseReport({reportID: 'thread_1'});
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+        });
+
+        // When the top of the report renders
+        renderWithProps({report, transactionThreadReport: threadReport});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the chat's empty-state illustration doesn't peek through above the fields
+        expect(screen.queryByTestId('animated-bg')).not.toBeOnTheScreen();
     });
 
     it('forwards isTotalPending=false when there are zero transactions', async () => {
