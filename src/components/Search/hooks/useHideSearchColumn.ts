@@ -2,7 +2,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchCustomColumnIds, SearchQueryJSON} from '@components/Search/types';
 
 import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
-import {getCustomColumns, getRequiredSearchColumns, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getCustomColumns, getRequiredSearchColumns, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
 
 type HideSearchColumn = {
     /** The shown columns users can hide from their menu. */
@@ -24,7 +24,10 @@ function useHideSearchColumn(queryJSON: SearchQueryJSON, columns: SearchColumnTy
     const savedTableColumns = savedColumns.filter((column) => tableLevelColumns.has(column));
     const hasSavedTableColumns = savedTableColumns.length > 0;
     // With none of this table's columns saved, the shown ones join the saved expense columns, so those keep applying to expanded groups.
-    const columnsToSave = hasSavedTableColumns ? savedColumns : [...shownColumns, ...savedColumns];
+    const tableColumnsToSave = hasSavedTableColumns ? savedColumns : [...shownColumns, ...savedColumns];
+    // Groups with no saved expense columns expand to the default ones, so those get saved too, or the Columns page would show them as unchecked.
+    const hasSavedExpenseColumns = savedColumns.length > savedTableColumns.length;
+    const columnsToSave = groupBy && !hasSavedExpenseColumns ? [...tableColumnsToSave, ...getCustomColumnDefault(queryJSON.type)] : tableColumnsToSave;
     const requiredColumns: ReadonlySet<SearchColumnType> = getRequiredSearchColumns(queryHasViolationFilter(queryJSON));
 
     const canHideAnyColumn = (hasSavedTableColumns ? savedTableColumns : shownColumns).length > 1;

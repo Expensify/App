@@ -155,4 +155,21 @@ describe('useHideSearchColumn', () => {
             CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
         ]);
     });
+
+    it('saves the default expense columns with the group columns when a grouped search has no saved columns', () => {
+        // Given a grouped search with no saved columns, so its groups expand to the default expense columns
+        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense group-by:from'), GROUP_FROM_SHOWN_COLUMNS));
+
+        // When Expenses is hidden from its menu
+        act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES));
+
+        // Then the default expense columns are saved after the shown group columns, so the Columns page shows them checked
+        // and saving from it doesn't drop them
+        expect(getSavedColumns()).toEqual([
+            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+            ...CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE,
+        ]);
+    });
 });
