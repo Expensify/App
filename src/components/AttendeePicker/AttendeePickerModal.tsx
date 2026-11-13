@@ -34,6 +34,9 @@ type AttendeePickerModalProps = {
 
     /** Type of the expense, which the list's empty state is worded for */
     iouType: IOUType;
+
+    /** Whether the empty-selection error waits for an apply attempt instead of showing as soon as the list opens */
+    shouldDeferEmptySelectionError?: boolean;
 } & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'children'>;
 
 /**
@@ -42,7 +45,7 @@ type AttendeePickerModalProps = {
  * container open, so the user can keep picking. The selection is applied with the Apply button at the bottom, as on
  * the full page, where the button reads Save.
  */
-function AttendeePickerModal({attendees, onAttendeesChanged, onApply, iouType, ...popoverProps}: AttendeePickerModalProps) {
+function AttendeePickerModal({attendees, onAttendeesChanged, onApply, iouType, shouldDeferEmptySelectionError = false, ...popoverProps}: AttendeePickerModalProps) {
     const {translate} = useLocalize();
 
     return (
@@ -64,6 +67,7 @@ function AttendeePickerModal({attendees, onAttendeesChanged, onApply, iouType, .
                     searchInputLabel={translate('selectionList.searchForSomeone')}
                     confirmButtonText={translate('common.apply')}
                     confirmButtonSize={CONST.BUTTON_SIZE.MEDIUM}
+                    shouldDeferEmptySelectionError={shouldDeferEmptySelectionError}
                 />
             </ScreenWrapperStatusContext.Provider>
         </AnchoredSelectionListPopover>

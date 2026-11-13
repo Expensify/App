@@ -97,6 +97,20 @@ describe('AttendeePickerModal', () => {
         expect(onClose).not.toHaveBeenCalled();
     });
 
+    it('shows the empty-selection error as soon as the list opens unless told to wait for an apply attempt', () => {
+        // Given the expense form's attendees row, which always opens with at least the current user picked
+        renderModal({});
+
+        // Then the list shows its empty-selection error as soon as the selection is emptied, as on its page
+        expect(mockSelectorProps?.shouldDeferEmptySelectionError).toBe(false);
+
+        // When a row that opens with nothing picked, such as the bulk edit form's, asks the error to wait
+        renderModal({shouldDeferEmptySelectionError: true});
+
+        // Then the list holds the error until the user tries to apply an empty selection
+        expect(mockSelectorProps?.shouldDeferEmptySelectionError).toBe(true);
+    });
+
     it('opens at the standard dropdown size on a wide layout', () => {
         // Given a wide layout and a caller passing no size of its own
         // When the list opens
