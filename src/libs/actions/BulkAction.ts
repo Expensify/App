@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type BulkAction from '@src/types/onyx/BulkAction';
 import type {BulkActionType} from '@src/types/onyx/BulkAction';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -20,8 +21,11 @@ function wasBulkActionInitiatedLocally(bulkActionID: string): boolean {
     return locallyInitiatedBulkActionIDs.has(bulkActionID);
 }
 
-/** Starts a bulk action record that the backend moves to done once the action ran on every matching report */
-function buildBulkActionOnyxData(action: BulkActionType) {
+/**
+ * Starts a bulk action record that the backend moves to done once the action ran on every matching report.
+ * A bulk payment through a bank account keeps its paymentType on the record, so its progress and result read as paid rather than marked as paid.
+ */
+function buildBulkActionOnyxData(action: BulkActionType, paymentType?: PaymentMethodType) {
     const bulkActionID = rand64();
     locallyInitiatedBulkActionIDs.add(bulkActionID);
     const onyxKey = `${ONYXKEYS.COLLECTION.BULK_ACTION}${bulkActionID}` as const;
@@ -30,7 +34,7 @@ function buildBulkActionOnyxData(action: BulkActionType) {
         {
             onyxMethod: Onyx.METHOD.SET,
             key: onyxKey,
-            value: {state: CONST.BULK_ACTION.STATE.RUNNING, action},
+            value: {state: CONST.BULK_ACTION.STATE.RUNNING, action, ...(paymentType ? {paymentType} : {})},
         },
     ];
 
@@ -38,7 +42,7 @@ function buildBulkActionOnyxData(action: BulkActionType) {
         {
             onyxMethod: Onyx.METHOD.SET,
             key: onyxKey,
-            value: {state: CONST.BULK_ACTION.STATE.FAILED, action},
+            value: {state: CONST.BULK_ACTION.STATE.FAILED, action, ...(paymentType ? {paymentType} : {})},
         },
     ];
 

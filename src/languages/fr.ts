@@ -1637,6 +1637,13 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte personnel ${last4Digits}` : `Payé avec un compte personnel`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte professionnel ${last4Digits}` : `Payé avec le compte professionnel`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`),
+        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Payer avec x${lastFour}` : 'Payer avec un compte bancaire'),
+        bankPaySkippedReportsDescription:
+            "Ces notes de frais n'ont pas été payées via le compte bancaire, car elles ne sont pas remboursables ou leur montant total est nul ou négatif. Vous pouvez les marquer manuellement comme payées si vous le souhaitez.",
+        bankPayAllReportsSkippedDescription:
+            'Les notes de frais sélectionnées ne sont pas remboursables ou leur montant total est nul ou négatif. Vous pouvez les marquer manuellement comme payées si vous le souhaitez.',
+        bankPayReportSkippedDescription:
+            "Cette note de frais n'est pas remboursable ou son montant total est nul ou négatif. Vous pouvez la marquer manuellement comme payée si vous le souhaitez.",
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte bancaire ${last4Digits}` : `payé avec le compte bancaire ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `payé ${amount ? `${amount} ` : ''} avec le compte bancaire ${last4Digits} via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles d’espace de travail</a>`,
@@ -12986,6 +12993,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         approvingTitle: 'Approbation des notes de frais...',
         submittingTitle: 'Soumission des notes de frais...',
         payingTitle: 'Marquage des notes de frais comme payées...',
+        payingWithBankTitle: 'Paiement des notes de frais...',
         holdingTitle: 'Mise en attente des dépenses...',
         unholdingTitle: 'Suppression de la mise en attente des dépenses...',
         rejectingTitle: 'Rejet des dépenses...',
@@ -13008,6 +13016,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Marqué ${doneCount} sur ${count} note de frais comme payé`,
             other: `Marqué ${doneCount} sur ${count} notes de frais comme payé`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Payé ${doneCount} sur ${count} note de frais`,
+            other: `Payé ${doneCount} sur ${count} notes de frais`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Dépenses mises en attente pour ${doneCount} sur ${count} note de frais`,
@@ -13049,6 +13061,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         notPaidBody: ({count}: {count: number}) => ({
             one: "1 note de frais n'a pas pu être payée.",
             other: `${count} notes de frais n'ont pas pu être payées.`,
+        }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: "1 note de frais n'a pas été payée via le compte bancaire, car elle n'est pas remboursable ou son montant total est nul ou négatif. Vous pouvez la marquer manuellement comme payée si vous le souhaitez.",
+            other: `${count} notes de frais n'ont pas été payées via le compte bancaire, car elles ne sont pas remboursables ou leur montant total est nul ou négatif. Vous pouvez les marquer manuellement comme payées si vous le souhaitez.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
             one: "Les dépenses de 1 note de frais n'ont pas pu être mises en attente.",

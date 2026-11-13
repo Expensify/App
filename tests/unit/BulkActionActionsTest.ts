@@ -1,6 +1,6 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
 
-import {clearBulkAction} from '@userActions/BulkAction';
+import {buildBulkActionOnyxData, clearBulkAction} from '@userActions/BulkAction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,5 +56,25 @@ describe('BulkAction actions', () => {
         // Then it's gone here and the backend is asked to drop it too
         expect(await getOnyxValue(onyxKey)).toBeUndefined();
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CLEAR_BULK_ACTION, 1);
+    });
+
+    test('buildBulkActionOnyxData keeps the payment type of a bank payment on the record', () => {
+        // Given a bulk payment through a bank account
+        // When its record is started
+        const {onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.PAY, CONST.IOU.PAYMENT_TYPE.VBBA);
+
+        // Then both the running and the failed record carry the payment type, so the modal reads as paid rather than marked as paid
+        expect(onyxData.optimisticData.at(0)?.value).toEqual({state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA});
+        expect(onyxData.failureData.at(0)?.value).toEqual({state: CONST.BULK_ACTION.STATE.FAILED, action: CONST.SEARCH.BULK_ACTION_TYPES.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA});
+    });
+
+    test('buildBulkActionOnyxData leaves the payment type off other bulk actions', () => {
+        // Given a bulk approval, which has no payment type
+        // When its record is started
+        const {onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
+
+        // Then the record has no payment type at all, so it looks the same as before bank payments existed
+        expect(onyxData.optimisticData.at(0)?.value).not.toHaveProperty('paymentType');
+        expect(onyxData.failureData.at(0)?.value).not.toHaveProperty('paymentType');
     });
 });

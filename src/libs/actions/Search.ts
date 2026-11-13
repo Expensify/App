@@ -2351,10 +2351,11 @@ function queueExportSearchWithTemplate(
 /**
  * Queues a manual bulk payment for every report matching the given search query. The backend pages through all matches itself,
  * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ * With a bank payment it pays through the bank account and skips the reports it can't pay that way, saving each under the reason, otherwise it marks every report as paid.
  */
-function queueBulkPayReports(jsonQuery: string) {
-    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.PAY);
-    write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+function queueBulkPayReports(jsonQuery: string, bankPayment?: {paymentType: PaymentMethodType; bankAccountID?: number}) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.PAY, bankPayment?.paymentType);
+    write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID, ...bankPayment}, onyxData);
 }
 
 /** Moves every report matching the search query that the user can move to the given workspace. */
@@ -2605,6 +2606,7 @@ function handleBulkPayItemSelected(params: {
     currentUserAccountID: number;
     isOffline: boolean;
     verifyAccountAndResume: (retry?: () => void) => void;
+    isBankPayBlockedForSelection?: boolean;
 }) {
     const {
         item,
@@ -2626,6 +2628,7 @@ function handleBulkPayItemSelected(params: {
         currentUserAccountID,
         isOffline,
         verifyAccountAndResume,
+        isBankPayBlockedForSelection,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
     // Early return if item is not a valid payment method and not a policy-based payment option
@@ -2657,6 +2660,13 @@ function handleBulkPayItemSelected(params: {
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
         Log.info('[BulkPay] Blocking bulk pay: billable actions are restricted', false, {policyID: policy.id});
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
+        return;
+    }
+
+    // A bank payment of this selection pays none of it, so explain why instead of asking for account validation or bank setup it would never use
+    if (isBankPayBlockedForSelection && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        Log.info('[BulkPay] Skipping account validation and bank setup: nothing is owed on the selected reports');
+        confirmPayment?.(paymentType, item?.additionalData);
         return;
     }
 

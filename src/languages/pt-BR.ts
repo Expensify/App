@@ -1627,6 +1627,12 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `pagou ${amount} com a conta pessoal ${last4Digits}` : `Pago com conta pessoal`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `pagou ${amount} com a conta empresarial ${last4Digits}` : `Pago com conta empresarial`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Pagar ${formattedAmount} via ${policyName}` : `Pagar via ${policyName}`),
+        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Pagar com x${lastFour}` : 'Pagar com conta bancária'),
+        bankPaySkippedReportsDescription:
+            'Estes relatórios não foram pagos pela conta bancária porque não são reembolsáveis ou têm um valor total igual ou inferior a zero. Se preferir, você pode marcá-los como pagos manualmente.',
+        bankPayAllReportsSkippedDescription:
+            'Os relatórios selecionados não são reembolsáveis ou têm um valor total igual ou inferior a zero. Se preferir, você pode marcar esses relatórios como pagos manualmente.',
+        bankPayReportSkippedDescription: 'Este relatório não é reembolsável ou tem um valor total igual ou inferior a zero. Se preferir, você pode marcá-lo como pago manualmente.',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `pagou ${amount} com a conta bancária ${last4Digits}` : `pago com conta bancária ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `pagou ${amount ? `${amount} ` : ''} com a conta bancária ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras da workspace</a>`,
@@ -12865,6 +12871,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         approvingTitle: 'Aprovando relatórios...',
         submittingTitle: 'Enviando relatórios...',
         payingTitle: 'Marcando relatórios como pagos...',
+        payingWithBankTitle: 'Pagando relatórios...',
         holdingTitle: 'Retendo despesas...',
         unholdingTitle: 'Removendo bloqueio das despesas...',
         rejectingTitle: 'Rejeitando despesas...',
@@ -12887,6 +12894,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Marcado(s) ${doneCount} de ${count} relatório como pago(s)`,
             other: `Marcado(s) ${doneCount} de ${count} relatórios como pago(s)`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Pago(s) ${doneCount} de ${count} relatório`,
+            other: `Pago(s) ${doneCount} de ${count} relatórios`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Despesas retidas em ${doneCount} de ${count} relatório`,
@@ -12928,6 +12939,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         notPaidBody: ({count}: {count: number}) => ({
             one: '1 relatório não pôde ser pago.',
             other: `${count} relatórios não puderam ser pagos.`,
+        }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: '1 relatório não foi pago pela conta bancária porque não é reembolsável ou tem um valor total igual ou inferior a zero. Se preferir, você pode marcá-lo como pago manualmente.',
+            other: `${count} relatórios não foram pagos pela conta bancária porque não são reembolsáveis ou têm um valor total igual ou inferior a zero. Se preferir, você pode marcá-los como pagos manualmente.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
             one: 'As despesas de 1 relatório não puderam ser retidas.',

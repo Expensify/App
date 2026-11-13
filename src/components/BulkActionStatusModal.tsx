@@ -16,7 +16,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BulkActionType} from '@src/types/onyx/BulkAction';
+import type BulkAction from '@src/types/onyx/BulkAction';
+import type {BulkActionType, BulkPaySkipReason} from '@src/types/onyx/BulkAction';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -62,22 +63,38 @@ const FAILED_BODIES = {
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.expensesNotDeletedBody',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
+const SKIPPED_BODIES = {
+    [CONST.BULK_ACTION.SKIP_REASON.NOTHING_TO_PAY]: 'bulkAction.skippedBankPayBody',
+    [CONST.BULK_ACTION.SKIP_REASON.NEEDS_GLOBAL_REIMBURSEMENTS]: 'bulkAction.skippedNeedsGlobalReimbursementsBody',
+    [CONST.BULK_ACTION.SKIP_REASON.DEPOSIT_ACCOUNT_NEEDS_GLOBAL_REIMBURSEMENTS]: 'bulkAction.skippedDepositAccountNeedsGlobalReimbursementsBody',
+    [CONST.BULK_ACTION.SKIP_REASON.NEEDS_QUOTE]: 'bulkAction.skippedNeedsQuoteBody',
+} as const satisfies Record<BulkPaySkipReason, TranslationPaths>;
+
+function isKnownSkipReason(reason: string): reason is BulkPaySkipReason {
+    return reason in SKIPPED_BODIES;
+}
+
 type BulkActionRunningProps = {
     /** The action that is running */
     action: BulkActionType | undefined;
+
+    /** Whether a bulk payment pays through a bank account instead of marking the reports as paid */
+    isBankPayment: boolean;
 
     /** Callback when the user asks Concierge to send the result */
     onSendFromConcierge: () => void;
 };
 
-function BulkActionRunning({action, onSendFromConcierge}: BulkActionRunningProps) {
+function BulkActionRunning({action, isBankPayment, onSendFromConcierge}: BulkActionRunningProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
         <>
             <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
-                <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{translate(RUNNING_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY])}</Text>
+                <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>
+                    {translate(isBankPayment ? 'bulkAction.payingWithBankTitle' : RUNNING_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY])}
+                </Text>
                 <ActivityIndicator size="small" />
             </View>
             <Text style={styles.mb5}>{translate('bulkAction.runningBody')}</Text>
@@ -135,20 +152,36 @@ type BulkActionDoneProps = {
     /** The reports the action couldn't update */
     failedReportIDs: string[];
 
+    /** The reports a bank payment left unpaid on purpose, grouped by why */
+    skippedReportIDs: BulkAction['skippedReportIDs'];
+
+    /** Whether a bulk payment paid through a bank account instead of marking the reports as paid */
+    isBankPayment: boolean;
+
     /** Callback when the modal is closed */
     onClose: () => void;
 };
 
-function BulkActionDone({action, total, failedReportIDs, onClose}: BulkActionDoneProps) {
+function BulkActionDone({action, total, failedReportIDs, skippedReportIDs, isBankPayment, onClose}: BulkActionDoneProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const doneTitle =
-        total === 0
-            ? translate('bulkAction.noReportsTitle')
-            : translate(DONE_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY], {doneCount: total - failedReportIDs.length, count: total});
+    const skippedGroups = Object.entries(skippedReportIDs ?? {}).filter(([, reportIDs]) => reportIDs.length > 0);
+    const unpaidReportIDs = [...failedReportIDs, ...skippedGroups.flatMap(([, reportIDs]) => reportIDs)];
 
-    const viewFailedReports = () => {
-        const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${failedReportIDs.join(',')}`);
+    // A reason the App doesn't know yet still tells the user the reports weren't paid
+    const unpaidBodies = [
+        ...(failedReportIDs.length > 0 ? [{key: 'failed', text: translate(FAILED_BODIES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY], {count: failedReportIDs.length})}] : []),
+        ...skippedGroups.map(([reason, reportIDs]) => ({
+            key: reason,
+            text: translate(isKnownSkipReason(reason) ? SKIPPED_BODIES[reason] : 'bulkAction.notPaidBody', {count: reportIDs.length}),
+        })),
+    ];
+    const doneTitlePath = isBankPayment ? 'bulkAction.paidWithBankTitle' : DONE_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY];
+    // Clamped at 0 in case the backend's total leaves out reports it skipped, so the title never reads "Paid -1 of 3"
+    const doneTitle = total === 0 ? translate('bulkAction.noReportsTitle') : translate(doneTitlePath, {doneCount: Math.max(total - unpaidReportIDs.length, 0), count: total});
+
+    const viewUnpaidReports = () => {
+        const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${unpaidReportIDs.join(',')}`);
         if (!queryJSON) {
             onClose();
             return;
@@ -160,15 +193,22 @@ function BulkActionDone({action, total, failedReportIDs, onClose}: BulkActionDon
 
     return (
         <>
-            <Text style={[styles.exportDownloadTitle, total === 0 || failedReportIDs.length > 0 ? styles.mb2 : styles.mb5]}>{doneTitle}</Text>
+            <Text style={[styles.exportDownloadTitle, total === 0 || unpaidReportIDs.length > 0 ? styles.mb2 : styles.mb5]}>{doneTitle}</Text>
             {total === 0 && <Text style={styles.mb5}>{translate('bulkAction.noReportsBody')}</Text>}
-            {failedReportIDs.length > 0 && (
+            {unpaidReportIDs.length > 0 && (
                 <>
-                    <Text style={styles.mb5}>{translate(FAILED_BODIES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY], {count: failedReportIDs.length})}</Text>
+                    {unpaidBodies.map(({key, text}, index) => (
+                        <Text
+                            key={key}
+                            style={index === unpaidBodies.length - 1 ? styles.mb5 : styles.mb2}
+                        >
+                            {text}
+                        </Text>
+                    ))}
                     <Button
                         sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.VIEW_FAILED_REPORTS}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={viewFailedReports}
+                        onPress={viewUnpaidReports}
                         style={[styles.w100, styles.mb3]}
                     >
                         <Button.Text>{translate('bulkAction.viewFailedReports')}</Button.Text>
@@ -237,6 +277,7 @@ function BulkActionStatusModal({bulkActionID, onClose}: BulkActionStatusModalPro
     const shouldSendFromConcierge = !!displayedBulkAction?.shouldSendFromConcierge;
     const isRunning = state === CONST.BULK_ACTION.STATE.RUNNING && !shouldSendFromConcierge;
     const isConcierge = shouldSendFromConcierge && state !== CONST.BULK_ACTION.STATE.DONE;
+    const isBankPayment = action === CONST.SEARCH.BULK_ACTION_TYPES.PAY && !!displayedBulkAction?.paymentType;
 
     return (
         <Modal
@@ -252,6 +293,7 @@ function BulkActionStatusModal({bulkActionID, onClose}: BulkActionStatusModalPro
                 {isRunning && (
                     <BulkActionRunning
                         action={action}
+                        isBankPayment={isBankPayment}
                         onSendFromConcierge={() => sendBulkActionSummaryFromConcierge(bulkActionID, displayedBulkAction ?? undefined)}
                     />
                 )}
@@ -261,6 +303,8 @@ function BulkActionStatusModal({bulkActionID, onClose}: BulkActionStatusModalPro
                         action={action}
                         total={displayedBulkAction?.total ?? 0}
                         failedReportIDs={displayedBulkAction?.failedReportIDs ?? []}
+                        skippedReportIDs={displayedBulkAction?.skippedReportIDs}
+                        isBankPayment={isBankPayment}
                         onClose={onClose}
                     />
                 )}
