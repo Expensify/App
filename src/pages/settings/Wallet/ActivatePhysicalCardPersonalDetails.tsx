@@ -23,10 +23,9 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
 import {
-    doesContainReservedWord,
     getAddressFieldErrors,
     getFieldRequiredErrors,
-    isValidLegalName,
+    getLegalNameErrors,
     isValidPastDate,
     isValidPhoneNumber,
     meetsMaximumAgeRequirement,
@@ -55,9 +54,9 @@ type ActivatePhysicalCardPersonalDetailsProps = {
     onBackButtonPress: () => void;
 };
 
-const LEGAL_NAME_FIELDS = [INPUT_IDS.LEGAL_FIRST_NAME, INPUT_IDS.LEGAL_LAST_NAME] as const;
 const REQUIRED_FIELDS = [
-    ...LEGAL_NAME_FIELDS,
+    INPUT_IDS.LEGAL_FIRST_NAME,
+    INPUT_IDS.LEGAL_LAST_NAME,
     INPUT_IDS.DATE_OF_BIRTH,
     INPUT_IDS.PHONE_NUMBER,
     INPUT_IDS.ADDRESS_LINE_1,
@@ -98,19 +97,6 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
         const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
-        for (const legalNameInputID of LEGAL_NAME_FIELDS) {
-            const legalName = values[legalNameInputID];
-            if (!legalName || errors[legalNameInputID]) {
-                continue;
-            }
-            if (!isValidLegalName(legalName)) {
-                errors[legalNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (legalName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                errors[legalNameInputID] = translate('common.error.characterLimitExceedCounter', legalName.length, CONST.LEGAL_NAME.MAX_LENGTH);
-            } else if (doesContainReservedWord(legalName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                errors[legalNameInputID] = translate('personalDetails.error.containsReservedWord');
-            }
-        }
         if (values.dob) {
             if (!isValidPastDate(values.dob) || !meetsMaximumAgeRequirement(values.dob)) {
                 errors.dob = translate('bankAccount.error.dob');
@@ -121,7 +107,7 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
         if (values.phoneNumber && !isValidPhoneNumber(appendCountryCode(values.phoneNumber, countryCode))) {
             errors.phoneNumber = translate('common.error.phoneNumber');
         }
-        return {...errors, ...getAddressFieldErrors(values, translate)};
+        return {...errors, ...getLegalNameErrors(values, translate), ...getAddressFieldErrors(values, translate)};
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {

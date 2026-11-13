@@ -48,8 +48,8 @@ const card: Card = {
     fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
     nameValuePairs: {
         shippingAddress: {
-            legalFirstName: 'Test',
-            legalLastName: 'Card',
+            legalFirstName: 'Anne-Marie',
+            legalLastName: "O'Connor",
             addressStreet: '123 Pike Street',
             addressCity: 'Seattle',
             addressState: 'WA',
@@ -108,7 +108,7 @@ describe('ActivatePhysicalCardPersonalDetails', () => {
     });
 
     it('asks for a magic code before saving the details and activating the card', async () => {
-        // Given a cardholder confirming their details for a card shipped to the address their admin entered
+        // Given a cardholder confirming their details for a card shipped to the name and address their admin entered
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
@@ -134,8 +134,8 @@ describe('ActivatePhysicalCardPersonalDetails', () => {
                 cardID: String(CARD_ID),
                 cardLastFourDigits: LAST_FOUR_DIGITS,
                 validateCode: '123456',
-                legalFirstName: 'Test',
-                legalLastName: 'Card',
+                legalFirstName: 'Anne-Marie',
+                legalLastName: "O'Connor",
                 phoneNumber: '+13466666666',
                 addressStreet: '123 Pike Street',
                 addressZip: '98101',
