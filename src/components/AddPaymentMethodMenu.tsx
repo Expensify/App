@@ -116,6 +116,7 @@ function AddPaymentMethodMenu({
                           {
                               text: translate('common.personalBankAccount'),
                               icon: icons.Bank,
+                              sentryLabel: CONST.SENTRY_LABEL.ADD_PAYMENT_METHOD_MENU.PERSONAL_BANK_ACCOUNT,
                               onSelected: () => {
                                   completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
@@ -128,6 +129,7 @@ function AddPaymentMethodMenu({
                           {
                               text: translate('common.businessBankAccount'),
                               icon: icons.Building,
+                              sentryLabel: CONST.SENTRY_LABEL.ADD_PAYMENT_METHOD_MENU.BUSINESS_BANK_ACCOUNT,
                               onSelected: () => {
                                   onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
                               },

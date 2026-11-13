@@ -6,6 +6,8 @@ import './src/polyfills/NitroFetch';
 import './src/polyfills/PromiseWithResolvers';
 import './src/polyfills/requestIdleCallback';
 import './src/polyfills/SymbolDispose';
+// Must precede react-native: on web it strips the #appduct= link before react-native-web caches the initial URL
+import './src/setup/appduct';
 import {AppRegistry} from 'react-native';
 // Must precede the app import: it rewrites the QA auth callback URL
 import './src/setup/captureCloudflareAuthCallbackURL';

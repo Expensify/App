@@ -55,6 +55,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Άκυρο',
         unableToDisplayChart: 'Δεν είναι δυνατή η εμφάνιση του γραφήματος',
         webGLNotSupported: 'Το πρόγραμμα περιήγησής σας δεν υποστηρίζει WebGL. Παρακαλούμε ενεργοποιήστε το ή αλλάξτε πρόγραμμα περιήγησης.',
+        webAssemblyNotSupported: 'Το WebAssembly δεν είναι διαθέσιμο στο πρόγραμμα περιήγησής σας. Δοκιμάστε άλλο πρόγραμμα περιήγησης για να δείτε τα γραφήματα.',
         chartFailedToLoad: 'Δεν ήταν δυνατή η φόρτωση του γραφήματος. Ανανεώστε τη σελίδα και δοκιμάστε ξανά.',
         dismiss: 'Κλείσιμο',
         resizeColumn: ({columnName}: {columnName: string}) => `Αλλαγή μεγέθους της στήλης ${columnName}`,
@@ -8106,6 +8107,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 onWaitlist: 'Είστε σε λίστα αναμονής',
                 waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Έρχεται σύντομα',
+                joinWaitlist: 'Εγγραφείτε στη λίστα αναμονής',
+                onWaitlist: 'Είστε σε λίστα αναμονής',
+                onTheList: 'Είστε στη λίστα!',
+                waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
+            },
             setup: 'Σύνδεση',
             connectToSandbox: 'Σύνδεση στο sandbox',
             lastSync: (relativeDate: string) => `Τελευταίος συγχρονισμός ${relativeDate}`,
@@ -8683,6 +8691,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             statusExpired: 'Έληξε',
             statusInactive: 'Ανενεργό',
             unit: 'Μονάδα',
+            ukFuelRateTaxError: 'Προσθέστε φορολογικό συντελεστή 20% για την παρακολούθηση του φόρου στις συνιστώμενες τιμές καυσίμων του Ηνωμένου Βασιλείου.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Προσθέστε φορολογικό συντελεστή 20% στο ${integrationName} για την παρακολούθηση του φόρου στις συνιστώμενες τιμές καυσίμων του Ηνωμένου Βασιλείου.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Πρέπει να είναι ενεργοποιημένοι οι φόροι στο χώρο εργασίας για να χρησιμοποιήσετε αυτή τη λειτουργία. Μεταβείτε στο <a href="#">Περισσότερες δυνατότητες</a> για να κάνετε αυτήν την αλλαγή.</muted-text>',
             deleteDistanceRate: 'Διαγραφή χρέωσης απόστασης',
@@ -11464,6 +11475,8 @@ ${reportName}`,
             category: 'Κατηγορία',
             tag: 'Ετικέτα',
         },
+        switchToTableView: 'Εναλλαγή σε προβολή πίνακα',
+        switchToExpenseView: 'Εναλλαγή σε προβολή δαπάνης',
     },
     report: {
         newReport: {

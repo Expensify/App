@@ -80,4 +80,40 @@ describe('visibleReportActions', () => {
         expect(result[reportID]?.[surveyActionID]).toBe(false);
         expect(result[unrelatedReportID]).toBe(currentValue[unrelatedReportID]);
     });
+
+    it('recomputes only the changed report when a report changes', () => {
+        // Given a closed report that turned into a support ticket, where the closed action shows only for support tickets
+        const reportID = 'ticketReportID';
+        const closedActionID = 'closedActionID';
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const unrelatedReportID = 'unrelatedReportID';
+        const ticketReport = {reportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET};
+        const allReportActions: OnyxCollection<ReportActions> = {
+            [reportActionsKey]: {
+                [closedActionID]: {
+                    reportActionID: closedActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                    created: '2026-11-11 12:00:00.000',
+                },
+            },
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${unrelatedReportID}`]: {},
+        };
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {[reportKey]: ticketReport}, {}];
+        const currentValue: VisibleReportActionsDerivedValue = {
+            [reportID]: {[closedActionID]: false},
+            [unrelatedReportID]: {},
+        };
+
+        // When only the report triggers a recompute
+        const result = visibleReportActionsConfig.compute(args, {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: ticketReport}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+        });
+
+        // Then the closed action shows, and the unrelated report keeps its previous value because it was not recomputed
+        expect(result[reportID]?.[closedActionID]).toBe(true);
+        expect(result[unrelatedReportID]).toBe(currentValue[unrelatedReportID]);
+    });
 });
