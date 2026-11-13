@@ -24,6 +24,13 @@ const SHOWN_COLUMNS: SearchColumnType[] = [
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ];
 
+const GROUP_FROM_SHOWN_COLUMNS: SearchColumnType[] = [
+    CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+];
+
 function getQueryJSON(query: string) {
     const queryJSON = buildSearchQueryJSON(query);
     if (!queryJSON) {
@@ -97,12 +104,57 @@ describe('useHideSearchColumn', () => {
         expect(result.current.hidableColumns.has(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)).toBe(true);
     });
 
-    it('offers no hide on a grouped table, whose saved columns also cover the expenses its groups expand to', () => {
-        // Given an expense search grouped by category
-        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense group-by:category'), SHOWN_COLUMNS));
+    it('offers hide for the optional columns of a grouped table, but not for the column it groups by', () => {
+        // Given an expense search grouped by member, showing its default group columns
+        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense group-by:from'), GROUP_FROM_SHOWN_COLUMNS));
 
         // When the column menus are built
-        // Then none of them can hide its column, since saving only the shown group columns would drop the expense columns
-        expect(result.current.hidableColumns.size).toBe(0);
+        // Then Expenses and Total can be hidden, the same as on the Columns page, while From stays because the groups are named by it
+        expect(result.current.hidableColumns.has(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES)).toBe(true);
+        expect(result.current.hidableColumns.has(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL)).toBe(true);
+        expect(result.current.hidableColumns.has(CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM)).toBe(false);
+    });
+
+    it('keeps the saved expense columns when a group column is hidden', () => {
+        // Given a grouped search that saved only expense columns, so its groups expand to those
+        const queryJSON = getQueryJSON(`type:expense group-by:from columns:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`);
+        const {result} = renderHook(() => useHideSearchColumn(queryJSON, GROUP_FROM_SHOWN_COLUMNS));
+
+        // When Expenses is hidden from its menu
+        act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES));
+
+        // Then the other shown group columns are saved alongside the expense columns, so expanding a group still shows the chosen expense columns
+        const [[route] = ['']] = jest.mocked(Navigation.navigate).mock.calls;
+        const routeParams = new URLSearchParams(String(route).split('?').at(1));
+        expect(getQueryJSON(routeParams.get('q') ?? '').columns).toEqual([
+            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+            CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+        ]);
+    });
+
+    it('hides a group column from the saved group and expense columns, in the same order', () => {
+        // Given a grouped search that saved both group and expense columns
+        const queryJSON = getQueryJSON(
+            `type:expense group-by:from columns:${CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM},${CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL},${CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES},${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`,
+        );
+        const {result} = renderHook(() =>
+            useHideSearchColumn(queryJSON, [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]),
+        );
+
+        // When Total is hidden from its menu
+        act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL));
+
+        // Then only Total is dropped, so neither the group columns' order nor the expense columns change
+        const [[route] = ['']] = jest.mocked(Navigation.navigate).mock.calls;
+        const routeParams = new URLSearchParams(String(route).split('?').at(1));
+        expect(getQueryJSON(routeParams.get('q') ?? '').columns).toEqual([
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+            CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+        ]);
     });
 });
