@@ -123,18 +123,14 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         return isHTMLElement(element) && !!element.querySelector(':focus-visible');
     };
 
-    const handleBarHoverOut = () => {
+    const endPeekIfIdle = () => {
         if (isCreateMenuVisible || hasKeyboardFocusInside()) {
             return;
         }
         endPeek();
     };
 
-    const handleItemsFocus = () => {
-        startPeek();
-    };
-
-    const handleItemsBlur = (event: NativeSyntheticEvent<TargetedEvent>) => {
+    const endPeekUnlessStaying = (event: NativeSyntheticEvent<TargetedEvent>) => {
         if (isCreateMenuVisible) {
             return;
         }
@@ -170,7 +166,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
             <Animated.View style={[styles.h100, getFlatNavigationBarLayoutWidthStyle(isCollapsed)]}>
                 <Hoverable
                     shouldUseNativeHoverEvents
-                    onHoverOut={handleBarHoverOut}
+                    onHoverOut={endPeekIfIdle}
                 >
                     {(isBarHovered) => (
                         <Animated.View
@@ -204,8 +200,8 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 <View
                                     testID="FlatNavPeekableBody"
                                     style={styles.flex1}
-                                    onFocus={handleItemsFocus}
-                                    onBlur={handleItemsBlur}
+                                    onFocus={startPeek}
+                                    onBlur={endPeekUnlessStaying}
                                 >
                                     <View
                                         testID="FlatNavPeekableItems"
