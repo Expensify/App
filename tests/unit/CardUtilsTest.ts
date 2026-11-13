@@ -1517,19 +1517,22 @@ describe('CardUtils', () => {
 
         const commercialFeedCases: Array<[Parameters<typeof getCustomOrFormattedFeedName>[1], string]> = [
             [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, 'Visa cards'],
-            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`, 'Visa cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`, 'Visa 1 cards'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'Visa 2 cards'],
             [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 'Mastercard cards'],
-            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}1`, 'Mastercard cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}1`, 'Mastercard 1 cards'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}2`, 'Mastercard 2 cards'],
             [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, 'American Express cards'],
-            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}1`, 'American Express cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}1`, 'American Express 1 cards'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2`, 'American Express 2 cards'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}12345`, 'Visa 2 cards'],
         ];
 
         it.each(commercialFeedCases)('Should format commercial feed %s as %s', (feed, expectedFeedName) => {
+            // Given a commercial feed whose slot must remain distinguishable without a nickname
+            // When the shared title formatter includes the cards suffix
             const feedName = getCustomOrFormattedFeedName(translateLocal, feed);
+            // Then the slot is preserved, including an explicit first slot
             expect(feedName).toBe(expectedFeedName);
         });
 
@@ -1550,19 +1553,22 @@ describe('CardUtils', () => {
     describe('getDefaultCommercialFeedDisplayName', () => {
         const defaultCommercialFeedCases: Array<[Parameters<typeof getDefaultCommercialFeedDisplayName>[0], string]> = [
             [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, 'Visa'],
-            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`, 'Visa'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`, 'Visa 1'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'Visa 2'],
             [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 'Mastercard'],
-            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}1`, 'Mastercard'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}1`, 'Mastercard 1'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}2`, 'Mastercard 2'],
             [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, 'American Express'],
-            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}1`, 'American Express'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}1`, 'American Express 1'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2`, 'American Express 2'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}12345`, 'Visa 2'],
         ];
 
         it.each(defaultCommercialFeedCases)('Should derive default display name for commercial feed %s as %s', (feed, expectedFeedName) => {
+            // Given a commercial slot with no custom title
+            // When its default name is derived
             const feedName = getDefaultCommercialFeedDisplayName(feed);
+            // Then only slots without a suffix omit the number
             expect(feedName).toBe(expectedFeedName);
         });
     });
