@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -23,7 +22,6 @@ import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {format} from 'date-fns';
 import React, {useState} from 'react';
@@ -36,7 +34,7 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [assignCard, assignCardMeta] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const isEditing = assignCard?.isEditing;
     const cardToAssign = assignCard?.cardToAssign;
 
@@ -96,8 +94,6 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
         },
     ];
 
-    const isLoading = isLoadingOnyxValue(assignCardMeta);
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -111,59 +107,50 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                 headerTitle={translate('workspace.companyCards.assignCard')}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                {isLoading ? (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={styles.h100}
+                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
+                <View style={styles.flex1}>
+                    <SelectionList
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={({value}) => handleSelectDateOption(value)}
+                        data={dateOptions}
+                        shouldSingleExecuteRowSelect
+                        initiallyFocusedItemKey={dateOptionSelected}
+                        shouldUpdateFocusedIndex
+                        addBottomSafeAreaPadding
+                        footerContent={
+                            <Button
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_TRANSACTION_START_DATE_SUBMIT}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                onPress={submit}
+                            >
+                                <Button.KeyboardShortcut />
+                                <Button.Text>{translate(isEditing ? 'common.save' : 'common.next')}</Button.Text>
+                            </Button>
+                        }
+                        listFooterContent={
+                            dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
+                                <View style={[styles.ph5]}>
+                                    <DatePicker
+                                        inputID=""
+                                        value={startDate}
+                                        label={translate('iou.startDate')}
+                                        onInputChange={(value) => {
+                                            if (!isRequiredFulfilled(value)) {
+                                                setErrorText(translate('common.error.fieldRequired'));
+                                            } else {
+                                                setErrorText('');
+                                            }
+                                            setLocalStartDate(value);
+                                        }}
+                                        minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                                        errorText={errorText}
+                                    />
+                                </View>
+                            ) : null
+                        }
                     />
-                ) : (
-                    <>
-                        <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
-                        <View style={styles.flex1}>
-                            <SelectionList
-                                ListItem={SingleSelectListItem}
-                                onSelectRow={({value}) => handleSelectDateOption(value)}
-                                data={dateOptions}
-                                shouldSingleExecuteRowSelect
-                                initiallyFocusedItemKey={dateOptionSelected}
-                                shouldUpdateFocusedIndex
-                                addBottomSafeAreaPadding
-                                footerContent={
-                                    <Button
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_TRANSACTION_START_DATE_SUBMIT}
-                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                        size={CONST.BUTTON_SIZE.LARGE}
-                                        onPress={submit}
-                                    >
-                                        <Button.KeyboardShortcut />
-                                        <Button.Text>{translate(isEditing ? 'common.save' : 'common.next')}</Button.Text>
-                                    </Button>
-                                }
-                                listFooterContent={
-                                    dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
-                                        <View style={[styles.ph5]}>
-                                            <DatePicker
-                                                inputID=""
-                                                value={startDate}
-                                                label={translate('iou.startDate')}
-                                                onInputChange={(value) => {
-                                                    if (!isRequiredFulfilled(value)) {
-                                                        setErrorText(translate('common.error.fieldRequired'));
-                                                    } else {
-                                                        setErrorText('');
-                                                    }
-                                                    setLocalStartDate(value);
-                                                }}
-                                                minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                                errorText={errorText}
-                                            />
-                                        </View>
-                                    ) : null
-                                }
-                            />
-                        </View>
-                    </>
-                )}
+                </View>
             </InteractiveStepWrapper>
         </AccessOrNotFoundWrapper>
     );
