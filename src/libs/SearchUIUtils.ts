@@ -2218,7 +2218,7 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
  * Encapsulates the getIcons + shouldReportShowSubscript combination used in expense-report search results.
  *
  * For IOU reports under a personal policy with two user avatars (both users sent expenses),
- * the diagonal MultipleAvatars layout is used to match ReportActionAvatars behaviour.
+ * the diagonal MultipleAvatars layout is used to match IOUReportAvatar behaviour.
  * For workspace IOU/expense reports both user+workspace avatars are shown via subscript layout.
  * For reports under a personal policy that are not IOU reports, subscript is suppressed.
  */
@@ -2240,7 +2240,7 @@ function getSearchReportAvatarProps(
         const isPersonalPolicy = policy?.type === CONST.POLICY.TYPE.PERSONAL;
         const bothAreUserAvatars = avatarIcons.at(0)?.type === CONST.ICON_TYPE_AVATAR && avatarIcons.at(1)?.type === CONST.ICON_TYPE_AVATAR;
         if (isPersonalPolicy && bothAreUserAvatars && hasSecondAvatar) {
-            // DM IOU where both users sent expenses — use diagonal MultipleAvatars to match ReportActionAvatars
+            // DM IOU where both users sent expenses — use diagonal MultipleAvatars to match IOUReportAvatar
             avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL;
         } else {
             avatarType = hasSecondAvatar ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;

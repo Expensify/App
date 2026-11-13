@@ -1,9 +1,8 @@
+/**
+ * Finds the single account a report preview can be attributed to, so its avatar shows one person instead of both
+ * participants. Returns undefined when the expenses on the report could have come from more than one account.
+ */
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
-
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 
 import {convertAttendeesToArray} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -15,9 +14,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {StableReport} from '@src/selectors/Report';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useOnyx from './useOnyx';
+import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
+import useReportTransactionsCollection from './useReportTransactionsCollection';
 
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
     const {originalTransactionID, source} = transaction.comment ?? {};
@@ -35,7 +39,7 @@ function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<ty
     return splitAction.actorAccountID;
 }
 
-const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[] => {
+const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
     return Object.values(actions ?? {}).filter(isMoneyRequestAction);
 };
 
@@ -124,8 +128,8 @@ function getAccountIDFromTransactionDirection(transaction: Transaction, action: 
     return accountID;
 }
 
-function isExplicitlyDeletedIOUAction(iouAction: ReportAction): boolean {
-    const originalMessage = getOriginalMessage(iouAction) as OriginalMessageIOU | undefined;
+function isExplicitlyDeletedIOUAction(iouAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>): boolean {
+    const originalMessage = getOriginalMessage(iouAction);
 
     if (originalMessage?.deleted || isDeletedParentAction(iouAction) || iouAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         return true;
@@ -145,7 +149,7 @@ type GetReportPreviewSenderIDParams = {
     action: OnyxEntry<ReportAction>;
     chatReport: OnyxEntry<StableReport>;
     chatReportLastActorAccountID?: number;
-    iouActions: ReportAction[] | undefined;
+    iouActions: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> | undefined;
     transactions: Transaction[] | undefined;
     attendeesPersonalDetails: PersonalDetailsByLogin;
     splits: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> | undefined;
@@ -179,7 +183,7 @@ function getReportPreviewSenderID({
     const uniqueIOUActionActorMap = new Map<string, number>();
 
     for (const iouAction of activeIOUActions) {
-        const iouTransactionID = (getOriginalMessage(iouAction) as OriginalMessageIOU | undefined)?.IOUTransactionID;
+        const iouTransactionID = getOriginalMessage(iouAction)?.IOUTransactionID;
 
         if (!iouTransactionID || iouAction.actorAccountID === undefined) {
             continue;
@@ -292,7 +296,7 @@ function getReportPreviewSenderID({
 type UseReportPreviewTransactionsParams = {
     shouldFetchData: boolean;
     childReportID: string | undefined;
-    iouActions: ReportAction[] | undefined;
+    iouActions: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> | undefined;
     activeMoneyRequestCount: number;
 };
 

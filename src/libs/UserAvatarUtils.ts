@@ -522,7 +522,7 @@ type BuildUserIconArgsType = DefaultAvatarsType & {
 
 /**
  * Resolves a single account ID into an avatar {@link Icon} using the personal-details context and the default-avatar set.
- * Shared by `AccountAvatar` and `useReportActionAvatars` so the resolution stays in one place.
+ * Shared by `useAccountIcons` and `useActionAvatar` so the resolution stays in one place.
  */
 function buildUserIcon({accountID, personalDetails, defaultAvatars, invitedEmail, name, accountEmail}: BuildUserIconArgsType): Icon {
     // Invited accounts have no personal details until the invite is submitted, so seed from the invited email to match the letter avatar written on submit.
