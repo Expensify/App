@@ -16267,6 +16267,34 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        test('keeps receiptRequired from an earlier submit action that had no itemizedReceiptRequired', () => {
+            // Given a report submitted with only receiptRequired, then resubmitted with both receipt violations
+            const firstSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                    },
+                },
+                'submit-1',
+            );
+            const secondSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
+                    },
+                },
+                'submit-2',
+            );
+
+            // When the submitted violations column is built for the expense
+            const violations = SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations, translateLocal);
+
+            // Then both are listed, because the first submission still matches violation:receiptRequired in Search and Insights
+            expect(violations).toBe(`${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.itemizedReceiptRequired')}`);
+        });
+
         test('keeps receiptRequired when itemizedReceiptRequired is not present', () => {
             const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
                 transactions: {
@@ -16454,6 +16482,34 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
                 translateLocal('violations.shortName.itemizedReceiptRequired'),
             );
+        });
+
+        test('keeps receiptRequired from an earlier approval action that had no itemizedReceiptRequired', () => {
+            // Given a report forwarded with only receiptRequired, then approved with both receipt violations
+            const forwardedAction = createApprovalAction(
+                CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                    },
+                },
+                'forward-1',
+            );
+            const approvedAction = createApprovalAction(
+                CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
+                    },
+                },
+                'approved-1',
+            );
+
+            // When the approved violations column is built for the expense
+            const violations = SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction, approvedAction], transactionIDForViolations, translateLocal);
+
+            // Then both are listed, because the forwarded snapshot still matches violation:receiptRequired in Search and Insights
+            expect(violations).toBe(`${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.itemizedReceiptRequired')}`);
         });
 
         test('falls back to the raw identifier when no short-name translation exists', () => {
