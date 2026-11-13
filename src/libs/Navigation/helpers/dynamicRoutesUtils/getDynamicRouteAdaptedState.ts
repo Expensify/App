@@ -2,7 +2,6 @@ import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocus
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 
 import type {Route} from '@src/ROUTES';
-import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
@@ -113,7 +112,7 @@ function getDynamicRouteAdaptedState(state: PartialState<NavigationState>, focus
         currentPath = resolvedBasePath;
 
         newFocused = findFocusedRouteWithOnyxTabGuard(resolvedBaseState);
-    } while (!!newFocused && isDynamicRouteScreen(newFocused.name as Screen));
+    } while (!!newFocused && isDynamicRouteScreen(newFocused.name));
 
     return accumulatedState;
 }

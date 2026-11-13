@@ -1,7 +1,5 @@
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 
-import type {Screen} from '@src/SCREENS';
-
 import {dynamicRoutePaths} from './isDynamicRouteSuffix';
 
 /**
@@ -9,7 +7,7 @@ import {dynamicRoutePaths} from './isDynamicRouteSuffix';
  * @param screenName - The name of the screen to check.
  * @returns True if the screen name is a dynamic route screen, false otherwise.
  */
-function isDynamicRouteScreen(screenName: Screen): boolean {
+function isDynamicRouteScreen(screenName: string): boolean {
     const screenPath = normalizedConfigs[screenName]?.path;
 
     if (!screenPath) {

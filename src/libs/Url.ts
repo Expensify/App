@@ -173,3 +173,5 @@ export {
     getUrlWithParams,
     hasSecureLinkKey,
 };
+
+export type {UrlWithParams};
