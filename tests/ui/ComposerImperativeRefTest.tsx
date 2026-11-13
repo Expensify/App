@@ -10,6 +10,7 @@ import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import type * as UseBlurOnKeyboardHideModule from '@hooks/useBlurOnKeyboardHide';
 import type * as UseHtmlPasteModule from '@hooks/useHtmlPaste/index.ts';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import type * as UsePersonalDetailsModule from '@hooks/usePersonalDetails';
 
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus/index.web';
 import {getBrowser, isMobileChrome} from '@libs/Browser';
@@ -30,10 +31,11 @@ import type * as UseDebouncedSaveDraftModule from '@pages/inbox/report/useDeboun
 import type * as UseDebouncedSaveReportActionDraftModule from '@pages/inbox/report/useDebouncedSaveReportActionDraft';
 
 import type * as ReportModule from '@userActions/Report';
+import {saveReportActionDraft} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Modal} from '@src/types/onyx';
+import type {Modal, PersonalDetailsList, ReportAction} from '@src/types/onyx';
 
 import type * as MarkdownTextInputWebModule from '@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.web';
 import type * as ReactNavigationModule from '@react-navigation/native';
@@ -46,10 +48,13 @@ import Onyx from 'react-native-onyx';
 import {dispatchCommand, useAnimatedRef} from 'react-native-reanimated';
 
 import createMock from '../utils/createMock';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 let mockShouldMountComposer = true;
 let mockShouldUseNativeComposer = false;
 let mockMarkdownInput: TextInput | (HTMLDivElement & Pick<TextInput, 'clear' | 'isFocused'>) | null = null;
+let mockLastEditableAction: ReportAction | undefined;
+let mockPersonalDetailsList: PersonalDetailsList | undefined;
 const WebComposer = jest.requireActual<typeof ImplementationModule>('@components/Composer/implementation/index.tsx').default;
 const {forceClearInput: clearWebInput} = jest.requireActual<typeof ComponentUtilsModule>('@libs/ComponentUtils/index.ts');
 const mockResetScroll = jest.fn<
@@ -84,13 +89,17 @@ jest.mock('@hooks/useIsScrollBarVisible', () => () => false);
 jest.mock('@hooks/useBlurOnKeyboardHide', () => jest.fn<ReturnType<typeof UseBlurOnKeyboardHideModule.default>, Parameters<typeof UseBlurOnKeyboardHideModule.default>>());
 jest.mock('@hooks/useIsInLandscapeMode', () => jest.fn(() => false));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
+// The real selector runs on this list, so the ArrowUp test can check which users the composer resolves
+jest.mock('@hooks/usePersonalDetails', () => ({
+    ...jest.requireActual<typeof UsePersonalDetailsModule>('@hooks/usePersonalDetails'),
+    useAllPersonalDetails: (selector?: (personalDetailsList: PersonalDetailsList | undefined) => unknown) => [selector ? selector(mockPersonalDetailsList) : mockPersonalDetailsList],
+}));
 jest.mock('@hooks/useHtmlPaste', () => jest.requireActual<typeof UseHtmlPasteModule>('@hooks/useHtmlPaste/index.ts'));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1}));
 jest.mock('@hooks/useIsInSidePanel', () => () => false);
 jest.mock('@hooks/useKeyboardState', () => () => ({isKeyboardShown: false}));
 jest.mock('@hooks/useLocalize', () => () => ({preferredLocale: 'en'}));
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
-jest.mock('@hooks/useReportIDToNameMap', () => () => ({}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
 jest.mock('@hooks/useSidePanelState', () => () => ({isSidePanelHiddenOrLargeScreen: true, shouldHideSidePanel: false}));
 jest.mock('@react-navigation/native', () => ({
@@ -168,7 +177,7 @@ jest.mock('@pages/inbox/report/ReportActionCompose/useComposerSuggestions', () =
 jest.mock('@pages/inbox/report/ReportActionCompose/useEditComposerToggle', () =>
     jest.fn<ReturnType<typeof UseEditComposerToggleModule.default>, Parameters<typeof UseEditComposerToggleModule.default>>(),
 );
-jest.mock('@pages/inbox/report/ReportActionCompose/useLastEditableAction', () => () => undefined);
+jest.mock('@pages/inbox/report/ReportActionCompose/useLastEditableAction', () => () => mockLastEditableAction);
 jest.mock('@pages/inbox/report/ReportActionCompose/Suggestions', () => () => null);
 jest.mock('@pages/inbox/report/ReportActionCompose/SilentCommentUpdater', () => () => null);
 jest.mock('@userActions/Report', () => ({
@@ -248,14 +257,18 @@ describe('Composer imperative refs', () => {
         jest.clearAllMocks();
         mockShouldMountComposer = true;
         mockShouldUseNativeComposer = false;
+        mockLastEditableAction = undefined;
+        mockPersonalDetailsList = undefined;
         jest.mocked(useIsInLandscapeMode).mockReturnValue(false);
         jest.mocked(useAnimatedRef).mockImplementation(jest.requireActual<typeof UseAnimatedRefModule>('react-native-reanimated/src/hook/useAnimatedRef.ts').useAnimatedRef);
         jest.mocked(isMobileChrome).mockReturnValue(false);
         jest.mocked(getBrowser).mockReturnValue(CONST.BROWSER.CHROME);
         jest.spyOn(Onyx, 'set').mockResolvedValue();
     });
-    afterEach(() => {
+    afterEach(async () => {
         jest.restoreAllMocks();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
         document.body.replaceChildren();
         ReportActionComposeFocusManager.composerRef.current = null;
         ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
@@ -567,6 +580,34 @@ describe('Composer imperative refs', () => {
         if (calls) {
             expect(onKeyPress).toHaveBeenCalledWith(event);
         }
+    });
+
+    it('seeds the ArrowUp edit draft with the names of the mentioned user and room', async () => {
+        // Given the last editable message mentions a user and a room, and both exist in Onyx, because ArrowUp converts that message back to markdown
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}42`, {reportID: '42', reportName: '#admins'});
+        const aliceAccountID = 123;
+        mockPersonalDetailsList = {[aliceAccountID]: {accountID: aliceAccountID, login: 'alice@example.com'}};
+        await waitForBatchedUpdates();
+        mockLastEditableAction = createMock<ReportAction>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: `hi <mention-user accountID="${aliceAccountID}"/> see <mention-report reportID="42"/>`, text: ''}],
+        });
+        webMarkdownInput('');
+        render(<ComposerWithSuggestions {...forwardingProps(React.createRef<ComposerWithSuggestionsRef>())} />, {createNodeMock: () => mockMarkdownInput});
+        await waitForBatchedUpdates();
+        const preventDefault = jest.fn<void, []>();
+        const event = Object.assign(createMock<TextInputKeyPressEvent>({nativeEvent: {key: CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey}}), {
+            key: CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey,
+            preventDefault,
+        });
+
+        // When ArrowUp is pressed in the empty composer, because ArrowUp only opens the last message for editing when the composer is empty
+        act(() => markdownProps().onKeyPress?.(event));
+
+        // Then the default is prevented right away and the draft is saved with both names, which only resolve when the composer passes the name maps
+        expect(preventDefault).toHaveBeenCalled();
+        await waitFor(() => expect(saveReportActionDraft).toHaveBeenCalledWith('1', mockLastEditableAction, undefined, 'hi @alice@example.com see #admins', false));
     });
 
     it('retains paste ownership for another input and accepts attachments from the composer itself', () => {
