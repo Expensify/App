@@ -142,7 +142,7 @@ function SearchChartView({
         options?.shouldUseCompactNotation
             ? numberFormat(value, {notation: 'compact', maximumFractionDigits: MAX_COUNT_FRACTION_DIGITS}).replace('K', 'k')
             : formatChartCount(value, countDimension, translate, numberFormat);
-    const formatDuration: ChartValueFormatter = (value) => DateUtils.formatAverageDuration(value, translate, numberFormat);
+    const formatDuration: ChartValueFormatter = (value, options) => DateUtils.formatAverageDuration(value, translate, numberFormat, options?.shouldUseCompactNotation);
     const valueFormatters: Partial<Record<SearchChartMetric, ChartValueFormatter>> = {
         [CONST.SEARCH.CHART_METRIC.COUNT]: formatCount,
         [CONST.SEARCH.CHART_METRIC.DURATION]: formatDuration,

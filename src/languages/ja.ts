@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: '日数',
         rename: '名前を変更',
         address: '住所',
+        dayAbbreviation: '日',
         hourAbbreviation: 'ｈ',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',

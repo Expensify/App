@@ -430,6 +430,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'giorni',
         rename: 'Rinomina',
         address: 'Indirizzo',
+        dayAbbreviation: 'g',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',

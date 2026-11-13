@@ -435,6 +435,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'ημέρες',
         rename: 'Μετονομασία',
         address: 'Διεύθυνση',
+        dayAbbreviation: 'η',
         hourAbbreviation: 'χ',
         minuteAbbreviation: 'μ',
         secondAbbreviation: 'ς',

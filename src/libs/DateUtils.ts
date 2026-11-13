@@ -1101,13 +1101,22 @@ const MAX_AVERAGE_DURATION_FRACTION_DIGITS = 1;
 const AVERAGE_DURATION_PRECISION_IN_SECONDS = CONST.DATE.SECONDS_PER_DAY / 10 ** MAX_AVERAGE_DURATION_FRACTION_DIGITS;
 
 /**
- * Writes an average duration in days in the viewer's locale, e.g. "2.5 days".
+ * Writes an average duration in days in the viewer's locale, e.g. "2.5 days", or "2.5d" when compact.
  * The number is rounded and formatted here rather than left to the translation, because locales whose `one` plural category also covers 0 and fractions
  * would otherwise print a literal "1" for them.
  */
-function formatAverageDuration(durationInSeconds: number, translateParam: LocaleContextProps['translate'], numberFormat: LocaleContextProps['numberFormat']): string {
+function formatAverageDuration(
+    durationInSeconds: number,
+    translateParam: LocaleContextProps['translate'],
+    numberFormat: LocaleContextProps['numberFormat'],
+    shouldUseCompactNotation = false,
+): string {
     const days = Number((durationInSeconds / CONST.DATE.SECONDS_PER_DAY).toFixed(MAX_AVERAGE_DURATION_FRACTION_DIGITS));
-    return translateParam('common.dayCount', {count: days, formattedCount: numberFormat(days, {maximumFractionDigits: MAX_AVERAGE_DURATION_FRACTION_DIGITS})});
+    const formattedDays = numberFormat(days, {maximumFractionDigits: MAX_AVERAGE_DURATION_FRACTION_DIGITS});
+    if (shouldUseCompactNotation) {
+        return `${formattedDays}${translateParam('common.dayAbbreviation')}`;
+    }
+    return translateParam('common.dayCount', {count: days, formattedCount: formattedDays});
 }
 
 const TIME_UNIT_PADDING = 2; // Pad time units to 2 digits (e.g., "09" instead of "9")

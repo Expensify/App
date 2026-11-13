@@ -1650,6 +1650,17 @@ describe('DateUtils', () => {
             expect(formatted).toEqual(['0 days', '0.4 days', '1 day']);
         });
 
+        it('abbreviates the unit when compact, the way axis ticks show it', () => {
+            // Given an average of two and a half days
+            const twoAndAHalfDays = 2.5 * CONST.DATE.SECONDS_PER_DAY;
+
+            // When it is formatted in compact notation in English
+            const formatted = DateUtils.formatAverageDuration(twoAndAHalfDays, translateLocal, numberFormatIn(CONST.LOCALES.EN), true);
+
+            // Then the unit is a single letter, because axis ticks have little room and the tooltip writes the full unit
+            expect(formatted).toBe('2.5d');
+        });
+
         it("formats the number in the viewer's locale", () => {
             // Given an average of two and a half days, viewed in German
             IntlStore.load(CONST.LOCALES.DE);
