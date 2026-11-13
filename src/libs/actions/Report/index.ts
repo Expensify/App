@@ -7,6 +7,7 @@ import {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMa
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {waitForWrites} from '@libs/API';
 import * as API from '@libs/API';
@@ -1111,7 +1112,8 @@ function addActions({
 
     // Reserve a reply identity for questions the user explicitly sends to Concierge. The
     // server reuses it for both draft events and the final action, excluding unsolicited replies.
-    const isConciergeConversation = isConciergeChat || (!!conciergeReportID && reportForAction.parentReportID === conciergeReportID) || isAdminRoom(reportForAction);
+    const isConciergeDMOrThread = isConciergeChat || (!!conciergeReportID && reportForAction.parentReportID === conciergeReportID);
+    const isConciergeConversation = isConciergeDMOrThread || isAdminRoom(reportForAction);
     if (isConciergeConversation && !pregeneratedResponseParams && resolvedReportActionID) {
         parameters.optimisticConciergeReportActionID = rand64();
         trackConciergeResponse({
@@ -1326,10 +1328,16 @@ function addActions({
         optimisticData.push(optimisticSnapshotUpdate);
     }
 
+    const conciergeProcessingReportID = isConciergeDMOrThread && !pregeneratedResponseParams ? (conciergeThreadReportID ?? reportID) : undefined;
+    if (conciergeProcessingReportID && resolvedReportActionID) {
+        AgentZeroOptimisticStore.increment(conciergeProcessingReportID, CONST.ACCOUNT_ID.CONCIERGE, lastVisibleAction?.reportActionID ?? null, resolvedReportActionID);
+    }
+
     API.write(commandName, parameters, {
         optimisticData,
         successData,
         failureData,
+        conciergeProcessingReportID,
     });
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
 
@@ -3268,7 +3276,7 @@ function getOlderActions(reportID: string | undefined, reportActionID: string | 
  * Gets the newer actions that have not been read yet.
  * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
  */
-function getNewerActions(reportID: string | undefined, reportActionID: string | undefined) {
+function getNewerActions(reportID: string | undefined, reportActionID: string | undefined, conciergeReportActionID?: string) {
     if (!reportID || !reportActionID) {
         return;
     }
@@ -3308,6 +3316,7 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
     const parameters: GetNewerActionsParams = {
         reportID,
         reportActionID,
+        conciergeReportActionID,
     };
 
     API.paginate(

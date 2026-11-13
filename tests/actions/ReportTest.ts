@@ -12,6 +12,7 @@ import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {onServerDataReady} from '@libs/actions/Welcome';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
@@ -337,6 +338,54 @@ describe('actions/Report', () => {
             expect(parameters).not.toHaveProperty('optimisticConciergeReportActionID');
             expect(trackConciergeResponse).not.toHaveBeenCalled();
         }
+        await waitForBatchedUpdates();
+    });
+
+    it.each<[string, string, string | undefined, string | undefined, boolean]>([
+        ['Concierge DM', '300', undefined, undefined, true],
+        ['new Concierge thread', '300', undefined, '700', true],
+        ['existing Concierge thread', '400', '300', undefined, true],
+        ['ordinary chat', '600', undefined, undefined, false],
+    ])('starts thinking before the send completes in a %s', async (_name, reportID, parentReportID, conciergeThreadReportID, shouldStart) => {
+        // Given the network write has not completed.
+        apiWriteSpy.mockResolvedValue(undefined);
+        const targetReportID = conciergeThreadReportID ?? reportID;
+        AgentZeroOptimisticStore.clear(targetReportID, CONST.ACCOUNT_ID.CONCIERGE);
+
+        // When a message is sent through the shared report action.
+        Report.addComment({
+            report: {
+                ...createRandomReport(Number(reportID), undefined),
+                reportID,
+                parentReportID,
+            },
+            notifyReportID: reportID,
+            ancestors: [],
+            text: 'Please help me with expenses',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 10,
+            delegateAccountID: undefined,
+            conciergeReportID: '300',
+            conciergeThreadReportID,
+            shouldNavigateToConciergeThread: false,
+        });
+
+        // Then only Concierge conversations start immediately, on the predicted reply destination.
+        const entry = AgentZeroOptimisticStore.getEntry(targetReportID, CONST.ACCOUNT_ID.CONCIERGE);
+        expect(!!entry).toBe(shouldStart);
+        if (shouldStart) {
+            expect(apiWriteSpy.mock.calls.at(-1)?.[1]).toEqual(
+                expect.objectContaining({
+                    reportActionID: entry?.triggeringReportActionID,
+                }),
+            );
+            expect(apiWriteSpy.mock.calls.at(-1)?.[2]).toEqual(
+                expect.objectContaining({
+                    conciergeProcessingReportID: targetReportID,
+                }),
+            );
+        }
+        AgentZeroOptimisticStore.clear(targetReportID, CONST.ACCOUNT_ID.CONCIERGE);
         await waitForBatchedUpdates();
     });
 

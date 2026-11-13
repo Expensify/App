@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import * as ActiveClientManager from '@libs/ActiveClientManager';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import * as API from '@libs/API';
 import type {
     AddNewContactMethodParams,
@@ -886,7 +887,16 @@ function subscribeToUserEvents(
         processingStatusEventsPromise = processingStatusEventsPromise
             .then(() => SequentialQueue.getCurrentRequest())
             .then(() => {
-                if (sessionAccountID !== currentUserAccountID || !ActiveClientManager.isClientTheLeader()) {
+                if (sessionAccountID !== currentUserAccountID) {
+                    return;
+                }
+
+                // Each tab owns its optimistic store, including tabs that do not write shared Onyx data.
+                const status = pushJSON.conciergeProcessingStatus;
+                if (status) {
+                    AgentZeroOptimisticStore.reconcile(status.reportID, CONST.ACCOUNT_ID.CONCIERGE, status.reportActionID, status.isProcessing);
+                }
+                if (!ActiveClientManager.isClientTheLeader()) {
                     return;
                 }
 

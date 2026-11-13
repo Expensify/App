@@ -15,6 +15,8 @@ import getAgentStoreKey from './AgentZeroStoreUtils';
 const MAX_AGE_MS = 120000;
 
 type OptimisticEntry = {
+    reportID: string;
+
     /** Number of pending optimistic kickoffs (one per user message). */
     count: number;
 
@@ -32,6 +34,9 @@ type OptimisticEntry = {
      * at the *first* kickoff's baseline — any new Concierge action afterwards is a new reply.
      */
     baselineActionID: string | null;
+
+    /** The latest sent message, whose explicit completion retires this entry without requiring a reply. */
+    triggeringReportActionID?: string;
 };
 
 type Listener = (reportID: string, agentAccountID: number) => void;
@@ -72,21 +77,25 @@ function getEntry(reportID: string, agentAccountID: number): OptimisticEntry | u
  * recent kickoff — this matches the in-memory `startPolling` behavior where each call
  * resets the 120s timer.
  */
-function increment(reportID: string, agentAccountID: number, baselineActionID: string | null) {
+function increment(reportID: string, agentAccountID: number, baselineActionID: string | null, triggeringReportActionID?: string) {
     const key = getAgentStoreKey(reportID, agentAccountID);
     const existing = store.get(key);
     const now = Date.now();
     if (existing && isFresh(existing)) {
         store.set(key, {
+            reportID,
             count: existing.count + 1,
             startedAt: now,
             baselineActionID: existing.baselineActionID,
+            triggeringReportActionID,
         });
     } else {
         store.set(key, {
+            reportID,
             count: 1,
             startedAt: now,
             baselineActionID,
+            triggeringReportActionID,
         });
     }
     notifyListeners(reportID, agentAccountID);
@@ -102,6 +111,43 @@ function clear(reportID: string, agentAccountID: number) {
     notifyListeners(reportID, agentAccountID);
 }
 
+/** Ignore completion of an older turn when another message is already waiting. */
+function complete(reportID: string, agentAccountID: number, reportActionID: string) {
+    if (getEntry(reportID, agentAccountID)?.triggeringReportActionID !== reportActionID) {
+        return;
+    }
+    clear(reportID, agentAccountID);
+}
+
+/** Keep the original timeout when the server chooses an existing thread or falls back to the DM. */
+function move(reportID: string, destinationReportID: string, agentAccountID: number, reportActionID: string) {
+    const entry = getEntry(reportID, agentAccountID);
+    if (!entry || entry.triggeringReportActionID !== reportActionID || reportID === destinationReportID) {
+        return;
+    }
+    const destinationEntry = getEntry(destinationReportID, agentAccountID);
+    if (!destinationEntry || destinationEntry.startedAt <= entry.startedAt) {
+        store.set(getAgentStoreKey(destinationReportID, agentAccountID), {...entry, reportID: destinationReportID});
+        notifyListeners(destinationReportID, agentAccountID);
+    }
+    clear(reportID, agentAccountID);
+}
+
+/** Find the sender's turn even when another tab received its HTTP response or the server chose a different thread. */
+function reconcile(reportID: string, agentAccountID: number, reportActionID: string, isProcessing: boolean) {
+    for (const [key, entry] of store) {
+        if (entry.triggeringReportActionID !== reportActionID || key !== getAgentStoreKey(entry.reportID, agentAccountID)) {
+            continue;
+        }
+        if (isProcessing) {
+            move(entry.reportID, reportID, agentAccountID, reportActionID);
+        } else {
+            complete(entry.reportID, agentAccountID, reportActionID);
+        }
+        return;
+    }
+}
+
 function subscribe(listener: Listener): () => void {
     listeners.add(listener);
     return () => {
@@ -113,6 +159,9 @@ export default {
     getEntry,
     increment,
     clear,
+    complete,
+    move,
+    reconcile,
     subscribe,
 };
 

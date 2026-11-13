@@ -1,4 +1,5 @@
 import * as ActiveClientManager from '@libs/ActiveClientManager';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -1459,6 +1460,54 @@ describe('actions/User', () => {
 
             // Then the failure is logged without an unhandled rejection or a synchronization recovery
             expect(alertSpy).toHaveBeenCalledWith('[subscribeToUserEvents] Applying Agent Zero processing status failed', expect.objectContaining({error: 'apply failed'}));
+            expect(OnyxUpdatesReliably.default).not.toHaveBeenCalled();
+        });
+
+        it.each([true, false])('completes only the matching local turn without a reply when leader is %s', async (isLeader) => {
+            // Given two messages were sent and this tab owns their local pending state.
+            jest.mocked(ActiveClientManager.isClientTheLeader).mockReturnValue(isLeader);
+            AgentZeroOptimisticStore.increment('1001', CONST.ACCOUNT_ID.CONCIERGE, null, 'first');
+            AgentZeroOptimisticStore.increment('1001', CONST.ACCOUNT_ID.CONCIERGE, null, 'second');
+
+            // When the server chooses another reply destination and a different tab receives the HTTP response.
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
+                updates: [],
+                conciergeProcessingStatus: {reportID: '3001', reportActionID: 'second', isProcessing: true},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the sending tab follows the decision through its private event.
+            expect(AgentZeroOptimisticStore.getEntry('1001', CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+            expect(AgentZeroOptimisticStore.getEntry('3001', CONST.ACCOUNT_ID.CONCIERGE)?.triggeringReportActionID).toBe('second');
+
+            // When the first run completes silently.
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
+                updates: [],
+                conciergeProcessingStatus: {
+                    reportID: '3001',
+                    reportActionID: 'first',
+                    isProcessing: false,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then the second message still has a pending indicator.
+            expect(AgentZeroOptimisticStore.getEntry('3001', CONST.ACCOUNT_ID.CONCIERGE)?.triggeringReportActionID).toBe('second');
+
+            // When the second run also completes without posting a reply.
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
+                updates: [],
+                conciergeProcessingStatus: {
+                    reportID: '3001',
+                    reportActionID: 'second',
+                    isProcessing: false,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then every tab retires its local state without touching synchronization recovery.
+            expect(AgentZeroOptimisticStore.getEntry('3001', CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(42);
             expect(OnyxUpdatesReliably.default).not.toHaveBeenCalled();
         });
     });

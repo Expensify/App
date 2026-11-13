@@ -1,6 +1,7 @@
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
+import type {ConciergeProcessingStatus} from '@src/types/onyx/Response';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {PusherChannel} from '@pusher/pusher-websocket-react-native';
@@ -31,6 +32,7 @@ type UserIsLeavingRoomEvent = Record<string, boolean> & {
 };
 
 type AgentZeroProcessingStatusEvent = {
+    conciergeProcessingStatus?: ConciergeProcessingStatus;
     updates: Array<{
         onyxMethod: 'merge';
         key: `${typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${string}`;

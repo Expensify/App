@@ -11,6 +11,7 @@ import MembersNeedCategoryError from './MembersNeedCategoryError';
 import {Pagination} from './Pagination';
 import Reauthentication from './Reauthentication';
 import ReconcileBulkEditReportAction from './ReconcileBulkEditReportAction';
+import ReconcileConciergeProcessingStatus from './ReconcileConciergeProcessingStatus';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
 import ReplaceOptimisticAgentAccountID from './ReplaceOptimisticAgentAccountID';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
@@ -26,6 +27,7 @@ export {
     Reauthentication,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
+    ReconcileConciergeProcessingStatus,
     FailureTracking,
     SaveResponseInOnyx,
     Pagination,

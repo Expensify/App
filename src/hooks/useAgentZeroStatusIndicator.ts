@@ -72,9 +72,9 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
     // Track pending optimistic requests with a counter, backed by a module-level store so
     // the state survives ReportScreen remounts (switching chats and coming back). Each
     // kickoffWaitingIndicator() call increments the counter; when a Concierge reply is
-    // detected (via Pusher, reconnect, or safety timeout), the entry is cleared — any
-    // signal that a response arrived resolves all pending requests (optimistic state is
-    // a display signal, not a queue).
+    // detected (via Pusher, reconnect, or safety timeout), the entry is cleared. Messages
+    // started by the send action carry their actionID and wait for their own completion,
+    // so an older reply cannot retire a newer pending turn.
     const subscribeToOptimisticStore = (onStoreChange: () => void) =>
         AgentZeroOptimisticStore.subscribe((updatedReportID, updatedAgentAccountID) => {
             if (updatedReportID !== reportID || updatedAgentAccountID !== agentAccountID) {
@@ -184,8 +184,8 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
                 clearAgentZeroProcessingIndicator(reportID, agentAccountID);
             }
 
-            // Fetch missed actions so the Onyx-driven Concierge-reply detection can fire.
-            getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
+            // Recover this turn's completion too: its transient event may have been missed even when there is no reply.
+            getNewerActions(reportID, newestReportActionRef.current?.reportActionID, optimisticEntry?.triggeringReportActionID);
 
             if (serverLabel || wasOptimistic) {
                 startSafetyTimer();
@@ -227,9 +227,8 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         // the server NVP can briefly go truthy→falsy→truthy between processing phases (e.g.,
         // "thinking..." → (gap) → "searching documentation..."), and clearing the optimistic
         // floor here means a chat-switch during the gap lands on "no optimistic, no serverLabel
-        // → no indicator." The optimistic entry is cleared by authoritative signals only: the
-        // reply-detection effect (new agent action newer than baseline), the 120s safety
-        // timeout, or the onReconnect handler.
+        // → no indicator." The optimistic entry is cleared by a matching turn completion,
+        // legacy reply detection, the 120s safety timeout, or the onReconnect handler.
         if (hasServerLabel || pendingOptimisticRequests > 0) {
             startSafetyTimer();
         }
@@ -338,6 +337,10 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
     const newestActorAccountID = newestReportAction?.actorAccountID;
     const newestActionID = newestReportAction?.reportActionID;
     useEffect(() => {
+        // A reply can belong to an older turn. Newly sent messages wait for their own completion event.
+        if (optimisticEntry?.triggeringReportActionID) {
+            return;
+        }
         if (newestActorAccountID !== agentAccountID) {
             return;
         }
@@ -355,7 +358,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         clearAgentZeroProcessingIndicator(reportID, agentAccountID);
         clearSafetyTimer();
         AgentZeroOptimisticStore.clear(reportID, agentAccountID);
-    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, agentAccountID]);
+    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, agentAccountID, optimisticEntry?.triggeringReportActionID]);
 
     const isProcessing = !isOffline && isIndicatorActive;
 
