@@ -1771,6 +1771,8 @@ const translations = {
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
         payViaABA: 'Pay via ABA',
+        waitForABAFile: 'Please wait while we generate the ABA file.',
+        successABAFile: "Your ABA file has been generated! If it didn't automatically download, use the button below.",
         missingABADepositAccount: ({name}: {name: string}) => `${name} doesn't have an AUD bank account. Please ask them to add one and try again.`,
         submittersMissingABADepositAccount: "One or more submitters don't have an AUD bank account. Please ask them to add one and try again.",
         confirmPaymentReceivedModalTitle: 'Confirm payment received',
