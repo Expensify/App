@@ -1,18 +1,36 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useIsTabFocused from '@hooks/useIsTabFocused';
 import useIsTabVisible from '@hooks/useIsTabVisible';
 
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
+import type {NavigationState} from '@react-navigation/routers';
 import type {ScaledSize} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import {Dimensions} from 'react-native';
 
-jest.mock('@hooks/useIsTabFocused', () => ({
+import createMock from '../../utils/createMock';
+
+const mockTabNavigatorName = NAVIGATORS.TAB_NAVIGATOR;
+let mockRootRouteNames: string[] = [];
+let mockActiveTab: string = SCREENS.HOME;
+
+/** Builds a root state with the active tab inside the tab navigator and the other root routes stacked above it. */
+function mockBuildRootState(): NavigationState {
+    return createMock<NavigationState>({
+        routes: mockRootRouteNames.map((name) => ({
+            key: name,
+            name,
+            state: name === mockTabNavigatorName ? {index: 0, routes: [{key: mockActiveTab, name: mockActiveTab}]} : undefined,
+        })),
+    });
+}
+
+jest.mock('@hooks/useRootNavigationState', () => ({
     __esModule: true,
-    default: jest.fn(() => true),
+    default: (selector: (state: NavigationState | undefined) => unknown) => selector(mockBuildRootState()),
 }));
 
 // Jest resolves the native helper, which treats every layout as narrow, so the web one is used to exercise both layouts.
@@ -28,7 +46,6 @@ jest.mock('@react-navigation/native', () => ({
     useIsFocused: jest.fn(() => true),
 }));
 
-const mockedUseIsTabFocused = jest.mocked(useIsTabFocused);
 const mockedUseIsFocused = jest.mocked(useIsFocused);
 
 const NARROW_WINDOW = {width: 400, height: 800, scale: 1, fontScale: 1};
@@ -65,7 +82,8 @@ describe('useIsTabVisible', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockedUseIsFocused.mockReturnValue(true);
-        mockedUseIsTabFocused.mockReturnValue(true);
+        mockRootRouteNames = [NAVIGATORS.TAB_NAVIGATOR];
+        mockActiveTab = SCREENS.HOME;
         currentWindow = WIDE_WINDOW;
         dimensionsChangeHandlers.clear();
         jest.spyOn(Dimensions, 'get').mockImplementation(() => currentWindow);
@@ -91,6 +109,7 @@ describe('useIsTabVisible', () => {
 
     it('stays true under an RHP on a wide layout', () => {
         // Given a wide window and an RHP opened over the active tab, which blurs the screen but leaves it beside the pane
+        mockRootRouteNames = [NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
         mockedUseIsFocused.mockReturnValue(false);
 
         // When the hook runs
@@ -103,6 +122,7 @@ describe('useIsTabVisible', () => {
     it('is false under an RHP on a narrow layout', () => {
         // Given a narrow window, where an RHP covers the whole screen
         currentWindow = NARROW_WINDOW;
+        mockRootRouteNames = [NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
         mockedUseIsFocused.mockReturnValue(false);
 
         // When the hook runs
@@ -115,7 +135,7 @@ describe('useIsTabVisible', () => {
     it('is false on a wide layout when another tab is active', () => {
         // Given a wide window with another tab selected
         mockedUseIsFocused.mockReturnValue(false);
-        mockedUseIsTabFocused.mockReturnValue(false);
+        mockActiveTab = SCREENS.INSIGHTS;
 
         // When the hook runs
         const {result} = renderVisibility();
@@ -124,8 +144,33 @@ describe('useIsTabVisible', () => {
         expect(result.current).toBe(false);
     });
 
+    it('is false on a wide layout when a fullscreen covers the active tab', () => {
+        // Given a wide window with a fullscreen screen pushed above the active tab, which hides it completely
+        mockRootRouteNames = [NAVIGATORS.TAB_NAVIGATOR, SCREENS.VALIDATE_LOGIN];
+        mockedUseIsFocused.mockReturnValue(false);
+
+        // When the hook runs
+        const {result} = renderVisibility();
+
+        // Then the screen is hidden, so nothing is fetched for it behind the fullscreen
+        expect(result.current).toBe(false);
+    });
+
+    it('is false on a wide layout when an RHP opens over a fullscreen that covers the active tab', () => {
+        // Given a wide window with an RHP opened over a fullscreen that sits above the active tab
+        mockRootRouteNames = [NAVIGATORS.TAB_NAVIGATOR, SCREENS.CONCIERGE, NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
+        mockedUseIsFocused.mockReturnValue(false);
+
+        // When the hook runs
+        const {result} = renderVisibility();
+
+        // Then the screen beside the RHP is the fullscreen, so the tab is still hidden
+        expect(result.current).toBe(false);
+    });
+
     it('follows the window across the breakpoint', () => {
         // Given an RHP open on a wide window
+        mockRootRouteNames = [NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
         mockedUseIsFocused.mockReturnValue(false);
         const {result} = renderVisibility();
 
