@@ -113,6 +113,7 @@ function DynamicCategoryFlagAmountsOverPage({
                     </View>
                     <View style={styles.mt3}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.FLAG_AMOUNTS_OVER_TYPE}
                             name={translate('common.type')}
                             value={translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`)}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path))}

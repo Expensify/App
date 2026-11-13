@@ -7,6 +7,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -245,6 +246,50 @@ function isGlobalReimbursementsEnabled(bankAccount: OnyxEntry<OnyxTypes.BankAcco
     return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === true;
 }
 
+type WiseQuotePaymentParams = {
+    paymentType: PaymentMethodType;
+    methodID?: number;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    isWiseReimbursementsBetaEnabled: boolean;
+    iouReport?: Pick<OnyxTypes.Report, 'currency' | 'nextStep'>;
+    policy?: Pick<OnyxTypes.Policy, 'achAccount'>;
+    wiseQuoteID?: string;
+};
+
+/** The Wise account a business bank account payment debits. Without a chosen account the backend pays from the workspace account */
+function getWiseBankAccountForPayment({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled, policy}: WiseQuotePaymentParams): OnyxTypes.BankAccount | undefined {
+    const bankAccountID = methodID ?? policy?.achAccount?.bankAccountID;
+    if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !bankAccountID) {
+        return undefined;
+    }
+    const bankAccount = bankAccountList?.[bankAccountID];
+    const isWiseAccount = isGlobalReimbursementsEnabled(bankAccount) && bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE;
+    return isWiseAccount ? bankAccount : undefined;
+}
+
+/** Whether Wise sends this report to the employee through a global provider, which it prices with a quote */
+function shouldGetWiseQuote(params: WiseQuotePaymentParams): boolean {
+    return !!params.iouReport?.nextStep?.requiresGlobalReimbursement && !!getWiseBankAccountForPayment(params);
+}
+
+/** Whether the admin confirms the Wise quote before paying, which happens when the submitter is paid in another currency than the bank account */
+function shouldConfirmWiseQuoteBeforePaying(params: WiseQuotePaymentParams): boolean {
+    const bankAccount = getWiseBankAccountForPayment(params);
+    if (params.wiseQuoteID || !params.iouReport?.nextStep?.requiresGlobalReimbursement || !bankAccount) {
+        return false;
+    }
+    // `||` not `??`: bankCurrency can be an empty string, which falls through to additionalData
+    const bankCurrency = bankAccount.bankCurrency || bankAccount.accountData?.additionalData?.currency;
+    return params.iouReport.nextStep.depositCurrency !== bankCurrency;
+}
+
+/**
+ * Whether the business was already submitted to Wise. Wise has a status for the business only once it was submitted.
+ */
+function isWiseOnboardingSubmitted(accountData: AccountData | undefined): boolean {
+    return !!accountData?.additionalData?.wise?.status;
+}
+
 /**
  * Picks the bank account the Wallet global reimbursements banner points to: the most recently added eligible account.
  */
@@ -318,9 +363,19 @@ function isWiseOnboardingAwaitingDecision(bankAccount: OnyxEntry<OnyxTypes.BankA
 }
 
 /** Whether Wise needs more info from the admin on its own form before it can decide on the submitted business */
-function isWiseOnboardingMoreInfoNeeded(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+function isWiseOnboardingMoreInfoNeeded(bankAccount: OnyxEntry<Pick<OnyxTypes.BankAccount, 'accountData' | 'pendingAction'>>): boolean {
     return (
         bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.wise?.status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED
+    );
+}
+
+/** Whether the account pays cross-border reports through Wise, or will once its Wise onboarding finishes */
+function isWiseEnabledOrOnboarding(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    const additionalData = bankAccount?.accountData?.additionalData;
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE &&
+        additionalData.wise?.status !== CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED
     );
 }
 
@@ -493,13 +548,17 @@ export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
     isBankAccountEligibleForGlobalReimbursements,
+    shouldConfirmWiseQuoteBeforePaying,
+    shouldGetWiseQuote,
     shouldSetUpGlobalReimbursementsBeforePaying,
     isGlobalReimbursementsEnabled,
+    isWiseOnboardingSubmitted,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
     isWiseOnboardingPendingSubmit,
     isWiseOnboardingAwaitingDecision,
     isWiseOnboardingMoreInfoNeeded,
+    isWiseEnabledOrOnboarding,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,

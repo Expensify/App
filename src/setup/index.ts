@@ -19,6 +19,7 @@ import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
 
 import addUtilsToWindow from './addUtilsToWindow';
+import registerAppductTools from './appductTools';
 import platformSetup from './platformSetup';
 import telemetry from './telemetry';
 
@@ -99,6 +100,7 @@ export default function () {
             ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
             ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH,
+            ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE,
             ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
             ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE,
             ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE,
@@ -106,6 +108,7 @@ export default function () {
             ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT,
             ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
+            ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS,
             ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK,
             ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
             ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
@@ -113,6 +116,7 @@ export default function () {
             ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE,
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
             ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL,
+            ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL,
             ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES,
             ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS,
         ],
@@ -156,6 +160,8 @@ export default function () {
 
     // Perform any other platform-specific setup
     platformSetup();
+
+    registerAppductTools();
 
     addUtilsToWindow();
 }

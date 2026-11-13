@@ -167,6 +167,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
                     {!!isSelectionCheckboxVisible && (
                         <Checkbox
+                            sentryLabel={CONST.SENTRY_LABEL.TABLE.SELECT_ALL_CHECKBOX}
                             containerStyle={styles.m0}
                             disabled={isAccessibilityHidden || !hasSelectableRows}
                             isChecked={isEverySelectableRowSelected}
@@ -199,6 +200,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                             {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 1)}
                         >
                             <Checkbox
+                                sentryLabel={CONST.SENTRY_LABEL.TABLE.SELECT_ALL_CHECKBOX}
                                 disabled={isAccessibilityHidden || !hasSelectableRows}
                                 isChecked={isEverySelectableRowSelected}
                                 isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}

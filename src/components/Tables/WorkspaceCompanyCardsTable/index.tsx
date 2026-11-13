@@ -598,7 +598,10 @@ function WorkspaceCompanyCardsTable({
                             titleStyles={[styles.mb2, styles.mt8]}
                             subtitleStyle={styles.textSupporting}
                         />
-                        <ButtonDisabledWhenOffline onPress={feedErrorReloadAction}>
+                        <ButtonDisabledWhenOffline
+                            onPress={feedErrorReloadAction}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.FEED_ERROR_TRY_AGAIN}
+                        >
                             <Button.Text>{translate('common.tryAgain')}</Button.Text>
                         </ButtonDisabledWhenOffline>
                     </View>

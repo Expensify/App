@@ -7,6 +7,7 @@ import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
@@ -36,6 +37,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit']);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const parentReportAction = useParentReportAction(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
@@ -53,7 +55,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
     const isReportArchived = useReportIsArchived(reportID);
     const {showConfirmModal} = useConfirmModal();
 
-    const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserAccountID, isAnonymousUser, !!reportNameValuePairs?.private_isArchived);
+    const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserAccountID, isAnonymousUser, !!reportNameValuePairs?.private_isArchived, parentReportAction);
 
     if (!report || !shouldShowLeaveButton) {
         return null;
@@ -113,6 +115,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
 
     return (
         <MenuItem.Root
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.LEAVE}
             onPress={() => {
                 if (getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true).length === 1 && isRootGroupChat) {
                     showLastMemberLeavingModal();

@@ -95,6 +95,7 @@ import type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
@@ -127,7 +128,7 @@ import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
-import type {AIInsight, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
+import type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -146,7 +147,9 @@ import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type MarketingAttribution from './MarketingAttribution';
 import type {StoredMarketingAttribution} from './MarketingAttribution';
+import type MembersNeedCategoryModal from './MembersNeedCategoryModal';
 import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
+import type {MerchantRuleSuggestionConfirmation} from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
@@ -185,6 +188,8 @@ import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
 import type {Purchases} from './PurchaseList';
 import type QuickAction from './QuickAction';
+import type ReceiptTranslation from './ReceiptTranslation';
+import type {ReceiptTranslationState, TranslatedReceiptRow} from './ReceiptTranslation';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
@@ -263,6 +268,7 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WiseQuote from './WiseQuote';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
@@ -322,6 +328,7 @@ export type {
     GovernmentMileageRate,
     GpsDraftDetails,
     AIInsight,
+    AIInsightChip,
     InsightsDashboard,
     InsightsDashboardID,
     InsightsGraphKey,
@@ -428,6 +435,7 @@ export type {
     TaxRatesWithDefault,
     Transaction,
     MerchantRuleSuggestion,
+    MerchantRuleSuggestionConfirmation,
     MergeTransaction,
     TransactionViolation,
     TransactionViolations,
@@ -477,6 +485,9 @@ export type {
     CardFeedsStatusByDomainID,
     CompanyCardsLoadingState,
     CompanyCardNumberSearch,
+    ReceiptTranslation,
+    ReceiptTranslationState,
+    TranslatedReceiptRow,
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
@@ -497,6 +508,7 @@ export type {
     CorpayFields,
     WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
+    WiseQuote,
     CorpayFormField,
     DynamicFormAddressField,
     DynamicFormChoiceField,
@@ -506,6 +518,7 @@ export type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
@@ -519,6 +532,7 @@ export type {
     DismissedProductTraining,
     TravelProvisioning,
     EnableGlobalReimbursementsModal,
+    MembersNeedCategoryModal,
     SidePanel,
     SidePanelContext,
     InsightsScope,
