@@ -1,3 +1,4 @@
+import FSClassView from '@components/FSClassView';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import TextWithMiddleEllipsis from '@components/TextWithMiddleEllipsis';
@@ -13,7 +14,6 @@ import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type UploadedFileChipProps = Pick<UploadFileProps, 'onRemove' | 'shouldExtendRemoveTouchArea'> & {
     file: FileObject;
@@ -26,7 +26,11 @@ function UploadedFileChip({file, onRemove, shouldExtendRemoveTouchArea = false}:
     const styles = useThemeStyles();
     const theme = useTheme();
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3, styles.mw100]}>
+        <FSClassView
+            style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3, styles.mw100]}
+            // Uploaded files are ID and company documents, and their names often hold the person's name
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+        >
             <Icon
                 src={icons.Paperclip}
                 fill={theme.icon}
@@ -52,7 +56,7 @@ function UploadedFileChip({file, onRemove, shouldExtendRemoveTouchArea = false}:
                     />
                 </PressableWithFeedback>
             </Tooltip>
-        </View>
+        </FSClassView>
     );
 }
 

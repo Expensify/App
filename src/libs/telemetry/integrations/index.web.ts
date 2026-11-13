@@ -2,6 +2,7 @@ import SENTRY_APPLICATION_KEY from '@libs/telemetry/sentryApplicationKey';
 
 import * as SentryReact from '@sentry/react';
 
+import canvasKitNoiseFilterIntegration from './canvasKitNoiseFilter';
 import classCallCheckNoiseFilterIntegration from './classCallCheckNoiseFilter';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, shouldCreateSpanForRequest} from './common';
 import googleTranslateRecursionNoiseFilterIntegration from './googleTranslateRecursionNoiseFilter';
@@ -61,4 +62,5 @@ export {
     thirdPartyErrorFilterIntegration,
     classCallCheckNoiseFilterIntegration,
     googleTranslateRecursionNoiseFilterIntegration,
+    canvasKitNoiseFilterIntegration,
 };
