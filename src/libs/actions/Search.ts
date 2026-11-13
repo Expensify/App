@@ -1339,7 +1339,7 @@ function handlePreventSearchAPI(hash: number | undefined) {
  * columns to a backend-supported date sort.
  */
 function getBackendQueryJSON(searchQueryJSON: Readonly<SearchQueryJSON>) {
-    // The Search command rejects Insights-only group-bys as invalid, and Spend lists those expenses ungrouped anyway
+    // The Search command rejects Insights-only group-bys as invalid, so they're left out
     const queryJSON = isGroupBySupportedBySearch(searchQueryJSON.groupBy)
         ? searchQueryJSON
         : {...searchQueryJSON, groupBy: undefined, inputQuery: buildSearchQueryString({...searchQueryJSON, groupBy: undefined})};
