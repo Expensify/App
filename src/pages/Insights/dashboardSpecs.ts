@@ -140,6 +140,15 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         },
         supportingCharts: [
             {
+                graphKey: CONST.INSIGHTS.GRAPH.AVERAGE_PROCESSING_TIME,
+                titleKey: 'insightsPage.averageProcessingTime',
+                view: CONST.SEARCH.VIEW.PIE,
+                groupBy: CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE,
+                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            },
+            {
                 graphKey: CONST.INSIGHTS.GRAPH.LONGEST_TO_SUBMIT,
                 titleKey: 'insightsPage.longestToSubmit',
                 workflowStage: CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED,

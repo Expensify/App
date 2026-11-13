@@ -8467,6 +8467,7 @@ const CONST = {
             // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
             VIOLATION: 'violation',
             PAID_BY: 'paid-by',
+            WORKFLOW_STAGE: 'workflow-stage',
         },
         WORKFLOW_STAGES: {
             CREATED_SUBMITTED: 'created-submitted',
@@ -8835,6 +8836,10 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                WORKFLOW_STAGE: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8899,6 +8904,7 @@ const CONST = {
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 VIOLATION: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 PAID_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                WORKFLOW_STAGE: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -10578,6 +10584,7 @@ const CONST = {
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
             WORKFLOW_EFFICIENCY: 'workflowEfficiency',
+            AVERAGE_PROCESSING_TIME: 'averageProcessingTime',
             LONGEST_TO_SUBMIT: 'longestToSubmit',
             SLOWEST_TO_APPROVE: 'slowestToApprove',
             MOST_TIME_TO_PAY: 'mostTimeToPay',

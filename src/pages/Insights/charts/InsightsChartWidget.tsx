@@ -251,6 +251,7 @@ function InsightsChartWidget({
                                               rows={rows}
                                               formatValue={formatValue}
                                               isLoading={isLoading}
+                                              skeletonRowCount={groupBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? Object.keys(CONST.SEARCH.WORKFLOW_STAGES).length : undefined}
                                               onRowPress={openDetails}
                                           />
                                       )

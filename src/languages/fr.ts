@@ -1270,6 +1270,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noExpensesInRange: 'Aucune dépense dans cette plage',
         efficiency: 'Efficacité',
         workflowEfficiency: 'Efficacité du flux de travail',
+        averageProcessingTime: 'Délai moyen de traitement',
         longestToSubmit: 'Le plus long à soumettre',
         slowestToApprove: 'Plus lent à approuver',
         mostTimeToPay: 'Délai de paiement le plus long',
@@ -11094,6 +11095,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateur',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infraction',
                 [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payé par',
+                [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Étape du workflow',
             },
             feed: 'Fil',
             withdrawalType: {
@@ -11157,6 +11159,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateurs',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infractions',
             [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payeurs',
+            [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Étapes du workflow',
+        },
+        workflowStages: {
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Créé → Soumis',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Soumis → Approuvé',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Approuvé → Payé',
         },
         moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',

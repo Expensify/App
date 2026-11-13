@@ -1263,6 +1263,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noExpensesInRange: 'Keine Ausgaben in diesem Bereich',
         efficiency: 'Effizienz',
         workflowEfficiency: 'Workflow-Effizienz',
+        averageProcessingTime: 'Durchschnittliche Bearbeitungszeit',
         longestToSubmit: 'Am längsten bis zur Einreichung',
         slowestToApprove: 'Am langsamsten bei der Genehmigung',
         mostTimeToPay: 'Längste Zahlungsfrist',
@@ -11062,6 +11063,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Verstoß',
                 [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Bezahlt von',
+                [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow-Stufe',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -11125,6 +11127,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Verstöße',
             [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Zahler',
+            [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow-Stufen',
+        },
+        workflowStages: {
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Erstellt → Eingereicht',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Eingereicht → Genehmigt',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Genehmigt → Bezahlt',
         },
         moneyRequestReport: {emptyStateTitle: 'Noch keine Ausgaben', accessPlaceHolder: 'Für Details öffnen'},
         noCategory: 'Keine Kategorie',

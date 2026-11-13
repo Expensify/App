@@ -1377,6 +1377,7 @@ const translations = {
         violationsByApprover: 'Violations by approver',
         efficiency: 'Efficiency',
         workflowEfficiency: 'Workflow efficiency',
+        averageProcessingTime: 'Average processing time',
         longestToSubmit: 'Longest to submit',
         slowestToApprove: 'Slowest to approve',
         mostTimeToPay: 'Most time to pay',
@@ -11405,6 +11406,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violation',
                 [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Paid by',
+                [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow stage',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11472,6 +11474,12 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violations',
             [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payers',
+            [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow stages',
+        },
+        workflowStages: {
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Created → Submitted',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Submitted → Approved',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Approved → Paid',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',
