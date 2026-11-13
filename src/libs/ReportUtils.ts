@@ -258,6 +258,7 @@ import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportNa
 import {isTaskCompleted} from './TaskUtils';
 import {
     allHavePendingRTERViolation,
+    getAmountWithDisplaySign,
     getAttendees,
     getBillable,
     getCardID,
@@ -5932,6 +5933,19 @@ function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy
 function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
     const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
+}
+
+/**
+ * Returns the transaction amount in its workspace's output currency, signed the same way as getTransactionDisplayAmount.
+ */
+function getTransactionPolicyConvertedDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
+    const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    return getAmountWithDisplaySign(
+        transaction?.policyConvertedAmount ?? 0,
+        isTransactionFromExpenseReport(report, policy),
+        isFromTrackedExpense,
+        !!transaction && isDeletedTransaction(transaction),
+    );
 }
 
 /**
@@ -16053,6 +16067,7 @@ export {
     getTransactionCommentObject,
     getTransactionDetails,
     getTransactionDisplayAmount,
+    getTransactionPolicyConvertedDisplayAmount,
     getTransactionReportName,
     getDisplayedReportID,
     getTransactionsWithReceipts,
