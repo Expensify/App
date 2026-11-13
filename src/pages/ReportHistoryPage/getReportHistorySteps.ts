@@ -15,6 +15,7 @@ import {
     hasPendingDEWSubmit,
     isActionOfType,
     isApprovedAction,
+    isExportedToIntegrationAction,
     isForwardedAction,
     isMarkAsClosedAction,
     isPayAction,
@@ -93,6 +94,9 @@ function getCompletedStep(
     }
     if (isPayAction(reportAction) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.paid')};
+    }
+    if (isExportedToIntegrationAction(reportAction)) {
+        return {...step, icon: 'Export', label: translate('report.actions.type.exportedToIntegration.automatic', getOriginalMessage(reportAction)?.label ?? '')};
     }
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED)) {
         return {...step, icon: 'Clear', label: translate('iou.adminCanceledRequest')};
