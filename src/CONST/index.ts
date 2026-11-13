@@ -9262,6 +9262,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.TAG]: 'tag',
                 [this.TABLE_COLUMNS.VIOLATIONS]: 'violations',
                 [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
+                [this.TABLE_COLUMNS.CONVERTED_AMOUNT]: 'converted-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
                 [this.TABLE_COLUMNS.HELD]: 'held',
