@@ -2960,6 +2960,7 @@ const SENTRY_LABEL = {
         COPY: 'TwoFactorAuth-Copy',
         COPY_CODES: 'TwoFactorAuth-CopyCodes',
         SECRET_COPY: 'TwoFactorAuth-SecretCopy',
+        RECOVERY_CODE_INPUT: 'TwoFactorAuth-RecoveryCodeInput',
         REQUIRED_OVERLAY_SIGN_OUT_BUTTON: 'TwoFactorAuth-RequiredOverlaySignOutButton',
         REQUIRED_OVERLAY_LEAVE_ACCOUNT_BUTTON: 'TwoFactorAuth-RequiredOverlayLeaveAccountButton',
         REQUIRED_OVERLAY_ENABLE_BUTTON: 'TwoFactorAuth-RequiredOverlayEnableButton',
@@ -3075,6 +3076,8 @@ const SENTRY_LABEL = {
     },
     BANK_ACCOUNT: {
         DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
+        ROUTING_NUMBER_INPUT: 'BankAccount-RoutingNumberInput',
+        ACCOUNT_NUMBER_INPUT: 'BankAccount-AccountNumberInput',
     },
     EARLY_DISCOUNT_BANNER: {
         DISMISS_BUTTON: 'EarlyDiscountBanner-DismissButton',
@@ -3101,6 +3104,7 @@ const SENTRY_LABEL = {
         VALIDATE: 'SignIn-Validate',
         SEND: 'SignIn-Send',
         CONFIRM: 'SignIn-Confirm',
+        RECOVERY_CODE_INPUT: 'SignIn-RecoveryCodeInput',
         FOOTER_LINK: {
             EXPENSE_MANAGEMENT: 'SignIn-FooterLink-ExpenseManagement',
             SPEND_MANAGEMENT: 'SignIn-FooterLink-SpendManagement',
