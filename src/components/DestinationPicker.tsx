@@ -23,7 +23,7 @@ import SelectionListWithSections from './SelectionList/SelectionListWithSections
 type DestinationPickerProps = {
     policyID: string;
     selectedDestination?: string;
-    onSubmit: (item: ListItem & {currency: string}) => void;
+    onSubmit: (item: ListItem & {currency: string}) => void | Promise<void>;
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
 };
 

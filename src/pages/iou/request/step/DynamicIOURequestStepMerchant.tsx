@@ -43,6 +43,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -65,12 +66,8 @@ function DynamicIOURequestStepMerchant({
     const policy = usePolicy(report?.policyID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactionViolations = useAllTransactionViolations(transactionID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -115,9 +112,7 @@ function DynamicIOURequestStepMerchant({
         setCurrentMerchant(value);
     };
 
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-
-    const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
+    const updateMerchant = async (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
         const newMerchant = value.moneyRequestMerchant?.trim();
 
         if (isEditingSplitBill) {
@@ -142,6 +137,13 @@ function DynamicIOURequestStepMerchant({
         // also calling setMoneyRequestMerchant would trigger a redundant Onyx commit and
         // re-render every subscriber of that key for nothing.
         if (isEditing) {
+            const [rules, policyCategories, policyTags, reportPolicyTags, introSelected] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.RULE,
+                `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`,
+                `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`,
+                `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+            ]);
             updateMoneyRequestMerchant({
                 isVendorMatchingBetaEnabled,
                 transactionID,
@@ -159,7 +161,7 @@ function DynamicIOURequestStepMerchant({
                 isOffline,
                 delegateAccountID,
                 reportPolicyTags,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,

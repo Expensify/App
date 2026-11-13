@@ -36,6 +36,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useRef} from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -72,14 +73,9 @@ function DynamicIOURequestStepTaxAmountPage({
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.path);
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -121,7 +117,7 @@ function DynamicIOURequestStepTaxAmountPage({
         Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
-    const updateTaxAmount = (currentAmount: CurrentMoney) => {
+    const updateTaxAmount = async (currentAmount: CurrentMoney) => {
         const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditingSplitBill) {
@@ -135,6 +131,13 @@ function DynamicIOURequestStepTaxAmountPage({
                 saveAndNavigateBack();
                 return;
             }
+            const [rules, policyCategories, policyTags, reportPolicyTags, introSelected] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.RULE,
+                `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`,
+                `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`,
+                `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+            ]);
             updateMoneyRequestTaxAmount({
                 isVendorMatchingBetaEnabled,
                 transactionID,
@@ -150,7 +153,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 isASAPSubmitBetaEnabled,
                 delegateAccountID,
                 reportPolicyTags,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                 getCurrencyDecimals,
                 getCurrencySymbol,
                 rules,

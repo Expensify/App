@@ -49,7 +49,7 @@ type UpgradeIntroViewProps = {
     unlockBadgeText?: string;
 
     /** Called when the primary button is pressed. */
-    onUpgrade: () => void;
+    onUpgrade: () => void | Promise<void>;
 
     /** Each flow passes its own, since the primary button runs different work per flow. */
     upgradeSentryLabel: SentryLabel;

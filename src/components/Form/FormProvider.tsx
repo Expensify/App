@@ -337,12 +337,16 @@ function FormProvider({
                 return;
             }
 
+            const submitValues = () => {
+                onSubmit(trimmedStringValues);
+            };
+
             const runSubmit = () => {
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
                     return KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 }
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
-                    return KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
+                    return KeyboardUtils.dismissKeyboardAndExecute(submitValues);
                 }
                 return onSubmit(trimmedStringValues);
             };

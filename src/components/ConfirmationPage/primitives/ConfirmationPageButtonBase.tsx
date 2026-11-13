@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 type ConfirmationPageButtonProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'sentryLabel'> & {
     text: string;
-    onPress?: () => void;
+    onPress?: () => void | Promise<void>;
 };
 
 type ConfirmationPageButtonBaseProps = ConfirmationPageButtonProps &

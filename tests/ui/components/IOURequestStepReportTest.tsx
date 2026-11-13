@@ -25,6 +25,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createPolicyExpenseChat, createRandomReport} from '../../utils/collections/reports';
 import {signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
@@ -218,6 +219,8 @@ describe('IOURequestStepReport', () => {
         expect(item).toBeTruthy();
 
         fireEvent.press(item);
+        // Selecting a report reads Onyx before it moves the transactions, so wait for that read before asserting
+        await waitForBatchedUpdatesWithAct();
 
         expect(setTransactionReport).toHaveBeenCalledTimes(2);
         const [[, {reportID: reportID1}], [, {reportID: reportID2}]] = jest.mocked(setTransactionReport).mock.calls;

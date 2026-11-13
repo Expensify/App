@@ -53,6 +53,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -90,9 +91,6 @@ function DynamicIOURequestStepDestination({
     const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT;
     const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
     const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
@@ -131,10 +129,17 @@ function DynamicIOURequestStepDestination({
         Navigation.goBack();
     };
 
-    const updateDestination = (destination: ListItem & {currency: string}) => {
-        if (openedFromStartPage && policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            return;
+    const updateDestination = async (destination: ListItem & {currency: string}) => {
+        if (openedFromStartPage && policy) {
+            const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ]);
+            if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                return;
+            }
         }
 
         if (isEmptyObject(customUnit)) {
