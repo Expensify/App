@@ -3,6 +3,7 @@ import type {HorizontalStackingOptions} from '@components/Avatar/layouts/Horizon
 import useOnyx from '@hooks/useOnyx';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,7 +61,6 @@ function ReportAvatar({
     sort,
     fallbackDisplayName,
 }: ReportAvatarProps) {
-    // A report that isn't in Onyx yet has no kind, so it renders the default avatar until it loads.
     const [kind] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: reportAvatarKindSelector});
 
     if (!reportID) {
@@ -184,7 +184,9 @@ function ReportAvatar({
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
-        default:
+        // A report that isn't in Onyx yet has no kind, so it renders the default avatar until it loads.
+        case CONST.REPORT_AVATAR_KIND.DEFAULT:
+        case undefined:
             return (
                 <DefaultReportAvatar
                     reportID={reportID}
@@ -194,6 +196,9 @@ function ReportAvatar({
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
+        default:
+            Log.warn('[ReportAvatar] Unhandled report avatar kind', {kind});
+            return null;
     }
 }
 
