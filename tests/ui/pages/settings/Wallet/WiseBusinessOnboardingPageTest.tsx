@@ -106,6 +106,15 @@ const ENHANCED_DUE_DILIGENCE: WiseKYCRequirement[] = [
     getExpensifyRequirement(CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_PROOF),
 ];
 
+/** The server's copy of the sources page, with the first source funding daily operations */
+function getSavedSourcesPages(sources: string[]) {
+    return {
+        [CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO]: {
+            [CONST.WISE.SOURCE_OF_WEALTH_LIST_KEY]: sources.map((source, index) => ({businessSourceOfWealthInfo: source, isSourceOfFund: index === 0})),
+        },
+    };
+}
+
 function getFlowPageKeys() {
     const schema = mockFlowProps.mock.lastCall?.[0].schema;
     return schema && 'pages' in schema ? schema.pages.map((page) => page.key) : [];
@@ -783,13 +792,19 @@ describe('WiseBusinessOnboardingPage', () => {
     });
 
     it('saves the sources page under its requirement key with the daily operations answers it keeps', async () => {
-        // Given revenue funding daily operations, and the user adding grants from the confirmation page, which skips the daily operations page
+        // Given revenue saved as the lone source, and the user adding grants from the confirmation page, which skips the daily operations page.
+        // The sources input drafts each pick as it is made, so the draft holds both sources before the page is left.
         await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
             bankAccountID: String(BANK_ACCOUNT_ID),
-            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS],
             sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
         });
-        await renderPage({reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}, subPage: 'business'});
+        await renderPage({
+            reimbursementAccount: {
+                achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE, pages: getSavedSourcesPages([CONST.WISE.SOURCE_OF_WEALTH.REVENUE])}},
+            },
+            subPage: 'business',
+        });
         const flowProps = mockFlowProps.mock.lastCall?.[0];
         const sourcesPage: DynamicFormPage = {key: 'business-source-of-wealth-info', content: []};
         const answers = {businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS]};
@@ -804,6 +819,62 @@ describe('WiseBusinessOnboardingPage', () => {
             {...answers, sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE]},
             {},
         );
+
+        // And the daily operations answer is drafted empty, since the user never picked it, so the flow asks the daily operations page before Confirm
+        await waitForBatchedUpdatesWithAct();
+        expect((await readDraft())?.sourceOfFunds).toEqual([]);
+    });
+
+    it('keeps the drafted daily operations answers when a source is added to several picked sources', async () => {
+        // Given revenue and grants saved, with revenue funding daily operations as the user chose on the daily operations page, and donations drafted as the user picks it
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS],
+            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+        });
+        await renderPage({
+            reimbursementAccount: {
+                achData: {
+                    ...REIMBURSEMENT_ACCOUNT.achData,
+                    wise: {kycRequirements: ENHANCED_DUE_DILIGENCE, pages: getSavedSourcesPages([CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS])},
+                },
+            },
+            subPage: 'business',
+        });
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        const sourcesPage: DynamicFormPage = {key: 'business-source-of-wealth-info', content: []};
+
+        // When the user adds donations from the confirmation page
+        act(() =>
+            flowProps?.onPageSubmit?.(
+                sourcesPage,
+                {businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS]},
+                {},
+            ),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user's own answer stays, so the confirmation page does not ask it again
+        expect((await readDraft())?.sourceOfFunds).toEqual([CONST.WISE.SOURCE_OF_WEALTH.REVENUE]);
+    });
+
+    it('takes the user from the confirmation page to the daily operations page when its answer is empty', async () => {
+        // Given two picked sources and an empty daily operations answer, as after a second source is added from the confirmation page
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS],
+            sourceOfFunds: [],
+        });
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the confirmation page opens
+        await renderPage({
+            reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+
+        // Then the user is sent to the daily operations page before the documents page, so they pick which sources fund daily operations
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-funds'), {forceReplace: true});
     });
 
     it('saves the daily operations page under the sources page step, with the picked sources', async () => {

@@ -16,7 +16,7 @@ import usePermissions from '@hooks/usePermissions';
 import useWiseOnboardingSaveStatus from '@hooks/useWiseOnboardingSaveStatus';
 
 import {isBankAccountEligibleForGlobalReimbursements, isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
-import {getSavedFileAnswers} from '@libs/getWiseOnboardingPageParams';
+import {getSavedFileAnswers, getSourceOfWealthEntries} from '@libs/getWiseOnboardingPageParams';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isWiseGlobalReimbursementsIntroPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -47,6 +47,7 @@ import React, {useEffect, useEffectEvent, useState} from 'react';
 import {getKeptSourceOfFunds} from './forms/requirements/sourceOfFunds';
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill, WISE_BUSINESS_ACCOUNT_KEYS} from './getWiseBusinessOnboardingPrefill';
 import getWiseOnboardingForm, {getFirstUnansweredRequirementPageKey, getOnboardingStep} from './getWiseOnboardingForm';
+import {getStringList} from './kycRequirementAttributes';
 
 type WiseBusinessOnboardingPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING>;
 
@@ -225,8 +226,14 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
                 stepAnswers = {...answers, [CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]: draftValues[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]};
             } else {
                 // Editing from the confirmation page skips the daily operations page, so the sources page sends the kept answers, and a new source does not fund them until that page says so
-                const sourceOfFunds = getKeptSourceOfFunds(answers[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY], draftValues[CONST.WISE.SOURCE_OF_FUNDS_KEY]);
-                saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {[CONST.WISE.SOURCE_OF_FUNDS_KEY]: sourceOfFunds});
+                const pickedSources = getStringList(answers[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]);
+                const sourceOfFunds = getKeptSourceOfFunds(pickedSources, draftValues[CONST.WISE.SOURCE_OF_FUNDS_KEY]);
+                // A lone source's answer was filled in, not picked, so a second source leaves the daily operations page for the user to answer. The saved sources
+                // tell how many there were, since the sources input drafts each pick as it is made.
+                const savedSourcesPage = isBusinessAccountForThisBank ? businessAccount?.data?.wise?.pages?.[CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO] : undefined;
+                const savedSourceCount = getSourceOfWealthEntries(savedSourcesPage?.[CONST.WISE.SOURCE_OF_WEALTH_LIST_KEY]).length;
+                const isFirstChoiceOfFunds = savedSourceCount <= 1 && pickedSources.length > 1;
+                saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {[CONST.WISE.SOURCE_OF_FUNDS_KEY]: isFirstChoiceOfFunds ? [] : sourceOfFunds});
                 stepAnswers = {...answers, [CONST.WISE.SOURCE_OF_FUNDS_KEY]: sourceOfFunds};
             }
         }
