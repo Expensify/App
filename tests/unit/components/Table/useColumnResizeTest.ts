@@ -116,6 +116,7 @@ function renderColumnResize(params?: Partial<UseColumnResizeParams>) {
         getStoredTableColumnWidths,
         getTargetColumnWidth,
         columnGap: 12,
+        hasStoredColumnWidths: false,
         ...params,
     };
     const hook = renderHook((props: UseColumnResizeParams) => useColumnResize(props), {initialProps});
@@ -186,6 +187,7 @@ describe('useColumnResize', () => {
             resolvedColumnWidths,
             getStoredTableColumnWidths,
             columnGap: 12,
+            hasStoredColumnWidths: false,
         };
 
         // When the hook runs
@@ -204,6 +206,7 @@ describe('useColumnResize', () => {
             resolvedColumnWidths: {},
             getStoredTableColumnWidths,
             columnGap: 12,
+            hasStoredColumnWidths: false,
         };
 
         // When the hook runs
@@ -213,6 +216,27 @@ describe('useColumnResize', () => {
         // don't remount once the table is measured, while no column gets a handle yet
         expect(result.current).toBeDefined();
         expect(result.current?.getHandleProps(NAME_COLUMN_KEY)).toBeUndefined();
+    });
+
+    it('offers no reset while no column has been resized', () => {
+        // Given a resizable table with no saved layout
+        const {result} = renderColumnResize({hasStoredColumnWidths: false});
+
+        // Then there is nothing to reset, so menus leave the reset item out
+        expect(result.current?.resetColumnWidths).toBeUndefined();
+    });
+
+    it('drops the saved layout when the columns are reset', () => {
+        // Given a resizable table with a saved layout
+        const {result} = renderColumnResize({hasStoredColumnWidths: true});
+
+        // When its columns are reset
+        act(() => {
+            result.current?.resetColumnWidths?.();
+        });
+
+        // Then the table's layout is cleared, so every column sizes from its content again
+        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, null);
     });
 
     it('paints a drag onto the scope and stores the dragged column on release', () => {

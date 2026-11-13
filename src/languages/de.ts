@@ -10930,6 +10930,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             sortAscending: 'Aufsteigend sortieren',
             sortDescending: 'Absteigend sortieren',
             hideColumn: 'Spalte ausblenden',
+            resetColumnSizes: 'Spaltenbreiten zurücksetzen',
         },
         groupColumns: 'Spalten gruppieren',
         expenseColumns: 'Spalten für Ausgaben',
