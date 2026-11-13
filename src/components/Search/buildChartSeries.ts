@@ -19,6 +19,7 @@ import type {ChartComparisonPeriods, TimeGroupBy} from './comparisonBuckets';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchChartMetric, SearchGroupBy} from './types';
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
+import {getAverageDuration, hasChartedValue} from './chartMetricValue';
 import {formatDates, getComparedBucketLabels, getCounterpartBucketRange, getPositionInPrimaryPeriod, getUnpairedBucketLabels, isTimeGroupBy} from './comparisonBuckets';
 
 const CHART_SERIES_KEY = {
@@ -119,11 +120,6 @@ type SearchChartModel = {
     rows: SearchChartDataRow[];
 };
 
-/** Returns how long a group's reports spent in the charted workflow stage, in seconds, or undefined when the group doesn't report one */
-function getAverageDuration(item: GroupedItem): number | undefined {
-    return 'averageDuration' in item ? (item.averageDuration ?? undefined) : undefined;
-}
-
 /** Pie colors follow the slice ranking rather than the array order. Groups the donut leaves out get no color. */
 function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undefined> {
     const colors: Array<string | undefined> = Array.from({length: data.length});
@@ -162,11 +158,9 @@ function buildChartSeries({
     const {getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
     const isDurationMetric = metric === CONST.SEARCH.CHART_METRIC.DURATION;
-    // A group none of whose reports completed the stage has no duration, and plotting it as 0 would read as reports that took no time at all.
-    // A compared period reports a group it has no expenses for with a count and duration of 0 rather than null, so the count is checked too.
-    const hasChartedValue = (item: GroupedItem) => !isDurationMetric || (!!item.count && getAverageDuration(item) !== undefined);
-    const data = allData.filter(hasChartedValue);
-    const comparison = allComparison && !isChartAverage(allComparison) ? {...allComparison, data: allComparison.data.filter(hasChartedValue)} : allComparison;
+    const isCharted = (item: GroupedItem) => hasChartedValue(item, metric);
+    const data = allData.filter(isCharted);
+    const comparison = allComparison && !isChartAverage(allComparison) ? {...allComparison, data: allComparison.data.filter(isCharted)} : allComparison;
     const average = isChartAverage(comparison) ? comparison : undefined;
     const comparedRows = comparison && !isChartAverage(comparison) ? comparison : undefined;
     const periods = comparedRows?.periods;

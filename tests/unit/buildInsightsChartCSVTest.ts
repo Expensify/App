@@ -183,4 +183,24 @@ describe('buildInsightsChartCSV', () => {
         // Then the CSV names the person rather than exposing only their internal account ID
         expect(csv).toBe('\uFEFFFrom,Expenses,Total,Currency\r\nAlex Smith,2,123.45,USD');
     });
+
+    it('exports the average days a duration chart plots instead of the amount', () => {
+        // Given submitter groups whose reports took 2.5 days on average to submit
+        const data: GroupedItem[] = [{...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.FROM, accountID: 1, formattedFrom: 'Alex Smith', averageDuration: 2.5 * CONST.DATE.SECONDS_PER_DAY}];
+
+        // When a duration chart is exported
+        const csv = buildInsightsChartCSV({
+            data,
+            groupBy: CONST.SEARCH.GROUP_BY.FROM,
+            currency: CONST.CURRENCY.USD,
+            getCurrencyDecimals,
+            translate,
+            today: AFTER_EVERY_PERIOD,
+            countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
+            metric: CONST.SEARCH.CHART_METRIC.DURATION,
+        });
+
+        // Then the CSV carries the durations the chart shows, not a money total the chart never draws
+        expect(csv).toBe('\uFEFFFrom,Reports,Average days\r\nAlex Smith,2,2.5');
+    });
 });

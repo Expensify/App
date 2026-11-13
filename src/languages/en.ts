@@ -1383,6 +1383,7 @@ const translations = {
         longestToSubmit: 'Longest to submit',
         slowestToApprove: 'Slowest to approve',
         mostTimeToPay: 'Most time to pay',
+        averageDays: 'Average days',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',

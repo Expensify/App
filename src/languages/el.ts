@@ -1315,6 +1315,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
         slowestToApprove: 'Πιο αργοί στην έγκριση',
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
+        averageDays: 'Μέσος όρος ημερών',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',

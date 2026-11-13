@@ -100,6 +100,27 @@ describe('resolveInsightsChartData', () => {
         expect(data).toEqual([]);
     });
 
+    it('is empty when no reports completed the charted stage', () => {
+        // Given members whose reports exist but none of which completed the stage, so they have no average duration
+        const sortedData: GroupedItem[] = [1, 2].map((accountID) => ({
+            keyForList: String(accountID),
+            transactions: [],
+            groupedBy: CONST.SEARCH.GROUP_BY.FROM,
+            accountID,
+            count: 1,
+            total: 100,
+            currency: CONST.CURRENCY.USD,
+            averageDuration: null,
+        }));
+
+        // When a duration chart is resolved against them
+        const {data, state} = resolveInsightsChartData({snapshot: makeSnapshot(), queryJSON: QUERY_JSON, sortedData, metric: CONST.SEARCH.CHART_METRIC.DURATION});
+
+        // Then the chart shows its empty state rather than a frame with nothing to plot
+        expect(state).toBe(INSIGHTS_CHART_STATE.EMPTY);
+        expect(data).toEqual([]);
+    });
+
     it('is empty when the snapshot arrived with no rows in it', () => {
         // Given a settled snapshot holding data that groups into nothing
         // When the chart is resolved

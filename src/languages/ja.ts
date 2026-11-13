@@ -1257,6 +1257,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提出まで最も長い順',
         slowestToApprove: '承認が最も遅い',
         mostTimeToPay: '支払いまで最も時間がかかる',
+        averageDays: '平均日数',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',

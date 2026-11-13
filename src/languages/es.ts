@@ -1263,6 +1263,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Más lento en enviar',
         slowestToApprove: 'Más lento en aprobar',
         mostTimeToPay: 'Más tiempo para pagar',
+        averageDays: 'Días promedio',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',

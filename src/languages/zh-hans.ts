@@ -1218,6 +1218,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提交所用时间最长',
         slowestToApprove: '审批最慢',
         mostTimeToPay: '最长付款时间',
+        averageDays: '平均天数',
     },
     allSettingsScreen: {
         subscription: '订阅',
