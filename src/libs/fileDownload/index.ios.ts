@@ -1,7 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import HttpsError from '@libs/Errors/HttpsError';
-
 import CONST from '@src/CONST';
 
 import type {PhotoIdentifier} from '@react-native-camera-roll/camera-roll';
@@ -13,16 +11,7 @@ import Share from 'react-native-share';
 
 import type {FileDownload} from './types';
 
-import {
-    appendTimeToFileName,
-    getFileName,
-    getFileType,
-    isErrorResponseForFileDownload,
-    rejectWithFileDownloadError,
-    showGeneralErrorAlert,
-    showPermissionErrorAlert,
-    showSuccessAlert,
-} from './FileUtils';
+import {appendTimeToFileName, getFileName, getFileType, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 import saveLocalFileToGallery from './saveLocalFileToGallery';
 
 const isUserCancelled = (err: unknown) => {
@@ -54,7 +43,7 @@ function downloadFile(fileUrl: string, fileName: string, directory: string) {
     }).fetch('GET', fileUrl);
 }
 
-const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: (error?: HttpsError) => void, appendTimestamp = true) => {
+const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void, appendTimestamp = true) => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,
@@ -66,8 +55,8 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
                 throw new Error('Failed to download file');
             }
             const contentType = response.headers.get('content-type');
-            if (isErrorResponseForFileDownload(contentType, fileName)) {
-                return rejectWithFileDownloadError(response);
+            if (contentType === 'application/json' && fileName?.includes('.csv')) {
+                throw new Error();
             }
             return response.text();
         })
@@ -95,7 +84,7 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
             if (!onDownloadFailed) {
                 showGeneralErrorAlert(translate);
             }
-            onDownloadFailed?.(error instanceof HttpsError ? error : undefined);
+            onDownloadFailed?.();
         });
 };
 

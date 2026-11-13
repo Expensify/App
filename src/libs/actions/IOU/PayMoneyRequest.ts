@@ -8,8 +8,8 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
+import HttpsError from '@libs/Errors/HttpsError';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {isErrorResponseForFileDownload, rejectWithFileDownloadError} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -1088,8 +1088,12 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<ABAFile | und
     // The file download doesn't go through the write queue, so we wait for queued writes to reach the server first
     await API.waitForWrites(WRITE_COMMANDS.PAY_VIA_ABA);
     const response = await fetch(getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), {method: CONST.NETWORK.METHOD.POST, body: formData, credentials: 'same-origin'});
-    if (isErrorResponseForFileDownload(response.headers.get('content-type'), fileName)) {
-        await rejectWithFileDownloadError(response);
+
+    // The API only responds with JSON instead of the file when it couldn't pay the reports
+    if (response.headers.get('content-type') === 'application/json') {
+        await response.json().then((error: {jsonCode?: number; message?: string}) => {
+            throw new HttpsError({message: error.message ?? '', status: String(error.jsonCode ?? '')});
+        });
     }
     if (!response.ok) {
         throw new Error('Failed to download the ABA file');
