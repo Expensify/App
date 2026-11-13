@@ -274,6 +274,28 @@ type AddressFieldValues = Partial<Pick<HomeAddressForm, ValueOf<typeof ADDRESS_I
 /** Errors for the address inputs rendered by AddressFields */
 type AddressFieldErrors = Partial<Record<keyof AddressFieldValues, string>>;
 
+/** Legal name inputs an Expensify Card is shipped or activated with */
+type LegalNameValues = Partial<Record<'legalFirstName' | 'legalLastName', string>>;
+
+/** Character, length and reserved word errors for the legal name an Expensify Card is shipped or activated with */
+function getLegalNameErrors(values: LegalNameValues, translate: LocalizedTranslate): LegalNameValues {
+    const errors: LegalNameValues = {};
+    for (const legalNameInputID of ['legalFirstName', 'legalLastName'] as const) {
+        const legalName = values[legalNameInputID];
+        if (!legalName) {
+            continue;
+        }
+        if (!isValidDisplayName(legalName)) {
+            errors[legalNameInputID] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
+        } else if (legalName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+            errors[legalNameInputID] = translate('common.error.characterLimitExceedCounter', legalName.length, CONST.LEGAL_NAME.MAX_LENGTH);
+        } else if (doesContainReservedWord(legalName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            errors[legalNameInputID] = translate('personalDetails.error.containsReservedWord');
+        }
+    }
+    return errors;
+}
+
 /** Length and zip format errors for the inputs rendered by AddressFields */
 function getAddressFieldErrors(values: AddressFieldValues, translate: LocalizedTranslate): AddressFieldErrors {
     const errors: AddressFieldErrors = {};
@@ -961,6 +983,7 @@ export {
     getCountryZipRegexDetails,
     isValidZipCodeForCountry,
     getAddressFieldErrors,
+    getLegalNameErrors,
     isValidPaymentZipCode,
     isRequiredFulfilled,
     getDisplayNameErrors,

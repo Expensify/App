@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openIssueNewCardShippingAddressStep, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {shouldShowPhoneNumberStep} from '@libs/CardUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
-import {doesContainReservedWord, getAddressFieldErrors, getFieldRequiredErrors, isValidDisplayName} from '@libs/ValidationUtils';
+import {getAddressFieldErrors, getFieldRequiredErrors, getLegalNameErrors} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,20 +70,7 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
         }
 
         const errors = getFieldRequiredErrors(values, REQUIRED_ADDRESS_FIELDS, translate);
-        for (const nameInputID of [INPUT_IDS.LEGAL_FIRST_NAME, INPUT_IDS.LEGAL_LAST_NAME] as const) {
-            const name = values[nameInputID];
-            if (!name) {
-                continue;
-            }
-            if (!isValidDisplayName(name)) {
-                errors[nameInputID] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
-            } else if (name.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                errors[nameInputID] = translate('common.error.characterLimitExceedCounter', name.length, CONST.LEGAL_NAME.MAX_LENGTH);
-            } else if (doesContainReservedWord(name, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                errors[nameInputID] = translate('personalDetails.error.containsReservedWord');
-            }
-        }
-        return {...errors, ...getAddressFieldErrors(values, translate)};
+        return {...errors, ...getLegalNameErrors(values, translate), ...getAddressFieldErrors(values, translate)};
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
