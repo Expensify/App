@@ -24,7 +24,7 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
-function ZohoBooksTravelInvoicingPayableAccountPage({policy}: WithPolicyConnectionsProps) {
+function ZohoBooksTravelBillingPayableAccountPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
     const zohoBooksConfig = policy?.connections?.zohoBooks?.config;
     const zohoBooksData = policy?.connections?.zohoBooks?.data;
@@ -65,7 +65,7 @@ function ZohoBooksTravelInvoicingPayableAccountPage({policy}: WithPolicyConnecti
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             shouldBeBlocked={shouldBeBlocked}
             title="workspace.zohoBooks.travelBillingPayableAccount.label"
-            displayName="ZohoBooksTravelInvoicingPayableAccountSelectPage"
+            displayName="ZohoBooksTravelBillingPayableAccountSelectPage"
             data={data}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS}
             emptyStateTitle="workspace.zohoBooks.noAccountsFound"
@@ -79,4 +79,4 @@ function ZohoBooksTravelInvoicingPayableAccountPage({policy}: WithPolicyConnecti
     );
 }
 
-export default withPolicyConnections(ZohoBooksTravelInvoicingPayableAccountPage);
+export default withPolicyConnections(ZohoBooksTravelBillingPayableAccountPage);
