@@ -35,6 +35,9 @@ type KeypadAmountLayoutProps = {
 
     /** Called when an empty area of the layout is pressed on web, to keep the input focused. */
     onEmptyAreaPress: () => void;
+
+    /** Passed down from `KeypadAmountEditor`, which defaults it to true. */
+    addBottomSafeAreaPadding: boolean;
 };
 
 const getPartTestID = (testID: string | undefined, part: string) => (testID ? `${testID}-${part}` : undefined);
@@ -44,13 +47,13 @@ const getPartTestID = (testID: string | undefined, part: string) => (testID ? `$
  * the footer pinned below them. The number pad is rendered only on touch screens. Everything else (portrait, tablets, desktop) gets a single scrollable column.
  * On web, pressing any non-interactive area keeps the numeric input focused instead of letting the browser blur it.
  */
-function KeypadAmountLayout({children, actions, footer, testID, onEmptyAreaPress}: KeypadAmountLayoutProps) {
+function KeypadAmountLayout({children, actions, footer, testID, onEmptyAreaPress, addBottomSafeAreaPadding}: KeypadAmountLayoutProps) {
     const styles = useThemeStyles();
     const isTwoColumn = useIsInLandscapeMode();
     const ownsBottomSpacing = isTwoColumn || !canUseTouchScreen;
     const footerStyle = useBottomSafeSafeAreaPaddingStyle({
         // In landscape the footer sits outside the scroll view, so it handles the bottom safe area itself
-        addBottomSafeAreaPadding: isTwoColumn,
+        addBottomSafeAreaPadding: isTwoColumn && addBottomSafeAreaPadding,
         style: [styles.w100, styles.alignItemsCenter, styles.ph5, canUseTouchScreen && !isTwoColumn && styles.mt5, ownsBottomSpacing && styles.pb5],
     });
 
@@ -103,7 +106,7 @@ function KeypadAmountLayout({children, actions, footer, testID, onEmptyAreaPress
                     testID={getPartTestID(testID, 'body')}
                     contentContainerStyle={[styles.flexGrow1, styles.flexRow]}
                     style={[styles.flex1, styles.ph5]}
-                    addBottomSafeAreaPadding={!footerNode}
+                    addBottomSafeAreaPadding={!footerNode && addBottomSafeAreaPadding}
                 >
                     {main}
                     {pad}
@@ -120,7 +123,7 @@ function KeypadAmountLayout({children, actions, footer, testID, onEmptyAreaPress
             // On touch screens, pad the scroll container bottom so the pad or footer clears the screen edge.
             contentContainerStyle={[styles.flexGrow1, canUseTouchScreen && styles.pb5]}
             style={[styles.flex1, styles.cursorAuto]}
-            addBottomSafeAreaPadding
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
             {/* Keep natural basis height so content scrolls instead of shrinking on short screens. */}
             <View

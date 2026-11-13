@@ -372,7 +372,7 @@ Approach 1 (recommended): make the screen standalone and follow the structure of
 
 `FormProvider` also provided things that a standalone page must re-create or drop on purpose. Check whether the page relies on the submit button's loading state (`isLoading` from the form's Onyx key), server errors shown by the form alert (the form's `errors`), and draft saving (`shouldSaveDraft` and the form draft key).
 
-Approach 2 (only if the screen cannot leave `FormProvider` in the same PR): wrap `KeypadAmountEditor` in an `InputWrapper`-compatible component. Forward `onBlur`, `onSubmitEditing` and the form `ref` to `.Input` (not to the root), and register the component in the `ValidInputs` union in `src/components/Form/types.ts`. For amount fields, use the `AmountForm` adapter ([section 7](#7-amountform)) instead of writing a new one.
+Approach 2 (only if the screen cannot leave `FormProvider` in the same PR): wrap `KeypadAmountEditor` in an `InputWrapper`-compatible component and pass `addBottomSafeAreaPadding={false}` to it, since `FormWrapper` already applies the bottom safe area. Forward `onBlur`, `onSubmitEditing` and the form `ref` to `.Input` (not to the root), and register the component in the `ValidInputs` union in `src/components/Form/types.ts`. For amount fields, use the `AmountForm` adapter ([section 7](#7-amountform)) instead of writing a new one.
 
 ## 6. Migrating `MoneyRequestAmountInput`
 
@@ -407,7 +407,7 @@ The legacy effect that syncs `amount` into the editor has these rules. Re-create
 
 ## 7. `AmountForm`
 
-`AmountForm` (`src/components/AmountForm.tsx`) is the `FormProvider` adapter for amount fields. It derives `decimals` and the localized symbol from `currency`, forwards `ref` to the text input so `FormProvider` can focus the first invalid field, forwards `numberFormRef` to the editor, and is registered in `ValidInputs`. Keep it as an adapter. Migrating its 20 usages to the primitives one by one would make every screen re-create this wiring, or leave `FormProvider` and lose its loading state, error alert and drafts.
+`AmountForm` (`src/components/AmountForm.tsx`) is the `FormProvider` adapter for amount fields. It derives `decimals` and the localized symbol from `currency`, forwards `ref` to the text input so `FormProvider` can focus the first invalid field, forwards `numberFormRef` to the editor, and is registered in `ValidInputs`. Keep it as an adapter. Migrating its usages to the primitives one by one would make every screen re-create this wiring, or leave `FormProvider` and lose its loading state, error alert and drafts.
 
 One consumer, `WorkspaceWorkflowsApprovalsApprovalLimitPage`, renders `AmountForm` directly outside `FormProvider` (controlled through `value`, `onInputChange` and a `key`). Keep that usage working in both PRs below.
 
@@ -415,17 +415,18 @@ One consumer, `WorkspaceWorkflowsApprovalsApprovalLimitPage`, renders `AmountFor
 
 | Path   | Condition                  | Renders today          | Consumers                                                                                                   |
 | ------ | -------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Inline | `displayAsTextInput`       | `AmountFormField`      | `ChronosScheduleOOOPage` and the other 16 consumers                                                         |
-| Pad    | `displayAsTextInput` unset | `NumberWithSymbolForm` | `PolicyDistanceRateEditPage`, `PolicyDistanceRateTaxReclaimableEditPage`, `DynamicExpensifyCardLimitPage` |
+| Inline | `displayAsTextInput`       | `AmountFormField`      | `ChronosScheduleOOOPage` and the other 14 `FormProvider` consumers                                          |
+| Pad    | `displayAsTextInput` unset | `KeypadAmountEditor`   | `PolicyDistanceRateEditPage`, `PolicyDistanceRateTaxReclaimableEditPage`, `DynamicExpensifyCardLimitPage` |
 
-The inline path routes directly to `AmountFormField`, composing `AmountFormField.CurrencyPickerButton` inside `AmountFormField.Input` as a child when `shouldShowCurrencyButton` is set. Until the legacy pad path is migrated, do not add `AmountForm` usages in pad mode. Lint does not catch them.
+The inline path routes directly to `AmountFormField`, composing `AmountFormField.CurrencyPickerButton` inside `AmountFormField.Input` as a child when `shouldShowCurrencyButton` is set.
 
 Migrate in two PRs:
 
-1. **Migrate the legacy pad path inside `AmountForm`.** Keep the consumers unchanged and keep the rendered behavior.
-   - Render `KeypadAmountEditor` without `footer`, because `FormProvider` renders the submit button. Put `KeypadAmountEditor.Symbol` before `.Input` unless `hideCurrencySymbol` is set. Pass `autoGrowExtraSpace={0}` to `.Input`: legacy `AmountForm` did not pass the prop, while `KeypadAmountEditor.Input` defaults it to `variables.w80`. The editor stays nested in the `FormProvider` scroll view. Legacy rendered the same nesting, so the structure matches, but this is not the standalone layout that [example D](#d-standalone-screen-or-formprovider) recommends for new screens. `KeypadAmountLayout` is not identical to the legacy scroll view: it adds `flex1`, bottom safe-area padding (which `FormWrapper` already applies), `pb5` on touch screens and an empty-area mouse-down that refocuses the input. Verify height and bottom padding against the three pad consumers on native and mWeb, and suppress the duplicated padding if needed.
-   - Legacy pad mode also read `disabled`, `label` (beyond the accessibility label) and the currency button props. All three pad consumers pass `isCurrencyPressable={false}`. When migrating to `KeypadAmountEditor`, omit the currency picker action button because the currency is not pressable. `KeypadAmountEditor.Input` has no `disabled` prop.
-   - Add tests to `tests/ui/AmountFormTest.tsx` for the pad path with its symbol and `numberFormRef`.
+1. **Migrate the legacy pad path inside `AmountForm`** (done). Consumers are unchanged and the rendered behavior is kept.
+   - It renders `KeypadAmountEditor` without `footer`, because `FormProvider` renders the submit button. `KeypadAmountEditor.Symbol` goes before `.Input` unless `hideCurrencySymbol` is set, and `.Input` gets `autoGrowExtraSpace={0}` because the legacy path did not pass the prop while `KeypadAmountEditor.Input` defaults to `variables.w80`. The currency picker action renders only when `isCurrencyPressable` is true and `currency` is non-empty.
+   - The editor stays nested in the `FormProvider` scroll view, as the legacy form was. This is not the standalone layout that [example D](#d-standalone-screen-or-formprovider) recommends for new screens. `FormWrapper` and `ScreenWrapper` already apply the bottom safe area and the offline indicator spacing, so pass `addBottomSafeAreaPadding={false}` to the editor. Without it, `KeypadAmountLayout` adds the inset a second time between the pad and the submit button.
+   - `disabled` is ignored in the pad path, because `KeypadAmountEditor.Input` has no `disabled` prop and no pad consumer needs it. `label` only sets the accessibility label, and `onSubmitEditing` is forwarded, which the legacy path dropped. No pad consumer passes either prop.
+   - `tests/ui/AmountFormTest.tsx` covers the pad path with its symbol, decimals, `numberFormRef`, `ref`, error text and currency button.
 2. **Split `AmountForm` into an inline adapter and a pad adapter.** Do this in a separate PR that does not change rendering. `displayAsTextInput` is a mode switch ([CLEAN-REACT-PATTERNS-1](../.claude/skills/app-coding-standards/rules/clean-react-1-composition-over-config.md)), and the two paths share only the currency derivation.
    - Move the currency derivation (`decimals` override, `getCurrencyDecimals`, `getLocalizedCurrencySymbol`) into a hook used by both adapters.
    - Give each adapter its own props type. The inline adapter takes `label`, `disabled` and the currency button props. The pad adapter takes none of them, so passing one is a type error instead of a prop that is silently ignored.
