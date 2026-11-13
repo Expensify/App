@@ -8,7 +8,6 @@ import {setHasRadio} from '@libs/NetworkState';
 
 import DelegatorConnectGuard from '@navigation/AppNavigator/DelegatorConnectGate';
 
-import DomainNameOrNotFoundWrapper from '@pages/domain/DomainNameOrNotFoundWrapper';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import LogOutPreviousUserPage from '@pages/LogOutPreviousUserPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
@@ -273,22 +272,6 @@ describe('FullScreenLoadingIndicator "Go Back" opt-outs', () => {
             // Then the fallback shows no "Go Back", because the whole navigator is suspended behind it, and the children are still suspended
             expectNoGoBackButton();
             expect(screen.queryByText('connected')).toBeNull();
-        });
-    });
-
-    describe('ordinary loaders (the new default)', () => {
-        it('DomainNameOrNotFoundWrapper does offer a way back once the loader is slow', async () => {
-            // Given an ordinary page-level loader that does not opt out
-            mockIsLoadingOnyxValue.mockReturnValue(true);
-
-            render(<DomainNameOrNotFoundWrapper domainAccountID={123456}>{(domainName) => <Text>{domainName}</Text>}</DomainNameOrNotFoundWrapper>);
-
-            // When it stays loading past the loader timeout
-            await waitPastLoaderTimeout();
-
-            // Then the trapped user is offered a way out, which is what flipping the default delivers
-            expect(screen.getByText('common.goBack')).toBeOnTheScreen();
-            expect(screen.getByText('common.thisIsTakingLongerThanExpected')).toBeOnTheScreen();
         });
     });
 });

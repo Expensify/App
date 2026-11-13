@@ -31,7 +31,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isAdminSelector, pendingAdminRequesterAccountIDsSelector} from '@src/selectors/Domain';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
@@ -56,7 +55,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const domainAccountID = route.params?.domainAccountID;
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
     useDocumentTitle(domainName ?? '');
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
@@ -94,15 +93,13 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     useNetwork({onReconnect: fetchDomainData});
 
-    const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata);
-
     useEffect(() => {
-        if (shouldShowFullScreenLoadingIndicator || (domain && isAdmin)) {
+        if (domain && isAdmin) {
             return;
         }
 
         Navigation.goBack(ROUTES.DOMAINS_LIST.route);
-    }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
+    }, [domain, isAdmin]);
 
     return (
         <ScreenWrapper
