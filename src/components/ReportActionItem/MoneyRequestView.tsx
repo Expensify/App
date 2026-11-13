@@ -17,6 +17,7 @@ import UserPills from '@components/UserPills';
 import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import useAttendees from '@hooks/useAttendees';
@@ -1037,7 +1038,8 @@ function MoneyRequestView({
     const distanceRateCopyValue = rateToDisplay || undefined;
     const amountCopyValue = amountTitle || undefined;
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
-    const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
+    const accountIDToName = useMentionedAccountIDToNameMap(descriptionHTML);
+    const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML, {accountIDToName}) : undefined;
     const merchantCopyValue = updatedMerchantTitle;
     const dateCopyValue = actualTransactionDate;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;

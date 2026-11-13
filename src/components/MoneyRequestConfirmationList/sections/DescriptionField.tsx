@@ -5,6 +5,7 @@ import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,11 +55,13 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
     const fieldContainerRef = useRef<ComponentRef<typeof View>>(null);
 
     const descriptionState = useTransactionSelector(transactionID, descriptionStateSelector);
+    const rawDescription = descriptionState?.description ?? '';
+    const accountIDToName = useMentionedAccountIDToNameMap(rawDescription);
     const {baseTransaction} = useSplitDraftBaseTransaction(transactionID);
 
     // `getDescription` returns raw `transaction.comment.comment`, which can be HTML for saved transactions.
     // We normalize to markdown so both the read-only and editable inputs receive a consistent format.
-    const iouComment = Parser.htmlToMarkdown(descriptionState?.description ?? '');
+    const iouComment = Parser.htmlToMarkdown(rawDescription, {accountIDToName});
     const transactionHasReceipt = descriptionState?.hasReceipt ?? false;
 
     const contextMenuStateValue = {
@@ -117,7 +120,7 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
             name={translate('common.description')}
             valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML isMuted>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
             hasValueComponent={!!descriptionHTML}
-            accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML)}` : undefined}
+            accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML, {accountIDToName})}` : undefined}
             rightLabel={isDescriptionRequired ? translate('common.required') : ''}
             onPress={openDescriptionPage}
             isDisabled={didConfirm}
