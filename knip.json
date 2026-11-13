@@ -35,11 +35,7 @@
                 ".storybook/**/*.{js,ts,tsx}",
                 ".github/actions/javascript/**/*.ts"
             ],
-            "ignore": [
-                ".github/actions/**/index.js",
-                "web/snippets/gib.js",
-                "web/cloudflare-worker/**"
-            ],
+            "ignore": [".github/actions/**/index.js", "web/snippets/gib.js", "web/cloudflare-worker/**"],
             "rsbuild": {
                 "config": ["config/rsbuild/rsbuild.config.ts", ".storybook/rsbuild.config.ts"]
             },
