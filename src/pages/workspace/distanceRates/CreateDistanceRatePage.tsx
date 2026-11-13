@@ -226,11 +226,9 @@ function CreateDistanceRatePage({
         : translate('workspace.distanceRates.addRatePage.matchesAuthority', authority);
 
     // Saving a government rate switches the workspace to the unit the country publishes its rate in, so the amount is shown in that unit
-    const governmentRateUnit = getExpectedUnitForCountry(governmentRateCountry) ?? distanceUnit;
-    const governmentAmountLabel = translate(
-        'workspace.distanceRates.amountPerUnit',
-        translate(governmentRateUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'common.mile' : 'common.kilometer'),
-    );
+    const isGovernmentRateInMiles = (getExpectedUnitForCountry(governmentRateCountry) ?? distanceUnit) === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const governmentRateUnit = isGovernmentRateInMiles ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS;
+    const governmentAmountLabel = translate('workspace.distanceRates.amountPerUnit', translate(isGovernmentRateInMiles ? 'common.mile' : 'common.kilometer'));
     const governmentAmount = currentGovernmentRate
         ? convertAmountToDisplayString(getGovernmentRateAmountForUnit(currentGovernmentRate.rate, currentGovernmentRate.sourceRateID, governmentRateUnit), currency)
         : undefined;
