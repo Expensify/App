@@ -2000,7 +2000,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 category,
                 tag,
                 taxCode,
-                taxAmount,
+                signedTaxAmount: taxAmount,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
                 receiptGpsPoints: gpsPoint ? JSON.stringify(gpsPoint) : undefined,

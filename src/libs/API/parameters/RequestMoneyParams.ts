@@ -23,7 +23,7 @@ type RequestMoneyParams = {
     category?: string;
     tag?: string;
     taxCode: string;
-    taxAmount: number;
+    signedTaxAmount: number;
     billable?: boolean;
     receiptGpsPoints?: string;
     transactionThreadReportID?: string;
