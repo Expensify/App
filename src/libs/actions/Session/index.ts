@@ -145,7 +145,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function isSupportAuthToken(session: OnyxEntry<Session> = deprecatedSession): boolean {
+function isSupportAuthToken(session: OnyxEntry<Session>): boolean {
     return session?.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
 
