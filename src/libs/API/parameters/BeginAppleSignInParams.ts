@@ -5,6 +5,7 @@ type BeginAppleSignInParams = {
     idToken: string | undefined | null;
     preferredLocale: Locale | null;
     deviceInfo: string;
+    isAdvertisingConsentGranted?: boolean;
 } & MarketingAttribution;
 
 export default BeginAppleSignInParams;
