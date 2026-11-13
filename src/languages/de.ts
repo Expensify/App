@@ -3163,10 +3163,12 @@ const translations: TranslationDeepObject<typeof en> = {
                     REVENUE: 'Laden Sie eine Steuererklärung, einen geprüften Jahresabschluss oder Geschäftskontoauszüge hoch.',
                     PERSONAL_FUNDING: 'Laden Sie eine persönliche Steuererklärung, Spar- oder Kontoauszüge oder Gehaltsabrechnungen hoch.',
                     BUSINESS_LOAN: 'Laden Sie einen Darlehensvertrag und einen Kontoauszug hoch.',
-                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Laden Sie einen Beteiligungsvertrag, einen Zeichnungsvertrag oder eine Bescheinigung über den Anteilsverkauf hoch.',
-                    INVESTMENT_INCOME: 'Laden Sie eine Aufstellung privater Kapitalanlagen, eine Bescheinigung über den Anteilsverkauf oder einen Kaufvertrag über Vermögenswerte hoch.',
-                    DONATIONS: 'Laden Sie eine Spendenquittung, eine schriftliche Bestätigung oder einen Vertrag hoch.',
-                    GRANTS: 'Laden Sie einen Förderbescheid, eine schriftliche Bestätigung oder einen Vertrag hoch.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS:
+                        'Laden Sie einen Beteiligungsvertrag, einen Zeichnungsvertrag oder eine Bescheinigung über den Anteilsverkauf hoch, dazu einen Kontoauszug.',
+                    INVESTMENT_INCOME:
+                        'Laden Sie eine Aufstellung privater Kapitalanlagen, eine Bescheinigung über den Anteilsverkauf oder einen Kaufvertrag über Vermögenswerte hoch, dazu einen Kontoauszug.',
+                    DONATIONS: 'Laden Sie eine Spendenquittung, eine schriftliche Bestätigung oder einen Vertrag hoch, dazu einen Kontoauszug.',
+                    GRANTS: 'Laden Sie einen Förderbescheid, eine schriftliche Bestätigung oder einen Vertrag hoch, dazu einen Kontoauszug.',
                     LEGAL: 'Laden Sie einen Vertrag, eine schriftliche Bestätigung oder einen Kaufvertrag über Vermögenswerte hoch.',
                 },
                 bankStatementHints: {
