@@ -134,7 +134,6 @@ function IOURequestStepDistanceGPS({
     });
 
     const navigateToNextStep = async () => {
-        // Read before setGPSTransactionDraftData merges into the transaction draft collection, so the draft IDs are the ones from before the merge.
         const [lastSelectedDistanceRates, quickAction, policyRecentlyUsedCurrencies, recentWaypoints, rules, introSelected, allTransactionDrafts, onboarding, conciergeChat] =
             await Onyx.multiGet([
                 ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
