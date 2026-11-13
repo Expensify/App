@@ -121,6 +121,7 @@ import {convertAttendeesToArray} from './AttendeeUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
+import {convertToBackendAmount} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
 import getTransactionFromTransactionListItem from './getTransactionFromTransactionListItem';
@@ -2522,7 +2523,7 @@ function getTripSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumbe
 
             return {
                 ...trip,
-                total: totalFare ? Math.round(totalFare.amount * 100) : trip.total,
+                total: totalFare ? convertToBackendAmount(totalFare.amount) : trip.total,
                 currency: totalFare?.currencyCode ?? trip.currency,
                 tripName: StringUtils.lineBreaksToSpaces(Parser.htmlToText(trip.reportName ?? '')),
                 traveler,
