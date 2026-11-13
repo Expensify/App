@@ -5604,16 +5604,20 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
 }
 
 /**
+ * Whether the report's total is loaded and has no pending optimistic update, so its spend breakdown can be trusted.
+ */
+function isReportTotalLoadedAndSettled(report: OnyxInputOrEntry<Report>): boolean {
+    const isTotalLoaded = report?.total !== undefined || report?.reimbursableTotal !== undefined;
+    return isTotalLoaded && !isReportTotalPending(report);
+}
+
+/**
  * Whether an expense report has nothing to reimburse and every expense on it has a settled value, e.g. its reimbursable expenses cancel out.
  * Such a report can only be marked as paid. Fails closed while the report total is not loaded or is pending, or while any expense is still
  * scanning, failed to scan or is a pending card charge, because its real reimbursable spend is not known yet.
  */
 function hasSettledZeroReimbursableSpend(spendBreakdown: SpendBreakdown, report: OnyxInputOrEntry<Report>, transactionsParam?: Transaction[]): boolean {
-    if (!isExpenseReport(report) || spendBreakdown.reimbursableSpend !== 0) {
-        return false;
-    }
-    const isTotalLoaded = report?.total !== undefined || report?.reimbursableTotal !== undefined;
-    if (!isTotalLoaded || isReportTotalPending(report)) {
+    if (!isExpenseReport(report) || spendBreakdown.reimbursableSpend !== 0 || !isReportTotalLoadedAndSettled(report)) {
         return false;
     }
     const expenses = resolveReportTransactions(report?.reportID, transactionsParam).filter((transaction) => !isTransactionPendingDelete(transaction));
@@ -5621,10 +5625,26 @@ function hasSettledZeroReimbursableSpend(spendBreakdown: SpendBreakdown, report:
 }
 
 /**
+ * Whether an expense report's loaded, non-pending totals show non-reimbursable spend and no reimbursable spend.
+ * Used when the report's expenses haven't been fetched yet, so the totals are the only signal available.
+ */
+function hasOnlyNonReimbursableTotal(report: OnyxInputOrEntry<Report>): boolean {
+    if (!isExpenseReport(report) || !isReportTotalLoadedAndSettled(report)) {
+        return false;
+    }
+    const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    return reimbursableSpend === 0 && nonReimbursableSpend !== 0;
+}
+
+/**
  * Whether paying the report is optional because nothing is owed on it: every expense is non-reimbursable, or its reimbursable spend is settled at $0.
  * These reports can still be marked as paid from the report, but aren't surfaced as something to pay (LHN badge, Search row action, Pay to-do).
  */
 function isPayOptional(report: OnyxInputOrEntry<Report>, transactionsParam?: Transaction[]): boolean {
+    const transactions = resolveReportTransactions(report?.reportID, transactionsParam).filter((transaction) => !isTransactionPendingDelete(transaction));
+    if (transactions.length === 0) {
+        return hasOnlyNonReimbursableTotal(report);
+    }
     return hasOnlyNonReimbursableTransactions(report?.reportID, transactionsParam) || hasSettledZeroReimbursableSpend(getMoneyRequestSpendBreakdown(report), report, transactionsParam);
 }
 

@@ -31857,6 +31857,39 @@ describe('isPayOptional', () => {
         // Then it is not, since the report can't be paid at all
         expect(isPayOptional(expenseReport, [])).toBe(false);
     });
+
+    it('returns true for a non-reimbursable-only report whose expenses have not loaded yet', () => {
+        // Given an approved report whose totals show only non-reimbursable spend, but whose expenses haven't been fetched yet
+        const report: Report = {...expenseReport, total: -5000, nonReimbursableTotal: -5000, reimbursableTotal: 0};
+
+        // When checking whether paying it is optional before its expenses load
+        // Then it is, so it stays out of Ready to pay instead of disappearing once the report is opened
+        expect(isPayOptional(report, [])).toBe(true);
+    });
+
+    it('returns false for a report with reimbursable spend whose expenses have not loaded yet', () => {
+        // Given an approved report whose totals show reimbursable spend, but whose expenses haven't been fetched yet
+        const report: Report = {...expenseReport, total: -5000, nonReimbursableTotal: -2000, reimbursableTotal: -3000};
+
+        // When checking whether paying it is optional before its expenses load
+        // Then it is not, since money is owed on it
+        expect(isPayOptional(report, [])).toBe(false);
+    });
+
+    it('returns false for a non-reimbursable-only report whose expenses have not loaded yet and whose total is pending', () => {
+        // Given a report whose totals show only non-reimbursable spend, but an optimistic update to its total is still pending
+        const report: Report = {
+            ...expenseReport,
+            total: -5000,
+            nonReimbursableTotal: -5000,
+            reimbursableTotal: 0,
+            pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        };
+
+        // When checking whether paying it is optional before its expenses load
+        // Then it is not, since the pending total can't be trusted yet
+        expect(isPayOptional(report, [])).toBe(false);
+    });
 });
 
 describe('hasOutstandingChildRequest', () => {
