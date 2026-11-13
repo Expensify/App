@@ -3868,6 +3868,35 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('isSearchQuerySavable', () => {
+        it.each([
+            ['type:expense reportID:0', undefined],
+            ['type:expense groupBy:violation', undefined],
+            ['type:expense merchant:coffee', CONST.JSON_CODE.INVALID_SEARCH_QUERY],
+        ])('returns false when the search is invalid (%s, %s)', (query, responseJsonCode) => {
+            // Given a query rejected by client validation or by Auth
+            const currentQueryJSON = buildSearchQueryJSON(query);
+            const search = {hash: currentQueryJSON?.hash ?? -1, responseJsonCode};
+
+            // When checking whether it can be saved
+            const canSave = isSearchQuerySavable(currentQueryJSON, undefined, search);
+
+            // Then the invalid query cannot be saved
+            expect(canSave).toBe(false);
+        });
+
+        it('ignores an invalid response for a previous query while the current query is pending', () => {
+            // Given a valid edit to a search whose previous query was rejected by Auth
+            const previousQueryJSON = buildSearchQueryJSON('type:expense merchant:tea');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            const search = {hash: previousQueryJSON?.hash ?? -1, responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY};
+
+            // When checking whether the edited query can be saved before its response arrives
+            const canSave = isSearchQuerySavable(currentQueryJSON, undefined, search);
+
+            // Then the previous query's failure does not block saving the current query
+            expect(canSave).toBe(true);
+        });
+
         it('returns true when there is no default query, even without filters or a keyword', () => {
             // Given a query that isn't bound to any suggested or saved search
             const currentQueryJSON = buildSearchQueryJSON('type:trip');

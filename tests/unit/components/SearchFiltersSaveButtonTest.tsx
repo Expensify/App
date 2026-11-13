@@ -14,6 +14,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 import React from 'react';
 
@@ -21,10 +22,12 @@ const SAVED_SEARCH_ID = '123';
 const SAVED_SEARCH_NAME = 'Team expenses';
 const mockShowDecisionModal = jest.fn<Promise<ModalStateChangePayload>, [unknown]>();
 let mockCurrentSearchKey: SearchKey | undefined;
+let mockSearchInfo: Pick<SearchResultsInfo, 'hash' | 'responseJsonCode'> | undefined;
 let mockCurrentSearchQueryJSON: SearchQueryJSON | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => ({currentSearchKey: mockCurrentSearchKey, currentSearchQueryJSON: mockCurrentSearchQueryJSON}),
+    useSearchResultsContext: () => ({currentSearchResults: {search: mockSearchInfo}}),
 }));
 jest.mock('@components/Search/SearchPageHeader/SearchFiltersBarButton', () => jest.fn(() => null));
 jest.mock('@hooks/useActiveSavedSearch', () => ({
@@ -52,6 +55,7 @@ async function pressSave() {
 describe('SearchFiltersSaveButton', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockSearchInfo = undefined;
         mockCurrentSearchKey = savedSearchIDToSearchKey(SAVED_SEARCH_ID);
         mockCurrentSearchQueryJSON = buildSearchQueryJSON('type:expense status:paid');
         mockShowDecisionModal.mockResolvedValue({action: ModalActions.DISMISS});
@@ -85,6 +89,8 @@ describe('SearchFiltersSaveButton', () => {
             prompt: 'search.saveEdits.prompt',
             firstOptionText: 'search.saveEdits.createNew',
             secondOptionText: 'search.saveEdits.updateExisting',
+            isSecondOptionDisabled: false,
+            secondOptionSentryLabel: CONST.SENTRY_LABEL.SEARCH.UPDATE_SAVED_VIEW,
             shouldRenderPromptAsHTML: false,
             shouldReportDismiss: true,
         });
@@ -179,6 +185,28 @@ describe('SearchFiltersSaveButton', () => {
         await act(async () => nextDecision.resolve({action: ModalActions.DISMISS}));
         expect(Navigation.navigate).toHaveBeenCalledTimes(action === ModalActions.CONFIRM ? 1 : 0);
         expect(saveSearch).toHaveBeenCalledTimes(action === ModalActions.CLOSE ? 1 : 0);
+    });
+
+    it('prevents updates when the server rejects the query while the decision is open', async () => {
+        // Given a saved search edit that is still waiting for a server response
+        const decision = Promise.withResolvers<ModalStateChangePayload>();
+        mockShowDecisionModal.mockReturnValueOnce(decision.promise);
+        const {rerender} = render(<SearchFiltersSaveButton />);
+        await pressSave();
+
+        // When the response rejects the query before the user confirms the update
+        mockSearchInfo = {hash: mockCurrentSearchQueryJSON?.hash ?? 0, responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY};
+        rerender(<SearchFiltersSaveButton />);
+        await act(async () => decision.resolve({action: ModalActions.CLOSE}));
+
+        // Then the saved search is preserved
+        expect(saveSearch).not.toHaveBeenCalled();
+
+        // When the decision is opened with the rejection already present
+        await pressSave();
+
+        // Then the update option is disabled
+        expect(mockShowDecisionModal).toHaveBeenLastCalledWith(expect.objectContaining({isSecondOptionDisabled: true}));
     });
 
     it('does not update a saved search when the current query is unavailable', async () => {
