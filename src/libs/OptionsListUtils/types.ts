@@ -18,6 +18,7 @@ import type {
     ReportAction,
     ReportActions,
     ReportAttributesDerivedValue,
+    Transaction,
     TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
@@ -214,6 +215,7 @@ type GetValidReportsConfig = {
     isDefaultRoomsBetaEnabled?: boolean;
     includeMultipleParticipantReports?: boolean;
     showChatPreviewLine?: boolean;
+    splitAndTrackTransactions?: Transaction[];
     forcePolicyNamePreview?: boolean;
     includeSelfDM?: boolean;
     includeOwnedWorkspaceChats?: boolean;
