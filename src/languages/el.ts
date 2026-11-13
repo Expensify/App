@@ -5328,6 +5328,7 @@ ${amount} για ${merchant} - ${date}`,
                 softApproval: (time: string) => `Αυτόματη έγκριση σε ${time}. Δυνατή η δωρεάν ακύρωση μέχρι τότε.`,
                 hardApproval: (time: string) => `Ακυρώνεται αυτόματα σε ${time} αν δεν εγκριθεί.`,
             },
+            genericError: 'Δεν ήταν δυνατή η ενημέρωση αυτής της κράτησης. Δοκιμάστε ξανά.',
         },
     },
     proactiveAppReview: {

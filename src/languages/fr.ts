@@ -5272,6 +5272,7 @@ ${amount} pour ${merchant} - ${date}`,
                 softApproval: (time: string) => `Approbation automatique dans ${time}. Annulation gratuite jusqu’à cette heure.`,
                 hardApproval: (time: string) => `Annulation automatique dans ${time} si non approuvé.`,
             },
+            genericError: 'Impossible de mettre à jour cette réservation. Veuillez réessayer.',
         },
     },
     workspace: {

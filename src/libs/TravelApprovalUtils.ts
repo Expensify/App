@@ -7,7 +7,9 @@ import CONST from '@src/CONST';
 import type {BookingApproval} from '@src/types/onyx/ReportNameValuePairs';
 import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 
-import {addDays, differenceInDays, differenceInHours} from 'date-fns';
+import type {ValueOf} from 'type-fest';
+
+import {addDays, differenceInCalendarDays, differenceInDays, differenceInHours} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 
 import DateUtils from './DateUtils';
@@ -51,6 +53,32 @@ function canApproveBooking(tripData: TripRoomData, pnrID: string, accountID: num
     }
 
     return !!booking.approverAccountIDs?.includes(accountID);
+}
+
+/** Whether the user can approve or reject at least one booking in the trip */
+function canApproveAnyBooking(tripData: TripRoomData, accountID: number | undefined, now: Date = new Date()): boolean {
+    return Object.keys(tripData?.bookingApprovalState ?? {}).some((pnrID) => canApproveBooking(tripData, pnrID, accountID, now));
+}
+
+/**
+ * The trip status Spend shows for a trip that isn't canceled, worked out from its bookings the way the backend does.
+ * Approval decisions use it to update Spend rows before the backend sends the new status.
+ */
+function getTripStatusFromBookings(tripData: TripRoomData, now: Date = new Date()): ValueOf<typeof CONST.SEARCH.TRIP_STATUS> {
+    const {STATUS, TYPE} = CONST.TRAVEL.BOOKING_APPROVAL;
+    const bookings = Object.values(tripData?.bookingApprovalState ?? {});
+    if (bookings.some((booking) => booking.status === STATUS.OUTSTANDING)) {
+        return CONST.SEARCH.TRIP_STATUS.OUTSTANDING;
+    }
+
+    // Bookings that never needed approval don't stop a trip from being rejected
+    const bookingsNeedingApproval = bookings.filter((booking) => booking.status !== STATUS.NOT_REQUIRED && booking.approvalType !== TYPE.PASSIVE);
+    if (bookings.some((booking) => booking.status === STATUS.REJECTED) && bookingsNeedingApproval.every((booking) => booking.status === STATUS.REJECTED)) {
+        return CONST.SEARCH.TRIP_STATUS.REJECTED;
+    }
+
+    const hasEnded = !!tripData?.endDate && differenceInCalendarDays(new Date(tripData.endDate), now) < 0;
+    return hasEnded ? CONST.SEARCH.TRIP_STATUS.DONE : CONST.SEARCH.TRIP_STATUS.UPCOMING;
 }
 
 /** The outstanding booking whose deadline comes first, which is the one trip-level places show */
@@ -134,4 +162,5 @@ function getBookingStatusBadge(translate: LocalizedTranslate, badgeColors: Theme
     return {text: translate(`travel.approval.status.${booking.status}`), backgroundColor: colors.backgroundColor, textColor: colors.textColor};
 }
 
-export {canApproveBooking, getBookingDeadlineDate, getBookingStatusBadge, getEarliestOutstandingBooking, getTripDeadlineText};
+export {canApproveAnyBooking, canApproveBooking, getBookingDeadlineDate, getBookingStatusBadge, getEarliestOutstandingBooking, getTripDeadlineText, getTripStatusFromBookings};
+export type {TripRoomData};

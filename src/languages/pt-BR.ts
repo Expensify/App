@@ -5235,6 +5235,7 @@ ${amount} para ${merchant} - ${date}`,
                 softApproval: (time: string) => `Será aprovado automaticamente em ${time}. Cancelamento gratuito até lá.`,
                 hardApproval: (time: string) => `Cancela automaticamente em ${time} se não for aprovado.`,
             },
+            genericError: 'Não foi possível atualizar esta reserva. Tente novamente.',
         },
     },
     workspace: {

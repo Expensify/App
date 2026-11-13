@@ -5184,6 +5184,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 softApproval: (time: string) => `${time}後に自動承認されます。そこまでは無料でキャンセルできます。`,
                 hardApproval: (time: string) => `承認されない場合は ${time} で自動的にキャンセルされます。`,
             },
+            genericError: 'この予約を更新できませんでした。もう一度お試しください。',
         },
     },
     workspace: {
