@@ -24,6 +24,7 @@ const latestApplyAttemptByRequest = new WeakMap<WeakKey, number>();
 
 function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response<TKey> | void> {
     return hasReadRequiredDataFromStorage().then((): Promise<Response<TKey> | void> => {
+        // Add the session only once storage has it, otherwise the first request of a launch goes without one
         const finalParameters = enhanceParameters(request.command, request?.data ?? {});
         return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline);
     });
