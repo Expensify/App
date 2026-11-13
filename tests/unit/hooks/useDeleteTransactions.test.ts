@@ -4,6 +4,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 
+import initSplitExpense from '@libs/actions/SplitExpenses';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 
@@ -33,6 +34,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigationRef: {getRootState: jest.fn(), isReady: jest.fn(() => true)},
 }));
 jest.mock('@react-navigation/native');
+jest.mock('@libs/actions/SplitExpenses', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@src/libs/actions/Report', () => ({
@@ -58,6 +60,57 @@ beforeEach(async () => {
 });
 
 describe('useDeleteTransactions', () => {
+    it.each([
+        ['submitted', CONST.REPORT.STATUS_NUM.SUBMITTED, false],
+        ['approved', CONST.REPORT.STATUS_NUM.APPROVED, false],
+        ['open', CONST.REPORT.STATUS_NUM.OPEN, true],
+    ] as const)('only redirects deletion to Edit splits when the %s sibling is editable', async (_status, siblingStatusNum, shouldRedirect) => {
+        // Given a per diem split whose sibling may be frozen, so only the selected expense can always be edited
+        const expenseReport = {...createExpenseReport(1), statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+        const siblingReport = {...createExpenseReport(2), statusNum: siblingStatusNum};
+        const originalTransaction: Transaction = {
+            transactionID: 'original-per-diem',
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+            amount: -10000,
+            currency: 'USD',
+            merchant: 'Per diem',
+            created: DateUtils.getDBTime(),
+            comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}},
+        };
+        const transaction: Transaction = {
+            ...originalTransaction,
+            transactionID: 'selected-split',
+            reportID: expenseReport.reportID,
+            amount: -5000,
+            comment: {...originalTransaction.comment, originalTransactionID: originalTransaction.transactionID, source: CONST.IOU.TYPE.SPLIT},
+        };
+        const siblingTransaction: Transaction = {...transaction, transactionID: 'sibling-split', reportID: siblingReport.reportID};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${siblingReport.reportID}`, siblingReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`, originalTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${siblingTransaction.transactionID}`, siblingTransaction);
+        await waitForBatchedUpdates();
+        const {result} = renderHook(() => useDeleteTransactions({report: expenseReport, reportActions: []}), {wrapper: OnyxListItemProvider});
+        await waitForBatchedUpdates();
+        jest.mocked(initSplitExpense).mockClear();
+
+        // When Delete is offered and confirmed, both decisions must agree on whether Edit splits can remove the expense
+        expect(result.current.shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID])).toBe(shouldRedirect);
+        act(() => {
+            expect(result.current.deleteTransactions([transaction.transactionID], {}, {}).action).toBe(shouldRedirect ? 'redirected' : 'deleted');
+        });
+        await waitForBatchedUpdates();
+
+        // Then frozen siblings stay untouched, and only an editable sibling allows the split editor to open
+        expect(initSplitExpense).toHaveBeenCalledTimes(shouldRedirect ? 1 : 0);
+        if (!shouldRedirect) {
+            expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.DELETE_MONEY_REQUEST, 0, {transactionID: transaction.transactionID});
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`)).resolves.toBeFalsy();
+        }
+        await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${siblingTransaction.transactionID}`)).resolves.toEqual(siblingTransaction);
+    });
+
     it('deletes the self-DM IOU action along with an unreported expense instead of leaving an orphaned preview', async () => {
         // Given an unreported (self-DM) expense whose IOU action lives in the self-DM chat, with no IOU report
         const selfDMReport = createSelfDM(2, RORY_ACCOUNT_ID);

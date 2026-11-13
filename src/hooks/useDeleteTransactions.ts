@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
@@ -65,6 +65,13 @@ type DeleteTransactionsResult =
       };
 
 type TransactionWithAction = {transactionID: string; action?: ReportAction; transaction?: Transaction};
+
+function hasEditableSplitExpenses(childTransactions: Array<OnyxEntry<Transaction>>, allReports: OnyxCollection<Report>): boolean {
+    return childTransactions.some((childTransaction) => {
+        const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
+        return (currentReport?.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED;
+    });
+}
 
 function redistributeRemainingPerDiemSplitExpenses(
     splitExpenses: SplitExpense[],
@@ -129,8 +136,19 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
         const isSelfDMSplit = isSelfDM(report) || (!!selfDMReportID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
-        const hasMultipleSplits = getChildTransactions(allTransactions, originalTransaction?.transactionID).length > 1;
-        if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, isSelfDMSplit) || (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction))) {
+        if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, isSelfDMSplit)) {
+            return undefined;
+        }
+
+        const childTransactions = getChildTransactions(allTransactions, originalTransaction?.transactionID);
+        const hasMultipleSplits = childTransactions.length > 1;
+        if (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction)) {
+            return undefined;
+        }
+
+        // A submitted or approved sibling cannot absorb the amount when a split is removed in Edit splits.
+        const remainingChildTransactions = childTransactions.filter((childTransaction) => childTransaction?.transactionID !== transaction.transactionID);
+        if (!hasEditableSplitExpenses(remainingChildTransactions, allReports)) {
             return undefined;
         }
 
@@ -263,12 +281,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 allPolicyRecentlyUsedCategories?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(getIOURequestPolicyID(originalTransaction, report))}`] ??
                 [];
 
-            const hasEditableSplitExpensesLeft = childTransactions.some((childTransaction) => {
-                const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
-                return (currentReport?.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED;
-            });
-
-            if (!hasEditableSplitExpensesLeft) {
+            if (!hasEditableSplitExpenses(childTransactions, allReports)) {
                 nonSplitTransactions.push(...splitTransactionsByOriginalTransactionID[transactionID]);
                 continue;
             }
