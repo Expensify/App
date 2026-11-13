@@ -1,6 +1,5 @@
 /** The flat navigation bar's Create button, together with the create menu it opens right below itself. */
 import Button from '@components/Button';
-import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -78,26 +77,23 @@ function FlatNavCreateButton({isCompact = false, isCreateMenuActive, isCreateMen
                 anchorPosition={anchorPosition}
                 anchorAlignment={CREATE_MENU_ANCHOR_ALIGNMENT}
             />
-            {/* The tooltip stays mounted in both modes and only has text while compact (e.g. for keyboard focus), so collapsing does not remount the button the menu is anchored to. */}
-            <Tooltip text={isCompact ? translate('common.create') : undefined}>
-                <Button
-                    ref={buttonRef}
-                    testID="FlatNavCreateButton"
-                    accessibilityLabel={translate('common.create')}
-                    accessibilityHasPopup="menu"
-                    accessibilityState={{expanded: isCreateMenuActive}}
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.SMALL}
-                    style={isCompact ? undefined : styles.w100}
-                    innerStyles={[styles.flatNavigationBarCreateButton, isCompact && styles.flatNavigationBarCreateButtonCompact]}
-                    onPress={toggleCreateMenu}
-                    // Same action as the floating action button it replaces, so it keeps that button's Sentry and FullStory identifier.
-                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_ACTION_BUTTON}
-                >
-                    <Button.Icon src={icons.Plus} />
-                    {!isCompact && <Button.Text>{translate('common.create')}</Button.Text>}
-                </Button>
-            </Tooltip>
+            <Button
+                ref={buttonRef}
+                testID="FlatNavCreateButton"
+                accessibilityLabel={translate('common.create')}
+                accessibilityHasPopup="menu"
+                accessibilityState={{expanded: isCreateMenuActive}}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.SMALL}
+                style={isCompact ? undefined : styles.w100}
+                innerStyles={[styles.flatNavigationBarCreateButton, isCompact && styles.flatNavigationBarCreateButtonCompact]}
+                onPress={toggleCreateMenu}
+                // Same action as the floating action button it replaces, so it keeps that button's Sentry and FullStory identifier.
+                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_ACTION_BUTTON}
+            >
+                <Button.Icon src={icons.Plus} />
+                {!isCompact && <Button.Text>{translate('common.create')}</Button.Text>}
+            </Button>
         </>
     );
 }

@@ -62,15 +62,19 @@ jest.mock('@components/Navigation/FlatNavigationBar/FlatNavCreateButton', () => 
     return null;
 });
 let mockIsElementHovered = false;
+let mockIsFocusMovingInside = false;
+let mockHasKeyboardFocusInside = false;
 jest.mock('@libs/isHTMLElement', () => ({
     __esModule: true,
     default: (val: unknown): val is HTMLElement => {
-        if (!mockIsElementHovered || typeof val !== 'object' || val === null) {
+        if ((!mockIsElementHovered && !mockIsFocusMovingInside && !mockHasKeyboardFocusInside) || typeof val !== 'object' || val === null) {
             return false;
         }
-        const target = val;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- attach matches method to test instance for mock hover verification
-        (target as {matches?: (selector: string) => boolean}).matches = (selector: string) => selector === ':hover';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- attach DOM methods to the test instance for mock hover and focus verification
+        const target = val as {matches?: (selector: string) => boolean; contains?: (other: unknown) => boolean; querySelector?: (selector: string) => unknown};
+        target.matches = (selector: string) => mockIsElementHovered && selector === ':hover';
+        target.contains = () => mockIsFocusMovingInside;
+        target.querySelector = (selector: string) => (mockHasKeyboardFocusInside && selector === ':focus-visible' ? {} : null);
         return true;
     },
 }));
@@ -132,6 +136,8 @@ describe('FlatNavigationBar', () => {
         jest.clearAllMocks();
         mockCreateButtonProps = undefined;
         mockIsElementHovered = false;
+        mockIsFocusMovingInside = false;
+        mockHasKeyboardFocusInside = false;
         mockOuterHoverOut = undefined;
         mockInnerHoverIn = undefined;
         mockInboxIndicator = NO_INDICATOR;
@@ -483,6 +489,87 @@ describe('FlatNavigationBar', () => {
 
             // Then the pending check is cancelled, so the bar stays peeking even though the pointer is not over it
             expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('peeks the bar when items receive keyboard focus and collapses on blur', async () => {
+            // Given a collapsed bar
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+
+            // When navigation items gain focus via keyboard navigation
+            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar peeks open to reveal labels for keyboard users
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When focus leaves the navigation items
+            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'blur', {
+                nativeEvent: {},
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar collapses back to a skinny rail
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+        });
+
+        it('keeps the peek open when focus moves between items inside the bar', async () => {
+            // Given a collapsed bar peeking because an item has keyboard focus
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // When focus moves to another item inside the bar, e.g. tabbing from Home to Inbox
+            mockIsFocusMovingInside = true;
+            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'blur', {
+                currentTarget: {},
+                nativeEvent: {relatedTarget: {}},
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, so its labels do not flicker on every Tab press
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('keeps the peek open when the pointer leaves while an item has keyboard focus', async () => {
+            // Given a collapsed bar peeking because an item has keyboard focus
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            mockHasKeyboardFocusInside = true;
+            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // When the pointer passes over the bar and leaves it
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, so the keyboard user still sees the label of the focused item
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('collapses when the pointer leaves after an item was focused by a mouse click', async () => {
+            // Given a collapsed bar peeking with focus inside that is not keyboard focus, as after clicking an item
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            fireEvent(screen.getByTestId('FlatNavPeekableBody'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // When the pointer leaves the bar
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar collapses, because mouse focus must not hold it open
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
         });
     });
 
