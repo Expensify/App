@@ -926,10 +926,8 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.flatNavigationBarCreateButtonHeight,
         },
 
-        // Collapsed, the Create button shrinks to a circle. Its container's inset centers it in the rail.
+        // Collapsed, the button narrows with its container: rail width minus both insets equals its height, so the pill ends as a circle.
         flatNavigationBarCreateButtonCompact: {
-            width: variables.flatNavigationBarCreateButtonHeight,
-            borderRadius: variables.componentBorderRadiusRounded,
             paddingHorizontal: 0,
         },
 

@@ -81,7 +81,7 @@ function FlatNavCreateButton({isCompact = false, isCreateMenuActive, isCreateMen
                 accessibilityState={{expanded: isCreateMenuActive}}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.SMALL}
-                style={isCompact ? undefined : styles.w100}
+                style={styles.w100}
                 innerStyles={[styles.flatNavigationBarCreateButton, isCompact && styles.flatNavigationBarCreateButtonCompact]}
                 onPress={toggleCreateMenu}
                 // Same action as the floating action button it replaces, so it keeps that button's Sentry and FullStory identifier.
