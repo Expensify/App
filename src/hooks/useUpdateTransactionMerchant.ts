@@ -14,9 +14,6 @@ import type {MoneyRequestUpdateParams} from './useMoneyRequestUpdateParams';
 import useNetwork from './useNetwork';
 
 type UseUpdateTransactionMerchantParams = {
-    /** ID of the saved expense being written to */
-    transactionID: string | undefined;
-
     /** The saved expense being written to, whose current values the write builds on */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -29,8 +26,9 @@ type UseUpdateTransactionMerchantResult = {
     updateMerchant: (merchant: string) => void;
 };
 
-function useUpdateTransactionMerchant({transactionID, transaction, updateParams}: UseUpdateTransactionMerchantParams): UseUpdateTransactionMerchantResult {
+function useUpdateTransactionMerchant({transaction, updateParams}: UseUpdateTransactionMerchantParams): UseUpdateTransactionMerchantResult {
     const {isOffline} = useNetwork();
+    const transactionID = transaction?.transactionID;
 
     const updateMerchant = (merchant: string) => {
         if (!transactionID) {
