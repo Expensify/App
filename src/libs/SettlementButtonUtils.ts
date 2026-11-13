@@ -16,6 +16,7 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
             icon: icons.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PERSONAL,
         },
         [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
             text: translate('iou.settleBusiness', ''),
@@ -23,6 +24,7 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
             value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             shouldUpdateSelectedIndex: false,
             key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.BUSINESS,
         },
         [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
             text: translate('iou.payElsewhere', ''),
@@ -30,6 +32,7 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             shouldUpdateSelectedIndex: false,
             key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PAY_ELSEWHERE,
         },
     };
 

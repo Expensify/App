@@ -1,6 +1,7 @@
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {
     ReportSubmitToPopoverRoot,
     SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
@@ -40,6 +41,7 @@ import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendin
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
 import {getAttendees, isViolationDismissed, shouldShowViolation, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import getReportApprovalWarningData from '@libs/Violations/getReportApprovalWarningData';
 
 import variables from '@styles/variables';
 
@@ -121,7 +123,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
-    const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchResults, currentSearchTransactionsByReportID, currentSearchViolations} = useSearchResultsContext();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {
         selector: isActionLoadingSelector,
     });
@@ -214,18 +216,14 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const beginSearchActionPress = useSearchActionPress();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = Object.values(reportTransactions);
-    const confirmApproveReportViolations = useConfirmApproveReportViolations({
-        report: reportForViolations,
-        policy: policyForViolations,
-        transactions: liveReportTransactions,
-        violationsCollection: reportViolations,
-    });
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
         reportID: reportItem.reportID,
         report: reportForViolations,
@@ -251,9 +249,17 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     // Scoped live violations for the report's snapshot transactions: before the report's transactions
     // hydrate into the live collection, rule/category changes still push violation updates that must
     // reflect on the badge (per-row selector, not the screen-level collection merge this slice removed).
-    const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
+    const snapshotTransactions = currentSearchTransactionsByReportID.get(reportItem.reportID) ?? reportItem.transactions ?? [];
+    const snapshotTransactionIDs = [...new Set([...snapshotTransactions, ...liveReportTransactions].map((transaction) => transaction.transactionID))];
     const [liveViolationsForSnapshotTransactions] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: transactionViolationsByIDsSelector(snapshotTransactionIDs),
+    });
+    const warningData = getReportApprovalWarningData(reportItem.reportID, snapshotTransactions, liveReportTransactions, currentSearchViolations, liveViolationsForSnapshotTransactions);
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({
+        report: reportForViolations,
+        policy: policyForViolations,
+        transactions: warningData.transactions,
+        violationsCollection: warningData.violations,
     });
     // Approving also recomputes the chat's hasOutstandingChildRequest, which checks sibling reports' transactions for auto-reported rejected expenses.
     const [autoReportedRejectedExpenseViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: autoReportedRejectedExpenseViolationsSelector});
@@ -284,6 +290,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
+            isAccountLocked,
+            onAccountLocked: showLockedAccountModal,
             personalPolicyID,
             confirmSubmitReportViolations,
             confirmApproveReportViolations,

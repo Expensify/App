@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -73,6 +74,8 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
     const confirmApproveReportViolations = useConfirmApproveReportViolations({
@@ -85,6 +88,10 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
+            return;
+        }
+        if (isAccountLocked) {
+            showLockedAccountModal();
             return;
         }
 

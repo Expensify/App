@@ -54,6 +54,9 @@ type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
 };
 
 const PUSHER_DRAFT_PACE_INTERVAL_MS = 10;
+const MAX_INTERRUPTED_DRAFTS = 100;
+// Keep recent endings across chat remounts so a delayed start cannot reopen a draft.
+const interruptedDraftSequences = new Map<string, number>();
 const PUSHER_DRAFT_EVENT_TYPES = [
     Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
     Pusher.TYPE.CONCIERGE_DRAFT_UPDATED,
@@ -639,10 +642,20 @@ function promoteQueuedPusherDraftTarget(runtime: PusherDraftPacingRuntime): bool
     return true;
 }
 
+function isDraftInterruption(event: ConciergeDraftEvent): boolean {
+    return event.status === CONCIERGE_DRAFT_STATUS.FAILED || event.status === CONCIERGE_DRAFT_STATUS.CLEARED;
+}
+
 function isStalePusherDraftEventAgainstTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, latestEvent: ConciergeDraftEvent | null): boolean {
     const {completedReportActionIDsRef, currentDraftRef, reportID} = runtime;
 
     if (event.reportID !== reportID || completedReportActionIDsRef.current.has(event.reportActionID)) {
+        return true;
+    }
+
+    const interruptedSequence = interruptedDraftSequences.get(event.streamSessionID);
+    // Each mounted view needs to apply the ending to its own draft.
+    if (interruptedSequence !== undefined && (event.sequence < interruptedSequence || (event.sequence === interruptedSequence && !isDraftInterruption(event)))) {
         return true;
     }
 
@@ -667,16 +680,43 @@ function rememberContentFreeCompletedEvent(runtime: PusherDraftPacingRuntime, ev
     completedPusherDraftEventRef.current = null;
 }
 
+function retireInterruptedPusherDraft(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, latestEvent: ConciergeDraftEvent | null): boolean {
+    if (event.reportID !== runtime.reportID) {
+        return false;
+    }
+
+    const shouldIgnore = isStalePusherDraftEventAgainstTarget(runtime, event, latestEvent);
+
+    // A failed or cleared event can overtake the start, even while a different reply is visible.
+    if (event.sequence > (interruptedDraftSequences.get(event.streamSessionID) ?? 0)) {
+        // Reinserting moves the entry to the end of the map so eviction keeps the most recently updated endings.
+        interruptedDraftSequences.delete(event.streamSessionID);
+        interruptedDraftSequences.set(event.streamSessionID, event.sequence);
+        if (interruptedDraftSequences.size > MAX_INTERRUPTED_DRAFTS) {
+            const oldestStreamSessionID = interruptedDraftSequences.keys().next().value;
+            if (oldestStreamSessionID !== undefined) {
+                interruptedDraftSequences.delete(oldestStreamSessionID);
+            }
+        }
+    }
+    if (shouldIgnore) {
+        return false;
+    }
+
+    resetPusherDraftPace(runtime);
+    publishVisibleEvent(runtime, event, undefined, event.status);
+    return true;
+}
+
 function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent) {
     const {completedPusherDraftEventRef, latestPusherDraftEventRef, terminalPusherDraftEventRef, visibleBodyMarkdownRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
 
-    if (isStalePusherDraftEvent(runtime, event)) {
+    if (isDraftInterruption(event)) {
+        retireInterruptedPusherDraft(runtime, event, getNewestPusherDraftLifecycleEvent(runtime));
         return;
     }
 
-    if (event.status === CONCIERGE_DRAFT_STATUS.FAILED || event.status === CONCIERGE_DRAFT_STATUS.CLEARED) {
-        resetPusherDraftPace(runtime);
-        publishVisibleEvent(runtime, event, undefined, event.status);
+    if (isStalePusherDraftEvent(runtime, event)) {
         return;
     }
 
@@ -751,14 +791,16 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
     let finalRenderedHTMLEvent: ConciergeDraftEvent | null = null;
 
     for (const event of eventData.events) {
-        if (isStalePusherDraftEventAgainstTarget(runtime, event, latestAcceptedEvent ?? getNewestPusherDraftLifecycleEvent(runtime))) {
+        const latestEvent = latestAcceptedEvent ?? getNewestPusherDraftLifecycleEvent(runtime);
+        if (isDraftInterruption(event)) {
+            if (retireInterruptedPusherDraft(runtime, event, latestEvent)) {
+                return;
+            }
             continue;
         }
 
-        if (event.status === CONCIERGE_DRAFT_STATUS.FAILED || event.status === CONCIERGE_DRAFT_STATUS.CLEARED) {
-            resetPusherDraftPace(runtime);
-            publishVisibleEvent(runtime, event, undefined, event.status);
-            return;
+        if (isStalePusherDraftEventAgainstTarget(runtime, event, latestEvent)) {
+            continue;
         }
 
         if (event.status === CONCIERGE_DRAFT_STATUS.COMPLETED) {

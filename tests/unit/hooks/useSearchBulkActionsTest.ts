@@ -1,5 +1,6 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
@@ -141,14 +142,29 @@ jest.mock('@hooks/useEnvironment', () => ({
     default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
 }));
 
+let mockIsDelegateAccessRestricted = false;
+const mockShowDelegateNoAccessModal = jest.fn();
+let mockIsAccountLocked = false;
+const mockShowLockedAccountModal = jest.fn();
+
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
-    useDelegateNoAccessState: () => ({isDelegateAccessRestricted: false}),
-    useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
+    useDelegateNoAccessState: () => ({isDelegateAccessRestricted: mockIsDelegateAccessRestricted}),
+    useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: mockShowDelegateNoAccessModal}),
 }));
 
+jest.mock('@components/LockedAccountModalProvider', () => ({
+    useLockedAccountState: () => ({isAccountLocked: mockIsAccountLocked}),
+    useLockedAccountActions: () => ({showLockedAccountModal: mockShowLockedAccountModal}),
+}));
+
+const mockShowConfirmModal = jest.fn();
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
-    default: () => ({showConfirmModal: jest.fn()}),
+    default: () => ({showConfirmModal: mockShowConfirmModal}),
+}));
+jest.mock('@libs/showConfirmModalAfterMoreMenuDismiss', () => ({
+    __esModule: true,
+    default: (showConfirmModal: (options: unknown) => Promise<unknown>, options: unknown) => showConfirmModal(options),
 }));
 
 let mockEnabledBetas: string[] = [];
@@ -1074,6 +1090,70 @@ describe('useSearchBulkActions - a group checked through its header while its ro
     });
 });
 
+describe('useSearchBulkActions - approval blockers', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canApprove: true})];
+        mockExcludedTransactions = {};
+        mockCurrentSearchResults = undefined;
+        mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+    });
+
+    afterEach(async () => {
+        mockIsOffline = false;
+        mockIsAccountLocked = false;
+        mockIsDelegateAccessRestricted = false;
+        mockAreAllMatchingItemsSelected = false;
+        await Onyx.clear();
+    });
+
+    describe.each([false, true])('Select all: %s', (selectAll) => {
+        it.each([
+            {locked: true, offline: true, delegateRestricted: false, expected: 'hidden'},
+            {locked: true, offline: true, delegateRestricted: true, expected: 'hidden'},
+            {locked: false, offline: true, delegateRestricted: false, expected: 'hidden'},
+            {locked: true, offline: false, delegateRestricted: false, expected: 'locked'},
+            {locked: true, offline: false, delegateRestricted: true, expected: 'delegate'},
+        ])('uses $expected behavior (locked=$locked, offline=$offline, delegateRestricted=$delegateRestricted)', async ({locked, offline, delegateRestricted, expected}) => {
+            // Given an approvable selection and overlapping access/connectivity blockers.
+            mockAreAllMatchingItemsSelected = selectAll;
+            mockIsAccountLocked = locked;
+            mockIsOffline = offline;
+            mockIsDelegateAccessRestricted = delegateRestricted;
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+            await waitFor(() => {
+                expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+            });
+
+            // When online, select Approve; offline, the action is not offered.
+            const approveOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
+            if (offline) {
+                expect(approveOption).toBeUndefined();
+            } else {
+                expect(approveOption).toBeDefined();
+                await act(async () => {
+                    await approveOption?.onSelected?.();
+                });
+            }
+
+            // Then access restrictions take precedence over connectivity without approving or clearing the selection.
+            expect(mockShowDelegateNoAccessModal).toHaveBeenCalledTimes(expected === 'delegate' ? 1 : 0);
+            expect(mockShowLockedAccountModal).toHaveBeenCalledTimes(expected === 'locked' ? 1 : 0);
+            expect(mockShowDecisionModal).not.toHaveBeenCalled();
+            expect(queueBulkApproveReports).not.toHaveBeenCalled();
+            expect(approveMoneyRequest).not.toHaveBeenCalled();
+            expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+        });
+    });
+});
+
 describe('useSearchBulkActions - Approve under Select all', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -1081,6 +1161,7 @@ describe('useSearchBulkActions - Approve under Select all', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockShowConfirmModal.mockReset().mockResolvedValue({action: ModalActions.CLOSE});
         mockIsOffline = false;
         mockAreAllMatchingItemsSelected = true;
         await Onyx.clear();
@@ -1119,6 +1200,42 @@ describe('useSearchBulkActions - Approve under Select all', () => {
         expect(queueBulkApproveReports).toHaveBeenCalledWith(expect.any(String));
         expect(approveMoneyRequest).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it.each([
+        {action: ModalActions.CLOSE, cleared: false},
+        {action: ModalActions.CONFIRM, cleared: false},
+        {action: ModalActions.CLOSE, cleared: true},
+    ])('handles snapshot-only warnings before bulk approval ($action, live cleared: $cleared)', async ({action, cleared}) => {
+        // Given an approvable report whose transaction and violation exist only in Search data
+        const transaction = createMock<Transaction>({transactionID: 'tx1', reportID: 'report1', merchant: 'Merchant', amount: 100, currency: 'USD'});
+        const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}tx1` as const;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canApprove: true})];
+        mockCurrentSearchResults = {
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: transaction,
+                [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {reportID: 'report1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'},
+                [violationKey]: [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.WARNING}],
+            },
+        };
+        if (cleared) {
+            await Onyx.set(violationKey, []);
+        }
+        mockShowConfirmModal.mockResolvedValue({action});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(true));
+
+        // When Select all approval is requested
+        await act(async () => {
+            await result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)?.onSelected?.();
+        });
+
+        // Then only confirmed or already-cleared warnings allow approval and selection cleanup
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(cleared ? 0 : 1);
+        const shouldApprove = cleared || action === ModalActions.CONFIRM;
+        expect(queueBulkApproveReports).toHaveBeenCalledTimes(shouldApprove ? 1 : 0);
+        expect(mockClearSelectedTransactions).toHaveBeenCalledTimes(shouldApprove ? 1 : 0);
     });
 
     it('leaves out reports the user deselected from the bulk approval', async () => {

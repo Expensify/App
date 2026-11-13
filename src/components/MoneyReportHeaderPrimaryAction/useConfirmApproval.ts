@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 
 import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -13,15 +14,16 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import getReportApprovalWarningData from '@libs/Violations/getReportApprovalWarningData';
 
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import type AdditionalPayOnyxData from '@userActions/IOU/types/AdditionalPayOnyxData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
@@ -35,12 +37,14 @@ type UseConfirmApprovalOptions = {
     fallbackReport?: OnyxEntry<Report>;
     fallbackPolicy?: OnyxEntry<Policy>;
     fallbackTransactions?: Transaction[];
+    /** Search warnings used only when no live violation entry is available. */
+    fallbackViolations?: OnyxCollection<TransactionViolations>;
 };
 
 function useConfirmApproval(
     reportID: string | undefined,
     startApprovedAnimation: () => void,
-    {getAdditionalOnyxData, fallbackReport, fallbackPolicy, fallbackTransactions}: UseConfirmApprovalOptions = {},
+    {getAdditionalOnyxData, fallbackReport, fallbackPolicy, fallbackTransactions, fallbackViolations}: UseConfirmApprovalOptions = {},
 ) {
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -48,6 +52,8 @@ function useConfirmApproval(
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
     const [liveReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const moneyRequestReport = liveReport ?? fallbackReport;
@@ -76,11 +82,21 @@ function useConfirmApproval(
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, accountID, email ?? '', undefined, transactions);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
-    const confirmApproveReportViolations = useConfirmApproveReportViolations({report: moneyRequestReport, policy, transactions, violationsCollection: transactionViolations});
+    const warningData = getReportApprovalWarningData(reportID, transactions, [], fallbackViolations, transactionViolations);
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({
+        report: moneyRequestReport,
+        policy,
+        transactions: warningData.transactions,
+        violationsCollection: warningData.violations,
+    });
 
     const onApprove = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
+            return;
+        }
+        if (isAccountLocked) {
+            showLockedAccountModal();
             return;
         }
         confirmApproveReportViolations(() => {

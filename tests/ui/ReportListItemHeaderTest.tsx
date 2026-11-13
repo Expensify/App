@@ -3,13 +3,16 @@ import {act, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
 import ReportListItemHeader from '@components/Search/SearchList/ListItem/ReportListItemHeader';
-import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {ExpenseReportListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
+
+import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
@@ -26,6 +29,10 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@components/AvatarWithDisplayName.tsx');
+jest.mock('@hooks/useConfirmApproveReportViolations', () => ({
+    __esModule: true,
+    default: jest.fn(jest.requireActual<{default: typeof useConfirmApproveReportViolations}>('@hooks/useConfirmApproveReportViolations').default),
+}));
 
 jest.mock('@hooks/usePaymentContext', () => {
     const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../utils/mockUsePaymentContext');
@@ -133,20 +140,28 @@ const createReportListItem = (
 });
 
 // Helper function to wrap component with context
-const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemType) => {
+const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemType, searchState: SearchStateContextValue = mockSearchStateContext, renderExpenseReportRow = false) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <MockSearchContextProvider
-                state={mockSearchStateContext}
+                state={searchState}
                 actions={mockSearchActionsContext}
             >
-                <ReportListItemHeader
-                    report={reportItem}
-                    onSelectRow={jest.fn()}
-                    onCheckboxPress={jest.fn()}
-                    isDisabled={false}
-                    canSelectMultiple={false}
-                />
+                {renderExpenseReportRow ? (
+                    <ExpenseReportListItem
+                        item={createMock<ExpenseReportListItemType>(reportItem)}
+                        onSelectRow={jest.fn()}
+                        showTooltip={false}
+                    />
+                ) : (
+                    <ReportListItemHeader
+                        report={reportItem}
+                        onSelectRow={jest.fn()}
+                        onCheckboxPress={jest.fn()}
+                        isDisabled={false}
+                        canSelectMultiple={false}
+                    />
+                )}
             </MockSearchContextProvider>
         </ComposeProviders>,
     );
@@ -165,6 +180,29 @@ describe('ReportListItemHeader', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+    });
+
+    it.each([false, true])('passes snapshot-only expenses and violations to approval (expense report row: %s)', async (renderExpenseReportRow) => {
+        // Given an unopened report whose expenses and warnings exist only in Search results
+        const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE);
+        const transaction = createMock<Transaction>({transactionID: 'snapshot-only', reportID: reportItem.reportID, merchant: 'Merchant', amount: 100, currency: 'USD'});
+        const violations: TransactionViolations = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.WARNING}];
+        const key = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}` as const;
+
+        // When the report header renders without any corresponding live transaction or violation record
+        renderReportListItemHeader(
+            reportItem,
+            {
+                ...mockSearchStateContext,
+                currentSearchTransactionsByReportID: new Map([[reportItem.reportID, [transaction]]]),
+                currentSearchViolations: {[key]: violations},
+            },
+            renderExpenseReportRow,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the warning hook receives the same snapshot data rather than an empty live collection
+        expect(useConfirmApproveReportViolations).toHaveBeenCalledWith(expect.objectContaining({transactions: [transaction], violationsCollection: {[key]: violations}}));
     });
 
     describe('UserInfoCellsWithArrow', () => {

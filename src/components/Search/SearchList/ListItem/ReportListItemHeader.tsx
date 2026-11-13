@@ -1,6 +1,7 @@
 import Checkbox from '@components/Checkbox';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {
@@ -28,11 +29,13 @@ import useSearchActionPress from '@hooks/useSearchActionPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import getReportApprovalWarningData from '@libs/Violations/getReportApprovalWarningData';
 
 import {handleActionButtonPress} from '@userActions/Search';
 
@@ -266,7 +269,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
-    const {currentSearchResults: snapshot} = useSearchResultsContext();
+    const {currentSearchResults: snapshot, currentSearchTransactionsByReportID, currentSearchViolations} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
@@ -291,7 +294,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         isTrackIntentUser,
         rules,
     });
-    const confirmApproveReportViolations = useConfirmApproveReportViolations({report: parentReport ?? snapshotReport, policy: parentPolicy});
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
         reportID: snapshotReport?.reportID ?? reportItem.reportID,
         report: parentReport ?? snapshotReport,
@@ -299,8 +301,18 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         shouldShowMarkAsDoneCopy,
     });
 
-    const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportItem.reportID);
+    const liveReportTransactions = Object.values(reportTransactions);
+    const snapshotTransactions = currentSearchTransactionsByReportID.get(reportItem.reportID) ?? reportItem.transactions ?? [];
+    const reportTransactionIDs = [...new Set([...snapshotTransactions, ...liveReportTransactions].map((transaction) => transaction.transactionID))];
     const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
+    const warningData = getReportApprovalWarningData(reportItem.reportID, snapshotTransactions, liveReportTransactions, currentSearchViolations, allViolations);
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({
+        report: parentReport ?? snapshotReport,
+        policy: parentPolicy ?? snapshotPolicy,
+        transactions: warningData.transactions,
+        violationsCollection: warningData.violations,
+    });
     // Approving also recomputes the chat's hasOutstandingChildRequest, which checks sibling reports' transactions for auto-reported rejected expenses.
     const [autoReportedRejectedExpenseViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: autoReportedRejectedExpenseViolationsSelector});
 
@@ -310,6 +322,8 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
@@ -343,6 +357,8 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
+            isAccountLocked,
+            onAccountLocked: showLockedAccountModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             confirmSubmitReportViolations,

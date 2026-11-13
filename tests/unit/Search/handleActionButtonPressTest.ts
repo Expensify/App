@@ -462,6 +462,50 @@ describe('handleActionButtonPress', () => {
         hasViolationsMock.mockRestore();
         approveMoneyRequestMock.mockRestore();
     });
+
+    test('Should show the locked account modal and not approve when the account is locked', () => {
+        // Given a report item that would otherwise be approved, and a locked account
+        const approveMoneyRequestMock = jest.spyOn(ReportWorkflow, 'approveMoneyRequest').mockImplementation(jest.fn());
+        const onAccountLocked = jest.fn();
+
+        // When the approve action button is pressed
+        handleActionButtonPress({
+            isWiseReimbursementsBetaEnabled: false,
+            isASAPSubmitBetaEnabled: false,
+            hash: searchHash,
+            item: updatedMockReportItem,
+            goToItem: jest.fn(),
+            snapshotReport,
+            snapshotPolicy,
+            submitterLogin: undefined,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
+            policy: snapshotPolicy,
+            chatReportActions: undefined,
+            currentUserAccountID: 1206,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            allViolations: undefined,
+            rules: undefined,
+            personalDetailsByLogins: {},
+            conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            bankAccountList: undefined,
+            confirmSubmitReportViolations: jest.fn(),
+            isAccountLocked: true,
+            onAccountLocked,
+            policyID: snapshotReport.policyID,
+        });
+
+        // Then the locked account modal is shown instead of sending an approval the server will reject with a generic error
+        expect(onAccountLocked).toHaveBeenCalledTimes(1);
+        expect(approveMoneyRequestMock).not.toHaveBeenCalled();
+
+        approveMoneyRequestMock.mockRestore();
+    });
 });
 
 describe('handleBulkPayItemSelected', () => {

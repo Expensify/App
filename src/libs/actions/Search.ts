@@ -270,6 +270,8 @@ type HandleActionButtonPressParams = {
     currentSearchKey?: SearchKey;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
+    isAccountLocked?: boolean;
+    onAccountLocked?: () => void;
     personalPolicyID: string | undefined;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
@@ -321,6 +323,8 @@ function handleActionButtonPress({
     currentSearchKey,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
+    isAccountLocked,
+    onAccountLocked,
     personalPolicyID,
     ownerBillingGracePeriodEnd,
     onPendingCardTransactionsBlock,
@@ -408,6 +412,10 @@ function handleActionButtonPress({
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             if (isDelegateAccessRestricted) {
                 onDelegateAccessRestricted?.();
+                return;
+            }
+            if (isAccountLocked) {
+                onAccountLocked?.();
                 return;
             }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
