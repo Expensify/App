@@ -114,6 +114,7 @@ function InboxTabSelector() {
     const menuItems: PopoverMenuItem[] = [
         {
             text: translate('inboxTabs.markAllAsRead'),
+            sentryLabel: CONST.SENTRY_LABEL.LHN.INBOX_TAB_MARK_ALL_AS_READ,
             icon: icons.Checkmark,
             // Wait for the popover to fully hide before showing the confirmation modal so they don't overlap.
             shouldCallAfterModalHide: true,
@@ -125,6 +126,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.ALL,
             title: translate('inboxTabs.all'),
+            sentryLabel: CONST.SENTRY_LABEL.LHN.INBOX_TAB.ALL,
             icon: icons.Feed,
             tabRef: allTabRef,
             // Every tab opens the "Mark all as read" menu on long-press / right-click, so they all wire the secondary
@@ -134,6 +136,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.UNREAD,
             title: translate('inboxTabs.unread'),
+            sentryLabel: CONST.SENTRY_LABEL.LHN.INBOX_TAB.UNREAD,
             icon: icons.ChatBubbleUnread,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.UNREAD]),
             isBadgeCondensed: true,
@@ -158,6 +161,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.TODO,
             title: translate('inboxTabs.todo'),
+            sentryLabel: CONST.SENTRY_LABEL.LHN.INBOX_TAB.TODO,
             icon: icons.Task,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.TODO]),
             isBadgeCondensed: true,

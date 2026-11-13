@@ -59,6 +59,8 @@ import {
     getDescription,
     getMerchant,
     isManagedCardTransaction,
+    isExpensifyCardTransaction,
+    isCardTransactionReimbursableEditable,
     isScanRequest,
     isFetchingWaypointsFromServer,
     hasLocallyKnownDistance,
@@ -820,13 +822,6 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
 
 function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagIndex?: number): string {
     return getCommaSeparatedTagNameWithSanitizedColons(getTag(transaction, tagIndex));
-}
-
-/**
- * Determine whether a transaction is made with an Expensify card.
- */
-function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return transaction?.bank === CONST.EXPENSIFY_CARD.BANK;
 }
 
 /**
@@ -1701,6 +1696,7 @@ export {
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isCardTransactionReimbursableEditable,
     isDuplicate,
     isPending,
     hasOnlyPendingCardTransactions,
