@@ -24,7 +24,8 @@ const convertImageWithManipulator = async (
         onFinish?: () => void;
     },
 ) => {
-    // Keep the params simple. Hermes resolves the first await in an async arrow with destructured or default params as undefined (facebook/hermes#1761).
+    // Keep the params simple. The Hermes version React Native ships resolves the first await in an async arrow with destructured or default params as undefined.
+    // Fixed upstream in https://github.com/meta/hermes/issues/1761 but not yet in the shipped release, see https://github.com/meta/hermes/pull/2030
     const {onSuccess = () => {}, onError = () => {}, onFinish = () => {}} = callbacks ?? {};
     try {
         const manipulatedImage = await ImageManipulator.manipulate(sourceUri).renderAsync();
