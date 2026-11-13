@@ -118,6 +118,7 @@ import React from 'react';
 import {Keyboard, View} from 'react-native';
 
 import {useConciergeChatHistoryActions} from './ConciergeChatHistoryContext';
+import ConciergeHistoryIcon from './ConciergeHistoryIcon';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -131,7 +132,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const parentReportAction = useParentReportAction(report, {shouldIgnoreThreadReplies: true});
 
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'History', 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'Plus']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     // The join button row starts from pb2, not the pb3 of useStackedHeaderRowPadding, so it picks its own compact padding.
@@ -612,10 +613,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                             accessibilityLabel={translate('common.concierge.viewChatHistory')}
                                             sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CONCIERGE_HISTORY_BUTTON}
                                         >
-                                            <Icon
-                                                src={icons.History}
-                                                fill={theme.icon}
-                                            />
+                                            <ConciergeHistoryIcon />
                                         </PressableWithoutFeedback>
                                     </Tooltip>
                                 )}
