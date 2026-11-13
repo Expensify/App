@@ -7,7 +7,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 const MAX_THREAD_DEPTH = 10;
 
 /** The thread of the Concierge DM that the report is, or is nested under, or the DM itself. It imports nothing that parses paths, so path parsing can use it. */
-function getConciergeConversationReportID(reportID: string | undefined, conciergeReportID: string | undefined, reports: OnyxCollection<Report>): string | undefined {
+function getConciergeConversationReportID(reportID: string | undefined, conciergeReportID: string | undefined, reports: OnyxCollection<Pick<Report, 'parentReportID'>>): string | undefined {
     if (!reportID || !conciergeReportID) {
         return undefined;
     }

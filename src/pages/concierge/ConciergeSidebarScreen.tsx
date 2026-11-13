@@ -16,6 +16,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -29,9 +30,7 @@ import {closeConciergePage, loadConciergeThreads, openConciergeConversation, ope
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportAction} from '@src/types/onyx';
-
-import type {OnyxCollection} from 'react-native-onyx';
+import type {ReportAction} from '@src/types/onyx';
 
 import {useNavigation} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -70,8 +69,8 @@ function ConciergeSidebarScreen() {
     const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
     const {currentReportID} = useCurrentReportIDState();
-    const selectedConversationSelector = (reports: OnyxCollection<Report>) => getConciergeConversationReportID(currentReportID, conciergeReportID, reports);
-    const [selectedConversationReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: selectedConversationSelector});
+    const currentReportParentHierarchy = useReportsParentHierarchy(currentReportID);
+    const selectedConversationReportID = getConciergeConversationReportID(currentReportID, conciergeReportID, currentReportParentHierarchy);
 
     // The first page is loaded once per mount, so a second effect run doesn't send the request again
     const hasLoadedFirstPageRef = useRef(false);
