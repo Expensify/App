@@ -49,7 +49,7 @@ async function sendMoney(params: UseSendMoneySubmissionParams, paymentMethod: Pa
     await waitForBatchedUpdatesWithAct();
 
     await act(async () => {
-        result.current.sendMoney(paymentMethod, {shouldHandleNavigation: true, shouldStartTracking: true, ...options});
+        result.current.sendMoney(paymentMethod, {shouldHandleNavigation: true, shouldStartTracking: true, quickAction: undefined, hasReportTransactions: false, ...options});
     });
     await waitForBatchedUpdatesWithAct();
 }
@@ -93,25 +93,37 @@ describe('useSendMoneySubmission', () => {
     });
 
     it('sends the payment details from the transaction and the receipt attached to it', async () => {
-        // Given a payment with a comment that has surrounding whitespace and an attached receipt
+        // Given a payment with a comment that has surrounding whitespace, an attached receipt and a quick action the caller read
         const transaction = buildTransaction({comment: {comment: '  Lunch  '}});
         const receipt: Receipt = {source: 'file://receipt.jpg'};
+        const quickAction = {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: REPORT_ID};
 
         // When the user pays elsewhere
-        await sendMoney(buildParams({transaction, receiptFiles: {[TRANSACTION_ID]: receipt}}), CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {shouldStartTracking: false});
+        await sendMoney(buildParams({transaction, receiptFiles: {[TRANSACTION_ID]: receipt}}), CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {shouldStartTracking: false, quickAction});
 
-        // Then the action gets the trimmed comment, the receipt, and the tracking choice the caller made
+        // Then the action gets the trimmed comment, the receipt, the quick action and the tracking choice the caller made
         expect(mockSendMoneyElsewhere).toHaveBeenCalledWith(
             expect.objectContaining({
                 amount: transaction.amount,
                 currency: transaction.currency,
                 comment: 'Lunch',
                 receipt,
+                quickAction,
                 recipient: OTHER_USER_PARTICIPANT,
                 currentUserAccountID: CURRENT_USER_PERSONAL_DETAILS.accountID,
                 shouldStartTracking: false,
             }),
         );
+    });
+
+    it('tells the opened chat whether the report already has transactions', async () => {
+        // Given a report that already has transactions, as the caller read them
+
+        // When the user pays elsewhere
+        await sendMoney(buildParams(), CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {hasReportTransactions: true});
+
+        // Then the chat is opened with the flag set, which is the hasMultipleTransactions argument of the navigation helper
+        expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith(REPORT_ID, undefined, true);
     });
 
     it('drops the page-level report when the caller resolved a new chat for the recipient', async () => {

@@ -50,7 +50,7 @@ type BuildConfirmActionParams = {
     onConfirm?: () => void;
 
     /** Caller-provided send-money handler for pay flows */
-    onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
+    onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void | Promise<void>;
 };
 
 /**

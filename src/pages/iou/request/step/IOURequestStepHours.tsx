@@ -154,6 +154,22 @@ function IOURequestStepHours({
         navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
     };
 
+    const handleNext = async () => {
+        if (policy) {
+            const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ]);
+            if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                suppressDiscardPrompt();
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                return;
+            }
+        }
+        saveTime();
+    };
+
     return (
         <StepScreenWrapper
             headerTitle={translate(isEditingConfirmation ? 'iou.timeTracking.hours' : 'iou.createExpense')}
@@ -189,21 +205,7 @@ function IOURequestStepHours({
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        onPress={async () => {
-                            if (policy) {
-                                const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
-                                    ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-                                    ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
-                                    ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-                                ]);
-                                if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
-                                    suppressDiscardPrompt();
-                                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                                    return;
-                                }
-                            }
-                            saveTime();
-                        }}
+                        onPress={handleNext}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.HOURS_NEXT_BUTTON}
                     >
                         <Button.KeyboardShortcut />

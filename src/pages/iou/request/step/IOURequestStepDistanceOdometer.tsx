@@ -434,11 +434,13 @@ function IOURequestStepDistanceOdometer({
             const hasChanges = previousDistance !== calculatedDistance || previousStart !== start || previousEnd !== end;
 
             if (hasChanges) {
-                const [rules, recentWaypoints, introSelected] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.NVP_RECENT_WAYPOINTS, ONYXKEYS.NVP_INTRO_SELECTED]);
-                const [policyTags, policyCategories, reportPolicyTags] = await Promise.all([
-                    Onyx.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`),
-                    Onyx.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`),
-                    Onyx.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`),
+                const [rules, recentWaypoints, introSelected, policyTags, policyCategories, reportPolicyTags] = await Onyx.multiGet([
+                    ONYXKEYS.COLLECTION.RULE,
+                    ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                    ONYXKEYS.NVP_INTRO_SELECTED,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
                 ]);
                 // Update distance (which will also update amount and merchant)
                 updateMoneyRequestDistance({

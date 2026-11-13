@@ -7,9 +7,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import useSendMoneySubmission from '@pages/iou/request/step/confirmation/submission/useSendMoneySubmission';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {ConfirmationVariantProps} from './types';
 
@@ -28,19 +30,22 @@ function PayConfirmation({submissionParams, listProps, destinationReportID, opti
 
     const {sendMoney} = useSendMoneySubmission({...submissionParams, setIsConfirmed});
 
-    const handleSendMoney = (paymentMethod: PaymentMethodType | undefined) => {
+    const handleSendMoney = async (paymentMethod: PaymentMethodType | undefined) => {
         if (isConfirmed) {
             return;
         }
 
+        const [quickAction, reportTransactionsAndViolations] = await Onyx.multiGet([ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]);
+        const hasReportTransactions = !!report?.reportID && Object.values(reportTransactionsAndViolations?.[report.reportID]?.transactions ?? {}).some(Boolean);
+
         if (paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && paymentMethod !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            sendMoney(paymentMethod, {shouldHandleNavigation: true, shouldStartTracking: true});
+            sendMoney(paymentMethod, {shouldHandleNavigation: true, shouldStartTracking: true, quickAction, hasReportTransactions});
             return;
         }
 
         const participant = participants.at(0);
         if (!participant) {
-            sendMoney(paymentMethod, {shouldHandleNavigation: true, shouldStartTracking: true});
+            sendMoney(paymentMethod, {shouldHandleNavigation: true, shouldStartTracking: true, quickAction, hasReportTransactions});
             return;
         }
 
@@ -51,7 +56,7 @@ function PayConfirmation({submissionParams, listProps, destinationReportID, opti
 
         // getTopmostReportId also returns a wide pre-mounted report that is still hidden, so it is trusted only without a wide pre-mount.
         if (!payDestinationReportID || (!Navigation.getPreMountedFullscreenRouteKey() && Navigation.getTopmostReportId() === payDestinationReportID)) {
-            sendMoney(paymentMethod, {resolvedReportIDs, shouldHandleNavigation: true, shouldStartTracking: true});
+            sendMoney(paymentMethod, {resolvedReportIDs, shouldHandleNavigation: true, shouldStartTracking: true, quickAction, hasReportTransactions});
             return;
         }
 
@@ -62,6 +67,8 @@ function PayConfirmation({submissionParams, listProps, destinationReportID, opti
                     shouldHandleNavigation: overrides.shouldHandleNavigation,
                     resolvedReportIDs,
                     shouldStartTracking: false,
+                    quickAction,
+                    hasReportTransactions,
                 }),
             destinationReportID: payDestinationReportID,
             telemetryContext: {

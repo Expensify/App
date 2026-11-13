@@ -19,7 +19,7 @@ type WriteOverrides = {
 
 type SubmitWithDismissFirstParams = {
     /** The pure write to fire when the orchestrator decides the modal/route timing is right. */
-    executeWrite: (overrides: WriteOverrides) => void | Promise<void>;
+    executeWrite: (overrides: WriteOverrides) => void;
     /** Report the orchestrator will reveal/dismiss to before the write fires. */
     destinationReportID: string | undefined;
     /** Telemetry metadata for the submit-expense performance span. */

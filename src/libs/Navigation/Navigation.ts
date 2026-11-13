@@ -1005,7 +1005,7 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-function dismissModal({ref = navigationRef, afterTransition, waitForTransition}: {ref?: NavigationRef; afterTransition?: () => void | Promise<void>; waitForTransition?: boolean} = {}) {
+function dismissModal({ref = navigationRef, afterTransition, waitForTransition}: {ref?: NavigationRef; afterTransition?: () => void; waitForTransition?: boolean} = {}) {
     clearSelectedTextIfComposerBlurred();
     const runImmediately = !waitForTransition;
     const performDismiss = () => {
@@ -1158,7 +1158,7 @@ function clearPreloadedRoutes() {
  *
  * @param modalStackNames - names of the modal stacks we want to dismiss to
  */
-function dismissToModalStack(modalStackNames: Set<string>, options: {afterTransition?: () => void | Promise<void>} = {}) {
+function dismissToModalStack(modalStackNames: Set<string>, options: {afterTransition?: () => void} = {}) {
     const rootState = navigationRef.getRootState();
     if (!rootState) {
         return;
@@ -1196,8 +1196,8 @@ function navigateBackToLastSuperWideRHPScreen(options: {afterTransition?: () => 
     return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS, options);
 }
 
-function dismissToSuperWideRHP(options: {afterTransition?: () => void | Promise<void>} = {}) {
-    dismissToModalStack(SUPER_WIDE_RIGHT_MODALS, options);
+function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
+    navigateBackToLastSuperWideRHPScreen(options);
 }
 
 /**
@@ -1212,7 +1212,7 @@ function dismissToSuperWideRHP(options: {afterTransition?: () => void | Promise<
  *   Frame 2 - DISMISS_MODAL pops the RHP: [Tab, Tab', RHP] -> [Tab, Tab'].
  *             useLinking syncs browser history to the new top fullscreen route.
  */
-function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void | Promise<void>}) {
+function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void}) {
     if (!canNavigate('revealRouteBeforeDismissingModal', {route}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to reveal route before dismissing modal. Can't navigate.`, {route});
         return;

@@ -1,6 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useReportTransactions from '@hooks/useReportTransactions';
 
 import {resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
@@ -8,7 +7,6 @@ import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismis
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -17,8 +15,6 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
-
-import Onyx from 'react-native-onyx';
 
 import type {SendMoneyOptions} from './types';
 
@@ -36,10 +32,9 @@ type UseSendMoneySubmissionParams = {
 function useSendMoneySubmission({transaction, receiptFiles, report, participants, currentUserPersonalDetails, setIsConfirmed, onExpenseWriteWillStart}: UseSendMoneySubmissionParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
-    const reportTransactions = useReportTransactions(report?.reportID);
 
-    async function sendMoney(paymentMethod: PaymentMethodType | undefined, options: SendMoneyOptions) {
-        const {shouldHandleNavigation, resolvedReportIDs, shouldStartTracking} = options;
+    function sendMoney(paymentMethod: PaymentMethodType | undefined, options: SendMoneyOptions) {
+        const {shouldHandleNavigation, resolvedReportIDs, shouldStartTracking, quickAction, hasReportTransactions} = options;
         const currency = transaction?.currency;
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
         const participant = participants?.at(0);
@@ -54,7 +49,6 @@ function useSendMoneySubmission({transaction, receiptFiles, report, participants
         // An explicit optimistic ID means the selected recipient has no chat yet. Do not let a stale page-level
         // report override that ID in getSendMoneyParams when the recipient changed without remounting this screen.
         const sendMoneyReport = optimisticChatReportID ? undefined : report;
-        const quickAction = await Onyx.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
         const sendMoneyParams = {
             getCurrencyDecimals,
             report: sendMoneyReport,
@@ -84,7 +78,7 @@ function useSendMoneySubmission({transaction, receiptFiles, report, participants
             return;
         }
         if (shouldHandleNavigation) {
-            dismissModalAndOpenReportInInboxTab(chatReportID, undefined, reportTransactions.length > 0);
+            dismissModalAndOpenReportInInboxTab(chatReportID, undefined, hasReportTransactions);
         }
     }
 

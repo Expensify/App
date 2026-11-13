@@ -163,36 +163,33 @@ function useOdometerNavigation({
     return async ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
+        // The caller's odometer and distance draft merges are not awaited yet, so this still reads the draft IDs from before them.
         const [
-            [
-                lastSelectedDistanceRates,
-                quickAction,
-                policyRecentlyUsedCurrencies,
-                amountOwed,
-                userBillingGracePeriodEnds,
-                ownerBillingGracePeriodEnd,
-                rules,
-                recentWaypoints,
-                introSelected,
-                allTransactionDrafts,
-                onboarding,
-            ],
+            lastSelectedDistanceRates,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            amountOwed,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
+            rules,
+            recentWaypoints,
+            introSelected,
+            allTransactionDrafts,
+            onboarding,
             conciergeChat,
-        ] = await Promise.all([
-            Onyx.multiGet([
-                ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
-                ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-                ONYXKEYS.RECENTLY_USED_CURRENCIES,
-                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
-                ONYXKEYS.COLLECTION.RULE,
-                ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                ONYXKEYS.NVP_INTRO_SELECTED,
-                ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-                ONYXKEYS.NVP_ONBOARDING,
-            ]),
-            Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`),
+        ] = await Onyx.multiGet([
+            ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            ONYXKEYS.RECENTLY_USED_CURRENCIES,
+            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.NVP_RECENT_WAYPOINTS,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+            ONYXKEYS.NVP_ONBOARDING,
+            `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
         ]);
 
         handleMoneyRequestStepDistanceNavigation({

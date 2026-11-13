@@ -135,19 +135,17 @@ function IOURequestStepDistanceGPS({
 
     const navigateToNextStep = async () => {
         // Read before setGPSTransactionDraftData merges into the transaction draft collection, so the draft IDs are the ones from before the merge.
-        const [[lastSelectedDistanceRates, quickAction, policyRecentlyUsedCurrencies, recentWaypoints, rules, introSelected, allTransactionDrafts, onboarding], conciergeChat] =
-            await Promise.all([
-                Onyx.multiGet([
-                    ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
-                    ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-                    ONYXKEYS.RECENTLY_USED_CURRENCIES,
-                    ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    ONYXKEYS.COLLECTION.RULE,
-                    ONYXKEYS.NVP_INTRO_SELECTED,
-                    ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-                    ONYXKEYS.NVP_ONBOARDING,
-                ]),
-                Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`),
+        const [lastSelectedDistanceRates, quickAction, policyRecentlyUsedCurrencies, recentWaypoints, rules, introSelected, allTransactionDrafts, onboarding, conciergeChat] =
+            await Onyx.multiGet([
+                ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+                ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                ONYXKEYS.COLLECTION.RULE,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+                ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                ONYXKEYS.NVP_ONBOARDING,
+                `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
             ]);
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
         const originalDistance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit);
