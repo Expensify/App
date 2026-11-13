@@ -198,28 +198,4 @@ describe('usePayViaABA', () => {
         // Then the file they asked for is downloaded
         expect(payViaABA).toHaveBeenCalledWith(expect.objectContaining({reportIDs: ['123'], policy}));
     });
-
-    it('is loading while the ABA file downloads', async () => {
-        // Given an ABA file that takes a while to download
-        let finishDownload: () => void = () => {};
-        jest.mocked(payViaABA).mockReturnValueOnce(
-            new Promise((resolve) => {
-                finishDownload = () => resolve(undefined);
-            }),
-        );
-        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
-        await waitForBatchedUpdatesWithAct();
-
-        // When a report is paid via ABA
-        act(() => result.current.payReportsViaABA(['123'], policy));
-
-        // Then it's loading, so the Pay button can show the user something is happening
-        expect(result.current.isDownloadingABAFile).toBe(true);
-
-        // When the download finishes
-        await act(async () => finishDownload());
-
-        // Then it stops loading
-        expect(result.current.isDownloadingABAFile).toBe(false);
-    });
 });
