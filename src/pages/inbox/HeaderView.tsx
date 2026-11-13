@@ -104,7 +104,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {useRoute} from '@react-navigation/native';
+import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import {accountGuideDetailsSelector} from '@selectors/Account';
 import {accountIDSelector, isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
 import {getStableReportSelector} from '@selectors/Report';
@@ -128,7 +128,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const parentReportAction = useParentReportAction(report, {shouldIgnoreThreadReplies: true});
 
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'History', 'Plus']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     // The join button row starts from pb2, not the pb3 of useStackedHeaderRowPadding, so it picks its own compact padding.
@@ -182,6 +182,17 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // The Concierge page starts new conversations from the New button of its list
     const shouldShowNewConciergeChatButton = !isInSidePanel && !isInConciergePage && isConciergeThread;
     const isInNarrowConciergePage = isInConciergePage && shouldUseNarrowLayout;
+    const navigation = useNavigation();
+    // The list goes on top of this chat, so its back button returns here
+    const openConciergeHistory = () => {
+        navigation.dispatch((state) =>
+            CommonActions.reset({
+                ...state,
+                routes: [...state.routes, {name: SCREENS.CONCIERGE_SIDEBAR, key: `${SCREENS.CONCIERGE_SIDEBAR}-${Date.now()}`}],
+                index: state.routes.length,
+            }),
+        );
+    };
     const goBackFromConciergePage = () => {
         if (isConciergeChat) {
             closeConciergePage(ROUTES.CONCIERGE_CHATS);
@@ -304,7 +315,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall || shouldShowSupportTicketBookCall;
 
-    const shouldShowTalkToHuman = isConciergeChat;
+    const shouldShowTalkToHuman = isConciergeChat || (isInConciergePage && isConciergeThread && !isSupportTicketReport);
     const shouldShowCallAction = shouldShowTalkToHuman || shouldShowBookCall;
 
     // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
@@ -559,6 +570,22 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
+                                {isInNarrowConciergePage && (
+                                    <Tooltip text={translate('common.concierge.viewChatHistory')}>
+                                        <PressableWithoutFeedback
+                                            onPress={openConciergeHistory}
+                                            style={[styles.touchableButtonImage]}
+                                            role={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={translate('common.concierge.viewChatHistory')}
+                                            sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CONCIERGE_HISTORY_BUTTON}
+                                        >
+                                            <Icon
+                                                src={icons.History}
+                                                fill={theme.icon}
+                                            />
+                                        </PressableWithoutFeedback>
+                                    </Tooltip>
+                                )}
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>
                                         <PressableWithoutFeedback
@@ -575,8 +602,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                         </PressableWithoutFeedback>
                                     </Tooltip>
                                 )}
-                                {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
-                                {!shouldMirrorSidePanelHeader && !isConciergeChat && <SidePanelButton />}
+                                {shouldDisplaySearchRouter && !isInNarrowConciergePage && <SearchButton style={styles.ml2} />}
+                                {!shouldMirrorSidePanelHeader && !isConciergeChat && !isInConciergePage && <SidePanelButton />}
                             </View>
                         </View>
                     )}

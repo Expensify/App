@@ -2510,7 +2510,10 @@ const ROUTES = {
     CONCIERGE_CHATS: 'concierge/chats',
     CONCIERGE_CONVERSATION: {
         route: 'concierge/:reportID/:reportActionID?',
-        getRoute: (reportID: string, reportActionID?: string) => (reportActionID ? (`concierge/${reportID}/${reportActionID}` as const) : (`concierge/${reportID}` as const)),
+        getRoute: (reportID: string, reportActionID?: string, isPendingCreation?: boolean) => {
+            const baseRoute = reportActionID ? (`concierge/${reportID}/${reportActionID}` as const) : (`concierge/${reportID}` as const);
+            return isPendingCreation ? (`${baseRoute}?isPendingCreation=true` as const) : baseRoute;
+        },
     },
     TALK_TO_HUMAN: 'settings/help/talk-to-human',
     TRACK_EXPENSE: 'track-expense',

@@ -29,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 
+import {useNavigation} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {getStableReportSelector} from '@selectors/Report';
 import {FlashList} from '@shopify/flash-list';
@@ -83,6 +84,15 @@ function ConciergeSidebarScreen() {
         loadConciergeThreads(nextCursor);
     };
 
+    const navigation = useNavigation();
+    const goBack = () => {
+        if (navigation.getState()?.index) {
+            navigation.goBack();
+            return;
+        }
+        closeConciergePage(ROUTES.HOME);
+    };
+
     const startNewChat = () => {
         Navigation.navigate(ROUTES.CONCIERGE);
     };
@@ -121,7 +131,7 @@ function ConciergeSidebarScreen() {
             {shouldUseNarrowLayout ? (
                 <HeaderWithBackButton
                     title={translate('common.concierge.title')}
-                    onBackButtonPress={() => closeConciergePage(ROUTES.HOME)}
+                    onBackButtonPress={goBack}
                 >
                     {newChatButton}
                 </HeaderWithBackButton>
