@@ -1,4 +1,5 @@
 import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
+import EnvironmentBadge from '@components/EnvironmentBadge';
 import Hoverable from '@components/Hoverable';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import getTabAccessibilityLabel from '@components/Navigation/NavigationTabBar/getTabAccessibilityLabel';
@@ -184,13 +185,14 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                             <View style={styles.flatNavigationBarHeader}>
                                 <Animated.View
                                     testID="FlatNavLogoContainer"
-                                    style={[styles.flatNavigationBarLogoContainer, getCollapseFadeStyle(isVisuallyCollapsed)]}
+                                    style={[styles.flatNavigationBarLogoContainer, styles.flexRow, styles.alignItemsCenter, getCollapseFadeStyle(isVisuallyCollapsed)]}
                                     pointerEvents={isVisuallyCollapsed ? 'none' : 'auto'}
                                 >
                                     <FlatNavLogo
                                         isCollapsed={isVisuallyCollapsed}
                                         onPress={navigateToHome}
                                     />
+                                    <EnvironmentBadge style={styles.flatNavigationBarEnvironmentBadge} />
                                 </Animated.View>
                                 <FlatNavCollapseToggle
                                     isCollapsed={isCollapsed}

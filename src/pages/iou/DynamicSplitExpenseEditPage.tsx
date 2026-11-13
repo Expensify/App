@@ -66,6 +66,7 @@ import {
     getTag,
     getTagForDisplay,
     getTaxName,
+    isCardTransactionReimbursableEditable,
     isDistanceRequest,
     isManagedCardTransaction,
     isManualDistanceRequest,
@@ -276,10 +277,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!splitExpenseDraftTransactionDetails?.billable || isBillableEnabledOnPolicy(effectivePolicy));
     const currentReimbursable = splitExpenseDraftTransaction?.reimbursable ?? transaction?.reimbursable;
+    // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
     const shouldShowReimbursable =
         (isPolicyExpenseChat || (isExpenseUnreported && !!effectivePolicy)) &&
-        canShowReimbursableToggleForPolicy(effectivePolicy, currentReimbursable) &&
-        !isManagedCardTransaction(transaction);
+        (isManagedCardTransaction(transaction) || canShowReimbursableToggleForPolicy(effectivePolicy, currentReimbursable)) &&
+        isCardTransactionReimbursableEditable(transaction);
 
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);

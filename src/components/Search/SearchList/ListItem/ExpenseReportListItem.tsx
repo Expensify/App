@@ -1,6 +1,7 @@
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {
     ReportSubmitToPopoverRoot,
     SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
@@ -213,6 +214,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress} = useSearchSubmitPopoverGuard();
@@ -267,6 +270,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             hash: currentSearchHash,
             item: liveReportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
+            policyID: snapshotReport?.policyID || reportItem.policyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin,
@@ -276,6 +280,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
+            isAccountLocked,
+            onAccountLocked: showLockedAccountModal,
             personalPolicyID,
             confirmSubmitReportViolations,
             ownerBillingGracePeriodEnd,

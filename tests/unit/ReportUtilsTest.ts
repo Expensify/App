@@ -24,6 +24,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, getSortedReportActions, getSystemMessageDisplayState, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
@@ -92,6 +93,7 @@ import {
     doReportsHaveMatchingReportFieldValues,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
+    generateReportAttributes,
     getActionErrorsByTransaction,
     getAllPolicyExpenseChatReportActions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
@@ -27462,6 +27464,109 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
             await waitForBatchedUpdates();
+        });
+    });
+
+    describe('generateReportAttributes', () => {
+        const reportID = 'generateReportAttributes-expense';
+        const chatReportID = 'generateReportAttributes-chat';
+        const transactionThreadReportID = 'generateReportAttributes-thread';
+
+        const expenseReport: Report = {
+            ...createRandomReport(41),
+            reportID,
+            chatReportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            parentReportID: undefined,
+            parentReportActionID: undefined,
+        };
+        const chatReport: Report = {...createRandomReport(42, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: chatReportID};
+
+        const liveIOUAction: ReportAction = {
+            ...createRandomReportAction(41),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: transactionThreadReportID,
+            originalMessage: {
+                IOUReportID: reportID,
+                IOUTransactionID: 'generateReportAttributes-txn-live',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+            },
+        };
+
+        // A second IOU action that was deleted while offline, so it is still pending deletion
+        const pendingDeleteIOUAction: ReportAction = {
+            ...createRandomReportAction(42),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            message: [{type: 'COMMENT', html: '', text: ''}],
+            originalMessage: {
+                IOUReportID: reportID,
+                IOUTransactionID: 'generateReportAttributes-txn-deleted',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+            },
+        };
+
+        const buildReportActions = (actions: ReportAction[]): OnyxCollection<ReportActions> => ({
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: Object.fromEntries(actions.map((action) => [action.reportActionID, action])),
+        });
+
+        const callGenerateReportAttributes = (reportActions: OnyxCollection<ReportActions>, isOffline: boolean) =>
+            generateReportAttributes({
+                report: expenseReport,
+                chatReport,
+                reportActions,
+                transactionViolations: {},
+                isReportArchived: false,
+                allTransactions: {},
+                policies: {},
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                isOffline,
+            });
+
+        afterEach(() => {
+            setHasRadio(true);
+        });
+
+        it('should return the transaction thread reportID when the report has a single live IOU action', () => {
+            // Given an expense report with exactly one live IOU action
+            const reportActions = buildReportActions([liveIOUAction]);
+
+            // When the attributes are generated, both online and offline
+            const onlineResult = callGenerateReportAttributes(reportActions, false);
+            const offlineResult = callGenerateReportAttributes(reportActions, true);
+
+            // Then the report is a one-transaction report regardless of the network state, because there is nothing pending deletion
+            expect(onlineResult.oneTransactionThreadReportID).toBe(transactionThreadReportID);
+            expect(offlineResult.oneTransactionThreadReportID).toBe(transactionThreadReportID);
+        });
+
+        it('should count an IOU action pending deletion when offline', () => {
+            // Given an expense report with one live IOU action and one IOU action pending deletion
+            const reportActions = buildReportActions([liveIOUAction, pendingDeleteIOUAction]);
+
+            // When the attributes are generated while offline
+            const result = callGenerateReportAttributes(reportActions, true);
+
+            // Then the pending-delete action is still shown offline, so there are two IOU actions and this is no longer a one-transaction report.
+            // This proves isOffline reaches getOneTransactionThreadReportID.
+            expect(result.oneTransactionThreadReportID).toBeUndefined();
+        });
+
+        it('should use the passed isOffline instead of the module-level network state', () => {
+            // Given the device reports it has no network, so the module-level network state is offline
+            setHasRadio(false);
+            const reportActions = buildReportActions([liveIOUAction, pendingDeleteIOUAction]);
+
+            // When the caller explicitly passes isOffline as false
+            const result = callGenerateReportAttributes(reportActions, false);
+
+            // Then the passed value wins and the pending-delete action is ignored, so the function no longer depends on the deprecated network subscription
+            expect(result.oneTransactionThreadReportID).toBe(transactionThreadReportID);
         });
     });
 

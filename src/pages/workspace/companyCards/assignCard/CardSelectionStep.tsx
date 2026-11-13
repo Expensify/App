@@ -204,8 +204,8 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                             <FormAlertWithSubmitButton
                                 sentryLabel={
                                     isEditing
-                                        ? CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CARD_SELECTION_SUBMIT.CONFIRM
-                                        : CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CARD_SELECTION_SUBMIT.NEXT
+                                        ? CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CARD_SELECTION_CONFIRM
+                                        : CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CARD_SELECTION_NEXT
                                 }
                                 buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                                 onSubmit={submit}
