@@ -10331,6 +10331,9 @@ const CONST = {
         TEXT_INPUT: {
             CLEAR_BUTTON: 'TextInput-ClearButton',
         },
+        SELECTION_LIST: {
+            SEARCH_INPUT: 'SelectionList-SearchInput',
+        },
         DATE_PICKER: {
             CLEAR_BUTTON: 'DatePicker-ClearButton',
         },

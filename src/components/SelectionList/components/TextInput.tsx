@@ -176,6 +176,7 @@ function TextInput({
                     isLoading={isLoading}
                     shouldHideClearButton={false}
                     testID="selection-list-text-input"
+                    sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.SEARCH_INPUT}
                     errorText={errorText}
                     autoCorrect={!disableAutoCorrect}
                     shouldInterceptSwipe={shouldInterceptSwipe ?? false}

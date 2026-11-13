@@ -211,6 +211,18 @@ describe('useSelectionListSearch', () => {
         expect(result.current.textInputOptions.label).toBe('common.search');
     });
 
+    it('pins the selected item to the top of a short list when shouldAlwaysShowSearch is true', () => {
+        // Given a short list with the search always shown, whose selected item sits at the bottom
+        const data = buildItems(5, 4);
+
+        // When the hook orders the list
+        const {result} = renderHook(() => useSelectionListSearch(data, 'common.noResultsFound', true));
+
+        // Then the selection is pinned to the top, because searchable lists skip the mount-scroll in SelectionScreen
+        expect(result.current.filteredData.at(0)?.value).toBe('05');
+        expect(result.current.pinnedValues).toEqual(['05']);
+    });
+
     it('hides the search input on an empty list even when shouldAlwaysShowSearch is true', () => {
         // Given an empty list (no items synced yet) with shouldAlwaysShowSearch enabled
         const data: Item[] = [];
