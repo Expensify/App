@@ -72,6 +72,12 @@ type AIInsight = {
 
     /** Message sent to Concierge when the user asks it to explain the card */
     explainPrompt: string;
+
+    /** 1-based tag level paired with parentTagPath; absent on older cached cards */
+    tagLevel?: number;
+
+    /** Encoded ancestors for this tag; an empty string selects independent tags */
+    parentTagPath?: string;
 };
 
 /** What the backend returns for one dashboard and set of filters */

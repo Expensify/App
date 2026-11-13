@@ -19,6 +19,8 @@ type InsightsAICardProps = {
 
 function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
     const styles = useThemeStyles();
+    const explainScope =
+        insight.tagLevel !== undefined && insight.parentTagPath !== undefined ? {...insightsScope, tagLevel: insight.tagLevel, tagParent: insight.parentTagPath} : insightsScope;
 
     return (
         <View style={[styles.flex1, styles.gap5, styles.justifyContentBetween]}>
@@ -41,7 +43,7 @@ function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
             </View>
             <InsightsExplainButton
                 explainPrompt={insight.explainPrompt}
-                insightsScope={insightsScope}
+                insightsScope={explainScope}
             />
         </View>
     );
