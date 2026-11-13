@@ -1547,12 +1547,19 @@ function importCSVCompanyCards({
  *
  * When identity validation is required first, call this from the `useVerifyAccountAndResume` resume callback.
  */
-function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+function startCardFeedRefresh(
+    policyID: string,
+    feed: CompanyCardFeedWithDomainID,
+    feedCountry: string | undefined,
+    outputCurrency?: string,
+    currencyList?: CurrencyList,
+    countryByIp?: string,
+) {
     const isPlaidFeed = !!CardUtils.getPlaidInstitutionId(feed);
     const currentStep = isPlaidFeed ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
 
     if (isPlaidFeed) {
-        const selectedCountry = CardUtils.getPlaidCountry(outputCurrency, currencyList, countryByIp);
+        const selectedCountry = CardUtils.getPlaidCountryForFeed(feedCountry, outputCurrency, currencyList, countryByIp);
         Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data: {selectedCountry}});
     }
 
