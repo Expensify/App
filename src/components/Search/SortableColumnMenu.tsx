@@ -42,6 +42,8 @@ function SortableColumnMenu({columnEditing, sentryLabel, itemSentryLabels}: Sort
     const {columnName, label, alignment, hasResizeHandle, sorting, labelProps} = useSortableColumn();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Columns', 'EyeDisabled']);
+    // The trigger insets the caret along with the label, so the caret sits as close to the label in an editable column as in any other.
+    const {innerContainerStyle, ...labelContentProps} = labelProps;
 
     // A menu with nothing in it would only get in the way.
     if (!sorting && !columnEditing) {
@@ -54,9 +56,10 @@ function SortableColumnMenu({columnEditing, sentryLabel, itemSentryLabels}: Sort
                 columnLabel={label}
                 alignment={alignment}
                 hasResizeHandle={hasResizeHandle}
+                labelRowStyle={innerContainerStyle}
                 sentryLabel={sentryLabel}
             >
-                <SortableHeaderLabel {...labelProps} />
+                <SortableHeaderLabel {...labelContentProps} />
             </ColumnHeaderMenu.Trigger>
             <ColumnHeaderMenu.Content>
                 {!!sorting && (

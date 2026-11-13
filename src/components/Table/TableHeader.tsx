@@ -317,8 +317,8 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER]: styles.justifyContentCenter,
         [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END]: styles.justifyContentEnd,
     }[alignment];
-    const labelRowStyles = [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, alignmentStyle, column.styling?.containerStyles];
-    const tableHeaderStyles = [...labelRowStyles, !column.sortable && styles.cursorDefault];
+    const labelRowStyles = [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, alignmentStyle];
+    const tableHeaderStyles = [...labelRowStyles, column.styling?.containerStyles, !column.sortable && styles.cursorDefault];
 
     const label = (
         <>
@@ -376,6 +376,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
                 columnLabel={column.label}
                 alignment={alignment}
                 hasResizeHandle={!!columnResize?.hasHandle(column.key)}
+                labelRowStyle={column.styling?.containerStyles}
                 sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU}
             >
                 <View style={labelRowStyles}>{label}</View>

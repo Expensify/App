@@ -18,7 +18,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
-import type {LayoutChangeEvent} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -33,11 +33,14 @@ type ColumnHeaderMenuTriggerProps = WithRequiredSentryLabel & {
     /** Whether a resize handle sits over the heading's right edge. */
     hasResizeHandle: boolean;
 
+    /** Insets the label and the caret together, so the caret sits as close to the label in an inset heading as in any other. */
+    labelRowStyle?: StyleProp<ViewStyle>;
+
     /** The heading's label. A centered column renders it twice, once hidden to size the label's slot. */
     children: React.ReactNode;
 };
 
-function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, sentryLabel, children}: ColumnHeaderMenuTriggerProps) {
+function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, labelRowStyle, sentryLabel, children}: ColumnHeaderMenuTriggerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -84,18 +87,13 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, sentr
                         </View>
                     );
                     const labelRow = (
-                        <View
-                            style={[
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                                isCaretBeforeLabel && styles.justifyContentEnd,
-                                // Keeps the caret out of the resize handle's hit area.
-                                isCaretVisible && hasResizeHandle && StyleUtils.getPaddingRight(RESIZE_HANDLE_COLUMN_OVERLAP),
-                            ]}
-                        >
-                            {isCaretBeforeLabel && caret}
-                            <View style={styles.flexShrink1}>{children}</View>
-                            {!isCaretBeforeLabel && caret}
+                        // Keeps the caret out of the resize handle's hit area.
+                        <View style={isCaretVisible && hasResizeHandle && StyleUtils.getPaddingRight(RESIZE_HANDLE_COLUMN_OVERLAP)}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, isCaretBeforeLabel && styles.justifyContentEnd, labelRowStyle]}>
+                                {isCaretBeforeLabel && caret}
+                                <View style={styles.flexShrink1}>{children}</View>
+                                {!isCaretBeforeLabel && caret}
+                            </View>
                         </View>
                     );
 
@@ -113,7 +111,7 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, sentr
                                 {/* Sizes the slot to the label. */}
                                 <View
                                     aria-hidden
-                                    style={[styles.opacity0, styles.pointerEventsNone]}
+                                    style={[styles.opacity0, styles.pointerEventsNone, labelRowStyle]}
                                 >
                                     {children}
                                 </View>
