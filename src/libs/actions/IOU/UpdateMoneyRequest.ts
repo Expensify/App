@@ -74,7 +74,7 @@ type UpdateMoneyRequestData<TKey extends OnyxKey> = {
 
 type UpdateMoneyRequestDateParams = {
     transactionID: string;
-    transaction?: OnyxEntry<OnyxTypes.Transaction>;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
@@ -227,7 +227,7 @@ function getRecalculatedDistanceRateIDForExpenseDate({
 /** Updates the created date of an expense */
 function updateMoneyRequestDate({
     transactionID,
-    transaction: transactionParam,
+    transaction,
     transactionThreadReport,
     parentReport,
     iouReportOwnerLogin,
@@ -253,7 +253,6 @@ function updateMoneyRequestDate({
     rules,
     isVendorMatchingBetaEnabled,
 }: UpdateMoneyRequestDateParams) {
-    const transaction = transactionParam ?? getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
     const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
     const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
@@ -553,7 +552,7 @@ function updateMoneyRequestMerchant({
 }: {
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
-    transaction?: OnyxEntry<OnyxTypes.Transaction>;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
@@ -1437,7 +1436,7 @@ function updateMoneyRequestDescription({
 }: {
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
-    transaction?: OnyxEntry<OnyxTypes.Transaction>;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
@@ -1661,7 +1660,7 @@ function updateMoneyRequestDistanceRate({
 
 type UpdateMoneyRequestAmountAndCurrencyParams = {
     transactionID: string;
-    transaction?: OnyxEntry<OnyxTypes.Transaction>;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
@@ -2512,7 +2511,7 @@ type TrackExpenseCurrencyContext = {
 
 type GetUpdateTrackExpenseParamsType = {
     transactionID: string | undefined;
-    transaction?: OnyxEntry<OnyxTypes.Transaction>;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThread: OnyxEntry<OnyxTypes.Report>;
     transactionThreadParentReport: OnyxEntry<OnyxTypes.Report>;
     transactionChanges: TransactionChanges;
@@ -2537,7 +2536,7 @@ function getUpdateTrackExpenseParams(
 > {
     const {
         transactionID,
-        transaction: transactionParam,
+        transaction,
         transactionThread,
         transactionThreadParentReport: chatReport,
         transactionChanges,
@@ -2578,7 +2577,6 @@ function getUpdateTrackExpenseParams(
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')]));
 
     // Step 2: Get all the collections being updated
-    const transaction = transactionParam ?? getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const policyForTransaction = distanceOriginalPolicy ?? policy;
     const updatedTransaction = transaction
         ? getUpdatedTransaction({

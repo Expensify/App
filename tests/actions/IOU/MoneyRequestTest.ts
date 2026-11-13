@@ -1345,6 +1345,75 @@ describe('MoneyRequest', () => {
             );
         });
 
+        it.each([
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 62.14, expectedDistance: 100, isGPS: false},
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 124.28, expectedDistance: 200.01, isGPS: false},
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, distance: 100, expectedDistance: 62.14, isGPS: false},
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 100, expectedDistance: 100, isGPS: false},
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 62.14, expectedDistance: 100, isGPS: true},
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 100, expectedDistance: 100, isGPS: true},
+        ])('converts $distance $sourceUnit to default $targetUnit (GPS: $isGPS)', async ({sourceUnit, targetUnit, distance, expectedDistance, isGPS}) => {
+            // Given a draft returned from confirmation whose transaction prop has a stale quantity
+            const rateID = 'default-distance-rate';
+            const defaultPolicy: Policy = {
+                ...fakePolicy,
+                autoReporting: true,
+                customUnits: {
+                    distance: {
+                        customUnitID: 'distance',
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: targetUnit},
+                        rates: {[rateID]: {customUnitRateID: rateID, name: 'Default rate', rate: 70, currency: CONST.CURRENCY.USD, enabled: true}},
+                    },
+                },
+            };
+            const transaction = {
+                ...fakeTransaction,
+                transactionID: baseParams.transactionID,
+                reportID: 'other-workspace-report',
+                iouRequestType: isGPS ? CONST.IOU.REQUEST_TYPE.DISTANCE_GPS : CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                comment: {
+                    odometerStart: 1000,
+                    odometerEnd: 1100,
+                    odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: 'other-rate', distanceUnit: sourceUnit, quantity: 1},
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${defaultPolicy.id}`, defaultPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`, transaction);
+            jest.mocked(getPolicyExpenseChat).mockReturnValueOnce(fakeReport);
+
+            // When Next automatically selects the default workspace again, using the distance just entered rather than the stale quantity
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                transaction,
+                report: undefined,
+                defaultExpensePolicy: defaultPolicy,
+                isAutoReporting: true,
+                odometerDistance: isGPS ? undefined : distance,
+                gpsDistance: isGPS ? distance + 10 : undefined,
+                gpsModifiedDistance: isGPS ? distance : undefined,
+                gpsCoordinates: isGPS ? '[]' : undefined,
+                unit: sourceUnit,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            await waitForBatchedUpdates();
+
+            // Then recipient, rate and distance agree, without converting the raw readings or their original unit
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`);
+            expect(updatedTransaction).toMatchObject({
+                reportID: fakeReport.reportID,
+                participants: [{accountID: 0, isPolicyExpenseChat: true, reportID: fakeReport.reportID, selected: true}],
+                comment: {
+                    odometerStart: 1000,
+                    odometerEnd: 1100,
+                    odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    customUnit: {customUnitRateID: rateID, distanceUnit: targetUnit, quantity: expectedDistance},
+                },
+            });
+        });
+
         it('should use UNREPORTED_REPORT_ID for transaction when autoReporting is disabled', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
