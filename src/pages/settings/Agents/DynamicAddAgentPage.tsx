@@ -337,6 +337,8 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                                 excludedMarkdownStyles={['mentionReport']}
                                 onKeyPress={submitFormOnModEnter}
                                 defaultValue={defaultPrompt}
+                                maxLength={CONST.AGENT_PROMPT_MAX_LENGTH}
+                                sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.INSTRUCTIONS}
                                 multiline
                                 // Keep native markdown sizing enabled across rotation so the input retains focus while its height limit changes.
                                 autoGrowHeight={shouldAutoGrowPromptInput}

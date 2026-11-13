@@ -176,8 +176,11 @@ jest.mock('@components/Form/FormProvider', () => {
     return MockFormProvider;
 });
 
+const mockInputWrapperProps = jest.fn<void, [{inputID: string; maxLength?: number}]>();
+
 jest.mock('@components/Form/InputWrapper', () => {
-    function MockInputWrapper({inputID, defaultValue}: {inputID: string; defaultValue?: string}) {
+    function MockInputWrapper({inputID, defaultValue, maxLength}: {inputID: string; defaultValue?: string; maxLength?: number}) {
+        mockInputWrapperProps({inputID, maxLength});
         return `${inputID}::${defaultValue ?? ''}`;
     }
     return MockInputWrapper;
@@ -273,6 +276,15 @@ describe('AddAgentPage', () => {
         const {toJSON} = renderAddAgentPage();
 
         expect(JSON.stringify(toJSON())).toContain('prompt::addAgentPage.defaultPrompt');
+    });
+
+    it('allows a prompt longer than a chat comment', () => {
+        // Given the agent builder, whose markdown prompt input otherwise falls back to the chat comment limit
+        // When the page renders
+        renderAddAgentPage();
+
+        // Then the prompt input uses the agent prompt limit, so a prompt longer than a chat comment is not cut off
+        expect(mockInputWrapperProps).toHaveBeenCalledWith({inputID: 'prompt', maxLength: CONST.AGENT_PROMPT_MAX_LENGTH});
     });
 
     it('seeds a random default avatar into the draft on mount when it is empty', () => {
