@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import MoneyRequestReportTransactionsNavigation from '@components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 
-import {createTransactionThreadReport} from '@libs/actions/Report';
+import {createTransactionThreadReport, openReport} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
 
@@ -27,10 +27,9 @@ type MockOnyxState = {
     snapshot: {data: Record<string, unknown>} | undefined;
     siblingDescriptors: Record<string, unknown> | undefined;
     transactionsCollection: Record<string, unknown>;
-    /** Fetch status of the `transactions_` subscription, which is how the carousel tells "not loaded" from "gone" */
-    transactionsStatus: 'loading' | 'loaded';
     reportActionsCollection: Record<string, unknown>;
     reportsCollection: Record<string, unknown>;
+    modal: Record<string, unknown> | undefined;
 };
 
 const mockState: MockOnyxState = {
@@ -39,10 +38,30 @@ const mockState: MockOnyxState = {
     snapshot: undefined,
     siblingDescriptors: undefined,
     transactionsCollection: {},
-    transactionsStatus: 'loaded',
     reportActionsCollection: {},
     reportsCollection: {},
+    modal: undefined,
 };
+
+type KeyboardShortcutRegistration = {
+    callback: (event?: KeyboardEvent) => void;
+    config: {captureOnInputs?: boolean; isActive?: boolean; shouldPreventDefault?: boolean};
+};
+
+// The latest registration per key, so a test can check whether a shortcut is active and fire it like a key press would.
+const mockKeyboardShortcuts = new Map<string, KeyboardShortcutRegistration>();
+
+jest.mock('@hooks/useKeyboardShortcut', () => ({
+    __esModule: true,
+    default: (shortcut: {shortcutKey: string}, callback: KeyboardShortcutRegistration['callback'], config: KeyboardShortcutRegistration['config']) => {
+        mockKeyboardShortcuts.set(shortcut.shortcutKey, {callback, config});
+    },
+}));
+
+jest.mock('@libs/getPlatform', () => ({
+    __esModule: true,
+    default: () => 'web',
+}));
 
 const mockUseOnyx = jest.fn();
 const mockMarkReportRHPWidth = jest.fn();
@@ -76,7 +95,15 @@ jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: () => ({}),
 }));
 
+const mockShouldUseTableViewForSingleExpense = {value: false};
+
+jest.mock('@hooks/useSingleExpenseReportView', () => ({
+    __esModule: true,
+    default: () => ({shouldUseTableViewForSingleExpense: mockShouldUseTableViewForSingleExpense.value}),
+}));
+
 const mockIsOffline = {value: false};
+const mockIsFocused = {value: true};
 
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
@@ -86,7 +113,7 @@ jest.mock('@hooks/useNetwork', () => ({
 // Only useIsFocused is overridden; findFocusedRoute is the real one, since the teardown assertions depend on it.
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
-    useIsFocused: () => true,
+    useIsFocused: () => mockIsFocused.value,
 }));
 
 type ReactActual = {createElement: typeof React.createElement; Fragment: typeof React.Fragment};
@@ -170,18 +197,21 @@ const resetMockState = () => {
     mockState.snapshot = undefined;
     mockState.siblingDescriptors = undefined;
     mockState.transactionsCollection = {};
-    mockState.transactionsStatus = 'loaded';
     mockState.reportActionsCollection = {};
     mockState.reportsCollection = {};
+    mockState.modal = undefined;
+    mockKeyboardShortcuts.clear();
     mockGetRootState.mockReturnValue(makeRootState('testRoute'));
     mockIsOffline.value = false;
+    mockIsFocused.value = true;
+    jest.mocked(Navigation.getActiveRoute).mockReturnValue('active-route');
+    mockShouldUseTableViewForSingleExpense.value = false;
 };
 
 const setupUseOnyx = () => {
     mockUseOnyx.mockImplementation((key: string, options?: {selector?: (data: unknown) => unknown}) => {
         const selector = options?.selector;
-        // Every branch returns the full `[value, metadata]` tuple `useOnyx` returns. Consumers read the metadata
-        // (`useCarouselTransactionIDs` gates on its `status`), so a value-only mock isn't the hook's contract.
+        // Every branch returns the full `[value, metadata]` tuple `useOnyx` returns.
         const loaded = (value: unknown) => [value, {status: 'loaded'}];
         if (key === ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS) {
             return loaded(mockState.transactionIDsList);
@@ -196,10 +226,13 @@ const setupUseOnyx = () => {
             return loaded(mockState.siblingDescriptors);
         }
         if (key === ONYXKEYS.COLLECTION.TRANSACTION) {
-            return [selector ? selector(mockState.transactionsCollection) : undefined, {status: mockState.transactionsStatus}];
+            return loaded(selector ? selector(mockState.transactionsCollection) : undefined);
         }
         if (key === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
             return loaded(selector ? selector(mockState.reportActionsCollection) : undefined);
+        }
+        if (key === ONYXKEYS.MODAL) {
+            return loaded(selector ? selector(mockState.modal) : mockState.modal);
         }
         if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
             return loaded(mockState.reportsCollection[key]);
@@ -224,6 +257,20 @@ const press = (testID: string) => {
     };
     fireEvent.press(screen.getByTestId(testID));
 };
+
+const pressKey = (shortcutKey: string, {defaultPrevented = false} = {}) => {
+    global.requestAnimationFrame = (callback: FrameRequestCallback) => {
+        callback(0);
+        return 0;
+    };
+    const event = new KeyboardEvent('keydown', {key: shortcutKey, cancelable: true});
+    if (defaultPrevented) {
+        event.preventDefault();
+    }
+    mockKeyboardShortcuts.get(shortcutKey)?.callback(event);
+};
+
+const isShortcutActive = (shortcutKey: string) => !!mockKeyboardShortcuts.get(shortcutKey)?.config.isActive;
 
 describe('MoneyRequestReportTransactionsNavigation', () => {
     beforeEach(() => {
@@ -262,6 +309,113 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rPrev', reportActionID: undefined, anchorTransactionID: PREV_ID}));
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('rPrev', 'wide');
         });
+
+        it('navigates to the thread in the table view, where the report would show the expense as a row with no arrows', () => {
+            // Given the user views single-expense reports in the table view, and the next expense already has a thread
+            mockShouldUseTableViewForSingleExpense.value = true;
+            mockState.reportActionsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rNext`]: {actionNext: makeIOUAction(NEXT_ID, {childReportID: 'threadNext', reportID: 'rNext'})},
+            };
+            renderNavigation();
+
+            // When the user steps to the next expense, as in the duplicate review
+            press('next-button');
+
+            // Then its thread opens, so the user stays on an expense and keeps the arrows
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadNext', anchorTransactionID: NEXT_ID}));
+        });
+
+        it('still opens a "Pay someone" report in the table view, as it keeps the expense view', () => {
+            // Given the user views single-expense reports in the table view, and the next expense is a "Pay someone" payment
+            mockShouldUseTableViewForSingleExpense.value = true;
+            mockState.reportActionsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rNext`]: {
+                    actionNext: {
+                        ...makeIOUAction(NEXT_ID, {childReportID: 'threadNext', reportID: 'rNext'}),
+                        originalMessage: {IOUTransactionID: NEXT_ID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUDetails: {amount: 100}},
+                    },
+                },
+            };
+            renderNavigation();
+
+            // When the user steps to it
+            press('next-button');
+
+            // Then its report opens, as it shows the expense itself
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rNext', anchorTransactionID: NEXT_ID}));
+        });
+    });
+
+    describe('uncached sent-money siblings', () => {
+        beforeEach(() => {
+            mockShouldUseTableViewForSingleExpense.value = true;
+            mockState.transactionsCollection = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${PREV_ID}`]: {transactionID: PREV_ID, reportID: 'rPrev'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${NEXT_ID}`]: {transactionID: NEXT_ID, reportID: 'rNext'},
+            };
+            mockState.reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rPrev`]: {reportID: 'rPrev', transactionCount: 1},
+                [`${ONYXKEYS.COLLECTION.REPORT}rNext`]: {reportID: 'rNext', transactionCount: 1},
+            };
+        });
+
+        const loadPayAction = (reportID: string, transactionID: string, legacy = false) => {
+            const payload = {IOUTransactionID: transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUDetails: {amount: 100}};
+            mockState.reportActionsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
+                    pay: {
+                        reportActionID: `pay_${transactionID}`,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        reportID,
+                        ...(legacy ? {originalMessage: payload, message: [{type: 'COMMENT', text: 'Paid'}]} : {message: payload}),
+                    },
+                },
+            };
+        };
+
+        it.each([
+            {button: 'next-button', reportID: 'rNext', transactionID: NEXT_ID, legacy: false},
+            {button: 'prev-button', reportID: 'rPrev', transactionID: PREV_ID, legacy: false},
+            {button: 'next-button', reportID: 'rNext', transactionID: NEXT_ID, legacy: true},
+            {button: 'prev-button', reportID: 'rPrev', transactionID: PREV_ID, legacy: true},
+        ])('replays one $button press after PAY actions load (legacy: $legacy)', ({button, reportID, transactionID, legacy}) => {
+            // Given the sibling's transaction and report are cached, but its actions are not.
+            const {rerender} = renderNavigation();
+            press(button);
+            expect(openReport).toHaveBeenCalledWith(expect.objectContaining({reportID}));
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+
+            // When the fetch supplies a PAY action rather than an expense-creation action.
+            loadPayAction(reportID, transactionID, legacy);
+            rerender(<MoneyRequestReportTransactionsNavigation currentTransactionID={CURRENT_ID} />);
+
+            // Then the original press opens the sent-money report without another click or fetch.
+            expect(Navigation.setParams).toHaveBeenCalledTimes(1);
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID, anchorTransactionID: transactionID}));
+            expect(openReport).toHaveBeenCalledTimes(1);
+        });
+
+        it.each(['focus', 'route'] as const)('does not replay after leaving the original %s', (changedContext) => {
+            // Given a press waiting for its sibling's actions to arrive.
+            const {rerender} = renderNavigation();
+            press('next-button');
+
+            // When the user leaves the original screen before the PAY action arrives.
+            if (changedContext === 'focus') {
+                mockIsFocused.value = false;
+            } else {
+                jest.mocked(Navigation.getActiveRoute).mockReturnValue('other-route');
+            }
+            loadPayAction('rNext', NEXT_ID);
+            rerender(<MoneyRequestReportTransactionsNavigation currentTransactionID={CURRENT_ID} />);
+            mockIsFocused.value = true;
+            jest.mocked(Navigation.getActiveRoute).mockReturnValue('active-route');
+            rerender(<MoneyRequestReportTransactionsNavigation currentTransactionID={CURRENT_ID} />);
+
+            // Then restoring focus or the route cannot revive the cancelled press.
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+        });
     });
 
     describe('resolves siblings and parents from the search snapshot', () => {
@@ -293,6 +447,31 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             press('prev-button');
 
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rPrev', anchorTransactionID: PREV_ID}));
+        });
+
+        it('opens a snapshot-only "Pay someone" report in the table view on the first press', () => {
+            // Given the user views single-expense reports in the table view, and the next expense is a "Pay someone"
+            // payment whose pay action is only in the snapshot, since its parent actions were never loaded live
+            mockShouldUseTableViewForSingleExpense.value = true;
+            mockState.snapshot = {
+                data: {
+                    ...mockState.snapshot?.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rNext`]: {
+                        actionNext: {
+                            ...makeIOUAction(NEXT_ID, {childReportID: 'threadNext', reportID: 'rNext'}),
+                            originalMessage: {IOUTransactionID: NEXT_ID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUDetails: {amount: 100}},
+                        },
+                    },
+                },
+            };
+            renderNavigation();
+
+            // When the user steps to it
+            press('next-button');
+
+            // Then its report opens right away, rather than the press being parked on a fetch that never resolves it
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rNext', anchorTransactionID: NEXT_ID}));
+            expect(openReport).not.toHaveBeenCalled();
         });
     });
 
@@ -329,6 +508,119 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadPrev', anchorTransactionID: PREV_ID}));
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('threadPrev', 'wide');
+        });
+    });
+
+    describe('left and right arrow keys', () => {
+        beforeEach(() => {
+            mockState.transactionsCollection = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${PREV_ID}`]: {transactionID: PREV_ID, reportID: 'rPrev'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${NEXT_ID}`]: {transactionID: NEXT_ID, reportID: 'rNext'},
+            };
+            mockState.reportActionsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rPrev`]: {actionPrev: makeIOUAction(PREV_ID, {childReportID: 'threadPrev', reportID: 'rPrev'})},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rNext`]: {actionNext: makeIOUAction(NEXT_ID, {childReportID: 'threadNext', reportID: 'rNext'})},
+            };
+            mockState.reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rPrev`]: {reportID: 'rPrev', transactionCount: 2},
+                [`${ONYXKEYS.COLLECTION.REPORT}rNext`]: {reportID: 'rNext', transactionCount: 2},
+            };
+        });
+
+        it('moves to the next expense on the right arrow and the previous one on the left arrow', () => {
+            // Given an expense with a sibling on each side
+            renderNavigation();
+
+            // When the right arrow is pressed
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
+
+            // Then it navigates to the next expense, the same as the on-screen next arrow
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadNext', anchorTransactionID: NEXT_ID}));
+
+            // When the left arrow is pressed
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey);
+
+            // Then it navigates to the previous expense, the same as the on-screen previous arrow
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadPrev', anchorTransactionID: PREV_ID}));
+        });
+
+        it('leaves the arrow keys to text inputs', () => {
+            // Given the expense navigation is rendered
+            renderNavigation();
+
+            // Then neither shortcut captures keys typed into a text input, so editing keeps moving the cursor
+            expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)?.config.captureOnInputs).toBe(false);
+            expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)?.config.captureOnInputs).toBe(false);
+        });
+
+        it('does nothing at the last expense, the same as the disabled next arrow', () => {
+            // Given the current expense is the last one in the list
+            mockState.transactionIDsList = [PREV_ID, CURRENT_ID];
+            renderNavigation();
+
+            // When the right arrow is pressed
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
+
+            // Then it stays on the current expense
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+        });
+
+        it('does nothing at the first expense, the same as the disabled previous arrow', () => {
+            // Given the current expense is the first one in the list
+            mockState.transactionIDsList = [CURRENT_ID, NEXT_ID];
+            renderNavigation();
+
+            // When the left arrow is pressed
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey);
+
+            // Then it stays on the current expense
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+        });
+
+        it('keeps both arrow keys active at the last expense so the browser does not scroll the page behind the RHP', () => {
+            // Given the current expense is the last one in the list, and nothing in the RHP has focus to take the key
+            mockState.transactionIDsList = [PREV_ID, CURRENT_ID];
+            renderNavigation();
+
+            // When the registered shortcuts are inspected before any key is pressed, since the bug is about what's registered at the edge
+
+            // Then both shortcuts stay active and keep preventing the default, so an arrow press with nowhere to go
+            // doesn't fall through to the browser and scroll the report table behind the expense
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(true);
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(true);
+            expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)?.config.shouldPreventDefault).not.toBe(false);
+        });
+
+        it('gives the arrow keys up while a modal or popover opens on top of the expense', () => {
+            // Given a popover (e.g. a context menu) is opening over the expense, which uses the arrow keys itself
+            mockState.modal = {isVisible: true, willAlertModalBecomeVisible: true, isPopover: true};
+            renderNavigation();
+
+            // Then neither shortcut is active
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(false);
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(false);
+        });
+
+        it('keeps the arrow keys while only the RHP the expense lives in marks the modal visible', () => {
+            // Given the RHP marks the modal visible on focus, with nothing opened on top of it
+            mockState.modal = {isVisible: true, type: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED};
+            renderNavigation();
+
+            // Then both shortcuts stay active
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(true);
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(true);
+        });
+
+        it('ignores an arrow key that something focused has already handled', () => {
+            // Given the expense navigation is rendered
+            renderNavigation();
+
+            // When an arrow key arrives that a focused menu or list already handled
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, {defaultPrevented: true});
+
+            // Then it doesn't also move to another expense, so keyboard and assistive tech navigation keep working
+            expect(Navigation.setParams).not.toHaveBeenCalled();
         });
     });
 
@@ -520,15 +812,24 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             expect(Navigation.setParams).not.toHaveBeenCalled();
         });
 
-        // A transaction that hasn't loaded yet is not a transaction that is gone: dropping those would shrink the
-        // carousel under the user on a cold open (https://github.com/Expensify/App/issues/99641).
-        it('keeps siblings while the transaction collection is still loading', () => {
-            mockState.transactionsCollection = {};
-            mockState.transactionsStatus = 'loading';
+        // Regression guard for https://github.com/Expensify/App/issues/104307: splitting moves the original expense to the
+        // hidden split report, and its arrow led to a "not here" page.
+        it('drops a sibling that was split', () => {
+            // Given a seeded list whose previous sibling is a split original, moved to the hidden split report
+            mockState.transactionsCollection = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${PREV_ID}`]: {transactionID: PREV_ID, reportID: CONST.REPORT.SPLIT_REPORT_ID},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${NEXT_ID}`]: {transactionID: NEXT_ID, reportID: 'rNext'},
+            };
 
+            // When the navigation renders
             renderNavigation();
 
-            expect(screen.getByText(counterFor(2, 3))).toBeTruthy();
+            // Then the split original isn't counted and its arrow can't open it, since there is no page for it
+            expect(screen.getByText(counterFor(1, 2))).toBeTruthy();
+            expectArrowDisabled('prev-button', true);
+            press('prev-button');
+            expect(Navigation.setParams).not.toHaveBeenCalled();
         });
 
         // The other half of that rule, and the regression guard that matters: a confirmed delete SETs

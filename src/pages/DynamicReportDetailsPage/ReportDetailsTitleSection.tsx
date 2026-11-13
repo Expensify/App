@@ -1,6 +1,5 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 
@@ -8,6 +7,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -16,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     canEditReportTitle,
     getAvailableReportFields,
+    getInvoiceReceiverPolicyID,
     getParentNavigationSubtitle,
     getReportFieldKey,
     isInvoiceReport as isInvoiceReportUtil,
@@ -32,6 +34,7 @@ import {clearPolicyRoomNameErrors} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -57,8 +60,8 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
     const parentReportAction = useParentReportAction(report);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const {reportName, derivedParentReportName} = useReportDetailsReportName(report, parentReport, parentReportAction);
@@ -73,16 +76,25 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
         isMoneyRequest,
         isTrackExpenseReport: isTrackExpenseReportUtil(report, parentReport, parentReportAction),
     });
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived);
+    const invoiceReceiverPolicy = usePolicy(getInvoiceReceiverPolicyID(parentReport));
+    const parentNavigationSubtitleData = getParentNavigationSubtitle({
+        report,
+        policy,
+        invoiceReceiverPolicy,
+        translate,
+        formatPhoneNumber,
+        parentReportName: derivedParentReportName,
+        isParentReportArchived,
+    });
 
     const titleField: OnyxTypes.PolicyReportField | undefined = (() => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields.find((reportField) => isReportFieldOfTypeTitle(reportField));
     })();
     const fieldKey = getReportFieldKey(titleField?.fieldID);
-    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules);
+    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin);
 
-    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserAccountID, rules);
+    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserAccountID, rules, reportOwnerLogin);
 
     const shouldShowFurtherDetailsContent =
         !isEmptyObject(parentNavigationSubtitleData) && (shouldShowEditableTitleField || isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport);
@@ -97,15 +109,11 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
                 onClose={() => clearPolicyRoomNameErrors(report.reportID)}
             >
                 <View style={[styles.flex1]}>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon={shouldShowEditableTitleField && !isFieldDisabled}
-                        interactive={shouldShowEditableTitleField && !isFieldDisabled}
-                        title={reportName}
-                        titleStyle={styles.newKansasLarge}
-                        shouldCheckActionAllowedOnPress={false}
-                        description={translate('task.title')}
+                    <MenuItem.Root
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TITLE}
+                        accessibilityLabel={[translate('task.title'), reportName].filter(Boolean).join(', ')}
                         onPress={
-                            shouldShowEditableTitleField && report.policyID
+                            shouldShowEditableTitleField && !isFieldDisabled && report.policyID
                                 ? () => {
                                       if (!report.policyID) {
                                           return;
@@ -115,7 +123,18 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
                                   }
                                 : undefined
                         }
-                    />
+                    >
+                        <MenuItem.Row>
+                            <MenuItemField.Content name={translate('task.title')}>
+                                {!!reportName && <MenuItem.FieldValue style={styles.newKansasLarge}>{reportName}</MenuItem.FieldValue>}
+                            </MenuItemField.Content>
+                            {shouldShowEditableTitleField && !isFieldDisabled && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 </View>
             </OfflineWithFeedback>
             {shouldShowFurtherDetailsContent && (

@@ -1,6 +1,7 @@
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
+import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
@@ -14,6 +15,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useIsSettingsDrawnOverTabs from '@hooks/useIsSettingsDrawnOverTabs';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -56,6 +58,8 @@ type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const styles = useThemeStyles();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.SETTINGS);
     const tabRootScrollProps = useTabRootScrollProps(styles.w100);
@@ -64,6 +68,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const navigation = useNavigation();
     const isDrawnOverTabs = useIsSettingsDrawnOverTabs();
+    const getFlatNavRowProps = useFlatNavSidebarRowProps();
 
     // The tab navigator keeps the full tab history, so going back returns to the tab the user opened Account from.
     // With nothing behind it, as after a deep link or a relaunch, the tab history is reset to Home alone so that going
@@ -137,6 +142,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             item={item}
                             keyTitle={keyTitle}
                             isFocused={isFocused}
+                            flatNavRowProps={getFlatNavRowProps(isFocused)}
                             isExecuting={isExecuting}
                             isScreenFocused={isScreenFocused}
                             onPress={singleExecution(item.action)}
@@ -196,6 +202,21 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
+    const topBar = (
+        <TopBarWithLoadingBar
+            breadcrumbLabel={translate('initialSettingsPage.account')}
+            shouldDisplaySearch={shouldUseNarrowLayout}
+            shouldDisplayHelpButton={shouldUseNarrowLayout}
+        >
+            {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
+                /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
+                <View style={styles.mr2}>
+                    <AccountSwitcherButton isScreenFocused={isScreenFocused} />
+                </View>
+            )}
+        </TopBarWithLoadingBar>
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -203,25 +224,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             shouldEnableKeyboardAvoidingView={false}
             {...tabRootScreenWrapperProps}
         >
-            <TopBarWithLoadingBar
-                breadcrumbLabel={translate('initialSettingsPage.account')}
-                shouldDisplaySearch={shouldUseNarrowLayout}
-                shouldDisplayHelpButton={shouldUseNarrowLayout}
-                onBackButtonPress={isDrawnOverTabs ? goBackFromAccount : undefined}
-            >
-                {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
-                    /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
-                    <View style={styles.mr2}>
-                        <AccountSwitcherButton isScreenFocused={isScreenFocused} />
-                    </View>
-                )}
-            </TopBarWithLoadingBar>
+            {!shouldScrollMainHeader && topBar}
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 {...tabRootScrollProps}
             >
+                {shouldScrollMainHeader && topBar}
                 {headerContent}
                 {accountMenuItems}
                 {generalMenuItems}

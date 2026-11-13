@@ -1,5 +1,6 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import CardUnsubmittedTransactionsPrompt from '@components/CardUnsubmittedTransactionsPrompt';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
@@ -17,8 +18,10 @@ import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {formatMaskedCardName} from '@libs/CardUtils';
 import escapeCsvField from '@libs/escapeCsvField';
 import localFileDownload from '@libs/localFileDownload';
+import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import {format, parseISO} from 'date-fns';
 import React from 'react';
@@ -26,12 +29,13 @@ import {View} from 'react-native';
 
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
 
-type WorkspaceCompanyCardBulkActionType = 'unassign' | 'viewTransactions' | 'exportCSV';
+type WorkspaceCompanyCardBulkActionType = 'editTransactionStartDate' | 'unassign' | 'viewTransactions' | 'exportCSV';
 
 type WorkspaceCompanyCardsTableControlsProps = {
     policyID: string;
     domainOrWorkspaceAccountID: number;
     bankName: UseCompanyCardsResult['bankName'];
+    feedName: UseCompanyCardsResult['feedName'];
 
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
@@ -47,6 +51,7 @@ function WorkspaceCompanyCardsTableControls({
     policyID,
     domainOrWorkspaceAccountID,
     bankName,
+    feedName,
     canWriteCompanyCards,
     clearCardSelection,
     isSelectionModeEnabled,
@@ -55,7 +60,7 @@ function WorkspaceCompanyCardsTableControls({
     const {pageGutter} = useLayoutSpacing();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const icons = useMemoizedLazyExpensifyIcons(['Export', 'MoneySearch', 'RemoveMembers']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Export', 'MoneySearch', 'RemoveMembers']);
     const {processedData, shouldUseNarrowTableLayout} = useTableContext<WorkspaceCompanyCardTableItemData>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -109,8 +114,13 @@ function WorkspaceCompanyCardsTableControls({
 
         const {action} = await showConfirmModal({
             shouldSetModalVisibility: false,
-            title: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
-            prompt: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'),
+            title: translate('common.areYouSure'),
+            prompt: (
+                <CardUnsubmittedTransactionsPrompt
+                    cardIDs={selectedAssignedCards.map((card) => card.assignedCard?.cardID).filter((cardID): cardID is number => cardID !== undefined)}
+                    descriptionKey={isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'}
+                />
+            ),
             confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
@@ -139,6 +149,23 @@ function WorkspaceCompanyCardsTableControls({
         clearCardSelection();
     };
 
+    const editSelectedCardTransactionStartDates = () => {
+        if (!feedName) {
+            return;
+        }
+
+        const selectedCardIDs = selectedAssignedCards
+            .map((card) => card.assignedCard?.cardID)
+            .filter((cardID): cardID is number => cardID !== undefined)
+            .map(String);
+        const [selectedCardID] = selectedCardIDs;
+        if (!selectedCardID) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.getRoute(policyID, feedName, selectedCardIDs));
+    };
+
     const getBulkActionOptions = (): Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> => {
         const options: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [];
 
@@ -148,23 +175,34 @@ function WorkspaceCompanyCardsTableControls({
                     icon: icons.RemoveMembers,
                     text: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
                     value: 'unassign',
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_UNASSIGN,
                     shouldSkipFocusRestore: !!bankName,
                     onSelected: confirmBulkUnassign,
                 });
             }
-
             options.push({
                 icon: icons.MoneySearch,
                 text: translate('workspace.common.viewTransactions'),
                 value: 'viewTransactions',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_VIEW_TRANSACTIONS,
                 onSelected: viewSelectedCardTransactions,
             });
+            if (canWriteCompanyCards) {
+                options.push({
+                    icon: icons.CalendarSolid,
+                    text: translate('workspace.moreFeatures.companyCards.bulkUpdateTransactionStartDate'),
+                    value: 'editTransactionStartDate',
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_EDIT_TRANSACTION_START_DATE,
+                    onSelected: editSelectedCardTransactionStartDates,
+                });
+            }
         }
 
         options.push({
             icon: icons.Export,
             text: translate('workspace.expensifyCard.exportAsCSV'),
             value: 'exportCSV',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_EXPORT_CSV,
             onSelected: exportSelectedCardsToCSV,
         });
 

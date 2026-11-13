@@ -59,14 +59,14 @@ describe('Subscription/AddPaymentCard', () => {
         await waitForBatchedUpdates();
     };
 
-    const renderAddPaymentCardPage = async (initialRouteName: typeof SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD) => {
+    const renderAddPaymentCardPage = async (initialRouteName: typeof SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD) => {
         const rendered = render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, HTMLEngineProvider]}>
                 <PortalProvider>
                     <NavigationContainer>
                         <Stack.Navigator initialRouteName={initialRouteName}>
                             <Stack.Screen
-                                name={SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD}
+                                name={SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD}
                                 component={AddPaymentCard}
                             />
                         </Stack.Navigator>
@@ -81,7 +81,7 @@ describe('Subscription/AddPaymentCard', () => {
     describe('AddPaymentCardPage Expiration Date Formatting', () => {
         const runFormatTest = async (input: string, formattedAs: string) => {
             await hydrateAddPaymentCardForm();
-            await renderAddPaymentCardPage(SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD);
+            await renderAddPaymentCardPage(SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD);
             const expirationDateField = await screen.findByTestId('addPaymentCardPage.expiration');
             fireEvent.changeText(expirationDateField, input);
             expect(expirationDateField.props.value).toBe(formattedAs);

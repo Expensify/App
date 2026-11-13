@@ -19,11 +19,11 @@ import type {ValueOf} from 'type-fest';
 import {useEffect} from 'react';
 
 type UseReceiptPartnersSettingsOptions = {
-    /** Runs once the user confirms disconnecting, before the connection is removed */
-    onDisconnectConfirmed?: () => void;
+    /** Runs once the user confirms disconnecting and takes over calling `disconnect`, so the panel can close before the connection is removed */
+    onDisconnectConfirmed?: (disconnect: () => void) => void;
 };
 
-/** State and actions for the workspace's receipt partner connections, shared by the Receipt partners page and its Connections panel */
+/** State and actions for the workspace's receipt partner connections, used by the Connections receipt partners panel */
 function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: UseReceiptPartnersSettingsOptions = {}) {
     const icons = useMemoizedLazyExpensifyIcons(['Key', 'NewWindow', 'Trashcan']);
     const {translate} = useLocalize();
@@ -81,6 +81,7 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
                         {
                             icon: icons.Key,
                             text: translate('workspace.accounting.enterCredentials'),
+                            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.RECEIPT_PARTNERS_MENU_ENTER_CREDENTIALS,
                             onSelected: () =>
                                 startIntegrationFlow({
                                     name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
@@ -96,6 +97,7 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
                     {
                         icon: icons.Trashcan,
                         text: translate('workspace.accounting.disconnect'),
+                        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.RECEIPT_PARTNERS_MENU_DISCONNECT,
                         onSelected: () => {
                             showConfirmModal({
                                 title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
@@ -107,8 +109,12 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
                                 if (action !== ModalActions.CONFIRM) {
                                     return;
                                 }
-                                onDisconnectConfirmed?.();
-                                disconnectPartner(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
+                                const disconnect = () => disconnectPartner(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
+                                if (onDisconnectConfirmed) {
+                                    onDisconnectConfirmed(disconnect);
+                                    return;
+                                }
+                                disconnect();
                             });
                         },
                         shouldCallAfterModalHide: true,

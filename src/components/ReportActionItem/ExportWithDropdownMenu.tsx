@@ -21,15 +21,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {StyleSheet} from 'react-native';
 
-type ExportWithDropdownMenuProps = WithSentryLabel & {
+type ExportWithDropdownMenuProps = WithRequiredSentryLabel & {
     report: OnyxEntry<Report>;
 
     reportActions: OnyxEntry<ReportActions>;
@@ -81,35 +81,37 @@ function ExportWithDropdownMenu({
     const flattenedWrapperStyle = StyleSheet.flatten([styles.flex1, wrapperStyle]);
     const connectionNameFriendly = getAccountingIntegrationDisplayName(policy, connectionName, translate);
 
-    const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
-        const optionTemplate = {
-            icon: iconToDisplay,
-            disabled: !canBeExported,
-            displayInDefaultIconColor: true,
-            iconWidth: variables.iconSizeMenuItem,
-            iconHeight: variables.iconSizeMenuItem,
-            additionalIconStyles: styles.integrationIcon,
-        };
-        const options = [
-            {
-                value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: translate('workspace.common.exportIntegrationSelected', {connectionName, connectionNameFriendly}),
-                ...optionTemplate,
-            },
-            {
-                value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
-                text: translate('workspace.common.markAsEntered'),
-                ...optionTemplate,
-            },
-        ];
-        const exportMethod = report?.policyID ? exportMethods?.[report.policyID] : null;
-        if (exportMethod) {
-            options.sort((method) => (method.value === exportMethod ? -1 : 0));
-        }
-        return options;
-        // We do not include exportMethods not to re-render the component when the preferred export method changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [canBeExported, iconToDisplay, connectionName, connectionNameFriendly, report?.policyID, translate]);
+    const optionTemplate = {
+        icon: iconToDisplay,
+        disabled: !canBeExported,
+        displayInDefaultIconColor: true,
+        iconWidth: variables.iconSizeMenuItem,
+        iconHeight: variables.iconSizeMenuItem,
+        additionalIconStyles: styles.integrationIcon,
+    };
+    const dropdownOptions: Array<DropdownOption<ReportExportType>> = [
+        {
+            value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT_PREVIEW.EXPORT_MENU.EXPORT_TO_INTEGRATION,
+            text: translate('workspace.common.exportIntegrationSelected', {
+                connectionName,
+                connectionNameFriendly,
+            }),
+            ...optionTemplate,
+        },
+        {
+            value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT_PREVIEW.EXPORT_MENU.MARK_AS_EXPORTED,
+            text: translate('workspace.common.markAsEntered'),
+            ...optionTemplate,
+        },
+    ];
+    const exportMethod = report?.policyID ? exportMethods?.[report.policyID] : null;
+    // The split button tracks selection by index, so saving a preference must not reorder its options.
+    const defaultSelectedIndex = Math.max(
+        0,
+        dropdownOptions.findIndex(({value}) => value === exportMethod),
+    );
 
     const handleExport = (exportType: ReportExportType) => {
         if (!reportID) {
@@ -158,6 +160,7 @@ function ExportWithDropdownMenu({
             }}
             onOptionSelected={({value}) => savePreferredExportMethod(value)}
             options={dropdownOptions}
+            defaultSelectedIndex={defaultSelectedIndex}
             style={[shouldUseNarrowLayout && styles.flexGrow1]}
             wrapperStyle={flattenedWrapperStyle}
             size={CONST.BUTTON_SIZE.MEDIUM}

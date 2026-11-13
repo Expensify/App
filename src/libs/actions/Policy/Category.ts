@@ -5,11 +5,15 @@ import type PolicyData from '@hooks/usePolicyData/types';
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
+    CreateWorkspaceCategoriesParams,
+    DeleteWorkspaceCategoriesParams,
     EnablePolicyCategoriesParams,
     GetPolicyCategoriesParams,
     OpenPolicyCategoriesPageParams,
     RemovePolicyCategoryItemizedReceiptsRequiredParams,
     RemovePolicyCategoryReceiptsRequiredParams,
+    RenameWorkspaceCategoriesParams,
+    SetPolicyAutoCategorizeNewExpensesParams,
     SetPolicyCategoryApproverParams,
     SetPolicyCategoryAttendeesRequiredParams,
     SetPolicyCategoryDescriptionRequiredParams,
@@ -17,9 +21,13 @@ import type {
     SetPolicyCategoryMaxAmountParams,
     SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams,
     SetPolicyCategoryReceiptsRequiredParams,
+    SetPolicyCategoryTaxParams,
+    SetPolicyMemberCategoryVisibilityParams,
     SetPolicyShowCategoryGLCodesParams,
+    SetWorkspaceCategoriesEnabledParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
+    UpdatePolicyCategoryPayrollCodeParams,
     SetWorkspaceRequiresCategoryParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -41,13 +49,13 @@ import {getFinishOnboardingTaskOnyxData, withReviewWorkspaceSettingsTaskData} fr
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, PolicyEmployee, PolicyEmployeeList, Report, ReportAction} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {ApprovalRule, CustomUnit, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 
 import lodashCloneDeep from 'lodash/cloneDeep';
@@ -70,6 +78,7 @@ type CreatePolicyCategoryParams = {
     setupCategoriesAndTagsHasOutstandingChildTask?: boolean;
     setupCategoriesAndTagsParentReportAction?: OnyxEntry<ReportAction>;
     policyHasTags?: boolean;
+    reviewWorkspaceSettingsTaskData?: OnboardingTaskCompletionOnyxData;
 };
 
 type SetWorkspaceCategoryEnabledParams = {
@@ -88,6 +97,7 @@ type SetWorkspaceCategoryEnabledParams = {
     setupCategoriesAndTagsParentReportAction?: OnyxEntry<ReportAction>;
     policyHasTags?: boolean;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    reviewWorkspaceSettingsTaskData?: OnboardingTaskCompletionOnyxData;
 };
 
 function appendSetupCategoriesOnboardingData(
@@ -226,6 +236,7 @@ function setWorkspaceCategoryEnabled({
     setupCategoriesAndTagsParentReportAction,
     policyHasTags,
     isVendorMatchingBetaEnabled,
+    reviewWorkspaceSettingsTaskData = {},
 }: SetWorkspaceCategoryEnabledParams) {
     const policyID = policyData.policy?.id;
     const policyCategoriesOptimisticData = {
@@ -317,15 +328,22 @@ function setWorkspaceCategoryEnabled({
         );
     }
 
-    const parameters = {
+    const parameters: SetWorkspaceCategoriesEnabledParams = {
         policyID,
         categories: JSON.stringify(Object.keys(categoriesToUpdate).map((key) => categoriesToUpdate[key])),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: string, areCommentsRequired: boolean, policyCategories: PolicyCategories = {}) {
+function setPolicyCategoryDescriptionRequired(
+    policyID: string,
+    categoryName: string,
+    areCommentsRequired: boolean,
+    policyCategories: PolicyCategories = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyCategoryToUpdate = policyCategories?.[categoryName];
     const originalAreCommentsRequired = policyCategoryToUpdate?.areCommentsRequired;
     const isRemoving = !areCommentsRequired;
@@ -392,12 +410,19 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
         policyID,
         categoryName,
         areCommentsRequired,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoReceipt: number, isVendorMatchingBetaEnabled: boolean | undefined) {
+function setPolicyCategoryReceiptsRequired(
+    policyData: PolicyData,
+    categoryName: string,
+    maxAmountNoReceipt: number,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
     const policyCategoriesOptimisticData = {
@@ -457,12 +482,18 @@ function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName:
         policyID,
         categoryName,
         maxExpenseAmountNoReceipt: maxAmountNoReceipt,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string, isVendorMatchingBetaEnabled: boolean | undefined) {
+function removePolicyCategoryReceiptsRequired(
+    policyData: PolicyData,
+    categoryName: string,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
     const policyCategoriesOptimisticData = {
@@ -521,12 +552,19 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
     const parameters: RemovePolicyCategoryReceiptsRequiredParams = {
         policyID,
         categoryName,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function setPolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoItemizedReceipt: number, isVendorMatchingBetaEnabled: boolean | undefined) {
+function setPolicyCategoryItemizedReceiptsRequired(
+    policyData: PolicyData,
+    categoryName: string,
+    maxAmountNoItemizedReceipt: number,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
     const policyCategoriesOptimisticData = {
@@ -586,12 +624,18 @@ function setPolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categ
         policyID,
         categoryName,
         maxExpenseAmountNoItemizedReceipt: maxAmountNoItemizedReceipt,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string, isVendorMatchingBetaEnabled: boolean | undefined) {
+function removePolicyCategoryItemizedReceiptsRequired(
+    policyData: PolicyData,
+    categoryName: string,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
     const policyCategoriesOptimisticData = {
@@ -650,9 +694,10 @@ function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, ca
     const parameters: RemovePolicyCategoryItemizedReceiptsRequiredParams = {
         policyID,
         categoryName,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyCategoryReceiptsAndItemizedReceiptRequired(
@@ -661,6 +706,7 @@ function setPolicyCategoryReceiptsAndItemizedReceiptRequired(
     maxAmountNoReceipt: number,
     maxAmountNoItemizedReceipt: number,
     isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const policyID = policyData.policy?.id;
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
@@ -729,9 +775,10 @@ function setPolicyCategoryReceiptsAndItemizedReceiptRequired(
         categoryName,
         maxExpenseAmountNoReceipt: maxAmountNoReceipt,
         maxExpenseAmountNoItemizedReceipt: maxAmountNoItemizedReceipt,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_AND_ITEMIZED_RECEIPT_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_AND_ITEMIZED_RECEIPT_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function createPolicyCategory({
@@ -749,6 +796,7 @@ function createPolicyCategory({
     setupCategoriesAndTagsHasOutstandingChildTask,
     setupCategoriesAndTagsParentReportAction,
     policyHasTags,
+    reviewWorkspaceSettingsTaskData = {},
 }: CreatePolicyCategoryParams) {
     const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
     appendSetupCategoriesOnboardingData(
@@ -772,12 +820,13 @@ function createPolicyCategory({
             setupCategoriesAndTagsParentReportAction,
         );
     }
-    const parameters = {
+    const parameters: CreateWorkspaceCategoriesParams = {
         policyID,
         categories: JSON.stringify([{name: categoryName}]),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
+    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 async function importPolicyCategories(policyID: string, categories: PolicyCategory[], existingCategories?: OnyxEntry<PolicyCategories>): Promise<ImportFinalModal> {
@@ -847,7 +896,12 @@ async function importPolicyCategories(policyID: string, categories: PolicyCatego
     }
 }
 
-function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}, isVendorMatchingBetaEnabled: boolean | undefined) {
+function renamePolicyCategory(
+    policyData: PolicyData,
+    policyCategory: {oldName: string; newName: string},
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policy = policyData.policy;
     const policyID = policy.id;
     const policyCategoryToUpdate = policyData.categories?.[policyCategory.oldName];
@@ -990,14 +1044,15 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
 
     pushTransactionViolationsOnyxData(onyxData, {...policyData, categories: policyCategories}, isVendorMatchingBetaEnabled, policyOptimisticData, policyCategoriesOptimisticData);
 
-    const parameters = {
+    const parameters: RenameWorkspaceCategoriesParams = {
         policyID,
         categories: JSON.stringify({
             [policyCategory.oldName]: policyCategory.newName,
         }),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, onyxData);
+    API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, payrollCode: string, policyCategories: PolicyCategories = {}) {
@@ -1059,7 +1114,7 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
         ],
     };
 
-    const parameters = {
+    const parameters: UpdatePolicyCategoryPayrollCodeParams = {
         policyID,
         categoryName,
         payrollCode,
@@ -1205,7 +1260,7 @@ function setWorkspaceRequiresCategory(
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function setPolicyAutoCategorizeNewExpenses(policyID: string, enabled: boolean) {
+function setPolicyAutoCategorizeNewExpenses(policyID: string, enabled: boolean, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -1253,12 +1308,13 @@ function setPolicyAutoCategorizeNewExpenses(policyID: string, enabled: boolean) 
         ],
     };
 
-    const parameters = {
+    const parameters: SetPolicyAutoCategorizeNewExpensesParams = {
         policyID,
         enabled,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_AUTO_CATEGORIZE_NEW_EXPENSES, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_AUTO_CATEGORIZE_NEW_EXPENSES, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyShowCategoryGLCodes(policyID: string | undefined, showCategoryGLCodes: boolean) {
@@ -1352,6 +1408,7 @@ function deleteWorkspaceCategories(
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction>,
     isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const policyID = policyData.policy?.id;
     const optimisticPolicyCategoriesData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
@@ -1418,12 +1475,13 @@ function deleteWorkspaceCategories(
         parentReportAction,
     );
 
-    const parameters = {
+    const parameters: DeleteWorkspaceCategoriesParams = {
         policyID,
         categories: JSON.stringify(categoryNamesToDelete),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, onyxData);
+    API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function enablePolicyCategories(policyData: PolicyData, enabled: boolean, isVendorMatchingBetaEnabled: boolean | undefined, shouldGoBack = true) {
@@ -1598,7 +1656,13 @@ function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void, t
     fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string, policyCategories: PolicyCategories = {}) {
+function setWorkspaceCategoryDescriptionHint(
+    policyID: string,
+    categoryName: string,
+    commentHint: string,
+    policyCategories: PolicyCategories = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const originalCommentHint = policyCategories?.[categoryName]?.commentHint;
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
@@ -1654,9 +1718,10 @@ function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: str
         policyID,
         categoryName,
         commentHint,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORY_DESCRIPTION_HINT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORY_DESCRIPTION_HINT, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyCategoryMaxAmount(
@@ -1665,6 +1730,7 @@ function setPolicyCategoryMaxAmount(
     maxExpenseAmount: string,
     expenseLimitType: PolicyCategoryExpenseLimitType,
     policyCategories: PolicyCategories = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const policyCategoryToUpdate = policyCategories?.[categoryName];
     const originalMaxExpenseAmount = policyCategoryToUpdate?.maxExpenseAmount;
@@ -1743,9 +1809,10 @@ function setPolicyCategoryMaxAmount(
         categoryName,
         maxExpenseAmount: parsedMaxExpenseAmount,
         expenseLimitType,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyCategoryApprover(policyID: string, categoryName: string, approver: string, approvalRules: ApprovalRule[]) {
@@ -1875,7 +1942,7 @@ function withCategoryTaxRates(expenseRules: ExpenseRule[], taxRatesByCategory: M
  * The cost is that a partial failure discards the writes that succeeded too, so they read stale until the next policy
  * read. That beats showing a rate the server rejected, which is what the admin would otherwise save on top of.
  */
-function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string) {
+function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
     if (!policy?.id || categoryNames.length === 0 || !taxID) {
         Log.warn('Invalid params for setPolicyCategoryTaxes');
         return;
@@ -1905,14 +1972,18 @@ function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string
         ],
     };
 
+    // Drained to {} after the first write so this save's optimistic task tick fires exactly once, even though it writes one call per category.
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
     for (const categoryName of categoryNames) {
-        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, categoryName, taxID}, onyxData);
+        const parameters: SetPolicyCategoryTaxParams = {policyID, categoryName, taxID, completedTaskReportActionID: remainingTaskData.completedTaskReportActionID};
+        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, withReviewWorkspaceSettingsTaskData(onyxData, remainingTaskData));
+        remainingTaskData = {};
     }
 }
 
 /** Sets a single category's default tax rate. */
-function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string) {
-    setPolicyCategoryTaxes(policy, [categoryName], taxID);
+function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
+    setPolicyCategoryTaxes(policy, [categoryName], taxID, reviewWorkspaceSettingsTaskData);
 }
 
 /**
@@ -1927,7 +1998,7 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
  * Every rollback is the array as it stood before the delete, for the reason in `setPolicyCategoryTaxes`: Onyx replaces
  * the array wholesale, so per-category snapshots contradict each other and the last failure to land hides the rest.
  */
-function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[]) {
+function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     if (!policy?.id || !defaultExternalID || categoryNames.length === 0) {
         Log.warn('Invalid params for deletePolicyCategoryTaxes');
@@ -1966,14 +2037,18 @@ function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: str
         ],
     };
 
+    // Drained to {} after the first write so this delete's optimistic task tick fires exactly once, even though it writes one call per category.
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
     for (const categoryName of targets) {
-        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, categoryName, taxID: defaultExternalID}, onyxData);
+        const parameters: SetPolicyCategoryTaxParams = {policyID, categoryName, taxID: defaultExternalID, completedTaskReportActionID: remainingTaskData.completedTaskReportActionID};
+        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, withReviewWorkspaceSettingsTaskData(onyxData, remainingTaskData));
+        remainingTaskData = {};
     }
 }
 
 /** Removes a single category's default tax rate. */
-function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string) {
-    deletePolicyCategoryTaxes(policy, [categoryName]);
+function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
+    deletePolicyCategoryTaxes(policy, [categoryName], reviewWorkspaceSettingsTaskData);
 }
 
 /**
@@ -1992,7 +2067,13 @@ function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string
  * queues behind the failure it is meant to repair. The next policy read reconciles, and until the API can move a rate
  * in one command that is the honest bound on this flow.
  */
-function movePolicyCategoryTax(policy: OnyxEntry<Policy>, fromCategoryName: string, toCategoryName: string, taxID: string) {
+function movePolicyCategoryTax(
+    policy: OnyxEntry<Policy>,
+    fromCategoryName: string,
+    toCategoryName: string,
+    taxID: string,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     if (!policy?.id || !defaultExternalID || !fromCategoryName || !toCategoryName || !taxID) {
         Log.warn('Invalid params for movePolicyCategoryTax');
@@ -2026,12 +2107,163 @@ function movePolicyCategoryTax(policy: OnyxEntry<Policy>, fromCategoryName: stri
         ],
     };
 
+    // Drained to {} after the first write so this move's optimistic task tick fires exactly once, even though it writes two commands.
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
     for (const write of writes) {
-        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, ...write}, onyxData);
+        const parameters: SetPolicyCategoryTaxParams = {policyID, ...write, completedTaskReportActionID: remainingTaskData.completedTaskReportActionID};
+        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, withReviewWorkspaceSettingsTaskData(onyxData, remainingTaskData));
+        remainingTaskData = {};
     }
 }
 
-function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: string, areAttendeesRequired: boolean, policyCategories: PolicyCategories = {}) {
+/**
+ * Sets which enabled categories the given members can use. A category open to everyone (`visibleTo` is null) is
+ * restricted to every other workspace member when the given members lose access to it.
+ *
+ * The pending state and any error live on the members themselves (`memberLogins` are their employeeList keys), so they
+ * show on the member that was changed rather than on every category the change touched.
+ */
+function setPolicyMemberCategoryVisibility(
+    policyID: string,
+    accountIDs: number[],
+    categories: string[],
+    policyCategories: PolicyCategories,
+    policyMemberAccountIDs: number[],
+    memberLogins: string[],
+) {
+    const selectedCategories = new Set(categories);
+    const optimisticCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const successCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const failureCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+
+    for (const category of Object.values(policyCategories)) {
+        if (!category.enabled) {
+            continue;
+        }
+
+        const previousVisibleTo = category.visibleTo ?? null;
+        const shouldBeVisible = selectedCategories.has(category.name);
+
+        // visibleTo is merged, so an existing restriction is changed by patching only the members that move: true adds
+        // a member and null removes one. The failure patch is the inverse, so it puts back exactly what was there.
+        let optimisticVisibleTo: Record<string, boolean | null> | null;
+        let failureVisibleTo: Record<string, boolean | null> | null;
+        if (!previousVisibleTo) {
+            if (shouldBeVisible) {
+                continue;
+            }
+            optimisticVisibleTo = Object.fromEntries(policyMemberAccountIDs.filter((accountID) => !accountIDs.includes(accountID)).map((accountID) => [accountID, true]));
+            failureVisibleTo = null;
+        } else {
+            const changedAccountIDs = accountIDs.filter((accountID) => !!previousVisibleTo[accountID] !== shouldBeVisible);
+            if (changedAccountIDs.length === 0) {
+                continue;
+            }
+            optimisticVisibleTo = Object.fromEntries(changedAccountIDs.map((accountID) => [accountID, shouldBeVisible ? true : null]));
+            failureVisibleTo = Object.fromEntries(changedAccountIDs.map((accountID) => [accountID, shouldBeVisible ? null : true]));
+        }
+
+        optimisticCategories[category.name] = {
+            visibleTo: optimisticVisibleTo,
+            pendingFields: {visibleTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        };
+        successCategories[category.name] = {
+            pendingFields: {visibleTo: null},
+        };
+        failureCategories[category.name] = {
+            visibleTo: failureVisibleTo,
+            pendingFields: {visibleTo: null},
+        };
+    }
+
+    const buildEmployeeList = (employee: PolicyEmployee): PolicyEmployeeList => Object.fromEntries(memberLogins.map((login) => [login, employee]));
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: optimisticCategories,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    employeeList: buildEmployeeList({
+                        pendingFields: {categoryVisibility: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: {categoryVisibility: null},
+                    }),
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: successCategories,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    employeeList: buildEmployeeList({pendingFields: {categoryVisibility: null}}),
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: failureCategories,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    employeeList: buildEmployeeList({
+                        pendingFields: {categoryVisibility: null},
+                        errorFields: {categoryVisibility: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    }),
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyMemberCategoryVisibilityParams = {
+        policyID,
+        accountIDList: JSON.stringify(accountIDs),
+        categories: JSON.stringify(categories),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_MEMBER_CATEGORY_VISIBILITY, parameters, onyxData);
+}
+
+/** Signals the "Cannot disable category" modal for members the backend refused to leave without a category. */
+function setMembersNeedCategoryModal(policyID: string, accountIDs: number[], categoryNames: string[]) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL, {policyID, accountIDs, categoryNames});
+}
+
+/** Clears the signal for the "Cannot disable category" modal once it has been shown. */
+function clearMembersNeedCategoryModal() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL, null);
+}
+
+/** Dismisses the error left on a member by a failed category visibility change. */
+function clearPolicyMemberCategoryVisibilityError(policyID: string, memberLogin: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        employeeList: {
+            [memberLogin]: {errorFields: {categoryVisibility: null}},
+        },
+    });
+}
+
+function setPolicyCategoryAttendeesRequired(
+    policyID: string,
+    categoryName: string,
+    areAttendeesRequired: boolean,
+    policyCategories: PolicyCategories = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyCategoryToUpdate = policyCategories?.[categoryName];
     const originalAreAttendeesRequired = policyCategoryToUpdate?.areAttendeesRequired;
     const isRemoving = !areAttendeesRequired;
@@ -2098,16 +2330,19 @@ function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: stri
         policyID,
         categoryName,
         areAttendeesRequired,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ATTENDEES_REQUIRED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ATTENDEES_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 export {
+    clearMembersNeedCategoryModal,
     clearCategoryErrors,
     deletePolicyCategoryTax,
     deletePolicyCategoryTaxes,
     createPolicyCategory,
+    clearPolicyMemberCategoryVisibilityError,
     deleteWorkspaceCategories,
     downloadCategoriesCSV,
     enablePolicyCategories,
@@ -2131,6 +2366,8 @@ export {
     setPolicyCategoryTax,
     setPolicyCategoryTaxes,
     setPolicyCustomUnitDefaultCategory,
+    setMembersNeedCategoryModal,
+    setPolicyMemberCategoryVisibility,
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,

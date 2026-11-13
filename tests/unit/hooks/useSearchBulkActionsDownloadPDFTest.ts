@@ -10,6 +10,7 @@ import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReportsToPDF} from '@libs/actions/Export';
 import {exportReportToPDF} from '@libs/actions/Report';
+import type * as SearchActions from '@libs/actions/Search';
 import {getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 
@@ -59,6 +60,14 @@ jest.mock('@hooks/useExpensifyCardStatementPDFDownloadModal', () => ({
     }),
 }));
 
+// The report PDF hook owns its own Onyx subscriptions and modal lifecycle (covered by useReportPDFDownloadModalTest),
+// so only its show call is observed here.
+const mockShowReportPDFDownloadModal = jest.fn<Promise<{action: string}>, [{reportID: string}]>(() => Promise.resolve({action: 'CLOSE'}));
+jest.mock('@hooks/useReportPDFDownloadModal', () => ({
+    __esModule: true,
+    default: () => ({showReportPDFDownloadModal: mockShowReportPDFDownloadModal}),
+}));
+
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
@@ -77,6 +86,7 @@ jest.mock('@hooks/useEnvironment', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
     openSearchCardFiltersPage: jest.fn(),
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
@@ -364,6 +374,8 @@ describe('useSearchBulkActions - Download report', () => {
 
         expect(exportReportToPDF).toHaveBeenCalledTimes(1);
         expect(exportReportToPDF).toHaveBeenCalledWith({reportID: '1'});
+        expect(mockShowReportPDFDownloadModal).toHaveBeenCalledTimes(1);
+        expect(mockShowReportPDFDownloadModal).toHaveBeenCalledWith({reportID: '1'});
     });
 
     it('should not call exportReportToPDF when offline', async () => {

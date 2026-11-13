@@ -1,3 +1,7 @@
+import FSClassView from '@components/FSClassView';
+
+import useConciergeAskState from '@hooks/useConciergeAskState';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -8,7 +12,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 
@@ -23,15 +26,18 @@ function ReportActionsListPaddingView({report, isReportArchived, children}: Repo
     const reportActionsListFSClass = FS.getChatFSClass(report);
 
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
+    const shouldUseCompactChrome = useIsMobileWebLandscape();
+    const {isHistoryExpanded: isConciergeHistoryExpanded} = useConciergeAskState(report.reportID);
     const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
+    const applyPaddingBetweenListAndComposer = !canShowRecipientLocalTime && !hideComposer && !isConciergeHistoryExpanded && !shouldUseCompactChrome;
 
     return (
-        <View
-            style={[styles.flex1, !canShowRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
-            fsClass={reportActionsListFSClass}
+        <FSClassView
+            style={[styles.flex1, applyPaddingBetweenListAndComposer ? styles.pb4 : {}]}
+            forwardedFSClass={reportActionsListFSClass}
         >
             {children}
-        </View>
+        </FSClassView>
     );
 }
 

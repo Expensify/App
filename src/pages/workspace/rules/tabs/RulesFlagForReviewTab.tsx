@@ -76,6 +76,7 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
                 isDisabled: !canWriteRules,
                 buttonText: translate('workspace.rules.flagForReviewEmptyState.cta'),
                 buttonAction: handleNewFlagForReviewRule,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_EMPTY_STATE_ADD_RULE,
             },
         ],
     };

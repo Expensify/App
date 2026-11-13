@@ -27,7 +27,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -42,9 +42,9 @@ function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!autoSyncConfig?.autoSync?.enabled);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -68,6 +68,7 @@ function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps
                     isActive={!!autoSyncConfig?.autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     switchAccessibilityLabel={translate('workspace.netsuite.advancedConfig.autoSyncDescription')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.AUTO_SYNC_SWITCH}
                     shouldPlaceSubtitleBelowSwitch
                     onCloseError={() => clearNetSuiteAutoSyncErrorField(policyID)}
                     onToggle={(isEnabled) => updateNetSuiteAutoSync(policyID, isEnabled)}
@@ -81,6 +82,7 @@ function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps
                 >
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ACCOUNTING_METHOD}
                             value={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                     ? translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)

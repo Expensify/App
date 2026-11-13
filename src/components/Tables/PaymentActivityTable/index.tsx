@@ -5,6 +5,8 @@ import useLocalize from '@hooks/useLocalize';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -13,7 +15,7 @@ import React from 'react';
 
 import PaymentActivityTableRow from './PaymentActivityTableRow';
 
-type PaymentActivityTableColumnKey = 'member';
+type PaymentActivityTableColumnKey = 'member' | 'actions';
 
 type PaymentActivityRowData = TableData & {
     accountID: number;
@@ -26,26 +28,38 @@ type PaymentActivityRowData = TableData & {
 
     /** The active user's formatted email/phone shown as the subtitle */
     email: string;
+
+    /** Opens the active user's public profile */
+    action: () => void;
 };
 
 type PaymentActivityTableProps = {
     /** The active users billed for the month */
     activeUsers: PaymentActivityRowData[];
 
+    /** Whether the bill was on Collect 2025 pricing, which counts members instead of active users */
+    countsMembers: boolean;
+
     /** Page-level content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
 };
 
-function PaymentActivityTable({activeUsers, headerComponent}: PaymentActivityTableProps) {
+function PaymentActivityTable({activeUsers, countsMembers, headerComponent}: PaymentActivityTableProps) {
     const {translate, localeCompare} = useLocalize();
 
     // The count always reflects every active user, not just the ones matching the search.
-    const activeUsersLabel = translate('subscription.paymentHistory.activeUsers', {count: activeUsers.length});
+    const activeUsersLabel = translate(countsMembers ? 'subscription.paymentHistory.members' : 'subscription.paymentHistory.activeUsers', {count: activeUsers.length});
 
     const columns: Array<TableColumn<PaymentActivityTableColumnKey>> = [
         {
             key: 'member',
             label: activeUsersLabel,
+            sortable: false,
+        },
+        {
+            key: 'actions',
+            label: '',
+            width: variables.tableCaretColumnWidth,
             sortable: false,
         },
     ];
@@ -68,7 +82,7 @@ function PaymentActivityTable({activeUsers, headerComponent}: PaymentActivityTab
     const shouldShowSearchBar = activeUsers.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const tableHeaderComponent = composeTableListHeader(
         headerComponent,
-        shouldShowSearchBar ? <Table.FilterBar label={translate('subscription.paymentHistory.findActiveUser')} /> : undefined,
+        shouldShowSearchBar ? <Table.FilterBar label={translate(countsMembers ? 'subscription.paymentHistory.findMember' : 'subscription.paymentHistory.findActiveUser')} /> : undefined,
     );
 
     return (
