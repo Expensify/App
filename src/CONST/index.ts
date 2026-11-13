@@ -8950,6 +8950,7 @@ const CONST = {
             TAG: 'tag',
             VIOLATIONS: 'violations',
             ORIGINAL_AMOUNT: 'originalamount',
+            CONVERTED_AMOUNT: 'convertedAmount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             HELD: 'held',
