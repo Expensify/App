@@ -87,7 +87,6 @@ jest.mock('@hooks/useOnyx', () => () => [undefined]);
 jest.mock('@hooks/useHtmlPaste', () => jest.requireActual<typeof UseHtmlPasteModule>('@hooks/useHtmlPaste/index.ts'));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1}));
 jest.mock('@hooks/useIsInSidePanel', () => () => false);
-jest.mock('@hooks/useKeyboardState', () => () => ({isKeyboardShown: false}));
 jest.mock('@hooks/useLocalize', () => () => ({preferredLocale: 'en'}));
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useReportIDToNameMap', () => () => ({}));
