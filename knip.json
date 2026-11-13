@@ -1,9 +1,5 @@
 {
     "include": ["nsExports", "nsTypes"],
-    "ignoreIssues": {
-        "src/hooks/usePersonalDetails.ts": ["exports"],
-        "src/libs/PersonalDetailsUtils.ts": ["exports"]
-    },
     "workspaces": {
         ".": {
             "entry": [
@@ -25,7 +21,8 @@
                 "react-native.config.js",
                 "rock.config.mjs",
                 "rspack.config.mjs",
-                "src/components/HeaderWithBackButtonComposed/index.tsx"
+                "tests/perf-test/**/*.perf-test.{ts,tsx}",
+                "tests/perf-local/**/*.perf-local.ts"
             ],
             "project": [
                 "src/**/*.{js,jsx,ts,tsx}",
@@ -40,13 +37,8 @@
             ],
             "ignore": [
                 ".github/actions/**/index.js",
-                "tests/perf-test/**",
-                "tests/perf-local/**",
                 "web/snippets/gib.js",
-                "web/cloudflare-worker/**",
-                "src/libs/actions/connections/FinancialForce.ts",
-                "src/libs/actions/connections/ZohoBooks.ts",
-                "src/libs/actions/connections/Digits.ts"
+                "web/cloudflare-worker/**"
             ],
             "rsbuild": {
                 "config": ["config/rsbuild/rsbuild.config.ts", ".storybook/rsbuild.config.ts"]
@@ -61,7 +53,11 @@
                 "config": [".storybook/main.ts"]
             }
         },
+        "modules/ExpensifyNitroUtils": {
+            "bun": false
+        },
         "server/victory-chart-renderer": {
+            "bun": false,
             "entry": ["src/bootstrap.tsx", "tests/**/*.test.ts"],
             "project": ["src/**/*.{ts,tsx}", "scripts/**/*.ts", "tests/**/*.{ts,tsx}"]
         }
@@ -81,15 +77,16 @@
         "eslint-plugin-react-hooks",
         "eslint-plugin-jsdoc",
         "eslint-plugin-storybook",
-        "@dword-design/eslint-plugin-import-alias",
-        "bun",
         "shellcheck",
         "patch-package",
-        "diff-so-fancy",
-        "@babel/plugin-proposal-class-properties"
+        "diff-so-fancy"
     ],
-    "ignoreBinaries": ["mkcert", "openssl", "xdg-open"],
+    "ignoreBinaries": ["mkcert", "openssl", "xdg-open", "ruby"],
     "ignoreIssues": {
-        "config/oxlint/ruleNames.mjs": ["exports"]
+        "config/oxlint/ruleNames.mjs": ["exports"],
+        "rock.config.mjs": ["unlisted"],
+        "src/libs/SearchParser/searchParser.js": ["exports"],
+        "src/libs/SearchParser/autocompleteParser.js": ["exports"],
+        "src/libs/actions/connections/Digits.ts": ["exports"]
     }
 }
