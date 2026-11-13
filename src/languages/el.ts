@@ -11578,9 +11578,9 @@ ${reportName}`,
                     workspaceCompanyCardRoute: string;
                 }) => {
                     let warningTime = 'σύντομα';
-                    if (warningDaysBeforeExpiry === 14) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'σε δύο εβδομάδες';
-                    } else if (warningDaysBeforeExpiry === 7) {
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'σε μία εβδομάδα';
                     }
                     const reconnectMessage = workspaceCompanyCardRoute

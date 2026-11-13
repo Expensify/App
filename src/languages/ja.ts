@@ -11136,9 +11136,9 @@ ${reportName}`,
                     workspaceCompanyCardRoute: string;
                 }) => {
                     let warningTime = 'まもなく';
-                    if (warningDaysBeforeExpiry === 14) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = '2週間後';
-                    } else if (warningDaysBeforeExpiry === 7) {
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = '1週間後';
                     }
                     const reconnectMessage = workspaceCompanyCardRoute

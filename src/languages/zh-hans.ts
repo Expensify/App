@@ -10842,9 +10842,9 @@ ${reportName}`,
                     workspaceCompanyCardRoute: string;
                 }) => {
                     let warningTime = '即将';
-                    if (warningDaysBeforeExpiry === 14) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = '两周后';
-                    } else if (warningDaysBeforeExpiry === 7) {
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = '一周后';
                     }
                     const reconnectMessage = workspaceCompanyCardRoute ? `<a href='${workspaceCompanyCardRoute}'>请在同意到期前重新连接卡片</a>。` : '请在同意到期前重新连接卡片。';

@@ -11266,9 +11266,9 @@ ${reportName}`,
                     workspaceCompanyCardRoute: string;
                 }) => {
                     let warningTime = 'pronto';
-                    if (warningDaysBeforeExpiry === 14) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'en dos semanas';
-                    } else if (warningDaysBeforeExpiry === 7) {
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'en una semana';
                     }
                     const reconnectMessage = workspaceCompanyCardRoute

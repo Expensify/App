@@ -11412,9 +11412,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     workspaceCompanyCardRoute: string;
                 }) => {
                     let warningTime = 'bientôt';
-                    if (warningDaysBeforeExpiry === 14) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'dans deux semaines';
-                    } else if (warningDaysBeforeExpiry === 7) {
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'dans une semaine';
                     }
                     const reconnectMessage = workspaceCompanyCardRoute
