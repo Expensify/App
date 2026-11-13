@@ -24,18 +24,17 @@ import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
+import useReportApprovalWarningData from '@hooks/useReportApprovalWarningData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchActionPress from '@hooks/useSearchActionPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
-import getReportApprovalWarningData from '@libs/Violations/getReportApprovalWarningData';
 
 import {handleActionButtonPress} from '@userActions/Search';
 
@@ -49,7 +48,7 @@ import type {ColorValue} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {autoReportedRejectedExpenseViolationsSelector, transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
+import {autoReportedRejectedExpenseViolationsSelector} from '@selectors/TransactionViolations';
 import React from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
@@ -301,17 +300,17 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         shouldShowMarkAsDoneCopy,
     });
 
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportItem.reportID);
-    const liveReportTransactions = Object.values(reportTransactions);
     const snapshotTransactions = currentSearchTransactionsByReportID.get(reportItem.reportID) ?? reportItem.transactions ?? [];
-    const reportTransactionIDs = [...new Set([...snapshotTransactions, ...liveReportTransactions].map((transaction) => transaction.transactionID))];
-    const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
-    const warningData = getReportApprovalWarningData(reportItem.reportID, snapshotTransactions, liveReportTransactions, currentSearchViolations, allViolations);
+    const {
+        transactions: approvalTransactions,
+        violations: approvalViolations,
+        liveViolations: allViolations,
+    } = useReportApprovalWarningData(reportItem.reportID, snapshotTransactions, currentSearchViolations);
     const confirmApproveReportViolations = useConfirmApproveReportViolations({
         report: parentReport ?? snapshotReport,
         policy: parentPolicy ?? snapshotPolicy,
-        transactions: warningData.transactions,
-        violationsCollection: warningData.violations,
+        transactions: approvalTransactions,
+        violationsCollection: approvalViolations,
     });
     // Approving also recomputes the chat's hasOutstandingChildRequest, which checks sibling reports' transactions for auto-reported rejected expenses.
     const [autoReportedRejectedExpenseViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: autoReportedRejectedExpenseViolationsSelector});

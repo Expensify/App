@@ -9,12 +9,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useReportApprovalWarningData from '@hooks/useReportApprovalWarningData';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import getReportApprovalWarningData from '@libs/Violations/getReportApprovalWarningData';
 
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import type AdditionalPayOnyxData from '@userActions/IOU/types/AdditionalPayOnyxData';
@@ -28,7 +27,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
-import {autoReportedRejectedExpenseViolationsSelector, transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
+import {autoReportedRejectedExpenseViolationsSelector} from '@selectors/TransactionViolations';
 // eslint-disable-next-line no-restricted-imports -- Violations must be live, not from the Search snapshot.
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
@@ -65,15 +64,7 @@ function useConfirmApproval(
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const delegateAccountID = useDelegateAccountID();
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
-    const liveTransactions = Object.values(reportTransactions);
-    // Live data wins per transaction, but keep the ones that haven't hydrated into Onyx yet.
-    const transactions = fallbackTransactions
-        ? [...new Map([...fallbackTransactions, ...liveTransactions].map((transaction) => [transaction.transactionID, transaction])).values()]
-        : liveTransactions;
-    const [transactionViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: transactionViolationsByIDsSelector(transactions.map((transaction) => transaction.transactionID)),
-    });
+    const {transactions, violations: warningViolations, liveViolations: transactionViolations} = useReportApprovalWarningData(reportID, fallbackTransactions, fallbackViolations);
     // Approving also recomputes the chat's hasOutstandingChildRequest, which checks sibling reports' transactions for auto-reported rejected expenses.
     const [autoReportedRejectedExpenseViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: autoReportedRejectedExpenseViolationsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -82,12 +73,11 @@ function useConfirmApproval(
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, accountID, email ?? '', undefined, transactions);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
-    const warningData = getReportApprovalWarningData(reportID, transactions, [], fallbackViolations, transactionViolations);
     const confirmApproveReportViolations = useConfirmApproveReportViolations({
         report: moneyRequestReport,
         policy,
-        transactions: warningData.transactions,
-        violationsCollection: warningData.violations,
+        transactions,
+        violationsCollection: warningViolations,
     });
 
     const onApprove = (full: boolean) => {
