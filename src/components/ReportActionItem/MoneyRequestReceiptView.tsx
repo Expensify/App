@@ -770,6 +770,7 @@ function MoneyRequestReceiptView({
                                         <>
                                             <ReportActionItemImage
                                                 shouldUseThumbnailImage={!fillSpace}
+                                                shouldUseCachedMapWhenOffline
                                                 shouldUseFullHeight={fillSpace}
                                                 canZoomReceipt={canZoomReceipt}
                                                 pdfPage={canFlipReceiptPages ? receiptPage : undefined}
