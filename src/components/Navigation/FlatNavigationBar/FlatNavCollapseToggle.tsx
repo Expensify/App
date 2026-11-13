@@ -7,6 +7,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,6 +25,7 @@ type FlatNavCollapseToggleProps = {
 
 function FlatNavCollapseToggle({isCollapsed, onPress}: FlatNavCollapseToggleProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
 
@@ -38,7 +40,7 @@ function FlatNavCollapseToggle({isCollapsed, onPress}: FlatNavCollapseToggleProp
                 accessibilityState={{expanded: !isCollapsed}}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.COLLAPSE}
                 onPress={onPress}
-                style={styles.flatNavigationBarCollapseToggle}
+                style={[StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal), styles.alignItemsCenter, styles.justifyContentCenter]}
                 shouldUseAutoHitSlop
             >
                 <Icon

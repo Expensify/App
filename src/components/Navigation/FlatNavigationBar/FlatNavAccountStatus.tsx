@@ -20,7 +20,6 @@ import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 type FlatNavAccountStatusProps = {
-    /** Whether the navigation bar is visually collapsed */
     isCollapsed?: boolean;
 };
 

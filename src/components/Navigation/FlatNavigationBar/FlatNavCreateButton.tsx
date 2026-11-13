@@ -26,16 +26,12 @@ type FlatNavCreateButtonProps = {
     /** Shrinks the button to a round icon-only "+", for the collapsed bar */
     isCompact?: boolean;
 
-    /** Active/expanded state of the create button */
     isCreateMenuActive: boolean;
 
-    /** Whether the create menu popover is visible */
     isCreateMenuVisible: boolean;
 
-    /** Shows the create menu */
     showCreateMenu: () => void;
 
-    /** Hides the create menu */
     hideCreateMenu: () => void;
 };
 

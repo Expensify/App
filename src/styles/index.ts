@@ -911,13 +911,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        flatNavigationBarCollapseToggle: {
-            width: variables.iconSizeNormal,
-            height: variables.iconSizeNormal,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
-
         // The "y" at the end of the wordmark already leaves empty space on its right, so the badge sits closer than the default badge margin
         flatNavigationBarEnvironmentBadge: {
             marginLeft: 6,
