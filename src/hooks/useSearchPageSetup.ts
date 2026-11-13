@@ -125,7 +125,10 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         // Pagination must not restart page one.
         // First open of a preloaded tab refreshes its cached results and saves the recent search, with no loading state over them.
         if (isSnapshotDataLoaded && !isInitialSearchPending && !isFirstOpenOfPreloadedTab) {
-            shownHashRef.current = hash;
+            // Native keeps background tabs rendering, so an offscreen update must not count as the user seeing the results.
+            if (isSearchTopmostFullScreenRoute()) {
+                shownHashRef.current = hash;
+            }
             return;
         }
 

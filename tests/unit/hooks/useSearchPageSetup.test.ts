@@ -208,6 +208,28 @@ describe('useSearchPageSetup', () => {
         expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({shouldSaveRecentSearch: true}));
     });
 
+    it('does not count a snapshot that settled while another tab was active as shown', async () => {
+        // Given the page is rendering in a background tab, as native does, while a request for its query settles
+        mockIsSearchTopmostFullScreenRoute = false;
+        const queryJSON = getQueryJSON();
+        const {rerender} = renderHook(
+            ({state}) => {
+                mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, false, state);
+                useSearchPageSetup(queryJSON);
+            },
+            {initialProps: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED as SearchResults['search']['state']}},
+        );
+        await Promise.resolve();
+
+        // When another refresh of the same query starts, for example from Home
+        mockIsFirstPageSearchInFlight.mockReturnValue(true);
+        rerender({state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+
+        // Then the page still sends its flagged request, because the user never saw those results on Search
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({shouldSaveRecentSearch: true}));
+    });
+
     it('still saves the recent search when the user arrives while another caller refreshes the query', async () => {
         // Given Home is refreshing the query behind one of its rows, so the cached snapshot is already pending
         const queryJSON = getQueryJSON();
