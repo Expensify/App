@@ -1,6 +1,8 @@
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
-import useConfirmationListData, {INLINE_FIELD_ERROR_KEYS} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
+import {hasFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
+import {isErrorShownOnItsOwnField} from '@components/MoneyRequestConfirmationList/hooks/useFormErrorManagement';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
@@ -10,6 +12,8 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 
 import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 
+import type {TranslationPaths} from '@src/languages/types';
+
 import React, {useState} from 'react';
 
 /**
@@ -17,7 +21,7 @@ import React, {useState} from 'react';
  * screen and the optional fields collapse behind a show-more button, so it owns that state.
  */
 function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const {transaction, canEnterScanFieldsManually = false, partiallyManuallyFilledScanID} = props;
+    const {transaction, canEnterScanFieldsManually = false} = props;
 
     const isInLandscapeMode = useIsInLandscapeMode();
 
@@ -40,14 +44,16 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
         });
     };
 
-    // Reveal the collapsed fields when the user already filled one of them in, so those values aren't hidden behind
-    // "Show more", or when one of them raises an inline error, or opening the section and pressing Create looks like
-    // it did nothing. Done during render so the expense never paints collapsed first and it survives a remount.
-    // In a multi-scan the error stays set while another receipt is partially filled, so only expand the receipt it belongs to.
+    // The fields expand during render when they hold a value or an error, so the expense never paints collapsed, even after a remount, and Create never looks like it did nothing.
     const hasManuallyEnteredFields = canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction);
-    const doesFormErrorBelongToThisReceipt = !partiallyManuallyFilledScanID || partiallyManuallyFilledScanID === transactionID;
-    const hasInlineFieldError = INLINE_FIELD_ERROR_KEYS.has(data.footerProps.errorState.formError) && doesFormErrorBelongToThisReceipt;
-    if (transactionID && !showMoreFields && (hasManuallyEnteredFields || hasInlineFieldError)) {
+    const {formError, fieldErrors} = data.footerProps.errorState;
+    // The attendees and tax amount fields sit behind "Show more". Every receipt shares one form error, so it opens only the receipt on screen when it is raised.
+    const [lastFormError, setLastFormError] = useState<TranslationPaths | ''>('');
+    const isNewErrorOnCollapsedField = formError !== lastFormError && isErrorShownOnItsOwnField(formError);
+    if (formError !== lastFormError) {
+        setLastFormError(formError);
+    }
+    if (transactionID && !showMoreFields && (hasManuallyEnteredFields || hasFieldErrors(fieldErrors) || isNewErrorOnCollapsedField)) {
         setRevealedTransactionIDs([...revealedTransactionIDs, transactionID]);
     }
 

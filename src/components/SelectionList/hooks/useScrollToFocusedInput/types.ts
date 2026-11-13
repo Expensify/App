@@ -13,9 +13,12 @@ type UseScrollToFocusedInputResult = {
 
     /** Scrolls the list so the given input is visible above the keyboard. Safe to call from an input's `onFocus`. */
     scrollInputIntoView: (input: MeasurableInput) => void;
+
+    /** Scrolls the list just enough to show a view rendered inside its footer, when that view is out of sight. A view taller than the list is brought in by its bottom edge. */
+    scrollToReveal: (view: MeasurableInput) => void;
 };
 
-type UseScrollToFocusedInput = (listRef: RefObject<Pick<FlashListRef<unknown>, 'scrollToOffset'> | null>, isKeyboardShown: boolean) => UseScrollToFocusedInputResult;
+type UseScrollToFocusedInput = (listRef: RefObject<Pick<FlashListRef<unknown>, 'scrollToOffset' | 'getNativeScrollRef'> | null>, isKeyboardShown: boolean) => UseScrollToFocusedInputResult;
 
 // eslint-disable-next-line import/prefer-default-export
 export type {UseScrollToFocusedInput};

@@ -1,4 +1,4 @@
-import {render, renderHook, screen} from '@testing-library/react-native';
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import MenuItem from '@components/MenuItem';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
@@ -6,6 +6,8 @@ import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@componen
 import MerchantField from '@components/MoneyRequestConfirmationList/sections/MerchantField';
 
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 
@@ -32,7 +34,7 @@ function renderMerchantField(props: Partial<React.ComponentProps<typeof Merchant
                 <MerchantField
                     isMerchantRequired
                     shouldDisplayFieldError={false}
-                    formError=""
+                    fieldError={undefined}
                     {...props}
                 />
             </ExpenseFormLayoutContext.Provider>
@@ -83,15 +85,42 @@ describe('MerchantField read-only dropdown row', () => {
     });
 
     it.each([
-        {formError: '', shouldDisplayFieldError: true, expectedError: 'common.error.fieldRequired'},
-        {formError: 'iou.error.invalidMerchant', shouldDisplayFieldError: false, expectedError: 'iou.error.invalidMerchant'},
-    ])('shows $expectedError on the locked merchant row', ({formError, shouldDisplayFieldError, expectedError}) => {
+        {fieldError: undefined, shouldDisplayFieldError: true, expectedError: 'common.error.fieldRequired'},
+        {fieldError: 'iou.error.invalidMerchant' as const, shouldDisplayFieldError: false, expectedError: 'iou.error.invalidMerchant'},
+    ])('shows $expectedError on the locked merchant row', ({fieldError, shouldDisplayFieldError, expectedError}) => {
         // Given a merchant validation failure that must remain visible even when the field is locked
         // When the bordered confirmation form displays that failure
-        renderMerchantField({formError, shouldDisplayFieldError});
+        renderMerchantField({fieldError, shouldDisplayFieldError});
 
         // Then the actual validation message is preserved and the row still has no edit control
         expect(screen.getByText(expectedError)).toBeOnTheScreen();
         expect(screen.queryByRole('button')).toBeNull();
+    });
+});
+
+describe('MerchantField on an edited split', () => {
+    it('records that the merchant was typed, so a placeholder the user typed can be told apart from one the split was seeded with', () => {
+        // Given an editable split showing its merchant input
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SPLIT}
+                isEditingSplitBill
+            >
+                <MerchantField
+                    isMerchantRequired
+                    shouldDisplayFieldError={false}
+                    fieldError={undefined}
+                />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // When the user types a merchant
+        fireEvent.changeText(screen.getByLabelText('common.merchant'), 'Hilton');
+
+        // Then the split draft gets the merchant together with the flag that it was typed
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith('1', undefined, {merchant: 'Hilton', isMerchantSet: true}, expect.any(Function), expect.any(Function));
     });
 });

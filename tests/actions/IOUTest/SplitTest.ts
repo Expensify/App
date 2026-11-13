@@ -1317,7 +1317,7 @@ describe('split expense', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
             reportAction: iouAction,
-            updatedTransaction: splitTransaction ? {...splitTransaction, amount: 100, modifiedAmount: 100, modifiedCurrency: CONST.CURRENCY.USD} : undefined,
+            updatedTransaction: splitTransaction ? {...splitTransaction, amount: 100, modifiedAmount: 100, modifiedCurrency: CONST.CURRENCY.USD, isMerchantSet: true} : undefined,
             sessionAccountID: RORY_ACCOUNT_ID,
             isASAPSubmitBetaEnabled: false,
             quickAction: undefined,
@@ -1342,9 +1342,10 @@ describe('split expense', () => {
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
 
-        // Then the split goes back to being a scan request so the user can retry from the original state
+        // Then the split goes back to being a scan request so the user can retry from the original state, without the draft's typed-merchant flag, which a scan would read as an unconfirmed amount
         splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
         expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
+        expect(splitTransaction?.isMerchantSet).toBeUndefined();
         expect(splitTransaction?.errors).toBeTruthy();
     });
 
@@ -10700,6 +10701,27 @@ describe('setDraftSplitTransaction', () => {
 
         // Then the action no longer falls back by itself, so the null merge clears the draft
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`)).toBeFalsy();
+    });
+
+    it('remembers whether the merchant was typed, which the expense edit itself does not carry', async () => {
+        // Given a split draft whose merchant the user never typed
+        const transactionID = 'typed-merchant';
+        const draftTransaction = createRandomTransaction(1);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
+        await waitForBatchedUpdates();
+
+        // When the user types a merchant, and later clears it again
+        setDraftSplitTransaction(transactionID, draftTransaction, {merchant: '(none)', isMerchantSet: true}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+        const typedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+        setDraftSplitTransaction(transactionID, typedDraft, {merchant: '', isMerchantSet: false}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+        const clearedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+
+        // Then the draft records each state, so a placeholder the user typed can be told apart from one the split was seeded with
+        expect(typedDraft?.modifiedMerchant).toBe('(none)');
+        expect(typedDraft?.isMerchantSet).toBe(true);
+        expect(clearedDraft?.isMerchantSet).toBe(false);
     });
 });
 

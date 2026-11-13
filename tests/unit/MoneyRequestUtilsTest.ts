@@ -6,6 +6,7 @@ import {
     handleNegativeAmountFlipping,
     isConfirmationAmountMissing,
     isConfirmationDateMissing,
+    isConfirmationMerchantRequired,
     isValidMerchant,
     isValidMoneyRequestAmount,
     validateAmount,
@@ -264,6 +265,23 @@ describe('ReportActionsUtils', () => {
                 expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);
                 expect(isValidMoneyRequestAmount(100, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);
             });
+        });
+    });
+
+    describe('isConfirmationMerchantRequired', () => {
+        const workspaceManualExpense = {isPolicyExpenseChat: true, isScanRequest: false, isEditingSplitBill: false, shouldShowMerchant: true};
+
+        it.each([
+            ['a manual expense to a workspace, where only the user can enter it', {}, true],
+            ['the split of a workspace scan being edited, which is only editable once SmartScan left fields blank', {isScanRequest: true, isEditingSplitBill: true}, true],
+            ['a scan, whose merchant SmartScan reads off the receipt', {isScanRequest: true}, false],
+            ['an expense to a person, which does not need a merchant', {isPolicyExpenseChat: false}, false],
+            ['a confirmation that hides the merchant field, which cannot be filled in', {shouldShowMerchant: false}, false],
+        ])('decides whether the merchant is required on %s', (_case, overrides, isRequired) => {
+            // Given a manual workspace expense that differs in this way, if at all
+            // When its merchant requirement is checked
+            // Then the merchant is required only where a workspace needs one and nothing but the user can fill it in
+            expect(isConfirmationMerchantRequired({...workspaceManualExpense, ...overrides})).toBe(isRequired);
         });
     });
 

@@ -967,6 +967,8 @@ function completeSplitBill({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 ...updatedTransaction,
+                // Only the confirmation reads this draft flag. A saved scan would take it as an unconfirmed amount, and a failed request can't remove it.
+                isMerchantSet: null,
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.OPEN,
                 },
@@ -1376,6 +1378,11 @@ function setDraftSplitTransaction(
               getCurrencySymbol,
           })
         : null;
+
+    // getUpdatedTransaction only applies the fields an expense stores, so the draft's own flag for a typed merchant is copied over here.
+    if (updatedTransaction && Object.hasOwn(transactionChanges, 'isMerchantSet')) {
+        updatedTransaction.isMerchantSet = transactionChanges.isMerchantSet;
+    }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, updatedTransaction);
 }

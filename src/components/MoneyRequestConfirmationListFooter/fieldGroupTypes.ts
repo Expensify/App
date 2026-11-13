@@ -1,3 +1,5 @@
+import type {ConfirmationFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 
 import type {TranslationPaths} from '@src/languages/types';
@@ -54,6 +56,10 @@ type VisibilityFlags = {
 type ErrorState = {
     shouldDisplayFieldError: boolean;
     formError: TranslationPaths | '';
+
+    /** The amount, date and merchant errors to show under those inputs. Empty until a confirm is blocked by one of them. */
+    fieldErrors: ConfirmationFieldErrors;
+
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
 };

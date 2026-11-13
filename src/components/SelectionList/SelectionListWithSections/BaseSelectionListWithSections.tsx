@@ -122,7 +122,7 @@ function BaseSelectionListWithSectionsImpl({
     const targetScrollIndex = initialScrollIndex ?? (initialFocusedIndex < 0 ? undefined : initialFocusedIndex);
     const listRef = useRef<FlashListRef<FlattenedItem<ListItem>> | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
-    const {containerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
+    const {containerRef, trackScrollOffset, scrollInputIntoView, scrollToReveal} = useScrollToFocusedInput(listRef, isKeyboardShown);
 
     const {focusedIndex, setFocusedIndex, isKeyboardNavigating, setHasKeyBeenPressed} = useSelectionListKeyboardFocus({
         initialFocusedIndex,
@@ -217,8 +217,9 @@ function BaseSelectionListWithSectionsImpl({
             updateExternalTextInputFocus,
             getFocusedOption: getFocusedItem,
             scrollInputIntoView,
+            scrollToReveal,
         }),
-        [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem, scrollInputIntoView],
+        [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem, scrollInputIntoView, scrollToReveal],
     );
 
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
