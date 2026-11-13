@@ -28,6 +28,7 @@ let mockReferrer: string | undefined;
 let mockIsInPreloadedTab = false;
 let mockNotificationPreference: string = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
 let mockLHNUnreadState = 'unread';
+let mockIsRevealingPreMountedFullscreen = false;
 const CURRENT_USER_ACCOUNT_ID = 123;
 
 jest.mock('@libs/Visibility', () => ({
@@ -69,6 +70,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         setParams: jest.fn(),
+        getIsRevealingPreMountedFullscreen: () => mockIsRevealingPreMountedFullscreen,
     },
 }));
 
@@ -133,6 +135,7 @@ describe('useMarkAsRead', () => {
         mockIsInPreloadedTab = false;
         mockNotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
         mockLHNUnreadState = 'unread';
+        mockIsRevealingPreMountedFullscreen = false;
     });
 
     afterEach(() => {
@@ -198,6 +201,41 @@ describe('useMarkAsRead', () => {
         // Then only that newer read is sent, so the older reveal time cannot overwrite it
         expect(readNewestAction).toHaveBeenCalledTimes(1);
         expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
+    });
+
+    it('marks read right away when the preloaded tab is revealed by a wide submit pre-mount', () => {
+        // Given a report held in a preloaded tab by a wide submit pre-mount
+        jest.useFakeTimers();
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderMarkAsRead({isScrolledToEnd: true});
+
+        // When the submit reveals it, which is not the Inbox tap
+        mockIsRevealingPreMountedFullscreen = true;
+        mockIsInPreloadedTab = false;
+        rerender(undefined);
+
+        // Then it is marked read in the same commit, as before, because only the Inbox tap waits for idle
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
+    });
+
+    it('skips the held reveal read when the report read time already moved past the reveal', () => {
+        // Given an unread report revealed from the preloaded Inbox tab, with its read still waiting for idle
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2026-01-01T10:00:00.000Z'));
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderMarkAsRead({isScrolledToEnd: true});
+        mockIsInPreloadedTab = false;
+        rerender(undefined);
+
+        // When the user sends a comment before the main thread goes idle, which moves the read time to a later moment
+        mockIsUnread = false;
+        rerender({report: {...REPORT, lastReadTime: '2026-01-01 10:00:00.300'}});
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Then the held read is skipped, so its older reveal time cannot move the read time backwards
+        expect(readNewestAction).not.toHaveBeenCalled();
     });
 
     it('does not undo a mark-as-unread made before the held reveal read runs', () => {
