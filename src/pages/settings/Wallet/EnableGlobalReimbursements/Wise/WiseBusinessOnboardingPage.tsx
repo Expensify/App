@@ -65,6 +65,10 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
     const {isSaving, saveError, unsavedPageKeys} = useWiseOnboardingSaveStatus();
     const bankAccount = bankAccountList?.[bankAccountID];
+    // A selector, so the check is cached now that only the early return below reads it
+    const [isEligible = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: (list) => isBankAccountEligibleForGlobalReimbursements(list?.[bankAccountID]?.accountData, list?.[bankAccountID]?.bankCurrency),
+    });
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -185,8 +189,6 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     if (!isLoading && !isPrefillDone && !isDraftForOtherAccount && !isPrefillPending) {
         setIsPrefillDone(true);
     }
-
-    const isEligible = isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
 
     useEffect(() => {
         if (!isPrefillPending) {
