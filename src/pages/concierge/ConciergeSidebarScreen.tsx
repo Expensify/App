@@ -17,19 +17,16 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import type {ConciergeSplitNavigatorParamList} from '@libs/Navigation/types';
+import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 
 import {loadConciergeThreads, openConciergeConversation, openConciergeMessage} from '@userActions/ConciergeThreads';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 
-import type {NavigationState} from '@react-navigation/native';
-
-import {useNavigationState} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {getStableReportSelector} from '@selectors/Report';
 import {FlashList} from '@shopify/flash-list';
@@ -40,11 +37,6 @@ import ConciergeConversationRow from './ConciergeConversationRow';
 
 // Loads the next page when the user is within three quarters of a screen of the end of the list
 const LOAD_NEXT_PAGE_THRESHOLD = 0.75;
-
-function getOpenReportID(state: NavigationState<ConciergeSplitNavigatorParamList>) {
-    const reportRoute = state.routes.findLast((route) => route.name === SCREENS.REPORT);
-    return reportRoute?.params && 'reportID' in reportRoute.params ? reportRoute.params.reportID : undefined;
-}
 
 function ConciergeSidebarScreen() {
     const styles = useThemeStyles();
@@ -59,7 +51,6 @@ function ConciergeSidebarScreen() {
     };
     const {isOffline} = useNetwork({onReconnect: reloadFirstPage});
     const conversations = useConciergeConversations();
-    const openReportID = useNavigationState(getOpenReportID);
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`, {selector: getStableReportSelector});
@@ -90,10 +81,7 @@ function ConciergeSidebarScreen() {
     };
 
     const startNewChat = () => {
-        if (!conciergeReportID) {
-            return;
-        }
-        openConciergeConversation(conciergeReportID);
+        Navigation.navigate(ROUTES.CONCIERGE);
     };
 
     const openMessage = (message: ReportAction) => {
@@ -136,12 +124,10 @@ function ConciergeSidebarScreen() {
                     renderItem={({item}) => (
                         <ConciergeConversationRow
                             conversation={item}
-                            isSelected={!!item.reportID && item.reportID === openReportID}
                             onOpenThread={openConciergeConversation}
                             onOpenMessage={openMessage}
                         />
                     )}
-                    extraData={openReportID}
                     onEndReached={loadNextPage}
                     onEndReachedThreshold={LOAD_NEXT_PAGE_THRESHOLD}
                     ListFooterComponent={isLoading && !isOffline ? <ActivityIndicator style={styles.pv4} /> : undefined}

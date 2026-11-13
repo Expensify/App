@@ -57,6 +57,7 @@ getEnvironment().then((value) => {
 });
 
 const REPORT_PATH_REGEX = /^\/r\/(\d+)(\/\d+)?(?=[?#]|$)/;
+const NEW_CHAT_PATH_REGEX = /^\/concierge(?=[?#]|$)/;
 const CONCIERGE_CONVERSATION_PATH_REGEX = /^\/concierge\/(\d+)(\/\d+)?(?=[?#]|$)/;
 
 /** Whether Concierge conversations open on the Concierge page, which only the wide flat navigation has */
@@ -80,6 +81,11 @@ function getConciergeConversationPath(path: string): string {
     }
 
     if (isConciergeNavigationEnabled()) {
+        // The Concierge page starts new conversations from the Concierge DM, which the user never sees as a chat of its own
+        if (conciergeReportID && NEW_CHAT_PATH_REGEX.test(path)) {
+            return path.replace(NEW_CHAT_PATH_REGEX, `/concierge/${conciergeReportID}`);
+        }
+
         const reportPath = path.replace(REPORT_PATH_REGEX, (match, reportID: string, reportActionPath: string | undefined) =>
             isConciergeConversationReportID(reportID) ? `/concierge/${reportID}${reportActionPath ?? ''}` : match,
         );
@@ -92,7 +98,12 @@ function getConciergeConversationPath(path: string): string {
     return path.replace(CONCIERGE_CONVERSATION_PATH_REGEX, (_match, reportID: string, reportActionPath: string | undefined) => `/r/${reportID}${reportActionPath ?? ''}`);
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export -- The native file exports the same name, and named exports keep both files alike
-    getConciergeConversationPath,
-};
+/** Shows the Concierge DM, which is the new conversation screen of the Concierge page, as /concierge in the address bar */
+function getConciergeDisplayPath(path: string): string {
+    if (!conciergeReportID) {
+        return path;
+    }
+    return path.replace(new RegExp(`^/concierge/${conciergeReportID}(?=[?#]|$)`), '/concierge');
+}
+
+export {getConciergeConversationPath, getConciergeDisplayPath};

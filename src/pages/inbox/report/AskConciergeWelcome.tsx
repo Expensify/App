@@ -31,7 +31,8 @@ function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWel
     return (
         <ScrollView
             style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
-            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
+            // The Concierge page has no history button under the welcome text, so the text keeps the same gap from the composer on its own
+            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, isInConciergePage && styles.pb8]}
             keyboardShouldPersistTaps="handled"
             onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}
         >

@@ -13,7 +13,7 @@ import SCREENS from '@src/SCREENS';
 
 import {TabActions} from '@react-navigation/native';
 
-/** Returns the handler that opens the Concierge page on the Concierge DM, where the user starts a new conversation. */
+/** Returns the handler that opens the Concierge page on its new conversation screen, /concierge. */
 function useConciergeTabNavigation(isConciergeSelected: boolean) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
@@ -23,14 +23,14 @@ function useConciergeTabNavigation(isConciergeSelected: boolean) {
         }
         clearSelectedText();
         if (isConciergeSelected) {
-            Navigation.navigate(ROUTES.CONCIERGE_CONVERSATION.getRoute(conciergeReportID));
+            Navigation.navigate(ROUTES.CONCIERGE);
             return;
         }
 
         // Jumping to the existing tab keeps the Concierge page mounted, where a navigation to its path would push a new tab navigator
         const tabNavigatorStateKey = getTabNavigatorStateKey(navigationRef.getRootState());
         if (!tabNavigatorStateKey) {
-            Navigation.navigate(ROUTES.CONCIERGE_CONVERSATION.getRoute(conciergeReportID));
+            Navigation.navigate(ROUTES.CONCIERGE);
             return;
         }
         navigationRef.dispatch({

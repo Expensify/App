@@ -1,7 +1,12 @@
 /** A row of the Concierge page list. Each row reads its own data, so a change to one conversation only redraws that row. */
-import MenuItem from '@components/MenuItem';
+import Icon from '@components/Icon';
+import {PressableWithoutFeedback} from '@components/Pressable';
+import Text from '@components/Text';
 
+import {useIsCurrentReportID} from '@hooks/useCurrentReportID';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ConciergeConversation} from '@libs/ConciergeConversationUtils';
@@ -18,12 +23,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type ConciergeConversationRowProps = {
     conversation: ConciergeConversation;
-
-    /** Whether the conversation is the one open next to the list */
-    isSelected: boolean;
 
     onOpenThread: (reportID: string) => void;
 
@@ -39,32 +42,54 @@ type ConciergeConversationRowContentProps = {
     onPress: () => void;
 };
 
-function ConciergeConversationRowContent({title, isUnread: isConversationUnread, brickRoadIndicator, isSelected, onPress}: ConciergeConversationRowContentProps) {
-    const styles = useThemeStyles();
-
+// Concierge messages often open with a heading line, like "Welcome to Expensify", which makes a good one line title
+function getFirstLine(text: string): string {
     return (
-        <MenuItem.Root
-            onPress={onPress}
-            style={isSelected && styles.sidebarLinkActive}
-            accessibilityState={{selected: isSelected}}
-            sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_SIDEBAR.CONVERSATION}
-        >
-            <MenuItem.Row>
-                <MenuItem.Content>
-                    <MenuItem.Title style={isConversationUnread && styles.sidebarLinkTextBold}>{title}</MenuItem.Title>
-                </MenuItem.Content>
-                {!!brickRoadIndicator && (
-                    <MenuItem.Trailing>
-                        <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />
-                    </MenuItem.Trailing>
-                )}
-            </MenuItem.Row>
-        </MenuItem.Root>
+        text
+            .split('\n')
+            .find((line) => !!line.trim())
+            ?.trim() ?? ''
     );
 }
 
-function ConciergeThreadRow({conversation, isSelected, onOpenThread}: ConciergeConversationRowProps) {
+function ConciergeConversationRowContent({title, isUnread: isConversationUnread, brickRoadIndicator, isSelected, onPress}: ConciergeConversationRowContentProps) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const firstLine = getFirstLine(title);
+
+    return (
+        <PressableWithoutFeedback
+            onPress={onPress}
+            accessibilityLabel={firstLine}
+            accessibilityState={{selected: isSelected}}
+            role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_SIDEBAR.CONVERSATION}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph5, styles.pv3, isSelected && styles.sidebarLinkActive]}
+            hoverStyle={!isSelected && styles.sidebarLinkHover}
+        >
+            <View style={styles.conciergeConversationRowIndicator} />
+            <Text
+                numberOfLines={1}
+                style={[styles.flex1, styles.sidebarLinkText, isConversationUnread && styles.sidebarLinkTextBold]}
+            >
+                {firstLine}
+            </Text>
+            {!!brickRoadIndicator && (
+                <Icon
+                    src={icons.DotIndicator}
+                    fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
+                />
+            )}
+        </PressableWithoutFeedback>
+    );
+}
+
+function ConciergeThreadRow({conversation, onOpenThread}: ConciergeConversationRowProps) {
     const reportID = conversation.reportID;
+
+    // The focused report follows every navigation, including the ones made while the Concierge page was in the background
+    const isSelected = useIsCurrentReportID(reportID ?? '');
     const threadAttributesSelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>) => {
         const threadAttributes = reportID ? attributes?.reports?.[reportID] : undefined;
         return {reportName: threadAttributes?.reportName ?? '', brickRoadStatus: threadAttributes?.brickRoadStatus};
@@ -89,7 +114,7 @@ function ConciergeThreadRow({conversation, isSelected, onOpenThread}: ConciergeC
     );
 }
 
-function ConciergeMessageRow({conversation, isSelected, onOpenMessage}: ConciergeConversationRowProps) {
+function ConciergeMessageRow({conversation, onOpenMessage}: ConciergeConversationRowProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const messageSelector = (reportActions: OnyxEntry<ReportActions>) => (conversation.reportActionID ? reportActions?.[conversation.reportActionID] : undefined);
     const [message] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(conciergeReportID)}`, {selector: messageSelector});
@@ -102,7 +127,7 @@ function ConciergeMessageRow({conversation, isSelected, onOpenMessage}: Concierg
         <ConciergeConversationRowContent
             title={getReportActionMessageText(message)}
             isUnread={isMessageUnread}
-            isSelected={isSelected}
+            isSelected={false}
             onPress={() => {
                 if (!message) {
                     return;

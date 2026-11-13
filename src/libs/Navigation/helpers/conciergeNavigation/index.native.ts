@@ -3,7 +3,8 @@ function getConciergeConversationPath(path: string): string {
     return path.replace(/^\/concierge\/(\d+)(\/\d+)?(?=[?#]|$)/, (_match, reportID: string, reportActionPath: string | undefined) => `/r/${reportID}${reportActionPath ?? ''}`);
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export -- The web file exports the same name, and named exports keep both files alike
-    getConciergeConversationPath,
-};
+function getConciergeDisplayPath(path: string): string {
+    return path;
+}
+
+export {getConciergeConversationPath, getConciergeDisplayPath};

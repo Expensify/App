@@ -201,6 +201,7 @@ export default {
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
+    conciergeConversationIndicatorSize: 8,
     flatNavigationBarWidth: 232,
     flatNavigationBarItemHeight: 40,
     flatNavigationBarAccountItemHeight: 56,
