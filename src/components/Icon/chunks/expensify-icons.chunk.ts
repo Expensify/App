@@ -139,6 +139,7 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import AmericanAirlines from '@assets/images/integrationicons/american-airlines.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
 import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
@@ -146,7 +147,9 @@ import ChatGPTSquare from '@assets/images/integrationicons/chatgpt-icon-square.s
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import ClaudeSquare from '@assets/images/integrationicons/claude-icon-square.svg';
 import CursorSquare from '@assets/images/integrationicons/cursor-icon-square.svg';
+import Delta from '@assets/images/integrationicons/delta.svg';
 import DigitsSquare from '@assets/images/integrationicons/digits-icon-square.svg';
+import DoorDash from '@assets/images/integrationicons/doordash.svg';
 import DualEntrySquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
 import ExactOnlineSquare from '@assets/images/integrationicons/exact-online-icon-square.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
@@ -154,7 +157,10 @@ import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
+import Instacart from '@assets/images/integrationicons/instacart.svg';
 import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
+import Kayak from '@assets/images/integrationicons/kayak.svg';
+import Lyft from '@assets/images/integrationicons/lyft.svg';
 import MCPSquare from '@assets/images/integrationicons/mcp-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
@@ -167,6 +173,7 @@ import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon
 import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
 import TriNetSquare from '@assets/images/integrationicons/trinet-icon-square.svg';
 import Uber from '@assets/images/integrationicons/uber.svg';
+import United from '@assets/images/integrationicons/united.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
@@ -534,6 +541,13 @@ const Expensicons = {
     TriNetSquare,
     ZenefitsSquare,
     Uber,
+    AmericanAirlines,
+    Delta,
+    DoorDash,
+    Instacart,
+    Kayak,
+    Lyft,
+    United,
     Unlock,
     UpArrow,
     Upload,

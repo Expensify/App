@@ -2,6 +2,7 @@
  * Builds the Receipts listings (receipt partners such as Uber for Business) for the Connections page.
  */
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -23,6 +24,8 @@ import {useEffect, useRef} from 'react';
 
 import type {ConnectionListing} from './types';
 
+import RECEIPT_INTEGRATION_GUIDES from './receiptIntegrationGuides';
+
 function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): ConnectionListing[] {
     const policyID = policy?.id;
     const {translate} = useLocalize();
@@ -31,6 +34,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
     const prevIsUberConnected = usePrevious(isUberConnected);
     const {isOffline} = useNetwork();
     const hasStartedUberConnectionRef = useRef(false);
+    const icons = useMemoizedLazyExpensifyIcons(RECEIPT_INTEGRATION_GUIDES.map(({iconName}) => iconName));
 
     // The Uber connection finishes outside the app, so the invite flow opens once the connection shows up here. It only
     // opens for a connection started from this page, not for one that shows up when the data first loads.
@@ -47,9 +51,20 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
         );
     }, [prevIsUberConnected, isUberConnected, policyID, canWrite]);
 
-    const uberData = getReceiptPartnersIntegrationData(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
-    if (!policyID || !uberData) {
+    if (!policyID) {
         return [];
+    }
+
+    const guideListings: ConnectionListing[] = RECEIPT_INTEGRATION_GUIDES.map(({key, title, iconName, helpURL}) => ({
+        key,
+        category: CONST.TAB.CONNECTIONS.RECEIPTS,
+        title,
+        icon: icons[iconName],
+        onConnect: () => openExternalLink(helpURL),
+    }));
+    const uberData = getReceiptPartnersIntegrationData(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
+    if (!uberData) {
+        return guideListings;
     }
 
     const connectUber = () => {
@@ -96,6 +111,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
             isLoading: !policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners,
             onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS.getRoute(policyID)),
         },
+        ...guideListings,
     ];
 }
 
