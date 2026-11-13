@@ -18,6 +18,9 @@ type UseMoneyRequestReportDataResult = {
     /** `reportTransactions` minus the ones pending deletion while online */
     transactions: OnyxTypes.Transaction[];
 
+    /** How many of the report's transactions have arrived, counted before any filtering */
+    arrivedTransactionCount: number;
+
     /** Whether any of the report's transactions is pending deletion */
     hasPendingDeletionTransaction: boolean;
 
@@ -54,6 +57,7 @@ function useMoneyRequestReportData(reportIDFromRoute: string | undefined, unfilt
         reportActions,
         reportTransactions,
         transactions,
+        arrivedTransactionCount: Object.keys(allReportTransactions ?? {}).length,
         hasPendingDeletionTransaction,
         reportTransactionIDs,
         reportActionIDs,

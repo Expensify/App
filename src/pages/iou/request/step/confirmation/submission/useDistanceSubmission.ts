@@ -4,7 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
-import useReportTransactions from '@hooks/useReportTransactions';
 
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getReusableP2PReportID} from '@libs/IOUUtils';
@@ -92,7 +91,6 @@ function useDistanceSubmission({
     const {isTrackIntentUser, isLookingAroundUser} = useSubmissionOnboardingIntent();
     const delegateAccountID = useDelegateAccountID();
     const {transactionViolationsRef} = useSubmissionViolations();
-    const reportTransactions = useReportTransactions(report?.reportID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const participantsPolicyTags = useParticipantsPolicyTags(selectedParticipants);
@@ -140,7 +138,6 @@ function useDistanceSubmission({
             getCurrencyDecimals,
             writeBarrier,
             report,
-            moneyRequestReportTransactions: reportTransactions,
             participants: selectedParticipantsForRequest,
             optimisticChatReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',

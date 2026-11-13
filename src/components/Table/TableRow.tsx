@@ -156,6 +156,7 @@ export default function TableRow({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: !!item?.shouldAnimateInHighlight,
+        highlightKey: item?.keyForList,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.transparent,
     });

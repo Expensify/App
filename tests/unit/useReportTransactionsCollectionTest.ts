@@ -65,4 +65,37 @@ describe('useReportTransactionsCollection', () => {
 
         expect(result.current).toEqual({});
     });
+
+    it('returns the transactions of the new report in the same render that the report changes, never those of the previous one', async () => {
+        // Given two reports, each holding its own transactions
+        const reportATransaction = {...createRandomTransaction(1), reportID: 'A'};
+        const reportBTransaction = {...createRandomTransaction(2), reportID: 'B'};
+        await Onyx.merge(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
+            ...getReportTransactionsAndViolations('A', reportATransaction),
+            ...getReportTransactionsAndViolations('B', reportBTransaction),
+        });
+        const onRender = jest.fn<void, [string, Array<string | undefined>]>();
+        const {rerender} = renderHook(
+            ({reportID}: {reportID: string}) => {
+                const transactions = useReportTransactionsCollection(reportID);
+                onRender(
+                    reportID,
+                    Object.values(transactions).map((transaction) => transaction.reportID),
+                );
+                return transactions;
+            },
+            {initialProps: {reportID: 'A'}},
+        );
+
+        // When the component switches to the other report, as a recycled list cell does
+        rerender({reportID: 'B'});
+        await waitForBatchedUpdates();
+
+        // Then every render shows only the rows of the report it renders
+        const renders = onRender.mock.calls;
+        expect(renders.some(([reportID]) => reportID === 'B')).toBe(true);
+        for (const [reportID, rowReportIDs] of renders) {
+            expect(rowReportIDs).toEqual([reportID]);
+        }
+    });
 });

@@ -8,6 +8,7 @@ function useFieldRowHighlightStyle(shouldHighlight: boolean) {
     const theme = useTheme();
     return useAnimatedHighlightStyle({
         shouldHighlight,
+        highlightKey: undefined,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.appBG,
         borderRadius: variables.componentBorderRadiusNormal,

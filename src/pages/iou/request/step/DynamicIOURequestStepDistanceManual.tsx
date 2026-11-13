@@ -24,7 +24,6 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -93,7 +92,6 @@ function DynamicIOURequestStepDistanceManual({
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
 
     const isArchived = useReportIsArchived(report?.reportID);
-    const moneyRequestReportTransactions = useReportTransactions(report?.reportID);
     const selfDMReport = useSelfDMReport();
     const {policy} = usePolicyForTransaction({
         reportPolicyID: report?.policyID,
@@ -314,7 +312,6 @@ function DynamicIOURequestStepDistanceManual({
             iouType,
             action,
             report,
-            moneyRequestReportTransactions,
             isDraftChatReport: !!reportDraft,
             policy,
             transaction,

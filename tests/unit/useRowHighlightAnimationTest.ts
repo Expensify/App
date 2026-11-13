@@ -11,14 +11,14 @@ jest.mock('@hooks/useAnimatedHighlightStyle', () => jest.fn(() => animatedHighli
 
 const mockUseAnimatedHighlightStyle = jest.mocked(useAnimatedHighlightStyle);
 
-type HookParams = Parameters<typeof useRowHighlightAnimation>[0];
+type HookParams = Partial<Parameters<typeof useRowHighlightAnimation>[0]>;
 type AnimationParams = Parameters<typeof useAnimatedHighlightStyle>[0];
-type ExpectedAnimation = (theme: ReturnType<typeof useTheme>) => AnimationParams;
+type ExpectedAnimation = (theme: ReturnType<typeof useTheme>) => Omit<AnimationParams, 'highlightKey'>;
 
 function renderRowHighlightAnimation(params?: HookParams) {
     const {result} = renderHook(() => ({
         theme: useTheme(),
-        highlightStyle: useRowHighlightAnimation(params),
+        highlightStyle: useRowHighlightAnimation({highlightKey: undefined, ...params}),
     }));
     return result.current;
 }
@@ -111,7 +111,16 @@ describe('useRowHighlightAnimation', () => {
     ])('%s', (_name, params, expected) => {
         const {theme} = renderRowHighlightAnimation(params);
 
-        expect(mockUseAnimatedHighlightStyle).toHaveBeenCalledWith(expected(theme));
+        expect(mockUseAnimatedHighlightStyle).toHaveBeenCalledWith({...expected(theme), highlightKey: undefined});
+    });
+
+    it('forwards the key of the item the row is showing, so a recycled row does not finish another item animation', () => {
+        // Given a list row showing one particular item
+        // When it renders asking to highlight
+        renderRowHighlightAnimation({shouldHighlight: true, highlightKey: 'row-7'});
+
+        // Then the animation receives that item's key, so it can tell when the row is reused for another
+        expect(mockUseAnimatedHighlightStyle).toHaveBeenCalledWith(expect.objectContaining({highlightKey: 'row-7'}));
     });
 
     it('returns the animated highlight style', () => {
