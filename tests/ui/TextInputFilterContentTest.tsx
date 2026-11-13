@@ -302,7 +302,9 @@ describe('TextInputFilterContent', () => {
         const textInputProps = mockTextInput.mock.calls.at(-1)?.[0];
         expect(textInputProps?.submitBehavior).toBe('submit');
         expect(typeof textInputProps?.onSubmitEditing).toBe('function');
-        expect(mockKeyboardShortcut).not.toHaveBeenCalled();
+
+        // The Enter shortcut is registered too, so Enter still confirms when focus is outside the input. On web it skips Enter pressed in a textarea, so it never submits twice
+        expect(mockKeyboardShortcut).toHaveBeenCalled();
 
         act(() => {
             mockTextInput.mock.calls.at(-1)?.[0].onChangeText?.('Tea');

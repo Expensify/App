@@ -108,7 +108,47 @@ function useTextInputFilterState({baseFilterKey, value: initialValue, isNegated:
         />
     );
 
-    return {error, isNegated, label, renderTextInput, setIsNegated, setValue, styles, submit, translate, value};
+    return {isNegated, renderTextInput, setIsNegated, submit, value};
+}
+
+type TextInputFilterLayoutProps = Pick<TextInputFilterContentProps, 'size' | 'style' | 'buttonText' | 'buttonStyles' | 'sentryLabel'> & {
+    /** The filter's input and any controls under it, rendered inside the scrollable area */
+    children: ReactNode;
+
+    onSubmit: () => void;
+};
+
+/** The scrollable layout and submit button shared by every text filter variant, so the variants differ only in what they render inside it. */
+function TextInputFilterLayout({size, style, buttonText, buttonStyles, sentryLabel, children, onSubmit}: TextInputFilterLayoutProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
+
+    const button = (
+        <Button
+            style={[styles.ph5, styles.pb5, buttonStyles]}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={size}
+            onPress={onSubmit}
+            sentryLabel={sentryLabel}
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
+        </Button>
+    );
+
+    return (
+        <View style={[styles.flex1, styles.justifyContentBetween, style]}>
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={[styles.flexGrow1, styles.gap3]}
+            >
+                {children}
+                {shouldButtonBeInScrollView && button}
+            </ScrollView>
+            {!shouldButtonBeInScrollView && button}
+        </View>
+    );
 }
 
 function TextInputFilterContent({
@@ -124,7 +164,7 @@ function TextInputFilterContent({
     renderBelowInput,
     onChange,
 }: TextInputFilterContentProps) {
-    const {isNegated, renderTextInput, setIsNegated, styles, submit, translate} = useTextInputFilterState({
+    const {isNegated, renderTextInput, setIsNegated, submit} = useTextInputFilterState({
         baseFilterKey,
         value: initialValue,
         isNegated: initialIsNegated,
@@ -132,38 +172,24 @@ function TextInputFilterContent({
         onChange,
     });
 
-    const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
-    const button = (
-        <Button
-            style={[styles.ph5, styles.pb5, buttonStyles]}
-            variant={CONST.BUTTON_VARIANT.SUCCESS}
-            size={size}
-            onPress={submit}
-            sentryLabel={sentryLabel}
-        >
-            <Button.KeyboardShortcut />
-            <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
-        </Button>
-    );
-
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween, style]}>
-            <ScrollView
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={[styles.flexGrow1, styles.gap3]}
+        <TextInputFilterLayout
+            size={size}
+            style={style}
+            buttonText={buttonText}
+            buttonStyles={buttonStyles}
+            sentryLabel={sentryLabel}
+            onSubmit={submit}
+        >
+            <NegatableFilter
+                baseFilterKey={baseFilterKey}
+                isNegated={isNegated}
+                onNegationChange={setIsNegated}
             >
-                <NegatableFilter
-                    baseFilterKey={baseFilterKey}
-                    isNegated={isNegated}
-                    onNegationChange={setIsNegated}
-                >
-                    {renderTextInput()}
-                </NegatableFilter>
-                {renderBelowInput?.(isNegated)}
-                {shouldButtonBeInScrollView && button}
-            </ScrollView>
-            {!shouldButtonBeInScrollView && button}
-        </View>
+                {renderTextInput()}
+            </NegatableFilter>
+            {renderBelowInput?.(isNegated)}
+        </TextInputFilterLayout>
     );
 }
 
@@ -181,7 +207,8 @@ function TextInputFilterContentFillHeight({
     shouldUseWebViewportHeightFallback,
     onChange,
 }: TextInputFilterContentFillHeightProps) {
-    const {isNegated, renderTextInput, setIsNegated, styles, submit, translate, value} = useTextInputFilterState({
+    const styles = useThemeStyles();
+    const {isNegated, renderTextInput, setIsNegated, submit, value} = useTextInputFilterState({
         baseFilterKey,
         value: initialValue,
         isNegated: initialIsNegated,
@@ -189,48 +216,35 @@ function TextInputFilterContentFillHeight({
         onChange,
     });
 
-    const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
-    const button = (
-        <Button
-            style={[styles.ph5, styles.pb5, buttonStyles]}
-            variant={CONST.BUTTON_VARIANT.SUCCESS}
-            size={size}
-            onPress={submit}
-            sentryLabel={sentryLabel}
-        >
-            <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
-        </Button>
-    );
-
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween, style]}>
-            <ScrollView
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={[styles.flexGrow1, styles.gap3]}
+        <TextInputFilterLayout
+            size={size}
+            style={style}
+            buttonText={buttonText}
+            buttonStyles={buttonStyles}
+            sentryLabel={sentryLabel}
+            onSubmit={submit}
+        >
+            <NegatableFilter
+                baseFilterKey={baseFilterKey}
+                isNegated={isNegated}
+                style={styles.flex1}
+                onNegationChange={setIsNegated}
             >
-                <NegatableFilter
-                    baseFilterKey={baseFilterKey}
-                    isNegated={isNegated}
-                    style={styles.flex1}
-                    onNegationChange={setIsNegated}
-                >
-                    <AutoGrowHeightInputContainer shouldUseWebViewportHeightFallback={shouldUseWebViewportHeightFallback}>
-                        {(maxAutoGrowHeight) =>
-                            renderTextInput({
-                                autoGrowHeight: true,
-                                maxAutoGrowHeight: !value ? variables.componentSizeLarge : maxAutoGrowHeight,
-                                onSubmitEditing: submit,
-                                submitBehavior: 'submit',
-                                textInputContainerStyles: [styles.pt3],
-                            })
-                        }
-                    </AutoGrowHeightInputContainer>
-                </NegatableFilter>
-                {renderBelowInput?.(isNegated)}
-                {shouldButtonBeInScrollView && button}
-            </ScrollView>
-            {!shouldButtonBeInScrollView && button}
-        </View>
+                <AutoGrowHeightInputContainer shouldUseWebViewportHeightFallback={shouldUseWebViewportHeightFallback}>
+                    {(maxAutoGrowHeight) =>
+                        renderTextInput({
+                            autoGrowHeight: true,
+                            maxAutoGrowHeight: !value ? variables.componentSizeLarge : maxAutoGrowHeight,
+                            onSubmitEditing: submit,
+                            submitBehavior: 'submit',
+                            textInputContainerStyles: [styles.pt3],
+                        })
+                    }
+                </AutoGrowHeightInputContainer>
+            </NegatableFilter>
+            {renderBelowInput?.(isNegated)}
+        </TextInputFilterLayout>
     );
 }
 
