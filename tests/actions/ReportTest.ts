@@ -2354,6 +2354,50 @@ describe('actions/Report', () => {
         expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
     });
 
+    it('shows a preloaded Concierge answer in the new thread and rolls it back if the question fails', async () => {
+        // Given a Concierge chat while offline so the optimistic question and answer remain in the queue.
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+        const report = {...createRandomReport(1, undefined), reportID: '100'};
+        const replyReportID = '9002';
+        const answer = '<strong>Travel</strong> increased <em>about</em> 20%.<ul><li>Flights</li></ul><ol><li>Review</li></ol><table><tr><td>£200</td></tr></table>';
+
+        // When Explain posts a question with an answer that was preloaded.
+        Report.addComment({
+            report,
+            notifyReportID: report.reportID,
+            ancestors: [],
+            text: 'Explain this insight',
+            preloadedResponse: answer,
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: report.reportID,
+            conciergeThreadReportID: replyReportID,
+            shouldNavigateToConciergeThread: false,
+        });
+        await waitForBatchedUpdates();
+        const request = PersistedRequests.getAll().find((item) => item.command === WRITE_COMMANDS.ADD_COMMENT);
+        const answerID = String(request?.data?.optimisticConciergeReportActionID);
+        const questionActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` as const);
+        const replyActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}` as const);
+        const question = questionActions?.[String(request?.data?.reportActionID)];
+
+        // Then the reply is visible immediately in the thread, after its question, using the server's reserved identity.
+        expect(replyActions?.[answerID]).toMatchObject({actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, reportID: replyReportID});
+        expect(replyActions?.[answerID]?.created).toBe(request?.data?.optimisticConciergeCreated);
+        expect((replyActions?.[answerID]?.created ?? '') > (question?.created ?? '')).toBe(true);
+        expect(questionActions?.[answerID]).toBeUndefined();
+        expect(request?.data?.pregeneratedResponse).toBe(answer);
+        expect(replyActions?.[answerID]?.message).toEqual([expect.objectContaining({html: answer})]);
+        expect(replyActions?.[answerID]?.originalMessage).toMatchObject({html: answer});
+
+        // When sending the question fails, then remove its optimistic reply from the thread as well.
+        await Onyx.update(request?.failureData ?? []);
+        const failedReplyActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}` as const);
+        expect(failedReplyActions?.[answerID]).toBeFalsy();
+    });
+
     it('should post several attachments as one action when Concierge answers in a thread', async () => {
         setHasRadio(false);
         await waitForBatchedUpdates();

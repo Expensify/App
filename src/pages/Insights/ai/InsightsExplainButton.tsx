@@ -11,6 +11,8 @@ import type {InsightsScope} from '@src/types/onyx';
 
 import React from 'react';
 
+import useInsightsExplanation from './useInsightsExplanation';
+
 type InsightsExplainButtonProps = {
     /** Message sent to Concierge on press */
     explainPrompt: string;
@@ -25,7 +27,8 @@ function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainBu
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
-    const {askConcierge, shouldShowAskConcierge} = useAskConcierge({forceConcierge: true});
+    const {askConcierge, shouldShowAskConcierge, conciergeTargetReportID} = useAskConcierge({forceConcierge: true});
+    const getPreloadedAnswer = useInsightsExplanation(explainPrompt, insightsScope, conciergeTargetReportID, shouldShowAskConcierge);
 
     if (!shouldShowAskConcierge) {
         return null;
@@ -34,7 +37,7 @@ function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainBu
     return (
         <Button
             size={CONST.BUTTON_SIZE.SMALL}
-            onPress={() => askConcierge(explainPrompt, {insightsScope})}
+            onPress={() => askConcierge(explainPrompt, {insightsScope}, getPreloadedAnswer())}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.AI_EXPLAIN}
             style={styles.alignSelfStart}
             innerStyles={styles.bgTransparent}

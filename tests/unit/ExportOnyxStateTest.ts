@@ -464,6 +464,29 @@ describe('maskOnyxState', () => {
         expect(vendors[externalID].name).not.toBe('Acme Supplies');
     });
 
+    it.each([true, false])('masks cached Insights queries and answers with fragile masking %s', (isMaskingFragileDataEnabled) => {
+        // Given a cached explanation containing private spending details in both the query and answer
+        const explanationKey = `${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}123`;
+        const explanation = {
+            jsonQuery: JSON.stringify({explainPrompt: 'Explain spending at Private Merchant', accountID: 42}),
+            response: 'Private Merchant spending increased by $500.',
+            createdAt: '2024-01-01 00:00:00',
+        };
+
+        // When exporting with either setting, since private cache data must always be masked
+        const result = maskOnyxState({[explanationKey]: explanation}, isMaskingFragileDataEnabled);
+        const maskedExplanation = result[explanationKey];
+        if (!isRecord(maskedExplanation)) {
+            throw new Error('Expected a masked Insights explanation');
+        }
+
+        // Then private content is masked while the timestamp remains available for debugging
+        expect(maskedExplanation.jsonQuery).toMatch(/^[a-z]+$/);
+        expect(maskedExplanation.response).toMatch(/^[a-z]+$/);
+        expect(maskedExplanation.createdAt).toBe(explanation.createdAt);
+        expect(JSON.stringify(result)).not.toContain('Private Merchant');
+    });
+
     it.each([true, false])('should keep a parked attachment edit out of the export verbatim, with fragile masking %s', (isMaskingFragileDataEnabled) => {
         // Given a parked edit holding the comment the author typed
         const draft = 'lunch receipt for the Tokyo trip';

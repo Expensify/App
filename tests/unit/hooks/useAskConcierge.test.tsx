@@ -158,6 +158,17 @@ describe('useAskConcierge', () => {
     });
 
     describe('askConcierge', () => {
+        it('passes a preloaded answer through the existing Concierge thread flow', async () => {
+            // Given a loaded Concierge report and an answer generated before the click.
+            await seedReports();
+            const {result} = renderAskConcierge({forceConcierge: true});
+
+            // When Explain is clicked, then post the question and cached answer together in a new thread.
+            result.current.askConcierge('Explain', undefined, 'Travel increased.');
+            expect(mockAddComment).toHaveBeenCalledWith(expect.objectContaining({text: 'Explain', preloadedResponse: 'Travel increased.'}));
+            expect(mockAddComment.mock.calls.at(0)?.at(0)?.conciergeThreadReportID).toEqual(expect.any(String));
+        });
+
         it('opens Concierge and sends the trimmed message to the resolved report', async () => {
             // Given web, with a loaded Concierge report
             mockIsInSidePanel = true;
