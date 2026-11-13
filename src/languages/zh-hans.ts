@@ -1887,6 +1887,8 @@ const translations: TranslationDeepObject<typeof en> = {
             selectMemberError: '选择一位成员将此报表退回给 TA。',
             couldNotReject: '无法拒绝该报表。请重试。',
             couldNotRejectExpense: '无法拒绝该报销，因为它可能已被移动或已被拒绝。',
+            couldNotRejectCorporateCardExpense: '对账单报表中的公司卡费用无法单独拒绝。请改为拒绝整份报表。',
+            couldNotRejectExpenseContactConcierge: '此报销无法被拒绝。请联系 Concierge 获取帮助。',
         },
         moveExpenses: '移动到报告',
         autoReport: '自动报告',

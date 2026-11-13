@@ -745,7 +745,7 @@ function abandonReviewDuplicateTransactions() {
 function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         errors: null,
-        errorFields: {route: null, waypoints: null, routes: null, reject: null},
+        errorFields: {route: null, waypoints: null, routes: null, reject: null, rejectCorporateCard: null, rejectOther: null},
         // Dropping a reject error also drops the pin that kept the expense listed on the report it was rejected from
         rejectFailedFromReportID: null,
     });

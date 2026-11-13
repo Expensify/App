@@ -443,7 +443,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 // Then: The expense returns to the report carrying a translated rejection error
                 const rejectedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
                 expect(rejectedTransaction?.reportID).toBe(iouReport.reportID);
-                expect(Object.values(rejectedTransaction?.errorFields?.reject ?? {})).toEqual([translateLocal('iou.rejectReport.couldNotRejectExpense')]);
+                expect(Object.values(rejectedTransaction?.errorFields?.rejectOther ?? {})).toEqual([translateLocal('iou.rejectReport.couldNotRejectExpenseContactConcierge')]);
             });
 
             it('should keep the expense on the report with an error when a reject queued offline fails on reconnection', async () => {
@@ -479,7 +479,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 // Then: The expense is back on the report with an error to dismiss instead of silently reappearing
                 const rejectedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
                 expect(rejectedTransaction?.reportID).toBe(iouReport.reportID);
-                expect(Object.values(rejectedTransaction?.errorFields?.reject ?? {})).toEqual([translateLocal('iou.rejectReport.couldNotRejectExpense')]);
+                expect(Object.values(rejectedTransaction?.errorFields?.rejectOther ?? {})).toEqual([translateLocal('iou.rejectReport.couldNotRejectExpenseContactConcierge')]);
             });
 
             it('should keep the expense listed on the report it was rejected from once the move it lost to lands', async () => {

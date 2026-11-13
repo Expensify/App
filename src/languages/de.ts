@@ -1965,6 +1965,9 @@ const translations: TranslationDeepObject<typeof en> = {
             selectMemberError: 'Wählen Sie ein Mitglied aus, an das dieser Bericht zurückgewiesen werden soll.',
             couldNotReject: 'Der Bericht konnte nicht abgelehnt werden. Bitte versuchen Sie es erneut.',
             couldNotRejectExpense: 'Die Ausgabe konnte nicht abgelehnt werden, da sie möglicherweise bereits verschoben oder abgelehnt wurde.',
+            couldNotRejectCorporateCardExpense:
+                'Firmenkartenausgaben in einem Kontoauszug-Bericht können nicht einzeln abgelehnt werden. Bitte lehnen Sie stattdessen den gesamten Bericht ab.',
+            couldNotRejectExpenseContactConcierge: 'Diese Ausgabe konnte nicht abgelehnt werden. Bitte wenden Sie sich für Hilfe an Concierge.',
         },
         moveExpenses: 'Zum Bericht verschieben',
         autoReport: 'Automatischer Bericht',
