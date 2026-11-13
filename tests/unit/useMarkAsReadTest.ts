@@ -6,6 +6,7 @@ import useMarkAsRead, {resetMarkAsReadScopes} from '@hooks/useMarkAsRead';
 
 import Log from '@libs/Log';
 import type Navigation from '@libs/Navigation/Navigation';
+import {getDBTimeWithSkew} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -13,6 +14,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+import {DeviceEventEmitter} from 'react-native';
 
 import createRandomReportAction from '../utils/collections/reportActions';
 
@@ -133,7 +135,12 @@ describe('useMarkAsRead', () => {
         mockLHNUnreadState = 'unread';
     });
 
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
     it('holds the mark-as-read while the Inbox tab is preloaded, and marks read once the tab opens', () => {
+        jest.useFakeTimers();
         mockIsInPreloadedTab = true;
         const {rerender} = renderMarkAsRead({isScrolledToEnd: true});
 
@@ -143,6 +150,147 @@ describe('useMarkAsRead', () => {
         mockIsInPreloadedTab = false;
         rerender(undefined);
 
+        // Then the read waits for idle so it stays out of the tap that paints the sidebar, and runs after it
+        expect(readNewestAction).not.toHaveBeenCalled();
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false, false, expect.any(String));
+    });
+
+    it('keeps the reveal time on the held read, so a message that arrives while it waits stays unread', () => {
+        // Given an unread report revealed from the preloaded Inbox tab at a known time
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2026-01-01T10:00:00.000Z'));
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderMarkAsRead({isScrolledToEnd: true});
+        mockIsInPreloadedTab = false;
+        rerender(undefined);
+        const revealTime = getDBTimeWithSkew();
+
+        // When the main thread only goes idle half a second later
+        jest.setSystemTime(new Date('2026-01-01T10:00:00.500Z'));
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Then the read is stamped with the reveal time, not the later idle time, so it covers only what the user saw
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false, false, revealTime);
+        expect(getDBTimeWithSkew()).not.toBe(revealTime);
+    });
+
+    it('drops the held reveal read when another read runs first', () => {
+        // Given an unread report revealed from the preloaded Inbox tab, with its read still waiting for idle
+        jest.useFakeTimers();
+        mockIsInPreloadedTab = true;
+        const {result, rerender} = renderMarkAsRead({isScrolledToEnd: true});
+        mockIsInPreloadedTab = false;
+        rerender(undefined);
+
+        // When the report is marked read through another path before the main thread goes idle
+        act(() => {
+            result.current.markNewestActionAsRead();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Then only that newer read is sent, so the older reveal time cannot overwrite it
+        expect(readNewestAction).toHaveBeenCalledTimes(1);
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
+    });
+
+    it('does not undo a mark-as-unread made before the held reveal read runs', () => {
+        // Given an unread report revealed from the preloaded Inbox tab, with its read still waiting for idle
+        jest.useFakeTimers();
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderMarkAsRead({isScrolledToEnd: true});
+        mockIsInPreloadedTab = false;
+        rerender(undefined);
+
+        // When the user marks a message unread before the main thread goes idle
+        act(() => {
+            DeviceEventEmitter.emit(`unreadAction_${REPORT_ID}`, '2023-01-01 10:30:00.000');
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Then the held read is dropped, so it cannot overwrite the user's own unread choice
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
+
+    it('still marks read when the report unmounts before the held reveal read runs', () => {
+        // Given an unread report revealed from the preloaded Inbox tab, with its read still waiting for idle
+        jest.useFakeTimers();
+        mockIsInPreloadedTab = true;
+        const {rerender, unmount} = renderMarkAsRead({isScrolledToEnd: true});
+        mockIsInPreloadedTab = false;
+        rerender(undefined);
+
+        // When the user leaves the report before the main thread goes idle
+        unmount();
+
+        // Then the report is marked read right away, as it was before the read was held, and only once
+        expect(readNewestAction).toHaveBeenCalledTimes(1);
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false, false, expect.any(String));
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        expect(readNewestAction).toHaveBeenCalledTimes(1);
+    });
+
+    it('marks the previous report read when the report changes before the held reveal read runs', () => {
+        // Given an unread report revealed from the preloaded Inbox tab, with its read still waiting for idle
+        jest.useFakeTimers();
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderHook(
+            (props: {reportID: string}) =>
+                useMarkAsRead({
+                    reportID: props.reportID,
+                    report: {...REPORT, reportID: props.reportID},
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: [],
+                    isScrolledToEnd: true,
+                    hasNewerActions: false,
+                }),
+            {
+                initialProps: {reportID: REPORT_ID},
+                wrapper: PreloadedTabWrapper,
+            },
+        );
+        mockIsInPreloadedTab = false;
+        rerender({reportID: REPORT_ID});
+        expect(readNewestAction).not.toHaveBeenCalled();
+
+        // When the user switches to another report before the main thread goes idle
+        rerender({reportID: '2'});
+
+        // Then the report the user saw is still marked read, once, and the new report is read as usual
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false, false, expect.any(String));
+        expect(readNewestAction).toHaveBeenCalledWith('2', false);
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        expect(readNewestAction.mock.calls.filter(([id]) => id === REPORT_ID)).toHaveLength(1);
+    });
+
+    it('marks read right away on later report changes after the preloaded tab was opened', () => {
+        // Given a report revealed from the preloaded Inbox tab whose held read has already run
+        jest.useFakeTimers();
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderMarkAsRead({isScrolledToEnd: true});
+        mockIsInPreloadedTab = false;
+        rerender(undefined);
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        readNewestAction.mockClear();
+
+        // When a new message arrives while the opened tab is in view
+        rerender({report: {...REPORT, lastVisibleActionCreated: '2023-01-01 12:00:00.000'}});
+
+        // Then it is read right away, because only the reveal itself waits for idle
         expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
     });
 

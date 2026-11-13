@@ -2,6 +2,7 @@ import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDBTimeWithSkew} from '@libs/NetworkState';
 import {isCurrentActionUnread, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {getReportNotificationPreference, isArchivedNonExpenseReport, isUnread} from '@libs/ReportUtils';
 import {getLHNUnreadState} from '@libs/SidebarUtils';
@@ -25,6 +26,7 @@ import useAppFocusEvent from './useAppFocusEvent';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useIsHiddenWideTabPreMount from './useIsHiddenWideTabPreMount';
+import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';
 import useIsReportOutOfSight from './useIsReportOutOfSight';
 import {useDerivedIsEmptyReport} from './useReportAttributes';
@@ -43,6 +45,22 @@ type ScopeOwner = {instanceID: number; reportID: string | null};
 const scopeOwners = new Map<string, ScopeOwner[]>();
 
 let lastInstanceID = 0;
+
+// Upper bound on how long the read after a preloaded tab reveal can wait for an idle main thread.
+const MARK_AS_READ_AFTER_REVEAL_TIMEOUT_MS = 1000;
+
+type PendingRevealRead = {
+    idleCallbackID: number;
+    read: () => void;
+};
+
+/** Stops a read held from a preloaded tab reveal from running on idle. */
+function cancelPendingRevealRead(pending: PendingRevealRead | null) {
+    if (!pending) {
+        return;
+    }
+    cancelIdleCallback(pending.idleCallbackID);
+}
 
 function getScopeReportID(scopeKey: string): string | null | undefined {
     return scopeOwners.get(scopeKey)?.at(-1)?.reportID;
@@ -127,6 +145,7 @@ function useMarkAsRead({
     // user is looking, so hold every readNewestAction until the tab is focused or the pre-mount is revealed.
     const isHiddenFromUser = useIsReportOutOfSight();
     const isHiddenPreMount = useIsHiddenWideTabPreMount();
+    const isInPreloadedTab = useIsInPreloadedTab();
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     useEffect(() => {
@@ -145,6 +164,34 @@ function useMarkAsRead({
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const didMarkReportAsReadInitially = useRef(false);
+    const wasInPreloadedTab = useRef(isInPreloadedTab);
+    const pendingRevealRead = useRef<PendingRevealRead | null>(null);
+
+    // Revealing a preloaded tab is the tap that has to paint the sidebar. Marking read there recomputes derived report
+    // data and re-renders the LHN inside that frame, so on reveal the read waits until the main thread is idle. It keeps
+    // the reveal time, so messages that arrive while it waits stay unread, as they would with an immediate read.
+    const readNewestActionOnRevealOrNow = () => {
+        if (!wasInPreloadedTab.current) {
+            cancelPendingRevealRead(pendingRevealRead.current);
+            pendingRevealRead.current = null;
+            readNewestAction(reportID, isReportActionsLoaded);
+            return;
+        }
+        // Both mark-as-read paths can fire on the same reveal, and one read covers them.
+        if (pendingRevealRead.current) {
+            return;
+        }
+        const readTime = getDBTimeWithSkew();
+        const read = () => readNewestAction(reportID, isReportActionsLoaded, false, readTime);
+        const idleCallbackID = requestIdleCallback(
+            () => {
+                pendingRevealRead.current = null;
+                read();
+            },
+            {timeout: MARK_AS_READ_AFTER_REVEAL_TIMEOUT_MS},
+        );
+        pendingRevealRead.current = {idleCallbackID, read};
+    };
 
     const lastAction = sortedVisibleReportActions.at(0);
     const isReportUnreadValue = isUnread(report, transactionThreadReport, isReportArchived, derivedIsEmptyReport) || (!!lastAction && isCurrentActionUnread(report, lastAction));
@@ -176,9 +223,24 @@ function useMarkAsRead({
 
         const subscription = DeviceEventEmitter.addListener(`unreadAction_${reportID}`, () => {
             userActiveSince.current = DateUtils.getDBTime();
+
+            // The user marked the report unread before the read held from the reveal ran, so that read must not undo it.
+            cancelPendingRevealRead(pendingRevealRead.current);
+            pendingRevealRead.current = null;
         });
         return () => subscription.remove();
     }, [reportID, isAnonymousUser]);
+
+    // Leaving or switching the report before the held read runs still marks it read, as an immediate read would have.
+    useEffect(
+        () => () => {
+            const pending = pendingRevealRead.current;
+            pendingRevealRead.current = null;
+            cancelPendingRevealRead(pending);
+            pending?.read();
+        },
+        [reportID],
+    );
 
     // Telemetry for reports that had unread messages but the LHN did not show as unread before they were opened.
     // Runs once per opened report, before the initial mark-as-read merges a new lastReadTime, and relies only on the
@@ -236,7 +298,7 @@ function useMarkAsRead({
             return;
         }
 
-        readNewestAction(reportID, isReportActionsLoaded);
+        readNewestActionOnRevealOrNow();
 
         // `hasNewerActions` and `isScrolledToEnd` are read but intentionally left out of the deps: this effect is the
         // one-shot initial mark-as-read, and re-running it whenever the user scrolls or pagination state changes would
@@ -272,7 +334,7 @@ function useMarkAsRead({
         const shouldReadOnReportChange = ((isVisible && Visibility.hasFocus()) || isFromNotification) && !hasNewerActions && isScrolledToEnd;
 
         if (shouldReadOnReportChange) {
-            readNewestAction(reportID, isReportActionsLoaded);
+            readNewestActionOnRevealOrNow();
             if (isFromNotification) {
                 Navigation.setParams({referrer: undefined});
             }
@@ -290,6 +352,11 @@ function useMarkAsRead({
     useEffect(() => {
         handleReportChangeMarkAsRead();
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isReportActionsLoaded, isHiddenFromUser]);
+
+    // Declared after both mark-as-read effects so they still see the preloaded state of the previous commit on reveal.
+    useEffect(() => {
+        wasInPreloadedTab.current = isInPreloadedTab;
+    }, [isInPreloadedTab]);
 
     // isFocused is passed as an arg because the Effect Event closure can be stale (stuck true) on frozen screens,
     // re-marking a just-unread report as read on report switch
@@ -331,6 +398,8 @@ function useMarkAsRead({
             return;
         }
 
+        cancelPendingRevealRead(pendingRevealRead.current);
+        pendingRevealRead.current = null;
         readNewestAction(reportID, true);
         userActiveSince.current = DateUtils.getDBTime();
     });
@@ -342,6 +411,8 @@ function useMarkAsRead({
 
     const markNewestActionAsRead = () => {
         readActionSkippedRef.current = false;
+        cancelPendingRevealRead(pendingRevealRead.current);
+        pendingRevealRead.current = null;
         readNewestAction(reportID, true);
     };
 
