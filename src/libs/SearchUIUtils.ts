@@ -7557,6 +7557,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
