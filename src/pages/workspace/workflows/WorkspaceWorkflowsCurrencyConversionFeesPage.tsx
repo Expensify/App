@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -107,10 +107,7 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="WorkspaceWorkflowsCurrencyConversionFeesPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workflowsCurrencyConversionFeesPage.title')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workflowsCurrencyConversionFeesPage.title')} />
                 <OfflineWithFeedback
                     pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
                     errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}

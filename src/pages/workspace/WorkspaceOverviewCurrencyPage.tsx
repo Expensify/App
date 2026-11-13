@@ -1,6 +1,6 @@
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -99,10 +99,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
                 shouldEnableMaxHeight
                 testID="WorkspaceOverviewCurrencyPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.editor.currencyInputLabel')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.editor.currencyInputLabel')} />
 
                 <CurrencySelectionList
                     searchInputLabel={translate('workspace.editor.currencyInputLabel')}
