@@ -8,6 +8,7 @@ import {isDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type ConciergePendingFollowupList from '@src/types/onyx/ConciergePendingFollowupList';
 import type Report from '@src/types/onyx/Report';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,7 +18,7 @@ import {getReportChatType, getReportParentReportID} from '@selectors/Report';
 import {getNewestReportActionSelector} from '@selectors/ReportAction';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
-import React, {createContext, useContext, useEffect} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 
 type AgentZeroStatusState = {
     /**
@@ -48,6 +49,10 @@ function reportMetaSelector(report: OnyxEntry<Report>): ReportMeta {
         parentReportID: getReportParentReportID(report),
         participantAccountIDs: getReportParticipantAccountIDs(report),
     };
+}
+
+function pendingFollowupReplyIDSelector(pendingFollowupList: OnyxEntry<ConciergePendingFollowupList>): string | undefined {
+    return pendingFollowupList?.reportActionID;
 }
 
 const defaultState: AgentZeroStatusState = {
@@ -168,6 +173,42 @@ function AgentZeroStatusGate({
         kickoffWaitingIndicator();
     }, [shouldKickoff, includeConcierge, kickoffWaitingIndicator]);
 
+    // Suppress an agent whose reply is already the newest action. The server's indicator-clear NVP
+    // can arrive up to ~250ms after the reply Pusher event, leaving the bubble visible on top of
+    // the completed response. Dropping the agent here as soon as their ADDCOMMENT lands prevents
+    // that flash without waiting for the NVP clear.
+    // A pregenerated followup reply, or an agent comment that was already newest when that agent's label turned on,
+    // answers an earlier question. It can sort after the user's next message, so it does not mean the current turn is
+    // answered. A baseline is only taken on a label change seen while mounted, since a label that is already on at
+    // mount may belong to a reply that has landed and is just waiting for the server clear.
+    const serverAgentIDsKey = (serverAgentIDs ?? []).join(',');
+    const [labelBaseline, setLabelBaseline] = useState<{key: string; newestActionIDByAgent: Record<number, string | undefined>}>({key: serverAgentIDsKey, newestActionIDByAgent: {}});
+    if (labelBaseline.key !== serverAgentIDsKey) {
+        const previousAgentIDs = new Set(labelBaseline.key ? labelBaseline.key.split(',').map(Number) : []);
+        const newestActionIDByAgent: Record<number, string | undefined> = {};
+        for (const agentID of serverAgentIDs ?? []) {
+            newestActionIDByAgent[agentID] = previousAgentIDs.has(agentID) ? labelBaseline.newestActionIDByAgent[agentID] : newestReportAction?.reportActionID;
+        }
+        setLabelBaseline({key: serverAgentIDsKey, newestActionIDByAgent});
+    }
+    // The reply ID outlives the pending marker, which clears when the reply's followup list lands even if the user's
+    // next turn is still running. The marker clear also clears the label unless such a turn exists.
+    const [pendingFollowupReplyID] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${isActive ? reportID : undefined}`, {selector: pendingFollowupReplyIDSelector});
+    const [followupReplyID, setFollowupReplyID] = useState(pendingFollowupReplyID);
+    if (pendingFollowupReplyID && pendingFollowupReplyID !== followupReplyID) {
+        setFollowupReplyID(pendingFollowupReplyID);
+    }
+    let answeredAgentID: number | undefined;
+    if (newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && newestReportAction.actorAccountID !== undefined) {
+        const isLabelOn = (serverAgentIDs ?? []).includes(newestReportAction.actorAccountID);
+        const isNewestFromBeforeLabel =
+            labelBaseline.key === serverAgentIDsKey && labelBaseline.newestActionIDByAgent[newestReportAction.actorAccountID] === newestReportAction.reportActionID;
+        const isFollowupReply = !!followupReplyID && followupReplyID === newestReportAction.reportActionID;
+        if (!isLabelOn || (!isNewestFromBeforeLabel && !isFollowupReply)) {
+            answeredAgentID = newestReportAction.actorAccountID;
+        }
+    }
+
     const candidateIDs = new Set<number>(isActive ? (serverAgentIDs ?? []) : []);
     if (isActive && includeConcierge) {
         candidateIDs.add(CONST.ACCOUNT_ID.CONCIERGE);
@@ -177,12 +218,8 @@ function AgentZeroStatusGate({
     if (currentUserAccountID !== undefined) {
         candidateIDs.delete(currentUserAccountID);
     }
-    // Suppress an agent whose reply is already the newest action. The server's indicator-clear NVP
-    // can arrive up to ~250ms after the reply Pusher event, leaving the bubble visible on top of
-    // the completed response. Dropping the agent here as soon as their ADDCOMMENT lands prevents
-    // that flash without waiting for the NVP clear.
-    if (newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && newestReportAction.actorAccountID !== undefined) {
-        candidateIDs.delete(newestReportAction.actorAccountID);
+    if (answeredAgentID !== undefined) {
+        candidateIDs.delete(answeredAgentID);
     }
     // Render Concierge's bubble first, then any custom agents ascending by accountID — a stable,
     // intentional order instead of relying on Set insertion order.

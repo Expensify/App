@@ -1,3 +1,4 @@
+import {hasUserMessageSinceQuestion} from '@libs/ReportActionFollowupUtils';
 import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,7 +13,8 @@ import useSidePanelState from './useSidePanelState';
 
 /**
  * Returns true when thinking/typing indicators should be hidden: in the main Concierge chat, in the Concierge
- * side panel before the session has any messages, and while a followup list is pending.
+ * side panel before the session has any messages, and while a followup list is pending. It
+ * does not apply to a pending followup list once the user has sent another message since that turn's question.
  */
 function useShouldSuppressConciergeIndicators(reportID: string | undefined): boolean {
     const isInSidePanel = useIsInSidePanel();
@@ -37,7 +39,13 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
         selector: hasSessionActivitySelector,
     });
 
-    if (pendingFollowupList) {
+    const questionReportActionID = pendingFollowupList?.questionReportActionID;
+    const hasNewerUserTurnSelector = (actions: OnyxEntry<ReportActions>) => hasUserMessageSinceQuestion(actions, questionReportActionID);
+    const [hasNewerUserTurn] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: hasNewerUserTurnSelector,
+    });
+
+    if (pendingFollowupList && !hasNewerUserTurn) {
         return true;
     }
 
