@@ -187,6 +187,22 @@ function buildMerchantFilterQuery(
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
 const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
+const VALID_VIOLATION_NAMES = new Set<string>(Object.values(CONST.VIOLATIONS));
+
+// Search, Insights and the CSV export skip the cash expense notice that only Classic records, so violation filter skips it too.
+const VIOLATION_FILTER_VALUES: OnyxTypes.ViolationName[] = Object.values(CONST.VIOLATIONS).filter((name) => name !== CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT);
+
+function isViolationName(name: string): name is OnyxTypes.ViolationName {
+    return VALID_VIOLATION_NAMES.has(name);
+}
+
+/**
+ * Returns the display label for a violation name.
+ * Falls back to the raw identifier when no short-name translation exists.
+ */
+function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+    return isViolationName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
+}
 const VALID_TRANSACTION_STATUSES = new Set<string>(Object.values(CONST.SEARCH.TRANSACTION_STATUS));
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
@@ -1689,6 +1705,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.TAX_RATE ||
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.RECEIPT_TYPE ||
+                    filterKey === FILTER_KEYS.VIOLATION ||
                     filterKey === FILTER_KEYS.TAG ||
                     filterKey === FILTER_KEYS.VENDOR ||
                     filterKey === FILTER_KEYS.CURRENCY ||
@@ -2075,6 +2092,14 @@ function buildFilterFormValuesFromQuery(
                 filtersForm[FILTER_KEYS.RECEIPT_TYPE_NOT] = receiptTypeValues;
             } else {
                 filtersForm[FILTER_KEYS.RECEIPT_TYPE] = receiptTypeValues;
+            }
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION) {
+            const violationNames = filterValues.filter(isViolationName);
+            if (isNegated) {
+                filtersForm[FILTER_KEYS.VIOLATION_NOT] = violationNames;
+            } else {
+                filtersForm[FILTER_KEYS.VIOLATION] = violationNames;
             }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS) {
@@ -2523,6 +2548,9 @@ function getFilterDisplayValue({
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return getPolicyNameWithFallback(filterValue, policies, reports);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION) {
+        return getViolationDisplayName(filterValue, translate);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
         // A query can carry a standard template's ID, so display the label the backend records for it. Custom template names are returned as-is.
@@ -3560,6 +3588,8 @@ export {
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     shouldRefetchSearchOnReportActionChange,
+    getViolationDisplayName,
+    VIOLATION_FILTER_VALUES,
 };
 
 export type {BuildUserReadableQueryStringParams};

@@ -1383,6 +1383,48 @@ const keywordTests = [
         },
     },
     {
+        query: 'violation:missingCategory,overLimit',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'violationName',
+                right: ['missingCategory', 'overLimit'],
+            },
+        },
+    },
+    {
+        query: '-violation:missingCategory,overLimit',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'neq',
+                left: 'violationName',
+                right: ['missingCategory', 'overLimit'],
+            },
+        },
+    },
+    {
+        query: 'violationName:overLimit',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'violationName',
+                right: 'overLimit',
+            },
+        },
+    },
+    {
         query: 'transaction-status:pending',
         expected: {
             type: 'expense',

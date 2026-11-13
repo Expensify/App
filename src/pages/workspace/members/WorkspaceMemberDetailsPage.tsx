@@ -98,7 +98,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
+import {policyCategoriesVisibilitySelector} from '@selectors/PolicyCategories';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';

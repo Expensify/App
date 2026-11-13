@@ -17029,6 +17029,22 @@ describe('SearchUIUtils', () => {
             // Then both chips share the base key (used to pick the chip's popover), while their ids stay unique so they can be used as React keys
             expect(statusFilters.map((filter) => filter.id)).toEqual([FILTER_KEYS.STATUS, FILTER_KEYS.STATUS_NOT]);
         });
+
+        it('shows translated names for both the violation filter and its negation', () => {
+            // Given a query that includes one violation and excludes another, e.g. `violation:overLimit -violation:missingCategory`
+            const form = {
+                [FILTER_KEYS.TYPE]: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [FILTER_KEYS.VIOLATION]: [CONST.VIOLATIONS.OVER_LIMIT],
+                [FILTER_KEYS.VIOLATION_NOT]: [CONST.VIOLATIONS.MISSING_CATEGORY],
+            };
+
+            // When the form is mapped to filter chips
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, convertToDisplayStringWithoutCurrency);
+            const violationFilters = result.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+
+            // Then both chips show the readable label instead of the raw identifier the backend uses
+            expect(violationFilters.map((filter) => filter.value)).toEqual([translateLocal('violations.shortName.overLimit'), translateLocal('violations.shortName.missingCategory')]);
+        });
     });
 });
 
@@ -17109,6 +17125,22 @@ describe('getMultiSelectFilterOptions', () => {
             {value: CONST.SEARCH.RECEIPT_TYPE.ITEMIZED, text: 'Itemized'},
         ]);
         expect(options).not.toContainEqual(expect.objectContaining({value: CONST.SEARCH.RECEIPT_TYPE.HOTEL}));
+    });
+});
+
+describe('getViolationFilterOptions', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('sorts the options by translated label', () => {
+        // Given the violation names, whose CONST order doesn't follow their labels
+        // When building the violation picker options
+        const labels = SearchUIUtils.getViolationFilterOptions(translateLocal, localeCompare).map((option) => option.text);
+
+        // Then they're in alphabetical order, matching the autocomplete suggestions
+        expect(labels).toEqual([...labels].sort(localeCompare));
+        expect(labels.length).toBeGreaterThanOrEqual(CONST.STANDARD_LIST_ITEM_LIMIT);
     });
 });
 

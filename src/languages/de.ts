@@ -11145,6 +11145,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         noVendor: 'Kein Lieferant',
         expenseType: 'Ausgabenart',
         receiptType: 'Belegart',
+        violation: 'Verstoß',
         receiptTypeValues: {
             ereceipt: 'eBeleg',
             itemized: 'Aufgeschlüsselt',
@@ -12010,6 +12011,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             tagOutOfPolicy: 'Tag nicht mehr gültig',
             overLimitAttendee: 'Über Personenlimit',
             customRules: 'Verstoß gegen benutzerdefinierte Regel',
+            ruleViolation: 'Regelverstoß',
             taxAmountChanged: 'Steuerbetrag geändert',
             taxOutOfPolicy: 'Steuersatz nicht mehr gültig',
             taxRateChanged: 'Steuersatz geändert',

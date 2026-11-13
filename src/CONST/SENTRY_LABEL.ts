@@ -549,6 +549,7 @@ const SENTRY_LABEL = {
             POSTED: 'Search-Filter-Posted',
             WITHDRAWN: 'Search-Filter-Withdrawn',
             REPORT_FIELD: 'Search-Filter-ReportField',
+            VIOLATION: 'Search-Filter-Violation',
         },
         ADVANCED_FILTER: {
             ASSIGNEE: 'Search-AdvancedFilter-Assignee',
@@ -606,6 +607,7 @@ const SENTRY_LABEL = {
             POSTED: 'Search-AdvancedFilter-Posted',
             WITHDRAWN: 'Search-AdvancedFilter-Withdrawn',
             REPORT_FIELD: 'Search-AdvancedFilter-ReportField',
+            VIOLATION: 'Search-AdvancedFilter-Violation',
         },
         FILTER_POPUP_APPLY: {
             ASSIGNEE: 'Search-FilterPopupApply-Assignee',
@@ -663,6 +665,7 @@ const SENTRY_LABEL = {
             POSTED: 'Search-FilterPopupApply-Posted',
             WITHDRAWN: 'Search-FilterPopupApply-Withdrawn',
             REPORT_FIELD: 'Search-FilterPopupApply-ReportField',
+            VIOLATION: 'Search-FilterPopupApply-Violation',
         },
         FILTER_POPUP_APPLY_VALUE: {
             AMOUNT: 'Search-FilterPopupApplyValue-Amount',
