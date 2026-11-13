@@ -195,6 +195,7 @@ const SENTRY_LABEL = {
         WORKSPACES: 'NavigationTabBar-Workspaces',
         ACCOUNT: 'NavigationTabBar-Account',
         HOME: 'NavigationTabBar-Home',
+        COLLAPSE: 'NavigationTabBar-Collapse',
         FLOATING_ACTION_BUTTON: 'NavigationTabBar-FloatingActionButton',
         FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
         FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
