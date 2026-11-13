@@ -1544,7 +1544,6 @@ const CONST = {
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         PINNABLE_TABLE_COLUMNS: 'pinnableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
-        RESIZABLE_RHP: 'resizableRHP',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
         SINGLE_EXPENSE_TABLE_VIEW: 'singleExpenseTableView',
