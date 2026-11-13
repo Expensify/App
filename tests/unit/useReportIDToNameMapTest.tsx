@@ -241,7 +241,7 @@ describe('buildReportIDToNameMap', () => {
         const partialRoomID = '4';
         const reportsWithPartialRoom: OnyxCollection<Report> = {
             ...reports,
-            [`${ONYXKEYS.COLLECTION.REPORT}${partialRoomID}`]: {reportName: '#partial'} as Report,
+            [`${ONYXKEYS.COLLECTION.REPORT}${partialRoomID}`]: createReport(partialRoomID, {reportID: undefined, reportName: '#partial'}),
         };
 
         // When building the map for that room, and for every report
