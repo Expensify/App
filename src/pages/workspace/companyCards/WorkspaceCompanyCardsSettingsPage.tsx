@@ -125,7 +125,7 @@ function WorkspaceCompanyCardsSettingsPage({
         if (!selectedFeed) {
             return;
         }
-        startCardFeedRefresh(policyID, selectedFeed, policy?.outputCurrency, currencyList, countryByIp);
+        startCardFeedRefresh(policyID, selectedFeed, selectedFeedData?.country, policy?.outputCurrency, currencyList, countryByIp);
     };
 
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => refreshCardFeed());

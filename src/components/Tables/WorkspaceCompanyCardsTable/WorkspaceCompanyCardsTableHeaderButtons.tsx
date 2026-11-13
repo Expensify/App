@@ -100,7 +100,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({
         // The refresh flow keeps the bank login open until the reconnect completes: expiration change for OAuth,
         // import finishing for Plaid. The broken-connection page would treat a feed that only has feed-level errors
         // as already reconnected and close at once.
-        startCardFeedRefresh(policyID, feedName, policy?.outputCurrency, currencyList, countryByIp);
+        startCardFeedRefresh(policyID, feedName, currentFeedData?.country, policy?.outputCurrency, currencyList, countryByIp);
     };
 
     // The page keys a feed as `<feed>#<domainID>`, while the Search feed filter keys it as `<fundID>_<feed>`.
