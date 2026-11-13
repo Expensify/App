@@ -43,6 +43,8 @@ type AccountingIntegration = {
     pendingFields?: PendingFields<string>;
     errorFields?: ErrorFields;
     workspaceUpgradeNavigationDetails?: WorkspaceUpgradeNavigationDetails;
+    /** The workspace can't connect yet, and the setup flow first asks the admin to fix that, so starting it must not replace the current integration */
+    hasUnmetConnectPrerequisite?: boolean;
 };
 
 export type {MenuItemData, PolicyAccountingPageProps, AccountingIntegration};
