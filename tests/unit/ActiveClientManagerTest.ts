@@ -77,6 +77,14 @@ class FakeLockManager {
         this.grantNext('activeClientLeader');
     }
 
+    /** Safari rejects the holder's promise when its page is suspended. */
+    suspendLeaderTab() {
+        const suspendedRequest = this.holder;
+        this.holder = undefined;
+        suspendedRequest?.reject(new DOMException('The browsing context is going away', 'AbortError'));
+        this.grantNext('activeClientLeader');
+    }
+
     private grantNext(name: string) {
         if (this.holder) {
             return;
@@ -124,9 +132,15 @@ const countLeaders = (tabs: ActiveClientManagerModule[]) => tabs.filter((tab) =>
 
 describe('ActiveClientManager', () => {
     let lockManager: FakeLockManager;
+    let requestSpy: jest.SpiedFunction<FakeLockManager['request']>;
+    let addEventListenerSpy: jest.SpiedFunction<typeof window.addEventListener>;
+    let visibilitySpy: jest.SpiedGetter<DocumentVisibilityState>;
 
     beforeEach(() => {
         lockManager = new FakeLockManager();
+        requestSpy = jest.spyOn(lockManager, 'request');
+        addEventListenerSpy = jest.spyOn(window, 'addEventListener');
+        visibilitySpy = jest.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
         Object.defineProperty(navigator, 'locks', {
             value: lockManager,
             configurable: true,
@@ -136,6 +150,15 @@ describe('ActiveClientManager', () => {
     });
 
     afterEach(() => {
+        // Each simulated tab shares jsdom's window, so its listeners must not run in later tests.
+        for (const [type, listener] of addEventListenerSpy.mock.calls) {
+            if (type === 'pageshow' || type === 'beforeunload') {
+                window.removeEventListener(type, listener);
+            }
+        }
+        addEventListenerSpy.mockRestore();
+        requestSpy.mockRestore();
+        visibilitySpy.mockRestore();
         Object.defineProperty(navigator, 'locks', {
             value: undefined,
             configurable: true,
@@ -274,6 +297,135 @@ describe('ActiveClientManager', () => {
 
         // Then the listener doesn't run again, since leadership didn't change
         expect(onBecomeLeader).toHaveBeenCalledTimes(2);
+    });
+
+    it.each(['InvalidStateError', 'SecurityError', 'AbortError'])('does not immediately retry a failed acquisition with %s', async (errorName) => {
+        // Given a browser that rejects lock acquisitions, with a finite mock so a regression cannot hang Jest.
+        const error = new DOMException('The lock cannot be acquired', errorName);
+        requestSpy.mockRejectedValueOnce(error).mockRejectedValueOnce(error);
+        const tab = openTab();
+        const onBecomeLeader = jest.fn();
+        const onReady = jest.fn();
+        tab.onBecomeLeader(onBecomeLeader);
+        tab.isReady().then(onReady);
+
+        // When acquiring the lock fails before the tab has held it.
+        tab.init();
+        await waitForLocks();
+
+        // Then the event loop can run without retries or falsely granting permission to send requests.
+        expect(requestSpy).toHaveBeenCalledTimes(1);
+        expect(tab.isClientTheLeader()).toBe(false);
+        expect(mockSetActiveClients).not.toHaveBeenCalled();
+        expect(onBecomeLeader).not.toHaveBeenCalled();
+        expect(onReady).not.toHaveBeenCalled();
+    });
+
+    it('can acquire leadership on focus after its initial lock request failed', async () => {
+        // Given a tab whose first acquisition failed while its document was inactive.
+        requestSpy.mockRejectedValueOnce(new DOMException('The document is not fully active', 'InvalidStateError'));
+        const tab = openTab();
+        tab.init();
+        await waitForLocks();
+        expect(tab.isClientTheLeader()).toBe(false);
+
+        // When the app initializes the client again after returning to the foreground.
+        tab.init();
+        await waitForLocks();
+
+        // Then the failed attempt does not leave initialization blocked.
+        expect(requestSpy).toHaveBeenCalledTimes(2);
+        expect(tab.isClientTheLeader()).toBe(true);
+        await expect(tab.isReady()).resolves.toBeUndefined();
+    });
+
+    it('does not claim leadership without a lock when another tab still leads', async () => {
+        // Given a healthy leader and a second tab whose lock acquisition is rejected.
+        const firstTab = openTab();
+        const secondTab = openTab();
+        firstTab.init();
+        await waitForLocks();
+        requestSpy.mockRejectedValueOnce(new DOMException('The document is not fully active', 'InvalidStateError'));
+
+        // When the second tab tries to initialize.
+        secondTab.init();
+        await waitForLocks();
+
+        // Then only the lock holder can send the shared request queue.
+        expect(requestSpy).toHaveBeenCalledTimes(2);
+        expect(firstTab.isClientTheLeader()).toBe(true);
+        expect(secondTab.isClientTheLeader()).toBe(false);
+        expect(mockSetActiveClients).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops retrying when Safari suspends the leader and rejects its next acquisition', async () => {
+        // Given a leader whose document will reject new lock requests during suspension.
+        const tab = openTab();
+        tab.init();
+        await waitForLocks();
+        expect(tab.isClientTheLeader()).toBe(true);
+        const error = new DOMException('The document is not fully active', 'InvalidStateError');
+        requestSpy.mockRejectedValueOnce(error).mockRejectedValueOnce(error);
+
+        // When Safari releases the lock and rejects the attempt to wait for leadership again.
+        lockManager.suspendLeaderTab();
+        await waitForLocks();
+
+        // Then the tab stops after the failed acquisition rather than blocking input with endless rejections.
+        expect(requestSpy).toHaveBeenCalledTimes(2);
+        expect(tab.isClientTheLeader()).toBe(false);
+    });
+
+    it('reacquires leadership when a suspended page is restored from the back/forward cache', async () => {
+        // Given a suspended leader whose failed acquisition must wait for its document to become active.
+        const tab = openTab();
+        const onBecomeLeader = jest.fn();
+        tab.onBecomeLeader(onBecomeLeader);
+        tab.init();
+        await waitForLocks();
+        requestSpy.mockRejectedValueOnce(new DOMException('The document is not fully active', 'InvalidStateError'));
+        lockManager.suspendLeaderTab();
+        await waitForLocks();
+        expect(tab.isClientTheLeader()).toBe(false);
+
+        // When Back restores the page without necessarily changing its visibility.
+        window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true}));
+        await waitForLocks();
+
+        // Then the client can send queued work again and listeners hear about the new leadership.
+        expect(requestSpy).toHaveBeenCalledTimes(3);
+        expect(tab.isClientTheLeader()).toBe(true);
+        expect(onBecomeLeader).toHaveBeenCalledTimes(2);
+
+        // When initialization or pageshow repeats while this tab already leads.
+        tab.init();
+        window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true}));
+        await waitForLocks();
+
+        // Then no extra lock or restore listener is needed.
+        expect(requestSpy).toHaveBeenCalledTimes(3);
+        expect(onBecomeLeader).toHaveBeenCalledTimes(2);
+        expect(addEventListenerSpy.mock.calls.filter(([type]) => type === 'pageshow')).toHaveLength(1);
+    });
+
+    it.each([
+        {persisted: false, visibility: 'visible' as const},
+        {persisted: true, visibility: 'hidden' as const},
+    ])('does not retry on pageshow with persisted=$persisted and visibility=$visibility', async ({persisted, visibility}) => {
+        // Given an acquisition failure that should wait until a visible page is restored or focused.
+        requestSpy.mockRejectedValueOnce(new DOMException('The document is not fully active', 'InvalidStateError'));
+        const tab = openTab();
+        tab.init();
+        await waitForLocks();
+        visibilitySpy.mockReturnValue(visibility);
+
+        // When a normal page load or a hidden page restore emits pageshow.
+        window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted}));
+        await waitForLocks();
+
+        // Then a hidden or newly loading page does not make another request or steal leadership.
+        expect(requestSpy).toHaveBeenCalledTimes(1);
+        expect(tab.isClientTheLeader()).toBe(false);
     });
 
     it('falls back to the ACTIVE_CLIENTS list when Web Locks are not available', async () => {
