@@ -1,5 +1,6 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
+import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
@@ -176,6 +177,98 @@ describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
 
         expect(countWorkflowCards()).toBe(BATCH);
         expect(screen.getByText(loadMoreLabel(11 - BATCH))).toBeOnTheScreen();
+    });
+
+    it('promotes a broken workflow from beyond the initial batch and keeps the tab indicator independent of search', async () => {
+        // Given ten custom workflows with a removed approver originally outside the initial batch
+        const removedApproverEmail = 'approver9@example.com';
+        const {employeeList, personalDetails} = buildWorkflowData(10);
+        delete employeeList[removedApproverEmail];
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy(employeeList));
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+
+        // When the approvals page first renders, without loading more
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Everyone is first, the broken workflow is second, and the tab has its own error dot
+        const cards = screen.UNSAFE_getAllByType(ApprovalWorkflowSection);
+        expect(cards).toHaveLength(BATCH);
+        expect(within(cards[0]).getByText(TestHelper.translateLocal('workspace.common.everyone'))).toBeOnTheScreen();
+        expect(within(cards[1]).getByText('Member 9 User')).toBeOnTheScreen();
+        const approvalsTabLabel = `${TestHelper.translateLocal('workflowsPage.addApprovalsTitle')}. ${TestHelper.translateLocal('common.yourReviewIsRequired')}`;
+        const approvalsTab = screen.getByRole(CONST.ROLE.TAB, {name: approvalsTabLabel});
+        expect(within(approvalsTab).getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeOnTheScreen();
+
+        // When searching for only a healthy workflow
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('workflowsPage.findWorkflow')), 'Member 2');
+        await waitFor(() => expect(countWorkflowCards()).toBe(1));
+
+        // Then the full-collection indicator remains visible and search still bypasses pagination
+        expect(screen.getByRole(CONST.ROLE.TAB, {name: approvalsTabLabel})).toBeOnTheScreen();
+        expect(within(approvalsTab).getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeOnTheScreen();
+        expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: /load .* more/i})).not.toBeOnTheScreen();
+
+        // When the removed approver is restored and the search is cleared
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                employeeList: {[removedApproverEmail]: {email: removedApproverEmail}},
+            });
+        });
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('workflowsPage.findWorkflow')), '');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the indicator clears, the repaired workflow is no longer promoted, and Load more still reveals it
+        expect(screen.getByRole(CONST.ROLE.TAB, {name: TestHelper.translateLocal('workflowsPage.addApprovalsTitle')})).toBeOnTheScreen();
+        expect(within(approvalsTab).queryByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).not.toBeOnTheScreen();
+        expect(screen.queryByText('Member 9 User')).not.toBeOnTheScreen();
+        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: loadMoreLabel(11 - BATCH)}));
+        await waitForBatchedUpdatesWithAct();
+        expect(countWorkflowCards()).toBe(11);
+    });
+
+    it.each(['read-only', 'integration-locked'])('preserves workflow order and pagination for %s viewers', async (viewer) => {
+        // Given a broken workflow beyond the first batch whose errors this viewer cannot act on
+        const removedApproverEmail = 'approver9@example.com';
+        const {employeeList, personalDetails} = buildWorkflowData(10);
+        delete employeeList[removedApproverEmail];
+        const policy = buildPolicy(employeeList);
+        if (viewer === 'read-only') {
+            policy.role = CONST.POLICY.ROLE.AUDITOR;
+            employeeList[OWNER_EMAIL] = {...employeeList[OWNER_EMAIL], role: CONST.POLICY.ROLE.AUDITOR};
+        } else {
+            policy.connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.MANAGER, groups: [], finalApprover: null}},
+            };
+        }
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+
+        // When the viewer opens Approvals without expanding the list
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then hidden errors do not promote workflows into the initial batch
+        const initialCards = screen.UNSAFE_getAllByType(ApprovalWorkflowSection);
+        expect(initialCards).toHaveLength(BATCH);
+        expect(initialCards.every((card) => card.props.isDisabled)).toBe(true);
+        expect(within(initialCards[0]).getByText(TestHelper.translateLocal('workspace.common.everyone'))).toBeOnTheScreen();
+        expect(screen.queryByText('Member 9 User')).not.toBeOnTheScreen();
+
+        // When Load more reveals the rest
+        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: loadMoreLabel(11 - BATCH)}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the broken workflow remains in its original position and its error stays hidden
+        const allCards = screen.UNSAFE_getAllByType(ApprovalWorkflowSection);
+        expect(allCards).toHaveLength(11);
+        expect(within(allCards[9]).getByText('Member 9 User')).toBeOnTheScreen();
+        expect(screen.queryByText(TestHelper.translateLocal('workflowsPage.approverNotWorkspaceMember'))).not.toBeOnTheScreen();
+        expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: /load .* more/i})).not.toBeOnTheScreen();
     });
 
     it('reveals all remaining workflows in a single press and hides the button', async () => {

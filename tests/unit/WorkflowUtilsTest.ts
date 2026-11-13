@@ -36,6 +36,7 @@ import {
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
     shouldUseApprovalWorkflowRules,
+    sortApprovalWorkflowsByErrors,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,6 +62,39 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const personalDetails: PersonalDetailsList = {};
 const personalDetailsByEmail: PersonalDetailsList = {};
+
+describe('sortApprovalWorkflowsByErrors', () => {
+    it.each([false, true])('pins Everyone first when its broken state is %s and preserves order within groups', (isDefaultBroken) => {
+        // Given healthy and broken workflows interleaved, with the default workflow not already first
+        const healthyFirst = buildWorkflow([1], [2]);
+        const healthySecond = buildWorkflow([3], [4]);
+        const brokenFirst = buildWorkflow([5], [6], {approvers: [buildApprover(6, {isNotWorkspaceMember: true})]});
+        const brokenSecond = buildWorkflow([7], [8], {approvers: [buildApprover(8, {isOverLimitForwardsToNotWorkspaceMember: true})]});
+        const everyone = buildWorkflow([], [9], {isDefault: true, approvers: [buildApprover(9, {isNotWorkspaceMember: isDefaultBroken})]});
+        const workflows = [healthyFirst, brokenFirst, everyone, healthySecond, brokenSecond];
+
+        // When the complete collection is sorted
+        const sorted = sortApprovalWorkflowsByErrors(workflows);
+
+        // Then Everyone stays first, both kinds of errors precede healthy workflows, and the source is not mutated
+        expect(sorted).toEqual([everyone, brokenFirst, brokenSecond, healthyFirst, healthySecond]);
+        expect(workflows).toEqual([healthyFirst, brokenFirst, everyone, healthySecond, brokenSecond]);
+    });
+
+    it('returns a repaired workflow to its original relative position among healthy workflows', () => {
+        // Given a broken workflow initially following a healthy workflow
+        const healthy = buildWorkflow([1], [2]);
+        const broken = buildWorkflow([3], [4], {approvers: [buildApprover(4, {isNotWorkspaceMember: true})]});
+        expect(sortApprovalWorkflowsByErrors([healthy, broken])).toEqual([broken, healthy]);
+
+        // When the approver is repaired and the source collection is sorted again
+        const repaired = {...broken, approvers: [buildApprover(4)]};
+
+        // Then its healthy ordering is restored
+        expect(sortApprovalWorkflowsByErrors([healthy, repaired])).toEqual([healthy, repaired]);
+        expect(sortApprovalWorkflowsByErrors([])).toEqual([]);
+    });
+});
 
 function buildPolicyEmployee(accountID: number, policyEmployee: Partial<PolicyEmployee> = {}): PolicyEmployee {
     return {

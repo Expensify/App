@@ -1,9 +1,13 @@
 import Badge from '@components/Badge';
+import Icon from '@components/Icon';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getGroupItemAccessibilityLabel from '@libs/Accessibility/getGroupItemAccessibilityLabel';
@@ -46,6 +50,7 @@ function TabSelectorItem({
     isBadgeCondensed = false,
     badgeStyles,
     isBadgeError = false,
+    shouldShowRedDotIndicator = false,
     isDisabled = false,
     disabledAction,
     pendingAction,
@@ -55,8 +60,11 @@ function TabSelectorItem({
     groupAccessibilityLabel,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
 
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const [isHovered, setIsHovered] = useState(false);
 
     const {onTabLayout, scrollToTab} = useTabSelectorActions();
@@ -69,11 +77,12 @@ function TabSelectorItem({
     // PressableWithSecondaryInteraction handles the web `contextmenu` (right-click) event directly and does not respect the
     // pressable's `disabled` prop, so gate the secondary interaction ourselves to match the primary press behavior below.
     const isPressableDisabled = !disabledAction && isDisabled;
+    const tabAccessibilityTitle = shouldShowRedDotIndicator ? `${title}. ${translate('common.yourReviewIsRequired')}` : title;
 
     const children = (
         <AnimatedPressableWithSecondaryInteraction
             ref={tabRef}
-            accessibilityLabel={getGroupItemAccessibilityLabel(title, groupAccessibilityLabel)}
+            accessibilityLabel={getGroupItemAccessibilityLabel(tabAccessibilityTitle, groupAccessibilityLabel)}
             accessibilityState={accessibilityState}
             accessibilityRole={role}
             style={[
@@ -110,6 +119,15 @@ function TabSelectorItem({
                     activeOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
                     hasIcon={!!icon}
+                />
+            )}
+            {shouldShowRedDotIndicator && (
+                <Icon
+                    src={icons.DotIndicator}
+                    fill={theme.danger}
+                    size={CONST.ICON_SIZE.EXTRA_SMALL}
+                    additionalStyles={styles.ml2}
+                    accessibilityLabel={CONST.ACCESSIBILITY_LABELS.ERROR}
                 />
             )}
             {!!badgeText && (

@@ -168,6 +168,7 @@ function TabSelectorBase<K extends string = string>({
                             isBadgeCondensed={tab.isBadgeCondensed}
                             badgeStyles={tab.badgeStyles}
                             isBadgeError={tab.isBadgeError}
+                            shouldShowRedDotIndicator={tab.shouldShowRedDotIndicator}
                             pendingAction={tab.pendingAction}
                             isDisabled={tab.isDisabled}
                             disabledAction={tab.disabledAction}

@@ -1,5 +1,6 @@
-import {render} from '@testing-library/react-native';
+import {render as renderComponent, screen} from '@testing-library/react-native';
 
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
 import Tooltip from '@components/Tooltip';
 
@@ -9,9 +10,15 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
+import {translateLocal} from '../../utils/TestHelper';
+
 // Mock the Tooltip component since it uses portals which aren't supported in RNTL
 jest.mock('@components/Tooltip');
 jest.mock('@libs/getPlatform', () => jest.fn(() => 'ios'));
+
+function render(component: React.ReactElement) {
+    return renderComponent(component, {wrapper: LocaleContextProvider});
+}
 
 // The mocked Tooltip renders nothing, so the tab is read from the element it wraps
 function getTabAccessibilityLabel() {
@@ -25,6 +32,38 @@ describe('TabSelectorItem Component', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it.each([true, false])('shows and clears a standalone error dot when active is %s', (isActive) => {
+        // Given a tab whose error state is independent of its selected state
+        jest.mocked(Tooltip).mockImplementation(({children}) => children);
+
+        // When an error is present
+        const {rerender} = render(
+            <TabSelectorItem
+                title={title}
+                tabKey={tabKey}
+                isActive={isActive}
+                shouldShowRedDotIndicator
+            />,
+        );
+
+        // Then the tab itself announces the error, since its label overrides its children
+        expect(screen.getByRole(CONST.ROLE.TAB, {name: `${title}. ${translateLocal('common.yourReviewIsRequired')}`})).toBeOnTheScreen();
+        expect(screen.getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeOnTheScreen();
+
+        // When the error is resolved
+        rerender(
+            <TabSelectorItem
+                title={title}
+                tabKey={tabKey}
+                isActive={isActive}
+            />,
+        );
+
+        // Then the tab no longer announces an error after it has been repaired
+        expect(screen.getByRole(CONST.ROLE.TAB, {name: title})).toBeOnTheScreen();
+        expect(screen.queryByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).not.toBeOnTheScreen();
     });
 
     it('should show tooltip for inactive tab with hidden label', () => {
@@ -124,5 +163,24 @@ describe('TabSelectorItem Component', () => {
 
         // Then the tab is read by its title alone, so the question is not read twice
         expect(getTabAccessibilityLabel()).toBe('Person');
+    });
+
+    it.each([CONST.PLATFORM.IOS, CONST.PLATFORM.WEB])('preserves the group label behavior with an error on %s', (platform) => {
+        // Given the group question is announced differently on native and web
+        jest.mocked(getPlatform).mockReturnValue(platform);
+
+        // When a tab in that group needs attention
+        render(
+            <TabSelectorItem
+                title={title}
+                tabKey={tabKey}
+                groupAccessibilityLabel="Recipient type"
+                shouldShowRedDotIndicator
+            />,
+        );
+
+        // Then the error is announced without losing or duplicating the group question
+        const expectedTitle = `${title}. ${translateLocal('common.yourReviewIsRequired')}`;
+        expect(getTabAccessibilityLabel()).toBe(platform === CONST.PLATFORM.WEB ? expectedTitle : `${expectedTitle}, Recipient type`);
     });
 });
