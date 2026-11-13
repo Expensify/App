@@ -55,7 +55,7 @@ function MobileWebCollapsibleReportHeader({children}: CollapsibleReportHeaderPro
                 return;
             }
 
-            // Show the header whenever any of the spacer it left at the oldest end is in view.
+            // Show the header whenever any of the spacer it left at the oldest end is in view. Floor of 1 handles iOS Safari's fractional scrollTop.
             if (distanceToOldestEnd < Math.max(collapsedHeaderHeightSV.get(), 1)) {
                 anchorOffset.set(offset);
                 isHiddenByScroll.set(false);
