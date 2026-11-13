@@ -8,12 +8,12 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {getCardNameError, getCardNameErrorMessage, getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getCardNameError, getCardNameErrorMessage, getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, splitCardFeedWithDomainID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import StringUtils from '@libs/StringUtils';
 
@@ -49,8 +49,10 @@ function WorkspaceCompanyCardEditCardNamePage({route, navigation}: WorkspaceComp
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
     const goBackToCardDetails = () => Navigation.goBack(getCompanyCardDetailsBackPath(policyID, feed, cardID, navigation.getState()));
 
-    const [allBankCards, allBankCardsMetadata] = useCardsList(feed);
-    const defaultValue = allBankCards?.[cardID]?.nameValuePairs?.cardTitle;
+    const splitFeed = splitCardFeedWithDomainID(feed);
+    const [defaultValue, allBankCardsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${splitFeed?.domainID}_${splitFeed?.feedName}`, {
+        selector: (cards) => cards?.[cardID]?.nameValuePairs?.cardTitle,
+    });
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         updateCompanyCardName(domainOrWorkspaceAccountID, cardID, StringUtils.sanitizeName(values[INPUT_IDS.NAME]), getCompanyCardFeed(feed), defaultValue);
