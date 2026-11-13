@@ -92,7 +92,7 @@ function DynamicExitSurveyConfirmPage() {
                     size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.GO_TO_CLASSIC}
                     onPress={() => switchToClassic(exitSurveyResponse)}
-                    isDisabled={isSwitchingToClassic}
+                    isLoading={isSwitchingToClassic}
                 >
                     <Button.KeyboardShortcut />
                     <Button.Text>{translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}</Button.Text>
