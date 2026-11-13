@@ -225,12 +225,13 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
+    scrollTo: FormWrapperRef['scrollTo'];
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
+    /** Non-animated scrolling runs immediately, without waiting for the keyboard animation. */
+    scrollTo: (y: number, animated?: boolean) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;

@@ -19,7 +19,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, View, ViewStyle} from 'react-native';
 
 import React, {useContext, useImperativeHandle, useRef} from 'react';
 import {Keyboard} from 'react-native';
@@ -66,7 +66,7 @@ type FormWrapperProps = ChildrenProps &
         shouldSubmitButtonStickToBottom?: boolean;
 
         /** Fires at most once per frame during scrolling. */
-        onScroll?: () => void;
+        onScroll?: ScrollViewProps['onScroll'];
 
         /** Prevents the submit button from triggering blur on mouse down. */
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
@@ -164,7 +164,11 @@ function FormWrapper({
         }, CONST.ANIMATED_TRANSITION);
     };
 
-    const scrollTo = (y: number) => {
+    const scrollTo = (y: number, animated = true) => {
+        if (!animated) {
+            formRef.current?.scrollTo({y: Math.max(y, 0), animated: false});
+            return;
+        }
         // Wait for the keyboard animation to complete
         setTimeout(() => {
             formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
@@ -285,6 +289,7 @@ function FormWrapper({
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
+                    onScroll={onScroll}
                 >
                     {scrollViewContent()}
                 </ScrollViewWithContext>
