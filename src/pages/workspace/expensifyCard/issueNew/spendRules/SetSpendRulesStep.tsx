@@ -93,11 +93,13 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const spendRuleTabs = [
         {
             key: CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_SPEND_RULE_TAB.COPY_EXISTING,
             title: translate('workspace.card.issueNewCard.copyExisting'),
             icon: icons.Copy,
         },
         {
             key: CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_SPEND_RULE_TAB.CREATE_NEW,
             title: translate('workspace.card.issueNewCard.createNew'),
             icon: icons.Pencil,
         },
@@ -285,6 +287,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                             showLockIcon={isSpendRuleLocked}
                             disabledAction={isSpendRuleLocked ? promptSpendRuleUpgrade : undefined}
                             switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_ADD_SPEND_RULE_SWITCH}
                             wrapperStyle={[styles.mv3]}
                         />
                         {!isSpendRuleLocked && spendRuleEnabled && (
@@ -372,6 +375,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                             isActive={expirationToggled}
                             onToggle={setExpirationToggled}
                             switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_ADD_EXPIRATION_DATE_SWITCH}
                             shouldPlaceSubtitleBelowSwitch
                             wrapperStyle={[styles.mv3]}
                         />

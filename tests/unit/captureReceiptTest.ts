@@ -1,3 +1,4 @@
+import cameraPlatformConfigIOS from '@libs/cameraCapture/platformConfig/index.ios';
 import type CapturedPhoto from '@libs/cameraCapture/types';
 
 import captureReceiptIOS from '@pages/iou/request/step/IOURequestStepScan/captureReceipt/index.ios';
@@ -37,9 +38,20 @@ describe('captureReceipt', () => {
             // When the receipt is captured
             captureReceiptIOS(camera, photoOutput, BASE_OPTIONS);
 
-            // Then it is a full photo with no shutter sound
+            // Then it is a full photo with no shutter sound, taken from one lens
             expect(mockCaptureSnapshotToPath).not.toHaveBeenCalled();
-            expect(getSettings()).toEqual({flashMode: 'off', enableShutterSound: false});
+            expect(getSettings()).toEqual({flashMode: 'off', enableShutterSound: false, enableVirtualDeviceFusion: false});
+        });
+
+        it('uses the settings the camera prepared for a plain portrait scan', () => {
+            // Given the settings iOS prepares ahead of time, which it only reuses for an identical capture
+            const preparedSettings = cameraPlatformConfigIOS.preparedPhotoSettings?.at(0);
+
+            // When a plain portrait scan is captured, since it's the most common scan and the one iOS prepares for
+            captureReceiptIOS(camera, photoOutput, BASE_OPTIONS);
+
+            // Then its settings match, so the most common scan takes the prepared, faster path
+            expect(getSettings()).toEqual(preparedSettings);
         });
 
         it('plays the shutter sound for flash and landscape photos unless the phone is muted', () => {
@@ -53,9 +65,9 @@ describe('captureReceipt', () => {
             const mutedSettings = getSettings();
 
             // Then the sound follows the mute switch, as v4's takePhoto did
-            expect(flashSettings).toEqual({flashMode: 'on', enableShutterSound: true});
-            expect(landscapeSettings).toEqual({flashMode: 'off', enableShutterSound: true});
-            expect(mutedSettings).toEqual({flashMode: 'on', enableShutterSound: false});
+            expect(flashSettings).toEqual({flashMode: 'on', enableShutterSound: true, enableVirtualDeviceFusion: false});
+            expect(landscapeSettings).toEqual({flashMode: 'off', enableShutterSound: true, enableVirtualDeviceFusion: false});
+            expect(mutedSettings).toEqual({flashMode: 'on', enableShutterSound: false, enableVirtualDeviceFusion: false});
         });
     });
 
@@ -85,6 +97,35 @@ describe('captureReceipt', () => {
             // Then the fast snapshot is used, written into the receipts folder
             expect(mockCapturePhotoToPath).not.toHaveBeenCalled();
             expect(mockCaptureSnapshotToPath).toHaveBeenCalledWith(camera, expect.stringMatching(/^\/receipts\/receipt_\d+_\d+\.jpg$/));
+        });
+
+        it('takes a snapshot for a flash scan when the torch lights the preview', () => {
+            // Given a portrait flash scan where the torch is already lighting the receipt
+            // When the receipt is captured
+            captureReceiptAndroid(camera, photoOutput, {...BASE_OPTIONS, flash: true, isTorchOn: true});
+
+            // Then the fast snapshot is used instead of the slow flash photo
+            expect(mockCapturePhotoToPath).not.toHaveBeenCalled();
+            expect(mockCaptureSnapshotToPath).toHaveBeenCalled();
+        });
+
+        it('does not fire the flash for a landscape photo the torch already lights', () => {
+            // Given a landscape flash scan, which still needs a full photo, with the torch on
+            // When the receipt is captured
+            captureReceiptAndroid(camera, photoOutput, {...BASE_OPTIONS, flash: true, isInLandscapeMode: true, isTorchOn: true});
+
+            // Then the photo is taken without the flash, so it skips the slow pre-flash metering
+            expect(getSettings()).toEqual({flashMode: 'off', enableShutterSound: true});
+        });
+
+        it('keeps the flash photo when the torch is off', () => {
+            // Given a portrait flash scan without the torch, as on phones without one or outside the beta
+            // When the receipt is captured
+            captureReceiptAndroid(camera, photoOutput, {...BASE_OPTIONS, flash: true});
+
+            // Then the flash photo is used as before
+            expect(mockCaptureSnapshotToPath).not.toHaveBeenCalled();
+            expect(getSettings()).toEqual({flashMode: 'on', enableShutterSound: true});
         });
     });
 });

@@ -28,3 +28,19 @@
 - Upstream PR/issue: https://github.com/expo/expo/pull/50011 (open), fixes https://github.com/expo/expo/issues/49953. Alternative fix under review in https://github.com/expo/expo/pull/50009
 - E/App issue: https://github.com/Expensify/App/issues/100133
 - PR introducing patch: https://github.com/Expensify/App/pull/101102
+
+### [expo-image-manipulator+57.0.6+003+web-typings.patch](expo-image-manipulator+57.0.6+003+web-typings.patch)
+
+- Reason:
+
+    ```
+    Two web typing bugs:
+    1. `NativeImageManipulatorModule.web.d.ts` types its default export as the class (`typeof ImageManipulator`),
+       while `registerWebModule` returns an instance. So `ImageManipulator.manipulate()` doesn't compile on web.
+    2. The web `ImageManipulatorContext.resize()` requires both `width` and `height`, while the native one makes them
+       optional and the web implementation already keeps the aspect ratio when one is missing.
+    ```
+
+- Upstream PR/issue: 1 is fixed in `expo-modules-core` by https://github.com/expo/expo/pull/49197, and the generated `.d.ts` picks it up on the next `expo-image-manipulator` release. 2: 🛑, upstream PR to be opened.
+- E/App issue: https://github.com/Expensify/App/issues/99287
+- PR introducing patch: https://github.com/Expensify/App/pull/105816

@@ -51,7 +51,7 @@ If the report total is negative or $0.00, update the export type.
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Click **Export**.
 5. Under **Export reimbursable expenses as**, change the export type from **Check** to **Journal Entry** or **Vendor Bill**.
 6. Click **Save**.
@@ -60,7 +60,7 @@ If the report total is negative or $0.00, update the export type.
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Tap **Export**.
 5. Under **Export reimbursable expenses as**, change the export type from **Check** to **Journal Entry** or **Vendor Bill**.
 6. Tap **Save**.

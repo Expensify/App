@@ -18,14 +18,13 @@ import {
     updateApprovalWorkflowRules,
     validateApprovalWorkflow,
 } from '@src/libs/actions/Workflow';
-import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
+import {getApprovalWorkflowRulesForPolicy, isApprovalWorkflowRule} from '@src/libs/RuleUtils';
 import {
     buildApprovalWorkflowRules,
     calculateApprovers,
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
     extractSubmitterEmails,
-    getApprovalWorkflowRulesForPolicy,
     getApproverPendingActionByMemberEmail,
 } from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -141,7 +140,7 @@ describe('actions/Workflow', () => {
                     if (!workflow) {
                         return;
                     }
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(workflow);
                 },
             });
@@ -496,6 +495,52 @@ describe('actions/Workflow', () => {
 
             expect(updatedPolicy?.employeeList?.[employee1Email]?.pendingFields).toBeUndefined();
             expect(updatedPolicy?.employeeList?.[employee2Email]?.pendingFields).toBeUndefined();
+        });
+
+        it('should keep DYNAMIC_EXTERNAL approval mode on a Dynamic External Workflow policy', async () => {
+            mockFetch.pause();
+
+            // Given a Dynamic External Workflow policy where everyone submits to the owner
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: 'admin', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: 'user', submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: 'user', submitsTo: ownerEmail},
+                },
+            });
+
+            const approvalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: employee2Email, displayName: employee2Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: false,
+                action: 'create',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When creating a new workflow, which would switch a non-DEW policy to ADVANCED
+            createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTaskReport: undefined});
+            await waitForBatchedUpdates();
+
+            // Then approvalMode stays DYNAMIC_EXTERNAL because the backend keeps the policy on DEW
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+
+            // Resume before asserting so a failed assertion can't leave the request queued and block later tests
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
         });
 
         it('should auto-complete the addExpenseApprovals task when creating an approval workflow', async () => {
@@ -1045,6 +1090,100 @@ describe('actions/Workflow', () => {
             expect(settledPolicy?.employeeList?.[employee3Email]?.pendingAction).toBeFalsy();
             expect(settledPolicy?.employeeList?.[employee3Email]?.pendingFields).toBeFalsy();
         });
+
+        it('should keep DYNAMIC_EXTERNAL approval mode on a Dynamic External Workflow policy', async () => {
+            mockFetch.pause();
+
+            // Given a Dynamic External Workflow policy with a second workflow where employee3 submits to employee2
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: 'admin', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: 'user', submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: 'user', submitsTo: ownerEmail},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: 'user', submitsTo: employee2Email},
+                },
+            });
+
+            const approvalWorkflow = {
+                members: [{email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: employee2Email, displayName: employee2Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: false,
+                action: 'remove',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When removing the second workflow, which would drop a non-DEW policy to BASIC
+            removeApprovalWorkflow(approvalWorkflow, policy);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode stays DYNAMIC_EXTERNAL because the backend keeps the policy on DEW
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+
+            // Resume before asserting so a failed assertion can't leave the request queued and block later tests
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
+        });
+
+        it('should restore the previous approval mode when the request fails', async () => {
+            mockFetch.pause();
+
+            // Given a BASIC policy with a second workflow where employee3 submits to employee2
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: 'admin', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: 'user', submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: 'user', submitsTo: ownerEmail},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: 'user', submitsTo: employee2Email},
+                },
+            });
+
+            const approvalWorkflow = {
+                members: [{email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: employee2Email, displayName: employee2Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: false,
+                action: 'remove',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When removing the workflow and the request fails
+            mockFetch.fail();
+            removeApprovalWorkflow(approvalWorkflow, policy);
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then approvalMode goes back to BASIC instead of being forced to ADVANCED
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.employeeList?.[employee3Email]?.submitsTo).toBe(employee2Email);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+        });
     });
 
     describe('updateApprovalWorkflow', () => {
@@ -1308,6 +1447,56 @@ describe('actions/Workflow', () => {
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
+        });
+
+        it('should keep DYNAMIC_EXTERNAL approval mode on a Dynamic External Workflow policy', async () => {
+            mockFetch.pause();
+
+            // Given a Dynamic External Workflow policy whose default workflow has two approvers
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: employee2Email, role: 'admin', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: 'user', submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: 'user', submitsTo: ownerEmail},
+                },
+            });
+
+            const approvalWorkflow = {
+                members: [
+                    {email: employee1Email, displayName: employee1Email},
+                    {email: employee2Email, displayName: employee2Email},
+                ],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: true,
+                action: 'update',
+                originalApprovers: [{email: ownerEmail}, {email: employee2Email}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When removing the second approver, which would drop a non-DEW policy to BASIC
+            updateApprovalWorkflow(approvalWorkflow, [], [{email: employee2Email, displayName: employee2Email}], policy);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode stays DYNAMIC_EXTERNAL because the backend keeps the policy on DEW
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+
+            // Resume before asserting so a failed assertion can't leave the request queued and block later tests
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
         });
     });
 
@@ -2784,7 +2973,7 @@ describe('actions/Workflow', () => {
             await seed(approvalWorkflow);
 
             // When the fast edit is saved
-            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, isMultipleApproversBetaEnabled: false});
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, shouldUseApprovalWorkflowRules: false});
             await waitForBatchedUpdates();
 
             // Then employee2 submits to the default approver again, employee1 stays put, and the draft is gone
@@ -2805,7 +2994,7 @@ describe('actions/Workflow', () => {
             await seed(approvalWorkflow);
 
             // When the fast edit is saved
-            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, isMultipleApproversBetaEnabled: false});
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, shouldUseApprovalWorkflowRules: false});
             await waitForBatchedUpdates();
 
             // Then the draft is still cleared, so the next "+N more" starts clean
@@ -2815,7 +3004,7 @@ describe('actions/Workflow', () => {
             await waitForBatchedUpdates();
         });
 
-        it('drops a deselected member from the workflow rules when the rules beta is on', async () => {
+        it('drops a deselected member from the workflow rules when the workflow is saved as rules', async () => {
             mockFetch.pause();
 
             // Given the [employee1, employee2] -> employee3 workflow stored as rules, and a "+N more" edit where employee2 was deselected,
@@ -2832,8 +3021,8 @@ describe('actions/Workflow', () => {
             const approvalWorkflow = {...buildFastEditDraft([employee1Member]), defaultApprovalWorkflow};
             await seed(approvalWorkflow);
 
-            // When the fast edit is saved with the rules beta on
-            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: await getRulesCollection(), isMultipleApproversBetaEnabled: true});
+            // When the fast edit is saved as rules
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: await getRulesCollection(), shouldUseApprovalWorkflowRules: true});
             await waitForBatchedUpdates();
 
             // Then the rules that route to employee3 only list employee1 as a submitter, every rule of the default workflow

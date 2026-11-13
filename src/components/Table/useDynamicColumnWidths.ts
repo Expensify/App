@@ -314,6 +314,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         declaredWidth: typeof column.width === 'number' ? column.width : undefined,
         contentWidth: measuredWidths[column.key]?.contentWidth ?? 0,
         minWidth: measuredWidths[column.key]?.minWidth ?? 0,
+        dragMinWidth: column.dynamicSizing?.dragMinWidth,
         maxWidth: column.dynamicSizing?.maxWidth ?? Number.POSITIVE_INFINITY,
     }));
 

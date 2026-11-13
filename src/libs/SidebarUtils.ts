@@ -33,7 +33,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {startOfDay, subMonths} from 'date-fns';
+import {isValid, startOfDay, subMonths} from 'date-fns';
 
 import type {OptionData} from './ReportUtils';
 
@@ -55,6 +55,7 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPendingDeleteMemberAccountIDs,
     getReceiptUploadErrorReason,
+    getReportLastVisibleActionCreated,
     getReportMetadata,
     getReportNotificationPreference,
     getReportParticipantsTitle,
@@ -83,9 +84,11 @@ import {
     isTripRoom,
     isUnread,
     isUnreadWithMention,
+    isUnsupportedReportType,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import StringUtils from './StringUtils';
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
@@ -113,10 +116,10 @@ const loggedChatReportIDs = new Set<string>();
 
 /**
  * Builds a normalized sort key for fast string comparison using plain < / > operators.
- * Lowercases the name and zero-pads numeric segments ("Report 2" → "report 000000000000002")
+ * Lowercases and folds accents in the name, then zero-pads numeric segments ("Report 2" → "report 000000000000002")
  * so that numeric ordering is preserved without Intl.Collator.
  *
- * Results are cached at module level so each unique name pays the cost only once.
+ * Results are cached for the current LHN categorization so each unique name pays the cost only once per categorization.
  */
 function buildSortKey(displayName: string): string {
     const cached = sortKeyCache.get(displayName);
@@ -124,7 +127,7 @@ function buildSortKey(displayName: string): string {
         return cached;
     }
 
-    const key = displayName.toLowerCase().replaceAll(DIGIT_SEQUENCE, (match) => match.padStart(NUMERIC_PAD_WIDTH, '0'));
+    const key = StringUtils.normalizeAccents(displayName.toLowerCase()).replaceAll(DIGIT_SEQUENCE, (match) => match.padStart(NUMERIC_PAD_WIDTH, '0'));
     sortKeyCache.set(displayName, key);
     return key;
 }
@@ -147,6 +150,7 @@ type ShouldDisplayReportInLHNParams = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+    isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportMetadata: OnyxEntry<ReportMetadata>;
     draftComment: OnyxEntry<string>;
@@ -168,6 +172,7 @@ function shouldDisplayReportInLHN({
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     transactionViolations,
     reportMetadata,
     draftComment,
@@ -185,7 +190,7 @@ function shouldDisplayReportInLHN({
         return {shouldDisplay: false};
     }
 
-    if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+    if (isUnsupportedReportType(report.type, isBillPayBetaEnabled)) {
         return {shouldDisplay: false};
     }
 
@@ -242,6 +247,7 @@ function shouldDisplayReportInLHN({
         currentReportId,
         isInFocusMode,
         isDefaultRoomsBetaEnabled,
+        isBillPayBetaEnabled,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         draftComment,
@@ -261,6 +267,37 @@ function shouldDisplayReportInLHN({
 
 /** The LHN set produced by the most recent build, read on report open to detect unread chats the LHN did not surface. */
 let lastReportsToDisplayInLHN: ReportsToDisplayInLHN | undefined;
+
+/** The values a flagged LHN entry carries on top of its report */
+type FlaggedLHNEntryFields = {
+    requiresAttention: boolean;
+    hasErrorsOtherThanFailedReceipt: boolean | undefined;
+    isUnreadReport: boolean;
+    lastVisibleActionCreatedForInboxTab: string;
+};
+
+/** Source report of each flagged entry (a spread copy), so an unchanged report can reuse its entry */
+const flaggedLHNEntrySources = new WeakMap<ReportsToDisplayInLHN[string], Report>();
+
+function toFlaggedLHNEntry(report: Report, fields: FlaggedLHNEntryFields): ReportsToDisplayInLHN[string] {
+    const entry = {...report, ...fields};
+    flaggedLHNEntrySources.set(entry, report);
+    return entry;
+}
+
+/** Whether the existing flagged entry was built from this report with these values */
+function isFlaggedLHNEntryUpToDate(existingEntry: ReportsToDisplayInLHN[string] | undefined, report: Report, fields: FlaggedLHNEntryFields): boolean {
+    if (!existingEntry) {
+        return false;
+    }
+    return (
+        flaggedLHNEntrySources.get(existingEntry) === report &&
+        existingEntry.requiresAttention === fields.requiresAttention &&
+        existingEntry.hasErrorsOtherThanFailedReceipt === fields.hasErrorsOtherThanFailedReceipt &&
+        existingEntry.isUnreadReport === fields.isUnreadReport &&
+        existingEntry.lastVisibleActionCreatedForInboxTab === fields.lastVisibleActionCreatedForInboxTab
+    );
+}
 
 /** Used to detect when the focused report changes, so its LHN state is captured before the rebuild that opening triggers. */
 let lastBuildCurrentReportId: string | undefined;
@@ -298,6 +335,7 @@ function getReportsToDisplayInLHN({
     reports,
     policies,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     priorityMode,
     draftComments,
     transactionViolations,
@@ -316,6 +354,7 @@ function getReportsToDisplayInLHN({
     reports: OnyxCollection<Report>;
     policies: OnyxCollection<Policy>;
     isDefaultRoomsBetaEnabled: boolean;
+    isBillPayBetaEnabled?: boolean;
     priorityMode: OnyxEntry<PriorityMode>;
     draftComments: OnyxCollection<string>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
@@ -351,6 +390,7 @@ function getReportsToDisplayInLHN({
             currentReportId,
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
+            isBillPayBetaEnabled,
             transactionViolations,
             reportMetadata: reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             draftComment: reportDraftComment,
@@ -367,9 +407,13 @@ function getReportsToDisplayInLHN({
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const oneTransactionThreadReport = getOneTransactionThreadReportForLHN(report, reports, reportAttributes);
+            const isUnreadReport = getIsUnreadReportForInboxTab(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const lastVisibleActionCreatedForInboxTab = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             reportsToDisplay[reportID] =
-                requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport} : report;
+                requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport
+                    ? toFlaggedLHNEntry(report, {requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab})
+                    : report;
         }
     }
 
@@ -385,6 +429,9 @@ type UpdateReportsToDisplayInLHNProps = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+
+    /** Defaults to false, so bills stay hidden unless the caller has the newDotBillPay beta */
+    isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportMetadata: OnyxCollection<ReportMetadata>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
@@ -407,6 +454,7 @@ function updateReportsToDisplayInLHN({
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     transactionViolations,
     reportMetadata,
     reportNameValuePairs,
@@ -452,6 +500,7 @@ function updateReportsToDisplayInLHN({
             currentReportId,
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
+            isBillPayBetaEnabled,
             transactionViolations,
             reportMetadata: reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             draftComment: reportDraftComment,
@@ -468,18 +517,16 @@ function updateReportsToDisplayInLHN({
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const oneTransactionThreadReport = getOneTransactionThreadReportForLHN(report, reports, reportAttributes);
+            const isUnreadReport = getIsUnreadReportForInboxTab(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const lastVisibleActionCreatedForInboxTab = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             const hasFlags = requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport;
             const existingEntry = displayedReports[reportID];
 
             if (hasFlags) {
-                if (
-                    existingEntry !== report ||
-                    existingEntry?.requiresAttention !== requiresAttention ||
-                    existingEntry?.hasErrorsOtherThanFailedReceipt !== hasErrorsOtherThanFailedReceipt ||
-                    existingEntry?.isUnreadReport !== isUnreadReport
-                ) {
-                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport};
+                const fields = {requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab};
+                if (!isFlaggedLHNEntryUpToDate(existingEntry, report, fields)) {
+                    getMutableCopy()[reportID] = toFlaggedLHNEntry(report, fields);
                 }
             } else if (existingEntry !== report) {
                 getMutableCopy()[reportID] = report;
@@ -499,7 +546,7 @@ function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     reportsDrafts: Record<string, boolean> | undefined,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    archivedReportIDs?: Set<string>,
 ) {
     sortKeyCache.clear();
 
@@ -531,9 +578,7 @@ function categorizeReportsForLHN(
             continue;
         }
 
-        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
-        const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
-        const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
+        const isArchived = isArchivedNonExpenseReport(report, !!archivedReportIDs?.has(reportID));
         const hasErrors = !!report.hasErrorsOtherThanFailedReceipt && !isArchived;
 
         if (hasErrors) {
@@ -658,7 +703,7 @@ function sortReportsToDisplayInLHN(
     priorityMode: OnyxEntry<PriorityMode>,
     localeCompare: LocaleContextProps['localeCompare'],
     reportsDrafts: Record<string, boolean> | undefined,
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
+    archivedReportIDs: Set<string> | undefined,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
 ): string[] {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -675,7 +720,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportAttributes, reportNameValuePairs);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportAttributes, archivedReportIDs);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
@@ -1066,9 +1111,19 @@ function getOptionData({
  * Whether a report should appear in the "Unread" Inbox tab: it has unread messages and is not muted.
  * Computed once while building the LHN report set (which is cached/incremental) so the tab filter only reads a flag.
  */
-function getIsUnreadReportForInboxTab(report: Report, isReportArchived: boolean, derivedIsEmptyReport: boolean | undefined): boolean {
+function getIsUnreadReportForInboxTab(report: Report, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean, derivedIsEmptyReport: boolean | undefined): boolean {
     // isUnread() gates on isEmptyReport, so a chat whose only visible message was deleted never reaches this tab.
-    return isUnread(report, undefined, isReportArchived, derivedIsEmptyReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+    // Comments on a single-expense report land on its hidden transaction thread, so the thread decides if the report is unread too.
+    return isUnread(report, oneTransactionThreadReport, isReportArchived, derivedIsEmptyReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+}
+
+/** Gets the transaction thread of a single-expense report, which the LHN hides in favor of the report itself. */
+function getOneTransactionThreadReportForLHN(report: Report, reports: OnyxCollection<Report>, reportAttributes: ReportAttributesDerivedValue['reports'] | undefined): OnyxEntry<Report> {
+    const oneTransactionThreadReportID = reportAttributes?.[report.reportID]?.oneTransactionThreadReportID;
+    if (!oneTransactionThreadReportID) {
+        return undefined;
+    }
+    return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 }
 
 /** Whether a report belongs in the "To-do" Inbox tab: it has an outstanding GBR (requiresAttention) or RBR (errors). */
@@ -1104,12 +1159,35 @@ function filterReportsForInboxTab(reportIDs: string[], reportsToDisplay: Reports
 }
 
 /**
+ * Whether an unread LHN report counts toward the "Mark all as read" tooltip. The current user must be a participant who
+ * gets notified about the report, and its newest message must have a valid date older than the stale cutoff.
+ */
+function isStaleUnreadReportForInboxTab(report: ReportsToDisplayInLHN[string], staleUnreadTime: string, currentUserAccountID: number): boolean {
+    const lastVisibleActionCreated = report.lastVisibleActionCreatedForInboxTab ?? report.lastVisibleActionCreated;
+
+    if (!lastVisibleActionCreated || lastVisibleActionCreated >= staleUnreadTime) {
+        return false;
+    }
+
+    // A zero date such as 0000-00-00 sorts before every real timestamp, so it looks older than the cutoff without being a real message time.
+    if (!isValid(new Date(lastVisibleActionCreated))) {
+        return false;
+    }
+
+    // A report the user can open without being a participant (for example from Search) has no lastReadTime for them,
+    // so isUnread treats it as unread. With no participant entry, its notification preference resolves to hidden.
+    return getReportNotificationPreference(report, currentUserAccountID) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+}
+
+/**
  * Summarizes the ordered reports for the Inbox tab row: how many fall into the To-do and Unread tabs (for the count
- * badge shown on each), and whether any unread report's newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS.
+ * badge shown on each), and whether any unread report the user participates in has a newest message older than
+ * CONST.INBOX_TAB_STALE_UNREAD_MONTHS.
  */
 function getInboxTabSummary(
     reportIDs: string[],
     reportsToDisplay: ReportsToDisplayInLHN,
+    currentUserAccountID: number,
 ): {counts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>; hasStaleUnreadReport: boolean} {
     const staleUnreadTime = DateUtils.getDBTime(subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS).valueOf());
     let todoCount = 0;
@@ -1126,7 +1204,7 @@ function getInboxTabSummary(
         }
         if (report.isUnreadReport) {
             unreadCount++;
-            hasStaleUnreadReport = hasStaleUnreadReport || (report.lastVisibleActionCreated ?? '') < staleUnreadTime;
+            hasStaleUnreadReport = hasStaleUnreadReport || isStaleUnreadReportForInboxTab(report, staleUnreadTime, currentUserAccountID);
         }
     }
 

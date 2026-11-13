@@ -11,7 +11,7 @@ import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible'
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 
-import {removeFailedReport} from '@libs/actions/Report';
+import {clearReportErrors, removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
@@ -35,11 +35,12 @@ import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBac
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
 import ReactionListWrapper from './ReactionListWrapper';
+import CollapsibleReportHeader from './report/CollapsibleReportHeader';
 import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
 import useClearReportActionDraftsOnReportChange from './report/useClearReportActionDraftsOnReportChange';
-import {ReportActionsWithInboxTabDeferredMount} from './ReportActions';
+import ReportActionsWithInboxTabDeferredMount from './ReportActionsWithInboxTabDeferredMount';
 import ReportDragAndDropProvider from './ReportDragAndDropProvider';
 import ReportFetchHandler from './ReportFetchHandler';
 import ReportHeader from './ReportHeader';
@@ -92,12 +93,18 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
     const [reportPendingActionAndErrors] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {
         selector: (r) => ({
             reportPendingAction: r?.pendingFields?.createReport ?? r?.pendingFields?.reportName,
-            reportErrors: r?.errorFields?.createReport,
+            // Fall back to the report errors (e.g. a failed submit) so they can be shown and dismissed in the report
+            reportErrors: r?.errorFields?.createReport ?? r?.errors,
+            hasReportCreationErrors: !!r?.errorFields?.createReport,
         }),
     });
-    const {reportPendingAction, reportErrors} = reportPendingActionAndErrors ?? {};
+    const {reportPendingAction, reportErrors, hasReportCreationErrors} = reportPendingActionAndErrors ?? {};
 
     const dismissReportCreationError = () => {
+        if (!hasReportCreationErrors) {
+            clearReportErrors(reportIDFromRoute);
+            return;
+        }
         Navigation.goBack(undefined, {
             afterTransition: () => removeFailedReport(reportIDFromRoute),
         });
@@ -129,9 +136,11 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                         <ReportNonEssentialsDeferredMount reportID={reportIDFromRoute}>
                                             <ReportLifecycleHandler reportID={reportIDFromRoute} />
                                         </ReportNonEssentialsDeferredMount>
-                                        <CollapsibleHeaderOnKeyboard>
-                                            <ReportHeader />
-                                        </CollapsibleHeaderOnKeyboard>
+                                        <CollapsibleReportHeader>
+                                            <CollapsibleHeaderOnKeyboard>
+                                                <ReportHeader />
+                                            </CollapsibleHeaderOnKeyboard>
+                                        </CollapsibleReportHeader>
                                         <OfflineWithFeedback
                                             pendingAction={reportPendingAction}
                                             errors={reportErrors}

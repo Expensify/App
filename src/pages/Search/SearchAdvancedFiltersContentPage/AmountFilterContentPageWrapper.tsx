@@ -13,6 +13,7 @@ function AmountFilterContentPageWrapper({baseFilterKey, buttonText, value, onCha
             buttonSize={CONST.BUTTON_SIZE.LARGE}
             autoFocus
             buttonText={buttonText}
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
             onChange={onChange}
         />
     );

@@ -1,9 +1,8 @@
+import useInputFSClass from '@hooks/useInputFSClass';
 import useLandscapeOnBlurProxy from '@hooks/useLandscapeOnBlurProxy';
 import useTheme from '@hooks/useTheme';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-
-import CONST from '@src/CONST';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {TextInputProps} from 'react-native';
@@ -22,8 +21,9 @@ type RNTextInputWithRefProps = TextInputProps &
         ref?: ForwardedRef<AnimatedTextInputRef>;
     };
 
-function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK, ...props}: RNTextInputWithRefProps) {
+function RNTextInputWithRef({ref, forwardedFSClass, ...props}: RNTextInputWithRefProps) {
     const theme = useTheme();
+    const fsClass = useInputFSClass(forwardedFSClass, props);
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
     const handleBlur = useLandscapeOnBlurProxy(inputRef, props.onBlur);
 
@@ -40,7 +40,7 @@ function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMAS
                 ref(refHandle);
             }}
             // eslint-disable-next-line react/forbid-component-props
-            fsClass={forwardedFSClass}
+            fsClass={fsClass}
             {...props}
             onBlur={handleBlur}
         />

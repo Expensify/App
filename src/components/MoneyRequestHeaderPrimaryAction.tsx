@@ -77,6 +77,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         : CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromAction}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [parentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportAction?.childReportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -94,24 +95,27 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.REMOVE_HOLD}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (isDelegateAccessRestricted) {
                             showDelegateNoAccessModal();
                             return;
                         }
-                        changeMoneyRequestHoldStatus(
-                            parentReportAction,
-                            transaction,
+                        changeMoneyRequestHoldStatus({
+                            reportAction: parentReportAction,
+                            iouTransaction: transaction,
+                            iouTransactionReport: transactionReport,
+                            reportActionChildReport: parentReportActionChildReport,
                             policy,
                             isOffline,
-                            currentUserLogin ?? '',
-                            accountID,
-                            rawTransactionViolations,
+                            currentUserLogin: currentUserLogin ?? '',
+                            currentUserAccountID: accountID,
+                            transactionViolations: rawTransactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
                             rules,
-                        );
+                        });
                     }}
                 >
                     <Button.Text>{translate('iou.unhold')}</Button.Text>
@@ -122,6 +126,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.MARK_AS_RESOLVED}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!transaction?.transactionID) {
@@ -138,6 +143,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.REVIEW_DUPLICATES}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!reportID) {
@@ -154,6 +160,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.KEEP_THIS_ONE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!reportID) {
@@ -188,6 +195,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.MARK_AS_CASH}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);

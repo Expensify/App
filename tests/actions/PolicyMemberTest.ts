@@ -75,7 +75,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
                     callback: (reportActions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         const reportAction = reportActions?.[fakeReportAction.reportActionID];
 
@@ -100,7 +100,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
                     callback: (reportActions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         const reportAction = reportActions?.[fakeReportAction.reportActionID];
 
@@ -164,7 +164,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
                         // Then the policy employee role of the user should be set to admin.
                         expect(employee?.role).toBe(CONST.POLICY.ROLE.ADMIN);
@@ -177,7 +177,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                         // Then the user's notification preference on the admin room should be set to always.
                         expect(report?.participants?.[fakeUser2.accountID].notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
@@ -190,7 +190,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
                         expect(employee?.pendingAction).toBeFalsy();
                         resolve();
@@ -205,7 +205,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
                         // Then the policy employee role of the user should be set to user.
@@ -217,7 +217,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                         // Then the user should be removed from the admin room participants list of the policy.
                         expect(report?.participants?.[fakeUser2.accountID]).toBeUndefined();
@@ -298,7 +298,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.errorFields).toBeFalsy();
                         expect(policy?.isLoading).toBeTruthy();
                         expect(policy?.isChangeOwnerSuccessful).toBeFalsy();
@@ -313,7 +313,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.isLoading).toBeFalsy();
                         expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
                         expect(policy?.isChangeOwnerFailed)?.toBeFalsy();
@@ -391,7 +391,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.errorFields).toBeFalsy();
                         expect(policy?.isLoading).toBeTruthy();
                         expect(policy?.isChangeOwnerSuccessful).toBeFalsy();
@@ -406,7 +406,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.isLoading).toBeFalsy();
                         expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
                         expect(policy?.isChangeOwnerFailed)?.toBeFalsy();
@@ -468,7 +468,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.isLoading).toBeFalsy();
                         expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
                         expect(policy?.owner).toBe(fakeEmail);
@@ -525,7 +525,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.errorFields).toBeFalsy();
                         expect(policy?.isLoading).toBeTruthy();
                         expect(policy?.isChangeOwnerSuccessful).toBeFalsy();
@@ -549,7 +549,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.isLoading).toBeFalsy();
                         expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
                         expect(policy?.isChangeOwnerFailed).toBeFalsy();
@@ -607,7 +607,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policyResult) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
                         expect(newEmployee).not.toBeUndefined();
                         expect(newEmployee?.email).toBe(newUserEmail);
@@ -694,7 +694,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report);
                     },
                 });
@@ -709,7 +709,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report);
                     },
                 });
@@ -740,7 +740,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policyResult) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
                         expect(newEmployee?.role).toBe(CONST.POLICY.ROLE.EDITOR);
                         resolve();
@@ -772,7 +772,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policyResult) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
                         expect(newEmployee?.role).toBe(CONST.POLICY.ROLE.USER);
                         resolve();
@@ -814,7 +814,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report);
                     },
                 });
@@ -863,7 +863,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
                     callback: (nvp) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(!!nvp?.private_isArchived);
                     },
                 });
@@ -872,7 +872,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReportID}`,
                     callback: (nvp) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(!!nvp?.private_isArchived);
                     },
                 });
@@ -922,7 +922,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReportID}`,
                     callback: (nvp) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(!!nvp?.private_isArchived);
                     },
                 });
@@ -1046,7 +1046,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminRoomID}`,
                     callback: (reportMetadata) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reportMetadata);
                     },
                 });
@@ -1062,7 +1062,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminRoomID}`,
                     callback: (reportMetadata) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reportMetadata);
                     },
                 });
@@ -1138,7 +1138,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policyResult) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(policyResult?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.options?.config?.exporter);
                     },
                 });
@@ -1191,7 +1191,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
                     callback: (nvp) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(!!nvp?.private_isArchived);
                     },
                 });
@@ -1200,7 +1200,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReportID}`,
                     callback: (nvp) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(!!nvp?.private_isArchived);
                     },
                 });
@@ -1241,7 +1241,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policyData) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         if (policyData) {
                             resolve(policyData);
                         } else {
@@ -1293,7 +1293,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policyResult) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(policyResult?.employeeList);
                     },
                 });
@@ -1341,7 +1341,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policyResult) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(policyResult?.employeeList);
                     },
                 });
@@ -1523,6 +1523,60 @@ describe('actions/PolicyMember', () => {
             expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
         });
 
+        it('should keep DYNAMIC_EXTERNAL approval mode when importing members with approval fields into a Dynamic External Workflow policy', async () => {
+            // Given a Control workspace that uses a Dynamic External Workflow
+            const policyID = '1';
+            const approverEmail = 'approver@gmail.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                employeeList: {
+                    [approverEmail]: {
+                        email: approverEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            // When importing a member who submits to another member, which would switch a non-DEW Control policy to ADVANCED
+            await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: CONST.POLICY.ROLE.USER, submitsTo: approverEmail}]);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode stays DYNAMIC_EXTERNAL because the backend keeps the policy on DEW
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
+        });
+
+        it('should switch a non-DEW Control policy to ADVANCED approval mode when importing members with approval fields', async () => {
+            // Given a Control workspace on BASIC approvals
+            const policyID = '1';
+            const approverEmail = 'approver@gmail.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [approverEmail]: {
+                        email: approverEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            // When importing a member who submits to another member
+            await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: CONST.POLICY.ROLE.USER, submitsTo: approverEmail}]);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode becomes ADVANCED because custom submitsTo values need advanced approvals
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+        });
+
         it('moves members into the workflows of their imported approvers once they are imported', async () => {
             // Given a member who submits to the owner
             const ownerEmail = 'owner@gmail.com';
@@ -1634,7 +1688,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1692,7 +1746,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1728,7 +1782,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1760,7 +1814,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID1}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1770,7 +1824,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID2}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1802,7 +1856,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1833,7 +1887,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });

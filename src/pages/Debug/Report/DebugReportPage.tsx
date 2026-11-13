@@ -37,10 +37,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {pendingExpenseActionSelector} from '@selectors/ReportMetaData';
 import React from 'react';
 import {View} from 'react-native';
@@ -56,6 +57,7 @@ type Metadata = {
     action?: {
         name: string;
         callback: () => void;
+        sentryLabel: SentryLabel;
     };
 };
 
@@ -85,9 +87,11 @@ function DebugReportPage({
     const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: guidedSetupAndTourStatusSelector,
     });
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
@@ -154,6 +158,7 @@ function DebugReportPage({
                     hasGBR && reportActionGBR
                         ? {
                               name: translate('common.view'),
+                              sentryLabel: CONST.SENTRY_LABEL.DEBUG.REPORT_REASON_VIEW.GBR,
                               callback: () =>
                                   Navigation.navigate(
                                       ROUTES.REPORT_WITH_ID.getRoute(
@@ -172,6 +177,7 @@ function DebugReportPage({
                     hasRBR && reportActionRBR
                         ? {
                               name: translate('common.view'),
+                              sentryLabel: CONST.SENTRY_LABEL.DEBUG.REPORT_REASON_VIEW.RBR,
                               callback: () =>
                                   Navigation.navigate(
                                       ROUTES.REPORT_WITH_ID.getRoute(
@@ -201,6 +207,7 @@ function DebugReportPage({
                     currentUserAccountID,
                     introSelected,
                     isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
                     reportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
@@ -222,13 +229,17 @@ function DebugReportPage({
                         </View>
                         {!!message && <Text style={styles.textSupporting}>{message}</Text>}
                         {!!action && (
-                            <Button onPress={action.callback}>
+                            <Button
+                                onPress={action.callback}
+                                sentryLabel={action.sentryLabel}
+                            >
                                 <Button.Text>{action.name}</Button.Text>
                             </Button>
                         )}
                     </View>
                 ))}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.DEBUG.REPORT_VIEW_REPORT}
                     onPress={() => {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                     }}
@@ -238,6 +249,7 @@ function DebugReportPage({
                 </Button>
                 {!!transactionID && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.DEBUG.REPORT_VIEW_TRANSACTION}
                         onPress={() => {
                             Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
                         }}

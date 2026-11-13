@@ -44,6 +44,11 @@ function AddExpenseActionButton() {
             options={getAddExpenseDropdownOptions({
                 translate,
                 icons: expensifyIcons,
+                sentryLabels: {
+                    createExpense: CONST.SENTRY_LABEL.REPORT_PREVIEW.ADD_EXPENSE_MENU.CREATE_EXPENSE,
+                    trackDistance: CONST.SENTRY_LABEL.REPORT_PREVIEW.ADD_EXPENSE_MENU.TRACK_DISTANCE,
+                    addExistingExpense: CONST.SENTRY_LABEL.REPORT_PREVIEW.ADD_EXPENSE_MENU.ADD_EXISTING_EXPENSE,
+                },
                 iouReportID: iouReport?.reportID,
                 policy,
                 userBillingGracePeriodEnds,

@@ -114,7 +114,7 @@ function ConnectionsMergePageBaseContent({policyID, category, cards}: Connection
                     policy={policy}
                     handleConnect={() => handleReconnect(connectedCard)}
                     onDisconnect={(disconnect) => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID), {afterTransition: disconnect})}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}
                     canWriteMoreFeatures={canWriteMoreFeatures}
                     showReadOnlyModal={showReadOnlyModal}
                 />
