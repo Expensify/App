@@ -65,6 +65,10 @@ type WebEventPropKey = 'onClick' | 'onKeyDown' | 'onMouseEnter' | 'onMouseLeave'
  */
 declare module 'react-native' {
     interface ViewStyle extends Readonly<Pick<WebStyle, WebOnlyStyleKey>> {
+        /* CSS scroll snapping, which react-native-web passes through to the DOM but doesn't type */
+        readonly scrollSnapAlign?: 'none' | 'start' | 'end' | 'center';
+        readonly scrollSnapStop?: 'normal' | 'always';
+
         /*
          * Text keys the app sets on views, mostly through shared helpers like `textAlignCenter`. React Native ignores
          * them on a view, react-native-web passes them to the view's DOM element. They keep React Native's text value

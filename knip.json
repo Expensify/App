@@ -20,6 +20,7 @@
                 "tests/tooling/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
                 "tests/globals.d.ts",
+                "src/types/modules/react-native-web-augmentation.ts",
                 ".storybook/**/*.{js,ts,tsx}",
                 "config/babel/oxcJestTransformer.js",
                 "react-native.config.js",

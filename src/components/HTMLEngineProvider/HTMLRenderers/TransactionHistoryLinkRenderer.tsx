@@ -9,7 +9,6 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 import React from 'react';
@@ -32,7 +31,7 @@ function TransactionHistoryLinkRenderer({tnode, style}: TransactionHistoryLinkRe
 
     return (
         <Text
-            style={[style as TextStyle, styles.link]}
+            style={[style, styles.link]}
             onPress={navigateToTransactionHistory}
             onKeyDown={handleKeyDown}
             suppressHighlighting
