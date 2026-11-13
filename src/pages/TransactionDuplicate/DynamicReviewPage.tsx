@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateReportsStatus from '@hooks/useDuplicateReportsStatus';
@@ -123,6 +124,12 @@ function DynamicReviewPage() {
     const [isLoadingDuplicateDetails] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS}${transactionID}`);
     // Undefined means the fetch hasn't started yet, so a partial list isn't rendered for the first frame.
     const isLoadingDuplicates = !isOffline && (hasUnloadedTransaction || hasUnloadedReport) && isLoadingDuplicateDetails !== false;
+    const shouldShowUnavailableMessage = !hasSettledOrApprovedTransaction && !canKeepSelected;
+    useAccessibilityAnnouncement(translate('iou.someDuplicatesAreUnavailable'), shouldShowUnavailableMessage && !isLoadingDuplicates, {
+        shouldAnnounceOnNative: true,
+        shouldAnnounceOnWeb: true,
+        politeness: 'polite',
+    });
     const hasLoadedThreadReportActions = hasLoadedReportActions(reportLoadingState, isOffline);
     const isThreadReportDeletedForReview = isThreadReportDeleted(report, reportLoadingState, isOffline);
     const {hasLoadedParentReportActions, wasParentActionDeleted} = getParentReportActionDeletionStatus({
@@ -323,9 +330,7 @@ function DynamicReviewPage() {
                         contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
                     >
                         {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesArePaid')}</Text>}
-                        {!hasSettledOrApprovedTransaction && !canKeepSelected && (
-                            <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesAreUnavailable')}</Text>
-                        )}
+                        {shouldShowUnavailableMessage && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesAreUnavailable')}</Text>}
                         <DuplicateTransactionsList
                             transactions={transactions}
                             selectedTransactionID={effectiveSelectedTransactionID}
