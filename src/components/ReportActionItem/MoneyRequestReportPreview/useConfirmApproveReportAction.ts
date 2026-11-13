@@ -1,9 +1,10 @@
 /**
- * Returns the confirm-approval handler for the report-preview Approve button, handling delegate-access
- * restrictions and the approveMoneyRequest call. The partial/full choice for reports with held expenses is
+ * Returns the confirm-approval handler for the report-preview Approve button, handling delegate-access and
+ * locked-account restrictions and the approveMoneyRequest call. The partial/full choice for reports with held expenses is
  * surfaced up front by `ExpenseHeaderApprovalButton`, so it arrives here as the `full` flag.
  */
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -29,6 +30,8 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {startApprovedAnimation} = useReportPreviewActions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -39,6 +42,8 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     return (full = true) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
+        } else if (isAccountLocked) {
+            showLockedAccountModal();
         } else {
             approveMoneyRequest({
                 personalDetailsByLogins: getPersonalDetailsByLogin(),

@@ -265,6 +265,7 @@ function useSelectionModeReportActions({
                 text: shouldShowMarkAsDone({policy, report, isTrackIntentUser, rules}) ? translate('common.markAsDone') : translate('common.submit'),
                 icon: expensifyIcons.Send,
                 value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTION_TOOLBAR_MENU.SUBMIT,
                 onSelected: handleSubmitReport,
             };
         }
@@ -273,6 +274,7 @@ function useSelectionModeReportActions({
                 text: translate('iou.approve'),
                 icon: expensifyIcons.ThumbsUp,
                 value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTION_TOOLBAR_MENU.APPROVE,
                 rightIcon: shouldShowApproveSubMenu ? expensifyIcons.ArrowRight : undefined,
                 backButtonText: shouldShowApproveSubMenu ? translate('iou.approve') : undefined,
                 subMenuItems: shouldShowApproveSubMenu ? approveSubMenuItems : undefined,
@@ -286,6 +288,7 @@ function useSelectionModeReportActions({
                 text: translate('iou.settlePayment', totalAmount),
                 icon: expensifyIcons.Cash,
                 value: CONST.REPORT.PRIMARY_ACTIONS.PAY,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTION_TOOLBAR_MENU.PAY,
                 rightIcon: expensifyIcons.ArrowRight,
                 backButtonText: translate('iou.settlePayment', totalAmount),
                 subMenuItems: paymentSubMenuItems,

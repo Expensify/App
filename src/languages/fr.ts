@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Annuler',
         dismiss: 'Fermer',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionner la colonne ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        resizePanel: 'Redimensionner le panneau',
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Continuer',
         unshare: 'Arrêter le partage',
         yes: 'Oui',
@@ -569,6 +570,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
         unableToDisplayChart: 'Impossible d’afficher le graphique',
         webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
+        webAssemblyNotSupported: 'WebAssembly n’est pas disponible dans votre navigateur. Essayez un autre navigateur pour afficher les graphiques.',
         chartFailedToLoad: 'Le graphique n’a pas pu être chargé. Veuillez actualiser la page et réessayer.',
         apiKey: 'Clé API',
         exportsTo: 'Exports vers',
@@ -8009,6 +8011,13 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 onWaitlist: 'Vous êtes sur la liste d’attente',
                 waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Bientôt disponible',
+                joinWaitlist: 'Rejoindre la liste d’attente',
+                onWaitlist: 'Vous êtes sur la liste d’attente',
+                onTheList: 'Vous êtes sur la liste !',
+                waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
+            },
             setup: 'Connecter',
             connectToSandbox: 'Se connecter à Sandbox',
             lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
@@ -8424,6 +8433,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             statusExpired: 'Expiré',
             statusInactive: 'Inactif',
             unit: 'Unité',
+            ukFuelRateTaxError: 'Veuillez ajouter un taux de taxe de 20 % pour suivre la taxe sur les tarifs de carburant recommandés au Royaume-Uni.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Veuillez ajouter un taux de taxe de 20 % dans ${integrationName} pour suivre la taxe sur les tarifs de carburant recommandés au Royaume-Uni.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Les taxes doivent être activées sur l’espace de travail pour utiliser cette fonctionnalité. Rendez-vous dans <a href="#">Plus de fonctionnalités</a> pour effectuer cette modification.</muted-text>',
             deleteDistanceRate: 'Supprimer le taux de distance',
@@ -11038,7 +11050,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             completed: 'Terminé',
             amount: {
                 lessThan: (amount?: string) => `Inférieur à ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Inférieur ou égal à ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Supérieur à ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Supérieur ou égal à ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Entre ${greaterThan} et ${lessThan}`;
@@ -11299,6 +11313,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             category: 'Catégorie',
             tag: 'Tag',
         },
+        switchToTableView: 'Passer à la vue tableau',
+        switchToExpenseView: 'Passer à la vue dépense',
     },
     report: {
         newReport: {

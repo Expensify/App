@@ -123,6 +123,7 @@ function RecentlyAddedSection() {
             menuItems={[
                 {
                     text: translate('homePage.recentlyAddedSection.viewAll'),
+                    sentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.RECENTLY_ADDED_OVERFLOW_MENU_VIEW_ALL,
                     icon: icons.Receipt,
                     onSelected: navigateToExpensesPage,
                     shouldCallAfterModalHide: true,

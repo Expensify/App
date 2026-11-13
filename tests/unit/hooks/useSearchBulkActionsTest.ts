@@ -148,9 +148,19 @@ jest.mock('@hooks/useEnvironment', () => ({
     default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
 }));
 
+let mockIsDelegateAccessRestricted = false;
+const mockShowDelegateNoAccessModal = jest.fn();
+let mockIsAccountLocked = false;
+const mockShowLockedAccountModal = jest.fn();
+
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
-    useDelegateNoAccessState: () => ({isDelegateAccessRestricted: false}),
-    useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
+    useDelegateNoAccessState: () => ({isDelegateAccessRestricted: mockIsDelegateAccessRestricted}),
+    useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: mockShowDelegateNoAccessModal}),
+}));
+
+jest.mock('@components/LockedAccountModalProvider', () => ({
+    useLockedAccountState: () => ({isAccountLocked: mockIsAccountLocked}),
+    useLockedAccountActions: () => ({showLockedAccountModal: mockShowLockedAccountModal}),
 }));
 
 jest.mock('@hooks/useConfirmModal', () => ({
@@ -1135,6 +1145,70 @@ describe('useSearchBulkActions - a group checked through its header while its ro
 
         // Then what it derives from the selection is the same, since the group entry is not built again
         expect(result.current.selectedTransactionReportIDs).toBe(selectedTransactionReportIDs);
+    });
+});
+
+describe('useSearchBulkActions - approval blockers', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canApprove: true})];
+        mockExcludedTransactions = {};
+        mockCurrentSearchResults = undefined;
+        mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+    });
+
+    afterEach(async () => {
+        mockIsOffline = false;
+        mockIsAccountLocked = false;
+        mockIsDelegateAccessRestricted = false;
+        mockAreAllMatchingItemsSelected = false;
+        await Onyx.clear();
+    });
+
+    describe.each([false, true])('Select all: %s', (selectAll) => {
+        it.each([
+            {locked: true, offline: true, delegateRestricted: false, expected: 'hidden'},
+            {locked: true, offline: true, delegateRestricted: true, expected: 'hidden'},
+            {locked: false, offline: true, delegateRestricted: false, expected: 'hidden'},
+            {locked: true, offline: false, delegateRestricted: false, expected: 'locked'},
+            {locked: true, offline: false, delegateRestricted: true, expected: 'delegate'},
+        ])('uses $expected behavior (locked=$locked, offline=$offline, delegateRestricted=$delegateRestricted)', async ({locked, offline, delegateRestricted, expected}) => {
+            // Given an approvable selection and overlapping access/connectivity blockers.
+            mockAreAllMatchingItemsSelected = selectAll;
+            mockIsAccountLocked = locked;
+            mockIsOffline = offline;
+            mockIsDelegateAccessRestricted = delegateRestricted;
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+            await waitFor(() => {
+                expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+            });
+
+            // When online, select Approve; offline, the action is not offered.
+            const approveOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
+            if (offline) {
+                expect(approveOption).toBeUndefined();
+            } else {
+                expect(approveOption).toBeDefined();
+                await act(async () => {
+                    await approveOption?.onSelected?.();
+                });
+            }
+
+            // Then access restrictions take precedence over connectivity without approving or clearing the selection.
+            expect(mockShowDelegateNoAccessModal).toHaveBeenCalledTimes(expected === 'delegate' ? 1 : 0);
+            expect(mockShowLockedAccountModal).toHaveBeenCalledTimes(expected === 'locked' ? 1 : 0);
+            expect(mockShowDecisionModal).not.toHaveBeenCalled();
+            expect(queueBulkApproveReports).not.toHaveBeenCalled();
+            expect(approveMoneyRequest).not.toHaveBeenCalled();
+            expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+        });
     });
 });
 
