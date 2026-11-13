@@ -9,7 +9,7 @@ import type * as TransactionInlineEditActions from '@libs/actions/TransactionInl
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -103,6 +103,38 @@ describe('useTransactionInlineEdit', () => {
             }),
             'Food',
         );
+    });
+
+    it('should validate a newly created category with the categories supplied by the picker', async () => {
+        // Given a mounted row whose subscribed categories do not include the category being created
+        const {result} = renderInlineEditHook();
+        await waitForBatchedUpdates();
+        const updatedPolicyCategories: PolicyCategories = {
+            Food: {name: 'Food', enabled: true},
+            Training: {name: 'Training', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        };
+
+        // When category creation applies its optimistic collection before the row has rendered it
+        await act(async () => {
+            await result.current.onEditCategory('Training', updatedPolicyCategories);
+        });
+
+        // Then the inline edit action validates against the new collection rather than the stale subscribed categories
+        expect(mockEditTransactionCategoryInline).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, policyCategories: updatedPolicyCategories}), 'Training');
+    });
+
+    it('should keep the subscribed categories when selecting an existing category', async () => {
+        // Given a row with the workspace's existing categories
+        const {result} = renderInlineEditHook();
+        await waitForBatchedUpdates();
+
+        // When the user selects a category without creating one
+        await act(async () => {
+            await result.current.onEditCategory('Food');
+        });
+
+        // Then ordinary selection still uses the subscribed categories
+        expect(mockEditTransactionCategoryInline).toHaveBeenCalledWith(expect.objectContaining({policyCategories: {Food: {name: 'Food', enabled: true}}}), 'Food');
     });
 
     it('should not re-run when data only the edit actions read changes', async () => {
