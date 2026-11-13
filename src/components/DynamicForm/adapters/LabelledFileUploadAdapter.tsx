@@ -56,7 +56,7 @@ type LabelledFileUploadAdapterProps = Omit<UploadFileSettings, 'buttonText'> &
 
 /**
  * Upload buttons, each labelling its files with a kind of document it takes. A button with one kind opens the file picker, and a button with more asks which kind first.
- * Files list under their button. The file limit and the duplicate check count every file of the field.
+ * Files list under their button. The file limit and the check for a file with the same name count only the button's own files, since one file can prove two documents.
  */
 function LabelledFileUploadAdapter({
     value,
@@ -74,7 +74,6 @@ function LabelledFileUploadAdapter({
     const [uploadError, setUploadError] = useState('');
     const [uploadErrorIndex, setUploadErrorIndex] = useState<number>();
     const entries = getListItems(value);
-    const allFiles = entries.flatMap(getListItemFiles);
     // Announces the upload error, else the validation error, as it appears
     useUploadErrorAnnouncement(uploadError, errorText);
 
@@ -119,7 +118,7 @@ function LabelledFileUploadAdapter({
                     >
                         <UploadFilePicker
                             buttonText={upload.buttonText}
-                            existingFiles={allFiles}
+                            existingFiles={uploadEntries.flatMap(getListItemFiles)}
                             setError={(error) => {
                                 setUploadErrorIndex(index);
                                 setUploadError(error);
