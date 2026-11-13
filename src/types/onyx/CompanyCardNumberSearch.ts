@@ -30,8 +30,9 @@ type CompanyCardNumberSearch = {
     /** Whether the request failed rather than returning an authoritative empty result */
     hasError?: boolean;
 
-    /** The normalized number the current results belong to */
-    query: string;
+    /** Non-reversible hash of the normalized number the current results belong to. The raw number is never
+     *  stored in Onyx; consumers correlate results to the typed input by hashing it the same way. */
+    queryHash: number;
 
     /** The matching cards */
     cards: CompanyCardNumberSearchResult[];

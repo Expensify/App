@@ -27,6 +27,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {hashText} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1667,12 +1668,14 @@ function searchCompanyCardByNumber(policyID: string, consumerID: string, cardNum
     const requestID = (pendingCompanyCardNumberSearchIDs.get(searchKey) ?? 0) + 1;
     pendingCompanyCardNumberSearchIDs.set(searchKey, requestID);
 
+    // Correlate results to the typed input by a non-reversible hash so the raw card number is never written to Onyx.
+    const queryHash = hashText(cardNumber, 2 ** 32);
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: searchKey,
-            // Optimistic data is logged by the API layer, so never include the typed card number here.
-            value: {isLoading: true, query: '', cards: [], hasError: false},
+            value: {isLoading: true, queryHash, cards: [], hasError: false},
         },
     ];
 
@@ -1687,7 +1690,7 @@ function searchCompanyCardByNumber(policyID: string, consumerID: string, cardNum
         if (pendingCompanyCardNumberSearchIDs.get(searchKey) !== requestID) {
             return;
         }
-        Onyx.merge(searchKey, {isLoading: false, query: cardNumber, cards: [], hasError: true});
+        Onyx.merge(searchKey, {isLoading: false, queryHash, cards: [], hasError: true});
     };
 
     // makeRequestWithSideEffects is used so we can read the matching cards from the response and store them.
@@ -1703,7 +1706,7 @@ function searchCompanyCardByNumber(policyID: string, consumerID: string, cardNum
             }
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const cards = (response as {cards?: CompanyCardNumberSearchResult[]} | undefined)?.cards ?? [];
-            Onyx.merge(searchKey, {isLoading: false, query: cardNumber, cards, hasError: false});
+            Onyx.merge(searchKey, {isLoading: false, queryHash, cards, hasError: false});
         })
         .catch(setSearchError);
 }

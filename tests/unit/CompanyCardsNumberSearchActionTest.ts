@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/no-multiple-api-calls -- the two search invocations here are the subject of an out-of-order regression test, not chained production API calls. */
 import {clearCompanyCardNumberSearch, searchCompanyCardByNumber} from '@libs/actions/CompanyCards';
 import * as API from '@libs/API';
+import {hashText} from '@libs/UserUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
@@ -67,7 +68,7 @@ describe('searchCompanyCardByNumber superseded-response handling', () => {
 
         // Then the entry reflects the newer query, not the older one
         const entry = await Onyx.get(KEY);
-        expect(entry?.query).toBe('4222222222222222');
+        expect(entry?.queryHash).toBe(hashText('4222222222222222', 2 ** 32));
         expect(entry?.cards?.at(0)?.cardID).toBe(2222);
     });
 
@@ -129,7 +130,7 @@ describe('searchCompanyCardByNumber superseded-response handling', () => {
 
     it('clears the previous error when a retry successfully returns no cards', async () => {
         // Given a previous failure for this consumer
-        await Onyx.set(KEY, {query: '4111111111111111', isLoading: false, hasError: true, cards: []});
+        await Onyx.set(KEY, {queryHash: hashText('4111111111111111', 2 ** 32), isLoading: false, hasError: true, cards: []});
         mockMakeRequestWithSideEffects.mockResolvedValue({jsonCode: 200});
 
         // When retry succeeds with an empty response

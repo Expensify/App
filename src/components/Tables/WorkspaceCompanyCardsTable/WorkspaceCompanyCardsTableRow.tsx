@@ -130,7 +130,10 @@ function WorkspaceCompanyCardTableRow({
         return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
-    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle].filter(Boolean).join(', ');
+    const partialNumberMatchHint = translate('workspace.moreFeatures.companyCards.matchesLastFourDigitsOnly');
+    const accessibilityLabel = [memberColumnTitle, isPartialNumberMatch ? partialNumberMatchHint : undefined, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle]
+        .filter(Boolean)
+        .join(', ');
 
     return (
         <Table.Row
@@ -174,9 +177,7 @@ function WorkspaceCompanyCardTableRow({
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
                             )}
-                            {!!isPartialNumberMatch && (
-                                <Text style={[styles.textLabelError, styles.lh16, styles.mr3]}>{translate('workspace.moreFeatures.companyCards.matchesLastFourDigitsOnly')}</Text>
-                            )}
+                            {!!isPartialNumberMatch && <Text style={[styles.textLabelError, styles.lh16, styles.mr3]}>{partialNumberMatchHint}</Text>}
                         </View>
                     </View>
 

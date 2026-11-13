@@ -2,6 +2,8 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useCompanyCardNumberSearch from '@hooks/useCompanyCardNumberSearch';
 
+import {hashText} from '@libs/UserUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {CompanyCardNumberSearchResult} from '@src/types/onyx/CompanyCardNumberSearch';
@@ -41,7 +43,7 @@ const getConsumerIDFromLastSearchCall = (): string => {
 
 const seedResultsForConsumer = (consumerID: string, query: string, cards: CompanyCardNumberSearchResult[], hasError = false) =>
     act(async () => {
-        await Onyx.set(`${PREFIX}${POLICY_ID}_${consumerID}`, {isLoading: false, query, cards, hasError});
+        await Onyx.set(`${PREFIX}${POLICY_ID}_${consumerID}`, {isLoading: false, queryHash: hashText(query, 2 ** 32), cards, hasError});
     });
 
 const renderSearch = async (feed: CompanyCardFeedWithNumber | undefined = FEED, domainAccountID: number | undefined = DOMAIN_ACCOUNT_ID) => {
@@ -190,7 +192,7 @@ describe('useCompanyCardNumberSearch', () => {
 
         // Then the pane consumer's completed results are untouched (its entry was not the one cleared)
         const paneEntry = await Onyx.get(`${PREFIX}${POLICY_ID}_${paneConsumerID}`);
-        expect(paneEntry?.query).toBe(FULL_NUMBER);
+        expect(paneEntry?.queryHash).toBe(hashText(FULL_NUMBER, 2 ** 32));
         expect(paneEntry?.cards).toHaveLength(1);
     });
 

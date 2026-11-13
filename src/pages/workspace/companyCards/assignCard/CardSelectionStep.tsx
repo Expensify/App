@@ -166,7 +166,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     // through an effect; the search state only ever transitions in response to this user event.
     const textInputOptions = {
         headerMessage: searchedListOptions.length || companyCardNumberSearch.isSearching || companyCardNumberSearch.hasError ? undefined : translate('common.noResultsFound'),
-        label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
+        label: translate('common.search'),
         value: searchText,
         onChangeText: (text: string) => {
             setSearchText(text);
@@ -226,6 +226,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                         textInputOptions={textInputOptions}
                         customListHeaderContent={customListHeader}
                         shouldScrollToFocusedIndex={false}
+                        shouldShowLoadingPlaceholder={companyCardNumberSearch.isSearching}
                         shouldShowListEmptyContent={companyCardNumberSearch.hasError}
                         listEmptyContent={
                             companyCardNumberSearch.hasError ? (

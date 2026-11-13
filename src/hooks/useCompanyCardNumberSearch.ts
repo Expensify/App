@@ -1,5 +1,6 @@
 /** Keeps full-number company-card searches isolated and matches server results to the current input. */
 import {clearCompanyCardNumberSearch, searchCompanyCardByNumber} from '@libs/actions/CompanyCards';
+import {hashText} from '@libs/UserUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
@@ -12,7 +13,7 @@ import useOnyx from './useOnyx';
 const CARD_NUMBER_REGEX = /^\d{13,19}$/;
 
 function normalizeCardNumber(value: string): string {
-    return value.replaceAll(/[\s-]/g, '');
+    return value.replaceAll(/\D/g, '');
 }
 
 type UseCompanyCardNumberSearch = {
@@ -62,6 +63,7 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
 
     const immediateNormalized = normalizeCardNumber(searchValue);
     const debouncedNormalized = normalizeCardNumber(debouncedSearchValue);
+    const immediateQueryHash = hashText(immediateNormalized, 2 ** 32);
     // The immediate value drives the loading UI so the spinner shows the moment the number is eligible; the
     // debounced value drives the API call so it is not fired on every keystroke.
     const isEligibleQuery = CARD_NUMBER_REGEX.test(immediateNormalized);
@@ -99,9 +101,9 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
     // of lingering until the next debounce tick.
     // Treat stale cards as "no match" while a new request is in flight so an in-progress result never
     // leaks into the list for a different query.
-    const resultsMatchQuery = isEligibleQuery && searchResult?.query === immediateNormalized && searchResult?.isLoading !== true && !searchResult?.hasError;
+    const resultsMatchQuery = isEligibleQuery && searchResult?.queryHash === immediateQueryHash && searchResult?.isLoading !== true && !searchResult?.hasError;
     const relevantCards = resultsMatchQuery
-        ? (searchResult?.cards ?? []).filter((card) => card.feed.toLowerCase() === String(feed).toLowerCase() && (!domainAccountID || card.domainAccountID === domainAccountID))
+        ? (searchResult?.cards ?? []).filter((card) => card.feed?.toLowerCase() === String(feed).toLowerCase() && (!domainAccountID || card.domainAccountID === domainAccountID))
         : [];
 
     const matchedCardIDs = new Set<number>();
@@ -125,7 +127,8 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
     }
 
     // Loading runs from the first eligible keystroke until the results for the number currently typed land.
-    const resultsReadyForCurrentInput = searchResult?.query === immediateNormalized && searchResult?.isLoading !== true;
+    const resultsReadyForCurrentInput = searchResult?.queryHash === immediateQueryHash && searchResult?.isLoading !== true;
+    const canSearch = !!feed && !!domainAccountID;
 
     const retrySearch = () => {
         if (!policyID || !feed || !domainAccountID || !isEligibleQuery) {
@@ -141,7 +144,7 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
         lastFourCardIDs,
         lastFourEncryptedNumbers,
         resultsQuery: resultsMatchQuery ? immediateNormalized : undefined,
-        isSearching: isEligibleQuery && !resultsReadyForCurrentInput,
+        isSearching: isEligibleQuery && canSearch && !resultsReadyForCurrentInput,
         hasError: isEligibleQuery && resultsReadyForCurrentInput && !!searchResult?.hasError,
         retrySearch,
         isFullNumberQuery: isEligibleQuery,
