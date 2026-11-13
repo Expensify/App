@@ -1293,6 +1293,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Najdłużej oczekujące na wysłanie',
         slowestToApprove: 'Najwolniejszy w zatwierdzaniu',
         mostTimeToPay: 'Najdłuższy czas na zapłatę',
+        submitters: 'Wysyłający',
+        approvers: 'Osoby zatwierdzające',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -11058,6 +11060,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
             searchFilters: 'Filtry wyszukiwania',
             noFiltersSelected: 'Nie wybrano filtrów',
+            anySubmission: 'Dowolne zgłoszenie',
         },
         display: {
             label: 'Wyświetl',

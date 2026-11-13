@@ -1,4 +1,6 @@
 import {buildChartDrillDownQuery, buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
+import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
+import type {GroupedItem} from '@components/Search/types';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -6,9 +8,40 @@ import CONST from '@src/CONST';
 
 const RANKING_QUERY = 'type:expense groupBy:from view:bar sortBy:groupTotal sortOrder:desc limit:10 groupCurrency:USD date>2026-01-01 date<2026-03-31';
 const TIME_QUERY = 'type:expense groupBy:month view:line groupCurrency:USD date>2026-01-01 date<2026-03-31';
+const FEBRUARY: GroupedItem = {
+    groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+    year: 2026,
+    month: 2,
+    keyForList: 'february',
+    count: 1,
+    total: 100,
+    currency: 'USD',
+    transactions: [],
+    formattedMonth: 'February 2026',
+    shortFormattedMonth: 'Feb',
+    sortKey: 202602,
+};
 
 describe('chartDrillDown', () => {
     describe('buildChartDrillDownQuery', () => {
+        it.each([
+            {dateKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION, stage: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+            {dateKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, stage: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
+        ])('narrows a Compliance point by $dateKey rather than expense date', ({dateKey, stage}) => {
+            // Given a stage chart whose period includes an expense created outside February
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:month view:line has:${stage} ${dateKey}>=2026-01-01 ${dateKey}<=2026-03-31 policyID:A1`);
+
+            // When its February point is opened on Spend
+            const filter = CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getFilterQuery(FEBRUARY, dateKey);
+            const query = queryJSON ? buildChartDrillDownQuery(queryJSON, filter) : undefined;
+
+            // Then both the page and bucket bound the same action, without excluding expenses by creation date
+            expect(query).toContain(`${dateKey}>=2026-02-01 ${dateKey}<=2026-02-28`);
+            expect(query).toContain(`has:${stage}`);
+            expect(query).toContain('policyID:A1');
+            expect(query).not.toMatch(/\bdate[<>=:]/);
+        });
+
         it('opens a ranking point as its own expenses, keeping the page filters', () => {
             // Given a ranking chart and the member whose slice was clicked
             const queryJSON = buildSearchQueryJSON(RANKING_QUERY);

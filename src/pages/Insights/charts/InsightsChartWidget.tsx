@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
@@ -26,11 +27,14 @@ import {getDateFilterRange} from '@libs/SearchQueryUtils';
 import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
+import InsightsViolationStageControl from '@pages/Insights/controls/InsightsViolationStageControl';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
+import type {InsightsViolationStage, InsightsViolationStageGraphKey} from '@pages/Insights/insightsViolationStages';
+import {isViolationStageSelectable} from '@pages/Insights/insightsViolationStages';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
@@ -86,6 +90,8 @@ type InsightsChartWidgetProps = {
 
     /** Shows a group-by control in the chart's header when set. Stores the time bucket or Running total the control picks. */
     onGroupByChange?: (update: Partial<InsightsFilters>) => void;
+
+    onViolationStageChange?: (graphKey: InsightsViolationStageGraphKey, stage: InsightsViolationStage) => void;
 };
 
 function InsightsChartWidget({
@@ -103,6 +109,7 @@ function InsightsChartWidget({
     supportsDrillIn = true,
     onRetry,
     onGroupByChange,
+    onViolationStageChange,
 }: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -131,7 +138,7 @@ function InsightsChartWidget({
         const content = buildInsightsChartCSV({
             data,
             groupBy,
-            dateFilterStart: getDateFilterRange(queryJSON).start,
+            dateFilterStart: getDateFilterRange(queryJSON, getSearchTimeGroupingDateKey(queryJSON)).start,
             currency: filters.groupCurrency,
             getCurrencyDecimals,
             translate,
@@ -168,7 +175,7 @@ function InsightsChartWidget({
         isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <InsightsExplainButton
                 explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
-                insightsScope={insightsScope}
+                insightsScope={chart.violationStage ? {...insightsScope, violationStage: chart.violationStage} : insightsScope}
             />
         ) : null;
 
@@ -209,8 +216,15 @@ function InsightsChartWidget({
         <WidgetContainer
             title={translate(chart.titleKey)}
             titleRightContent={
-                !!groupByControl || !!explainButton || !!headerMenu ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
+                !!groupByControl || !!explainButton || !!headerMenu || (isViolationStageSelectable(chart.graphKey) && !!onViolationStageChange) ? (
+                    <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentEnd, styles.alignItemsCenter, styles.flexShrink1]}>
+                        {isViolationStageSelectable(chart.graphKey) && !!onViolationStageChange && (
+                            <InsightsViolationStageControl
+                                graphKey={chart.graphKey}
+                                value={chart.violationStage ?? CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED}
+                                onChange={onViolationStageChange}
+                            />
+                        )}
                         {groupByControl}
                         {explainButton}
                         {headerMenu}
@@ -266,3 +280,4 @@ function InsightsChartWidget({
 }
 
 export default InsightsChartWidget;
+export type {InsightsChartWidgetProps};

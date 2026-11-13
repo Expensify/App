@@ -9135,6 +9135,7 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
             SUBMITTED: 'submitted',
+            ANY_SUBMISSION: 'anySubmission',
             APPROVED: 'approved',
             ANY_APPROVAL: 'anyApproval',
             PAID: 'paid',
@@ -9237,6 +9238,7 @@ const CONST = {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
             ANY_APPROVAL: 'any-approval',
+            ANY_SUBMISSION: 'any-submission',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -10564,6 +10566,10 @@ const CONST = {
     },
 
     INSIGHTS: {
+        VIOLATION_STAGE: {
+            SUBMITTED: 'submitted',
+            APPROVED: 'approved',
+        },
         DASHBOARD: {
             SPEND: 'spend',
             EFFICIENCY: 'efficiency',

@@ -1261,6 +1261,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Más lento en enviar',
         slowestToApprove: 'Más lento en aprobar',
         mostTimeToPay: 'Más tiempo para pagar',
+        submitters: 'Personas que envían',
+        approvers: 'Aprobadores',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -11035,6 +11037,7 @@ ${reportName}`,
             },
             searchFilters: 'Filtros de búsqueda',
             noFiltersSelected: 'No se han seleccionado filtros',
+            anySubmission: 'Cualquier envío',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',

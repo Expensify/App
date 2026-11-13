@@ -1,4 +1,4 @@
-import type {GroupedItem} from '@components/Search/types';
+import type {GroupedItem, SearchDateFilterKeys} from '@components/Search/types';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -8,9 +8,9 @@ import CONST from '@src/CONST';
 
 const translate = jest.fn((key: string) => key);
 
-function resolve(groupBy: Parameters<typeof resolveInsightsDetailsItem>[0]['groupBy'], itemKey: string, periodEnd?: string) {
+function resolve(groupBy: Parameters<typeof resolveInsightsDetailsItem>[0]['groupBy'], itemKey: string, periodEnd?: string, dateFilterKey?: SearchDateFilterKeys) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the resolver only reads the translation keys it passes
-    return resolveInsightsDetailsItem({groupBy, itemKey, periodEnd, member: {accountID: 1, displayName: 'Jane Doe'}, dateFnsLocale: undefined, translate: translate as never});
+    return resolveInsightsDetailsItem({groupBy, itemKey, periodEnd, dateFilterKey, member: {accountID: 1, displayName: 'Jane Doe'}, dateFnsLocale: undefined, translate: translate as never});
 }
 
 describe('insightsDetailsItem', () => {
@@ -69,6 +69,15 @@ describe('insightsDetailsItem', () => {
 
         // Then the title is the member's display name and the filter narrows to their expenses
         expect(item).toEqual({title: 'Jane Doe', filterQuery: 'from:1'});
+    });
+
+    it('keeps a submitted-date period when the Details panel builds its Spend filter', () => {
+        // Given a monthly chart grouped by report submission dates
+        // When its February period is resolved
+        const item = resolve(CONST.SEARCH.GROUP_BY.MONTH, '2026-02-01', '2026-02-28', CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED);
+
+        // Then its Spend filter narrows submissions, not expense creation dates
+        expect(item?.filterQuery).toBe('submitted>=2026-02-01 submitted<=2026-02-28');
     });
 
     it.each([

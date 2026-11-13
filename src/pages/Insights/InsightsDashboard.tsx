@@ -36,13 +36,14 @@ import viewRef from '@src/types/utils/viewRef';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useEffectEvent} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 import type {InsightsCaptureRef} from './exportInsightsDashboard/types';
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
+import type {InsightsViolationStage, InsightsViolationStageGraphKey, InsightsViolationStages} from './insightsViolationStages';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
 import InsightsAICardRow from './ai/InsightsAICardRow';
@@ -52,6 +53,7 @@ import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getUpgradeablePolicyIDsInS
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
+import {DEFAULT_INSIGHTS_VIOLATION_STAGES} from './insightsViolationStages';
 import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
@@ -85,6 +87,8 @@ type InsightsDashboardContentProps = {
     /** Changes how the headline chart aggregates: the time bucket, or Running total */
     onGroupByChange: (update: Partial<InsightsFilters>) => void;
 
+    onViolationStageChange: (graphKey: InsightsViolationStageGraphKey, stage: InsightsViolationStage) => void;
+
     /** Ref on the scrolling dashboard content so the export includes cards below the fold */
     captureRef: InsightsCaptureRef;
 
@@ -104,6 +108,7 @@ function InsightsDashboardContent({
     upgradeablePolicyIDs,
     onRetry,
     onGroupByChange,
+    onViolationStageChange,
     captureRef,
     children,
 }: InsightsDashboardContentProps) {
@@ -258,6 +263,7 @@ function InsightsDashboardContent({
                         supportsDrillIn={supportsDrillIn}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
+                        onViolationStageChange={onViolationStageChange}
                     />
                     <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
                         {columns.map((columnCharts, columnIndex) => (
@@ -282,6 +288,7 @@ function InsightsDashboardContent({
                                         countDimension={countDimension}
                                         supportsDrillIn={supportsDrillIn}
                                         onRetry={onRetry}
+                                        onViolationStageChange={onViolationStageChange}
                                     />
                                 ))}
                             </View>
@@ -316,6 +323,13 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         (next) => arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, getPoliciesInScope(policies, next.policyIDs), next.policyIDs, login),
     );
     const {headerRef, controlsRef, contentRef, isExporting, isLoading: isChartLoading, exportDashboard, captureContext} = useInsightsExport(dashboardID, filters);
+    const [violationStages, setViolationStages] = useState<InsightsViolationStages>(DEFAULT_INSIGHTS_VIOLATION_STAGES);
+    const updateViolationStage = (graphKey: InsightsViolationStageGraphKey, stage: InsightsViolationStage) => {
+        if (isExporting) {
+            return;
+        }
+        setViolationStages((current) => (current[graphKey] === stage ? current : {...current, [graphKey]: stage}));
+    };
     const updateFilters = (update: Partial<InsightsFilters>) => {
         if (isExporting) {
             return;
@@ -329,7 +343,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
     const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
     const upgradeablePolicyIDs = shouldUpsell ? getUpgradeablePolicyIDsInScope(policiesInScope, login) : [];
-    const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
+    const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, violationStages) : undefined;
     const hash = query?.hash;
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
@@ -472,6 +486,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                             upgradeablePolicyIDs={upgradeablePolicyIDs}
                             onRetry={requestDashboard}
                             onGroupByChange={updateFilters}
+                            onViolationStageChange={updateViolationStage}
                             captureRef={contentRef}
                         >
                             {shouldScrollMainHeader && header}

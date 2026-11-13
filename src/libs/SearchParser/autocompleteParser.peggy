@@ -119,6 +119,7 @@ autocompleteKey "key"
       / date
       / submitted
       / anyApproval
+      / anySubmission
       / approved
       / paid
       / exportedTo

@@ -1267,6 +1267,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Am längsten bis zur Einreichung',
         slowestToApprove: 'Am langsamsten bei der Genehmigung',
         mostTimeToPay: 'Längste Zahlungsfrist',
+        submitters: 'Einreichende',
+        approvers: 'Genehmigende',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -11099,6 +11101,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             searchFilters: 'Suchfilter',
             noFiltersSelected: 'Keine Filter ausgewählt',
+            anySubmission: 'Beliebige Einreichung',
         },
         display: {
             label: 'Anzeige',

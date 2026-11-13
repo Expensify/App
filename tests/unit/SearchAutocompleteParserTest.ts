@@ -832,6 +832,17 @@ const nameFieldContinuationTests: Array<{query: string; expected: ExpectedAutoco
 ];
 
 describe('autocomplete parser', () => {
+    test.each(['anySubmission', 'any-submission'])('recognizes %s as an action date while editing a drill-down', (key) => {
+        // Given a historical submission filter opened from Compliance
+        const query = `${key}:last-month`;
+
+        // When autocomplete parses the active filter
+        const result: unknown = parse(query);
+
+        // Then date suggestions use the canonical action-date key, not a keyword
+        expect(result).toMatchObject({autocomplete: {key: 'anySubmission', value: 'last-month'}});
+    });
+
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
         const result: unknown = parse(query);
 

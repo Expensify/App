@@ -8,6 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {getDateFilterRange} from '@libs/SearchQueryUtils';
@@ -124,7 +125,8 @@ function SearchChartView({
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
+    const dateFilterKey = getSearchTimeGroupingDateKey(queryJSON);
+    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON, dateFilterKey) : {};
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
 
     // A count names what it counts, since nothing else in a tooltip or a donut's centre says the number is expenses rather than money.
@@ -183,7 +185,7 @@ function SearchChartView({
             return;
         }
 
-        const query = buildChartDrillDownQuery(queryJSON, getFilterQuery(item));
+        const query = buildChartDrillDownQuery(queryJSON, getFilterQuery(item, dateFilterKey));
 
         if (!query) {
             return;

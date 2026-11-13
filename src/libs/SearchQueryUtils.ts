@@ -204,6 +204,7 @@ const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
 const WORKFLOW_FILTER_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
 ]);
@@ -1866,8 +1867,8 @@ type DateFilterRange = {
 /**
  * Extracts the effective start and end dates from date filters in a search query.
  */
-function getDateFilterRange(queryJSON: SearchQueryJSON): DateFilterRange {
-    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE).flatMap((filter) => filter.filters);
+function getDateFilterRange(queryJSON: SearchQueryJSON, dateFilterKey: SearchDateFilterKeys = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE): DateFilterRange {
+    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === dateFilterKey).flatMap((filter) => filter.filters);
     let start: string | undefined;
     let end: string | undefined;
 

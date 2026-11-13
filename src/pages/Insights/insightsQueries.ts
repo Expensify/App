@@ -1,6 +1,7 @@
 import type {SearchCompareMode, SearchGroupBy, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getRangeQueryValue} from '@libs/SearchQueryUtils';
+import {hashText} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -9,9 +10,11 @@ import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@sr
 
 import type {InsightsChartSpec, InsightsDateFilterKey} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
+import type {InsightsViolationStages} from './insightsViolationStages';
 
 import INSIGHTS_DASHBOARD_SPECS, {VIOLATION_HAS_VALUES} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
+import {DEFAULT_INSIGHTS_VIOLATION_STAGES, isViolationStageSelectable} from './insightsViolationStages';
 
 /** How many periods before the selected date range the Average mode spans */
 const COMPARE_AVERAGE_PERIOD_COUNT = 1;
@@ -19,10 +22,14 @@ const COMPARE_AVERAGE_PERIOD_COUNT = 1;
 /** How many expenses the Details panel lists under Top expenses */
 const TOP_EXPENSES_LIMIT = 10;
 
+/** Matches the numeric range used for Search snapshot hashes. */
+const INSIGHTS_HASH_RANGE = 2 ** 32;
+
 /** The form fields each date a chart can be narrowed by is written to */
 const DATE_FORM_KEYS = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: {on: FILTER_KEYS.DATE_ON, range: FILTER_KEYS.DATE_RANGE},
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED]: {on: FILTER_KEYS.SUBMITTED_ON, range: FILTER_KEYS.SUBMITTED_RANGE},
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION]: {on: FILTER_KEYS.ANY_SUBMISSION_ON, range: FILTER_KEYS.ANY_SUBMISSION_RANGE},
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL]: {on: FILTER_KEYS.ANY_APPROVAL_ON, range: FILTER_KEYS.ANY_APPROVAL_RANGE},
 } as const;
 
@@ -144,7 +151,12 @@ type InsightsQuery = {
 };
 
 /** Builds one request for the dashboard's headline chart and the given supporting charts, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
-function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, supportingChartSpecs: InsightsChartSpec[]): InsightsQuery | undefined {
+function buildInsightsJsonQuery(
+    dashboard: InsightsDashboardID,
+    filters: InsightsFilters,
+    supportingChartSpecs: InsightsChartSpec[],
+    violationStages: InsightsViolationStages = DEFAULT_INSIGHTS_VIOLATION_STAGES,
+): InsightsQuery | undefined {
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
     const inputQuery = buildInsightsQueryString(filters);
     const queryJSON = buildDashboardQuery(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
@@ -153,11 +165,27 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     }
 
     const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
-    const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({
-        chart,
-        queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
-        previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
-    });
+    const isCompliance = dashboard === CONST.INSIGHTS.DASHBOARD.COMPLIANCE;
+    // Chart selections change graphs and averages, but not the combined evidence behind the AI cards.
+    const hash = isCompliance ? hashText(JSON.stringify([queryJSON.hash, violationStages.violationsOverTime, violationStages.topViolations]), INSIGHTS_HASH_RANGE) : queryJSON.hash;
+    const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => {
+        let resolvedChart = chart;
+        if (isCompliance && isViolationStageSelectable(chart.graphKey)) {
+            const violationStage = violationStages[chart.graphKey];
+            const isSubmitted = violationStage === CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED;
+            resolvedChart = {
+                ...chart,
+                violationStage,
+                has: [isSubmitted ? CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION : CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+                dateFilterKey: isSubmitted ? CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION : CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+            };
+        }
+        return {
+            chart: resolvedChart,
+            queryJSON: buildDashboardQuery(applyInsightsFilters(resolvedChart, filters), dashboard),
+            previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(resolvedChart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
+        };
+    };
     const headlineChart = buildChartQuery(spec.headlineChart);
     const supportingCharts = supportingChartSpecs.map(buildChartQuery);
     const graphEntries = [headlineChart, ...supportingCharts]
@@ -167,7 +195,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
 
     return {
         jsonQuery: JSON.stringify({
-            hash: queryJSON.hash,
+            hash,
             type: queryJSON.type,
             groupBy: queryJSON.groupBy,
             filters: dashboard === CONST.INSIGHTS.DASHBOARD.COMPLIANCE ? buildComplianceFilters(filters) : queryJSON.filters,
@@ -175,9 +203,10 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
             searchKey: spec.searchKey,
             insightsHashes,
             numberOfPeriods: COMPARE_AVERAGE_PERIOD_COUNT,
+            ...(isCompliance && {violationStages}),
         }),
-        hash: queryJSON.hash,
-        snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((hash): hash is number => hash !== undefined)),
+        hash,
+        snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((snapshotHash): snapshotHash is number => snapshotHash !== undefined)),
         headlineChart,
         supportingCharts,
     };

@@ -1269,6 +1269,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Mais demorados para enviar',
         slowestToApprove: 'Mais lento para aprovar',
         mostTimeToPay: 'Maior prazo para pagar',
+        submitters: 'Remetentes',
+        approvers: 'Aprovadores',
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -11028,6 +11030,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             },
             searchFilters: 'Filtros de busca',
             noFiltersSelected: 'Nenhum filtro selecionado',
+            anySubmission: 'Qualquer envio',
         },
         display: {
             label: 'Exibir',

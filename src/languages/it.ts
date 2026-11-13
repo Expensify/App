@@ -1270,6 +1270,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Più lungo per l’invio',
         slowestToApprove: 'I più lenti ad approvare',
         mostTimeToPay: 'Tempo massimo per pagare',
+        submitters: 'Mittenti',
+        approvers: 'Approvatori',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -11050,6 +11052,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
             searchFilters: 'Filtri di ricerca',
             noFiltersSelected: 'Nessun filtro selezionato',
+            anySubmission: 'Qualsiasi invio',
         },
         display: {
             label: 'Visualizza',

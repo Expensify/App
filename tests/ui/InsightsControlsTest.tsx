@@ -12,6 +12,7 @@ import InsightsCompareControl from '@pages/Insights/controls/InsightsCompareCont
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import InsightsGroupCurrencyControl from '@pages/Insights/controls/InsightsGroupCurrencyControl';
 import InsightsPageControls from '@pages/Insights/controls/InsightsPageControls';
+import InsightsViolationStageControl from '@pages/Insights/controls/InsightsViolationStageControl';
 import InsightsWorkspaceControl from '@pages/Insights/controls/InsightsWorkspaceControl';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
@@ -85,6 +86,47 @@ describe('Insights controls', () => {
         await Onyx.clear();
         jest.clearAllMocks();
         jest.restoreAllMocks();
+    });
+
+    it('applies the selected violation stage only to its own chart', async () => {
+        // Given Top violations displaying submissions
+        const onChange = jest.fn();
+        renderWithProviders(
+            <InsightsViolationStageControl
+                graphKey={CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS}
+                value={CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED}
+                onChange={onChange}
+            />,
+        );
+
+        // When Approvers is selected and applied
+        await openPill(/^(Submitters|insightsPage\.submitters)$/);
+        fireEvent.press(screen.getByText(/^(Approvers|insightsPage\.approvers)$/));
+        fireEvent.press(screen.getByText(APPLY));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the parent receives the chart key and approval stage, leaving the other chart's selection alone
+        expect(onChange).toHaveBeenCalledWith(CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS, CONST.INSIGHTS.VIOLATION_STAGE.APPROVED);
+    });
+
+    it('resets a violation selector to Submitters', async () => {
+        // Given Violations over time displaying approvals
+        const onChange = jest.fn();
+        renderWithProviders(
+            <InsightsViolationStageControl
+                graphKey={CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME}
+                value={CONST.INSIGHTS.VIOLATION_STAGE.APPROVED}
+                onChange={onChange}
+            />,
+        );
+
+        // When its selection is reset
+        await openPill(/^(Approvers|insightsPage\.approvers)$/);
+        fireEvent.press(screen.getByText(RESET));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only that chart returns to its default submission stage
+        expect(onChange).toHaveBeenCalledWith(CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME, CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED);
     });
 
     it('shows the page-level filters the dashboard is narrowed by', async () => {
