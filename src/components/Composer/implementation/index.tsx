@@ -20,6 +20,7 @@ import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {ComponentRef} from 'react';
 import type {TextInput, TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -27,7 +28,7 @@ import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
 
-type WebMarkdownInput = HTMLDivElement & Pick<TextInput, 'clear' | 'isFocused'> & {value?: string};
+type WebMarkdownInput = HTMLDivElement & Pick<ComponentRef<typeof TextInput>, 'clear' | 'isFocused'> & {value?: string};
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];

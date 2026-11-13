@@ -2,7 +2,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {Ref} from 'react';
+import type {ComponentRef, Ref} from 'react';
 import type {StyleProp, TextInput, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
 
 type TextSelection = {
@@ -17,14 +17,14 @@ type CustomSelectionChangeEvent = {
     };
 };
 
-type WebComposerRef = Pick<TextInput, 'clear' | 'blur' | 'focus' | 'isFocused'> & {
+type WebComposerRef = Pick<ComponentRef<typeof TextInput>, 'clear' | 'blur' | 'focus' | 'isFocused'> & {
     readonly scrollTop: number;
     setSelection?: never;
     setNativeProps?: never;
     preventFocusOnFirstResponderOnce?: never;
 };
 
-type ComposerRef = TextInput | WebComposerRef;
+type ComposerRef = ComponentRef<typeof TextInput> | WebComposerRef;
 
 type ComposerProps = Omit<TextInputProps, 'onClear' | 'onSelectionChange'> &
     ForwardedFSClassProps & {

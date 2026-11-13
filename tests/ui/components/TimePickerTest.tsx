@@ -20,8 +20,11 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
+/** The mocked input also exposes the props it was rendered with, so tests can read the value the picker passed down. */
+type TextInputMockInstance = ComponentRef<typeof TextInput> & {props: TextInputProps};
+
 // Store mocked inputs by testID so we can access them in tests
-const mockInputs: Record<string, ComponentRef<typeof TextInput>> = {};
+const mockInputs: Record<string, TextInputMockInstance> = {};
 
 // Tests currently run against index.ios.ts source, where functions that call
 // native code (such as `isFocused` or `setNativeProps`) are not implemented.
@@ -34,7 +37,7 @@ jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => {
 
         const mockInstance = originalReact.useMemo(
             () =>
-                mockCreateMock<TextInput>({
+                mockCreateMock<TextInputMockInstance>({
                     focus: () => {
                         setIsFocused(true);
                     },

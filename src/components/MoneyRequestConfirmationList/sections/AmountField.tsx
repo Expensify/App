@@ -37,6 +37,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useNavigation} from '@react-navigation/native';
@@ -93,7 +94,7 @@ function AmountField({
     const {splitDraftTransaction, baseTransaction} = useSplitDraftBaseTransaction(transactionID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
-    const currencyButtonRef = useRef<View>(null);
+    const currencyButtonRef = useRef<ComponentRef<typeof View>>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);

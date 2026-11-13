@@ -11,7 +11,8 @@ import {parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
 import CONST from '@src/CONST';
 
 import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
+import type {TextInput} from 'react-native';
 
 import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import React, {useEffect, useRef} from 'react';
@@ -21,7 +22,9 @@ import Animated from 'react-native-reanimated';
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
 const AnimatedMarkdownTextInput = Animated.createAnimatedComponent(MarkdownTextInput);
 
-type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownTextInput & HTMLInputElement;
+// Live Markdown types its instance as `TextInput & React.Component`, and `TextInput` is a function component under the
+// React Native Strict TypeScript API, so the instance methods only come from `ComponentRef<typeof TextInput>`.
+type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownTextInput & ComponentRef<typeof TextInput> & HTMLInputElement;
 
 // Make the parser prop optional for this component because we are always defaulting to `parseExpensiMark`
 type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> &

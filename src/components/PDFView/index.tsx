@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Dimensions} from '@src/types/utils/Layout';
 
 // eslint-disable-next-line no-restricted-imports
-import type {CSSProperties, ReactNode} from 'react';
+import type {ComponentRef, CSSProperties, ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -165,7 +165,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
     const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
     const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
     const shouldUsePDFGestureZoom = isMobile() && !!isUsedInAttachmentModal && !isUsedAsChatAttachment;
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.

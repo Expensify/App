@@ -1,7 +1,7 @@
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
-type InsightsCaptureRef = RefObject<View | HTMLElement | null>;
+type InsightsCaptureRef = RefObject<ComponentRef<typeof View> | HTMLElement | null>;
 
 type ExportInsightsDashboard = (params: {
     headerRef: InsightsCaptureRef;
