@@ -1,16 +1,17 @@
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDisplayNamesWithTooltips, getWhisperDisplayNames, isCurrentUserTheOnlyParticipant} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import React from 'react';
@@ -26,7 +27,7 @@ function WhisperBanner({whisperedTo}: WhisperBannerProps) {
     const theme = useTheme();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye']);
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector(whisperedTo));
 
     const isMultipleParticipant = whisperedTo.length > 1;
     const isWhisperOnlyVisibleByUser = isCurrentUserTheOnlyParticipant(whisperedTo);

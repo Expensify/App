@@ -1,7 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
 import InvoiceReportAvatar from '@components/Avatar/connected/InvoiceReportAvatar';
-import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -9,6 +8,8 @@ import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
 
 import React from 'react';
+
+import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
 
 const INVOICE_ID = 'invoice123';
 const INVOICE_ROOM_ID = 'invoiceRoom123';
@@ -87,8 +88,12 @@ jest.mock('@hooks/useLocalize', () =>
 
 let mockPersonalDetails: PersonalDetailsList = {};
 
-/** Renders inside the live personal details context, which the component reads while there is no Search snapshot. */
-const renderWithPersonalDetails = (ui: React.ReactElement) => render(<PersonalDetailsContext.Provider value={mockPersonalDetails}>{ui}</PersonalDetailsContext.Provider>);
+// The live list, which the component reads while there is no Search snapshot
+jest.mock('react-native-onyx', () =>
+    jest.requireActual<{default: typeof mockOnyxWithLivePersonalDetails}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+);
+
+const renderWithPersonalDetails = (ui: React.ReactElement) => render(ui);
 
 jest.mock('@components/Avatar/layouts/SingleAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

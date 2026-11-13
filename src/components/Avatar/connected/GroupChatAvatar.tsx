@@ -1,9 +1,9 @@
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import type {AvatarIcon} from '@components/Avatar/types';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 
 import {getGroupChatName} from '@libs/ReportNameUtils';
@@ -11,6 +11,7 @@ import {getDefaultGroupAvatar} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -40,7 +41,7 @@ function GroupChatAvatar({reportID, size, containerStyle, fallbackDisplayName}: 
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
         selector: pendingDeleteMemberAccountIDsSelector,
     });
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector(Object.keys(report?.participants ?? {}).map(Number)));
 
     const avatar: AvatarIcon = {
         // A group chat with no uploaded avatar stores an empty string, which has to fall through to the default avatar

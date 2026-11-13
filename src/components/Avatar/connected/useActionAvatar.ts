@@ -3,13 +3,12 @@
  */
 import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
 import type {AvatarIcon} from '@components/Avatar/types';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useReportActionPersonalDetails from '@components/ReportActionAvatars/useReportActionPersonalDetails';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
@@ -141,10 +140,6 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     const defaultAvatars = useDefaultAvatars();
     const {formatPhoneNumber, translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const livePersonalDetails = usePersonalDetails();
-    const [personalDetailsFromSnapshot] = useAllPersonalDetails();
-    // On Search, the snapshot can hold an account missing from the live list. Fall back to the live list while the snapshot loads.
-    const personalDetails = personalDetailsFromSnapshot ?? livePersonalDetails;
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
     const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
@@ -176,8 +171,6 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     });
     const reportPreviewSenderID = isIOUReportPreview ? iouReportIcons.senderAccountID : senderAccountIDFromLookup;
 
-    const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(action);
-    const delegatePersonalDetails = delegateAccountIDFromAction ? personalDetails?.[delegateAccountIDFromAction] : undefined;
     const [isInvoiceLinkedToBill = false] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isOtherAction && isInvoiceReport(iouReport) ? iouReport?.reportID : undefined)}`,
         {selector: isLinkedToBillSelector},
@@ -186,6 +179,9 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPayHistory ? iouReport?.reportID : undefined)}`, {
         selector: getBillProcessorAccountIDSelector,
     });
+    const [personalDetails] = useReportActionPersonalDetails({action, chatReport, iouReport, reportChatReport, billProcessorAccountID, reportPreviewSenderID});
+    const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(action);
+    const delegatePersonalDetails = delegateAccountIDFromAction ? personalDetails?.[delegateAccountIDFromAction] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor, {
         isInvoiceLinkedToBill,
         processorAccountID: billProcessorAccountID,

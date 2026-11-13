@@ -1,12 +1,12 @@
 import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import UserAvatar from '@components/Avatar/UserAvatar';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -14,6 +14,7 @@ import {getUserDetailTooltipText} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -21,7 +22,7 @@ import {View} from 'react-native';
 function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateAccountID, shiftHorizontal, children}: UserDetailsTooltipProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector([accountID, delegateAccountID]));
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isCurrentUserAnonymous = session?.accountID === accountID && isAnonymousUser(session);
 

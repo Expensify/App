@@ -1,18 +1,20 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 
 import {buildUserIcon, getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
-import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
+import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type DefaultAvatars = ReturnType<typeof useDefaultAvatars>;
 
 function buildAccountIcons(
     accountIDs: number[],
-    personalDetails: ReturnType<typeof usePersonalDetails>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     defaultAvatars: DefaultAvatars,
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs,
     accountEmails?: Array<string | undefined>,
@@ -37,7 +39,7 @@ function buildAccountIcons(
  * login seeds a deterministic letter-avatar so the account renders instead of the generic gray fallback.
  */
 function useAccountIcons(accountIDs: number[], invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs, accountEmails?: Array<string | undefined>): Icon[] {
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector(accountIDs));
     const defaultAvatars = useDefaultAvatars();
 
     return buildAccountIcons(accountIDs, personalDetails, defaultAvatars, invitedEmailsToAccountIDs, accountEmails);
@@ -48,7 +50,7 @@ function useAccountIcons(accountIDs: number[], invitedEmailsToAccountIDs?: Invit
  * account ID instead of the generic gray fallback. The unknown account (`DEFAULT_NUMBER_ID`) keeps the generic fallback.
  */
 function useSeededAccountIcons(accountIDs: number[]): Icon[] {
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector(accountIDs));
     const defaultAvatars = useDefaultAvatars();
 
     return seedFallbackIcons(buildAccountIcons(accountIDs, personalDetails, defaultAvatars), accountIDs, defaultAvatars.FallbackAvatar);

@@ -4,14 +4,15 @@ import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import type {AvatarIcon} from '@components/Avatar/types';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 
 import type {ColorValue} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -33,13 +34,13 @@ type AvatarProps = {
 
 function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
     const styles = useThemeStyles();
-    const personalDetails = usePersonalDetails();
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const singleAvatarContainerStyle = [styles.actionAvatar];
     const avatarSize = isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(optionItem?.parentReportAction);
+    const [delegateDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsSelector(delegateAccountID));
 
     // Match the header's delegate avatar logic: when a delegate exists on the
     // parent report action, the header (useReportActionAvatars) shows the
@@ -49,8 +50,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
     const skipDelegate = !!optionItem?.isConciergeThread || optionItem?.type === CONST.REPORT.TYPE.INVOICE;
 
     let icons: AvatarIcon[] = optionItem?.icons ?? [];
-    if (!skipDelegate && delegateAccountID && personalDetails && icons.length > 0) {
-        const delegateDetails = personalDetails[delegateAccountID];
+    if (!skipDelegate && delegateAccountID && icons.length > 0) {
         if (delegateDetails) {
             const updatedIcons = [...icons];
             const firstDelegateIcon = updatedIcons.at(0);
