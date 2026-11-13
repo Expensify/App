@@ -15,7 +15,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AgentOwnerType} from '@src/types/onyx/Agent';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -79,6 +79,9 @@ type AgentsTableProps = {
     /** Whether to show the owner column */
     shouldShowOwnerColumn?: boolean;
 
+    /** Key the dragged column widths are saved under. Each page passes its own, since each shows different columns. */
+    columnResizingID: string;
+
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
@@ -91,6 +94,7 @@ export default function AgentsTable({
     selectedKeys,
     shouldShowRoleColumn,
     shouldShowOwnerColumn,
+    columnResizingID,
     onRowSelectionChange,
 }: AgentsTableProps) {
     const styles = useThemeStyles();
@@ -131,7 +135,6 @@ export default function AgentsTable({
                           getContentToMeasure: (item: AgentRowData) => (item.role ? [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}] : []),
                           // A role is one of a short, known set of labels, so the column always shows them in full.
                           shouldFitContent: true,
-                          // Padding and border sit inside the track. A role is pinned to its text, so that chrome has to be measured or the label clips.
                           extraWidth: variables.editableCellChromeWidth,
                       },
                   },
@@ -145,8 +148,8 @@ export default function AgentsTable({
                       sortable: true,
                       dynamicSizing: {
                           getContentToMeasure: (item: AgentRowData) => (item.ownerDisplayName ? [{text: item.ownerDisplayName, fontSize: fontScale.text}] : []),
-                          // The name follows an avatar, or a globe icon for a domain owner, padded the same way.
-                          extraWidth: Math.max(variables.avatarSizeXxxSmall, variables.iconSizeSmall) + styles.pr2.paddingRight,
+                          // A domain owner's globe icon takes the same room as the other owners' avatar.
+                          extraWidth: variables.tableInlineAvatarCellWidth,
                       },
                   },
               ]
@@ -208,8 +211,7 @@ export default function AgentsTable({
         <Table
             ref={ref}
             shouldUseDynamicColumns
-            // The workspace page shows the role column and the account page shows the owner column, so each keeps its own widths.
-            columnResizingID={shouldShowRoleColumn ? CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_AGENTS : CONST.TABLES.COLUMN_RESIZING_IDS.AGENTS}
+            columnResizingID={columnResizingID}
             data={agents}
             columns={agentsTableColumns}
             renderItem={renderTableItem}

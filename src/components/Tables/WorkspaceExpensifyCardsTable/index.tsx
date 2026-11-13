@@ -178,7 +178,6 @@ export default function WorkspaceExpensifyCardsTable({
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: getLimitTypeLabel(item.limitType), fontSize: fontScale.text}],
                 shouldFitContent: true,
-                // Padding and border sit inside the track. The limit type is pinned to its text, so that chrome has to be measured or the label clips.
                 extraWidth: variables.editableCellChromeWidth,
             },
         },
@@ -218,7 +217,6 @@ export default function WorkspaceExpensifyCardsTable({
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.limit, item.currency), fontSize: fontScale.text}],
                 shouldFitContent: true,
-                // Padding and border sit inside the track. The limit is pinned to its text, so that chrome has to be measured or the amount clips.
                 extraWidth: variables.editableCellChromeWidth,
             },
         },

@@ -11,8 +11,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
@@ -42,6 +40,9 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     emptyState: TableEmptyStateProps;
     renderRow: (props: TableRenderRowProps<TItem>) => React.ReactElement;
     typeColumnWidth?: number;
+
+    /** Key the dragged column widths are saved under. Each rules tab passes its own, so their widths stay separate. */
+    columnResizingID: string;
 };
 
 /**
@@ -62,6 +63,7 @@ function WorkspaceCategoryRulesTableImpl({
     emptyState,
     renderRow,
     typeColumnWidth = variables.tableTypeColumnWidth,
+    columnResizingID,
 }: WorkspaceCategoryRulesTableProps<CategoryRulesTableItem>) {
     const {localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -126,7 +128,7 @@ function WorkspaceCategoryRulesTableImpl({
     return (
         <Table
             shouldUseDynamicColumns
-            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_CATEGORY_RULES}
+            columnResizingID={columnResizingID}
             data={rulesData}
             columns={columns}
             selectionEnabled={selectionEnabled}

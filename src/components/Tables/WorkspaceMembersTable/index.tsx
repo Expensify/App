@@ -1,7 +1,7 @@
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
-import {getBadgeChromeWidth} from '@components/Table/badgeCellWidths';
+import {getBadgeColumnDragMinWidth, getBadgeWidth} from '@components/Table/badgeCellWidths';
 import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
@@ -111,8 +111,8 @@ export default function WorkspaceMembersTable({
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     useCopySelectionEvent();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-    const ownerBadgeExtraWidth = members.some((member) => member.isOwner) ? getBadgeChromeWidth(styles) : 0;
-    const ownerMemberColumnDragMinWidth = Math.ceil(variables.tableMemberCellAvatarWidth + variables.workspaceRoomsMembersColumnWidth + ownerBadgeExtraWidth);
+    const ownerBadgeWidth = getBadgeWidth(styles, translate('common.owner'));
+    const hasOwnerBadge = members.some((member) => member.isOwner);
 
     const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
         {
@@ -120,15 +120,14 @@ export default function WorkspaceMembersTable({
             label: translate('common.member'),
             sortable: true,
             dynamicSizing: {
-                // The cell stacks the member's name above their email, so whichever of the two renders wider decides the
-                // column's width. Owner rows also render a badge after the name, so that label is measured with the name
-                // and extraWidth covers the gap and the badge's padding and border.
+                // The cell stacks the member's name, with the owner's badge after it, above their email, so whichever of the
+                // two renders wider decides the column's width.
                 getContentToMeasure: (item) => [
-                    {text: item.isOwner ? `${item.name}${translate('common.owner')}` : item.name, fontSize: fontScale.text},
+                    {text: item.name, fontSize: fontScale.text, trailingWidth: item.isOwner ? ownerBadgeWidth : undefined},
                     {text: item.email, fontSize: fontScale.label},
                 ],
-                extraWidth: variables.tableMemberCellAvatarWidth + ownerBadgeExtraWidth,
-                dragMinWidth: ownerMemberColumnDragMinWidth,
+                extraWidth: variables.tableMemberCellAvatarWidth,
+                dragMinWidth: getBadgeColumnDragMinWidth(hasOwnerBadge ? [ownerBadgeWidth] : [], variables.tableMemberCellAvatarWidth),
             },
         },
 
@@ -207,7 +206,6 @@ export default function WorkspaceMembersTable({
                 getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}],
                 // A role is one of a short, known set of labels, so the column always shows them in full.
                 shouldFitContent: true,
-                // Padding and border sit inside the track. A role is pinned to its text, so that chrome has to be measured or the label clips.
                 extraWidth: variables.editableCellChromeWidth,
             },
         },

@@ -1,7 +1,7 @@
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
-import {getBadgeChromeWidth, getBadgeColumnDragMinWidth, measureBadgeLabelWidth} from '@components/Table/badgeCellWidths';
+import {getBadgeColumnDragMinWidth, getBadgeWidth} from '@components/Table/badgeCellWidths';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -85,20 +85,11 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const defaultBadgeLabel = translate('common.default');
-    const requestedBadgeLabel = translate('workspace.common.requested');
-    const hasDefaultBadge = workspaces.some((workspace) => workspace.isDefault);
-    const hasRequestedBadge = workspaces.some((workspace) => workspace.isJoinRequestPending);
-    const badgeChromeWidth = hasDefaultBadge || hasRequestedBadge ? getBadgeChromeWidth(styles) : 0;
+    const defaultBadgeWidth = getBadgeWidth(styles, translate('common.default'));
     // The Requested badge leads with an icon and its margin.
-    const requestedBadgeIconWidth = hasRequestedBadge ? variables.iconSizeExtraSmall + styles.mr1.marginRight : 0;
-    const shownBadgeWidths: number[] = [];
-    if (hasDefaultBadge) {
-        shownBadgeWidths.push(measureBadgeLabelWidth(defaultBadgeLabel));
-    }
-    if (hasRequestedBadge) {
-        shownBadgeWidths.push(requestedBadgeIconWidth + measureBadgeLabelWidth(requestedBadgeLabel));
-    }
+    const requestedBadgeWidth = getBadgeWidth(styles, translate('workspace.common.requested'), variables.iconSizeExtraSmall + styles.mr1.marginRight);
+    const getRowBadgesWidth = (item: WorkspaceRowData) => (item.isDefault ? defaultBadgeWidth : 0) + (item.isJoinRequestPending ? requestedBadgeWidth : 0);
+    const shownBadgesWidths = workspaces.map(getRowBadgesWidth).filter((badgesWidth) => badgesWidth > 0);
 
     const workspaceTableColumns: Array<TableColumn<WorkspaceTableColumnKey, WorkspaceRowData>> = [
         {
@@ -106,16 +97,9 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             key: 'workspaces',
             label: translate('common.workspaces'),
             dynamicSizing: {
-                // Badge labels are measured with the name, so a row with a badge needs more room than one without.
-                getContentToMeasure: (item) => [
-                    {
-                        text: `${item.title}${item.isDefault ? defaultBadgeLabel : ''}${item.isJoinRequestPending ? requestedBadgeLabel : ''}`,
-                        fontSize: fontScale.text,
-                    },
-                ],
-                extraWidth: variables.tableMemberCellAvatarWidth + badgeChromeWidth + requestedBadgeIconWidth,
-                // Only the name truncates, so a drag must leave room for the avatar and the badge next to it.
-                dragMinWidth: getBadgeColumnDragMinWidth(styles, variables.tableMemberCellAvatarWidth, shownBadgeWidths),
+                getContentToMeasure: (item) => [{text: item.title, fontSize: fontScale.text, trailingWidth: getRowBadgesWidth(item)}],
+                extraWidth: variables.tableMemberCellAvatarWidth,
+                dragMinWidth: getBadgeColumnDragMinWidth(shownBadgesWidths, variables.tableMemberCellAvatarWidth),
             },
         },
         {

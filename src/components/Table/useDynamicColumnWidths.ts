@@ -1,10 +1,10 @@
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
+import {canMeasureText} from '@libs/measureTextWidth';
+import measureMicroStrongTextWidth from '@libs/measureTextWidth/measureMicroStrongTextWidth';
 import createWidestTextMeasurer from '@libs/measureTextWidth/widestTextMeasurer';
 
-import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -116,7 +116,7 @@ function measureColumnContentWidth<DataType extends TableData, ColumnKey extends
 
     for (const item of data) {
         for (const content of dynamicSizing.getContentToMeasure(item)) {
-            measurer.add(content.text, {fontSize: content.fontSize, fontWeight: content.fontWeight});
+            measurer.add(content.text, {fontSize: content.fontSize, fontWeight: content.fontWeight}, content.trailingWidth);
         }
     }
 
@@ -159,7 +159,7 @@ function headerReservesEditableCellChrome(containerStyles: StyleProp<ViewStyle> 
  * measured in the bold font the header uses while the column is sorted, so sorting a column never truncates its label.
  */
 function measureHeaderLabelWidth(label: string, sortIconWidth: number, chromeWidth = 0): number | null {
-    const width = measureTextWidth(label, {fontSize: fontScale.micro, fontWeight: '700'});
+    const width = measureMicroStrongTextWidth(label);
 
     if (width === null) {
         return null;

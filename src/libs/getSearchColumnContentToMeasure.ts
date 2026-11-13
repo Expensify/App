@@ -17,7 +17,7 @@ import type {MeasurableFont} from './measureTextWidth/types';
 import {getCompanyCardDescription} from './CardUtils';
 import {getCategoryGLCode, getDecodedLeafCategoryName, isCategoryMissing} from './CategoryUtils';
 import getBase62ReportID from './getBase62ReportID';
-import measureTextWidth from './measureTextWidth';
+import measureMicroStrongTextWidth from './measureTextWidth/measureMicroStrongTextWidth';
 import {getTagGLCode, getVendorDisplayName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {getPolicyName, getReportStatusTranslation} from './ReportUtils';
@@ -401,7 +401,7 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: SearchL
  * Uses the bold weight and reserves the sort arrow even when unsorted, so sorting a column never changes the result.
  */
 function measureSearchHeaderLabelWidth(text: string, labelGap: number): number | null {
-    const textWidth = measureTextWidth(text, {fontSize: textVariants.microStrong.fontSize, fontWeight: '700'});
+    const textWidth = measureMicroStrongTextWidth(text);
     return textWidth === null ? null : textWidth + labelGap + variables.iconSizeExtraSmall;
 }
 

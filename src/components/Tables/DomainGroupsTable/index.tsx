@@ -1,6 +1,6 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
-import {getBadgeChromeWidth, getBadgeColumnDragMinWidth, measureBadgeLabelWidth} from '@components/Table/badgeCellWidths';
+import {getBadgeColumnDragMinWidth, getBadgeWidth} from '@components/Table/badgeCellWidths';
 
 import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
 import useLocalize from '@hooks/useLocalize';
@@ -38,10 +38,8 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
+    const defaultBadgeWidth = getBadgeWidth(styles, translate('common.default'));
     const hasDefaultGroup = groups.some((group) => group.isDefault);
-    const defaultBadgeLabel = translate('common.default');
-    const defaultBadgeExtraWidth = hasDefaultGroup ? getBadgeChromeWidth(styles) : 0;
-    const defaultBadgeWidths = hasDefaultGroup ? [measureBadgeLabelWidth(defaultBadgeLabel)] : [];
 
     const domainGroupsTableColumns: Array<TableColumn<DomainGroupsTableColumnKey, DomainGroupRowData>> = [
         {
@@ -49,11 +47,8 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
             label: translate('common.name'),
             sortable: true,
             dynamicSizing: {
-                // The default group renders a badge after its name, so that label is measured with the name and
-                // extraWidth covers the gap and the badge's padding and border.
-                getContentToMeasure: (item) => [{text: item.isDefault ? `${item.name}${defaultBadgeLabel}` : item.name, fontSize: fontScale.text}],
-                extraWidth: defaultBadgeExtraWidth,
-                dragMinWidth: getBadgeColumnDragMinWidth(styles, 0, defaultBadgeWidths),
+                getContentToMeasure: (item) => [{text: item.name, fontSize: fontScale.text, trailingWidth: item.isDefault ? defaultBadgeWidth : undefined}],
+                dragMinWidth: getBadgeColumnDragMinWidth(hasDefaultGroup ? [defaultBadgeWidth] : []),
             },
         },
         {

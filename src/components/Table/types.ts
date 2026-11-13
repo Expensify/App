@@ -48,6 +48,9 @@ type MeasurableCellContent = {
 
     /** Font weight the text renders at. Defaults to the normal weight. */
     fontWeight?: string;
+
+    /** Width of non-text content rendered right after the text on this row only, e.g. a badge. */
+    trailingWidth?: number;
 };
 
 /**

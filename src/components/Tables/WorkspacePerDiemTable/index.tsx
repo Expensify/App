@@ -69,7 +69,6 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: item.destination, fontSize: fontScale.text}],
-                // Padding and border sit inside the track. Once a long destination sets the column width, that chrome has to be measured or the destination clips.
                 extraWidth: variables.editableCellChromeWidth,
             },
         },
@@ -82,7 +81,7 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: item.subRateName, fontSize: fontScale.text}],
-                // Same padding and border as the destination, which sit inside the track and have to be measured or the subrate clips.
+                // The cell has the same padding and border as the destination cell.
                 extraWidth: variables.editableCellChromeWidth,
             },
         },
@@ -97,7 +96,6 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: item.formattedAmount, fontSize: fontScale.text}],
                 shouldFitContent: true,
-                // Padding and border sit inside the track. The amount is pinned to its text, so that chrome has to be measured or the amount clips.
                 extraWidth: variables.editableCellChromeWidth,
             },
         },
