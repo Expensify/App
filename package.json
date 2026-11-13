@@ -239,7 +239,6 @@
     "@actions/core": "3.0.1",
     "@actions/github": "9.1.1",
     "@appduct/react-native": "^0.16.0",
-    "@appduct/web": "^0.16.0",
     "@babel/core": "^7.25.2",
     "@babel/parser": "^7.22.16",
     "@babel/plugin-proposal-class-properties": "^7.12.1",
