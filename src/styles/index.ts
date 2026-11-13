@@ -892,6 +892,11 @@ const staticStyles = (theme: ThemeColors) =>
             paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
         },
 
+        // The "y" at the end of the wordmark already leaves empty space on its right, so the badge sits closer than the default badge margin
+        flatNavigationBarEnvironmentBadge: {
+            marginLeft: 6,
+        },
+
         flatNavigationBarCreateButtonContainer: {
             marginHorizontal: variables.flatNavigationBarCreateButtonInset,
             marginBottom: variables.flatNavigationBarCreateButtonGap,
@@ -5101,24 +5106,6 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
-        linkPreviewWrapper: {
-            marginTop: 16,
-            borderLeftWidth: 4,
-            borderLeftColor: theme.border,
-            paddingLeft: 12,
-        },
-
-        linkPreviewImage: {
-            flex: 1,
-            borderRadius: 8,
-            marginTop: 8,
-        },
-
-        linkPreviewLogoImage: {
-            height: 16,
-            width: 16,
-        },
-
         contextMenuItemPopoverMaxWidth: {
             minWidth: variables.compactPopoverMenuWidth,
             maxWidth: variables.compactPopoverMenuWidth,
@@ -5216,15 +5203,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         headerEnvBadge: {
-            position: 'absolute',
-            bottom: -8,
-            left: -8,
             height: 12,
-            width: 22,
             paddingLeft: 4,
             paddingRight: 4,
             alignItems: 'center',
-            zIndex: -1,
         },
 
         headerEnvBadgeText: {

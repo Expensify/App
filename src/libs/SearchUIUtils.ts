@@ -97,6 +97,7 @@ import type {
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
@@ -5098,6 +5099,66 @@ type ShareProps = {
 /**
  * Constructs and configures the overflow menu for search items, handling interactions such as sharing, renaming or deleting items.
  */
+type SavedSearchKey = `${typeof CONST.SEARCH.SAVED_SEARCH_PREFIX}${string}`;
+
+function isSavedSearchKey(key: SearchKey): key is SavedSearchKey {
+    return key.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX);
+}
+
+const SEARCH_TYPE_MENU_TAB_SENTRY_LABELS: Record<Exclude<SearchKey, SavedSearchKey>, SentryLabel> = {
+    [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.EXPENSES,
+    [CONST.SEARCH.SEARCH_KEYS.REPORTS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.REPORTS,
+    [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.SUBMIT,
+    [CONST.SEARCH.SEARCH_KEYS.APPROVE]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.APPROVE,
+    [CONST.SEARCH.SEARCH_KEYS.PAY]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.PAY,
+    [CONST.SEARCH.SEARCH_KEYS.EXPORT]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.EXPORT,
+    [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.STATEMENTS,
+    [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.UNAPPROVED_CASH,
+    [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.UNAPPROVED_CARD,
+    [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.RECONCILIATION,
+    [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TOP_SPENDERS,
+    [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TOP_CATEGORIES,
+    [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TOP_MERCHANTS,
+    [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.SPEND_OVER_TIME,
+    [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.VIOLATIONS_BY_SUBMITTER,
+    [CONST.SEARCH.SEARCH_KEYS.TRIPS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TRIPS,
+};
+
+/** Saved searches share one label, because their keys come from user data. */
+function getSearchTypeMenuTabSentryLabel(key: SearchKey): SentryLabel {
+    if (isSavedSearchKey(key)) {
+        return CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_TAB;
+    }
+    return SEARCH_TYPE_MENU_TAB_SENTRY_LABELS[key];
+}
+
+const SEARCH_TYPE_MENU_ITEM_SENTRY_LABELS: Record<Exclude<SearchKey, SavedSearchKey>, SentryLabel> = {
+    [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.EXPENSES,
+    [CONST.SEARCH.SEARCH_KEYS.REPORTS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.REPORTS,
+    [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.SUBMIT,
+    [CONST.SEARCH.SEARCH_KEYS.APPROVE]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.APPROVE,
+    [CONST.SEARCH.SEARCH_KEYS.PAY]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.PAY,
+    [CONST.SEARCH.SEARCH_KEYS.EXPORT]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.EXPORT,
+    [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.STATEMENTS,
+    [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.UNAPPROVED_CASH,
+    [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.UNAPPROVED_CARD,
+    [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.RECONCILIATION,
+    [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TOP_SPENDERS,
+    [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TOP_CATEGORIES,
+    [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TOP_MERCHANTS,
+    [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.SPEND_OVER_TIME,
+    [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.VIOLATIONS_BY_SUBMITTER,
+    [CONST.SEARCH.SEARCH_KEYS.TRIPS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TRIPS,
+};
+
+/** Saved searches share one label, because their keys come from user data. */
+function getSearchTypeMenuItemSentryLabel(key: SearchKey): SentryLabel {
+    if (isSavedSearchKey(key)) {
+        return CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM;
+    }
+    return SEARCH_TYPE_MENU_ITEM_SENTRY_LABELS[key];
+}
+
 function getOverflowMenu(
     icons: OverflowMenuIconsType,
     savedSearchID: string,
@@ -5107,9 +5168,11 @@ function getOverflowMenu(
     closeMenu?: () => void,
     shareProps?: ShareProps,
 ) {
+    // The mobile menu opens on long-press of a saved search tab, the other one from the saved search's three-dot button
     return [
         {
             text: translate('common.rename'),
+            sentryLabel: isMobileMenu ? CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_TAB_MENU_RENAME : CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU_RENAME,
             onSelected: () => {
                 if (isMobileMenu && closeMenu) {
                     closeMenu();
@@ -5123,6 +5186,7 @@ function getOverflowMenu(
         },
         {
             text: shareProps?.isCopied ? translate('search.urlCopied') : translate('common.share'),
+            sentryLabel: isMobileMenu ? CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_TAB_MENU_SHARE : CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU_SHARE,
             onSelected: () => {
                 shareProps?.onShare();
             },
@@ -5136,6 +5200,7 @@ function getOverflowMenu(
         },
         {
             text: translate('common.delete'),
+            sentryLabel: isMobileMenu ? CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_TAB_MENU_DELETE : CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU_DELETE,
             onSelected: () => {
                 if (isMobileMenu && closeMenu) {
                     closeMenu();
@@ -5291,6 +5356,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                                   {
                                       buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       buttonText: 'report.newReport.createExpense',
+                                      sentryLabel: CONST.SENTRY_LABEL.SEARCH.SUBMIT_EMPTY_STATE_CREATE_EXPENSE,
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
                                               startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
@@ -8357,6 +8423,8 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    getSearchTypeMenuItemSentryLabel,
+    getSearchTypeMenuTabSentryLabel,
     getTransactionPolicyID,
     canBulkMoveReportToPolicy,
     canChangeWorkspaceOfSearchReport,

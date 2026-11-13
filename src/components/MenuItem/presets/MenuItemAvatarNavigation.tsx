@@ -59,6 +59,7 @@ function MenuItemAvatarNavigation({title, description, accountID, avatarSource, 
             sentryLabel={sentryLabel}
             testID={testID}
             accessibilityLabel={[title, description].join(', ')}
+            forwardedFSClass={forwardedFSClass}
         >
             <MenuItemRow>
                 <MenuItemLeading>

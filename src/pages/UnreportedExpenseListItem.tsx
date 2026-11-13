@@ -98,6 +98,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                         }}
                         isDisabled={isItemDisabled}
                         shouldShowCheckbox={!readOnly}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.UNREPORTED_EXPENSE_LIST_ITEM_CHECKBOX}
                         style={styles.p3}
                         isHover={hovered}
                     />

@@ -44,6 +44,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Cancelar',
         unableToDisplayChart: 'No se puede mostrar el gráfico',
         webGLNotSupported: 'Tu navegador no es compatible con WebGL. Por favor, habilítalo o cambia de navegador.',
+        webAssemblyNotSupported: 'WebAssembly no está disponible en tu navegador. Prueba con otro navegador para ver los gráficos.',
         chartFailedToLoad: 'No se pudo cargar el gráfico. Actualiza la página e inténtalo de nuevo.',
         dismiss: 'Descartar',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionar la columna ${columnName}`,
@@ -11161,6 +11162,8 @@ ${reportName}`,
             category: 'Categoría',
             tag: 'Etiqueta',
         },
+        switchToTableView: 'Cambiar a vista de tabla',
+        switchToExpenseView: 'Cambiar a vista de gasto',
     },
     report: {
         newReport: {

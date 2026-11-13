@@ -569,6 +569,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Nenhum resultado. Tente ajustar seus filtros ou termo de pesquisa',
         unableToDisplayChart: 'Não foi possível exibir o gráfico',
         webGLNotSupported: 'Seu navegador não é compatível com WebGL. Ative-o ou mude de navegador.',
+        webAssemblyNotSupported: 'O WebAssembly não está disponível no seu navegador. Tente outro navegador para ver os gráficos.',
         chartFailedToLoad: 'Não foi possível carregar o gráfico. Atualize a página e tente novamente.',
         apiKey: 'Chave de API',
         exportsTo: 'Exportações para',
@@ -11202,6 +11203,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             category: 'Categoria',
             tag: 'Etiqueta',
         },
+        switchToTableView: 'Mudar para visualização em tabela',
+        switchToExpenseView: 'Mudar para visualização de despesa',
     },
     report: {
         newReport: {

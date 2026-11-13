@@ -8,15 +8,13 @@ import {beginSignIn, signUpUser} from '@userActions/Session';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasGuidedSetupRequest} from '@src/setup/appductTools/appductState';
-import registerAppductTools from '@src/setup/appductTools/index.web';
-import tools from '@src/setup/appductTools/tools';
+import tools from '@src/setup/appduct/tools';
 import type Account from '@src/types/onyx/Account';
 import type {AnyRequest} from '@src/types/onyx/Request';
 
 import type {NavigationState} from '@react-navigation/native';
 
-import {registerTool} from '@appduct/web';
+import {addAppductListener, registerTool} from '@appduct/react-native';
 import Onyx from 'react-native-onyx';
 
 jest.mock('@userActions/Session', () => ({
@@ -31,7 +29,7 @@ jest.mock('@libs/navigateAfterOnboarding', () => ({
     navigateAfterOnboardingWithMicrotaskQueue: jest.fn(),
     navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue: jest.fn(),
 }));
-// Closed by default (isReady false means no navigator is mounted); tests that need the modal open flip these.
+// isReady false means no navigator is mounted, so the onboarding modal counts as closed unless a test opens it.
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
     default: {isReady: jest.fn(), getRootState: jest.fn()},
@@ -40,7 +38,12 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
 const ANONYMOUS_SESSION = {authToken: 'anon', authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
 const ACCOUNT_ID = 7;
 const SIGNED_IN_SESSION = {authToken: 'tok', email: 's@gmail.com', accountID: ACCOUNT_ID};
-const QUEUED_GUIDED_SETUP: AnyRequest[] = [{command: 'CompleteGuidedSetup'}];
+const GUIDED_SETUP_REQUEST: AnyRequest = {command: 'CompleteGuidedSetup'};
+const QUEUED_GUIDED_SETUP: AnyRequest[] = [GUIDED_SETUP_REQUEST];
+
+function isStateChangeListener(listener: unknown): listener is (event: {state: 'connecting' | 'active'}) => void {
+    return typeof listener === 'function';
+}
 
 /** Runs a tool to completion, fast-forwarding the fake clock through its polling waits. */
 async function call(name: string, input: Record<string, unknown> = {}) {
@@ -56,7 +59,6 @@ function mockBeginSignInResponse(account: Account) {
     });
 }
 
-/** Root state with the given navigators on the stack, for the onboarding-modal close check. */
 function rootStateWith(routeNames: string[]): NavigationState {
     return {key: 'root', index: Math.max(routeNames.length - 1, 0), routeNames, routes: routeNames.map((name) => ({key: name, name})), type: 'stack', stale: false};
 }
@@ -71,7 +73,6 @@ beforeEach(async () => {
     for (const mock of [registerTool, beginSignIn, signUpUser, completeOnboarding, waitForWrites, navigateAfterOnboardingWithMicrotaskQueue]) {
         jest.mocked(mock).mockReset();
     }
-    // Closed again by default after any test that opened the modal
     mockIsReady.mockReturnValue(false);
     mockGetRootState.mockReturnValue(rootStateWith([]));
     Onyx.init({keys: ONYXKEYS});
@@ -84,8 +85,26 @@ afterEach(async () => {
 });
 
 describe('registration', () => {
-    it('registers the contract tools by name', async () => {
-        await registerAppductTools();
+    it('registers the contract tools by name once a session is active', async () => {
+        // Given the setup module loaded, with its stateChange listener added
+        await import('@src/setup/appduct');
+        const onStateChange = jest.mocked(addAppductListener).mock.calls.at(0)?.[1];
+        if (!isStateChangeListener(onStateChange)) {
+            throw new Error('no stateChange listener was added');
+        }
+
+        // When the session is only connecting
+        onStateChange({state: 'connecting'});
+        await jest.runAllTimersAsync();
+
+        // Then nothing is registered, so a dev session that never links loads no tools
+        expect(registerTool).not.toHaveBeenCalled();
+
+        // When the session becomes active, and the dynamic import of ./tools settles
+        onStateChange({state: 'active'});
+        await jest.runAllTimersAsync();
+
+        // Then the three tools are registered, in order
         expect(jest.mocked(registerTool).mock.calls.map(([tool]) => tool.name)).toEqual(['get_state', 'sign_in', 'complete_onboarding']);
     });
 });
@@ -138,9 +157,9 @@ describe('sign_in', () => {
         expect(signUpUser).toHaveBeenCalledTimes(1);
     });
 
-    it('waits for the sign-in attempt response even while ACCOUNT still holds its idle boot value', async () => {
-        // Given the idle ACCOUNT that src/setup/index.ts seeds, and a BeginSignIn whose optimistic isLoading
-        // arrives late the way the real one does, only after Device.getDeviceInfoWithID() resolves
+    it('asks for the magic code without signing up an existing account, even while ACCOUNT holds its idle boot value', async () => {
+        // Given the idle ACCOUNT seeded at boot, and a BeginSignIn that applies its optimistic isLoading late, like
+        // the real one does after Device.getDeviceInfoWithID() resolves
         await Onyx.multiSet({[ONYXKEYS.SESSION]: ANONYMOUS_SESSION, [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA});
         jest.mocked(beginSignIn).mockImplementation(() => {
             setTimeout(() => {
@@ -151,11 +170,10 @@ describe('sign_in', () => {
             }, 150);
         });
 
-        // When the tool waits for this attempt's loading cycle, the response says the account exists
+        // When the response says the account exists
         const result = await call('sign_in', {email: 'x@gmail.com'});
 
-        // Then it reports the magic-code need instead of reading the idle value and racing a signup for an
-        // existing account
+        // Then the tool asks for the magic code instead of reading the idle value and signing the account up
         expect(result?.ok).toBe(false);
         expect(result?.reason).toContain('magic code');
         expect(signUpUser).not.toHaveBeenCalled();
@@ -180,7 +198,6 @@ describe('sign_in', () => {
     });
 
     it.each([
-        ['an existing account needs the magic code', {accountExists: true}, 'magic code', 0],
         ['beginSignIn reports errors', {errors: {errorCode: 'Blocked'}}, 'Blocked', 0],
         ['sign-up never lands a session', {accountExists: false}, 'no session token', 1],
     ])('fails when %s', async (_title, account, reason, signUps) => {
@@ -195,7 +212,7 @@ describe('sign_in', () => {
     });
 
     it('fails without signing up when BeginSignIn never responds', async () => {
-        // Given a BeginSignIn whose response never arrives, so the attempt's loading flag stays true
+        // Given a BeginSignIn whose response never arrives
         await Onyx.merge(ONYXKEYS.SESSION, ANONYMOUS_SESSION);
         jest.mocked(beginSignIn).mockImplementation(() => {});
 
@@ -260,35 +277,29 @@ describe('complete_onboarding', () => {
         expect(navigateAfterOnboardingWithMicrotaskQueue).toHaveBeenCalledTimes(1);
     });
 
-    it('waits for a queued request instead of posting a second one', async () => {
+    it.each([
+        ['queue', (pending: boolean) => Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, pending ? QUEUED_GUIDED_SETUP : [])],
+        ['ongoing slot', (pending: boolean) => Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, pending ? GUIDED_SETUP_REQUEST : null)],
+    ])('waits for a request in the %s instead of posting a second one', async (_slot, park) => {
+        // Given an optimistic completed flag while the request is still pending; the sequential queue moves its head
+        // request into the ongoing slot before the response lands, so either key means pending
         await seed({flag: true, concierge: false});
-        await Onyx.merge(ONYXKEYS.PERSISTED_REQUESTS, QUEUED_GUIDED_SETUP);
+        await park(true);
         setTimeout(() => {
-            Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
+            park(false);
         }, 250);
 
-        expect(await call('complete_onboarding', {firstName: 'A', lastName: 'B'})).toMatchObject({ok: true, state: {onboardingCompleted: true}});
+        // When the tool runs and the request leaves the slot later
+        const result = await call('complete_onboarding', {firstName: 'A', lastName: 'B'});
+
+        // Then it waits instead of posting a second request, and reports no `already`, which would mean the pending
+        // request was missed and the optimistic flag taken as final
+        expect(result).toEqual({ok: true, state: {onboardingCompleted: true, onboardingModalClosed: true}});
         expect(completeOnboarding).not.toHaveBeenCalled();
     });
 
-    it('counts a request parked in the ongoing slot as pending', () => {
-        // Given the sequential queue moves its head request from PERSISTED_REQUESTS to
-        // PERSISTED_ONGOING_REQUESTS before the response lands, and the onboarding flag is optimistic until then
-
-        // When the request sits in either key
-        expect(hasGuidedSetupRequest(QUEUED_GUIDED_SETUP)).toBe(true);
-        expect(hasGuidedSetupRequest(QUEUED_GUIDED_SETUP[0])).toBe(true);
-
-        // Then both are pending, and only an empty queue and slot end the wait
-        expect(hasGuidedSetupRequest([])).toBe(false);
-        expect(hasGuidedSetupRequest(null)).toBe(false);
-        expect(hasGuidedSetupRequest(undefined)).toBe(false);
-        expect(hasGuidedSetupRequest({command: 'CreateReport'})).toBe(false);
-    });
-
     it('fails when the onboarding modal stays open after navigating', async () => {
-        // Given a completed onboarding whose modal refuses to unmount: navigateAfterOnboarding was called,
-        // but the navigator stays on the stack
+        // Given a completed onboarding whose modal stays on the navigation stack after navigateAfterOnboarding
         await seed({flag: true, concierge: false});
         mockIsReady.mockReturnValue(true);
         mockGetRootState.mockReturnValue(rootStateWith([NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]));

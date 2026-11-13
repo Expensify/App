@@ -325,9 +325,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
                     <FixedFooter addBottomSafeAreaPadding>
                         <Button
-                            sentryLabel={
-                                isEditingApprover ? CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SUBMIT.SAVE : CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SUBMIT.NEXT
-                            }
+                            sentryLabel={isEditingApprover ? CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SAVE : CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_NEXT}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={handleSubmit}

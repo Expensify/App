@@ -565,6 +565,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: '无结果。请尝试调整筛选条件或搜索内容',
         unableToDisplayChart: '无法显示图表',
         webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
+        webAssemblyNotSupported: '您的浏览器中无法使用 WebAssembly。请尝试使用其他浏览器查看图表。',
         chartFailedToLoad: '无法加载图表。请刷新页面后重试。',
         apiKey: 'API 密钥',
         exportsTo: '导出到',
@@ -10743,6 +10744,8 @@ ${reportName}`,
             category: '类别',
             tag: '标签',
         },
+        switchToTableView: '切换到表格视图',
+        switchToExpenseView: '切换到报销视图',
     },
     report: {
         newReport: {

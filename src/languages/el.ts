@@ -55,6 +55,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Άκυρο',
         unableToDisplayChart: 'Δεν είναι δυνατή η εμφάνιση του γραφήματος',
         webGLNotSupported: 'Το πρόγραμμα περιήγησής σας δεν υποστηρίζει WebGL. Παρακαλούμε ενεργοποιήστε το ή αλλάξτε πρόγραμμα περιήγησης.',
+        webAssemblyNotSupported: 'Το WebAssembly δεν είναι διαθέσιμο στο πρόγραμμα περιήγησής σας. Δοκιμάστε άλλο πρόγραμμα περιήγησης για να δείτε τα γραφήματα.',
         chartFailedToLoad: 'Δεν ήταν δυνατή η φόρτωση του γραφήματος. Ανανεώστε τη σελίδα και δοκιμάστε ξανά.',
         dismiss: 'Κλείσιμο',
         resizeColumn: ({columnName}: {columnName: string}) => `Αλλαγή μεγέθους της στήλης ${columnName}`,
@@ -11473,6 +11474,8 @@ ${reportName}`,
             category: 'Κατηγορία',
             tag: 'Ετικέτα',
         },
+        switchToTableView: 'Εναλλαγή σε προβολή πίνακα',
+        switchToExpenseView: 'Εναλλαγή σε προβολή δαπάνης',
     },
     report: {
         newReport: {

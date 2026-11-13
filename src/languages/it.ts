@@ -570,6 +570,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Nessun risultato. Prova a modificare i filtri o la ricerca',
         unableToDisplayChart: 'Impossibile visualizzare il grafico',
         webGLNotSupported: 'Il tuo browser non supporta WebGL. Abilitalo oppure passa a un altro browser.',
+        webAssemblyNotSupported: 'WebAssembly non è disponibile nel tuo browser. Prova un altro browser per visualizzare i grafici.',
         chartFailedToLoad: 'Impossibile caricare il grafico. Aggiorna la pagina e riprova.',
         apiKey: 'Chiave API',
         exportsTo: 'Esporta in',
@@ -11224,6 +11225,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             category: 'Categoria',
             tag: 'Etichetta',
         },
+        switchToTableView: 'Passa alla vista tabella',
+        switchToExpenseView: 'Passa alla vista spesa',
     },
     report: {
         newReport: {

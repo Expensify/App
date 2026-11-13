@@ -117,6 +117,7 @@ function MenuItemFieldPreset({
             testID={testID}
             accessibilityLabel={[name, value].filter(Boolean).join(', ')}
             shouldAllowTextSelection={shouldAllowTextSelection}
+            forwardedFSClass={forwardedFSClass}
         >
             <MenuItemFieldRow
                 name={name}
