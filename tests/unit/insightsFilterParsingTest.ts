@@ -2,7 +2,7 @@ import {getEmptyDateValues} from '@libs/SearchQueryUtils';
 
 import {fromSearchDateValues, parseInsightsFilters, toSearchDateValues} from '@pages/Insights/insightsFilterParsing';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
+import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {buildInsightsQueryString} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
@@ -76,6 +76,47 @@ describe('insightsFilterParsing', () => {
             expect(parsed.date).toEqual({from: '2026-01-01', to: '2026-03-31'});
         });
 
+        it.each(['date:unknown-preset', 'date:2026-02-30', 'date:2026-13-01', 'date>=invalid date<=2026-03-31', 'date>=2026-01-01 date<=2026-02-30'])(
+            'leaves the default date in place for %s without dropping other selections',
+            (dateFilter) => {
+                // Given a stored query with an invalid date but valid currency and grouping selections
+                const query = `groupBy:quarter groupCurrency:PLN ${dateFilter}`;
+
+                // When the stored selections override the dashboard defaults
+                const parsed = parseInsightsFilters(query);
+                const filters = {...DEFAULT_INSIGHTS_FILTERS, ...parsed};
+
+                // Then only the invalid date is ignored, so it cannot reach date formatting or the next query
+                expect(parsed).not.toHaveProperty('date');
+                expect(filters.date).toEqual(DEFAULT_INSIGHTS_FILTERS.date);
+                expect(filters.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
+                expect(filters.groupCurrency).toBe('PLN');
+            },
+        );
+
+        it.each(Object.values(CONST.SEARCH.DATE_PRESETS))('preserves the recognized preset %s', (preset) => {
+            // Given a known preset, including presets not offered by the Insights picker
+            const query = `date:${preset}`;
+
+            // When the query is restored
+            const parsed = parseInsightsFilters(query);
+
+            // Then known presets are not mistaken for invalid calendar dates
+            const expected = preset === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE ? CONST.SEARCH.DATE_PRESETS.THIS_YEAR : preset;
+            expect(parsed.date).toEqual({preset: expected});
+        });
+
+        it('preserves a valid leap day', () => {
+            // Given a literal date that is valid only in a leap year
+            const query = 'date:2024-02-29';
+
+            // When the query is restored
+            const parsed = parseInsightsFilters(query);
+
+            // Then calendar validation does not discard a valid custom day
+            expect(parsed.date).toEqual({on: '2024-02-29'});
+        });
+
         it('ignores a date the controls cannot show', () => {
             // Given a query left open at one end, which no Insights control can produce
             const parsed = parseInsightsFilters('groupBy:month groupCurrency:USD date>2026-01-01');
@@ -124,6 +165,17 @@ describe('insightsFilterParsing', () => {
     });
 
     describe('toSearchDateValues / fromSearchDateValues', () => {
+        it.each(['unknown-preset', '2026-02-30', '2026-11-08T00:00:00.000Z'])('rejects the invalid picker date %s', (on) => {
+            // Given an unexpected value returned by the picker
+            const values = {...getEmptyDateValues(), [CONST.SEARCH.DATE_MODIFIERS.ON]: on};
+
+            // When Insights reads the selection
+            const date = fromSearchDateValues(values);
+
+            // Then the caller can retain the previous valid selection instead of accepting a broken date
+            expect(date).toBeUndefined();
+        });
+
         it.each(DATE_VARIANTS)('hands %s to the date picker and reads the same date back', (_label, date) => {
             // Given a date the dashboard reports on
             // When it is handed to the picker and read back unchanged

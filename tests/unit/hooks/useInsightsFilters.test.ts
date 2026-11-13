@@ -145,6 +145,28 @@ describe('useInsightsFilters', () => {
         expect(result.current.filters).toEqual(stored);
     });
 
+    it.each([CONST.INSIGHTS.DASHBOARD.SPEND, CONST.INSIGHTS.DASHBOARD.COMPLIANCE])('uses the %s default date when its stored date is invalid', async (dashboard) => {
+        // Given a restored query containing an unknown date token and otherwise valid selections
+        await setUpActivePolicy('PLN');
+        const searchKey = INSIGHTS_DASHBOARD_SPECS[dashboard].searchKey;
+        await Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {
+            [searchKey]: {query: 'date:unknown-preset groupBy:quarter groupCurrency:USD policyID:A1'},
+        });
+        await waitForBatchedUpdates();
+
+        // When the dashboard resolves the restored selections
+        const {result} = renderHook(() => useInsightsFilters(dashboard));
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+        // Then its own default date applies without discarding the other saved selections
+        expect(result.current.filters).toEqual({
+            date: result.current.defaultFilters.date,
+            policyIDs: ['A1'],
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            groupCurrency: 'USD',
+        });
+    });
+
     it('keeps reporting the page defaults once a selection is stored, so a control can reset to them', async () => {
         // Given a dashboard stored in USD for a user whose default workspace reports in PLN
         await setUpActivePolicy('PLN');
