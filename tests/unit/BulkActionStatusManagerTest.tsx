@@ -200,7 +200,7 @@ describe('BulkActionStatusManager', () => {
             paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             total: 5,
             failedReportIDs: [],
-            skippedReportIDs: ['333', '444'],
+            skippedReportIDs: {[CONST.BULK_ACTION.SKIP_REASON.NOTHING_TO_PAY]: ['333', '444']},
         });
 
         render(<BulkActionStatusManager />);
@@ -225,7 +225,7 @@ describe('BulkActionStatusManager', () => {
             paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             total: 4,
             failedReportIDs: ['111'],
-            skippedReportIDs: ['333'],
+            skippedReportIDs: {[CONST.BULK_ACTION.SKIP_REASON.NOTHING_TO_PAY]: ['333']},
         });
 
         render(<BulkActionStatusManager />);
@@ -238,5 +238,37 @@ describe('BulkActionStatusManager', () => {
 
         // Then Search opens on both, since neither was paid and each needs the user's attention
         expect(mockNavigate).toHaveBeenCalledWith(expect.stringMatching(/reportID%3A111%2C333/));
+    });
+
+    it('explains each reason a bank payment skipped reports for', async () => {
+        // Given a finished bank payment that skipped reports needing global reimbursements, a Wise quote, and a reason this App version doesn't know
+        await Onyx.set(BULK_ACTION_KEY, {
+            state: CONST.BULK_ACTION.STATE.DONE,
+            action: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
+            paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            total: 6,
+            failedReportIDs: [],
+            skippedReportIDs: {
+                [CONST.BULK_ACTION.SKIP_REASON.NEEDS_GLOBAL_REIMBURSEMENTS]: ['111'],
+                [CONST.BULK_ACTION.SKIP_REASON.DEPOSIT_ACCOUNT_NEEDS_GLOBAL_REIMBURSEMENTS]: ['222'],
+                [CONST.BULK_ACTION.SKIP_REASON.NEEDS_QUOTE]: ['333', '444'],
+                // @ts-expect-error The backend can add a skip reason before the App knows it
+                someFutureReason: ['555'],
+            },
+        });
+
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user opens the reports that weren't paid
+        expect(screen.getByText('bulkAction.skippedNeedsGlobalReimbursementsBody')).toBeTruthy();
+        expect(screen.getByText('bulkAction.skippedDepositAccountNeedsGlobalReimbursementsBody')).toBeTruthy();
+        expect(screen.getByText('bulkAction.skippedNeedsQuoteBody')).toBeTruthy();
+        expect(screen.getByText('bulkAction.notPaidBody')).toBeTruthy();
+        expect(screen.queryByText('bulkAction.skippedBankPayBody')).toBeNull();
+        fireEvent.press(screen.getByText('bulkAction.viewFailedReports'));
+
+        // Then each reason gets its own explanation, the unknown one still reads as not paid, and Search opens on every unpaid report
+        expect(mockNavigate).toHaveBeenCalledWith(expect.stringMatching(/reportID%3A111%2C222%2C333%2C444%2C555/));
     });
 });
