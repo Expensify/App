@@ -122,53 +122,42 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
 
     const getViolationsForField = (field: ViolationField, data?: TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
         const currentViolations = violationsByField.get(field) ?? [];
-        const firstViolation = currentViolations.at(0);
 
-        // someTagLevelsRequired has special logic because data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
-        // tagListIndex can be 0 so we compare with undefined
-        if (firstViolation?.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && data?.tagListIndex !== undefined && Array.isArray(firstViolation?.data?.errorIndexes)) {
-            return currentViolations
-                .filter((violation) => violation.data?.errorIndexes?.includes(data?.tagListIndex ?? -1))
-                .map((violation) => ({
-                    ...violation,
-                    data: {
-                        ...violation.data,
-                        tagName: data?.tagListName,
-                    },
-                }));
+        if (field !== 'tag' || (data?.tagListIndex === undefined && data?.tagListName === undefined && !tagValue)) {
+            return currentViolations;
         }
 
-        // missingTag has special logic for policies with dependent tags, because only one violation is returned for all tags
-        // when no tags are present, so the tag name isn't set in the violation data. That's why we add it here
-        if (policyHasDependentTags && firstViolation?.name === CONST.VIOLATIONS.MISSING_TAG && data?.tagListName) {
-            return [
-                {
-                    ...firstViolation,
-                    data: {
-                        ...firstViolation.data,
-                        tagName: data?.tagListName,
-                    },
-                },
-            ];
-        }
+        return currentViolations.flatMap((violation) => {
+            // someTagLevelsRequired has special logic because data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
+            // tagListIndex can be 0 so we compare with undefined
+            if (violation.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && data?.tagListIndex !== undefined && Array.isArray(violation.data?.errorIndexes)) {
+                return violation.data.errorIndexes.includes(data.tagListIndex) ? [{...violation, data: {...violation.data, tagName: data.tagListName}}] : [];
+            }
 
-        // tagOutOfPolicy has special logic because we have to account for multi-level tags and use tagName to find the right tag to put the violation on
-        if (firstViolation?.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY && data?.tagListName !== undefined && firstViolation?.data?.tagName) {
-            return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
-        }
+            if (violation.name === CONST.VIOLATIONS.MISSING_TAG) {
+                if (data?.tagListName && violation.data?.tagName && violation.data.tagName !== data.tagListName) {
+                    return [];
+                }
 
-        // allTagLevelsRequired has special logic because it is returned when one but not all the tags are set,
-        // so we need to return the violation for the tag fields without a tag set
-        if (firstViolation?.name === CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED && tagValue) {
-            return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
-        }
+                // A missing tag without a name applies to each dependent tag list.
+                if (policyHasDependentTags && data?.tagListName && !violation.data?.tagName) {
+                    return [{...violation, data: {...violation.data, tagName: data.tagListName}}];
+                }
+            }
 
-        return currentViolations;
+            if (violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY && data?.tagListName !== undefined && violation.data?.tagName && violation.data.tagName !== data.tagListName) {
+                return [];
+            }
+
+            if (violation.name === CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED && tagValue && violation.data?.tagName !== data?.tagListName) {
+                return [];
+            }
+
+            return [violation];
+        });
     };
 
-    return {
-        getViolationsForField,
-    };
+    return {getViolationsForField};
 }
 
 export default useViolations;
