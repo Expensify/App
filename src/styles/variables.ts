@@ -84,6 +84,7 @@ export default {
     ...avatarSizes,
     avatarPreview: 360,
     avatarPreviewLarge: 720,
+    floatingActionButtonRightOffset: 16,
     fabBottom: 25,
     fontSizeXXSmall: 7,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
