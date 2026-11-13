@@ -4770,6 +4770,46 @@ describe('actions/IOU/ReportWorkflow', () => {
     });
 
     describe('retractReport', () => {
+        it('optimistically requires manual submission when retracting a scheduled submit report', () => {
+            // Given a submitted report with expenses that would otherwise qualify for scheduled submission
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write arguments to verify the next step before any server response.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                harvesting: {enabled: true},
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: policy.id,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                transactionCount: 1,
+            };
+
+            // When the owner retracts the report to make changes before manually submitting it again
+            retractReport(expenseReport, undefined, policy, RORY_ACCOUNT_ID, RORY_EMAIL, false, false, undefined, false, undefined);
+
+            // Then the optimistic next step must not promise automatic submission while the server response is pending
+            const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+            const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
+            expect(optimisticReportUpdate.value).toMatchObject({
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                hasReportBeenRetracted: true,
+            });
+            expect(optimisticReportUpdate.value.nextStep).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: RORY_ACCOUNT_ID,
+            });
+        });
+
         it('does not set a retract pending field that hides resubmit', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify retract optimistic data does not hide resubmit.
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
