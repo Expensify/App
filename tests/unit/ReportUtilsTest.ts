@@ -192,6 +192,7 @@ import {
     isArchivedNonExpenseReport,
     isArchivedReport,
     isAwaitingFirstLevelApproval,
+    isBankPayBlockedBySpend,
     isChatUsedForOnboarding,
     isClosedExpenseReportWithNoExpenses,
     isConciergeChatReport,
@@ -31856,6 +31857,83 @@ describe('isPayOptional', () => {
         // When checking whether paying it is optional
         // Then it is not, since the report can't be paid at all
         expect(isPayOptional(expenseReport, [])).toBe(false);
+    });
+});
+
+describe('isBankPayBlockedBySpend', () => {
+    const expenseReport: Report = {
+        ...createRandomReport(9101, undefined),
+        type: CONST.REPORT.TYPE.EXPENSE,
+        total: -5000,
+        nonReimbursableTotal: 0,
+        reimbursableTotal: undefined,
+        pendingFields: undefined,
+    };
+    const manualReimbursementPolicy: Policy = {
+        ...createRandomPolicy(9101, CONST.POLICY.TYPE.TEAM),
+        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+    };
+
+    it('returns true when every expense is non-reimbursable', () => {
+        // Given a $50 report whose only expense is non-reimbursable, so nothing is owed through the bank account
+        const report: Report = {...expenseReport, nonReimbursableTotal: -5000};
+
+        // When checking whether the bank account can't pay it
+        // Then it can't, so the bank option explains why instead of being hidden
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy)).toBe(true);
+    });
+
+    it('returns true when the reimbursable total is negative', () => {
+        // Given a report whose reimbursable expenses add up to a $50 credit, so nothing is owed
+        const report: Report = {...expenseReport, total: 5000};
+
+        // When checking whether the bank account can't pay it
+        // Then it can't, since product treats a total of zero or less like a non-reimbursable report
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy)).toBe(true);
+    });
+
+    it('returns false when there is reimbursable spend to pay', () => {
+        // Given a report with a $50 reimbursable expense, so money is owed
+        // When checking whether the bank account can't pay it
+        // Then it can, so it is paid like any other report
+        expect(isBankPayBlockedBySpend(expenseReport, manualReimbursementPolicy)).toBe(false);
+    });
+
+    it('returns false when the workspace has reimbursements turned off', () => {
+        // Given a non-reimbursable report on a workspace that never pays through a bank account
+        const report: Report = {...expenseReport, nonReimbursableTotal: -5000};
+        const noReimbursementPolicy: Policy = {...manualReimbursementPolicy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO};
+
+        // When checking whether the bank account can't pay it because of its spend
+        // Then it isn't the spend that blocks it, so the bank option stays hidden as before
+        expect(isBankPayBlockedBySpend(report, noReimbursementPolicy)).toBe(false);
+    });
+
+    it('returns false while the report total is not loaded', () => {
+        // Given a report whose totals haven't reached the device yet, which would otherwise read as $0
+        const report: Report = {...expenseReport, total: undefined, nonReimbursableTotal: undefined};
+
+        // When checking whether the bank account can't pay it
+        // Then it fails closed, so a report that may be owed is never left out of a bank payment
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy)).toBe(false);
+    });
+
+    it('returns false while the report total is pending', () => {
+        // Given a non-reimbursable report whose total is still being recalculated
+        const report: Report = {...expenseReport, nonReimbursableTotal: -5000, pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
+
+        // When checking whether the bank account can't pay it
+        // Then it fails closed until the total settles
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy)).toBe(false);
+    });
+
+    it('returns false for an IOU report', () => {
+        // Given a non-reimbursable IOU report, which is paid from a personal wallet rather than a business bank account
+        const report: Report = {...expenseReport, type: CONST.REPORT.TYPE.IOU, nonReimbursableTotal: -5000};
+
+        // When checking whether the bank account can't pay it
+        // Then it doesn't apply, since only expense reports are paid through a business bank account
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy)).toBe(false);
     });
 });
 

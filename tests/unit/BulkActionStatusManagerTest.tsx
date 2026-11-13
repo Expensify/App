@@ -178,4 +178,65 @@ describe('BulkActionStatusManager', () => {
         expect(screen.getByText('bulkAction.noReportsTitle')).toBeTruthy();
         expect(screen.queryByText('bulkAction.paidTitle')).toBeNull();
     });
+
+    it('says the reports are being paid while a bank payment runs', async () => {
+        // Given a bulk payment through a bank account that is still running
+        await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA});
+
+        // When the app loads
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it reads as paying, since the reports are paid rather than marked as paid
+        expect(screen.getByText('bulkAction.payingWithBankTitle')).toBeTruthy();
+        expect(screen.queryByText('bulkAction.payingTitle')).toBeNull();
+    });
+
+    it('explains the reports a bank payment skipped and opens them in Search', async () => {
+        // Given a finished bank payment that skipped two reports with nothing owed
+        await Onyx.set(BULK_ACTION_KEY, {
+            state: CONST.BULK_ACTION.STATE.DONE,
+            action: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
+            paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            total: 5,
+            failedReportIDs: [],
+            skippedReportIDs: ['333', '444'],
+        });
+
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user opens the reports that weren't paid
+        expect(screen.getByText('bulkAction.paidWithBankTitle')).toBeTruthy();
+        expect(screen.getByText('bulkAction.skippedBankPayBody')).toBeTruthy();
+        expect(screen.queryByText('bulkAction.notPaidBody')).toBeNull();
+        fireEvent.press(screen.getByText('bulkAction.viewFailedReports'));
+
+        // Then Search opens on the skipped reports, so the user can mark them as paid manually
+        expect(mockNavigate).toHaveBeenCalledWith(expect.stringMatching(/reportID%3A333%2C444/));
+        expect(mockClearBulkAction).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens both the failed and the skipped reports of a bank payment', async () => {
+        // Given a finished bank payment where one report failed and another was skipped
+        await Onyx.set(BULK_ACTION_KEY, {
+            state: CONST.BULK_ACTION.STATE.DONE,
+            action: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
+            paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            total: 4,
+            failedReportIDs: ['111'],
+            skippedReportIDs: ['333'],
+        });
+
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user opens the reports that weren't paid
+        expect(screen.getByText('bulkAction.notPaidBody')).toBeTruthy();
+        expect(screen.getByText('bulkAction.skippedBankPayBody')).toBeTruthy();
+        fireEvent.press(screen.getByText('bulkAction.viewFailedReports'));
+
+        // Then Search opens on both, since neither was paid and each needs the user's attention
+        expect(mockNavigate).toHaveBeenCalledWith(expect.stringMatching(/reportID%3A111%2C333/));
+    });
 });

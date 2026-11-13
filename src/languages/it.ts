@@ -1629,6 +1629,12 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `pagato ${amount} con conto personale ${last4Digits}` : `Pagato con conto personale`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `ha pagato ${amount} con il conto aziendale ${last4Digits}` : `Pagato con conto aziendale`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Paga ${formattedAmount} tramite ${policyName}` : `Paga tramite ${policyName}`),
+        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Paga con x${lastFour}` : 'Paga con conto bancario'),
+        bankPaySkippedReportsDescription:
+            'Questi report non sono stati pagati tramite il conto bancario perché non sono rimborsabili oppure hanno un importo totale pari a zero o inferiore. Se preferisci, puoi contrassegnarli manualmente come pagati.',
+        bankPayAllReportsSkippedDescription:
+            'I report selezionati non sono rimborsabili oppure hanno un importo totale pari a zero o inferiore. Se preferisci, puoi contrassegnarli manualmente come pagati.',
+        bankPayReportSkippedDescription: 'Questo report non è rimborsabile oppure ha un importo totale pari a zero o inferiore. Se preferisci, puoi contrassegnarlo manualmente come pagato.',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `pagato ${amount} con il conto bancario ${last4Digits}` : `pagato con conto bancario ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `pagato ${amount ? `${amount} ` : ''} con il conto bancario ${last4Digits} tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
@@ -12898,6 +12904,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         approvingTitle: 'Approvazione dei report in corso...',
         submittingTitle: 'Invio dei report in corso...',
         payingTitle: 'Contrassegno dei report come pagati in corso...',
+        payingWithBankTitle: 'Pagamento dei report in corso...',
         holdingTitle: 'Messa in attesa delle spese in corso...',
         unholdingTitle: 'Rimozione del blocco delle spese in corso...',
         rejectingTitle: 'Rifiuto delle spese in corso...',
@@ -12920,6 +12927,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Contrassegnati ${doneCount} su ${count} report come pagati`,
             other: `Contrassegnati ${doneCount} su ${count} report come pagati`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Pagati ${doneCount} su ${count} report`,
+            other: `Pagati ${doneCount} su ${count} report`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Spese messe in attesa in ${doneCount} su ${count} report`,
@@ -12961,6 +12972,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         notPaidBody: ({count}: {count: number}) => ({
             one: '1 report non può essere pagato.',
             other: `${count} report non hanno potuto essere pagati.`,
+        }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: '1 report non è stato pagato tramite il conto bancario perché non è rimborsabile oppure ha un importo totale pari a zero o inferiore. Se preferisci, puoi contrassegnarlo manualmente come pagato.',
+            other: `${count} report non sono stati pagati tramite il conto bancario perché non sono rimborsabili oppure hanno un importo totale pari a zero o inferiore. Se preferisci, puoi contrassegnarli manualmente come pagati.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
             one: 'Le spese di 1 report non hanno potuto essere messe in attesa.',

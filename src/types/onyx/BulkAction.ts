@@ -2,6 +2,8 @@ import type CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
+import type {PaymentMethodType} from './OriginalMessage';
+
 /** Possible states of a bulk action */
 type BulkActionState = ValueOf<typeof CONST.BULK_ACTION.STATE>;
 
@@ -29,6 +31,12 @@ type BulkAction = {
 
     /** Reports the action couldn't be done on, set once it is done */
     failedReportIDs?: string[];
+
+    /** How a bulk payment pays the reports, set when it pays through a bank account instead of marking them as paid */
+    paymentType?: PaymentMethodType;
+
+    /** Reports a bank payment left unpaid because they're non-reimbursable or total $0 or less, set once it is done */
+    skippedReportIDs?: string[];
 
     /** Whether Concierge should message the result instead of showing it here */
     shouldSendFromConcierge?: boolean;

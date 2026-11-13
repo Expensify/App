@@ -1667,6 +1667,12 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z konta osobistego ${last4Digits}` : `Zapłacono z konta osobistego`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z firmowego konta ${last4Digits}` : `Zapłacono z konta firmowego`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Zapłać ${formattedAmount} przez ${policyName}` : `Zapłać przez ${policyName}`),
+        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Zapłać z x${lastFour}` : 'Zapłać z konta bankowego'),
+        bankPaySkippedReportsDescription:
+            'Te raporty nie zostały opłacone z konta bankowego, ponieważ nie podlegają zwrotowi lub ich łączna kwota wynosi zero lub mniej. Jeśli wolisz, możesz ręcznie oznaczyć je jako opłacone.',
+        bankPayAllReportsSkippedDescription:
+            'Wybrane raporty nie podlegają zwrotowi lub ich łączna kwota wynosi zero lub mniej. Jeśli wolisz, możesz ręcznie oznaczyć te raporty jako opłacone.',
+        bankPayReportSkippedDescription: 'Ten raport nie podlega zwrotowi lub jego łączna kwota wynosi zero lub mniej. Jeśli wolisz, możesz ręcznie oznaczyć go jako opłacony.',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z konta bankowego ${last4Digits}` : `zapłacono z konta bankowego ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `zapłacono ${amount ? `${amount} ` : ''} z konta bankowego ${last4Digits} przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady przestrzeni roboczej</a>`,
@@ -12909,6 +12915,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         approvingTitle: 'Zatwierdzanie raportów...',
         submittingTitle: 'Wysyłanie raportów...',
         payingTitle: 'Oznaczanie raportów jako opłacone...',
+        payingWithBankTitle: 'Opłacanie raportów...',
         holdingTitle: 'Wstrzymywanie wydatków...',
         unholdingTitle: 'Usuwanie blokady wydatków...',
         rejectingTitle: 'Odrzucanie wydatków...',
@@ -12931,6 +12938,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Oznaczono ${doneCount} z ${count} raportu jako opłacone`,
             other: `Oznaczono ${doneCount} z ${count} raportów jako opłacone`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Opłacono ${doneCount} z ${count} raportu`,
+            other: `Opłacono ${doneCount} z ${count} raportów`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Wstrzymano wydatki w ${doneCount} z ${count} raportu`,
@@ -12972,6 +12983,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         notPaidBody: ({count}: {count: number}) => ({
             one: 'Nie udało się oznaczyć 1 raportu jako opłaconego.',
             other: `Nie udało się oznaczyć ${count} raportów jako opłaconych.`,
+        }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: '1 raport nie został opłacony z konta bankowego, ponieważ nie podlega zwrotowi lub jego łączna kwota wynosi zero lub mniej. Jeśli wolisz, możesz ręcznie oznaczyć go jako opłacony.',
+            other: `Raporty (${count}) nie zostały opłacone z konta bankowego, ponieważ nie podlegają zwrotowi lub ich łączna kwota wynosi zero lub mniej. Jeśli wolisz, możesz ręcznie oznaczyć je jako opłacone.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
             one: 'Nie udało się wstrzymać wydatków w 1 raporcie.',

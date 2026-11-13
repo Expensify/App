@@ -1630,6 +1630,13 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit persönlichem Konto ${last4Digits} bezahlt` : `Mit Privatkonto bezahlt`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit Geschäftskonto ${last4Digits} bezahlt` : `Mit Geschäftskonto bezahlt`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Bezahle ${formattedAmount} über ${policyName}` : `Bezahlen über ${policyName}`),
+        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Mit x${lastFour} bezahlen` : 'Mit Bankkonto bezahlen'),
+        bankPaySkippedReportsDescription:
+            'Diese Berichte wurden nicht über das Bankkonto bezahlt, da sie entweder nicht erstattungsfähig sind oder einen Gesamtbetrag von null oder weniger haben. Du kannst sie bei Bedarf manuell als bezahlt markieren.',
+        bankPayAllReportsSkippedDescription:
+            'Die ausgewählten Berichte sind nicht erstattungsfähig oder haben einen Gesamtbetrag von null oder weniger. Du kannst diese Berichte bei Bedarf manuell als bezahlt markieren.',
+        bankPayReportSkippedDescription:
+            'Dieser Bericht ist nicht erstattungsfähig oder hat einen Gesamtbetrag von null oder weniger. Du kannst ihn bei Bedarf manuell als bezahlt markieren.',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit Bankkonto ${last4Digits} bezahlt` : `bezahlt mit Bankkonto ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `${amount ? `${amount} ` : ''} mit Bankkonto ${last4Digits} über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> bezahlt`,
@@ -12948,6 +12955,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         approvingTitle: 'Berichte werden genehmigt …',
         submittingTitle: 'Berichte werden eingereicht …',
         payingTitle: 'Berichte werden als bezahlt markiert …',
+        payingWithBankTitle: 'Berichte werden bezahlt …',
         holdingTitle: 'Ausgaben werden zurückgehalten …',
         unholdingTitle: 'Zurückhalten von Ausgaben wird aufgehoben …',
         rejectingTitle: 'Ausgaben werden abgelehnt …',
@@ -12970,6 +12978,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${doneCount} von ${count} Bericht als bezahlt markiert`,
             other: `${doneCount} von ${count} Berichte als bezahlt markiert`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} von ${count} Bericht bezahlt`,
+            other: `${doneCount} von ${count} Berichte bezahlt`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Ausgaben in ${doneCount} von ${count} Bericht zurückgehalten`,
@@ -13011,6 +13023,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         notPaidBody: ({count}: {count: number}) => ({
             one: '1 Bericht konnte nicht bezahlt werden.',
             other: `${count} Berichte konnten nicht bezahlt werden.`,
+        }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: '1 Bericht wurde nicht über das Bankkonto bezahlt, da er nicht erstattungsfähig ist oder einen Gesamtbetrag von null oder weniger hat. Du kannst ihn bei Bedarf manuell als bezahlt markieren.',
+            other: `${count} Berichte wurden nicht über das Bankkonto bezahlt, da sie entweder nicht erstattungsfähig sind oder einen Gesamtbetrag von null oder weniger haben. Du kannst sie bei Bedarf manuell als bezahlt markieren.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
             one: 'Ausgaben in 1 Bericht konnten nicht zurückgehalten werden.',
