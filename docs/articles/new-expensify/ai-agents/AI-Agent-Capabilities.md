@@ -1,13 +1,11 @@
 ---
 title: Agent Capability Reference
-description: Every action your agent can take, with ready-to-copy instruction phrases and disambiguation notes to avoid common mis-routings.
+description: Every action your Agent can take, with ready-to-copy instruction phrases and disambiguation notes to avoid common mis-routings.
 keywords: [Custom Agent, Agent, agent capabilities, agent actions, submit report, approve report, reject report, add comment, analyze expenses, agent instructions, workspace automation, Expensify automation, Rulebot, rule bot]
-internalScope: Audience is all members configuring agents. Covers all supported ManageReport sub-actions, AddComment, and AnalyzeExpenses. Does not cover read-only report context or NoResponse behavior.
-contentType: topic
-order: 8
+internalScope: Audience is all members configuring Agents. Covers all supported ManageReport sub-actions, AddComment, and AnalyzeExpenses. Does not cover read-only report context or NoResponse behavior.
 ---
 
-An agent acts on expense reports using the actions described below. This reference helps you phrase your instructions so your agent reliably does what you intend — and doesn't accidentally take the wrong action.
+An Agent acts on expense reports using the actions described below. This reference helps you phrase your instructions so your agent reliably does what you intend — and doesn't accidentally take the wrong action.
 
 # Agent Capability Reference
 
@@ -26,14 +24,16 @@ To accomplish this, include phrases like:
 
 ---
 
-## How to write instructions that submit all outstanding expense reports at once
+## How to write instructions that submit outstanding expense reports in bulk
 
-**Goal:** Submits every one of the submitter's eligible outstanding (open/draft) expense reports across all of their workspaces in a single action.
+**Goal:** Submits the submitter's eligible outstanding (open/draft) expense reports across all of their workspaces in a single action — every one of them, or only the ones matching a condition such as an amount limit or a date range.
 
 To accomplish this, include phrases like:
 - Submit all my outstanding reports
 - Submit all my open reports
 - Auto-submit all of my pending reports at the end of the month
+- Submit all my outstanding reports under $500
+- Submit every open report from last month
 
 ---
 
@@ -54,7 +54,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that unapprove expense reports
 
-**Goal:** Undoes the approval of an Approved expense report so it can be reviewed and approved again. The report returns to Outstanding (submitted), or to Draft if the submitter approved it themselves. Requires workspace admin role, unless the agent is the approver who gave the final approval. On a workspace that uses Dynamic External Workflow approvals, only a workspace admin can unapprove. A report that has already been paid through Expensify cannot be unapproved.
+**Goal:** Undoes the approval of an Approved expense report so it can be reviewed and approved again. The report returns to Outstanding (submitted), or to Draft if the submitter approved it themselves or the workspace uses Bill.com. Requires Workspace Admin role, unless the agent is the approver who gave the final approval. On a workspace that uses Dynamic External Workflow approvals, only a Workspace Admin can unapprove. A report that has already been paid through Expensify cannot be unapproved.
 
 To accomplish this, include phrases like:
 - Unapprove reports over $10,000
@@ -104,7 +104,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that take over a report as approver
 
-**Goal:** Reassigns the agent as the current approver on a report that was routed to someone else, giving the agent the authority to approve or reject it. Requires workspace admin role.
+**Goal:** Reassigns the agent as the current approver on a report that was routed to someone else, giving the agent the authority to approve or reject it. Requires Workspace Admin role.
 
 To accomplish this, include phrases like:
 - Take over reports over $10,000 regardless of who they were submitted to
@@ -116,7 +116,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that route reports to a specific approver
 
-**Goal:** Routes a submitted report to a specific approver by email, replacing the current approver in the workflow. Requires workspace admin role.
+**Goal:** Routes a submitted report to a specific approver by email, replacing the current approver in the workflow. Requires Workspace Admin role.
 
 To accomplish this, include phrases like:
 - Route reports over $5,000 to the finance manager
@@ -152,7 +152,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that export reports to accounting
 
-**Goal:** Exports a report to the workspace's connected accounting integration (QuickBooks, Xero, NetSuite, Sage Intacct, etc.), or marks it as manually exported. Works for expense reports, invoices, and bills. Requires workspace admin role, except that the report's current approver (its manager) can export a report submitted to them, and an invoice's owner can export their own invoice.
+**Goal:** Exports a report to the workspace's connected accounting integration (QuickBooks, Xero, NetSuite, Sage Intacct, etc.), or marks it as manually exported. Works for expense reports, invoices, and bills. Requires Workspace Admin role, except that the report's current approver (its manager) can export a report submitted to them, and an invoice's owner can export their own invoice.
 
 To accomplish this, include phrases like:
 - Export this report to QuickBooks
@@ -189,7 +189,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that delete expense reports
 
-**Goal:** Deletes an unsubmitted expense report the requester owns, after they confirm the deletion. Only draft reports can be deleted — a report that has been submitted, approved, reimbursed, or closed cannot be. Deleting an individual expense rather than a whole report is covered by the edit-expenses capability.
+**Goal:** Deletes an unsubmitted expense report the requester owns, after they confirm the deletion. Only OPEN or draft reports can be deleted — a report that has been submitted, approved, reimbursed, or closed cannot be. Deleting an expense rather than a whole report is handled by EditExpense.
 
 To accomplish this, include phrases like:
 - Delete this report
@@ -199,9 +199,21 @@ To accomplish this, include phrases like:
 
 ---
 
+## How to write instructions that set report fields
+
+**Goal:** Sets or clears the value of a named report field on an expense report, such as a Destination or Project field that the workspace defines.
+
+To accomplish this, include phrases like:
+- Set the Destination field to Paris
+- Change the Project field to Acme
+- Update the Destination field on this report to London
+- Clear the Cost Center field on this report
+
+---
+
 ## How to write instructions that create expenses
 
-**Goal:** Creates a new expense — a cash or receipt expense, or a distance/mileage entry — for the person who asked, using the details in their message.
+**Goal:** Creates a new expense — a cash or receipt expense, a distance/mileage entry, or a per diem — for the person who asked, using the details in their message. Also copies an existing distance or per diem expense.
 
 To accomplish this, include phrases like:
 - Create an expense when I give you an amount and merchant
@@ -210,6 +222,8 @@ To accomplish this, include phrases like:
 - Track receipts I upload in this chat as expenses
 - Create expenses with the Travel category by default
 - Record my lunch expenses and add them to my open report
+- Duplicate my last mileage expense for today
+- Copy this per diem expense to a new report
 
 ---
 
@@ -248,7 +262,7 @@ To accomplish this, include phrases like:
 To accomplish this, include phrases like:
 - Send each employee a reminder to submit their expenses at the end of the month
 - Message the submitter directly when their report is rejected
-- Notify individual workspace members of an expense policy change
+- Notify individual workspace members of a policy change
 - DM each person with outstanding reports a personalized nudge
 - Send a private message to the submitter when a receipt is missing
 - Reach out to each team member individually with their spending summary
@@ -294,7 +308,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that manage workspace settings and members
 
-**Goal:** Inspects workspace configuration, answers membership questions, reads the Expensify Card limit and remaining spend for anyone allowed to see the Expensify Card, and — for workspace admins — adds or removes members, changes member roles, lists and assigns company cards from a connected card feed, modifies workspace settings such as categories and approval rules, and saves or replaces the workspace expense policy document from a PDF the admin attaches in chat.
+**Goal:** Inspects Workspace configuration, answers membership questions, reads the Expensify Card limit and remaining spend for anyone allowed to see the Expensify Card, and — for Workspace Admins — adds or removes members, changes member roles, lists and assigns company cards from a connected card feed, modifies workspace settings such as categories and approval rules, saves or replaces the workspace expense policy document from a PDF the admin attaches in chat, and proposes supported configuration changes from the saved document before applying them.
 
 To accomplish this, include phrases like:
 - Add new employees to the workspace when they join
@@ -307,6 +321,19 @@ To accomplish this, include phrases like:
 - Assign all unassigned company cards to the matching members
 - How much of our Expensify Card limit is left?
 - Use the PDF I just attached as our workspace expense policy document
+- Read our expense policy document and propose how to configure this workspace
+
+---
+
+## How to write instructions that manage Expensify Card limits
+
+**Goal:** Lists the Expensify Cards on a workspace by cardholder, including whether each card is physical or virtual, and sets the limit on individual cards, where a limit of $0 suspends a card.
+
+To accomplish this, include phrases like:
+- Set the virtual card limit to $0 for anyone who also has a physical card
+- Show all Expensify Cards on this workspace
+- Lower every card limit to $1,000 at the start of each quarter
+- Reactivate the card I suspended for jane@example.com with a $500 limit
 
 ---
 
@@ -324,4 +351,17 @@ To accomplish this, include phrases like:
 
 ---
 
-*This reference covers all 24 AI agent capabilities.*
+## How to write instructions that create and track tasks
+
+**Goal:** Creates, completes, cancels, reopens, edits, reassigns, and lists tasks so the agent can track assignable to-dos in a conversation.
+
+To accomplish this, include phrases like:
+- Create a task for alice@example.com to review the Q3 budget
+- Mark the onboarding task as done
+- Cancel the vendor follow-up task
+- Reassign the audit task to bob@example.com
+- What tasks are open?
+
+---
+
+*This reference covers all 27 AI Agent capabilities.*
