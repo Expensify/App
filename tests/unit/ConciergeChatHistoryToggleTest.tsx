@@ -2,6 +2,8 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
+import {AskConciergeContext} from '@hooks/useIsInAskConcierge';
+
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
 
 import CONST from '@src/CONST';
@@ -13,14 +15,16 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({UpArrow: 'UpArrow', DownArrow: 'DownArrow'}),
 }));
 
-const renderToggle = (isHistoryShown: boolean) => {
+const renderToggle = (isHistoryShown: boolean, isInAskConcierge = false) => {
     const onPress = jest.fn();
     render(
         <LocaleContextProvider>
-            <ConciergeChatHistoryToggle
-                isHistoryShown={isHistoryShown}
-                onPress={onPress}
-            />
+            <AskConciergeContext.Provider value={isInAskConcierge}>
+                <ConciergeChatHistoryToggle
+                    isHistoryShown={isHistoryShown}
+                    onPress={onPress}
+                />
+            </AskConciergeContext.Provider>
         </LocaleContextProvider>,
     );
     return {onPress};
@@ -51,5 +55,16 @@ describe('ConciergeChatHistoryToggle', () => {
 
         // Then the press is handled
         expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([false, true])('renders no history button or dividers on the Concierge page when history is shown: %s', (isHistoryShown) => {
+        // Given the dedicated Concierge page, which already has its own Recents list
+        // When the shared history toggle is rendered in either history state
+        renderToggle(isHistoryShown, true);
+
+        // Then neither the button nor its surrounding row occupies space on the page
+        expect(screen.toJSON()).toBeNull();
+        expect(screen.queryByText('View chat history')).toBeNull();
+        expect(screen.queryByText('Hide chat history')).toBeNull();
     });
 });
