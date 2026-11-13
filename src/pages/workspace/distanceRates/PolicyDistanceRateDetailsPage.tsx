@@ -23,7 +23,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getUKFuelRateTaxErrors} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -31,6 +31,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {clearPolicyDistanceRateErrorFields, deletePolicyDistanceRates, setPolicyDistanceRatesEnabled} from '@userActions/Policy/DistanceRate';
+import {dismissUKFuelRateTaxError} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -109,6 +110,8 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     if (!rate) {
         return <NotFoundPage />;
     }
+
+    const fuelRateTaxErrors = getUKFuelRateTaxErrors(policy, translate, rateID);
 
     const editRateName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_NAME_EDIT.getRoute(policyID, rateID));
@@ -262,21 +265,29 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         />
                     </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
-                        <OfflineWithFeedback
-                            errors={getLatestErrorField(rate, 'taxRateExternalID')}
-                            pendingAction={rate?.pendingFields?.taxRateExternalID}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('taxRateExternalID')}
-                        >
-                            <View style={styles.w100}>
-                                <MenuItemField
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_TAX_RATE}
-                                    name={translate('workspace.taxes.taxRate')}
-                                    onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
-                                    value={taxRate}
-                                />
-                            </View>
-                        </OfflineWithFeedback>
+                        <>
+                            <OfflineWithFeedback
+                                errors={getLatestErrorField(rate, 'taxRateExternalID')}
+                                pendingAction={rate?.pendingFields?.taxRateExternalID}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearErrorFields('taxRateExternalID')}
+                            >
+                                <View style={styles.w100}>
+                                    <MenuItemField
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_TAX_RATE}
+                                        name={translate('workspace.taxes.taxRate')}
+                                        onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
+                                        value={taxRate}
+                                    />
+                                </View>
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback
+                                errors={fuelRateTaxErrors}
+                                errorRowStyles={styles.mh5}
+                                pendingAction={customUnit?.pendingFields?.isUKFuelRateTaxErrorDismissed}
+                                onClose={canWriteDistanceRates && customUnit ? () => dismissUKFuelRateTaxError(policyID, customUnit) : undefined}
+                            />
+                        </>
                     )}
                     {/* Expenses use the percentage even without a valid tax rate. The tax rate check lets admins add an amount to a rate that has none. */}
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (!!taxRate || !!taxClaimablePercentage) && (

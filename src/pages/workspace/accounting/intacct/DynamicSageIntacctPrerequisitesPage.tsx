@@ -48,6 +48,7 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
         {
             title: translate('workspace.intacct.downloadExpensifyPackage'),
             key: 'workspace.intacct.downloadExpensifyPackage',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.PREREQUISITES_DOWNLOAD_PACKAGE,
             icon: icons.Download,
             iconRight: icons.NewWindow,
             shouldShowRightIcon: true,
@@ -67,6 +68,7 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
         {
             title: translate('workspace.intacct.followSteps'),
             key: 'workspace.intacct.followSteps',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.PREREQUISITES_FOLLOW_STEPS,
             icon: icons.Task,
             iconRight: icons.NewWindow,
             shouldShowRightIcon: true,

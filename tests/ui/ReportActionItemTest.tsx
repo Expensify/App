@@ -20,6 +20,7 @@ import type * as UrlType from '@libs/Url';
 
 import PaymentContent from '@pages/inbox/report/actionContents/PaymentContent';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+import ReportActionItemContentCreated from '@pages/inbox/report/ReportActionItemContentCreated';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import ReportActionItemParentAction from '@pages/inbox/report/ReportActionItemParentAction';
 
@@ -31,7 +32,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, DecisionName, Report, ReportAction} from '@src/types/onyx';
+import type {BankAccountList, DecisionName, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 
@@ -269,6 +270,44 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(isCreation ? 'created this invoice on behalf of Sender' : 'sent this invoice to Receiver')).toBeOnTheScreen();
             expect(screen.queryByText(isCreation ? 'sent this invoice to Receiver' : 'created this invoice on behalf of Sender')).not.toBeOnTheScreen();
             expect(screen.getByText(DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, action.created, CONST.DEFAULT_TIME_ZONE.selected))).toBeOnTheScreen();
+        });
+
+        it.each([
+            {betaEnabled: true, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, transactionCount: 1, showsHeader: false},
+            {betaEnabled: false, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, transactionCount: 1, showsHeader: true},
+            {betaEnabled: true, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE, transactionCount: 1, showsHeader: true},
+            {betaEnabled: true, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, transactionCount: 2, showsHeader: false},
+        ])('respects the single-expense invoice header preference: $view, beta: $betaEnabled, expenses: $transactionCount', async ({betaEnabled, view, transactionCount, showsHeader}) => {
+            // Given a linked invoice whose report surface uses the saved, beta-gated preference.
+            const senderAccountID = 321;
+            const invoice: Report = {reportID: '9884', type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: senderAccountID, managerID: ACTOR_ACCOUNT_ID, transactionCount};
+            const action = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {processor: processorAccountID}), reportID: invoice.reportID, actorAccountID: senderAccountID};
+            const transactions = Object.fromEntries(
+                Array.from({length: transactionCount}, (_, index) => {
+                    const transaction = createMock<Transaction>({transactionID: `invoice-expense-${index}`, reportID: invoice.reportID, amount: 100, currency: CONST.CURRENCY.USD});
+                    return [transaction.transactionID, transaction];
+                }),
+            );
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, betaEnabled ? [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW] : []);
+                await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, view);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9885});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[action.reportActionID]: action});
+                await Onyx.set(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {[invoice.reportID]: {transactions, violations: {}}});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'},
+                    [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones'},
+                });
+            });
+
+            // When the creation history row renders beneath the report surface.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then table layouts omit the extra expense header, but creation history remains visible in every layout.
+            expect(screen.getByText('created this invoice on behalf of Sender')).toBeOnTheScreen();
+            expect(screen.UNSAFE_queryByType(ReportActionItemContentCreated) !== null).toBe(showsHeader);
         });
 
         it.each([
