@@ -19,10 +19,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useSwitchToClassic from '@hooks/useSwitchToClassic';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {switchToOldDot} from '@libs/actions/ExitSurvey';
 import {setErrorFields} from '@libs/actions/FormActions';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -60,6 +60,7 @@ function DynamicExitSurveyReasonPage() {
     const {windowHeight} = useWindowDimensions();
     const {contentHeaderHeight} = useContentHeaderHeight();
     const {inputCallbackRef} = useAutoFocusInput(true);
+    const {switchToClassic, isSwitchingToClassic} = useSwitchToClassic({shouldDismissModal: true});
 
     // Device safe area top and bottom insets.
     // When the keyboard is shown, the bottom inset doesn't affect the height, so we take it out from the calculation.
@@ -71,7 +72,7 @@ function DynamicExitSurveyReasonPage() {
         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
     };
 
-    const switchToClassic = () => {
+    const submitAndSwitchToClassic = () => {
         Log.info('[ExitSurvey] User chose Switch to Classic');
         if (!draftResponse.trim()) {
             setErrorFields(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
@@ -85,11 +86,9 @@ function DynamicExitSurveyReasonPage() {
             });
             return;
         }
-        switchToOldDot(draftResponse);
-        Navigation.dismissModal();
-        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        switchToClassic(draftResponse);
     };
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, switchToClassic, {isActive: !isOffline});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitAndSwitchToClassic, {isActive: !isOffline && !isSwitchingToClassic});
 
     const formTopMarginsStyle = styles.mt3;
     const baseResponseInputContainerStyle = styles.mt3;
@@ -115,7 +114,7 @@ function DynamicExitSurveyReasonPage() {
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
                 style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
-                onSubmit={switchToClassic}
+                onSubmit={submitAndSwitchToClassic}
                 submitButtonText=""
                 isSubmitButtonVisible={false}
                 shouldValidateOnBlur={false}
@@ -156,7 +155,8 @@ function DynamicExitSurveyReasonPage() {
                 <ButtonDisabledWhenOffline
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.REASON_GO_TO_CLASSIC}
                     size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={switchToClassic}
+                    onPress={submitAndSwitchToClassic}
+                    isLoading={isSwitchingToClassic}
                 >
                     <Button.Text>{translate('exitSurvey.goToExpensifyClassic')}</Button.Text>
                 </ButtonDisabledWhenOffline>
@@ -165,6 +165,7 @@ function DynamicExitSurveyReasonPage() {
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={goBackJustOnce}
+                    isDisabled={isSwitchingToClassic}
                     style={styles.mt3}
                 >
                     <Button.KeyboardShortcut />
