@@ -1,4 +1,4 @@
-// Rows that add test bank accounts to the signed-in user: for anyone on dev, and only for expensifail.com accounts on staging, which is the server's rule too.
+// Rows that add a test bank account to the signed-in user. Shown to anyone on dev and to expensifail.com accounts on other builds, never on production.
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -44,7 +44,7 @@ function BankAccountTestToolRows() {
     const addTestBankAccount = (type: ValueOf<typeof CONST.TEST_BANK_ACCOUNT_TYPE>) => {
         const addAndOpenWallet = () => addTestBankAccountAndOpenWallet(type);
 
-        // The server refuses an account that is not validated for a personal bank account, and for either type outside dev
+        // A personal bank account needs a validated account, and outside dev so does a business one
         if (!isUserValidated && (type === CONST.TEST_BANK_ACCOUNT_TYPE.PERSONAL || !isDevelopment)) {
             verifyAccountAndResume(addAndOpenWallet);
             return;
