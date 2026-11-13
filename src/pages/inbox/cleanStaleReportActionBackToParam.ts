@@ -1,8 +1,18 @@
 import navigationRef from '@libs/Navigation/navigationRef';
 
-import type {NavigationState} from '@react-navigation/native';
+import type {Route} from '@react-navigation/native';
 
 import {CommonActions} from '@react-navigation/native';
+
+/** The parts of a navigation state that the walk reads. Nested states can be partial, so their keys are optional. */
+type RouteView = {
+    key?: string;
+    params?: Route<string>['params'];
+    state?: {
+        key?: string;
+        routes: readonly RouteView[];
+    };
+};
 
 /**
  * Cleans stale reportActionID from `backTo` params on sibling routes.
@@ -24,9 +34,10 @@ function cleanStaleReportActionBackToParam(reportID: string, reportActionID: str
     const cleanSegment = `r/${reportID}`;
     const stalePattern = new RegExp(`${staleSegment}(?=[?/]|$)`);
 
-    function walk(routes: NavigationState['routes'], navigatorKey?: string) {
+    function walk(routes: readonly RouteView[], navigatorKey?: string) {
         for (const route of routes) {
-            const backTo = (route.params as Record<string, unknown> | undefined)?.backTo;
+            // Each screen has its own params, so check for `backTo` itself.
+            const backTo = route.params && 'backTo' in route.params ? route.params.backTo : undefined;
             if (typeof backTo === 'string' && stalePattern.test(backTo)) {
                 navigationRef.current?.dispatch({
                     ...CommonActions.setParams({backTo: backTo.replace(stalePattern, cleanSegment)}),
@@ -35,7 +46,7 @@ function cleanStaleReportActionBackToParam(reportID: string, reportActionID: str
                 });
             }
             if (route.state?.routes) {
-                walk(route.state.routes as NavigationState['routes'], (route.state as NavigationState).key);
+                walk(route.state.routes, route.state.key);
             }
         }
     }

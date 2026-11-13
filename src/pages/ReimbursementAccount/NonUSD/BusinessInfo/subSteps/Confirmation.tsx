@@ -45,9 +45,14 @@ const displayAddress = (street: string, city: string, state: string, zipCode: st
     return country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA ? `${street}, ${city}, ${state}, ${zipCode}, ${country}` : `${street}, ${city}, ${zipCode}, ${country}`;
 };
 
+// The saved form values are plain strings, so read the code maps through string-keyed views.
+const countryNames: Partial<Record<string, string>> = CONST.ALL_COUNTRIES;
+const stateNames: Partial<Record<string, {stateName: string}>> = COMMON_CONST.STATES;
+const provinceNames: Partial<Record<string, {provinceName: string}>> = COMMON_CONST.PROVINCES;
+
 const displayIncorporationLocation = (country: string, state: string) => {
-    const countryFullName = CONST.ALL_COUNTRIES[country as keyof typeof CONST.COUNTRY];
-    const stateFullName = COMMON_CONST.STATES[state as keyof typeof COMMON_CONST.STATES]?.stateName ?? COMMON_CONST.PROVINCES[state as keyof typeof COMMON_CONST.PROVINCES]?.provinceName;
+    const countryFullName = countryNames[country];
+    const stateFullName = stateNames[state]?.stateName ?? provinceNames[state]?.provinceName;
 
     return country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA ? `${stateFullName}, ${countryFullName}` : `${countryFullName}`;
 };
