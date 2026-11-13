@@ -119,6 +119,7 @@ function AddressSearch({
         lat: 'addressLat',
         lng: 'addressLng',
     },
+    shouldKeepStateCode = false,
     autoComplete = 'off',
     autoFocus = false,
     resultTypes = 'address',
@@ -243,8 +244,8 @@ function AddressSearch({
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
-        // state / province in a TextInput instead of in a picker.
-        if (country !== CONST.COUNTRY.US && country !== CONST.COUNTRY.CA) {
+        // state / province in a TextInput instead of in a picker, unless the caller's picker lists the codes of other countries too.
+        if (!shouldKeepStateCode && country !== CONST.COUNTRY.US && country !== CONST.COUNTRY.CA) {
             values.state = longStateName;
         }
 

@@ -2,6 +2,7 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 
 import type {DynamicFormField} from '@src/types/onyx';
 
+import getAddressInputKeys, {getAddressCountry, isStateAsked} from './getAddressInputKeys';
 import getAnswerKeys from './getAnswerKeys';
 import getVisibleFields from './getVisibleFields';
 import {getListItems, getListItemSensitiveAnswers} from './listItems';
@@ -10,8 +11,10 @@ import {getListItems, getListItemSensitiveAnswers} from './listItems';
 function getSubmittedAnswers(fields: DynamicFormField[], values: DynamicFormValues, allFields = fields): DynamicFormValues {
     const answers: DynamicFormValues = {};
     for (const field of getVisibleFields(fields, values, allFields)) {
+        // AddressSearch fills the state even where no state is asked, with a region name the user never sees
+        const hiddenStateKey = field.type === 'address' && !isStateAsked(getAddressCountry(field.key, values)) ? getAddressInputKeys(field.key).state : undefined;
         for (const key of getAnswerKeys(field)) {
-            if (values[key] !== undefined) {
+            if (values[key] !== undefined && key !== hiddenStateKey) {
                 answers[key] = values[key];
             }
         }

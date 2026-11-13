@@ -47,6 +47,18 @@ describe('getSubmittedAnswers', () => {
         expect(answers).toMatchObject({home: '1 Main St', [cityKey]: 'Austin', fee: '100', feeCurrency: 'EUR'});
     });
 
+    it('leaves out the state of an address in a country where no state is asked', () => {
+        // Given a British address, whose state AddressSearch filled with the nation name although the form never showed a state picker
+        const addressKeys = getAddressInputKeys('home');
+        const fields: DynamicFormField[] = [{key: 'home', type: 'address', required: true}];
+
+        // When the answers are collected
+        const answers = getSubmittedAnswers(fields, {home: '1 Main Street', [addressKeys.state]: 'England', [addressKeys.country]: 'GB'});
+
+        // Then the state is not submitted, since Wise rejects a region name where it takes no state
+        expect(answers).not.toHaveProperty(addressKeys.state);
+    });
+
     it('lists every answer key of a compound field', () => {
         // Given an address field, whose answer is spread over several keys
         const field: DynamicFormField = {key: 'home', type: 'address', required: true, sensitive: true};

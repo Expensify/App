@@ -1567,6 +1567,7 @@ const CONST = {
     COUNTRY: {
         AS: 'AS',
         AU: 'AU',
+        BR: 'BR',
         CA: 'CA',
         FI: 'FI',
         FR: 'FR',
