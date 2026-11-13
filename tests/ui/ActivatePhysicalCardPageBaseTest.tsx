@@ -133,7 +133,7 @@ describe('ActivatePhysicalCardPageBase', () => {
 
         // When the request comes back saying the digits didn't match
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.CARD_LIST, {[CARD_ID]: {errors: {1: WRONG_DIGITS_ERROR}}});
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {[CARD_ID]: {errors: {[Date.now()]: WRONG_DIGITS_ERROR}}});
         });
         await waitForBatchedUpdatesWithAct();
 
