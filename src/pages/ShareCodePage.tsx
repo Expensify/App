@@ -145,17 +145,16 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                 .join(' & ');
         } else {
             subtitle =
-                getParentNavigationSubtitle(
+                getParentNavigationSubtitle({
                     report,
                     policy,
                     invoiceReceiverPolicy,
-                    conciergeReportID,
                     translate,
                     formatPhoneNumber,
-                    derivedParentReportName,
+                    parentReportName: derivedParentReportName,
                     isParentReportArchived,
-                    currentUserPersonalDetails.accountID,
-                ).workspaceName ?? getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                }).workspaceName ?? getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
         }
     } else {
         subtitle = currentUserPersonalDetails.login;
@@ -205,7 +204,10 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                 }}
                 shouldShowBackButton
             />
-            <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
+            <ScrollView
+                style={[themeStyles.flex1, themeStyles.pt3]}
+                contentContainerStyle={themeStyles.pb5}
+            >
                 <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph5]}>
                     <QRShareWithDownload
                         ref={qrCodeRef}
