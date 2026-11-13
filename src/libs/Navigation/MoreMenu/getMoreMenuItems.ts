@@ -85,4 +85,4 @@ function getMoreMenuItems({sections, focusedTabRouteName, activeFlatNavSectionID
 }
 
 export default getMoreMenuItems;
-export type {GetMoreMenuItemsParams};
+export type {GetMoreMenuItemsParams, MoreMenuItem};

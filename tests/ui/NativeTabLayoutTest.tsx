@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 
+import FlatNavTabPressListeners from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/FlatNavTabPressListeners';
 import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import NativeTabLayout from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabLayout';
 import type {NativeTabLayoutProps} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabLayout';
@@ -16,6 +17,7 @@ jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({flex1: {}, flexRow: {}}
 jest.mock('@libs/Navigation/AppNavigator/Navigators/TabNavigatorBar', () => jest.fn(() => null));
 jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabBarOverlay', () => jest.fn(() => null));
 jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/TabPressListeners', () => jest.fn(() => null));
+jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/FlatNavTabPressListeners', () => jest.fn(() => null));
 
 const TAB_NAMES = [
     SCREENS.HOME,
@@ -35,8 +37,8 @@ function Tabs() {
     return null;
 }
 
-function renderTabs(tabWithoutBarItem: NativeTabName, selectedTabIndex: number) {
-    const routes = TAB_NAMES.map((name) => ({key: `${name}-key`, name}));
+function renderTabs(tabWithoutBarItem: NativeTabName, selectedTabIndex: number, tabNames: string[] = TAB_NAMES) {
+    const routes = tabNames.map((name) => ({key: `${name}-key`, name}));
     return (
         <NativeTabLayout
             state={createMock<NativeTabLayoutProps['state']>({routes, index: selectedTabIndex})}
@@ -67,5 +69,19 @@ describe('NativeTabLayout', () => {
 
         // Then the native tabs are remounted for each change, since the Android tab host can't swap a tab in place
         expect(onTabsMount).toHaveBeenCalledTimes(3);
+    });
+
+    it('handles the flat nav item presses only when the flat nav placeholders are registered', () => {
+        // Given the tabs of today, without the placeholders the flat nav beta registers
+        const {rerender} = render(renderTabs(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, 0));
+
+        // Then no flat nav press handling is mounted, so the bar without the beta behaves as before
+        expect(FlatNavTabPressListeners).not.toHaveBeenCalled();
+
+        // When the beta registers the Expenses, Reports and More placeholders
+        rerender(renderTabs(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, 0, [...TAB_NAMES, SCREENS.NATIVE_TAB_ITEM.EXPENSES, SCREENS.NATIVE_TAB_ITEM.REPORTS, SCREENS.NATIVE_TAB_ITEM.MORE]));
+
+        // Then their presses are handled
+        expect(FlatNavTabPressListeners).toHaveBeenCalled();
     });
 });
