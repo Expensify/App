@@ -1160,8 +1160,6 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeSpendCategoriesSubText: 'Ausgaben organisieren und klassifizieren',
             customizeExpenseCategories: 'Passen Sie Ihre Ausgabenkategorien an',
             customizeExpenseCategoriesSubText: 'Fügen Sie die Kategorien Ihres Unternehmens hinzu, um Ihre Ausgaben zu kodieren',
-            createExpense: 'Ausgabe erstellen',
-            createExpenseSubText: 'Scannen Sie eine Ausgabe, ziehen Sie sie per Drag &amp; Drop herein oder geben Sie sie manuell über die + Schaltfläche ein',
             linkPersonalCard: 'Persönliche Karte verknüpfen',
             linkPersonalCardSubText: 'Spesen automatisch importieren',
             configureApprovals: 'Genehmigungsworkflow konfigurieren',
@@ -1180,6 +1178,12 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Berichtsfreigaben festlegen',
             setupTravel: 'Reisen einrichten',
             setupTravelSubText: 'Reisespezifische Regeln konfigurieren',
+            addFirstReceipt: 'Fügen Sie Ihren ersten Beleg hinzu',
+            addFirstReceiptSubText: 'Beleg scannen oder manuell eingeben',
+            addName: 'Fügen Sie Ihren Namen hinzu',
+            addNameSubText: 'Helfen Sie Ihrem Team, Sie in Expensify zu erkennen.',
+            downloadApp: 'Laden Sie die App herunter',
+            downloadAppSubText: 'Belege scannen, Ausgaben einreichen und Berichte unterwegs genehmigen.',
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
