@@ -1,4 +1,5 @@
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import type {InsightsViolationStage} from '@pages/Insights/insightsViolationStages';
 
 import type {InsightsSearchKey} from './InsightsDashboard';
 
@@ -19,6 +20,9 @@ type SidePanel = {
 /** Insights dashboard and filters the user was looking at when they asked Concierge about it */
 type InsightsScope = Pick<InsightsFilters, 'policyIDs' | 'date' | 'groupCurrency'> & {
     searchKey: InsightsSearchKey;
+
+    /** Limits chart Explain to one Compliance stage. AI cards omit this to explain combined evidence. */
+    violationStage?: InsightsViolationStage;
 };
 
 /**

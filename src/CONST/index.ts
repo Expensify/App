@@ -10566,6 +10566,10 @@ const CONST = {
     },
 
     INSIGHTS: {
+        VIOLATION_STAGE: {
+            SUBMITTED: 'submitted',
+            APPROVED: 'approved',
+        },
         DASHBOARD: {
             SPEND: 'spend',
             EFFICIENCY: 'efficiency',

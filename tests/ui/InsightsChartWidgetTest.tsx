@@ -13,15 +13,18 @@ import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
+import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import InsightsChartWidget from '@pages/Insights/charts/InsightsChartWidget';
+import type {InsightsChartWidgetProps} from '@pages/Insights/charts/InsightsChartWidget';
+import InsightsViolationStageControl from '@pages/Insights/controls/InsightsViolationStageControl';
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import buildInsightsJsonQuery from '@pages/Insights/insightsQueries';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {InsightsDashboardID} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -34,6 +37,8 @@ jest.mock('@components/Search/SearchChartView', () => jest.fn(() => null));
 jest.mock('@libs/localFileDownload', () => jest.fn());
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@pages/Insights/useInsightsChartData', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('@pages/Insights/ai/InsightsExplainButton', () => jest.fn(() => null));
+jest.mock('@pages/Insights/controls/InsightsViolationStageControl', () => jest.fn(() => null));
 
 const CHART = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].headlineChart;
 const QUERY = buildSearchQueryJSON('type:expense group-by:month date>=2026-01-01 date<=2026-03-31 group-currency:USD');
@@ -53,22 +58,30 @@ const FEBRUARY: GroupedItem = {
 };
 const DATA: GroupedItem[] = [FEBRUARY];
 
-function renderWidget({dashboardID = CONST.INSIGHTS.DASHBOARD.SPEND, supportsDrillIn}: {dashboardID?: InsightsDashboardID; supportsDrillIn?: boolean} = {}) {
+function renderWidget({
+    dashboardID = CONST.INSIGHTS.DASHBOARD.SPEND,
+    supportsDrillIn,
+    chart = CHART,
+    queryJSON = QUERY,
+    onViolationStageChange,
+    insightsScope = {searchKey: INSIGHTS_DASHBOARD_SPECS[dashboardID].searchKey, policyIDs: [], date: FILTERS.date, groupCurrency: FILTERS.groupCurrency},
+}: Partial<Pick<InsightsChartWidgetProps, 'dashboardID' | 'supportsDrillIn' | 'chart' | 'queryJSON' | 'onViolationStageChange' | 'insightsScope'>> = {}) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <InsightsChartWidget
                 dashboardID={dashboardID}
-                chart={CHART}
-                queryJSON={QUERY}
+                chart={chart}
+                queryJSON={queryJSON}
                 snapshot={undefined}
                 previousPeriodQueryJSON={undefined}
                 previousPeriodSnapshot={undefined}
                 average={undefined}
                 isDashboardLoaded={undefined}
                 filters={FILTERS}
-                insightsScope={{searchKey: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].searchKey, policyIDs: [], date: FILTERS.date, groupCurrency: FILTERS.groupCurrency}}
+                insightsScope={insightsScope}
                 supportsDrillIn={supportsDrillIn}
                 onRetry={jest.fn()}
+                onViolationStageChange={onViolationStageChange}
             />
         </ComposeProviders>,
     );
@@ -145,6 +158,60 @@ describe('Insights chart press', () => {
     });
 
     afterEach(() => Onyx.clear());
+
+    it.each([INSIGHTS_CHART_STATE.READY, INSIGHTS_CHART_STATE.EMPTY, INSIGHTS_CHART_STATE.OFFLINE])('keeps the selected stage reachable while the chart is %s', async (state) => {
+        // Given a Compliance chart displaying approval violations, even when the stage has no usable data
+        const spec = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.COMPLIANCE];
+        const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, FILTERS, spec.supportingCharts, {violationsOverTime: 'approved', topViolations: 'submitted'});
+        jest.mocked(useInsightsChartData).mockReturnValue({data: [], state, comparison: undefined});
+        const onViolationStageChange = jest.fn();
+
+        // When the widget renders
+        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE, chart: request?.headlineChart.chart, queryJSON: request?.headlineChart.queryJSON, onViolationStageChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the control keeps the approval selection and Search receives the same effective query
+        expect(jest.mocked(InsightsViolationStageControl).mock.lastCall?.[0]).toMatchObject({
+            graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
+            value: 'approved',
+            onChange: onViolationStageChange,
+        });
+        if (state === INSIGHTS_CHART_STATE.READY) {
+            expect(jest.mocked(SearchChartView).mock.lastCall?.[0].queryJSON).toBe(request?.headlineChart.queryJSON);
+        }
+    });
+
+    it('keeps action-date grouping when opening a Compliance chart on Spend', async () => {
+        // Given a Compliance chart of approval actions, not expense creation dates
+        const spec = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.COMPLIANCE];
+        const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, FILTERS, spec.supportingCharts, {violationsOverTime: 'approved', topViolations: 'submitted'});
+        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE, chart: request?.headlineChart.chart, queryJSON: request?.headlineChart.queryJSON});
+        await waitForBatchedUpdatesWithAct();
+
+        // When View on Spend is selected
+        jest.mocked(WidgetHeaderMenu).mock.lastCall?.[0].menuItems.at(0)?.onSelected?.();
+        const route = jest.mocked(Navigation.navigate).mock.lastCall?.[0];
+
+        // Then Spend uses the same stage, period and grouping as the chart
+        expect(route).toEqual(expect.stringContaining(encodeURIComponent('has:approved-violation')));
+        expect(route).toEqual(expect.stringContaining('anyApproval'));
+        expect(route).toEqual(expect.stringContaining(encodeURIComponent('groupBy:month')));
+    });
+
+    it('explains only the chart stage without changing the combined card scope', async () => {
+        // Given shared dashboard scope used by the AI cards and an approval chart
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.INSIGHTS_AI]);
+        const insightsScope = {searchKey: CONST.INSIGHTS.SEARCH_KEY.COMPLIANCE, policyIDs: [], date: FILTERS.date, groupCurrency: FILTERS.groupCurrency};
+        const chart = {...INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.COMPLIANCE].headlineChart, violationStage: CONST.INSIGHTS.VIOLATION_STAGE.APPROVED};
+
+        // When its Explain button is rendered
+        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE, chart, insightsScope});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Explain is stage-scoped, while cards keep their original combined scope
+        expect(jest.mocked(InsightsExplainButton).mock.lastCall?.[0].insightsScope).toEqual({...insightsScope, violationStage: 'approved'});
+        expect(insightsScope).not.toHaveProperty('violationStage');
+    });
 
     it('opens the Details panel for the pressed period on the Spend dashboard', async () => {
         // Given a Spend chart plotting February, for a user on the beta the panel ships behind

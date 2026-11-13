@@ -13,6 +13,8 @@ import type {ValueOf} from 'type-fest';
 
 import type {InsightsChartQuery} from './insightsQueries';
 
+import {isViolationStageSelectable} from './insightsViolationStages';
+
 const INSIGHTS_DASHBOARD_STATE = {
     READY: 'ready',
     LOADING: 'loading',
@@ -63,9 +65,11 @@ function getDashboardState(
     });
     const hasLoadedChart = chartStates.some(({isLoaded}) => isLoaded);
     const hasChartWithRows = chartStates.some(({hasRows}) => hasRows);
+    const hasStageSelectors = charts.some(({chart}) => isViolationStageSelectable(chart.graphKey));
 
     if (isOffline && !hasLoadedChart && dashboard?.hasResults !== false) {
-        return INSIGHTS_DASHBOARD_STATE.OFFLINE;
+        // Keep the selectors reachable so another stage's cached charts can still be opened.
+        return hasStageSelectors ? INSIGHTS_DASHBOARD_STATE.READY : INSIGHTS_DASHBOARD_STATE.OFFLINE;
     }
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return dashboard?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? INSIGHTS_DASHBOARD_STATE.STALE : INSIGHTS_DASHBOARD_STATE.ERROR;
@@ -81,7 +85,8 @@ function getDashboardState(
         return INSIGHTS_DASHBOARD_STATE.NO_EXPENSES;
     }
     if (chartStates.every(({isLoaded}) => isLoaded)) {
-        return INSIGHTS_DASHBOARD_STATE.EMPTY;
+        // A stage can be empty while the other stage has violations.
+        return hasStageSelectors ? INSIGHTS_DASHBOARD_STATE.READY : INSIGHTS_DASHBOARD_STATE.EMPTY;
     }
     return INSIGHTS_DASHBOARD_STATE.READY;
 }

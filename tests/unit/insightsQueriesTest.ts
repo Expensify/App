@@ -1,4 +1,4 @@
-import type {SearchCompareMode} from '@components/Search/types';
+import type {SearchCompareMode, SearchQueryJSON} from '@components/Search/types';
 
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
@@ -7,6 +7,8 @@ import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import type {InsightsQuery} from '@pages/Insights/insightsQueries';
 import buildInsightsJsonQuery, {applyInsightsFilters, buildInsightsQueryString, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
+import {DEFAULT_INSIGHTS_VIOLATION_STAGES} from '@pages/Insights/insightsViolationStages';
+import type {InsightsViolationStages} from '@pages/Insights/insightsViolationStages';
 
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -37,6 +39,8 @@ type InsightsPayload = {
     groupBy: string;
     inputQuery: string;
     insightsHashes: Record<string, unknown>;
+    filters: SearchQueryJSON['filters'];
+    violationStages?: InsightsViolationStages;
 };
 
 /** Reads back the payload a built request sends to the backend. */
@@ -65,6 +69,75 @@ function buildExpectedHashes(filters: InsightsFilters) {
 
 describe('insightsQueries', () => {
     describe('buildInsightsJsonQuery', () => {
+        it.each([
+            {violationsOverTime: 'submitted', topViolations: 'submitted'},
+            {violationsOverTime: 'submitted', topViolations: 'approved'},
+            {violationsOverTime: 'approved', topViolations: 'submitted'},
+            {violationsOverTime: 'approved', topViolations: 'approved'},
+        ] satisfies InsightsViolationStages[])('requests independent Compliance stages: %j', (violationStages) => {
+            // Given two charts with independent stages and a shared workspace and period
+            const filters: InsightsFilters = {...FILTERS, policyIDs: ['A1'], date: {from: '2026-02-01', to: '2026-02-28'}};
+
+            // When their dashboard request and all comparison snapshots are built
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, filters, COMPLIANCE_SPEC.supportingCharts, violationStages);
+
+            // Then each selectable chart uses only its stage and that stage's action dates
+            expect(parsePayload(request)?.violationStages).toEqual(violationStages);
+            for (const chartQuery of [request?.headlineChart, request?.supportingCharts.at(0)]) {
+                const graphKey = chartQuery?.chart.graphKey;
+                const stage = graphKey === CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME ? violationStages.violationsOverTime : violationStages.topViolations;
+                const dateKey = stage === 'submitted' ? 'anySubmission' : 'anyApproval';
+                for (const queryJSON of [chartQuery?.queryJSON, chartQuery?.previousPeriodQueryJSON]) {
+                    const query = queryJSON ? buildSearchQueryString(queryJSON) : '';
+                    expect(query).toContain(`has:${stage}-violation`);
+                    expect(query).toContain(`${dateKey}>=2026-02-01 ${dateKey}<=2026-02-28`);
+                    expect(query).toContain('policyID:A1');
+                    expect(query).not.toContain('date:');
+                }
+            }
+            expect(new Set(request?.snapshotHashes).size).toBe(12);
+        });
+
+        it('defaults both selectors to Submitters without changing other dashboards', () => {
+            // Given Compliance with no selections and Spend with those same filters
+            // When their requests are built
+            const compliance = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, FILTERS, COMPLIANCE_SPEC.supportingCharts);
+            const spend = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, SPEND_SPEC.supportingCharts);
+
+            // Then Compliance explicitly requests submission data, while Spend sends no Compliance-only parameters
+            expect(parsePayload(compliance)?.violationStages).toEqual(DEFAULT_INSIGHTS_VIOLATION_STAGES);
+            expect(parsePayload(spend)).not.toHaveProperty('violationStages');
+        });
+
+        it('changes only the selected chart snapshots while separating dashboard averages', () => {
+            // Given both charts plotting submissions
+            const submitted = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, FILTERS, COMPLIANCE_SPEC.supportingCharts);
+
+            // When only Top violations switches to Approvers
+            const violationStages: InsightsViolationStages = {...DEFAULT_INSIGHTS_VIOLATION_STAGES, topViolations: CONST.INSIGHTS.VIOLATION_STAGE.APPROVED};
+            const approved = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, FILTERS, COMPLIANCE_SPEC.supportingCharts, violationStages);
+            const compared = buildInsightsJsonQuery(
+                CONST.INSIGHTS.DASHBOARD.COMPLIANCE,
+                {...FILTERS, compare: CONST.SEARCH.COMPARE.AVERAGE},
+                COMPLIANCE_SPEC.supportingCharts,
+                violationStages,
+            );
+            const before = parsePayload(submitted);
+            const after = parsePayload(approved);
+
+            // Then all Top violations periods change, while the other charts and combined AI evidence stay unchanged
+            expect(approved?.hash).not.toBe(submitted?.hash);
+            expect(after).toHaveProperty('hash', approved?.hash);
+            expect(after?.insightsHashes.topViolations).not.toEqual(before?.insightsHashes.topViolations);
+            for (const graphKey of ['violationsOverTime', 'violationsBySubmitter', 'violationsByApprover']) {
+                expect(after?.insightsHashes[graphKey]).toEqual(before?.insightsHashes[graphKey]);
+            }
+            expect(after?.inputQuery).toBe(before?.inputQuery);
+            expect(after?.filters).toEqual(before?.filters);
+            expect(compared?.hash).toBe(approved?.hash);
+            expect(compared?.snapshotHashes).toEqual(approved?.snapshotHashes);
+        });
+
         it('builds one request covering every chart on the dashboard', () => {
             // Given the spend dashboard, grouped by month
             const filters: InsightsFilters = {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.MONTH};

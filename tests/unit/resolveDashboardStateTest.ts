@@ -48,6 +48,31 @@ function makeCharts(headline: SearchResults | undefined, supporting: SearchResul
 }
 
 describe('getDashboardState', () => {
+    it.each([true, false])('keeps empty Compliance selectors reachable while offline is %s', (isOffline) => {
+        // Given a stage with no violations, even though another stage may have some
+        const charts = makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS).map((chart, index) => ({
+            ...chart,
+            chart: index === 0 ? INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.COMPLIANCE].headlineChart : chart.chart,
+        }));
+
+        // When the dashboard decides whether to replace its charts
+        const state = getDashboardState(LOADED_DASHBOARD, isOffline, charts, false);
+
+        // Then chart empty states retain their selectors instead of trapping the user on the empty stage
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
+    });
+
+    it('keeps Compliance selectors reachable when the selected stage is not cached offline', () => {
+        // Given an uncached stage and no connection
+        const charts = [{chart: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.COMPLIANCE].headlineChart, snapshot: undefined, queryJSON: QUERY_JSON}];
+
+        // When its dashboard state is resolved
+        const state = getDashboardState(undefined, true, charts, false);
+
+        // Then the chart can show offline feedback while its selector can return to a cached stage
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
+    });
+
     it('says the user is offline while no response has landed', () => {
         // Given no stored response and no connection
         // When the page's state is resolved

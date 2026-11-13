@@ -1374,6 +1374,8 @@ const translations = {
         violationsOverTime: 'Violations over time',
         topViolations: 'Top violations',
         violationsBySubmitter: 'Violations by submitter',
+        submitters: 'Submitters',
+        approvers: 'Approvers',
         violationsByApprover: 'Violations by approver',
         efficiency: 'Efficiency',
         workflowEfficiency: 'Workflow efficiency',

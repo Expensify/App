@@ -16,10 +16,16 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import type {InsightsViolationStage} from './insightsViolationStages';
+
 import {canViewAllPolicyData, hasMultipleMembers} from './insightsAccess';
 
 /** Dates a chart can narrow the page's period by */
-type InsightsDateFilterKey = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
+type InsightsDateFilterKey =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
 
 type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
@@ -39,6 +45,9 @@ type InsightsChartSpec = {
 
     /** Narrows the chart's query to expenses that have these */
     has?: HasFilterValues;
+
+    /** The stage this chart explains, including fixed member charts. Omitted on charts that do not measure violations. */
+    violationStage?: InsightsViolationStage;
 
     /** The date the page's date filter applies to, so the chart's Spend query matches what the backend counts. Defaults to the expense date. */
     dateFilterKey?: InsightsDateFilterKey;
@@ -212,6 +221,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
+                violationStage: CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED,
                 titleKey: 'insightsPage.violationsBySubmitter',
                 has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
                 dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -225,6 +235,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER,
+                violationStage: CONST.INSIGHTS.VIOLATION_STAGE.APPROVED,
                 titleKey: 'insightsPage.violationsByApprover',
                 has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
                 dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
