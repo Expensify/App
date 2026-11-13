@@ -774,12 +774,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         fraudReview: {
             doYouRecognizeTransaction: 'Você reconhece esta transação?',
-            weDeclinedSuspiciousTransaction: 'Recusamos uma transação suspeita no seu Cartão Expensify. Revise os detalhes e nos diga se você a reconhece.',
+            weDeclinedSuspiciousTransaction: 'Recusamos uma transação suspeita no seu Cartão Expensify. Confira os detalhes e nos informe se você a reconhece.',
             unrecognizedButton: 'Não, não fui eu',
             recognizedButton: 'Sim, reconheço',
             tryAgain: 'Tentar novamente',
-            giveItAnotherTry: 'Tente novamente',
-            thankYouForConfirming: 'Obrigado por confirmar que a transação era sua. Tente novamente no estabelecimento.',
+            giveItAnotherTry: 'Tente mais uma vez',
+            thankYouForConfirming: 'Agradecemos por confirmar que você realizou a transação. Tente novamente no estabelecimento.',
             ifYouCloseWeWillFreezeCard: 'Se você fechar esta tela, teremos que bloquear seu cartão. Você precisará desbloqueá-lo para usá-lo novamente.',
         },
         unsupportedDevice: {

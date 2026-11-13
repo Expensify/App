@@ -775,14 +775,15 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptMultiple: 'Sind Sie sicher? Sie benötigen einen Sicherheitscode für die nächste Verifizierung auf diesen Geräten.',
         },
         fraudReview: {
-            doYouRecognizeTransaction: 'Erkennst du diese Transaktion?',
-            weDeclinedSuspiciousTransaction: 'Wir haben eine verdächtige Transaktion mit deiner Expensify Karte abgelehnt. Bitte prüfe die Details und lass uns wissen, ob du sie erkennst.',
+            doYouRecognizeTransaction: 'Erkennen Sie diese Transaktion wieder?',
+            weDeclinedSuspiciousTransaction:
+                'Wir haben eine verdächtige Transaktion mit Ihrer Expensify Karte abgelehnt. Bitte prüfen Sie die Details und teilen Sie uns mit, ob Sie die Transaktion wiedererkennen.',
             unrecognizedButton: 'Nein, das war ich nicht',
-            recognizedButton: 'Ja, erkenne ich',
+            recognizedButton: 'Ja, ich erkenne sie wieder',
             tryAgain: 'Erneut versuchen',
-            giveItAnotherTry: 'Versuche es noch einmal',
-            thankYouForConfirming: 'Danke für die Bestätigung, dass die Transaktion von dir stammt. Bitte versuche es beim Händler erneut.',
-            ifYouCloseWeWillFreezeCard: 'Wenn du diesen Bildschirm schließt, müssen wir deine Karte sperren. Du musst sie wieder entsperren, um sie erneut zu verwenden.',
+            giveItAnotherTry: 'Versuchen Sie es noch einmal',
+            thankYouForConfirming: 'Vielen Dank für Ihre Bestätigung, dass Sie die Transaktion veranlasst haben. Bitte versuchen Sie es beim Händler erneut.',
+            ifYouCloseWeWillFreezeCard: 'Wenn Sie diesen Bildschirm schließen, müssen wir Ihre Karte sperren. Sie müssen sie entsperren, um sie wieder nutzen zu können.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nicht unterstütztes Gerät',

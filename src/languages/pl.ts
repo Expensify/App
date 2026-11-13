@@ -789,7 +789,7 @@ const translations: TranslationDeepObject<typeof en> = {
             tryAgain: 'Spróbuj ponownie',
             giveItAnotherTry: 'Spróbuj jeszcze raz',
             thankYouForConfirming: 'Dziękujemy za potwierdzenie, że to Twoja transakcja. Spróbuj ponownie u sprzedawcy.',
-            ifYouCloseWeWillFreezeCard: 'Jeśli zamkniesz ten ekran, będziemy musieli zamrozić Twoją kartę. Aby znowu z niej korzystać, trzeba będzie ją odmrozić.',
+            ifYouCloseWeWillFreezeCard: 'Jeśli zamkniesz ten ekran, będziemy musieli zamrozić Twoją kartę. Aby ponownie jej użyć, trzeba będzie ją odmrozić.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nieobsługiwane urządzenie',

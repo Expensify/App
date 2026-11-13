@@ -776,13 +776,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         fraudReview: {
             doYouRecognizeTransaction: 'Reconnaissez-vous cette transaction ?',
-            weDeclinedSuspiciousTransaction: 'Nous avons refusé une transaction suspecte sur votre Carte Expensify. Veuillez vérifier les détails et nous dire si vous la reconnaissez.',
+            weDeclinedSuspiciousTransaction: 'Nous avons refusé une transaction suspecte sur votre Carte Expensify. Veuillez examiner les détails et nous indiquer si vous la reconnaissez.',
             unrecognizedButton: "Non, ce n'était pas moi",
             recognizedButton: 'Oui, je la reconnais',
             tryAgain: 'Réessayer',
-            giveItAnotherTry: 'Réessayez',
-            thankYouForConfirming: "Merci d'avoir confirmé que cette transaction venait de vous. Veuillez réessayer auprès du commerçant.",
-            ifYouCloseWeWillFreezeCard: "Si vous fermez cet écran, nous devrons geler votre carte. Vous devrez la dégeler pour l'utiliser à nouveau.",
+            giveItAnotherTry: 'Essayez à nouveau',
+            thankYouForConfirming: "Merci d'avoir confirmé que vous étiez à l'origine de cette transaction. Veuillez réessayer auprès du commerçant.",
+            ifYouCloseWeWillFreezeCard: 'Si vous fermez cet écran, nous devrons geler votre carte. Vous devrez la dégeler pour pouvoir la réutiliser.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Appareil non pris en charge',

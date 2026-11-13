@@ -695,12 +695,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         fraudReview: {
             doYouRecognizeTransaction: '¿Reconoces esta transacción?',
-            weDeclinedSuspiciousTransaction: 'Rechazamos una transacción sospechosa en tu Tarjeta Expensify. Revisa los detalles y dinos si la reconoces.',
-            unrecognizedButton: 'No, no fui yo',
+            weDeclinedSuspiciousTransaction: 'Hemos rechazado una transacción sospechosa con tu Tarjeta Expensify. Revisa los detalles e indícanos si la reconoces.',
+            unrecognizedButton: 'No, no he sido yo',
             recognizedButton: 'Sí, la reconozco',
-            tryAgain: 'Intentar de nuevo',
+            tryAgain: 'Inténtalo de nuevo',
             giveItAnotherTry: 'Vuelve a intentarlo',
-            thankYouForConfirming: 'Gracias por confirmar que la transacción era tuya. Vuelve a intentarlo en el comercio.',
+            thankYouForConfirming: 'Gracias por confirmar que has realizado esta transacción. Inténtalo de nuevo en el comercio.',
             ifYouCloseWeWillFreezeCard: 'Si cierras esta pantalla, tendremos que congelar tu tarjeta. Tendrás que descongelarla para volver a usarla.',
         },
         unsupportedDevice: {

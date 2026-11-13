@@ -710,13 +710,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         fraudReview: {
             doYouRecognizeTransaction: 'Αναγνωρίζετε αυτή τη συναλλαγή;',
-            weDeclinedSuspiciousTransaction: 'Απορρίψαμε μια ύποπτη συναλλαγή στην Κάρτα Expensify σας. Ελέγξτε τα στοιχεία και ενημερώστε μας αν την αναγνωρίζετε.',
+            weDeclinedSuspiciousTransaction: 'Απορρίψαμε μια ύποπτη συναλλαγή στην Κάρτα Expensify σας. Ελέγξτε τις λεπτομέρειες και ενημερώστε μας αν την αναγνωρίζετε.',
             unrecognizedButton: 'Όχι, δεν ήμουν εγώ',
             recognizedButton: 'Ναι, την αναγνωρίζω',
             tryAgain: 'Δοκιμάστε ξανά',
-            giveItAnotherTry: 'Δοκιμάστε ξανά',
-            thankYouForConfirming: 'Ευχαριστούμε που επιβεβαιώσατε ότι η συναλλαγή ήταν δική σας. Δοκιμάστε ξανά στον έμπορο.',
-            ifYouCloseWeWillFreezeCard: 'Αν κλείσετε αυτή την οθόνη, θα πρέπει να παγώσουμε την κάρτα σας. Θα χρειαστεί να την ξεπαγώσετε για να τη χρησιμοποιήσετε ξανά.',
+            giveItAnotherTry: 'Κάντε άλλη μια προσπάθεια',
+            thankYouForConfirming: 'Σας ευχαριστούμε που επιβεβαιώσατε ότι πραγματοποιήσατε εσείς τη συναλλαγή. Δοκιμάστε ξανά στον έμπορο.',
+            ifYouCloseWeWillFreezeCard: 'Αν κλείσετε αυτή την οθόνη, θα πρέπει να παγώσουμε την κάρτα σας. Θα χρειαστεί να την ξεμπλοκάρετε για να τη χρησιμοποιήσετε ξανά.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Μη υποστηριζόμενη συσκευή',

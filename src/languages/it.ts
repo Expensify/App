@@ -780,9 +780,9 @@ const translations: TranslationDeepObject<typeof en> = {
             unrecognizedButton: 'No, non sono stato io',
             recognizedButton: 'Sì, la riconosco',
             tryAgain: 'Riprova',
-            giveItAnotherTry: 'Riprova',
-            thankYouForConfirming: "Grazie per aver confermato che la transazione era tua. Riprova presso l'esercente.",
-            ifYouCloseWeWillFreezeCard: 'Se chiudi questa schermata, dovremo bloccare la tua carta. Dovrai sbloccarla per usarla di nuovo.',
+            giveItAnotherTry: 'Fai un altro tentativo',
+            thankYouForConfirming: "Grazie per aver confermato di aver effettuato la transazione. Riprova presso l'esercente.",
+            ifYouCloseWeWillFreezeCard: 'Se chiudi questa schermata, dovremo bloccare la tua carta. Dovrai sbloccarla per poterla usare di nuovo.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo non supportato',

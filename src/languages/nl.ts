@@ -775,13 +775,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         fraudReview: {
             doYouRecognizeTransaction: 'Herken je deze transactie?',
-            weDeclinedSuspiciousTransaction: 'We hebben een verdachte transactie op je Expensify Kaart geweigerd. Bekijk de details en laat ons weten of je deze herkent.',
+            weDeclinedSuspiciousTransaction: 'We hebben een verdachte transactie met je Expensify Kaart geweigerd. Bekijk de details en laat ons weten of je de transactie herkent.',
             unrecognizedButton: 'Nee, dat was ik niet',
             recognizedButton: 'Ja, die herken ik',
-            tryAgain: 'Opnieuw proberen',
-            giveItAnotherTry: 'Probeer het opnieuw',
-            thankYouForConfirming: 'Bedankt voor je bevestiging dat de transactie van jou was. Probeer het opnieuw bij de verkoper.',
-            ifYouCloseWeWillFreezeCard: 'Als je dit scherm sluit, moeten we je kaart blokkeren. Je moet hem deblokkeren om hem weer te gebruiken.',
+            tryAgain: 'Probeer opnieuw',
+            giveItAnotherTry: 'Probeer het nog eens',
+            thankYouForConfirming: 'Bedankt dat je hebt bevestigd dat jij de transactie hebt uitgevoerd. Probeer het opnieuw bij de winkelier.',
+            ifYouCloseWeWillFreezeCard: 'Als je dit scherm sluit, moeten we je kaart blokkeren. Je moet de kaart deblokkeren om deze weer te kunnen gebruiken.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Niet-ondersteund apparaat',
