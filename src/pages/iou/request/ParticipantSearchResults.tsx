@@ -54,6 +54,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import lodashPick from 'lodash/pick';
 import React, {useContext, useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 
 import ImportContactButton from './ImportContactButton';
@@ -184,15 +185,12 @@ function ParticipantSearchResults({
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
     const addBottomSafeAreaPadding = !(screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false);
 
-    // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
+    // Policy data, owned here and used for getValidOptionsConfig and the billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getReportByID = useSelectedExpenseReports(participants);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
     const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE});
@@ -504,21 +502,24 @@ function ParticipantSearchResults({
             />
         );
 
-    const onSelectRow = (option: Participant) => {
+    const onSelectRow = async (option: Participant) => {
         const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport({reportID: option.reportID})?.policyID : undefined);
         if (shouldBlockParticipantSelection?.(optionPolicyID)) {
             return;
         }
 
         const optionPolicy = optionPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${optionPolicyID}`] : undefined;
-        if (
-            option.isPolicyExpenseChat &&
-            optionPolicyID &&
-            optionPolicy &&
-            shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
-        ) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(optionPolicyID));
-            return;
+        // Only workspace chats go through the billing gate, so picking a person does not wait for the billing read
+        if (option.isPolicyExpenseChat && optionPolicyID && optionPolicy) {
+            const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ]);
+            if (shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(optionPolicyID));
+                return;
+            }
         }
 
         if (isIOUSplit) {
@@ -590,7 +591,9 @@ function ParticipantSearchResults({
             ListItem={InviteMemberListItem}
             textInputOptions={textInputOptions}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onSelectRow={onSelectRow}
+            onSelectRow={(option) => {
+                onSelectRow(option);
+            }}
             shouldSingleExecuteRowSelect
             customListHeaderContent={importContactsButtonComponent}
             customHeaderContent={

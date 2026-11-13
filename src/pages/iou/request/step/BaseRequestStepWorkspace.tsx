@@ -26,6 +26,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 
@@ -49,9 +50,6 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
 
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     useOpenRecipientPicker();
     const selectedWorkspace = transaction?.participants?.[0];
     const customUnitPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
@@ -76,9 +74,14 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
     const sortWorkspaces = (data: WorkspaceListItem[]) => data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
     const [inputValue, setInputValue, filteredWorkspaceOptions] = useSearchResults(workspaceOptions, filterWorkspace, sortWorkspaces);
 
-    const selectWorkspace = (item: WorkspaceListItem) => {
+    const selectWorkspace = async (item: WorkspaceListItem) => {
         const policyID = item.policyID;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+            ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+        ]);
         if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             return;
@@ -103,7 +106,9 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
             <SelectionList
                 key={initiallyFocusedKey}
                 data={filteredWorkspaceOptions}
-                onSelectRow={selectWorkspace}
+                onSelectRow={(item) => {
+                    selectWorkspace(item);
+                }}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
                 initiallyFocusedItemKey={initiallyFocusedKey}
