@@ -715,21 +715,16 @@ describe('useSearchAutoRefetch', () => {
                 },
             });
 
-        it.each<ReportActionName>([
-            CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-            CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-            CONST.REPORT.ACTIONS.TYPE.APPROVED,
-            CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-        ])('should trigger search when a %s report action is added while grouped by approver', (actionName) => {
+        it.each<ReportActionName>(CONST.REPORT.WORKFLOW_ACTIONS)('should trigger search when a %s report action is added while grouped by approver', (actionName) => {
             // Given a search grouped by approver whose results already show a row
             const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
                 initialProps: approverProps,
             });
 
-            // When a report is submitted, approved or forwarded, which adds a report action but changes no transaction
+            // When a workflow action such as an approval or an approver change is added, which changes no transaction
             rerender(withAddedAction(approverProps, actionName));
 
-            // Then the search runs again, because the report's expenses move in or out of an approver group
+            // Then the search runs again, because the report's expenses can move in or out of an approver group
             expect(search).toHaveBeenCalledTimes(1);
         });
 
@@ -792,8 +787,8 @@ describe('useSearchAutoRefetch', () => {
             expect(search).not.toHaveBeenCalled();
         });
 
-        it('should not trigger search when an approval report action is added and the search is not grouped by approver', () => {
-            // Given a search that isn't grouped by approver
+        it("should not trigger search when an approval report action is added and the query doesn't depend on workflow state", () => {
+            // Given a search with no approver grouping and no approver, workflow date or violation filter
             const ungroupedProps = createMock<UseSearchAutoRefetch>({...approverProps, queryJSON: baseProps.queryJSON});
             const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
                 initialProps: ungroupedProps,
@@ -802,7 +797,7 @@ describe('useSearchAutoRefetch', () => {
             // When a report is approved
             rerender(withAddedAction(ungroupedProps, 'APPROVED'));
 
-            // Then no search is triggered, because only the approver grouping depends on approval actions
+            // Then no search is triggered, because the query's results don't depend on the report's workflow state
             expect(search).not.toHaveBeenCalled();
         });
     });
