@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import AskConciergeWelcome from './AskConciergeWelcome';
 import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
@@ -35,7 +35,13 @@ type ReportActionsSkeletonGuardProps = {
 function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonGuardProps) {
     const isReportLoadPending = useIsReportLoadPending(reportID);
     const {readinessSignals, state, actions} = useReportActionsListModel(reportID, isReportLoadPending);
-    const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton} = computeReportActionsSkeletonState(readinessSignals);
+    const [hasDisplayedReportActions, setHasDisplayedReportActions] = useState(false);
+    const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton} = computeReportActionsSkeletonState(readinessSignals, hasDisplayedReportActions);
+    const isListDisplayed = !shouldShowLoadingSkeleton && !shouldShowDerivedTimingSkeleton;
+    // Remember for this mount that the list is on screen, so a load that resumes on reconnect doesn't remount it and lose the scroll position.
+    if (isListDisplayed && !hasDisplayedReportActions) {
+        setHasDisplayedReportActions(true);
+    }
 
     const {isMissingReportActions, hasOlderActions, hasNewerActions, isOffline, isLoadingOlderReportActions, hasLoadingOlderReportActionsError, oldestReportActionID} = readinessSignals;
 

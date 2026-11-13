@@ -69,11 +69,48 @@ describe('computeReportActionsSkeletonState', () => {
             isLoadingInitialReportActions: true,
         });
 
-        // When OpenReport refreshes that report after reconnecting.
-        const state = computeReportActionsSkeletonState(signals);
+        // When OpenReport refreshes that report after reconnecting, while the guard is already showing the list.
+        const state = computeReportActionsSkeletonState(signals, true);
 
         // Then the existing list keeps its viewport instead of remounting behind a skeleton.
         expect(state.shouldShowLoadingSkeleton).toBe(false);
+    });
+
+    it('keeps a new mount of an unread report gated while OpenReport is pending, even after an earlier load', () => {
+        // Given the report loaded earlier in this session, but only its newest action is cached now and it has unread messages.
+        const signals = createReadinessSignals({
+            report: unreadReport,
+            hasOnceLoadedReportActions: true,
+            reportActionsLength: 1,
+            isMissingReportActions: false,
+            isReportLoadPending: true,
+            isLoadingInitialReportActions: true,
+        });
+
+        // When the report is opened again online and its list has not been displayed by this mount yet.
+        const state = computeReportActionsSkeletonState(signals, false);
+
+        // Then the skeleton waits for OpenReport so the list can mount at the first unread message instead of the newest one.
+        expect(state.shouldShowLoadingSkeleton).toBe(true);
+    });
+
+    it('shows the app-load skeleton on a new mount but not once the list has been displayed', () => {
+        // Given an app load is pending online for a report that loaded earlier in this session.
+        const signals = createReadinessSignals({
+            report: readReport,
+            hasOnceLoadedReportActions: true,
+            reportActionsLength: 2,
+            isMissingReportActions: false,
+            isLoadingApp: true,
+        });
+
+        // When the guard has not shown the list yet, and when it already shows it (an app load resuming on reconnect).
+        const newMountState = computeReportActionsSkeletonState(signals, false);
+        const displayedState = computeReportActionsSkeletonState(signals, true);
+
+        // Then only the new mount waits, so a list on screen is never replaced and keeps its scroll position.
+        expect(newMountState.shouldShowLoadingSkeleton).toBe(true);
+        expect(displayedState.shouldShowLoadingSkeleton).toBe(false);
     });
 
     it('shows the loading skeleton for a pending OpenReport matching this report', () => {

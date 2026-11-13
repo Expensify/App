@@ -40,8 +40,9 @@ function useReportActionsListActions(): ReportActionsListActions {
 /**
  * Pure derivation of the two skeleton states from the readiness signals: a loading skeleton and the
  * derived-value-timing skeleton. The guard uses these to decide whether to render the list.
+ * `hasDisplayedReportActions` tells whether the calling guard has already rendered this list since it mounted.
  */
-function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadinessSignals) {
+function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadinessSignals, hasDisplayedReportActions = false) {
     const {
         report,
         reportResult,
@@ -68,7 +69,10 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     // Before the first successful load, a missing loading-state entry means ReportFetchHandler has not
     // enqueued OpenReport yet. Once a terminal failure writes false, the stored state releases the gate.
-    const shouldKeepInitialReportLoadGated = !hasOnceLoadedReportActions && (isReportLoadPending || isLoadingInitialReportActions !== false);
+    // A list that is already on screen stays mounted when a queued OpenReport resumes on reconnect, because
+    // remounting it would discard the scroll position. A new mount still waits, even if the report loaded
+    // earlier in this session, so it can open at the first unread message.
+    const shouldKeepInitialReportLoadGated = !hasDisplayedReportActions && (isReportLoadPending || (!hasOnceLoadedReportActions && isLoadingInitialReportActions !== false));
 
     // When opening an unread report, it is very likely that the message we will open to is not the latest,
     // which is the only one we will have in cache.
@@ -90,9 +94,9 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     const shouldShowSkeletonForInitialLoad = isReportLoadPending && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
-    // Once actions have been displayed, an app load that resumes on reconnect must not swap the list for a skeleton,
+    // Once the list is on screen, an app load that resumes on reconnect must not swap it for a skeleton,
     // because remounting the list would discard the scroll position.
-    const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline && !hasOnceLoadedReportActions;
+    const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline && !hasDisplayedReportActions;
 
     // Show skeleton for the Concierge side panel until report data has been loaded
     // at least once. Before the first openReport response, hasOlderActions is
