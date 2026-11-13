@@ -7,6 +7,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {hasSecureLinkKey} from '@libs/Url';
 
+import {deferPendingNativeShareUntilOnboardingExit, openPendingNativeShare} from '@userActions/Share';
 import {completeHybridAppOnboarding} from '@userActions/Welcome';
 import {buildOnboardingFlowParams, startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 
@@ -32,6 +33,7 @@ import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 function useOnboardingFlowRouter() {
     const currentUrl = getCurrentUrl();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const isValidateLoginFlow = useRootNavigationState(Navigation.isValidateLoginFlow);
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -65,6 +67,17 @@ function useOnboardingFlowRouter() {
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
 
     useEffect(() => {
+        // A native share captured while signed out opens here once onboarding is ruled out for this account. It waits for
+        // HAS_LOADED_APP (cleared on sign-out, unlike IS_LOADING_APP) because before OpenApp lands a fresh sign-up has no
+        // onboarding NVP yet, which reads as "completed" and would open the share right before onboarding tears it down;
+        // the effect re-runs when the flag flips. Users who do onboard get the share from the onboarding exit instead.
+        const openPendingNativeShareOnceLoaded = () => {
+            if (!hasLoadedApp) {
+                return;
+            }
+            openPendingNativeShare();
+        };
+
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
 
         const handle = TransitionTracker.runAfterTransitions({
@@ -115,13 +128,21 @@ function useOnboardingFlowRouter() {
                 const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
                 const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
                 if (isMigratedUser || isInvitedOrGroupMember || shouldSuppressPromotionalUI) {
+                    openPendingNativeShareOnceLoaded();
                     return;
                 }
 
                 // Test builds skip the onboarding UI entirely; the flag is absent from production env files.
                 // Gate only the auto-entry into onboarding here so unrelated behaviour (e.g. hybrid-app transitions above) is unaffected.
                 if (CONFIG.SKIP_ONBOARDING) {
+                    openPendingNativeShareOnceLoaded();
                     return;
+                }
+
+                // Onboarding is coming (now, or after required 2FA below): keep a pending native share parked until the
+                // onboarding exit opens it on top of the landing screen, rather than under the onboarding modal.
+                if (isOnboardingCompleted === false) {
+                    deferPendingNativeShareUntilOnboardingExit();
                 }
 
                 // Pause the onboarding redirect while required 2FA is in progress:
@@ -143,7 +164,10 @@ function useOnboardingFlowRouter() {
                     Navigation.isNavigationReady().then(() => {
                         startOnboardingFlow(buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath));
                     });
+                    return;
                 }
+
+                openPendingNativeShareOnceLoaded();
             },
         });
 
@@ -152,6 +176,7 @@ function useOnboardingFlowRouter() {
         };
     }, [
         isLoadingApp,
+        hasLoadedApp,
         isValidateLoginFlow,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
