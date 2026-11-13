@@ -85,33 +85,44 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
 
     return (
         // ref is accessed for MenuItem's ref initialization
-        menuItems.map(({key, ref, ...menuItemProps}) => (
-            <OfflineWithFeedback
-                key={key ?? menuItemProps.title}
-                pendingAction={menuItemProps.pendingAction}
-                onClose={menuItemProps.onPendingActionDismiss}
-                errors={menuItemProps.error}
-                shouldForceOpacity={menuItemProps.shouldForceOpacity}
-            >
-                <MenuItem
+        menuItems.map(({key, ref, onPress, onSecondaryInteraction, sentryLabel, ...menuItemProps}) => {
+            // MenuItemWithLink requires a label on items with onPress or a link, so an item without one has neither.
+            // Checking the label here lets TypeScript see that, since the destructured item no longer carries the link.
+            const pressProps = sentryLabel
+                ? {
+                      sentryLabel,
+                      onPress: shouldUseSingleExecution ? singleExecution(onPress) : onPress,
+                      onSecondaryInteraction:
+                          onSecondaryInteraction ??
+                          (menuItemProps.link !== undefined ? (event: GestureResponderEvent | MouseEvent) => secondaryInteraction(menuItemProps.link, event) : undefined),
+                  }
+                : {};
+            return (
+                <OfflineWithFeedback
                     key={key ?? menuItemProps.title}
-                    wrapperStyle={wrapperStyle}
-                    onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
-                    sentryLabel={menuItemProps.sentryLabel}
-                    shouldShowContextMenuHint={menuItemProps.shouldShowContextMenuHint ?? menuItemProps.link !== undefined}
-                    ref={mergeRefs(ref, popoverAnchor)}
-                    shouldBlockSelection={!!menuItemProps.link}
-                    icon={icon}
-                    iconWidth={iconWidth}
-                    iconHeight={iconHeight}
-                    {...menuItemProps}
-                    disabled={!!menuItemProps.disabled || isExecuting}
-                    shouldGreyOutWhenDisabled={menuItemProps.shouldGreyOutWhenDisabled ?? !!menuItemProps.disabled}
-                    onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
-                    isFocused={isFocused}
-                />
-            </OfflineWithFeedback>
-        ))
+                    pendingAction={menuItemProps.pendingAction}
+                    onClose={menuItemProps.onPendingActionDismiss}
+                    errors={menuItemProps.error}
+                    shouldForceOpacity={menuItemProps.shouldForceOpacity}
+                >
+                    <MenuItem
+                        key={key ?? menuItemProps.title}
+                        wrapperStyle={wrapperStyle}
+                        shouldShowContextMenuHint={menuItemProps.shouldShowContextMenuHint ?? menuItemProps.link !== undefined}
+                        ref={mergeRefs(ref, popoverAnchor)}
+                        shouldBlockSelection={!!menuItemProps.link}
+                        icon={icon}
+                        iconWidth={iconWidth}
+                        iconHeight={iconHeight}
+                        {...menuItemProps}
+                        {...pressProps}
+                        disabled={!!menuItemProps.disabled || isExecuting}
+                        shouldGreyOutWhenDisabled={menuItemProps.shouldGreyOutWhenDisabled ?? !!menuItemProps.disabled}
+                        isFocused={isFocused}
+                    />
+                </OfflineWithFeedback>
+            );
+        })
     );
 }
 

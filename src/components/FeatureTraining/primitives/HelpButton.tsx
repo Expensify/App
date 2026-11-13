@@ -3,11 +3,11 @@ import Button from '@components/Button';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
-type HelpButtonProps = WithSentryLabelWhenPressable & {
+type HelpButtonProps = WithRequiredSentryLabel & {
     /** Text label shown on the help button */
     children: string;
 

@@ -34,15 +34,16 @@ type WithExplicitSentryLabel = {
 
 /**
  * For wrappers that can render read-only, e.g. a `MenuItem` without `onPress`: passing any of the `THandler` props
- * makes the element interactive, so it then needs `sentryLabel` too. A usage without a handler needs no label.
+ * makes the element interactive, so it then needs a defined `sentryLabel` too. A usage without a handler needs no
+ * label. A wrapper that forwards its own optional label has to forward the handler with it, so pass both through in
+ * one object rather than destructuring them, or TypeScript loses the link between them.
+ * Pass `TLabelProp` when the label has another name, e.g. `WithSentryLabelWhenPressable<'onCtaPress', 'ctaSentryLabel'>`.
  * Derive other types from one that uses this with `DistributedOmit` / `DistributedPick` from type-fest, since `Omit`
  * and `Pick` merge the union and drop the requirement.
  */
-type WithSentryLabelWhenPressable<THandler extends PropertyKey = 'onPress'> =
-    | WithExplicitSentryLabel
-    | ({
-          sentryLabel?: SentryLabel;
-      } & Partial<Record<THandler, undefined>>);
+type WithSentryLabelWhenPressable<THandler extends PropertyKey = 'onPress', TLabelProp extends PropertyKey = 'sentryLabel'> =
+    | Record<TLabelProp, SentryLabel>
+    | (Partial<Record<TLabelProp, SentryLabel>> & Partial<Record<THandler, undefined>>);
 
 export default WithSentryLabel;
 export type {SentryLabel, WithRequiredSentryLabel, WithExplicitSentryLabel, WithSentryLabelWhenPressable};

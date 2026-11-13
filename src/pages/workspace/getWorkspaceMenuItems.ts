@@ -38,7 +38,7 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -74,7 +74,7 @@ type WorkspaceMenuIconMap = Record<
 type WorkspaceTopLevelScreens = keyof typeof WORKSPACE_TO_RHP;
 
 /** Data needed to render and navigate from a Workspace menu item. */
-type WorkspaceMenuItem = WithSentryLabel & {
+type WorkspaceMenuItem = WithRequiredSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     getRoute: () => Route;

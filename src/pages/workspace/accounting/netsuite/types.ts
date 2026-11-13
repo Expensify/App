@@ -10,11 +10,12 @@ import type CONST from '@src/CONST';
 import type {NetSuiteCustomFieldForm} from '@src/types/form';
 import type {Policy} from '@src/types/onyx';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText' | 'sentryLabel'> & {subscribedSettings?: string[]};
+type MenuItemWithSubscribedSettings = WithRequiredSentryLabel & Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText'> & {subscribedSettings?: string[]};
 
 type MenuItemToRender = MenuItemWithSubscribedSettings & {
     /** Optional hint text passed to the MenuItemWithTopDescription */

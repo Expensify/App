@@ -110,11 +110,12 @@ function MenuItemFieldPreset({
     forwardedFSClass,
 }: MenuItemFieldProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    // Built in one object so TypeScript keeps sentryLabel tied to onPress, which MenuItemRoot requires together.
+    const pressProps = onPress ? {onPress: callIfAuthenticated(onPress, session), sentryLabel} : {sentryLabel};
     return (
         <MenuItemRoot
-            onPress={onPress ? callIfAuthenticated(onPress, session) : undefined}
+            {...pressProps}
             isDisabled={isDisabled}
-            sentryLabel={sentryLabel}
             testID={testID}
             accessibilityLabel={[name, value].filter(Boolean).join(', ')}
             shouldAllowTextSelection={shouldAllowTextSelection}

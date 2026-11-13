@@ -599,8 +599,20 @@ function BasePopoverMenu({
             badgeText,
             addSeparatorBefore,
             sentryLabel,
+            onPress,
+            onSecondaryInteraction,
             ...menuItemProps
         } = item;
+        // PopoverMenuItem requires a label unless the row has interactive: false, so a row without one isn't pressed.
+        // Checking the label here lets TypeScript see that, since the destructured item no longer carries the link.
+        // The item's own onPress still wins over selecting the item, as it did when the spread came after it.
+        const pressProps = sentryLabel
+            ? {
+                  sentryLabel,
+                  onPress: onPress ?? ((event: GestureResponderEvent | KeyboardEvent) => selectItem(menuIndex, event)),
+                  onSecondaryInteraction,
+              }
+            : {};
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
 
         const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
@@ -620,7 +632,6 @@ function BasePopoverMenu({
                         key={reactKey}
                         pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                         title={text}
-                        onPress={(event) => selectItem(menuIndex, event)}
                         focused={isVisuallyFocused}
                         shouldSyncFocus={!isSearchInputFocused}
                         shouldCheckActionAllowedOnPress={false}
@@ -651,7 +662,7 @@ function BasePopoverMenu({
                         role={CONST.ROLE.BUTTON}
                         // Spread other props dynamically
                         {...menuItemProps}
-                        sentryLabel={sentryLabel}
+                        {...pressProps}
                         shouldShowRadioButton={isRadioButtonMode}
                         hasSubMenuItems={!!subMenuItems?.length}
                         shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}

@@ -39,11 +39,12 @@ type MenuItemFieldHTMLProps = DistributedOmit<MenuItemRootProps, 'accessibilityL
  */
 function MenuItemFieldHTML({name, value, characterLimit, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldHTMLProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    // Built in one object so TypeScript keeps sentryLabel tied to onPress, which MenuItemRoot requires together.
+    const pressProps = onPress ? {onPress: callIfAuthenticated(onPress, session), sentryLabel} : {sentryLabel};
     return (
         <MenuItemRoot
-            onPress={onPress ? callIfAuthenticated(onPress, session) : undefined}
+            {...pressProps}
             isDisabled={isDisabled}
-            sentryLabel={sentryLabel}
             testID={testID}
         >
             <MenuItemRow>
