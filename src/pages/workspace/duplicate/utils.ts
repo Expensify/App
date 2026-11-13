@@ -38,6 +38,9 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
     if (policy?.eReceipts) {
         total.push(translate('workspace.rules.individualExpenseRules.eReceipts'));
     }
+    if (policy?.requireCompanyCardsEnabled) {
+        total.push(translate('workspace.rules.individualExpenseRules.requireCompanyCard'));
+    }
     if (policy?.isAttendeeTrackingEnabled) {
         total.push(translate('workspace.rules.individualExpenseRules.attendeeTracking'));
     }
