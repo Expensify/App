@@ -2007,7 +2007,6 @@
 "../../src/pages/workspace/withPolicyAndFullscreenLoading.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/withPolicyConnections.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/workflows/approvals/ApprovalWorkflowEditor.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
-"../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApprovalLimitPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApprovalLimitPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsCreatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage.tsx"	"no-restricted-imports"	1
