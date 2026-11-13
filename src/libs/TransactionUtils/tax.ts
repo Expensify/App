@@ -11,7 +11,7 @@ import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils/customUnits';
-import {isSelectableTaxCode, resolveCurrentTaxCode} from '@libs/PolicyUtils/tax';
+import {isSelectableTaxCode, isTaxCodeCustomized, resolveCurrentTaxCode} from '@libs/PolicyUtils/tax';
 
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
@@ -19,8 +19,15 @@ import type {ExpenseRule, Unit} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest} from './fields';
+import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest, isPerDiemRequest, isTimeRequest} from './fields';
 import getDistanceInMeters from './getDistanceInMeters';
+
+function getTaxCodeForDisplay(transaction: Transaction, policy: OnyxEntry<Policy>): string {
+    if (isPerDiemRequest(transaction) || isTimeRequest(transaction) || !isTaxCodeCustomized(transaction.taxCode, policy)) {
+        return '';
+    }
+    return getTaxCode(transaction);
+}
 
 /**
  * Calculates tax amount from the given expense amount and tax percentage
@@ -318,6 +325,7 @@ export {
     getDefaultTaxCode,
     getDistanceRateTaxUpdates,
     getEnabledTaxRateCount,
+    getTaxCodeForDisplay,
     getTaxName,
     getTaxRateTitle,
     getTaxValue,

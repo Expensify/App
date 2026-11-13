@@ -6,7 +6,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import sortAlphabetically from '@libs/sortAlphabetically';
-import {getApprovalLimitDescription, getNonMemberApproverError} from '@libs/WorkflowUtils';
+import {getApproverTitles, getNonMemberApproverError} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
@@ -71,30 +71,35 @@ function ApprovalWorkflowSection({
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const fromProviderSuffix = providerName ? ` (${translate('workflowsPage.approverFromProvider', {provider: providerName})})` : '';
-    const approverTitle = (index: number) => {
-        if (isHRAdvancedMode) {
-            const isLast = index === approvalWorkflow.approvers.length - 1;
-            const approver = approvalWorkflow.approvers.at(index);
-            const isConfiguredFinalApprover = !!hrFinalApproverEmail && approver?.email === hrFinalApproverEmail;
-            if (isLast && isConfiguredFinalApprover) {
-                return translate('workflowsPage.finalApprover');
+    const approverTitles = getApproverTitles({
+        approvers: approvalWorkflow.approvers,
+        getTitle: (position, count, approver, isLast) => {
+            if (isHRAdvancedMode) {
+                const isConfiguredFinalApprover = !!hrFinalApproverEmail && approver?.email === hrFinalApproverEmail;
+                if (isLast && isConfiguredFinalApprover) {
+                    return translate('workflowsPage.finalApprover');
+                }
+                if (count <= 1) {
+                    return translate('workflowsPage.approver');
+                }
+                return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
             }
+
             if (approvalWorkflow.approvers.length <= 1) {
                 return translate('workflowsPage.approver');
             }
-            return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
-        }
 
-        if (approvalWorkflow.approvers.length <= 1) {
-            return translate('workflowsPage.approver');
-        }
-
-        const title = `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
-        if (isRecruitingAdvancedMode && index === 0) {
-            return `${title}${fromProviderSuffix}`;
-        }
-        return title;
-    };
+            const title =
+                position > 0 && isLast ? translate('workflowsPage.finalApprover') : `${toLocaleOrdinalWithWords(position + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
+            if (isRecruitingAdvancedMode && position === 0) {
+                return `${title}${fromProviderSuffix}`;
+            }
+            return title;
+        },
+        currency,
+        translate,
+        convertToDisplayString,
+    });
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
 
@@ -197,7 +202,7 @@ function ApprovalWorkflowSection({
                         <View>
                             <View style={styles.workflowApprovalVerticalLine} />
                             <MenuItem
-                                title={approverTitle(index)}
+                                title={approverTitles.at(index)}
                                 style={styles.p0}
                                 titleStyle={styles.textLabelSupportingNormal}
                                 descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
@@ -220,8 +225,6 @@ function ApprovalWorkflowSection({
                                         />
                                     </View>
                                 }
-                                helperText={getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString})}
-                                helperTextStyle={styles.workflowApprovalLimitText}
                                 brickRoadIndicator={getApproverError(approver) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 errorText={getApproverError(approver)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}

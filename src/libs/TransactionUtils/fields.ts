@@ -79,6 +79,17 @@ function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 }
 
+function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
+    if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
+        return true;
+    }
+    return transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
+}
+
+function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.TIME;
+}
+
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
@@ -243,6 +254,8 @@ export {
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
+    isPerDiemRequest,
+    isTimeRequest,
     getAmount,
     getTaxCode,
     getDescription,

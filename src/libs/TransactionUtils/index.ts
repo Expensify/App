@@ -54,6 +54,8 @@ import {
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
+    isPerDiemRequest,
+    isTimeRequest,
     getAmount,
     getTaxCode,
     getDescription,
@@ -244,17 +246,6 @@ function hasAnyManuallyEnteredScanField(transaction: OnyxEntry<ManuallyEnteredSc
  */
 function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, isMerchantRequired = true): boolean {
     return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction, isMerchantRequired);
-}
-
-function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
-    if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
-        return true;
-    }
-    return transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
-}
-
-function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
-    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.TIME;
 }
 
 function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
@@ -596,6 +587,15 @@ function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmo
  */
 function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalCurrency' | 'currency' | 'modifiedCurrency' | 'amount'>): string {
     return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
+}
+
+/** Falls back to the expense's own currency while its converted amount is unavailable offline. */
+function getTotalForDisplay(transaction: Transaction, reportCurrency: string | undefined, isFromExpenseReport: boolean): {amount: number; currency: string} {
+    const hasConvertedAmount = transaction.convertedAmount != null;
+    return {
+        amount: hasConvertedAmount ? getConvertedAmount(transaction, isFromExpenseReport) : getAmount(transaction, isFromExpenseReport),
+        currency: hasConvertedAmount ? (reportCurrency ?? getCurrency(transaction)) : getCurrency(transaction),
+    };
 }
 
 // Editing any of these fields makes the server regenerate the distance map receipt. `customUnitRateID`/`distance`
@@ -1789,6 +1789,7 @@ export {
     shouldReuseInitialTransaction,
     willFieldBeAutomaticallyFilled,
     getOriginalAmountForDisplay,
+    getTotalForDisplay,
     getOriginalCurrencyForDisplay,
     getMCCForDisplay,
     hasDisplayableMCC,
