@@ -1313,6 +1313,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
         slowestToApprove: 'Πιο αργοί στην έγκριση',
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
+        submitters: 'Υποβάλλοντες',
+        approvers: 'Εγκρίνοντες',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -11317,6 +11319,7 @@ ${reportName}`,
             },
             searchFilters: 'Φίλτρα αναζήτησης',
             noFiltersSelected: 'Δεν έχουν επιλεγεί φίλτρα',
+            anySubmission: 'Οποιαδήποτε υποβολή',
         },
         display: {
             label: 'Εμφάνιση',

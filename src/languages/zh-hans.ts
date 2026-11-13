@@ -1216,6 +1216,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提交所用时间最长',
         slowestToApprove: '审批最慢',
         mostTimeToPay: '最长付款时间',
+        submitters: '提交人',
+        approvers: '审批人',
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -10587,6 +10589,7 @@ ${reportName}`,
             },
             searchFilters: '搜索筛选条件',
             noFiltersSelected: '未选择任何筛选器',
+            anySubmission: '任何提交',
         },
         display: {
             label: '显示',

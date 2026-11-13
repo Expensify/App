@@ -1255,6 +1255,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提出まで最も長い順',
         slowestToApprove: '承認が最も遅い',
         mostTimeToPay: '支払いまで最も時間がかかる',
+        submitters: '提出者',
+        approvers: '承認者',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -10873,6 +10875,7 @@ ${reportName}`,
             },
             searchFilters: '検索フィルター',
             noFiltersSelected: 'フィルターが選択されていません',
+            anySubmission: 'すべての提出物',
         },
         display: {
             label: '表示',

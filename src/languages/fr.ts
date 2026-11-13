@@ -1274,6 +1274,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Le plus long à soumettre',
         slowestToApprove: 'Plus lent à approuver',
         mostTimeToPay: 'Délai de paiement le plus long',
+        submitters: 'Déclarants',
+        approvers: 'Approbateurs',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -11131,6 +11133,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             searchFilters: 'Filtres de recherche',
             noFiltersSelected: 'Aucun filtre sélectionné',
+            anySubmission: 'Toute soumission',
         },
         display: {
             label: 'Affichage',

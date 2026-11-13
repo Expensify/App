@@ -1266,6 +1266,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Langste om in te dienen',
         slowestToApprove: 'Traagst om goed te keuren',
         mostTimeToPay: 'Meeste tijd om te betalen',
+        submitters: 'Indieners',
+        approvers: 'Fiatteurs',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -11021,6 +11023,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             searchFilters: 'Zoekfilters',
             noFiltersSelected: 'Geen filters geselecteerd',
+            anySubmission: 'Elke inzending',
         },
         display: {
             label: 'Weergave',
