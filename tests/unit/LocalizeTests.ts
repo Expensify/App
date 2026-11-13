@@ -58,11 +58,14 @@ describe('localize', () => {
 
     afterEach(() => Onyx.clear());
 
+    // Polish fixtures intentionally contain words outside the English spelling dictionary.
+    // cspell:disable
     it.each([
         [1, 'pokaż 1 aktualizację'],
         [2, 'pokaż 2 aktualizacje'],
         [12, 'pokaż 12 aktualizacji'],
         [22, 'pokaż 22 aktualizacje'],
+        // cspell:enable
     ])('uses Polish plural categories for %s collapsed updates', async (count, expected) => {
         // Given the Polish locale loaded through the real localization store
         await IntlStore.load(CONST.LOCALES.PL);
