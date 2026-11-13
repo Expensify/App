@@ -147,6 +147,7 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
                 validate={validate}
                 onSubmit={submit}
                 style={[styles.flexGrow1, styles.mh5]}
+                submitFlexEnabled={false}
                 isLoading={card.isLoading}
                 shouldHideFixErrorsAlert
             >
