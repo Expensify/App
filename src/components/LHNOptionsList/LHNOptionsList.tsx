@@ -1,3 +1,4 @@
+import useHorizontalSafeAreaBleed from '@components/HorizontalSafeArea/useHorizontalSafeAreaBleed';
 import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 import {renderTabRootScrollComponent} from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
@@ -148,6 +149,7 @@ function LHNOptionsList({
     }, [previousOptionMode, optionMode]);
 
     const listHeader = hasListHeader ? <View onLayout={onListHeaderLayout}>{listHeaderComponent}</View> : undefined;
+    const {style: listStyle, contentContainerStyle} = useHorizontalSafeAreaBleed({contentContainerStyle: StyleSheet.flatten(tabRootScrollProps.contentContainerStyle)});
 
     return (
         <View style={style ?? styles.flex1}>
@@ -158,7 +160,8 @@ function LHNOptionsList({
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
                     CellRendererComponent={OptionRowRendererComponent}
-                    contentContainerStyle={StyleSheet.flatten(tabRootScrollProps.contentContainerStyle)}
+                    style={listStyle}
+                    contentContainerStyle={contentContainerStyle}
                     data={data}
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}

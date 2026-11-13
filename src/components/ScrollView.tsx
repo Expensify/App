@@ -7,6 +7,9 @@ import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ScrollView as RNScrollView} from 'react-native';
 
+import HorizontalSafeAreaContext from './HorizontalSafeArea/HorizontalSafeAreaContext';
+import useHorizontalSafeAreaBleed from './HorizontalSafeArea/useHorizontalSafeAreaBleed';
+
 type ScrollViewProps = RNScrollViewProps & {
     addBottomSafeAreaPadding?: boolean;
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
@@ -15,32 +18,35 @@ type ScrollViewProps = RNScrollViewProps & {
 
 function ScrollView({
     children,
-    scrollIndicatorInsets,
+    style: styleProp,
     contentContainerStyle: contentContainerStyleProp,
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
     ref,
     ...props
 }: ScrollViewProps) {
-    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+    const bottomSafeAreaContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding,
         style: contentContainerStyleProp,
     });
+    const {style, contentContainerStyle, contentPlacement} = useHorizontalSafeAreaBleed({
+        style: styleProp,
+        contentContainerStyle: bottomSafeAreaContentContainerStyle,
+        horizontal: props.horizontal,
+    });
 
     return (
-        <RNScrollView
-            ref={ref}
-            // on iOS, navigation animation sometimes cause the scrollbar to appear
-            // on middle/left side of ScrollView. scrollIndicatorInsets with right
-            // to closest value to 0 fixes this issue, 0 (default) doesn't work
-            // See: https://github.com/Expensify/App/issues/31441
-            contentContainerStyle={contentContainerStyle}
-            scrollIndicatorInsets={scrollIndicatorInsets ?? {right: Number.MIN_VALUE}}
-            {...props}
-        >
-            {children}
-        </RNScrollView>
+        <HorizontalSafeAreaContext.Provider value={contentPlacement}>
+            <RNScrollView
+                ref={ref}
+                style={style}
+                contentContainerStyle={contentContainerStyle}
+                {...props}
+            >
+                {children}
+            </RNScrollView>
+        </HorizontalSafeAreaContext.Provider>
     );
 }
 

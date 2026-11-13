@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import GpsDraftDetailsRefSync from '@components/GpsDraftDetailsRefSync';
+import HorizontalSafeArea from '@components/HorizontalSafeArea';
 import Icon from '@components/Icon';
 import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
@@ -127,60 +128,62 @@ function RequireTwoFactorAuthenticationOverlay() {
             {isActingAsDelegate && isTrackingGPS && <GpsDraftDetailsRefSync gpsDraftDetailsRef={gpsDraftDetailsRef} />}
             <FocusTrapForModal active={!isTestToolsRouteFocused}>
                 <View
-                    style={[StyleSheet.absoluteFill, styles.twoFARequiredOverlay]}
+                    style={[StyleSheet.absoluteFill, styles.twoFARequiredOverlay, styles.appBG]}
                     testID="RequireTwoFactorAuthenticationOverlay"
                     {...testToolsTapResponder}
                 >
-                    <View style={[styles.flex1, styles.appBG]}>
-                        <View style={styles.twoFARequiredContainer}>
-                            <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
-                                <Icon
-                                    src={illustrations.Encryption}
-                                    width={variables.twoFAIconHeight}
-                                    height={variables.twoFAIconHeight}
-                                />
-                            </View>
-                            <View style={[styles.mt2, styles.mh5, styles.dFlex, styles.alignItemsCenter]}>
-                                <View style={styles.mb5}>
-                                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mv2]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}</Text>
-                                    <Text style={[styles.textSupporting, styles.textAlignCenter]}>
-                                        {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
-                                    </Text>
+                    <HorizontalSafeArea>
+                        <View style={styles.flex1}>
+                            <View style={styles.twoFARequiredContainer}>
+                                <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
+                                    <Icon
+                                        src={illustrations.Encryption}
+                                        width={variables.twoFAIconHeight}
+                                        height={variables.twoFAIconHeight}
+                                    />
                                 </View>
-                                <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
-                                    <Button
-                                        sentryLabel={
-                                            isActingAsDelegate
-                                                ? CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_LEAVE_ACCOUNT_BUTTON
-                                                : CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_SIGN_OUT_BUTTON
-                                        }
-                                        size={CONST.BUTTON_SIZE.LARGE}
-                                        isLoading={isEscapeInFlight}
-                                        onPress={onEscapePress}
-                                    >
-                                        <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
-                                    </Button>
-                                    <Button
-                                        sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_ENABLE_BUTTON}
-                                        size={CONST.BUTTON_SIZE.LARGE}
-                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                        onPress={enableTwoFactorAuth}
-                                    >
-                                        {!isTestToolsRouteFocused && <Button.KeyboardShortcut />}
-                                        <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
-                                    </Button>
+                                <View style={[styles.mt2, styles.mh5, styles.dFlex, styles.alignItemsCenter]}>
+                                    <View style={styles.mb5}>
+                                        <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mv2]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}</Text>
+                                        <Text style={[styles.textSupporting, styles.textAlignCenter]}>
+                                            {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
+                                        </Text>
+                                    </View>
+                                    <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
+                                        <Button
+                                            sentryLabel={
+                                                isActingAsDelegate
+                                                    ? CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_LEAVE_ACCOUNT_BUTTON
+                                                    : CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_SIGN_OUT_BUTTON
+                                            }
+                                            size={CONST.BUTTON_SIZE.LARGE}
+                                            isLoading={isEscapeInFlight}
+                                            onPress={onEscapePress}
+                                        >
+                                            <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
+                                        </Button>
+                                        <Button
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_ENABLE_BUTTON}
+                                            size={CONST.BUTTON_SIZE.LARGE}
+                                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                            onPress={enableTwoFactorAuth}
+                                        >
+                                            {!isTestToolsRouteFocused && <Button.KeyboardShortcut />}
+                                            <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
+                                        </Button>
+                                    </View>
                                 </View>
                             </View>
                         </View>
-                    </View>
-                    {shouldUseNarrowLayout && isOffline && (
-                        <View
-                            style={[styles.appBG, offlineBannerSafeAreaStyle]}
-                            testID="RequireTwoFactorOfflineBanner"
-                        >
-                            <OfflineIndicator style={styles.pl5} />
-                        </View>
-                    )}
+                        {shouldUseNarrowLayout && isOffline && (
+                            <View
+                                style={offlineBannerSafeAreaStyle}
+                                testID="RequireTwoFactorOfflineBanner"
+                            >
+                                <OfflineIndicator style={styles.pl5} />
+                            </View>
+                        )}
+                    </HorizontalSafeArea>
                 </View>
             </FocusTrapForModal>
         </>

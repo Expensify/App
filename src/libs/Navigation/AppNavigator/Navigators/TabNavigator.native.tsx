@@ -1,3 +1,5 @@
+import HorizontalSafeArea from '@components/HorizontalSafeArea';
+
 import useOnyx from '@hooks/useOnyx';
 
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
@@ -18,8 +20,10 @@ import React from 'react';
 import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
+import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
+import useIsTabBarVertical from './NativeTabNavigator/useIsTabBarVertical';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
 import ReportsSplitNavigator from './ReportsSplitNavigator';
@@ -40,8 +44,10 @@ const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout 
 
 function TabNavigator() {
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
-    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const isTabBarVertical = useIsTabBarVertical();
+    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
+
     // A tab with no bar item draws no icon.
     const getScreenOptions = ({route}: {route: {name: NativeTabName}}) =>
         route.name === tabWithoutBarItem
@@ -52,7 +58,7 @@ function TabNavigator() {
                   tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
               };
 
-    return (
+    const tabNavigator = (
         <Tab.Navigator
             backBehavior="fullHistory"
             layout={renderNativeTabLayout}
@@ -89,6 +95,8 @@ function TabNavigator() {
             />
         </Tab.Navigator>
     );
+
+    return isTabHostFullWidth ? tabNavigator : <HorizontalSafeArea>{tabNavigator}</HorizontalSafeArea>;
 }
 
 export default TabNavigator;

@@ -3871,6 +3871,12 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.pr5,
         },
 
+        growlNotificationNativeContent: {
+            width: '100%',
+            maxWidth: variables.growlNotificationMaxWidth,
+            alignSelf: 'center',
+        },
+
         growlNotificationDesktopContainer: {
             maxWidth: variables.sideBarWidth,
             right: 0,
@@ -4243,11 +4249,6 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             zIndex: variables.searchTopBarZIndex,
             backgroundColor: theme.appBG,
-        },
-
-        iPhoneXSafeArea: {
-            backgroundColor: theme.appBG,
-            flex: 1,
         },
 
         transferBalancePayment: {
@@ -7407,12 +7408,12 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
         // against it without taking part in the tab screen's layout.
-        nativeTabBarFloatingButtons: (bottom: number) =>
+        nativeTabBarFloatingButtons: (bottom: number, left: number, right: number) =>
             ({
                 position: 'absolute',
-                right: 0,
+                right,
                 bottom,
-                left: 0,
+                left,
                 height: 0,
             }) satisfies ViewStyle,
 
@@ -7734,11 +7735,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             top: 0,
             bottom: 0,
             width,
-        }),
-
-        getSplashScreenHiderPosition: (left: number, right: number): ViewStyle => ({
-            left: -left,
-            right: -right,
         }),
 
         getSelectionListPopoverHeight: ({

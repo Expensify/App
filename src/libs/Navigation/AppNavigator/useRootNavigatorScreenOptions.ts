@@ -85,9 +85,7 @@ const useRootNavigatorScreenOptions = () => {
         centeredModalNavigator: {
             presentation: Presentation.TRANSPARENT_MODAL,
             native: {
-                contentStyle: {
-                    ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
-                },
+                contentStyle: StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
             },
             animation: InternalPlatformAnimations.FADE,
         },

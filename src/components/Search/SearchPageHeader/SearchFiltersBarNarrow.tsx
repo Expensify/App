@@ -1,3 +1,4 @@
+import useHorizontalSafeAreaBleed from '@components/HorizontalSafeArea/useHorizontalSafeAreaBleed';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 
@@ -41,13 +42,18 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
     const renderFilterItem = ({item}: {item: SearchFilter & FilterItem}) => <SearchFilterBar item={item} />;
 
     const data = shouldShowFiltersBarLoading || hasErrors ? [] : filters;
+    const {style, contentContainerStyle} = useHorizontalSafeAreaBleed({
+        style: [styles.flexRow, styles.overflowScroll, styles.flexGrow0, (!!data.length || canSave || canReset) && styles.mb4],
+        contentContainerStyle: [styles.flexRow, styles.flexGrow0, styles.gap2, pageGutter, styles.alignItemsCenter],
+        horizontal: true,
+    });
 
     return (
         <FlatList
             horizontal
             keyboardShouldPersistTaps="always"
-            style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, (!!data.length || canSave || canReset) && styles.mb4]}
-            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, pageGutter, styles.alignItemsCenter]}
+            style={style}
+            contentContainerStyle={contentContainerStyle}
             ref={scrollRef}
             showsHorizontalScrollIndicator={false}
             data={data}
