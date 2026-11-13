@@ -148,13 +148,20 @@ const requestLeaderLock = (shouldSteal: boolean) => {
             // Hold the lock until this tab goes away or another tab steals it
             return new Promise<void>(() => {});
         })
-        .catch(() => {
-            // The request was aborted because we superseded it, or another tab stole the lock from us
+        .catch((error: unknown) => {
             if (requestID !== leaderLockRequestID) {
                 return;
             }
+            const wasHoldingLeaderLock = isHoldingLeaderLock;
             isHoldingLeaderLock = false;
+            isStealingLeaderLock = false;
             notifyIfBecameLeader();
+
+            // Only rejoin the queue after losing a granted lock. Safari can reject acquisitions immediately
+            // while the document is inactive, so failed acquisitions wait for init() on focus or pageshow.
+            if (!wasHoldingLeaderLock || !(error instanceof DOMException) || error.name !== 'AbortError') {
+                return;
+            }
             requestLeaderLock(false);
         });
 };
@@ -188,6 +195,14 @@ const init: Init = () => {
         if (!beforeunloadListenerAdded) {
             beforeunloadListenerAdded = true;
             window.addEventListener('beforeunload', () => setModalVisibility(false));
+            // Safari releases Web Locks on suspension. A restored page can stay visible throughout,
+            // so AppState's visibility listener alone may not initialize its client again.
+            window.addEventListener('pageshow', (event) => {
+                if (!event.persisted || document.visibilityState !== 'visible') {
+                    return;
+                }
+                init();
+            });
         }
         return;
     }
