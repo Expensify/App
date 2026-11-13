@@ -618,6 +618,19 @@ function getOriginalAmount(transaction: Transaction): number {
     return Math.abs(amount);
 }
 
+/**
+ * Return an amount stored with the transaction's sign, signed for display.
+ * IOU amounts show as positive, while expense report and tracked expense amounts are stored with the opposite sign and are flipped.
+ */
+function getAmountWithDisplaySign(amount: number, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false): number {
+    if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
+        return Math.abs(amount);
+    }
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    return amount ? -amount : 0;
+}
+
 function getConvertedAmount(
     transaction: OnyxInputOrEntry<Transaction>,
     isFromExpenseReport = false,
@@ -1988,6 +2001,7 @@ export {
     getOriginalCurrencyForDisplay,
     getMCCForDisplay,
     hasDisplayableMCC,
+    getAmountWithDisplaySign,
     getConvertedAmount,
     isTimeRequest,
     getExpenseTypeTranslationKey,
