@@ -33,7 +33,6 @@ import {
     getCardFeedIcon,
     getCardFeedTextColor,
     getCardLastUpdated,
-    getCompanyCardCustomName,
     getCompanyCardFeed,
     getCompanyFeeds,
     getDefaultCardName,
@@ -67,7 +66,6 @@ import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {companyCardCustomNamesSelector} from '@selectors/Card';
 import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -111,7 +109,6 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const policy = usePolicy(policyID);
     const {canWrite: canWriteCompanyCards} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
     const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -138,7 +135,6 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
 
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
-    const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const plaidUrl = getPlaidInstitutionIconUrl(feedName);
 
     // Show "Break connection" only when Mock Bank requests target non-production APIs.
@@ -279,7 +275,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                             name={translate('workspace.moreFeatures.companyCards.cardName')}
                             onPress={canWriteCompanyCards ? () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName)) : undefined}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_NAME}
-                            value={getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName)}
+                            value={card?.nameValuePairs?.cardTitle ?? getDefaultCardName(cardholder?.displayName)}
                         >
                             {!!card?.nameValuePairs?.errorFields?.cardTitle && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                         </MenuItemField>

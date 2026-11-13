@@ -5,6 +5,7 @@ import {
     getExpensifyCardLimitInlineEditError,
     getExpensifyCardLimitInlineUpdate,
     renameCategoryInline,
+    renameCompanyCardInline,
     renameExpensifyCardInline,
     updateDistanceTaxClaimableValueInline,
     updateExpensifyCardLimitInline,
@@ -488,6 +489,81 @@ describe('PolicyInlineEdit', () => {
             expect(nameValuePairs).not.toHaveProperty('validThru');
             expect(pendingFields).not.toHaveProperty('validFrom');
             expect(pendingFields).not.toHaveProperty('validThru');
+        });
+    });
+
+    describe('renameCompanyCardInline', () => {
+        const DOMAIN_ID = 1;
+        const CARD_ID = '42';
+        const BANK_NAME = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+
+        it('does not persist when the sanitized name matches the displayed name', () => {
+            // Given a card whose displayed name (from cardTitle) is "Marketing"
+            // When the editor closes with the same trimmed name
+            const rejection = renameCompanyCardInline(translate, DOMAIN_ID, CARD_ID, '  Marketing  ', BANK_NAME, 'Marketing', 'Marketing');
+
+            // Then nothing is written and no toast is raised
+            expect(rejection).toBeUndefined();
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('does not persist when the sanitized name matches the default-fallback displayed name for an unnamed card', () => {
+            // Given a card with no stored cardTitle — the displayed name falls back to "John's card"
+            // When the editor commits exactly that default name
+            const rejection = renameCompanyCardInline(translate, DOMAIN_ID, CARD_ID, "John's card", BANK_NAME, "John's card", undefined);
+
+            // Then nothing is persisted because the name equals what is already shown in the cell
+            expect(rejection).toBeUndefined();
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('returns the required-field error for a name that sanitizes to nothing', () => {
+            // Given a card named "Marketing"
+            // When the editor commits whitespace only
+            const rejection = renameCompanyCardInline(translate, DOMAIN_ID, CARD_ID, '   ', BANK_NAME, 'Marketing', 'Marketing');
+
+            // Then the page can toast the same required message as the rename form, and nothing is written
+            expect(rejection).toBe('common.error.fieldRequired');
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('returns the invalid-character error for a name the rename form rejects', () => {
+            // Given a card named "Marketing"
+            // When the editor commits a name containing an HTML-like tag
+            const rejection = renameCompanyCardInline(translate, DOMAIN_ID, CARD_ID, '</>', BANK_NAME, 'Marketing', 'Marketing');
+
+            // Then the page can toast the same invalid-character message as the form, and nothing is written
+            expect(rejection).toBe('common.error.invalidCharacter');
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('writes the sanitized name and passes the stored cardTitle as the rollback value', () => {
+            // Given a card whose cardTitle is "Marketing" (the rollback source)
+            // When the editor commits a new name padded with whitespace
+            const rejection = renameCompanyCardInline(translate, DOMAIN_ID, CARD_ID, '  Ads spend  ', BANK_NAME, 'Marketing', 'Marketing');
+
+            // Then the trimmed name reaches the backend
+            expect(rejection).toBeUndefined();
+            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME, expect.objectContaining({cardID: Number(CARD_ID), cardName: 'Ads spend'}), expect.anything());
+        });
+
+        it('passes undefined as the rollback value for a card with no stored cardTitle', () => {
+            // Given a card that was never renamed (storedName is undefined)
+            // When the editor commits a new name
+            renameCompanyCardInline(translate, DOMAIN_ID, CARD_ID, 'New name', BANK_NAME, "John's card", undefined);
+
+            // Then the write is dispatched and the failure data will null-out cardTitle on rollback
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME,
+                expect.objectContaining({cardID: Number(CARD_ID), cardName: 'New name'}),
+                expect.objectContaining({
+                    failureData: [
+                        expect.objectContaining({
+                            value: {[CARD_ID]: expect.objectContaining({nameValuePairs: expect.objectContaining({cardTitle: null})})},
+                        }),
+                    ],
+                }),
+            );
         });
     });
 });

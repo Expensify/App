@@ -4,7 +4,7 @@ import {filterObject} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -106,9 +106,6 @@ const isExpensifyCardContinuousReconciliationEnabledSelector = (value: boolean |
     return typeof value === 'string' ? value === '1' : value;
 };
 
-/** Picks the shared company card custom names from a domain's card feeds, avoiding a subscription to the entire CardFeeds object. */
-const companyCardCustomNamesSelector = (cardFeeds: OnyxEntry<CardFeeds>) => cardFeeds?.settings?.companyCardCustomNames;
-
 /**
  * Determines whether a workspace has at least one active Expensify Card.
  * Intended to run against a single WorkspaceCardsList entry subscribed by its exact
@@ -132,7 +129,6 @@ export {
     buildFeedKeysWithAssignedCards,
     getBankLinkedPersonalCards,
     isExpensifyCardContinuousReconciliationEnabledSelector,
-    companyCardCustomNamesSelector,
     hasIssuedExpensifyCardSelector,
     hasActiveExpensifyCardSelector,
 };
