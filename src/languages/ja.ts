@@ -5286,6 +5286,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             mustBeOnlineToViewMembers: 'このワークスペースのメンバーを表示するには、オンライン接続が必要です。',
             moreFeatures: 'その他の機能',
             requested: 'リクエスト済み',
+            cannotRequestToJoin: 'このワークスペースへの参加はリクエストできません。ワークスペース管理者に招待を依頼してください。',
             distanceRates: '距離単価',
             defaultDescription: 'すべての領収書と経費を一か所で管理。',
             descriptionHint: 'このワークスペースに関する情報をすべてのメンバーと共有します。',

@@ -5602,6 +5602,7 @@ const translations = {
             mustBeOnlineToViewMembers: 'You need to be online in order to view members of this workspace.',
             moreFeatures: 'More features',
             requested: 'Requested',
+            cannotRequestToJoin: "You can't request to join this workspace. Ask a workspace admin to invite you.",
             distanceRates: 'Distance rates',
             defaultDescription: 'One place for all your receipts and expenses.',
             descriptionHint: 'Share information about this workspace with all members.',

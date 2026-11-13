@@ -44,6 +44,7 @@ import {View} from 'react-native';
 import ArchiveWorkspaceFlow from './archiveWorkspace/ArchiveWorkspaceFlow';
 import CopyPolicySettingsProgressModal from './copyPolicySettings/CopyPolicySettingsProgressModal';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
+import WorkspaceJoinRequestErrors from './WorkspaceJoinRequestErrors';
 
 function WorkspacesListPage() {
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>>(null);
@@ -232,10 +233,13 @@ function WorkspacesListPage() {
         </Button>
     );
     const headerComponent = (
-        <WorkspaceListHeaderContent
-            activeTabKey="workspaces"
-            headerButton={headerButton}
-        />
+        <>
+            <WorkspaceListHeaderContent
+                activeTabKey="workspaces"
+                headerButton={headerButton}
+            />
+            <WorkspaceJoinRequestErrors />
+        </>
     );
 
     const onBackButtonPress = () => {
