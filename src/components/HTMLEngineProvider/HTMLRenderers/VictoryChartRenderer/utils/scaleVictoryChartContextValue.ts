@@ -3,13 +3,12 @@ import type {LabelItem, LegendItem} from '@components/HTMLEngineProvider/HTMLRen
 
 import type {SkFont, SkTypeface} from '@shopify/react-native-skia';
 
-import {Skia} from '@shopify/react-native-skia';
-
+import createVictoryChartFont from './createVictoryChartFont';
 import scalePixels from './scalePixels';
 
 /**
  * Scales every pixel-space value of a parsed chart context by a uniform factor so the chart can be
- * re-rendered natively at a larger size. Data-space values (points, domains, ticks) are untouched.
+ * rendered natively at another size. Data-space values (points, domains, ticks) are untouched.
  */
 
 function scaleRecordValues(record: Record<number, number> | undefined, scale: number): Record<number, number> | undefined {
@@ -74,7 +73,7 @@ function scaleFont(font: SkFont | null | undefined, scale: number, typeface: SkT
     if (!font || !typeface) {
         return font;
     }
-    return Skia.Font(typeface, font.getSize() * scale);
+    return createVictoryChartFont(typeface, font.getSize() * scale);
 }
 
 function scaleAxis<TAxis extends {lineWidth?: number; labelOffset?: number; font?: SkFont | null} | undefined>(axis: TAxis, scale: number, typeface: SkTypeface | null): TAxis {
@@ -97,7 +96,7 @@ function scaleVictoryChartContextValue(value: VictoryChartContextValue, scale: n
     const designWidth = typeof value.chartContentStyles.width === 'number' ? value.chartContentStyles.width * scale : value.chartContentStyles.width;
     const designHeight = typeof value.chartContentStyles.height === 'number' ? value.chartContentStyles.height * scale : value.chartContentStyles.height;
 
-    return {
+    const scaledValue: VictoryChartContextValue = {
         ...value,
         xAxis: scaleAxis(value.xAxis, scale, typeface),
         yAxis: value.yAxis?.map((axis) => scaleAxis(axis, scale, typeface)),
@@ -108,18 +107,38 @@ function scaleVictoryChartContextValue(value: VictoryChartContextValue, scale: n
         chartContentStyles: {...value.chartContentStyles, width: designWidth, height: designHeight},
         pixelScale: value.pixelScale * scale,
     };
+    releaseScaledFontsWithContext(scaledValue, value);
+
+    return scaledValue;
 }
 
-/** Disposes the axis fonts a scaled context created, leaving the original (shared) fonts untouched. */
-function disposeScaledFonts(scaled: VictoryChartContextValue, original: VictoryChartContextValue) {
+/**
+ * Disposes the fonts a scaled context created once that context can no longer be reached.
+ *
+ * An effect cleanup is the wrong owner for them. React also runs cleanups when an Activity hides a screen, and
+ * reconnects the same context value when the screen is shown again, so the chart would be left drawing with
+ * disposed fonts. A context value that is never committed would not be cleaned up at all.
+ *
+ * Where the JS runtime has no FinalizationRegistry, the fonts are not disposed explicitly and are freed when
+ * their Skia host objects are garbage collected instead.
+ */
+const scaledFontsRegistry =
+    typeof FinalizationRegistry === 'undefined'
+        ? undefined
+        : new FinalizationRegistry<SkFont[]>((fonts) => {
+              for (const font of fonts) {
+                  font.dispose();
+              }
+          });
+
+/** Hands the axis fonts created for a scaled context to the registry, leaving the original (shared) fonts untouched. */
+function releaseScaledFontsWithContext(scaled: VictoryChartContextValue, original: VictoryChartContextValue) {
     const originalFonts = new Set([original.xAxis?.font, ...(original.yAxis ?? []).map((axis) => axis.font)]);
-    const scaledFonts = [scaled.xAxis?.font, ...(scaled.yAxis ?? []).map((axis) => axis.font)];
-    for (const font of scaledFonts) {
-        if (font && !originalFonts.has(font)) {
-            font.dispose();
-        }
+    const createdFonts = [scaled.xAxis?.font, ...(scaled.yAxis ?? []).map((axis) => axis.font)].filter((font): font is SkFont => !!font && !originalFonts.has(font));
+    if (createdFonts.length > 0) {
+        scaledFontsRegistry?.register(scaled, createdFonts);
     }
 }
 
 export default scaleVictoryChartContextValue;
-export {scaleLabelItem, disposeScaledFonts};
+export {scaleLabelItem};

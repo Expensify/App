@@ -4,6 +4,7 @@ import type {YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryCha
 import type {ChartBounds, PointsArray} from 'victory-native';
 
 import parseOffset from './parseOffset';
+import scalePixels from './scalePixels';
 
 const DEFAULT_BETWEEN_GROUP_PADDING = 0.25;
 
@@ -39,30 +40,41 @@ function getUngroupedBarWidth(chartBounds: ChartBounds, pointCount: number, cust
     return ((1 - BAR_INNER_PADDING) * domainWidth) / denominator;
 }
 
-function getGroupedBarGeometry(chartBounds: ChartBounds, pointCount: number, group: BarGroupLayoutConfig): Pick<BarInteractionGeometry, 'width'> & {centerOffset: number} {
+function getGroupedBarGeometry(
+    chartBounds: ChartBounds,
+    pointCount: number,
+    group: BarGroupLayoutConfig,
+    pixelScale: number,
+): Pick<BarInteractionGeometry, 'width'> & {centerOffset: number} {
     const groupCount = group.yKeys.length;
     const boundSize = chartBounds.right - chartBounds.left;
-    const betweenGroupPadding = group.barWidth ? parseOffset(group.offsetAttribute ?? '', chartBounds, groupCount, group.barWidth, pointCount, false) : DEFAULT_BETWEEN_GROUP_PADDING;
+    const barWidth = scalePixels(group.barWidth, pixelScale);
+    const betweenGroupPadding = barWidth ? parseOffset(group.offsetAttribute ?? '', chartBounds, groupCount, barWidth, pointCount, false, pixelScale) : DEFAULT_BETWEEN_GROUP_PADDING;
     const groupWidth = ((1 - betweenGroupPadding) * boundSize) / Math.max(1, pointCount);
-    const width = group.barWidth ?? ((1 - BAR_INNER_PADDING) * groupWidth) / Math.max(1, groupCount);
+    const width = barWidth ?? ((1 - BAR_INNER_PADDING) * groupWidth) / Math.max(1, groupCount);
     const gapWidth = (groupWidth - width * groupCount) / Math.max(1, groupCount - 1);
     const centerOffset = -groupWidth / 2 + group.index * (width + gapWidth) + width / 2;
 
     return {width, centerOffset};
 }
 
+/**
+ * Returns where a bar is drawn, for hit testing. `barWidth` and the group offset in `seriesConfig` are the raw
+ * chart attributes, so `pixelScale` must be the factor the chart is rendered at, as it is for the bars themselves.
+ */
 function getVictoryBarInteractionGeometry(
     point: PointsArray[number],
     chartBounds: ChartBounds,
     pointCount: number,
     seriesConfig?: BarSeriesLayoutConfig,
+    pixelScale = 1,
 ): BarInteractionGeometry | undefined {
     if (typeof point.y !== 'number') {
         return;
     }
 
     if (seriesConfig?.group) {
-        const groupedGeometry = getGroupedBarGeometry(chartBounds, pointCount, seriesConfig.group);
+        const groupedGeometry = getGroupedBarGeometry(chartBounds, pointCount, seriesConfig.group, pixelScale);
         return {
             x: point.x + groupedGeometry.centerOffset,
             y: point.y,
@@ -73,7 +85,7 @@ function getVictoryBarInteractionGeometry(
     return {
         x: point.x,
         y: point.y,
-        width: getUngroupedBarWidth(chartBounds, pointCount, seriesConfig?.barWidth),
+        width: getUngroupedBarWidth(chartBounds, pointCount, scalePixels(seriesConfig?.barWidth, pixelScale)),
     };
 }
 

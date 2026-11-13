@@ -6,9 +6,8 @@ import type {ChartDefaultTypeface} from '@components/Charts/types/chartSkiaTypef
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LabelItem, TextAnchor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
-import {Skia} from '@shopify/react-native-skia';
-
 import convertDegreeToRadian from './convertDegreeToRadian';
+import createVictoryChartFont from './createVictoryChartFont';
 import getSkiaLineMetrics from './getSkiaLineMetrics';
 
 type PieLabelSide = 'left' | 'right';
@@ -80,7 +79,7 @@ function computeLabelBlockHeight(baseLabelItem: Pick<LabelItem, 'fontSize' | 'fo
             fontStyle: baseLabelItem.fontStyle?.[index],
             fontWeight: baseLabelItem.fontWeight?.[index],
         });
-        const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
+        const font = typeface && fontSize ? createVictoryChartFont(typeface, fontSize) : null;
         const customLineHeight = lineHeightMultiplier && fontSize ? lineHeightMultiplier * fontSize : 0;
         totalHeight += customLineHeight || getSkiaLineMetrics(font).lineHeight;
     }
@@ -104,7 +103,7 @@ function computeLabelLineWidth(
         },
         line,
     );
-    const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
+    const font = typeface && fontSize ? createVictoryChartFont(typeface, fontSize) : null;
 
     if (!font) {
         return 0;

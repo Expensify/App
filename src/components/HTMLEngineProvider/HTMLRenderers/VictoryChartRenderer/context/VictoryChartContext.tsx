@@ -4,11 +4,11 @@ import type {ChartType, LabelItem, LegendItem, ProcessNodeResult} from '@compone
 import computeAdjustedOverlayY from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeAdjustedOverlayY';
 import computeDynamicChartHeight from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeDynamicChartHeight';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
-import scaleVictoryChartContextValue, {disposeScaledFonts} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scaleVictoryChartContextValue';
+import scaleVictoryChartContextValue from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scaleVictoryChartContextValue';
 
 import type {TNode} from 'react-native-render-html';
 
-import React, {createContext, useContext, useEffect} from 'react';
+import React, {createContext, useContext} from 'react';
 
 type VictoryChartContextValue = {
     tnode: TNode;
@@ -29,7 +29,7 @@ type VictoryChartContextValue = {
     chartContainerStyles: ReturnType<typeof parseStyles>['parentNodeStyles'];
     type: ChartType;
 
-    /** Factor already applied to this context's pixel values (1 inline); raw tnode pixel attributes must be multiplied by it */
+    /** Factor already applied to this context's pixel values (1 at the design size); raw tnode pixel attributes must be multiplied by it */
     pixelScale: number;
 };
 
@@ -86,7 +86,7 @@ function VictoryChartProvider({tnode, processedResult, type, children}: VictoryC
 }
 
 type VictoryChartScaledProviderProps = {
-    /** Uniform factor to scale all pixel-space chart config by (may be > 1) */
+    /** Uniform factor to scale all pixel-space chart config by (below 1 inline in a narrow column, above 1 in the expand modal) */
     scale: number;
 
     /** Chart sub-tree to re-provide the scaled context to */
@@ -94,17 +94,14 @@ type VictoryChartScaledProviderProps = {
 };
 
 /**
- * Re-provides the chart context with every pixel-space value scaled by a uniform factor, so the
- * expand modal can re-render the chart natively at a larger size.
+ * Re-provides the chart context with every pixel-space value scaled by a uniform factor, so the chart can be
+ * rendered natively at another size: smaller inline in a narrow column, larger in the expand modal.
  */
 function VictoryChartScaledProvider({scale, children}: VictoryChartScaledProviderProps) {
     const value = useVictoryChartContext();
     const typefaces = useChartTypefaces();
     const typeface = getVictoryChartTreeTypeface(typefaces);
     const scaledValue = scaleVictoryChartContextValue(value, scale, typeface);
-
-    // Release the Skia fonts created for this scale once they are replaced or unmounted
-    useEffect(() => () => disposeScaledFonts(scaledValue, value), [scaledValue, value]);
 
     return <VictoryChartContext.Provider value={scaledValue}>{children}</VictoryChartContext.Provider>;
 }
