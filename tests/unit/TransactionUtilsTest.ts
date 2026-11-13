@@ -460,7 +460,7 @@ describe('TransactionUtils', () => {
                 return {
                     ...transaction,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                    comment: {...transaction.comment, customUnit: {customUnitRateID: distanceRateID}},
+                    comment: {...transaction.comment, customUnit: {customUnitRateID: distanceRateID, quantity: 10, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}},
                 };
             }
 
@@ -470,11 +470,17 @@ describe('TransactionUtils', () => {
                 const fakePolicy = buildDistancePolicy(category, true);
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(
+                    category,
+                    buildDistanceTransaction(),
+                    fakePolicy,
+                    getCurrencyDecimalsLocal,
+                );
 
                 // Then the category rule fills the slot the rate left empty, rather than the workspace default
                 expect(categoryTaxCode).toBe('id_TAX_RATE_1');
                 expect(categoryTaxValue).toBe('5%');
+                expect(categoryTaxAmount).toBe(32);
             });
 
             it('should keep the rate tax rate when distance tax tracking is on and the rate has its own tax rate', () => {
