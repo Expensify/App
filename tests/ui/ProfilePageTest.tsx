@@ -425,6 +425,18 @@ describe('ProfilePage - agent account', () => {
         expect(screen.queryByTestId('save-prompt-button')).toBeNull();
     });
 
+    it('allows an AI prompt longer than a chat comment', async () => {
+        // Given an agent account, whose profile shows a markdown prompt input that otherwise falls back to the chat comment limit
+        await setupUser('testbot_123@expensify.ai', true);
+
+        // When the profile page renders
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the prompt input uses the agent prompt limit, so a prompt longer than a chat comment is not cut off
+        expect(screen.getByTestId('ai-prompt-input').props.maxLength).toBe(CONST.AGENT_PROMPT_MAX_LENGTH);
+    });
+
     it('calls openProfilePage on mount for agent account', async () => {
         const mockOpenProfilePage = jest.mocked(AgentActions.openProfilePage);
         await setupUser('testbot_123@expensify.ai', true);
