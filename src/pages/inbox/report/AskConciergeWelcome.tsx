@@ -1,5 +1,6 @@
 import ScrollView from '@components/ScrollView';
 
+import useIsInConciergePage from '@hooks/useIsInConciergePage';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +26,7 @@ function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWel
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const isInConciergePage = useIsInConciergePage();
 
     return (
         <ScrollView
@@ -34,11 +36,13 @@ function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWel
             onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}
         >
             <AskConciergeEmptyState />
-            <ConciergeChatHistoryToggle
-                isHistoryShown={false}
-                onPress={onShowPreviousMessages}
-                containerStyles={styles.pv5}
-            />
+            {!isInConciergePage && (
+                <ConciergeChatHistoryToggle
+                    isHistoryShown={false}
+                    onPress={onShowPreviousMessages}
+                    containerStyles={styles.pv5}
+                />
+            )}
         </ScrollView>
     );
 }

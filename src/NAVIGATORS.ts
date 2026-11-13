@@ -11,6 +11,7 @@ export default {
     SUBMIT_PLAN_MODAL_NAVIGATOR: 'SubmitPlanModalNavigator',
     TEST_DRIVE_DEMO_NAVIGATOR: 'TestDriveDemoNavigator',
     REPORTS_SPLIT_NAVIGATOR: 'ReportsSplitNavigator',
+    CONCIERGE_SPLIT_NAVIGATOR: 'ConciergeSplitNavigator',
     SETTINGS_SPLIT_NAVIGATOR: 'SettingsSplitNavigator',
     WORKSPACE_NAVIGATOR: 'WorkspaceNavigator',
     WORKSPACE_SPLIT_NAVIGATOR: 'WorkspaceSplitNavigator',

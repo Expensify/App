@@ -25,7 +25,11 @@ function getTopmostReportParams(state: State): ReportsSplitNavigatorParamList[ty
 
     if (!topmostReportsSplitNavigator) {
         const rootTab = state.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-        topmostReportsSplitNavigator = rootTab?.state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        const activeTab = rootTab?.state?.routes?.at(rootTab.state.index ?? 0);
+
+        // The Concierge page shows its own report while it is the open tab
+        topmostReportsSplitNavigator =
+            activeTab?.name === NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR ? activeTab : rootTab?.state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     }
 
     if (!topmostReportsSplitNavigator) {

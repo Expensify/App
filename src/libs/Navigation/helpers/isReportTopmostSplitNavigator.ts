@@ -7,7 +7,7 @@ const isReportTopmostSplitNavigator = (): boolean => {
     if (!topmostFullScreenRoute) {
         return false;
     }
-    return topmostFullScreenRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+    return topmostFullScreenRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || topmostFullScreenRoute.name === NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR;
 };
 
 export default isReportTopmostSplitNavigator;

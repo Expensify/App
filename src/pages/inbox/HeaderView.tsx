@@ -23,6 +23,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useHeaderAvatarSize from '@hooks/useHeaderAvatarSize';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
+import useIsInConciergePage from '@hooks/useIsInConciergePage';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
@@ -174,6 +175,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const {collapseHistory: collapseConciergeHistory} = useConciergeChatHistoryActions();
     const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
+    const isInConciergePage = useIsInConciergePage();
+
+    // The Concierge page starts new conversations from the New button of its list
+    const shouldShowNewConciergeChatButton = !isInSidePanel && !isInConciergePage && isConciergeThread;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true);
@@ -531,7 +536,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {!isInSidePanel && isConciergeThread && !shouldUseNarrowLayout && newConciergeChatButton}
+                                    {shouldShowNewConciergeChatButton && !shouldUseNarrowLayout && newConciergeChatButton}
                                     {shouldShowCallAction && !shouldStackCallAction && callActionButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !isConciergeChat && !shouldShowDiscount && isChatUsedForOnboarding && (
@@ -569,7 +574,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, shouldUseCompactJoinRow ? styles.pb1 : styles.pb2]}>{joinButton}</View>
                 )}
-                {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, stackedRowBottomPadding]}>{newConciergeChatButton}</View>}
+                {!isLoading && shouldShowNewConciergeChatButton && shouldUseNarrowLayout && <View style={[styles.ph5, stackedRowBottomPadding]}>{newConciergeChatButton}</View>}
                 {shouldGroupConciergeActions && (
                     <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.ph5, stackedRowBottomPadding]}>
                         <View style={[styles.flex1, styles.minWidthAuto, styles.mw100]}>{callActionButton}</View>

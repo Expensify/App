@@ -516,6 +516,7 @@ const translations: TranslationDeepObject<typeof en> = {
         year: 'Año',
         quarter: 'Trimestre',
         concierge: {
+            title: 'Concierge',
             greeting: 'Hola, ¿en qué puedo ayudarte?',
             showHistory: 'Mostrar historial',
             subtitle: 'Tu asistente de IA personal',

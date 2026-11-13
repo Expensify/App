@@ -53,6 +53,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
+    /** Whether a page of Concierge conversations is loading */
+    RAM_ONLY_IS_LOADING_CONCIERGE_THREADS: 'isLoadingConciergeThreads',
+
     /** Whether the reimbursement countries needed by the collect deposit account flow are still loading */
     RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP: 'isLoadingDepositAccountSetup',
 
@@ -825,6 +828,9 @@ const ONYXKEYS = {
 
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
+
+    /** Where the next page of Concierge conversations starts. Undefined before the first page loads, and empty once every page has loaded. */
+    CONCIERGE_THREADS_NEXT_CURSOR: 'conciergeThreadsNextCursor',
 
     /** Draft message typed into the Concierge prompt box on the home page */
     CONCIERGE_PROMPT_DRAFT: 'conciergePromptDraft',
@@ -2002,6 +2008,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_LOADING_CONCIERGE_THREADS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
     [ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES]: Record<string, boolean>;
     [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
@@ -2071,6 +2078,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.CONCIERGE_THREADS_NEXT_CURSOR]: string;
     [ONYXKEYS.CONCIERGE_PROMPT_DRAFT]: string;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;

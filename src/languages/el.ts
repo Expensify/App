@@ -526,6 +526,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Περιορισμοί',
         tagGLCode: 'Ετικέτα κωδικού GL',
         concierge: {
+            title: 'Concierge',
             greeting: 'Γεια σας, πώς μπορώ να σας βοηθήσω;',
             showHistory: 'Εμφάνιση ιστορικού',
             subtitle: 'Ο προσωπικός σας βοηθός AI',

@@ -14,7 +14,8 @@ import getTopmostReportParams from './getTopmostReportParams';
  * routes, so a report left open on an inactive Inbox tab would otherwise leak through as a stale central report.
  */
 function getCentralPaneReportID(): string | undefined {
-    if (getTopmostFullScreenRoute()?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+    const topmostFullScreenRouteName = getTopmostFullScreenRoute()?.name;
+    if (topmostFullScreenRouteName !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR && topmostFullScreenRouteName !== NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR) {
         return undefined;
     }
     return getTopmostReportParams(navigationRef.getRootState())?.reportID;

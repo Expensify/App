@@ -1,3 +1,5 @@
+import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
+
 import {setInboxTab} from '@libs/actions/User';
 import getReportAttributesUpdates from '@libs/getReportAttributesUpdates';
 import Log from '@libs/Log';
@@ -121,6 +123,7 @@ function SidebarOrderedReportsContextProvider({
     const {isBetaEnabled} = usePermissions();
     const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const isBillPayBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_BILL_PAY);
+    const shouldHideConciergeConversations = useShouldUseFlatNavigationBar();
     // useOnyx only gives us a new reference when the guide set actually differs, so comparing references
     // below is enough to detect late guide hydration.
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
@@ -144,6 +147,7 @@ function SidebarOrderedReportsContextProvider({
 
     const prevIsDefaultRoomsBetaEnabled = usePrevious(isDefaultRoomsBetaEnabled);
     const prevIsBillPayBetaEnabled = usePrevious(isBillPayBetaEnabled);
+    const prevShouldHideConciergeConversations = usePrevious(shouldHideConciergeConversations);
     const prevPriorityMode = usePrevious(priorityMode);
     const prevIsOffline = usePrevious(isOffline);
     const prevConciergeReportID = usePrevious(conciergeReportID);
@@ -157,6 +161,7 @@ function SidebarOrderedReportsContextProvider({
         if (
             isDefaultRoomsBetaEnabled !== prevIsDefaultRoomsBetaEnabled ||
             isBillPayBetaEnabled !== prevIsBillPayBetaEnabled ||
+            shouldHideConciergeConversations !== prevShouldHideConciergeConversations ||
             priorityMode !== prevPriorityMode ||
             isOffline !== prevIsOffline ||
             conciergeReportID !== prevConciergeReportID
@@ -242,9 +247,11 @@ function SidebarOrderedReportsContextProvider({
         reportAttributes,
         isDefaultRoomsBetaEnabled,
         isBillPayBetaEnabled,
+        shouldHideConciergeConversations,
         priorityMode,
         prevIsDefaultRoomsBetaEnabled,
         prevIsBillPayBetaEnabled,
+        prevShouldHideConciergeConversations,
         prevPriorityMode,
         isOffline,
         prevIsOffline,
@@ -280,6 +287,7 @@ function SidebarOrderedReportsContextProvider({
                 isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
                 isDefaultRoomsBetaEnabled,
                 isBillPayBetaEnabled,
+                shouldHideConciergeConversations,
                 transactionViolations,
                 reportNameValuePairs,
                 reportAttributes,
@@ -300,6 +308,7 @@ function SidebarOrderedReportsContextProvider({
                 policies: allPolicies,
                 isDefaultRoomsBetaEnabled,
                 isBillPayBetaEnabled,
+                shouldHideConciergeConversations,
                 priorityMode,
                 draftComments: reportsDrafts,
                 transactionViolations,
@@ -325,6 +334,7 @@ function SidebarOrderedReportsContextProvider({
         priorityMode,
         isDefaultRoomsBetaEnabled,
         isBillPayBetaEnabled,
+        shouldHideConciergeConversations,
         transactionViolations,
         reportNameValuePairs,
         reportAttributes,

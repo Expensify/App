@@ -2421,6 +2421,24 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     ],
                     exact: true,
                 },
+                // This block has to stay above the Reports one. Both name their central screen SCREENS.REPORT, and normalizedConfigs keeps the
+                // last config for a screen name, so SCREENS.REPORT keeps resolving to the r/:reportID path everywhere else.
+                [NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR]: {
+                    screens: {
+                        [SCREENS.CONCIERGE_SIDEBAR]: {
+                            path: ROUTES.CONCIERGE_CHATS,
+                            exact: true,
+                        },
+                        [SCREENS.REPORT]: {
+                            path: ROUTES.CONCIERGE_CONVERSATION.route,
+                            exact: true,
+                            parse: {
+                                // eslint-disable-next-line rulesdir/no-default-id-values -- parse must return a string, and the report screen reads an empty reportID as absent
+                                reportID: (reportID: string | undefined) => reportID ?? '',
+                            },
+                        },
+                    },
+                },
                 [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {
                     screens: {
                         [SCREENS.INBOX]: {

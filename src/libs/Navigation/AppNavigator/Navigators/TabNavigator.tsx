@@ -31,6 +31,7 @@ import TabNavigatorBar from './TabNavigatorBar';
 
 const LazyHomePage = lazy(() => import('@pages/home/HomePage'));
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
+const LazyConciergeSplitNavigator = lazy(() => import('./ConciergeSplitNavigator'));
 const LazySettingsSplitNavigator = lazy(() => import('./SettingsSplitNavigator'));
 const LazyWorkspaceNavigator = lazy(() => import('./WorkspaceNavigator'));
 const LazyInsightsPage = lazy(() => import('@pages/Insights/InsightsPage'));
@@ -80,6 +81,7 @@ function HomePageScreen() {
     );
 }
 const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator, CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
+const ConciergeSplitNavigatorScreen = withSuspense(LazyConciergeSplitNavigator);
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
 const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
 const InsightsPageScreen = withSuspense(LazyInsightsPage);
@@ -93,7 +95,7 @@ const Tab = createBottomTabNavigator<TabNavigatorParamList>();
  * Swiping from these screens would pop the entire TAB_NAVIGATOR, which feels wrong.
  * WORKSPACE.INITIAL is intentionally excluded — swiping back from it returns to the workspace list.
  */
-const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
+const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.CONCIERGE_SIDEBAR, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
 
 const TAB_SCREEN_OPTIONS_BASE = {
     headerShown: false,
@@ -133,6 +135,10 @@ function TabNavigator() {
                 <Tab.Screen
                     name={SCREENS.HOME}
                     component={HomePageScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR}
+                    component={ConciergeSplitNavigatorScreen}
                 />
                 <Tab.Screen
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}

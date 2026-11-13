@@ -15,13 +15,14 @@ import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unst
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
-import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
+import {isNativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
+import ConciergeSplitNavigator from './ConciergeSplitNavigator';
 import ReportsSplitNavigator from './ReportsSplitNavigator';
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import SettingsSplitNavigator from './SettingsSplitNavigator';
@@ -42,9 +43,9 @@ function TabNavigator() {
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
-    // A tab with no bar item draws no icon.
-    const getScreenOptions = ({route}: {route: {name: NativeTabName}}) =>
-        route.name === tabWithoutBarItem
+    // A tab with no bar item draws no icon. The Concierge page only has a place in the wide flat navigation, so it has no glyph and no bar item.
+    const getScreenOptions = ({route}: {route: {name: keyof TabNavigatorParamList}}) =>
+        route.name === tabWithoutBarItem || !isNativeTabName(route.name)
             ? {...screenOptions, ...HIDDEN_TAB_OPTIONS}
             : {
                   ...screenOptions,
@@ -64,6 +65,10 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.HOME}
                 component={HomePage}
+            />
+            <Tab.Screen
+                name={NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR}
+                component={ConciergeSplitNavigator}
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}

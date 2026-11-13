@@ -190,6 +190,7 @@ const SENTRY_LABEL = {
     NAVIGATION_TAB_BAR: {
         EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
         INBOX: 'NavigationTabBar-Inbox',
+        CONCIERGE: 'NavigationTabBar-Concierge',
         REPORTS: 'NavigationTabBar-Reports',
         INSIGHTS: 'NavigationTabBar-Insights',
         WORKSPACES: 'NavigationTabBar-Workspaces',
@@ -200,6 +201,10 @@ const SENTRY_LABEL = {
         FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
         FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
         SUPPORTAL_SWITCHER_BUTTON: 'NavigationTabBar-SupportalSwitcherButton',
+    },
+    CONCIERGE_SIDEBAR: {
+        NEW_CHAT: 'ConciergeSidebar-NewChat',
+        CONVERSATION: 'ConciergeSidebar-Conversation',
     },
     FAB_MENU: {
         CREATE_EXPENSE: 'FABMenu-CreateExpense',
