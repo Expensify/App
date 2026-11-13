@@ -22,6 +22,7 @@ import {
     shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
     shouldShowTaxRateError,
+    shouldShowUKFuelRateTaxError,
 } from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 
@@ -350,6 +351,7 @@ function getWorkspaceMenuItems({
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES)) {
             items.push({
                 translationKey: 'workspace.common.distanceRates',
+                brickRoadIndicator: shouldShowUKFuelRateTaxError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 icon: icons.Car,
                 getRoute: () => ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID),
                 screenName: SCREENS.WORKSPACE.DISTANCE_RATES,

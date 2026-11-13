@@ -94,7 +94,7 @@ describe('Coming-soon integrations in unified Connections', () => {
         expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();
 
         await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, '2026-10-15 10:00:00'));
-        expect(screen.getByLabelText('Exact Online, Coming soon, On waitlist')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Exact Online, Coming soon, You’re on the waitlist')).toBeOnTheScreen();
 
         await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, null));
         expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();
@@ -106,7 +106,7 @@ describe('Coming-soon integrations in unified Connections', () => {
     });
 
     it.each([{enabledBetas: []}, {enabledBetas: [CONST.BETAS.ODOO]}])(
-        'lists Odoo as coming soon right after Sage Intacct with Odoo beta enrollment $enabledBetas',
+        'lists Odoo as coming soon right after the Sage cards with Odoo beta enrollment $enabledBetas',
         async ({enabledBetas}) => {
             // Given a workspace, where the Odoo beta may be enabled since the painted door shows to everyone
             mockEnabledBetas = enabledBetas;
@@ -117,9 +117,9 @@ describe('Coming-soon integrations in unified Connections', () => {
             const {result} = renderHook(() => useAccountingConnectionListings(policy), {wrapper: TestWrapper});
             await waitForBatchedUpdatesWithAct();
 
-            // Then Odoo follows Sage Intacct, as in the design, and offers no connect flow yet
+            // Then Odoo follows Sage Accounting so the two Sage cards stay together, and offers no connect flow yet
             const keys = result.current.map((listing) => listing.key);
-            expect(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.ODOO)).toBe(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) + 1);
+            expect(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.ODOO)).toBe(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING) + 1);
             const listing = result.current.find((item) => item.key === CONST.POLICY.CONNECTIONS.NAME.ODOO);
             expect(listing?.onConnect).toBeUndefined();
 

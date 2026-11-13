@@ -136,7 +136,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         const key = isIntuitEnterpriseSuite ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE : name;
         const isConnected = name === connectedIntegration && !!isIntuitEnterpriseSuite === isConnectedToIntuitEnterpriseSuite;
 
-        return {
+        const listing: ConnectionListing = {
             key,
             category: CONST.TAB.CONNECTIONS.ACCOUNTING,
             title: integrationData.title,
@@ -161,16 +161,30 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                 anchorRef.current = button;
             },
         };
+        if (name !== CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
+            return listing;
+        }
+
+        // Sage Accounting sits next to Sage Intacct, the other Sage product, and Odoo follows them as designed. Their
+        // connector flows arrive in later releases, so beta users also see their waitlist cards for now.
+        return [
+            listing,
+            {
+                key: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING,
+                category: CONST.TAB.CONNECTIONS.ACCOUNTING,
+                title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.sageAccounting,
+                // Sage Accounting shares the Sage logo with Sage Intacct
+                icon: accountingIcons.IntacctSquare,
+            },
+            {
+                key: CONST.POLICY.CONNECTIONS.NAME.ODOO,
+                category: CONST.TAB.CONNECTIONS.ACCOUNTING,
+                title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.odoo,
+            },
+        ];
     });
 
-    // The connector flows arrive in later releases, so beta users also see the waitlist rows for now.
-    // Odoo is designed to sit right after Sage Intacct, while Exact Online stays last.
-    const odooIndex = listings.findIndex((listing) => listing.key === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) + 1;
-    listings.splice(odooIndex, 0, {
-        key: CONST.POLICY.CONNECTIONS.NAME.ODOO,
-        category: CONST.TAB.CONNECTIONS.ACCOUNTING,
-        title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.odoo,
-    });
+    // The connector flow arrives in a later release, so beta users also see the waitlist for now.
     listings.push({
         key: CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE,
         category: CONST.TAB.CONNECTIONS.ACCOUNTING,

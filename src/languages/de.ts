@@ -571,6 +571,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Keine Ergebnisse. Bitte passen Sie Ihre Filter oder Suchanfrage an',
         unableToDisplayChart: 'Diagram kann nicht angezeigt werden',
         webGLNotSupported: 'Ihr Browser unterstützt WebGL nicht. Bitte aktivieren Sie es oder wechseln Sie den Browser.',
+        webAssemblyNotSupported: 'WebAssembly ist in Ihrem Browser nicht verfügbar. Versuchen Sie einen anderen Browser, um Diagramme anzuzeigen.',
         chartFailedToLoad: 'Das Diagramm konnte nicht geladen werden. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.',
         apiKey: 'API-Schlüssel',
         exportsTo: 'Exportiert nach',
@@ -3379,10 +3380,8 @@ ${amount} für ${merchant} – ${date}`,
         approverInMultipleWorkflows: 'Dieses Mitglied gehört bereits zu einem anderen Genehmigungsworkflow. Alle Aktualisierungen hier werden sich auch dort auswirken.',
         approverNotWorkspaceMember: 'Diese genehmigende Person ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue genehmigende Person oder löschen Sie diesen Workflow.',
         defaultWorkflowApproverNotWorkspaceMember: 'Diese genehmigende Person ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue genehmigende Person.',
-        overLimitApproverNotWorkspaceMember:
-            'Die zusätzliche genehmigende Person für Berichte über dem Limit ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue zusätzliche genehmigende Person.',
-        overLimitApproverInWorkflow:
-            'Die zusätzliche Genehmigungsperson für Berichte über dem Limit ist bereits eine Genehmigungsperson in diesem Workflow. Wählen Sie eine andere zusätzliche Genehmigungsperson.',
+        overLimitAmountBelowPreviousApprover: 'Gib eine Berichtssumme ein, die mindestens so hoch ist wie die des vorherigen Genehmigenden.',
+        overLimitAmountAboveNextApprover: 'Gib eine Berichtssumme ein, die nicht höher ist als die des nächsten Genehmigenden.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> genehmigt bereits Berichte für <strong>${name2}</strong>. Bitte wähle eine andere approvierende Person, um einen zirkulären Workflow zu vermeiden.`,
         emptyContent: {
@@ -3396,6 +3395,7 @@ ${amount} für ${merchant} – ${date}`,
             `Genehmigungen werden über deine ${provider}-Integration verwaltet. Um deinen Genehmigungsworkflow zu aktualisieren, gehe zu deinen ${provider}-Verbindungseinstellungen.`,
         goToProviderSettings: ({provider}: {provider: string}) => `Zu den ${provider}-Einstellungen gehen`,
         approverFromProvider: ({provider}: {provider: string}) => `von ${provider}`,
+        ifReportIsOver: ({amount}: {amount: string}) => `Wenn der Bericht über ${amount} liegt`,
         finalApprover: 'Letzte*r Genehmigende*r',
         manager: 'Manager',
         submitFrequency: 'Einreichungshäufigkeit',
@@ -3463,7 +3463,7 @@ ${amount} für ${merchant} – ${date}`,
     },
     workflowsCreateApprovalsPage: {
         title: 'Bestätigen',
-        header: 'Fügen Sie weitere Genehmigende hinzu und bestätigen Sie.',
+        header: 'Weitere Genehmigende hinzufügen oder bestätigen',
         additionalApprover: 'Zusätzliche*r Genehmiger*in',
         submitButton: 'Workflow hinzufügen',
     },
@@ -3471,6 +3471,9 @@ ${amount} für ${merchant} – ${date}`,
         title: 'Genehmigungsworkflow bearbeiten',
         deleteTitle: 'Genehmigungsworkflow löschen',
         deletePrompt: 'Möchtest du diesen Genehmigungs-Workflow wirklich löschen? Alle Mitglieder werden anschließend dem Standard-Workflow folgen.',
+        hiddenRoutesTitle: 'Einige Berichte werden anders weitergeleitet',
+        hiddenRoutesPrompt:
+            'Dieser Workflow wurde mit Genehmigenden eingerichtet, die einige Berichte je nach Berichtssumme an andere Genehmigende senden. Beim Speichern bleiben nur die hier angezeigten Genehmigenden erhalten, sodass jeder Bericht über sie läuft.',
     },
     workflowsExpensesFromPage: {
         title: 'Ausgaben ab',
@@ -3485,24 +3488,19 @@ ${amount} für ${merchant} – ${date}`,
     workflowsApproverPage: {
         genericErrorMessage: 'Die genehmigende Person konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
         title: 'Genehmigenden festlegen',
+        setFirstApprover: 'Ersten Genehmigenden festlegen',
+        addApprover: 'Genehmigenden hinzufügen',
         description: 'Diese Person wird die Ausgaben genehmigen.',
     },
     workflowsApprovalLimitPage: {
-        title: 'Genehmiger',
-        header: '(Optional) Möchten Sie ein Genehmigungslimit hinzufügen?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Füge eine weitere Genehmigungsperson hinzu, wenn <strong>${approverName}</strong> Genehmigungsperson ist und der Bericht den untenstehenden Betrag überschreitet:`
-                : 'Weitere:n Genehmiger:in hinzufügen, wenn ein Bericht den folgenden Betrag überschreitet:',
-        reportAmountLabel: 'Berichtsbetrag',
-        additionalApproverLabel: 'Zusätzliche*r Genehmiger*in',
-        skip: 'Überspringen',
+        whenShouldApprove: ({approverName}: {approverName: string}) => `Wann soll ${approverName} genehmigen?`,
+        always: 'Immer',
+        overSetAmount: 'Nur für Berichte über einem festgelegten Betrag',
+        reportTotal: 'Berichtssumme',
+        approvesOverAmount: ({approverName, amount}: {approverName: string; amount: string}) => `${approverName} genehmigt nur Berichte über ${amount}.`,
+        removeApprover: 'Genehmigenden entfernen',
         next: 'Weiter',
-        removeLimit: 'Limit entfernen',
         enterAmountError: 'Bitte gib einen gültigen Betrag ein',
-        enterApproverError: 'Ein Genehmiger ist erforderlich, wenn du ein Berichtslimit festlegst',
-        enterBothError: 'Geben Sie einen Berichtsbetrag und eine zusätzliche genehmigende Person ein',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Berichte über ${approvalLimit} werden an ${approverName} weitergeleitet`,
     },
     workflowsPayerPage: {
         title: 'Autorisierte zahlende Person',
@@ -7982,8 +7980,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             integrationWaitlist: {
                 comingSoon: 'Demnächst verfügbar',
                 joinWaitlist: 'Warteliste beitreten',
-                onWaitlist: 'Auf der Warteliste',
-                addedToWaitlist: 'Sie stehen auf der Warteliste',
+                onWaitlist: 'Sie stehen auf der Warteliste',
+                onWaitlistButton: 'Auf der Warteliste',
+                onTheList: 'Sie stehen auf der Liste!',
                 waitlistDescription: 'Concierge sendet Ihnen eine Nachricht, sobald diese Integration bereit ist, und erklärt Ihnen, wie Sie die Verbindung herstellen.',
             },
             setup: 'Verbinden',
@@ -8399,6 +8398,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             statusExpired: 'Abgelaufen',
             statusInactive: 'Inaktiv',
             unit: 'Einheit',
+            ukFuelRateTaxError: 'Bitte füge einen Steuersatz von 20 % hinzu, um die Steuer für die britischen Advisory Fuel Rates zu erfassen.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Bitte füge in ${integrationName} einen Steuersatz von 20 % hinzu, um die Steuer für die britischen Advisory Fuel Rates zu erfassen.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Steuern müssen im Workspace aktiviert sein, um diese Funktion zu verwenden. Gehe zu <a href="#">Weitere Funktionen</a>, um das zu ändern.</muted-text>',
             deleteDistanceRate: 'Entfernungsrate löschen',
@@ -10923,6 +10925,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             sortAscending: 'Aufsteigend sortieren',
             sortDescending: 'Absteigend sortieren',
             hideColumn: 'Spalte ausblenden',
+            resetColumnSizes: 'Spaltenbreiten zurücksetzen',
         },
         groupColumns: 'Spalten gruppieren',
         expenseColumns: 'Spalten für Ausgaben',
@@ -11006,7 +11009,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             completed: 'Abgeschlossen',
             amount: {
                 lessThan: (amount?: string) => `Weniger als ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Kleiner oder gleich ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Größer als ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Größer oder gleich ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Zwischen ${greaterThan} und ${lessThan}`;
@@ -11267,6 +11272,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             category: 'Kategorie',
             tag: 'Tag',
         },
+        switchToTableView: 'Zur Tabellenansicht wechseln',
+        switchToExpenseView: 'Zur Ausgabenansicht wechseln',
     },
     report: {
         newReport: {

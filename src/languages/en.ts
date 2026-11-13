@@ -102,6 +102,7 @@ const translations = {
         unableToDisplayChart: 'Unable to display chart',
         // @context Shown below "Unable to display chart". "WebGL" is a graphics technology name; keep it untranslated.
         webGLNotSupported: "Your browser doesn't support WebGL. Please enable it or switch browsers.",
+        webAssemblyNotSupported: 'WebAssembly is unavailable in your browser. Try another browser to view charts.',
         // @context Shown below "Unable to display chart" when the chart renderer failed to load, e.g. after an app update while the page stayed open.
         chartFailedToLoad: 'The chart could not be loaded. Please refresh the page and try again.',
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
@@ -3540,6 +3541,7 @@ const translations = {
             `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
         goToProviderSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
         approverFromProvider: ({provider}: {provider: string}) => `from ${provider}`,
+        ifReportIsOver: ({amount}: {amount: string}) => `If report is over ${amount}`,
         finalApprover: 'Final approver',
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
@@ -3594,8 +3596,8 @@ const translations = {
         approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
         approverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver or delete this workflow.',
         defaultWorkflowApproverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver.',
-        overLimitApproverNotWorkspaceMember: 'The additional approver for reports over the limit is no longer a workspace member. Choose a new additional approver.',
-        overLimitApproverInWorkflow: 'The additional approver for reports over the limit is already an approver in this workflow. Choose a different additional approver.',
+        overLimitAmountBelowPreviousApprover: 'Enter a report total at least as high as the previous approver’s.',
+        overLimitAmountAboveNextApprover: 'Enter a report total no higher than the next approver’s.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
         emptyContent: {
@@ -3617,7 +3619,7 @@ const translations = {
     },
     workflowsCreateApprovalsPage: {
         title: 'Confirm',
-        header: 'Add more approvers and confirm.',
+        header: 'Add more approvers or confirm',
         additionalApprover: 'Additional approver',
         submitButton: 'Add workflow',
     },
@@ -3625,6 +3627,9 @@ const translations = {
         title: 'Edit approval workflow',
         deleteTitle: 'Delete approval workflow',
         deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',
+        hiddenRoutesTitle: 'Some reports will be routed differently',
+        hiddenRoutesPrompt:
+            'This workflow was set up with approvers who send some reports to other approvers, depending on the report total. Saving it keeps only the approvers shown here, so every report will go through them.',
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
@@ -3638,24 +3643,19 @@ const translations = {
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
         title: 'Set approver',
+        setFirstApprover: 'Set first approver',
+        addApprover: 'Add approver',
         description: 'This person will approve the expenses.',
     },
     workflowsApprovalLimitPage: {
-        title: 'Approver',
-        header: '(Optional) Want to add an approval limit?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`
-                : 'Add another approver when a report exceeds the amount below:',
-        reportAmountLabel: 'Report amount',
-        additionalApproverLabel: 'Additional approver',
-        skip: 'Skip',
+        whenShouldApprove: ({approverName}: {approverName: string}) => `When should ${approverName} approve?`,
+        always: 'Always',
+        overSetAmount: 'Only for reports over a set amount',
+        reportTotal: 'Report total',
+        approvesOverAmount: ({approverName, amount}: {approverName: string; amount: string}) => `${approverName} only approves reports over ${amount}.`,
+        removeApprover: 'Remove approver',
         next: 'Next',
-        removeLimit: 'Remove limit',
         enterAmountError: 'Please enter a valid amount',
-        enterApproverError: 'Approver is required when you set a report limit',
-        enterBothError: 'Enter a report amount and additional approver',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -8580,8 +8580,9 @@ const translations = {
             integrationWaitlist: {
                 comingSoon: 'Coming soon',
                 joinWaitlist: 'Join waitlist',
-                onWaitlist: 'On waitlist',
-                addedToWaitlist: 'You’re on the waitlist',
+                onWaitlist: 'You’re on the waitlist',
+                onWaitlistButton: 'On waitlist',
+                onTheList: 'You’re on the list!',
                 waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
             },
             setup: 'Connect',
@@ -9163,6 +9164,9 @@ const translations = {
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
+            ukFuelRateTaxError: 'Please add a 20% tax rate to track tax on the UK Advisory Fuel Rates.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Please add a 20% tax rate in ${integrationName} to track tax on the UK Advisory Fuel Rates.`,
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
@@ -11236,6 +11240,7 @@ const translations = {
             sortAscending: 'Sort ascending',
             sortDescending: 'Sort descending',
             hideColumn: 'Hide column',
+            resetColumnSizes: 'Reset column sizes',
         },
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
@@ -11329,7 +11334,9 @@ const translations = {
             completed: 'Completed',
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Less than or equal to ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Greater than or equal to ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Between ${greaterThan} and ${lessThan}`;
@@ -11574,6 +11581,8 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
+        switchToTableView: 'Switch to table view',
+        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {

@@ -67,7 +67,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        if (!validateApprovalWorkflow(approvalWorkflow, shouldUseApprovalWorkflowRules)) {
+        if (!validateApprovalWorkflow(approvalWorkflow)) {
             return;
         }
 

@@ -1,4 +1,5 @@
 import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
+import EnvironmentBadge from '@components/EnvironmentBadge';
 import Hoverable from '@components/Hoverable';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import getTabAccessibilityLabel from '@components/Navigation/NavigationTabBar/getTabAccessibilityLabel';
@@ -85,6 +86,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                     >
                         <View style={styles.flatNavigationBarHeader}>
                             <FlatNavLogo onPress={navigateToHome} />
+                            <EnvironmentBadge style={styles.flatNavigationBarEnvironmentBadge} />
                         </View>
                         <View style={styles.flatNavigationBarCreateButtonContainer}>
                             <FlatNavCreateButton />

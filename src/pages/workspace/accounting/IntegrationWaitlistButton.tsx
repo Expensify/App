@@ -54,7 +54,7 @@ function IntegrationWaitlistButton({integration, policy}: IntegrationWaitlistBut
 
         isJoiningWaitlist.current = false;
         showConfirmModal({
-            title: translate('workspace.accounting.integrationWaitlist.addedToWaitlist'),
+            title: translate('workspace.accounting.integrationWaitlist.onWaitlist'),
             prompt: translate('workspace.accounting.integrationWaitlist.waitlistDescription'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
@@ -88,7 +88,7 @@ function IntegrationWaitlistButton({integration, policy}: IntegrationWaitlistBut
             sentryLabel={SENTRY_LABELS[integration]}
         >
             {isOnWaitlist && <Button.Icon src={icons.Checkmark} />}
-            <Button.Text>{translate(isOnWaitlist ? 'workspace.accounting.integrationWaitlist.onWaitlist' : 'workspace.accounting.integrationWaitlist.joinWaitlist')}</Button.Text>
+            <Button.Text>{translate(isOnWaitlist ? 'workspace.accounting.integrationWaitlist.onWaitlistButton' : 'workspace.accounting.integrationWaitlist.joinWaitlist')}</Button.Text>
         </Button>
     );
 }
