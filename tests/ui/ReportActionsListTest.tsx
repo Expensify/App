@@ -200,6 +200,7 @@ type MockInvertedFlashListProps = {
     extraData?: unknown;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onContentSizeChange?: () => void;
+    ListFooterComponent?: React.ReactNode;
 };
 
 const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
@@ -1272,6 +1273,56 @@ describe('ReportActionsList (body)', () => {
             view.rerender(<ReportActionsSkeletonGuard reportID={mockReport.reportID}>{content}</ReportActionsSkeletonGuard>);
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
             expect(getCapturedVisibleActions()).toEqual(visibleActions);
+        });
+
+        it('keeps the offline history skeleton after reconnecting until the older actions have loaded', () => {
+            // Given a cached chat without its oldest actions, opened offline with the history skeleton above its messages
+            const actionsWithoutCreated = mockReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+            let isOffline = true;
+            let hasOlderActions = true;
+            mockUseNetwork.mockImplementation(() => ({isOffline}));
+            mockUsePaginatedReportActions.mockImplementation(() => ({...defaultPaginatedReportActionsResult, reportActions: actionsWithoutCreated, hasOlderActions}));
+            const renderList = () => (
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <ReportActionsListContent reportID={mockReport.reportID} />
+                </ReportActionsSkeletonGuard>
+            );
+            const view = render(renderList());
+            expect(getCapturedListProps()?.ListFooterComponent).toBeDefined();
+
+            // When the connection returns before the older actions have loaded
+            isOffline = false;
+            view.rerender(renderList());
+
+            // Then the skeleton keeps the space of the missing history, so removing it cannot move the messages being read
+            expect(getCapturedListProps()?.ListFooterComponent).toBeDefined();
+
+            // When the oldest page has loaded
+            hasOlderActions = false;
+            view.rerender(renderList());
+
+            // Then there is no missing history left to hold space for
+            expect(getCapturedListProps()?.ListFooterComponent).toBeUndefined();
+        });
+
+        it('does not show the history skeleton online for a chat that was not displayed offline', () => {
+            // Given a chat with older actions still on the server, opened while online
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED),
+                hasOlderActions: true,
+            });
+
+            // When the list renders
+            render(
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <ReportActionsListContent reportID={mockReport.reportID} />
+                </ReportActionsSkeletonGuard>,
+            );
+
+            // Then online pagination keeps its existing behavior without a placeholder above the messages
+            expect(getCapturedListProps()?.ListFooterComponent).toBeUndefined();
         });
 
         it('derives a true report pending value for the initial skeleton decision', () => {

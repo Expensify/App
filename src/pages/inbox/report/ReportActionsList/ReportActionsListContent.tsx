@@ -5,6 +5,7 @@ import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkele
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useEnvironment from '@hooks/useEnvironment';
+import useInitial from '@hooks/useInitial';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
@@ -62,6 +63,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {
         report,
         hasOnceLoadedReportActions,
+        hasOlderActions,
         hasNewerActions,
         oldestUnreadReportAction,
         transactionThreadReport,
@@ -207,9 +209,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         </>
     );
 
-    const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const isMissingOldestAction = !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const hasShownOfflineHistorySkeleton = useInitial(isOffline && isMissingOldestAction ? true : undefined);
 
-    const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
+    // Once shown offline, the skeleton keeps holding the space of the missing history after reconnecting until older
+    // actions replace it. Removing it on reconnect would shrink the list and move the messages the user is reading.
+    const shouldShowHistorySkeleton = isMissingOldestAction && (isOffline || (!!hasShownOfflineHistorySkeleton && hasOlderActions));
+
+    const listFooterComponent = shouldShowHistorySkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 
     // The guard only mounts this content when the report is loaded, so this is effectively unreachable.
     // It narrows `report` to non-undefined for the render below and stays a safe fallback if the report
