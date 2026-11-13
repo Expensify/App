@@ -15,6 +15,7 @@ jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     isReady: jest.fn(() => Promise.resolve()),
     init: jest.fn(),
+    getLogTab: jest.fn(),
 }));
 
 // Kept apart from SequentialQueueTest so no pushed request has moved the shared gate before a test starts.

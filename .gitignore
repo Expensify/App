@@ -59,8 +59,8 @@ yarn-error.log
 # Bundled code
 dist/
 
-# Generated eslint-report HTML (npm run eslint-report; written under .eslint-reports/)
-/.eslint-reports/
+# Generated lint-report HTML (npm run lint-report; written under .lint-reports/)
+/.lint-reports/
 
 # BUCK
 buck-out/
@@ -108,9 +108,6 @@ storybook-static
 tests/e2e/results/
 .reassure
 .benchmarks/
-
-# Temporary files created by Metro to check the health of the file watcher
-.metro-health-check*
 
 # Typescript
 *.tsbuildinfo
@@ -185,3 +182,7 @@ server/victory-chart-renderer/.dev/
 
 # Bun lockfiles (VCR uses npm workspaces + package-lock.json; bun is runtime-only)
 bun.lock
+
+# Per-run Oxlint configs written by scripts/lint/oxlint/OxlintLinter.ts
+.oxlintrc.js-plugins.*.json
+.oxlintrc.type-aware.*.json

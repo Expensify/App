@@ -1,3 +1,4 @@
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
 
@@ -56,11 +57,46 @@ function onCrossTabRequestsMerged(callbackFunction: () => void) {
     crossTabRequestsCallback = callbackFunction;
 }
 
+function adoptLeaderDeletions(diskRequests: AnyRequest[]) {
+    if (isClientTheLeader()) {
+        return;
+    }
+    const diskIDs = new Set<number>();
+    for (const r of diskRequests) {
+        const requestIndex = getClientRequestIndex(r);
+        if (requestIndex != null) {
+            diskIDs.add(requestIndex);
+        }
+    }
+    const previousLength = persistedRequests.length;
+    const removedRequests: AnyRequest[] = [];
+    persistedRequests = persistedRequests.filter((r) => {
+        const requestIndex = getClientRequestIndex(r);
+        const isKept = requestIndex == null || diskIDs.has(requestIndex);
+        if (!isKept) {
+            removedRequests.push(r);
+        }
+        return isKept;
+    });
+    if (persistedRequests.length !== previousLength) {
+        Log.info('[PersistedRequests] Reconciled deletions from leader tab', false, {
+            removedCount: previousLength - persistedRequests.length,
+            remainingCount: persistedRequests.length,
+            removedCommands: getCommands(removedRequests),
+            removedRequestIDs: removedRequests.map((r) => getClientRequestIndex(r)),
+        });
+    }
+}
+
 // We have opted for connectWithoutView here as this module is strictly non-UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_REQUESTS,
     callback: (val) => {
         Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null, isInitialized});
+
+        if (isInitialized && val == null && persistedRequests.length > 0) {
+            Log.hmmm('[PersistedRequests] Onyx.clear dropped queued requests', {droppedCommands: getCommands(persistedRequests)});
+        }
 
         // After initialization, in-memory is authoritative — ignore stale disk
         // callbacks to prevent out-of-order Onyx.set() from overwriting the
@@ -85,35 +121,13 @@ Onyx.connectWithoutView({
                     }
                 }
                 persistedRequests = [...persistedRequests, ...newFromOtherTabs];
-                trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests));
                 crossTabRequestsCallback?.();
                 return;
             }
 
-            // Reconcile deletions from the leader tab. When pendingOnyxWrites > 0,
-            // the callback may be a stale own-write (broadcastUpdate fires synchronously
-            // inside Onyx.set) — skip to preserve Issue 4 protection. When counter is 0,
-            // the callback is from a cross-tab storage event, safe to remove from memory
-            // any requests the leader already processed.
-            if (pendingOnyxWrites === 0) {
-                const diskIDs = new Set<number>();
-                for (const r of val) {
-                    const requestIndex = getClientRequestIndex(r);
-                    if (requestIndex != null) {
-                        diskIDs.add(requestIndex);
-                    }
-                }
-                const previousLength = persistedRequests.length;
-                persistedRequests = persistedRequests.filter((r) => {
-                    const requestIndex = getClientRequestIndex(r);
-                    return requestIndex == null || diskIDs.has(requestIndex);
-                });
-                if (persistedRequests.length !== previousLength) {
-                    Log.info('[PersistedRequests] Reconciled deletions from leader tab', false, {
-                        removedCount: previousLength - persistedRequests.length,
-                        remainingCount: persistedRequests.length,
-                    });
-                }
+            const isCrossTabWrite = pendingOnyxWrites === 0;
+            if (isCrossTabWrite) {
+                adoptLeaderDeletions(val);
             }
             return;
         }
@@ -373,7 +387,7 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     });
 }
 
-function shouldPersistOngoingRequest(request: AnyRequest | null): boolean {
+function canPersistRequest(request: AnyRequest | null): boolean {
     if (!request?.data) {
         return true;
     }
@@ -393,7 +407,7 @@ function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     if (ongoingRequestIndex != null) {
         knownOngoingRequestIDs.add(ongoingRequestIndex);
     }
-    if (shouldPersistOngoingRequest(ongoingRequest)) {
+    if (canPersistRequest(ongoingRequest)) {
         trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest));
         return;
     }
@@ -451,7 +465,7 @@ function processNextRequest(): AnyRequest | null {
     // (e.g. File objects in data.file or data.receipt). IndexedDB cannot clone
     // native File objects (DataCloneError). These requests cannot survive a crash
     // anyway since File references are lost on restart.
-    if (shouldPersistOngoingRequest(ongoingRequest)) {
+    if (canPersistRequest(ongoingRequest)) {
         trackOnyxWrite(
             Onyx.multiSet({
                 [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
@@ -529,6 +543,11 @@ function getOngoingRequest(): AnyRequest | null {
     return ongoingRequest;
 }
 
+/** The request being sent comes first, since it was taken from the front of the queue, and saves made before the queue loaded come last */
+function getAllIncludingOngoing(): AnyRequest[] {
+    return [...(ongoingRequest ? [ongoingRequest] : []), ...persistedRequests, ...pendingSaveOperations];
+}
+
 /**
  * Reset the pending Onyx write counter. Used ONLY in tests to simulate
  * a clean state before cross-tab event simulations. In production,
@@ -543,6 +562,9 @@ export {
     clear,
     save,
     getAll,
+    getAllIncludingOngoing,
+    canPersistRequest,
+    getClientRequestIndex,
     getCommands,
     endRequestAndRemoveFromQueue,
     update,

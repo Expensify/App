@@ -23,6 +23,7 @@ const REASON = {
     },
     FLOW_OUTCOMES: {
         TRANSACTION_DENIED: 'Outcome: Transaction denied successfully',
+        FRAUD_REPORTED: 'Outcome: Transaction reported as fraud successfully',
     },
     /** HTTP 4xx errors from the backend (not front-end errors despite the "Client" prefix). */
     CLIENT_ERRORS: {
@@ -146,6 +147,22 @@ const API_RESPONSE_MAP = {
         },
     },
 
+    /** Fraud review - the cardholder confirms the transaction (MFA-gated) */
+    CONFIRM_RECOGNIZED_TRANSACTION: {
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_REVIEWED]: REASON.CLIENT_ERRORS.ALREADY_REVIEWED,
+        },
+    },
+
+    /** Fraud review - reporting fraud skips MFA, so HTTP 200 maps to an outcome that the review screen can show */
+    REPORT_FRAUDULENT_TRANSACTION: {
+        [HTTP_STATUS.SUCCESS]: REASON.FLOW_OUTCOMES.FRAUD_REPORTED,
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_REVIEWED]: REASON.CLIENT_ERRORS.ALREADY_REVIEWED,
+        },
+    },
+
     /** No custom error handling — all responses rely on category fallback reasons. */
     SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN: {},
 
@@ -157,6 +174,7 @@ const API_RESPONSE_MAP = {
 
     /** No custom error handling — all responses rely on category fallback reasons. */
     CHANGE_CARD_PIN: {},
+    CREATE_DIGITAL_WALLET: {},
 } as const;
 
 type DeepLeafValues<T> = T extends Record<string, unknown> ? DeepLeafValues<T[keyof T]> : T;

@@ -24,6 +24,7 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         ReportScreen: {path: 'r/:reportID'},
         SplitExpenseScreen: {path: 'split-expense/:reportID'},
         SplitExpenseQueryScreen: {path: 'split-expense-q/:reportID'},
+        SubPageFlowScreen: {path: 'sub-flow/:subPage?/:action?'},
 
         AmountTab: {path: 'amount'},
         ScanTab: {path: 'scan'},
@@ -40,6 +41,7 @@ jest.mock('@src/ROUTES', () => ({
         CONSTANT_PICKER: {path: 'constant-picker', queryParams: ['formType', 'fieldName', 'fieldValue']},
         SPLIT_EXPENSE: {path: 'split-expense/:reportID'},
         SPLIT_EXPENSE_QUERY: {path: 'split-expense-q/:reportID', queryParams: ['currency']},
+        SUB_FLOW: {path: 'sub-flow/:subPage?/:action?'},
     },
 }));
 
@@ -243,6 +245,84 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account');
         });
 
+        it('rebuilds a complete nested state after removing its focused dynamic route', () => {
+            // Given full router states at both levels, reducing the RHP must retain its full-state metadata.
+            const state = {
+                stale: false,
+                key: 'root',
+                type: 'stack',
+                index: 0,
+                routeNames: ['RHPNavigator'],
+                routes: [
+                    {
+                        key: 'rhp',
+                        name: 'RHPNavigator',
+                        params: {source: 'wallet'},
+                        state: {
+                            stale: false,
+                            key: 'rhp-stack',
+                            type: 'stack',
+                            index: 1,
+                            routeNames: ['WalletScreen', 'VerifyAccountScreen'],
+                            routes: [
+                                {key: 'wallet', name: 'WalletScreen', path: '/settings/wallet'},
+                                {key: 'verify', name: 'VerifyAccountScreen'},
+                            ],
+                        },
+                    },
+                ],
+            } satisfies NavigationState;
+            const snapshot = JSON.stringify(state);
+            const [rhpRoute] = state.routes;
+            const [walletRoute] = rhpRoute.state.routes;
+            const reducedState = {
+                ...state,
+                routes: [
+                    {
+                        ...rhpRoute,
+                        state: {...rhpRoute.state, index: 0, routes: [walletRoute]},
+                    },
+                ],
+            } satisfies NavigationState;
+
+            // When production serialization peels off the dynamic suffix, it must rebuild the nested full state.
+            const result = getPathFromState(state);
+
+            // Then RN receives exactly the reduced full tree and the caller's original tree remains intact.
+            expect(result).toBe('/settings/wallet/verify-account');
+            expect(mockRNGetPathFromState).toHaveBeenCalledTimes(1);
+            expect(mockRNGetPathFromState).toHaveBeenCalledWith(reducedState, {});
+            expect(JSON.stringify(state)).toBe(snapshot);
+        });
+
+        it('removes the focused middle sibling from a complete state and focuses the last survivor', () => {
+            // Given a full stack whose dynamic route is in the middle, route order differs from focus order.
+            const state = {
+                stale: false,
+                key: 'root',
+                type: 'stack',
+                index: 1,
+                routeNames: ['WalletScreen', 'FlagScreen', 'ReportScreen'],
+                routes: [
+                    {key: 'wallet', name: 'WalletScreen', path: '/settings/wallet'},
+                    {key: 'flag', name: 'FlagScreen', params: {reportID: '456', reportActionID: 'abc'}},
+                    {key: 'report', name: 'ReportScreen', params: {reportID: '123'}, path: '/r/123'},
+                ],
+            } satisfies NavigationState;
+            const snapshot = JSON.stringify(state);
+            const [walletRoute, , reportRoute] = state.routes;
+            const reducedState = {...state, index: 1, routes: [walletRoute, reportRoute]} satisfies NavigationState;
+
+            // When production serialization removes the focused route, the last remaining sibling supplies the base.
+            const result = getPathFromState(state);
+
+            // Then both survivors retain their keys, params and paths and no input state is mutated.
+            expect(result).toBe('/r/123/flag/456/abc');
+            expect(mockRNGetPathFromState).toHaveBeenCalledTimes(1);
+            expect(mockRNGetPathFromState).toHaveBeenCalledWith(reducedState, {});
+            expect(JSON.stringify(state)).toBe(snapshot);
+        });
+
         it('two dynamic suffixes inside nested navigator', () => {
             const state = buildState([
                 {
@@ -252,6 +332,48 @@ describe('getPathFromState', () => {
             ]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account/country?country=PL');
+        });
+
+        it('builds every step of a sub-page flow on the base the flow was opened from', () => {
+            // Given a multi-step flow whose second step was pushed on top of its first step
+            const state = buildState([
+                {name: 'ReportScreen', params: {reportID: '123'}},
+                {name: 'SubPageFlowScreen', params: {subPage: 'name'}},
+                {name: 'SubPageFlowScreen', params: {subPage: 'job-title'}},
+            ]);
+
+            // When the URL is built for the focused step
+            const result = getPathFromState(state as PartialState<NavigationState>);
+
+            // Then the earlier step is not added as a layer, so the URL names only the current step
+            expect(result).toBe('/r/123/sub-flow/job-title');
+        });
+
+        it('still layers a dynamic screen without sub-pages on top of itself', () => {
+            // Given a dynamic screen that is allowed to open on top of itself
+            const state = buildState([{name: 'WalletScreen'}, {name: 'VerifyAccountScreen'}, {name: 'VerifyAccountScreen'}]);
+
+            // When the URL is built
+            const result = getPathFromState(state as PartialState<NavigationState>);
+
+            // Then both copies stay in the URL, because each one is a real layer
+            expect(result).toBe('/settings/wallet/verify-account/verify-account');
+        });
+
+        it('keeps a dynamic layer that sits between sub-page steps and the base', () => {
+            // Given a sub-page flow opened on top of another dynamic screen
+            const state = buildState([
+                {name: 'WalletScreen'},
+                {name: 'VerifyAccountScreen'},
+                {name: 'SubPageFlowScreen', params: {subPage: 'name'}},
+                {name: 'SubPageFlowScreen', params: {subPage: 'job-title'}},
+            ]);
+
+            // When the URL is built for the focused step
+            const result = getPathFromState(state as PartialState<NavigationState>);
+
+            // Then only the earlier step is skipped and the other dynamic screen stays in the base
+            expect(result).toBe('/settings/wallet/verify-account/sub-flow/job-title');
         });
 
         it('only dynamic route, no base (state has single route)', () => {

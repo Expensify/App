@@ -16,6 +16,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent} from 'react-native';
 
@@ -23,7 +24,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
-type SearchTypeMenuItemProps = {
+type SearchTypeMenuItemProps = WithRequiredSentryLabel & {
     /** Translated title */
     title: string;
 
@@ -44,7 +45,7 @@ const COLLAPSED_BADGE_EXIT_DURATION_MS = 90;
 /**
  * Menu item row for Search type menu
  */
-function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: SearchTypeMenuItemProps) {
+function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, sentryLabel}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -77,7 +78,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
             accessibilityLabel={title}
             accessibilityState={{selected: focused}}
             role={CONST.ROLE.TAB}
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
+            sentryLabel={sentryLabel}
             style={({hovered, pressed}) => [
                 styles.flexRow,
                 styles.sectionMenuItem(shouldUseNarrowLayout),

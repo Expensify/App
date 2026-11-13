@@ -18,6 +18,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
 import {
@@ -33,7 +34,20 @@ import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportActions, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {
+    CardList,
+    MergeTransaction,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    Report,
+    ReportAction,
+    ReportActions,
+    Rule,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 
@@ -85,6 +99,7 @@ function setupMergeTransactionDataAndNavigate(
     navigationTransactionID: string,
     transactions: Transaction[],
     localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     searchReports?: Report[],
     isSelectingSourceTransaction?: boolean,
@@ -134,6 +149,7 @@ function setupMergeTransactionDataAndNavigate(
             targetTransaction,
             sourceTransaction,
             localeCompare,
+            translate,
             getCurrencyDecimals,
             searchReports,
             targetTransactionPolicy,
@@ -174,6 +190,8 @@ function getTransactionsForMergingLocally(
     targetTransaction: Transaction,
     transactions: OnyxCollection<Transaction>,
     rules: OnyxCollection<Rule>,
+    // The full list is needed because eligibility is checked against a different report owner per candidate transaction.
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     allPolicies: OnyxCollection<Policy>,
     currentUserLogin: string | undefined,
     allReports?: OnyxCollection<Report>,
@@ -193,7 +211,7 @@ function getTransactionsForMergingLocally(
         // Resolve admin status against the candidate’s own workspace. If the policy is absent from
         // the local cache we cannot verify access, so we exclude the candidate rather than assuming
         // admin rights.
-        const candidateReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? getReportOrDraftReport(transaction.reportID);
+        const candidateReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? getReportOrDraftReport({reportID: transaction.reportID});
         if (!candidateReport) {
             return false;
         }
@@ -208,7 +226,7 @@ function getTransactionsForMergingLocally(
         return (
             areTransactionsEligibleForMerge(targetTransaction, transaction) &&
             !isTransactionPendingDelete(transaction) &&
-            isMoneyRequestReportEligibleForMerge(candidateReport, isCandidateAdmin, rules)
+            isMoneyRequestReportEligibleForMerge(candidateReport, isCandidateAdmin, rules, getLoginByAccountID(candidateReport.ownerAccountID, personalDetails))
         );
     });
 
@@ -226,6 +244,7 @@ function getTransactionsForMerging({
     report,
     currentUserLogin,
     rules,
+    personalDetails,
     allPolicies,
     allReports,
 }: {
@@ -238,6 +257,8 @@ function getTransactionsForMerging({
     currentUserLogin: string | undefined;
     cardList?: CardList;
     rules: OnyxCollection<Rule>;
+    /** The full list is needed because eligibility is checked against a different report owner per candidate transaction. */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
     allPolicies?: OnyxCollection<Policy>;
     allReports?: OnyxCollection<Report>;
 }) {
@@ -274,7 +295,7 @@ function getTransactionsForMerging({
     }
 
     if (isOffline) {
-        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, rules, allPolicies, currentUserLogin, allReports);
+        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, rules, personalDetails, allPolicies, currentUserLogin, allReports);
     } else {
         getTransactionsForMergingFromAPI(transactionID);
     }
@@ -344,7 +365,8 @@ function getOnyxTargetTransactionData({
         data = getUpdateTrackExpenseParams({
             transactionID: targetTransaction.transactionID,
             transaction: targetTransaction,
-            transactionThreadReportID: targetTransactionThreadReport?.reportID,
+            transactionThread: targetTransactionThreadReport,
+            transactionThreadParentReport: targetTransactionThreadParentReport,
             transactionChanges: filteredTransactionChanges,
             policy,
             delegateAccountID,
@@ -562,7 +584,7 @@ function mergeTransactionRequest({
 
         const transactionToDelete = mergeTransaction.reportID === targetTransaction.reportID ? sourceTransaction : targetTransaction;
         const transactionsOfDeletableReport = Object.values(transactionsOfDeletableReportCollection);
-        const deletableReport = getReportOrDraftReport(transactionToDelete.reportID);
+        const deletableReport = getReportOrDraftReport({reportID: transactionToDelete.reportID});
         const reportPreviewActionIDOfDeletableReport = deletableReport?.parentReportActionID;
         const optimisticReportDeletionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> =
             transactionsOfDeletableReport.length === 1
@@ -581,7 +603,7 @@ function mergeTransactionRequest({
                       {
                           onyxMethod: Onyx.METHOD.SET,
                           key: `${ONYXKEYS.COLLECTION.REPORT}${transactionToDelete.reportID}`,
-                          value: getReportOrDraftReport(transactionToDelete.reportID) ?? null,
+                          value: getReportOrDraftReport({reportID: transactionToDelete.reportID}) ?? null,
                       },
                   ]
                 : [];

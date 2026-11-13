@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
+import React, {createContext, useContext, useState} from 'react';
 
 type FullScreenBlockingViewStateContextType = {
     isBlockingViewVisible: boolean;
@@ -34,19 +34,19 @@ const FullScreenBlockingViewActionsContext = createContext<FullScreenBlockingVie
 function FullScreenBlockingViewContextProvider({children}: FullScreenBlockingViewContextProviderProps) {
     const [routeKeys, setRouteKeys] = useState<Set<string>>(new Set());
 
-    const addRouteKey = useCallback((key: string) => {
+    const addRouteKey = (key: string) => {
         setRouteKeys((prevKeys) => new Set(prevKeys).add(key));
-    }, []);
+    };
 
-    const removeRouteKey = useCallback((key: string) => {
+    const removeRouteKey = (key: string) => {
         setRouteKeys((prevKeys) => {
             const newKeys = new Set(prevKeys);
             newKeys.delete(key);
             return newKeys;
         });
-    }, []);
+    };
 
-    const isBlockingViewVisible = useMemo(() => routeKeys.size > 0, [routeKeys.size]);
+    const isBlockingViewVisible = routeKeys.size > 0;
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values

@@ -276,6 +276,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
                                         isActive={expirationToggle}
                                         onToggle={setExpirationToggle}
                                         switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
+                                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.LIMIT_TYPE_ADD_EXPIRATION_DATE_SWITCH}
                                         shouldPlaceSubtitleBelowSwitch
                                         wrapperStyle={[styles.mv3]}
                                     />

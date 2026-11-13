@@ -9,12 +9,13 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isInvoiceReport, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,10 +62,18 @@ function WideRHPReceiptPanelGate() {
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(report?.reportID);
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
-    const hasMultipleTransactions = (visibleTransactions?.length ?? 0) > 1;
-    const isConfirmedMultiTransactionReport = isMoneyRequestOrInvoiceReport && hasMultipleTransactions && shouldDisplayReportTableView(report, visibleTransactions ?? []);
+    const visibleTransactionsCount = visibleTransactions?.length ?? 0;
+    // A single-expense report in the table view gets the same layout as a multi-expense report. Empty reports keep the wide layout.
+    const hasTransactionsInTable = shouldUseMultiExpenseReportLayout(visibleTransactionsCount, shouldUseTableViewForSingleExpense);
+    const isConfirmedMultiTransactionReport =
+        isMoneyRequestOrInvoiceReport && hasTransactionsInTable && shouldDisplayReportTableView(report, visibleTransactions ?? [], shouldUseTableViewForSingleExpense);
+
+    // A bill with no expense or several expenses keeps the narrow view because it doesn't show the expense table yet.
+    // The loaded expenses can be incomplete, so this uses the count from the server.
+    const isOneExpenseBill = report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL && isOneTransactionReport(report);
 
     const shouldShowWideRHP =
         !isConfirmedMultiTransactionReport &&
@@ -72,6 +81,7 @@ function WideRHPReceiptPanelGate() {
             parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE ||
             parentReportAction?.childType === CONST.REPORT.TYPE.IOU ||
             report?.type === CONST.REPORT.TYPE.EXPENSE ||
+            isOneExpenseBill ||
             report?.type === CONST.REPORT.TYPE.IOU ||
             report?.type === CONST.REPORT.TYPE.INVOICE);
 

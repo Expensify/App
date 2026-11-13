@@ -1,4 +1,4 @@
-import {buildDeleteApprovalWorkflowRulesOnyxData} from '@libs/actions/Workflow';
+import {buildDeleteApprovalWorkflowRulesOnyxData} from '@libs/actions/ApprovalWorkflowRulesOnyxData';
 import {write} from '@libs/API';
 import type {ConnectPolicyToZenefitsParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';

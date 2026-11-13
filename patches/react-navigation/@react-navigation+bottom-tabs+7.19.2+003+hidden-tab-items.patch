@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-index e6ea55b..4d577fe 100644
+index b087433de3b..f729d3ecbf1 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 @@ -4,11 +4,11 @@ import { getLabel, SafeAreaProviderCompat, Screen as ScreenContent } from '@reac
@@ -39,7 +39,29 @@ index e6ea55b..4d577fe 100644
        provenance: 0
      }
    });
-@@ -189,17 +201,17 @@ export function NativeBottomTabView({
+@@ -88,7 +100,9 @@ export function NativeBottomTabView({
+         target: route.key
+       });
+     }
+-    if (actionOrigin === 'programmatic-js' || focusedRouteKey === route.key) {
++    // While a hidden route is focused, native keeps the tab underneath it selected, so native reporting that tab is
++    // not a request to leave the hidden route.
++    if (actionOrigin === 'programmatic-js' || nativeSelectedRouteKey === route.key) {
+       dispatch({
+         type: 'CONFIRM_STATE',
+         confirmed
+@@ -114,7 +128,9 @@ export function NativeBottomTabView({
+       console.error(`Received 'tabSelectionRejected' for route that doesn't exist: ${selectedScreenKey}`);
+       return;
+     }
+-    if (focusedRouteKey === route.key) {
++    // Android re-sends an unchanged request on a re-render and rejects it as repeated, which reports the tab under a
++    // focused hidden route. Following it would close the hidden route.
++    if (nativeSelectedRouteKey === route.key) {
+       dispatch({
+         type: 'CONFIRM_STATE',
+         confirmed
+@@ -189,17 +205,17 @@ export function NativeBottomTabView({
    const tabBarMinimizeBehavior = currentOptions.tabBarMinimizeBehavior === 'auto' ? 'automatic' : currentOptions.tabBarMinimizeBehavior === 'none' ? 'never' : currentOptions.tabBarMinimizeBehavior;
    const shouldHideTabBar = currentOptions.tabBarStyle?.display === 'none';
    const bottomAccessory = currentOptions.bottomAccessory;
@@ -61,7 +83,7 @@ index e6ea55b..4d577fe 100644
        colorScheme: dark ? 'dark' : 'light',
        nativeContainerStyle: {
          backgroundColor: colors.background
-@@ -213,6 +225,9 @@ export function NativeBottomTabView({
+@@ -213,6 +229,9 @@ export function NativeBottomTabView({
          tabBarTintColor: activeTintColor
        },
        children: state.routes.map((route, index) => {
@@ -71,7 +93,7 @@ index e6ea55b..4d577fe 100644
          const {
            options,
            render,
-@@ -224,6 +239,7 @@ export function NativeBottomTabView({
+@@ -224,6 +243,7 @@ export function NativeBottomTabView({
            title,
            lazy = false,
            tabBarLabel,
@@ -79,7 +101,7 @@ index e6ea55b..4d577fe 100644
            tabBarSelectionEnabled,
            tabBarBadgeStyle,
            tabBarIcon,
-@@ -290,6 +306,7 @@ export function NativeBottomTabView({
+@@ -290,6 +310,7 @@ export function NativeBottomTabView({
            preventNativeSelection: tabBarSelectionEnabled === false,
            badgeValue: tabBarBadge?.toString(),
            title: tabTitle,
@@ -87,7 +109,7 @@ index e6ea55b..4d577fe 100644
            nativeContainerStyle: {
              backgroundColor: colors.background
            },
-@@ -369,9 +386,40 @@ export function NativeBottomTabView({
+@@ -369,9 +390,40 @@ export function NativeBottomTabView({
            })
          }, route.key);
        })

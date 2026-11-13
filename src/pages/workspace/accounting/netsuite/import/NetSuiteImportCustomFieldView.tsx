@@ -27,7 +27,7 @@ import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Po
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type CustomField = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -43,6 +43,15 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
     };
 };
 
+const ROW_SENTRY_LABELS = {
+    [INPUT_IDS.LIST_NAME]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.LIST_NAME,
+    [INPUT_IDS.TRANSACTION_FIELD_ID]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.TRANSACTION_FIELD_ID,
+    [INPUT_IDS.SEGMENT_NAME]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.SEGMENT_NAME,
+    [INPUT_IDS.INTERNAL_ID]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.INTERNAL_ID,
+    [INPUT_IDS.SCRIPT_ID]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.SCRIPT_ID,
+    [INPUT_IDS.MAPPING]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.MAPPING,
+};
+
 function NetSuiteImportCustomFieldView({
     policy,
     route: {
@@ -55,14 +64,14 @@ function NetSuiteImportCustomFieldView({
     const {showConfirmModal} = useConfirmModal();
 
     const config = policy?.connections?.netsuite?.options?.config;
-    const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
+    const allRecords = config?.syncOptions?.[importCustomField] ?? [];
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     const customField: CustomField | undefined = allRecords[valueIndex];
     const fieldList =
         customField && isNetSuiteCustomSegmentRecord(customField) ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : [INPUT_IDS.LIST_NAME, INPUT_IDS.TRANSACTION_FIELD_ID, INPUT_IDS.MAPPING];
 
-    const removeRecord = useCallback(() => {
+    const removeRecord = () => {
         if (!policyID) {
             return;
         }
@@ -89,7 +98,7 @@ function NetSuiteImportCustomFieldView({
             }
         }
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
-    }, [allRecords, customField, importCustomField, policyID, valueIndex]);
+    };
 
     return (
         <ConnectionLayout
@@ -126,6 +135,7 @@ function NetSuiteImportCustomFieldView({
                         const isEditable = !config?.pendingFields?.[importCustomField] && isNetSuiteCustomFieldPropertyEditable(customField, fieldName);
                         return (
                             <MenuItemField
+                                sentryLabel={ROW_SENTRY_LABELS[fieldName]}
                                 key={fieldName}
                                 name={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
                                 value={
@@ -142,6 +152,7 @@ function NetSuiteImportCustomFieldView({
                         );
                     })}
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.REMOVE_CUSTOM_FIELD}
                         icon={icons.Trashcan}
                         title={translate('common.remove')}
                         isDisabled={!!config?.pendingFields?.[importCustomField]}

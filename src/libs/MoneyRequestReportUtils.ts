@@ -3,12 +3,15 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+import type {CardList, OriginalMessageIOU, Policy, PolicyCategories, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {getStableReportSelector} from '@selectors/Report';
+
+import {getCategoryGLCode, hasAnyCategoryGLCode} from './CategoryUtils';
 import {getLatestErrorField} from './ErrorUtils';
 import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
@@ -25,7 +28,7 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
+import {getSupersededPendingCardTransactionIDs, getVisibleTransactionViolations, isTransactionPendingDelete} from './TransactionUtils';
 
 /**
  * The key of a reject the backend recorded against an expense it has already moved. It reports those under the
@@ -166,10 +169,30 @@ function isSingleTransactionReport(report: OnyxEntry<Report>, transactions: Tran
  * Returns whether a "table" ReportView/MoneyRequestReportView should be used for the report.
  *
  * If report is a special "transaction thread" we want to use other Report views.
- * Likewise, if report has only 1 connected transaction, then we also use other views.
+ * Likewise, if report has only 1 connected transaction, then we also use other views,
+ * unless the user chose the table view for single-expense reports.
  */
-function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[]) {
-    return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
+function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[], shouldUseTableViewForSingleExpense = false) {
+    if (isReportTransactionThread(report)) {
+        return false;
+    }
+    return shouldUseTableViewForSingleExpense || !isSingleTransactionReport(report, transactions);
+}
+
+/**
+ * Returns whether the report shows its expenses in a table and so gets the multi-expense layout (super-wide RHP).
+ * A single-expense report counts too when the user chose the table view for single-expense reports.
+ */
+function shouldUseMultiExpenseReportLayout(transactionCount: number, shouldUseTableViewForSingleExpense: boolean) {
+    return transactionCount > 1 || (shouldUseTableViewForSingleExpense && transactionCount === 1);
+}
+
+/**
+ * Returns the transaction thread that report comments go to, or undefined when they go to the report itself.
+ * In the table view the thread's actions aren't shown in the report, so comments go to the report itself.
+ */
+function getEffectiveTransactionThreadReportID(transactionThreadReportID: string | undefined, isSentMoneyReport: boolean, shouldUseTableViewForSingleExpense: boolean) {
+    return isSentMoneyReport || shouldUseTableViewForSingleExpense ? undefined : transactionThreadReportID;
 }
 
 function shouldWaitForTransactions(
@@ -245,7 +268,79 @@ const getTotalAmountForIOUReportPreviewButton = (
     return convertToDisplayString(totalDisplaySpend, report?.currency);
 };
 
+const EMPTY_VIOLATIONS: TransactionViolations = [];
+
+/**
+ * Returns the violations of a report row's transaction that the current user can see. Returns the stable
+ * EMPTY_VIOLATIONS reference for the common no-violations case so the row's props stay referentially stable.
+ */
+function getVisibleReportRowViolations(
+    transaction: Transaction,
+    violations: OnyxEntry<TransactionViolations>,
+    email: string,
+    accountID: number,
+    report: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
+    policy: OnyxEntry<Policy>,
+): TransactionViolations {
+    if (!violations?.length) {
+        return EMPTY_VIOLATIONS;
+    }
+    const visibleViolations = getVisibleTransactionViolations(transaction, violations, email, accountID, report, ownerLogin, policy);
+    return visibleViolations.length === 0 ? EMPTY_VIOLATIONS : visibleViolations;
+}
+
+function getReportRowPolicy(policy: OnyxEntry<Policy>): OnyxEntry<Policy> {
+    if (!policy) {
+        return policy;
+    }
+    const {employeeList, lastModified, pendingFields, errors, errorFields, isLoading, ...rowPolicy} = policy;
+    return rowPolicy;
+}
+
+function getReportRowPolicyCategories(policyCategories: OnyxEntry<PolicyCategories>, category: string | undefined): PolicyCategories | undefined {
+    const rowCategory = category ? policyCategories?.[category] : undefined;
+    const rowCategories = rowCategory && category ? {[category]: rowCategory} : undefined;
+    if (hasAnyCategoryGLCode(rowCategories)) {
+        return rowCategories;
+    }
+
+    // CategoryGLCodeCell stays editable only when the workspace has any GL code, so keep one GL-coded category even if the row's category has none.
+    const glCodeCategory = Object.entries(policyCategories ?? {}).find(
+        ([name, policyCategory]) =>
+            !!policyCategory?.enabled && policyCategory.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!getCategoryGLCode(policyCategories, name).trim(),
+    );
+    if (!glCodeCategory) {
+        return rowCategories;
+    }
+    const [glCodeCategoryName, glCodePolicyCategory] = glCodeCategory;
+    return {...rowCategories, [glCodeCategoryName]: glCodePolicyCategory};
+}
+
+function getReportRowReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
+    const stableReport = getStableReportSelector(report);
+    if (!stableReport) {
+        return stableReport;
+    }
+    const {unheldTotal, unheldNonReimbursableTotal, ...rowReport} = stableReport;
+    return rowReport;
+}
+
+const EMPTY_CARDS: CardList = {};
+
+function getReportRowCards(cards: OnyxEntry<CardList>, cardID: number | undefined): CardList {
+    const card = cardID ? cards?.[cardID] : undefined;
+    return card && cardID ? {[cardID]: card} : EMPTY_CARDS;
+}
+
 export {
+    EMPTY_CARDS,
+    EMPTY_VIOLATIONS,
+    getReportRowCards,
+    getReportRowPolicy,
+    getReportRowPolicyCategories,
+    getReportRowReport,
+    getVisibleReportRowViolations,
     isActionVisibleOnMoneyRequestReport,
     getThreadReportIDsForTransactions,
     getReportIDForTransaction,
@@ -253,6 +348,8 @@ export {
     getAllNonDeletedTransactions,
     isSingleTransactionReport,
     shouldDisplayReportTableView,
+    shouldUseMultiExpenseReportLayout,
+    getEffectiveTransactionThreadReportID,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
     getTransactionRejectErrorKey,

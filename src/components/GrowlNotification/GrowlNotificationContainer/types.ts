@@ -9,7 +9,7 @@ type GrowlNotificationContainerProps = ChildrenProps & {
     /** Pixel offset that corresponds to the current "offscreen" position for the active anchor. */
     inactiveY: number;
 
-    /** When true, anchor the growl to the bottom-right on wide screens. */
+    /** When true, position the growl at the bottom-right. */
     useBottomPosition?: boolean;
 };
 

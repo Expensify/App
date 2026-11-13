@@ -30,6 +30,7 @@ function SubscriptionExpiringSoonBanner({endDate}: SubscriptionExpiringSoonBanne
             icon={illustrations.SubscriptionAnnual}
             rightComponent={
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPIRING_SOON_BANNER_MANAGE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
                 >

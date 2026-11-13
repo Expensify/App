@@ -2,7 +2,6 @@ import useContactImport from '@hooks/useContactImport';
 
 import {canPickContacts} from '@libs/ContactPicker';
 
-import {useMemo} from 'react';
 import {RESULTS} from 'react-native-permissions';
 
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
@@ -22,7 +21,7 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
 
     // Phone contacts logic
     const {contacts, contactPermissionState, importAndSaveContacts, pickContact, setContactPermissionState} = useContactImport();
-    const memoizedContacts = useMemo(() => (contacts.length ? contacts : []), [contacts]);
+    const memoizedContacts = contacts.length ? contacts : [];
     const showImportContacts = enablePhoneContacts && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
 
     // Use base hook with contact options

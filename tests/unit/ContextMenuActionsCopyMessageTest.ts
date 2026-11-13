@@ -10,13 +10,9 @@ import type {TranslationParameters, TranslationPaths} from '@src/languages/types
 import createMock from '../utils/createMock';
 import {formatPhoneNumber} from '../utils/TestHelper';
 
-jest.mock(
-    'expo-web-browser',
-    () => ({
-        openAuthSessionAsync: jest.fn(),
-    }),
-    {virtual: true},
-);
+jest.mock('expo-web-browser', () => ({
+    openAuthSessionAsync: jest.fn(),
+}));
 
 jest.mock('@components/Reactions/MiniQuickEmojiReactions', () => 'MiniQuickEmojiReactions');
 jest.mock('@components/Reactions/QuickEmojiReactions', () => 'QuickEmojiReactions');
@@ -260,6 +256,32 @@ describe('ContextMenuActions copy message', () => {
         expect(mockSetString).toHaveBeenCalledWith('updated work arrangement');
     });
 
+    it('copies the localized message for a default work arrangement update action', () => {
+        // Given a default work arrangement change log, whose stored text is Auth's English message
+        mockCanSetHtml.mockReturnValue(false);
+        mockGetClipboardText.mockReturnValue('changed the default work arrangement');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        // When its message is copied
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT,
+                    message: [{text: 'stored message', html: 'stored message'}],
+                    originalMessage: {newValue: true, oldValue: false},
+                }),
+            ),
+        );
+
+        // Then the translated change log text is copied instead of the stored text
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.workArrangement.changed', undefined);
+        expect(mockSetString).toHaveBeenCalledWith('changed the default work arrangement');
+    });
+
     it.each([
         [
             CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION,
@@ -272,6 +294,11 @@ describe('ContextMenuActions copy message', () => {
             'workspaceActions.officeLocation.renamed',
         ],
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION, {officeID: 'OFFICE1', name: 'Headquarters'}, 'workspaceActions.officeLocation.removed'],
+        [
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+            {accountID: 1, email: 'member@test.com', name: 'Member One', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+            'workspaceActions.officeLocation.changedMemberOfficeLocation',
+        ],
     ] as const)('copies the localized message for a %s action', (actionName, originalMessage, translationKey) => {
         // Given an office location change log, whose stored text is Auth's English message
         mockCanSetHtml.mockReturnValue(false);

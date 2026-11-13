@@ -15,8 +15,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {Str} from 'expensify-common';
-
+import {isExpensifyTeam, shouldFilterExpensifyTeam} from './expensifyTeam';
 import {canMemberWrite} from './permissions';
 import {getActivePolicies, shouldShowPolicy} from './policy';
 
@@ -87,16 +86,6 @@ function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined
 function hasActiveExpensifyCard(policy: OnyxEntry<Policy>, employeeLogin: string) {
     const primaryLogin = policy?.primaryLoginsInvited?.[employeeLogin];
     return !!policy?.employeeList?.[employeeLogin]?.hasActiveExpensifyCard || (!!primaryLogin && !!policy?.employeeList?.[primaryLogin]?.hasActiveExpensifyCard);
-}
-
-function isExpensifyTeam(email: string | undefined): boolean {
-    const emailDomain = Str.extractEmailDomain(email ?? '');
-    return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
-}
-
-/** Whether Expensify team members should be hidden from the given policy/user combination. */
-function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserLogin: string | undefined): boolean {
-    return !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
 }
 
 /**
@@ -396,8 +385,6 @@ export {
     getSoftExclusionsForGuideAndAccountManager,
     getExpensifyTeamExclusions,
     filterGuideAndAccountManager,
-    isExpensifyTeam,
-    shouldFilterExpensifyTeam,
     createFilteredMemberCountSelector,
     isDeletedPolicyEmployee,
     hasEligibleBankAccountShareRecipient,

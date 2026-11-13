@@ -117,6 +117,9 @@ type Comment = {
 
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 
+    /** Restriction saved at import: true/false locks reimbursability; null or missing allows changes regardless of later feed settings */
+    forceReimbursable?: boolean | null;
+
     /**
      * Accounting-system vendor matched to this expense.
      * Stored on non-reimbursable card expenses when a vendor is set either by the
@@ -293,11 +296,11 @@ type Receipt = {
     /** Correlation id created at capture, used to follow this receipt from capture to upload in the logs. */
     receiptTraceId?: string;
 
-    /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
-    hotelReservationStartDate?: string;
+    /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD. Null while a replacement receipt is pending. */
+    hotelReservationStartDate?: string | null;
 
-    /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
-    hotelReservationEndDate?: string;
+    /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD. Null while a replacement receipt is pending. */
+    hotelReservationEndDate?: string | null;
 };
 
 /** Model of route */

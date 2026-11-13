@@ -1,27 +1,49 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SearchQueryContext} from '@components/Search/SearchContext';
+import type {SearchQueryJSON} from '@components/Search/types';
 
-import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import * as SearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+
+import Navigation from '@libs/Navigation/Navigation';
+import {buildQueryStringFromFilterFormValues, buildQueryStringWithResetFilters, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import EmptySearchView from '@pages/Search/EmptySearchView';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import {defaultTheme} from '@src/styles/theme';
+import type {Beta, Policy} from '@src/types/onyx';
 
-import React from 'react';
+import React, {useContext, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
+// The real button needs a navigator. These tests only care whether the empty state offers it.
+jest.mock('@components/BookTravelButton', () => {
+    const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
+    return {
+        __esModule: true,
+        default: ({text}: {text: string}) => <Text>{text}</Text>,
+    };
+});
+
 // Wrapper component with OnyxListItemProvider
-function Wrapper({children}: {children: React.ReactNode}) {
+function Wrapper({children, queryJSON, defaultQueryJSON}: {children: React.ReactNode; queryJSON?: SearchQueryJSON; defaultQueryJSON?: SearchQueryJSON}) {
+    const searchContext = useContext(SearchQueryContext);
+    const queryContext = useMemo(
+        () => ({...searchContext, currentSearchQueryJSON: queryJSON, currentDefaultSearchQueryJSON: defaultQueryJSON}),
+        [searchContext, queryJSON, defaultQueryJSON],
+    );
     return (
         <OnyxListItemProvider>
-            <LocaleContextProvider>{children}</LocaleContextProvider>
+            <LocaleContextProvider>
+                <SearchQueryContext.Provider value={queryContext}>{children}</SearchQueryContext.Provider>
+            </LocaleContextProvider>
         </OnyxListItemProvider>
     );
 }
@@ -40,6 +62,7 @@ const createPolicy = (type: Policy['type'] = CONST.POLICY.TYPE.TEAM) => ({
 
 describe('EmptySearchView', () => {
     afterEach(async () => {
+        jest.restoreAllMocks();
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
@@ -49,6 +72,156 @@ describe('EmptySearchView', () => {
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+    });
+
+    describe('reset filters', () => {
+        it.each([
+            {shouldShowResetFilters: true, title: 'search.searchResults.emptyResults.title'},
+            {shouldShowResetFilters: true, title: 'search.searchResults.emptyExpenseResults.title'},
+            {shouldShowResetFilters: false, title: 'search.searchResults.emptyResults.title'},
+            {shouldShowResetFilters: undefined, title: 'search.searchResults.emptyResults.title'},
+        ] as const)('uses shouldShowResetFilters=$shouldShowResetFilters independently of title=$title', async ({shouldShowResetFilters, title}) => {
+            // Given an Insights view whose changed feed does not change its similar search hash
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense group-by:merchant');
+            const queryJSON = buildSearchQueryJSON('type:expense group-by:merchant feed:123');
+            expect(queryJSON).toBeDefined();
+            expect(queryJSON?.similarSearchHash).toBe(defaultQueryJSON?.similarSearchHash);
+            const menuSections = jest.spyOn(SearchTypeMenuSections, 'default').mockReturnValue([
+                {
+                    translationPath: 'search.tabs.insights',
+                    menuItems: [
+                        {
+                            key: CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
+                            translationPath: 'search.tabs.insights',
+                            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                            icon: 'Basket',
+                            searchQuery: defaultQueryJSON?.inputQuery ?? '',
+                            searchQueryJSON: defaultQueryJSON,
+                            hash: defaultQueryJSON?.hash ?? -1,
+                            recentSearchHash: defaultQueryJSON?.recentSearchHash ?? -1,
+                            similarSearchHash: queryJSON?.similarSearchHash ?? -1,
+                            emptyState: {
+                                title,
+                                subtitle: 'search.searchResults.emptyResults.subtitle',
+                                shouldShowResetFilters,
+                            },
+                        },
+                    ],
+                },
+            ]);
+
+            // When the menu-provided empty state is rendered
+            render(
+                <Wrapper
+                    queryJSON={queryJSON}
+                    defaultQueryJSON={defaultQueryJSON}
+                >
+                    <EmptySearchView
+                        similarSearchHash={queryJSON?.similarSearchHash ?? -1}
+                        type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                        hasResults
+                        queryJSON={queryJSON}
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the explicit flag controls reset eligibility, regardless of the title
+            expect(screen.getByText(translateLocal(title))).toBeVisible();
+            if (shouldShowResetFilters) {
+                expect(screen.getByText(translateLocal('search.resetFilters'))).toBeVisible();
+            } else {
+                expect(screen.queryByText(translateLocal('search.resetFilters'))).not.toBeOnTheScreen();
+            }
+            menuSections.mockRestore();
+        });
+
+        it.each([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.DATA_TYPES.INVOICE])(
+            'resets filtered empty %s results to the view default',
+            async (type) => {
+                // Given a filter that differs from the current view's defaults
+                const queryJSON = buildSearchQueryJSON(`type:${type} merchant:zzzz`);
+                const defaultQueryJSON = buildSearchQueryJSON(`type:${type}`);
+                if (!queryJSON) {
+                    throw new Error('Invalid test query');
+                }
+                const setParams = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+
+                // When the filtered search has no matching results
+                render(
+                    <Wrapper
+                        queryJSON={queryJSON}
+                        defaultQueryJSON={defaultQueryJSON}
+                    >
+                        <EmptySearchView
+                            similarSearchHash={-1}
+                            type={type}
+                            hasResults
+                            queryJSON={queryJSON}
+                        />
+                    </Wrapper>,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the empty state offers the same reset action as the filter bar
+                expect(screen.getByText(translateLocal('search.searchResults.emptyResults.title'))).toBeVisible();
+                expect(screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('search.resetFilters')})).toHaveStyle({backgroundColor: defaultTheme.buttonDefaultBG});
+                fireEvent.press(screen.getByText(translateLocal('search.resetFilters')));
+                expect(setParams).toHaveBeenCalledWith({q: buildQueryStringWithResetFilters(queryJSON, defaultQueryJSON), rawQuery: undefined});
+                setParams.mockRestore();
+            },
+        );
+
+        it('does not offer reset when the filters match the view default', async () => {
+            // Given a view with unchanged default filters
+            const queryJSON = buildSearchQueryJSON('type:chat');
+
+            // When that view is empty
+            render(
+                <Wrapper
+                    queryJSON={queryJSON}
+                    defaultQueryJSON={queryJSON}
+                >
+                    <EmptySearchView
+                        similarSearchHash={-1}
+                        type={CONST.SEARCH.DATA_TYPES.CHAT}
+                        hasResults={false}
+                        queryJSON={queryJSON}
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then there is nothing to reset
+            expect(screen.getByText(translateLocal('search.searchResults.emptyResults.title'))).toBeVisible();
+            expect(screen.queryByText(translateLocal('search.resetFilters'))).not.toBeOnTheScreen();
+        });
+
+        it('preserves onboarding actions even when filters can be reset', async () => {
+            // Given a new user with a changed filter but no expenses at all
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:zzzz');
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+
+            // When the onboarding empty state is rendered
+            render(
+                <Wrapper
+                    queryJSON={queryJSON}
+                    defaultQueryJSON={defaultQueryJSON}
+                >
+                    <EmptySearchView
+                        similarSearchHash={-1}
+                        type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                        hasResults={false}
+                        queryJSON={queryJSON}
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it keeps the creation action without adding a reset button
+            expect(screen.getByText(translateLocal('iou.createExpense'))).toBeVisible();
+            expect(screen.queryByText(translateLocal('search.resetFilters'))).not.toBeOnTheScreen();
+        });
     });
 
     describe('type is Expense', () => {
@@ -339,6 +512,56 @@ describe('EmptySearchView', () => {
 
             // And should show the cannot-send subtitle
             expect(screen.getByText(translateLocal('search.searchResults.emptyInvoiceResults.subtitleCannotSend'))).toBeVisible();
+        });
+    });
+    describe('type is Trip', () => {
+        const dataType = CONST.SEARCH.DATA_TYPES.TRIP;
+        const TRAVEL_POLICY_ID = 'travelPolicy';
+
+        const renderTripEmptyState = async (policy: Partial<Policy>, betas: Beta[]) => {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+                await Onyx.set(ONYXKEYS.BETAS, betas);
+                await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TRAVEL_POLICY_ID);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TRAVEL_POLICY_ID}`, {...createPolicy(), id: TRAVEL_POLICY_ID, ...policy});
+            });
+            render(
+                <Wrapper>
+                    <EmptySearchView
+                        similarSearchHash={1}
+                        type={dataType}
+                        hasResults={false}
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        it('shows Book a trip once the workspace is set up for travel, before the terms are accepted', async () => {
+            // Given a TravelApproval user whose workspace is set up in Spotnana but hasn't accepted the terms yet
+            // When the travel empty state renders
+            await renderTripEmptyState({travelSettings: {spotnanaCompanyID: 'company', hasAcceptedTerms: false}}, [CONST.BETAS.TRAVEL_APPROVAL]);
+
+            // Then Book a trip shows, like the other Book travel entry points, and the button itself handles the terms
+            expect(screen.getByText(translateLocal('search.searchResults.emptyTripResults.buttonText'))).toBeOnTheScreen();
+        });
+
+        it('hides Book a trip when Travel is switched on but the workspace is not set up', async () => {
+            // Given a TravelApproval user whose workspace only has the Travel switch on
+            // When the travel empty state renders
+            await renderTripEmptyState({isTravelEnabled: true}, [CONST.BETAS.TRAVEL_APPROVAL]);
+
+            // Then Book a trip doesn't show, since there's nothing to book through yet
+            expect(screen.queryByText(translateLocal('search.searchResults.emptyTripResults.buttonText'))).not.toBeOnTheScreen();
+        });
+
+        it('keeps showing Book a trip from the Travel switch without the beta', async () => {
+            // Given a user without the TravelApproval beta whose workspace has the Travel switch on
+            // When the travel empty state renders
+            await renderTripEmptyState({isTravelEnabled: true}, []);
+
+            // Then Book a trip shows as before
+            expect(screen.getByText(translateLocal('search.searchResults.emptyTripResults.buttonText'))).toBeOnTheScreen();
         });
     });
 });

@@ -4,6 +4,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {NavigationProp, NavigationState} from '@react-navigation/native';
@@ -114,6 +115,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Force the floating label to render on a single line and ellipsize even when the input is multiline */
         shouldLabelStayOnSingleLine?: boolean;
 
+        /** Show the full label in a tooltip on hover when it is cut off. Web only, since there is no hover on native. */
+        shouldShowLabelTooltipWhenTruncated?: boolean;
+
         /** Set the default value to the input if there is a valid saved value */
         shouldUseDefaultValue?: boolean;
 
@@ -171,6 +175,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
 
         /** Callback when the input is cleared using the clear button */
         onClearInput?: () => void;
+
+        /** Sentry label of the clear button. Defaults to `CONST.SENTRY_LABEL.TEXT_INPUT.CLEAR_BUTTON` */
+        clearButtonSentryLabel?: SentryLabel;
 
         /** Whether the input should be enforced to take full height of container. Default is `false` */
         shouldUseFullInputHeight?: boolean;

@@ -1,7 +1,9 @@
 import {TOOLTIP_BAR_GAP} from '@components/Charts/hooks';
-import {pinChartTooltip, unpinChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
+import {markChartTouch, pinChartTooltip, unpinChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -9,12 +11,14 @@ import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUti
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -43,19 +47,23 @@ type ChartTooltipProps = {
     /** Updates the hovered point after the chart is moved in the window (e.g. via scroll) by the given offset */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
 
-    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned */
-    onDismiss?: () => void;
+    /** Hides the tooltip */
+    onDismiss: () => void;
 
     /** Identifies the item the content belongs to, so the content is mounted again and laid out on each change of the item */
     contentKey?: number;
 
     /** Called once the content is laid out, which is the first moment it is on screen on native */
     onContentLayout?: () => void;
+
+    /** Called after the tooltip is dismissed by a press on it */
+    onPress?: () => void;
 };
 
-function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVisible, isContentCurrent, onChartMoved, onDismiss, contentKey, onContentLayout}: ChartTooltipProps) {
+function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVisible, isContentCurrent, onChartMoved, onDismiss, contentKey, onContentLayout, onPress}: ChartTooltipProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
+    const {top: safeAreaTop, bottom: safeAreaBottom} = useSafeAreaInsets();
 
     /** Shared value to store the measured width of the tooltip container */
     const tooltipMeasuredWidth = useSharedValue(0);
@@ -98,9 +106,9 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
 
     const isFocused = useIsFocused();
 
-    // A pinned tooltip is registered for the screen's touch start to hide it
+    // The tooltip is hidden when the screen loses focus or when the screen is touched
     useEffect(() => {
-        if (!isShown || !onDismiss) {
+        if (!isShown) {
             return;
         }
 
@@ -111,6 +119,18 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
         pinChartTooltip(onDismiss);
         return () => unpinChartTooltip(onDismiss);
     }, [isShown, isFocused, onDismiss]);
+
+    const dismissOnWindowResize = useEffectEvent(() => {
+        if (!isShown) {
+            return;
+        }
+        onDismiss();
+    });
+
+    // The tooltip is hidden when the window is resized (e.g. on rotation)
+    useEffect(() => {
+        dismissOnWindowResize();
+    }, [windowWidth, windowHeight]);
 
     const handleOriginChange = (x: number, y: number) => {
         const previousOrigin = origin.get();
@@ -134,7 +154,7 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
         return Math.max(halfWidth, Math.min(chartWidth - halfWidth, x));
     }, [initialTooltipPosition, tooltipMeasuredWidth, chartWidth]);
 
-    /** Animated window position of the tooltip, placed above the point and kept within the chart horizontally and within the window */
+    /** Animated window position of the tooltip, placed above the point and kept within the chart horizontally and within the window's safe area, since the portal also spans the status bar */
     const tooltipStyle = useAnimatedStyle(() => {
         const {y} = initialTooltipPosition.get();
         const {x: originX, y: originY} = origin.get();
@@ -142,17 +162,35 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
         const height = tooltipMeasuredHeight.get();
 
         const left = originX + clampedCenter.get() - width / 2;
+        const minTop = safeAreaTop;
+        const maxBottom = windowHeight - safeAreaBottom;
         const topAbove = originY + y - height;
         const shiftedLeft = left + PopoverWithMeasuredContentUtils.computeHorizontalShift(left, width, windowWidth);
-        const shiftedTop = topAbove + PopoverWithMeasuredContentUtils.computeVerticalShift(topAbove, height, windowHeight, 2 * TOOLTIP_BAR_GAP, true);
+        const shiftedTop = topAbove + PopoverWithMeasuredContentUtils.computeVerticalShift(topAbove - minTop, height, maxBottom - minTop, 2 * TOOLTIP_BAR_GAP, true);
         const isTooltipShown = (isVisible?.get() ?? true) && (isContentCurrent?.get() ?? true) && isOriginMeasured.get() && width > 0;
 
         return {
             left: Math.max(0, Math.min(windowWidth - width, shiftedLeft)),
-            top: Math.max(0, Math.min(windowHeight - height, shiftedTop)),
+            top: Math.max(minTop, Math.min(maxBottom - height, shiftedTop)),
             opacity: isTooltipShown ? 1 : 0,
         };
-    }, [initialTooltipPosition, windowWidth, windowHeight]);
+    }, [initialTooltipPosition, windowWidth, windowHeight, safeAreaTop, safeAreaBottom]);
+
+    const content = (
+        <View
+            key={contentKey}
+            style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}
+            onLayout={handleContentLayout}
+        >
+            <Text style={styles.chartTooltipTitle}>{label}</Text>
+            {children}
+        </View>
+    );
+
+    const pressTooltip = () => {
+        onDismiss();
+        onPress?.();
+    };
 
     return (
         <>
@@ -160,21 +198,29 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
                 isShown={isShown}
                 onOriginChange={handleOriginChange}
             />
-            <ChartTooltipPortal>
-                <Animated.View
-                    style={[styles.chartTooltipLayer, tooltipStyle]}
-                    pointerEvents="none"
-                >
-                    <View
-                        key={contentKey}
-                        style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}
-                        onLayout={handleContentLayout}
+            {isFocused && (
+                <ChartTooltipPortal>
+                    <Animated.View
+                        style={[styles.chartTooltipLayer, tooltipStyle]}
+                        pointerEvents={onPress && isShown ? 'auto' : 'none'}
+                        // Any touch start hides the pinned tooltip unless it's marked as on its chart, and a tap on the tooltip must keep it shown for the press to fire
+                        onTouchStart={onPress ? () => markChartTouch(onDismiss) : undefined}
                     >
-                        <Text style={styles.chartTooltipTitle}>{label}</Text>
-                        {children}
-                    </View>
-                </Animated.View>
-            </ChartTooltipPortal>
+                        {onPress ? (
+                            <PressableWithoutFeedback
+                                onPress={pressTooltip}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={label}
+                                sentryLabel={CONST.SENTRY_LABEL.CHART_TOOLTIP.PRESS}
+                            >
+                                {content}
+                            </PressableWithoutFeedback>
+                        ) : (
+                            content
+                        )}
+                    </Animated.View>
+                </ChartTooltipPortal>
+            )}
         </>
     );
 }

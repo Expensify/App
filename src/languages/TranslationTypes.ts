@@ -73,12 +73,22 @@ type PersonalRulesModifiedFields = PolicyRulesModifiedFields & {
     reportName?: string;
 };
 
-type ConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+// Exact Online and Sage Accounting only have a waitlist until their connectors are released.
+type ConnectionName = Exclude<ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>, typeof CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING>;
 type AllConnectionName = ConnectionName;
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
 type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
 type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
 type ViolationDataType = ValueOf<typeof CONST.MODIFIED_AMOUNT_VIOLATION_DATA>;
+
+type ReportNextStepMessageParams = {
+    actor?: string;
+    actorType?: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
+    eta?: string;
+    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
+    requiredDepositCurrency?: string;
+    isBill?: boolean;
+};
 
 export type {
     AllConnectionName,
@@ -95,4 +105,5 @@ export type {
     ReportAction,
     SageIntacctMappingName,
     ViolationDataType,
+    ReportNextStepMessageParams,
 };

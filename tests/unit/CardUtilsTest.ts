@@ -106,6 +106,7 @@ import {
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {
     BankAccountList,
     Card,
@@ -1831,16 +1832,37 @@ describe('CardUtils', () => {
 
         it('Should return a valid illustration if a CSV imported feed variation was provided', () => {
             const feed = 'cards_2267989_ccupload666';
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Imported CSV feed keys include runtime prefixes that the production parameter type does not model.
-            const illustration = getCardFeedIcon(feed as Parameters<typeof getCardFeedIcon>[0], mockIllustrations, mockCompanyCardFeedIcons);
+            const illustration = getCardFeedIcon(feed, mockIllustrations, mockCompanyCardFeedIcons);
             expect(illustration).toBe(mockIllustrations.GenericCSVCompanyCardLarge);
         });
 
         it('Should return valid illustration if a non-matching feed was provided', () => {
             const feed = '666';
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This malformed value intentionally exercises the function's generic-icon fallback.
-            const illustration = getCardFeedIcon(feed as Parameters<typeof getCardFeedIcon>[0], mockIllustrations, mockCompanyCardFeedIcons);
+            const illustration = getCardFeedIcon(feed, mockIllustrations, mockCompanyCardFeedIcons);
             expect(illustration).toBe(mockIllustrations.GenericCompanyCardLarge);
+        });
+
+        it.each([
+            {name: 'returns the generic asset for undefined bank text', feed: undefined, expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+            {name: 'returns the generic asset for empty bank text', feed: '', expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+            {
+                name: 'keeps Expensify prefix precedence over CSV infixes',
+                feed: `${CONST.EXPENSIFY_CARD.BANK} TRAVEL_US ${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}`,
+                expectedIcon: mockCompanyCardFeedIcons.ExpensifyCardImage,
+            },
+            {
+                name: 'retains numbered Visa prefix variants',
+                feed: `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}3`,
+                expectedIcon: mockCompanyCardFeedIcons.VisaCompanyCardDetailLarge,
+            },
+            {name: 'returns the generic asset for __proto__ bank text', feed: '__proto__', expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+            {name: 'returns the generic asset for constructor bank text', feed: 'constructor', expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+        ] satisfies Array<{name: string; feed: Parameters<typeof getCardFeedIcon>[0]; expectedIcon: ReturnType<typeof getCardFeedIcon>}>)('$name', ({feed, expectedIcon}) => {
+            // Given raw bank text can be absent, empty, a legacy variant, an inherited property name, or an Expensify feed containing the CSV marker.
+            // When the real resolver handles the unchanged input, it must preserve known-feed precedence and owned-entry fallback behavior.
+            const illustration = getCardFeedIcon(feed, mockIllustrations, mockCompanyCardFeedIcons);
+            // Then exact asset identity distinguishes the intended feed icon from a different valid illustration.
+            expect(illustration).toBe(expectedIcon);
         });
     });
 
@@ -3723,7 +3745,7 @@ describe('CardUtils', () => {
 
     describe('getCompanyCardDescription', () => {
         const mockTranslate: LocalizedTranslate = (key, ...parameters) => {
-            if (key === 'cardTransactions.travelInvoicing' && parameters.length === 0) {
+            if (key === 'cardTransactions.travelBilling' && parameters.length === 0) {
                 return 'Travel invoicing';
             }
             return key;
@@ -4391,32 +4413,38 @@ describe('CardUtils', () => {
 
     describe('getBrokenConnectionUrlToFixPersonalCard', () => {
         const environmentURL = 'https://dev.new.expensify.com';
+        const buildDynamicRoute = (suffix: string) => `r/123/${suffix}` as Route;
 
         it('Should return undefined when cards is undefined', () => {
             const cards = undefined;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime guard for a missing required cards argument.
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL, buildDynamicRoute);
             expect(result).toBeUndefined();
         });
 
         it('Should return undefined when cards is null', () => {
             const cards = null;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime guard for a null required cards argument.
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL, buildDynamicRoute);
             expect(result).toBeUndefined();
         });
 
         it('Should return wallet URL when cards is empty object', () => {
-            const result = getBrokenConnectionUrlToFixPersonalCard({}, environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard({}, environmentURL, buildDynamicRoute);
             expect(result).toBe(`${environmentURL}/settings/wallet`);
         });
 
-        it('Should return personal card details URL when there is exactly one card', () => {
+        it('Should return personal card details URL over the current page when there is exactly one card', () => {
+            // Given one broken card shown on report 123
             const cards: Record<string, Card> = {
                 '1': createMock<Card>({cardID: 12345}),
             };
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
-            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/12345`);
+
+            // When the fix link is built
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL, buildDynamicRoute);
+
+            // Then it opens the card details over the report, so the report stays behind it after a reload
+            expect(result).toBe(`${environmentURL}/r/123/personal-card/12345`);
         });
 
         it('Should return wallet URL when there are multiple cards', () => {
@@ -4424,7 +4452,7 @@ describe('CardUtils', () => {
                 '1': createMock<Card>({cardID: 111}),
                 '2': createMock<Card>({cardID: 222}),
             };
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL, buildDynamicRoute);
             expect(result).toBe(`${environmentURL}/settings/wallet`);
         });
 
@@ -4432,8 +4460,8 @@ describe('CardUtils', () => {
             const cards: Record<string, Card> = {
                 cardKey: createMock<Card>({cardID: 99999}),
             };
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
-            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/99999`);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL, buildDynamicRoute);
+            expect(result).toBe(`${environmentURL}/r/123/personal-card/99999`);
         });
     });
 

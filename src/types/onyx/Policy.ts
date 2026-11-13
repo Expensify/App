@@ -30,6 +30,9 @@ type GovernmentRateSnapshot = {
 
     /** Government-published end date (ISO 8601) at the time the rate was copied, omitted if the source rate has none */
     endDate?: string;
+
+    /** Government-published tax reclaimable fraction at the time the rate was copied, omitted if the source rate has none */
+    taxClaimablePercentage?: number;
 };
 
 /** General-purpose optional attributes of the policy distance rate */
@@ -103,6 +106,9 @@ type Attributes = {
     unit: Unit;
 
     taxEnabled?: boolean;
+
+    /** Workspace-wide dismissal, including future UK advisory fuel rates. */
+    isUKFuelRateTaxErrorDismissed?: boolean;
 };
 
 /** Policy custom unit */
@@ -971,7 +977,7 @@ type NetSuiteMappingValues = 'NETSUITE_DEFAULT' | 'REPORT_FIELD' | 'TAG';
 type NetSuiteInvoiceItemPreferenceValues = 'create' | 'select';
 
 /** NetSuite export destination values */
-type NetSuiteExportDestinationValues = 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
+type NetSuiteExportDestinationValues = 'CREDIT_CARD_CHARGE' | 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
 
 /** NetSuite expense report approval level values */
 type NetSuiteExpenseReportApprovalLevels = 'REPORTS_APPROVED_NONE' | 'REPORTS_SUPERVISOR_APPROVED' | 'REPORTS_ACCOUNTING_APPROVED' | 'REPORTS_APPROVED_BOTH';
@@ -996,6 +1002,7 @@ type NetSuiteCustomFormIDOptions = {
     expenseReport?: string;
     vendorBill?: string;
     journalEntry?: string;
+    creditCardCharge?: string;
 };
 
 /** NetSuite custom list */
@@ -1173,6 +1180,12 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
 
+        /** Credit card account used when exporting company card expenses as credit card charges */
+        creditCardAccount?: string;
+
+        /** Authentication method used for this connection */
+        authType?: 'tba' | 'oauth2';
+
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;
 
@@ -1241,7 +1254,7 @@ type NetSuiteConnection = {
 
     lastSync?: ConnectionLastSync;
 
-    /** Config object used solely to store autosync settings */
+    /** Config object used to store autosync settings and authentication type */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** NetSuite auto synchronization configs */
         autoSync: {
@@ -1256,6 +1269,9 @@ type NetSuiteConnection = {
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
+
+        /** Authentication method used for this connection */
+        authType?: 'tba' | 'oauth2';
     }>;
 
     /** Encrypted token secret for authenticating to NetSuite */
@@ -1808,6 +1824,9 @@ type RilletExport = {
 
     /** Export behavior for non-reimbursable expenses. */
     nonReimbursable: RilletExportNonReimbursable;
+
+    /** Account code where reimbursements land (applicable if `reimbursable` type is REIMBURSEMENT). */
+    reimbursementAccountCode: string;
 
     /** Default vendor to associate with exported transactions. */
     defaultVendorID: string;
@@ -2519,6 +2538,219 @@ type CampfireConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 >;
 
 /**
+ * The Digits company the connection is authorized for. A Digits sign-in covers exactly one company.
+ */
+type DigitsCompany = {
+    /** Unique identifier of the company. */
+    id: string;
+
+    /** Name of the company. */
+    name: string;
+
+    /** Currency the company operates in. Digits only supports USD companies. */
+    currency: string;
+};
+
+/**
+ * Chart of accounts entry retrieved from Digits.
+ */
+type DigitsAccount = {
+    /** Unique identifier of the account. */
+    id: string;
+
+    /** Name of the account. */
+    name: string;
+
+    /** Account number shown in Digits, imported as the GL code. */
+    displayNumber?: string;
+
+    /** Unique identifier of the parent account. */
+    parentID?: string;
+
+    /** Type of the account, as the Digits API names it. */
+    type: string;
+
+    /** Subtype of the account. Account pickers filter on the values in `CONST.DIGITS_ACCOUNT_SUBTYPE`. */
+    subtype: string;
+
+    /** Whether the account is active. */
+    isActive: boolean;
+};
+
+/**
+ * Vendor retrieved from Digits.
+ */
+type DigitsVendor = {
+    /** The vendor's Digits external ID, serialized as a JSON string of its issuer and ID. */
+    id: string;
+
+    /** Name of the vendor. */
+    name: string;
+
+    /** Email address associated with the vendor. */
+    email?: string;
+
+    /** Roles Digits derived from the vendor's ledger activity. A vendor without activity has none yet. */
+    roles: string[];
+};
+
+/**
+ * Connection data retrieved from Digits.
+ */
+type DigitsConnectionData = {
+    /** The company the connection is authorized for. */
+    company?: DigitsCompany;
+
+    /** Accounts available in Digits. */
+    accounts?: DigitsAccount[];
+
+    /** Vendors available in Digits. */
+    vendors?: DigitsVendor[];
+};
+
+/**
+ * Digits dimensions that can be mapped to Expensify tags.
+ */
+type DigitsField = ValueOf<typeof CONST.DIGITS_FIELD>;
+
+/**
+ * Coding configuration used when importing data from Digits.
+ */
+type DigitsCoding = {
+    /** Mapping of Digits dimensions to their configured mapping behavior. */
+    fieldMappings?: Partial<Record<DigitsField, ValueOf<typeof CONST.DIGITS_MAPPING_VALUE>>>;
+};
+
+/** Offline feedback key for field mapping */
+type DigitsCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.DIGITS_CONFIG.FIELD_MAPPING_PREFIX}${DigitsField}`;
+
+/**
+ * Available dates that can be used as the export date.
+ */
+type DigitsExportDate = ValueOf<typeof CONST.DIGITS_EXPORT_DATE>;
+
+/**
+ * Export strategy for reimbursable expenses.
+ */
+type DigitsExportReimbursable = ValueOf<typeof CONST.DIGITS_EXPORT_REIMBURSABLE>;
+
+/**
+ * Export strategy for company card expenses.
+ */
+type DigitsExportNonReimbursable = ValueOf<typeof CONST.DIGITS_EXPORT_NON_REIMBURSABLE>;
+
+/**
+ * Export configuration for sending accounting data to Digits.
+ */
+type DigitsExport = {
+    /** Identifier of the export implementation to use. */
+    exporter: string;
+
+    /** Date source used when generating exported transactions. */
+    exportDate: DigitsExportDate;
+
+    /** Export behavior for reimbursable expenses. */
+    reimbursable: DigitsExportReimbursable;
+
+    /** Export behavior for company card expenses. */
+    nonReimbursable: DigitsExportNonReimbursable;
+
+    /** Account used when exporting company card expenses. */
+    creditCardAccountID: string;
+
+    /**
+     * Whether card transactions should be exported to multiple
+     * accounts based on card program mappings.
+     */
+    exportToMultipleAccounts: boolean;
+
+    /**
+     * Mapping of card program identifiers to account IDs.
+     */
+    cardProgramAccounts: Record<CardFeedWithNumber, string>;
+
+    /** Default vendor used when exporting transactions. */
+    defaultVendorID: string;
+
+    /** Payable account used when exporting travel billings. */
+    travelInvoicingPayableAccountID: string;
+
+    /** Accounting method used during export. */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+};
+
+/** Offline feedback key for card program account */
+type DigitsExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.DIGITS_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `DigitsExport`
+ */
+type DigitsExportOfflineFeedbackKeys = keyof Omit<DigitsExport, 'cardProgramAccounts'> | DigitsExportCardProgramAccountsOfflineFeedbackKey;
+
+/**
+ * Automatic synchronization settings for Digits.
+ */
+type DigitsAutoSync = {
+    /** Whether automatic synchronization is enabled. */
+    enabled: boolean;
+};
+
+/**
+ * Synchronization settings for importing and updating data in Digits.
+ */
+type DigitsSync = {
+    /** Whether reimbursed expense reports should be synchronized. */
+    syncReimbursedReports: boolean;
+
+    /** Account used for bill payment transactions. */
+    billPaymentAccountID: string;
+
+    /** Whether Expensify Card settlement transactions should be synchronized. */
+    syncExpensifyCardSettlements: boolean;
+
+    /** Bank account used for Expensify Card settlements. */
+    settlementsBankAccountID: string;
+
+    /** Whether travel billing settlement transactions should be synchronized. */
+    syncTravelInvoicingSettlements: boolean;
+
+    /** Bank account used for travel billing settlements. */
+    travelInvoicingSettlementsBankAccountID: string;
+};
+
+/**
+ * Connection config for Digits. Credentials, the auto-sync job and settlement progress stay on the server.
+ */
+type DigitsConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Whether the connection has been configured */
+        isConfigured: boolean;
+
+        /** Whether to enable a new Expense Category into Expensify */
+        enableNewCategories: boolean;
+
+        /** Coding settings */
+        coding?: DigitsCoding;
+
+        /** Export settings */
+        export?: DigitsExport;
+
+        /** Auto-sync settings */
+        autoSync?: DigitsAutoSync;
+
+        /** Sync settings */
+        sync?: DigitsSync;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    DigitsCodingFieldMappingsOfflineFeedbackKey | DigitsExportOfflineFeedbackKeys | keyof DigitsAutoSync | keyof DigitsSync
+>;
+
+/**
  * An organization configured in Zoho Books.
  */
 type ZohoBooksOrganization = {
@@ -2554,6 +2786,26 @@ type ZohoBooksAccount = {
     name: string;
 
     /** Zoho Books account_type. */
+    accountType: ZohoBooksAccountType;
+
+    /** Currency associated with the account. */
+    currency?: string;
+
+    /** Whether the account is active. */
+    isActive: boolean;
+};
+
+/**
+ * Bank, cash or credit card account retrieved from Zoho Books, for the company card, bill payment and settlement account pickers.
+ */
+type ZohoBooksBankAccount = {
+    /** Unique identifier of the account. */
+    id: string;
+
+    /** Name of the account. */
+    name: string;
+
+    /** Zoho Books account type. */
     accountType: ZohoBooksAccountType;
 
     /** Currency associated with the account. */
@@ -2645,6 +2897,9 @@ type ZohoBooksConnectionData = {
 
     /** Accounts available in Zoho Books. */
     accounts?: ZohoBooksAccount[];
+
+    /** Active bank and credit card accounts that company card expenses can export to. */
+    bankAccounts?: ZohoBooksBankAccount[];
 
     /** Reporting tags available in Zoho Books. */
     reportingTags?: ZohoBooksReportingTag[];
@@ -3035,9 +3290,23 @@ type BusinessCentralExport = {
     /** Accounting method used during export */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 
+    /** Whether company card expenses can export to a bank account set per card feed or per card instead of `nonReimbursableAccount` */
+    exportToMultipleAccounts: boolean;
+
+    /** ID of the Business Central bank account each card feed exports to, keyed by feed */
+    cardProgramAccounts: Record<CardFeedWithNumber, string>;
+
     /** Whether reports dated in a closed accounting period are exported to the next open period */
     exportToNextOpenPeriod: boolean;
 };
+
+/** Offline feedback key for card program account */
+type BusinessCentralExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.BUSINESS_CENTRAL_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `BusinessCentralExport`
+ */
+type BusinessCentralExportOfflineFeedbackKeys = keyof Omit<BusinessCentralExport, 'cardProgramAccounts'> | BusinessCentralExportCardProgramAccountsOfflineFeedbackKey;
 
 /**
  * Automatic synchronization settings for Business Central.
@@ -3108,7 +3377,7 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    'companyID' | 'enableNewCategories' | 'autoSync' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralSync
+    'companyID' | 'enableNewCategories' | 'autoSync' | BusinessCentralCodingOfflineFeedbackKeys | BusinessCentralExportOfflineFeedbackKeys | keyof BusinessCentralSync
 >;
 
 /** Gusto connection data */
@@ -3383,6 +3652,9 @@ type Connections = {
     /** Campfire integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: Connection<CampfireConnectionData, CampfireConnectionsConfig>;
 
+    /** Digits integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: Connection<DigitsConnectionData, DigitsConnectionsConfig>;
+
     /** Zoho Books integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: Connection<ZohoBooksConnectionData, ZohoBooksConnectionsConfig>;
 
@@ -3451,6 +3723,12 @@ type ACHAccount = {
     /** Emails of users who have had the bank account shared with them */
     sharees?: string[];
 };
+
+/** Reimbursement info for a specific country in a policy */
+type ReimbursementCountryInfo = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** ID of the withdrawal account the policy reimburses from in this country, when one is connected */
+    bankAccountID?: number;
+}>;
 
 /** Commuter exclusion configuration for a policy */
 type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -3815,6 +4093,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
+        /** The second day of the month a twice a month scheduled submit happens on */
+        autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset;
+
+        /** The IANA timezone the scheduled submit runs in */
+        timeZone?: string;
+
         employeeList?: OnyxTypes.PolicyEmployeeList;
 
         /** How the workspace pays reimbursable expenses. Can hold a deprecated value, so read it through `PolicyUtils.getReimbursementChoice`. */
@@ -3829,7 +4113,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled?: boolean;
 
             /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
-            countries?: Record<string, unknown>;
+            countries?: Record<string, ReimbursementCountryInfo>;
         };
 
         /** The set reimburser for the policy */
@@ -3988,6 +4272,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** All the integration connections attached to the policy */
         connections?: Partial<Connections>;
 
+        /** Why a connect flow that left the app (e.g. an OAuth window) failed, keyed by the integration that failed to connect */
+        connectErrors?: Partial<Record<ConnectionName, string | null>>;
+
         /** Report fields attached to the policy */
         fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
 
@@ -4005,6 +4292,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Travel feature is enabled */
         isTravelEnabled?: boolean;
+
+        /** Whether the workspace has been provisioned for Travel */
+        isTravelProvisioned?: boolean;
 
         /** Whether the Per diem rates feature is enabled */
         arePerDiemRatesEnabled?: boolean;
@@ -4148,6 +4438,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     | 'isRecruitingEnabled'
     | 'isTimeTrackingEnabled'
     | 'timeTrackingDefaultRate'
+    | 'reimbursementCountries'
 >;
 
 /** Stages of policy connection sync */
@@ -4259,6 +4550,7 @@ export type {
     RilletCoding,
     RilletConnectionsConfig,
     RilletExport,
+    RilletExportReimbursable,
     RilletBankAccount,
     RilletAutoSync,
     RilletSync,
@@ -4282,9 +4574,14 @@ export type {
     CampfireExport,
     CampfireAutoSync,
     CampfireSync,
+    DigitsExportDate,
+    DigitsVendor,
+    DigitsAccount,
     ZohoBooksExportDate,
     ZohoBooksVendor,
     ZohoBooksAccount,
+    ZohoBooksBankAccount,
+    BusinessCentralBankAccount,
     BusinessCentralCompany,
     BusinessCentralCoding,
     BusinessCentralCustomerMappings,
@@ -4299,4 +4596,11 @@ export type {
  *
  * @public
  */
-export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksSync};
+export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksOrganization, ZohoBooksSync};
+
+/**
+ * The Digits action module is the only importer of these config types, and Knip ignores that module until workspace screens import it.
+ *
+ * @public
+ */
+export type {DigitsAutoSync, DigitsCoding, DigitsConnectionsConfig, DigitsExport, DigitsSync};

@@ -20,7 +20,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {EnableTravelSubPageProps} from './types';
@@ -68,33 +68,29 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
     const needsAddress = !isProvisioned && isEmptyObject(policy?.address);
     const needsTaxID = isNonUSDPolicy(policy) && !isProvisioned && !policy?.travelSettings?.taxID;
 
-    const resolvedDomain = useMemo(() => {
-        if (isProvisioned) {
-            return CONST.TRAVEL.DEFAULT_DOMAIN;
-        }
-        if (adminDomains.length === 1) {
-            return adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
-        }
-        return travelProvisioning?.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
-    }, [isProvisioned, adminDomains, travelProvisioning?.domain]);
+    let resolvedDomain;
+    if (isProvisioned) {
+        resolvedDomain = CONST.TRAVEL.DEFAULT_DOMAIN;
+    } else if (adminDomains.length === 1) {
+        resolvedDomain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+    } else {
+        resolvedDomain = travelProvisioning?.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+    }
 
     // Verify account isn't part of this ladder: EnableTravel (the parent screen) redirects to a standalone verify
     // page before this component ever mounts, so by the time this is consulted, the account is already validated.
-    const firstIncompletePrerequisitePageName = useMemo(() => {
-        if (legalNameMissing) {
-            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME;
-        }
-        if (needsDomainSelector && !travelProvisioning?.domain) {
-            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR;
-        }
-        if (needsAddress) {
-            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS;
-        }
-        if (needsTaxID && !travelProvisioning?.taxID) {
-            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID;
-        }
-        return undefined;
-    }, [legalNameMissing, needsDomainSelector, needsAddress, needsTaxID, travelProvisioning?.domain, travelProvisioning?.taxID]);
+    let firstIncompletePrerequisitePageName;
+    if (legalNameMissing) {
+        firstIncompletePrerequisitePageName = CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME;
+    } else if (needsDomainSelector && !travelProvisioning?.domain) {
+        firstIncompletePrerequisitePageName = CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR;
+    } else if (needsAddress) {
+        firstIncompletePrerequisitePageName = CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS;
+    } else if (needsTaxID && !travelProvisioning?.taxID) {
+        firstIncompletePrerequisitePageName = CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID;
+    } else {
+        firstIncompletePrerequisitePageName = undefined;
+    }
 
     // Each step of this flow is a separate navigation push (a fresh mount of this component, not an in-place
     // update), and completing a step (e.g. saving the legal name) flips the very Onyx flag that decided whether
@@ -141,7 +137,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const pages = useMemo(() => enabledStepNames.map((pageName) => ({pageName, component: STEP_COMPONENT_BY_PAGE_NAME[pageName] ?? TermsStep})), [enabledStepNames]);
+    const pages = enabledStepNames.map((pageName) => ({pageName, component: STEP_COMPONENT_BY_PAGE_NAME[pageName] ?? TermsStep}));
 
     const startFrom = account === undefined ? -1 : 0;
 
