@@ -8392,6 +8392,21 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             successDescription: 'あなたはこのワークスペースのオーナーになりました。',
             errorTitle: 'おっと！ちょっと待って…',
             errorDescription: `<muted-text><centered-text>このワークスペースの所有権の移譲中に問題が発生しました。もう一度お試しいただくか、サポートが必要な場合は<concierge-link>Concierge にお問い合わせください</concierge-link>。</centered-text></muted-text>`,
+            takeOverAllWorkspacesTitle: 'ワークスペースを引き継ぐ',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} さんは、あなたが管理者になっているワークスペースを 1 つ所有しています。引き継ぎますか？`,
+                other: (count: number) =>
+                    `${ownerName} さんは、あなたが管理者になっているワークスペースを ${count} 件所有しています。すべて引き継ぎますか、それともこのワークスペースだけにしますか？`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: 'はい、引き継ぎます',
+                other: (count: number) => `はい、${count} 件すべて`,
+            }),
+            takeOverThisWorkspaceButtonText: 'いいえ、このワークスペースだけ',
+            successAllWorkspacesDescription: () => ({
+                one: '数分後に、あなたがこのワークスペースのオーナーになります。',
+                other: (count: number) => `数分後には、${count} 個すべてのワークスペースのオーナーになります。`,
+            }),
         },
         exportAgainModal: {
             title: '注意！',

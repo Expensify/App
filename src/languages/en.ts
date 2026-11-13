@@ -9304,6 +9304,16 @@ const translations = {
             duplicateSubscriptionButtonText: 'Continue',
             duplicateSubscriptionText: (email: string, workspaceName: string) =>
                 `It looks like you may be trying to take over billing for ${email}'s workspaces, but to do that, you need to be an admin on all their workspaces first.\n\nClick "Continue" if you only want to take over billing for the workspace ${workspaceName}.\n\nIf you want to take over billing for their entire subscription, please have them add you as an admin to all their workspaces first before taking over billing.`,
+            takeOverAllWorkspacesTitle: 'Take over workspaces',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} owns 1 workspace where you're an admin. Do you want to take it over?`,
+                other: (count: number) => `${ownerName} owns ${count} workspaces where you're an admin. Do you want to take over all of them, or just this one?`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: 'Yes, take it over',
+                other: (count: number) => `Yes, all ${count}`,
+            }),
+            takeOverThisWorkspaceButtonText: 'No, just this one',
             hasFailedSettlementsTitle: 'Cannot transfer ownership',
             hasFailedSettlementsButtonText: 'Got it',
             hasFailedSettlementsText: (email: string) =>
@@ -9313,6 +9323,10 @@ const translations = {
             failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
             successTitle: 'Woohoo! All set.',
             successDescription: "You're now the owner of this workspace.",
+            successAllWorkspacesDescription: () => ({
+                one: "You'll be the owner of this workspace in a few minutes.",
+                other: (count: number) => `You'll be the owner of all ${count} workspaces in a few minutes.`,
+            }),
             errorTitle: 'Oops! Not so fast...',
             errorDescription: `<muted-text><centered-text>There was a problem transferring ownership of this workspace. Try again, or <concierge-link>reach out to Concierge</concierge-link> for help.</centered-text></muted-text>`,
         },

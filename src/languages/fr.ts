@@ -8589,6 +8589,20 @@ Si vous souhaitez prendre en charge la facturation de l’ensemble de son abonne
             successDescription: 'Vous êtes maintenant le responsable de cet espace de travail.',
             errorTitle: 'Oups ! Pas si vite...',
             errorDescription: `<muted-text><centered-text>Un problème est survenu lors du transfert de la propriété de cet espace de travail. Réessayez ou <concierge-link>contactez Concierge</concierge-link> pour obtenir de l'aide.</centered-text></muted-text>`,
+            takeOverAllWorkspacesTitle: 'Reprendre les espaces de travail',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} possède 1 espace de travail où vous êtes administrateur. Voulez-vous le reprendre ?`,
+                other: (count: number) => `${ownerName} possède ${count} espaces de travail où vous êtes administrateur. Voulez-vous tous les reprendre, ou seulement celui-ci ?`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: 'Oui, le reprendre',
+                other: (count: number) => `Oui, les ${count} espaces`,
+            }),
+            takeOverThisWorkspaceButtonText: 'Non, seulement celui-ci',
+            successAllWorkspacesDescription: () => ({
+                one: 'Vous serez le responsable de cet espace de travail dans quelques minutes.',
+                other: (count: number) => `Vous serez le responsable des ${count} espaces de travail dans quelques minutes.`,
+            }),
         },
         exportAgainModal: {
             title: 'Attention !',

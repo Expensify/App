@@ -4365,6 +4365,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
 
+        /** How many workspaces the ownership change took over billing for, when it took over more than this one */
+        changeOwnerPolicyCount?: number;
+
         /** Object containing all policy information necessary to connect with Spotnana */
         travelSettings?: WorkspaceTravelSettings;
 

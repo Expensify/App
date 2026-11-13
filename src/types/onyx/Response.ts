@@ -156,6 +156,9 @@ type Response<TKey extends OnyxKey> = {
 
     /** Human-readable summary of the parsed filters returned by ParseExpenseFilters on success */
     humanReadableSummary?: string;
+
+    /** Workspaces returned by CheckBulkTransferPolicyBillingOwner that the user can take over billing for */
+    policyIDs?: string[];
 };
 
 export default Response;

@@ -1840,6 +1840,10 @@ const SENTRY_LABEL = {
             ROLE_SAVE_BUTTON: 'WorkspaceMembers-RoleSaveButton',
             CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
         },
+        OWNER_CHANGE: {
+            TAKE_OVER_ALL_WORKSPACES: 'WorkspaceOwnerChange-TakeOverAllWorkspaces',
+            TAKE_OVER_THIS_WORKSPACE: 'WorkspaceOwnerChange-TakeOverThisWorkspace',
+        },
         CATEGORIES: {
             ROW: 'WorkspaceCategories-Row',
             BULK_ACTIONS: {

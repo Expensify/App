@@ -8526,6 +8526,20 @@ Jeśli chcesz przejąć rozliczenia za całą ich subskrypcję, poproś ich najp
             successDescription: 'Jesteś teraz właścicielem tego workspace’u.',
             errorTitle: 'Ups! Nie tak szybko...',
             errorDescription: `<muted-text><centered-text>Wystąpił problem z przeniesieniem własności tego workspace’u. Spróbuj ponownie lub <concierge-link>skontaktuj się z Concierge</concierge-link>, aby uzyskać pomoc.</centered-text></muted-text>`,
+            takeOverAllWorkspacesTitle: 'Przejmij przestrzenie robocze',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} jest właścicielem 1 przestrzeni roboczej, w której jesteś administratorem. Czy chcesz ją przejąć?`,
+                other: (count: number) => `${ownerName} jest właścicielem ${count} przestrzeni roboczych, w których jesteś administratorem. Chcesz przejąć wszystkie, czy tylko tę jedną?`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: 'Tak, przejmij ją',
+                other: (count: number) => `Tak, wszystkie ${count}`,
+            }),
+            takeOverThisWorkspaceButtonText: 'Nie, tylko tę',
+            successAllWorkspacesDescription: () => ({
+                one: 'Za kilka minut będziesz właścicielem tej przestrzeni roboczej.',
+                other: (count: number) => `Za kilka minut będziesz właścicielem wszystkich ${count} przestrzeni roboczych.`,
+            }),
         },
         exportAgainModal: {
             title: 'Uwaga!',

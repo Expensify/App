@@ -80,6 +80,14 @@ const createOwnedPaidPoliciesCountsSelector =
         };
     };
 
+/** Creates a selector returning the IDs of the owner's paid workspaces that the current user is an admin on. */
+const createOwnedPaidAdminPolicyIDsSelector =
+    (ownerAccountID: number | undefined) =>
+    (policies: OnyxCollection<Policy>): string[] =>
+        getOwnedPaidPolicies(policies, ownerAccountID)
+            .filter((policy) => isPolicyAdmin(policy) && !isArchivedOrPendingDeletePolicy(policy))
+            .map((policy) => policy.id);
+
 /** Whether any workspace collects deposit account details, which is what makes the collect flow relevant. */
 const isCollectingDepositAccountsSelector = (policies: OnyxCollection<Policy>): boolean =>
     Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy));
@@ -700,6 +708,7 @@ export {
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,
+    createOwnedPaidAdminPolicyIDsSelector,
     createCopySettingsEligibleTargetsSelector,
     createFilteredPoliciesInfoSelector,
     billingRestrictionPolicySelector,

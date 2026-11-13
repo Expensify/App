@@ -20,16 +20,19 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 
-import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@userActions/Policy/Member';
+import {checkBulkTransferPolicyBillingOwner, clearWorkspaceOwnerChangeFlow, queueBulkTransferPolicyBillingOwner, requestWorkspaceOwnerChange} from '@userActions/Policy/Member';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import React, {useEffect} from 'react';
+import {createOwnedPaidAdminPolicyIDsSelector} from '@selectors/Policy';
+import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
+import WorkspaceOwnerChangeAllWorkspacesCheck from './WorkspaceOwnerChangeAllWorkspacesCheck';
 import WorkspaceOwnerChangeCheck from './WorkspaceOwnerChangeCheck';
 import WorkspaceOwnerPaymentCardForm from './WorkspaceOwnerPaymentCardForm';
 
@@ -48,19 +51,72 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isAuthRequired = privateStripeCustomerID?.status === CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
     const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
+    const [ownerPolicyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidAdminPolicyIDsSelector(policy?.ownerAccountID)});
+    const otherOwnerPolicyIDs = ownerPolicyIDs.filter((ownerPolicyID) => ownerPolicyID !== policyID);
+
+    // Undefined until the check answers, and empty once the transfer continues with this workspace only.
+    const [transferablePolicyIDs, setTransferablePolicyIDs] = useState<string[]>();
+    const isCheckingTransferablePolicies = otherOwnerPolicyIDs.length > 0 && !transferablePolicyIDs;
+    const shouldShowAllWorkspacesCheck = !!transferablePolicyIDs && transferablePolicyIDs.length > 1;
+    const [isTakingOverAllWorkspaces, setIsTakingOverAllWorkspaces] = useState(false);
+    const hasStartedTransferRef = useRef(false);
+
+    // An earlier transfer's result stays on the policy until this visit's request starts loading
+    const hasTransferStartedLoadingRef = useRef(false);
 
     useNavigateToCardAuthenticationOnLink();
 
-    useEffect(() => {
-        if (isLoadingPolicy || policy?.isChangeOwnerFailed || policy?.isChangeOwnerSuccessful) {
+    const takeOverThisWorkspace = () => {
+        setTransferablePolicyIDs([]);
+        requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+    };
+
+    // The transfer always ends on the success or error page, so keep loading until one of them opens
+    const takeOverAllWorkspaces = () => {
+        if (!transferablePolicyIDs) {
             return;
         }
-        requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        setIsTakingOverAllWorkspaces(true);
+        queueBulkTransferPolicyBillingOwner(policyID, transferablePolicyIDs);
+    };
+
+    useEffect(() => {
+        if (isLoadingPolicy || hasStartedTransferRef.current) {
+            return;
+        }
+        hasStartedTransferRef.current = true;
+        if (otherOwnerPolicyIDs.length === 0) {
+            requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+            return;
+        }
+
+        let ignore = false;
+        checkBulkTransferPolicyBillingOwner([policyID, ...otherOwnerPolicyIDs]).then((policyIDs) => {
+            if (ignore) {
+                return;
+            }
+            if (policyIDs.includes(policyID) && policyIDs.length > 1) {
+                setTransferablePolicyIDs(policyIDs);
+                return;
+            }
+            takeOverThisWorkspace();
+        });
+        return () => {
+            ignore = true;
+            hasStartedTransferRef.current = false;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- each run starts a new transfer, so it runs once per policy load
     }, [policyID, isLoadingPolicy]);
 
     useEffect(() => {
-        if (!policy || policy?.isLoading) {
+        if (!policy) {
+            return;
+        }
+        if (policy.isLoading) {
+            hasTransferStartedLoadingRef.current = true;
+            return;
+        }
+        if (!hasTransferStartedLoadingRef.current) {
             return;
         }
 
@@ -81,7 +137,7 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
         }
     }, [accountID, policy, policy?.errorFields?.changeOwner, policyID, buildDynamicRoute]);
 
-    const isLoading = isLoadingPolicy || !!policy?.isLoading;
+    const isLoading = isLoadingPolicy || !!policy?.isLoading || isCheckingTransferablePolicies || isTakingOverAllWorkspaces;
 
     return (
         <AccessOrNotFoundWrapper
@@ -105,7 +161,15 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
                         </View>
                     )}
                     {shouldShowPaymentCardForm && <WorkspaceOwnerPaymentCardForm policy={policy} />}
-                    {!isLoading && !shouldShowPaymentCardForm && (
+                    {!isLoading && !shouldShowPaymentCardForm && shouldShowAllWorkspacesCheck && (
+                        <WorkspaceOwnerChangeAllWorkspacesCheck
+                            policy={policy}
+                            policyIDs={transferablePolicyIDs}
+                            onTakeOverAllWorkspaces={takeOverAllWorkspaces}
+                            onTakeOverThisWorkspace={takeOverThisWorkspace}
+                        />
+                    )}
+                    {!isLoading && !shouldShowPaymentCardForm && !shouldShowAllWorkspacesCheck && (
                         <WorkspaceOwnerChangeCheck
                             policy={policy}
                             accountID={accountID}

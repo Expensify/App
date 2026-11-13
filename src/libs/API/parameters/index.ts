@@ -448,6 +448,8 @@ export type {default as DeletePolicyDistanceRatesParams} from './DeletePolicyDis
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
 export type {default as RequestWorkspaceOwnerChangeParams} from './RequestWorkspaceOwnerChangeParams';
 export type {default as AddBillingCardAndRequestWorkspaceOwnerChangeParams} from './AddBillingCardAndRequestWorkspaceOwnerChangeParams';
+export type {default as CheckBulkTransferPolicyBillingOwnerParams} from './CheckBulkTransferPolicyBillingOwnerParams';
+export type {default as QueueBulkTransferPolicyBillingOwnerParams} from './QueueBulkTransferPolicyBillingOwnerParams';
 export type {default as SetPolicyTaxesEnabledParams} from './SetPolicyTaxesEnabledParams';
 export type {default as DeletePolicyTaxesParams} from './DeletePolicyTaxesParams';
 export type {default as UpdatePolicyTaxValueParams} from './UpdatePolicyTaxValueParams';
