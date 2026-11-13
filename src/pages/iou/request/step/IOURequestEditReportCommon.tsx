@@ -23,7 +23,7 @@ import {fetchOutstandingReports} from '@libs/actions/OutstandingReports';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
-import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenExpenseReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
@@ -79,6 +79,8 @@ type IOURequestEditReportCommonProps = {
     isPerDiemRequest: boolean;
     isTimeRequest?: boolean;
     isUnreportedManagedCardTransaction?: boolean;
+    /** Whether only open reports can take the expense, e.g. a tracked expense moved to a workspace, which the server only adds to an open report */
+    shouldOnlyListOpenReports?: boolean;
     /** Whether the expenses being moved belong to more than one submitter */
     hasMultipleSubmitters?: boolean;
     /** Whether every expense being moved sits on a card this user can resolve, which "Auto report" requires */
@@ -126,6 +128,7 @@ function IOURequestEditReportCommon({
     isPerDiemRequest,
     isTimeRequest = false,
     isUnreportedManagedCardTransaction = false,
+    shouldOnlyListOpenReports = false,
     hasMultipleSubmitters = false,
     areAllManagedCardsResolvable = false,
     autoReport,
@@ -230,6 +233,9 @@ function IOURequestEditReportCommon({
                   .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare))
                   .filter((report): report is NonNullable<typeof report> => report !== undefined)
                   .filter((report) => {
+                      if (shouldOnlyListOpenReports && !isOpenExpenseReport(report)) {
+                          return false;
+                      }
                       const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                       if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
                           return false;
