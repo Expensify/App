@@ -26,7 +26,6 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
     const bankAccountID = route.params?.bankAccountID;
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
     const currency = route.params?.bankCurrency ?? bankAccount?.bankCurrency ?? '';
-    const country = route.params?.bankCountry ?? bankAccount?.bankCountry;
     const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
     const [enableGlobalReimbursementsDraft, enableGlobalReimbursementsDraftMetadata] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const isLoadingDraft = isLoadingOnyxValue(enableGlobalReimbursementsDraftMetadata);
@@ -67,8 +66,6 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
                 tradeVolume: enableGlobalReimbursementsDraft?.[INPUT_IDS.TRADE_VOLUME],
                 annualVolume: enableGlobalReimbursementsDraft?.[INPUT_IDS.ANNUAL_VOLUME],
                 businessRegistrationIncorporationNumber: enableGlobalReimbursementsDraft?.[INPUT_IDS.BUSINESS_REGISTRATION_INCORPORATION_NUMBER],
-                fundSourceCountries: country,
-                fundDestinationCountries: country,
                 currencyNeeded: currency,
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
             }),

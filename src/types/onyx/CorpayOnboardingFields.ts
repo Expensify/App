@@ -27,7 +27,7 @@ type CorpayOnboardingFields = {
     owner: string[];
 
     /** Picklists for step 3 */
-    picklists: Record<ValueOf<typeof CONST.NON_USD_BANK_ACCOUNT.BUSINESS_INFO_STEP.PICKLIST>, Picklist>;
+    picklists: Partial<Record<ValueOf<typeof CONST.NON_USD_BANK_ACCOUNT.BUSINESS_INFO_STEP.PICKLIST>, Picklist>>;
 };
 
 export type {CorpayOnboardingFields, Picklist};

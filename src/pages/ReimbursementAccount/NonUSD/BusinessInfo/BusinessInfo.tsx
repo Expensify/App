@@ -10,8 +10,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
+import {getBusinessActivityAnswers} from '@pages/ReimbursementAccount/NonUSD/utils/getBusinessActivityAnswers';
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
+import isOtherCorpayPicklistSelection from '@pages/ReimbursementAccount/NonUSD/utils/isOtherCorpayPicklistSelection';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 
 import {clearReimbursementAccountSaveCorpayOnboardingCompanyDetails, getCorpayOnboardingFields, saveCorpayOnboardingCompanyDetails} from '@userActions/BankAccounts';
@@ -27,7 +29,10 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import Address from './subSteps/Address';
+import AUPaymentsAndFunding from './subSteps/AUPaymentsAndFunding';
+import AURegistration from './subSteps/AURegistration';
 import AverageReimbursement from './subSteps/AverageReimbursement';
+import BusinessActivities from './subSteps/BusinessActivities';
 import BusinessType from './subSteps/BusinessType';
 import Confirmation from './subSteps/Confirmation';
 import ContactInformation from './subSteps/ContactInformation';
@@ -52,6 +57,9 @@ const pages = [
     {pageName: SUB_PAGE_NAMES.BUSINESS_TYPE, component: BusinessType},
     {pageName: SUB_PAGE_NAMES.PAYMENT_VOLUME, component: PaymentVolume},
     {pageName: SUB_PAGE_NAMES.AVERAGE_REIMBURSEMENT, component: AverageReimbursement},
+    {pageName: SUB_PAGE_NAMES.AU_PAYMENTS_AND_FUNDING, component: AUPaymentsAndFunding},
+    {pageName: SUB_PAGE_NAMES.AU_REGISTRATION, component: AURegistration},
+    {pageName: SUB_PAGE_NAMES.BUSINESS_ACTIVITIES, component: BusinessActivities},
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
 ];
 
@@ -71,6 +79,14 @@ const INPUT_KEYS = {
     BUSINESS_CATEGORY: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY,
     APPLICANT_TYPE_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID,
     ANNUAL_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME,
+    DBA_OR_REGISTERED_TRADE_NAME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.DBA_OR_REGISTERED_TRADE_NAME,
+    DATE_OF_INCORPORATION: INPUT_IDS.ADDITIONAL_DATA.CORPAY.DATE_OF_INCORPORATION,
+    SOURCE_OF_FUNDS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SOURCE_OF_FUNDS,
+    OTHER_SOURCE_OF_FUNDS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.OTHER_SOURCE_OF_FUNDS,
+    OTHER_BUSINESS_LEGAL_STRUCTURE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.OTHER_BUSINESS_LEGAL_STRUCTURE,
+    NUMBER_OF_MONTHLY_TRANSACTION: INPUT_IDS.ADDITIONAL_DATA.CORPAY.NUMBER_OF_MONTHLY_TRANSACTION,
+    EXPECTED_FREQUENCY_OF_TRANSACTIONS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.EXPECTED_FREQUENCY_OF_TRANSACTIONS,
+    CLIENT_INTENDS_TO_USE_CORPAY_ACCOUNT_TO: INPUT_IDS.ADDITIONAL_DATA.CORPAY.CLIENT_INTENDS_TO_USE_CORPAY_ACCOUNT_TO,
     TRADE_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TRADE_VOLUME,
     TAX_ID_EIN_NUMBER: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TAX_ID_EIN_NUMBER,
     BUSINESS_TYPE_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID,
@@ -87,9 +103,10 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {country, currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
     const businessInfoStepValues = getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount);
+    const activityAnswers = getBusinessActivityAnswers(reimbursementAccountDraft, reimbursementAccount?.achData?.corpay);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const startFrom = getInitialSubStepForBusinessInfoStep(businessInfoStepValues);
+    const startFrom = getInitialSubStepForBusinessInfoStep(businessInfoStepValues, country === CONST.COUNTRY.AU, activityAnswers);
     const initialTargetSubPage = pages.at(startFrom)?.pageName ?? SUB_PAGE_NAMES.NAME;
     const shouldRedirect = !currentSubPage;
 
@@ -108,17 +125,37 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
     }, [country]);
 
     const submit = () => {
+        const {
+            dbaOrRegisteredTradeName,
+            dateOfIncorporation,
+            sourceOfFunds,
+            otherSourceOfFunds,
+            otherBusinessLegalStructure,
+            numberOfMonthlyTransaction,
+            expectedFrequencyOfTransactions,
+            clientIntendsToUseCorpayAccountTo,
+            ...standardValues
+        } = businessInfoStepValues;
         isSubmittingRef.current = true;
         saveCorpayOnboardingCompanyDetails(
             {
-                ...businessInfoStepValues,
+                ...standardValues,
                 // Corpay does not accept emails with a "+" character and will not let us connect account at the end of whole flow
-                businessConfirmationEmail: !isProduction ? Str.replaceAll(businessInfoStepValues.businessConfirmationEmail, '+', '') : businessInfoStepValues.businessConfirmationEmail,
-                fundSourceCountries: country,
-                fundDestinationCountries: country,
+                businessConfirmationEmail: !isProduction ? Str.replaceAll(standardValues.businessConfirmationEmail, '+', '') : standardValues.businessConfirmationEmail,
                 currencyNeeded: currency,
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
-                businessTypeId: isBusinessTypeRequired ? businessInfoStepValues.businessTypeId : undefined,
+                businessTypeId: isBusinessTypeRequired ? standardValues.businessTypeId : undefined,
+                ...(country === CONST.COUNTRY.AU && {
+                    dbaOrRegisteredTradeName,
+                    dateOfIncorporation,
+                    sourceOfFunds,
+                    numberOfMonthlyTransaction: Number(numberOfMonthlyTransaction),
+                    expectedFrequencyOfTransactions,
+                    clientIntendsToUseCorpayAccountTo,
+                    ...(isOtherCorpayPicklistSelection(sourceOfFunds, 'SOURCE_OF_FUNDS') && {otherSourceOfFunds}),
+                    ...(isOtherCorpayPicklistSelection(standardValues.applicantTypeId, 'APPLICANT_TYPE') && {otherBusinessLegalStructure}),
+                    ...activityAnswers,
+                }),
             },
             bankAccountID,
         );
@@ -143,7 +180,13 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
 
     const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BUSINESS_INFO, subPage: pageName, action, backTo});
 
-    const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo} = useSubPage({pages, startFrom, onFinished: submit, buildRoute});
+    const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo} = useSubPage({
+        pages,
+        startFrom,
+        onFinished: submit,
+        buildRoute,
+        skipPages: country === CONST.COUNTRY.AU ? [] : [SUB_PAGE_NAMES.AU_PAYMENTS_AND_FUNDING, SUB_PAGE_NAMES.AU_REGISTRATION, SUB_PAGE_NAMES.BUSINESS_ACTIVITIES],
+    });
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);

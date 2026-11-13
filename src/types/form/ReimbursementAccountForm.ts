@@ -117,6 +117,14 @@ const INPUT_IDS = {
             BANK_COUNTRY: 'bankCountry',
             BANK_CURRENCY: 'bankCurrency',
             COMPANY_NAME: 'companyName',
+            DBA_OR_REGISTERED_TRADE_NAME: 'dbaOrRegisteredTradeName',
+            DATE_OF_INCORPORATION: 'dateOfIncorporation',
+            OTHER_BUSINESS_LEGAL_STRUCTURE: 'otherBusinessLegalStructure',
+            SOURCE_OF_FUNDS: 'sourceOfFunds',
+            OTHER_SOURCE_OF_FUNDS: 'otherSourceOfFunds',
+            NUMBER_OF_MONTHLY_TRANSACTION: 'numberOfMonthlyTransaction',
+            EXPECTED_FREQUENCY_OF_TRANSACTIONS: 'expectedFrequencyOfTransactions',
+            CLIENT_INTENDS_TO_USE_CORPAY_ACCOUNT_TO: 'clientIntendsToUseCorpayAccountTo',
             COMPANY_WEBSITE: 'websiteUrl',
             COMPANY_STREET: 'companyStreetAddress',
             COMPANY_CITY: 'companyCity',
@@ -138,11 +146,21 @@ const INPUT_IDS = {
             CURRENCY_NEEDED: 'currencyNeeded',
             TRADE_VOLUME: 'tradeVolume',
             ANNUAL_VOLUME: 'annualVolume',
+            IS_CLIENT_CHARITABLE_ORGANIZATION: 'isClientCharitableOrganization',
+            IS_CLIENT_DEALER_IN_STONES_PRECIOUS_METALS: 'isClientDealerInStonesPreciousMetals',
+            IS_CLIENT_HIGH_VALUE_DEALER: 'isClientHighValueDealer',
+            IS_CLIENT_NETWORK_MARKETING_COMPANY: 'isClientNetworkMarketingCompany',
+            IS_CLIENT_REAL_ESTATE_COMPANY: 'isClientRealEstateCompany',
+            IS_CLIENT_TRAVEL_OR_TOUR_COMPANY: 'isClientTravelOrTourCompany',
+            IS_CLIENT_CANNABIS_RELATED_COMPANY: 'isClientCannabisRelatedCompany',
+            IS_CLIENT_CRYPTO_COMPANY: 'isClientCryptoCompany',
+            IS_CLIENT_MSBFI: 'isClientMSBFI',
             OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
             ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE: 'anyIndividualOwn25PercentOrMore',
             BENEFICIAL_OWNERS: 'beneficialOwners',
-            FUND_DESTINATION_COUNTRIES: 'fundDestinationCountries',
-            FUND_SOURCE_COUNTRIES: 'fundSourceCountries',
+            ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP: 'anyBeneficialOwnersHoldUSCitizenship',
+            POLITICALLY_EXPOSED_PERSON: 'politicallyExposedPerson',
+            NAME_TITLE_POSITION_HELD: 'nameTitlePositionHeld',
             PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
             AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
             CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
@@ -326,6 +344,14 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.DBA_OR_REGISTERED_TRADE_NAME]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.DATE_OF_INCORPORATION]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OTHER_BUSINESS_LEGAL_STRUCTURE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SOURCE_OF_FUNDS]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OTHER_SOURCE_OF_FUNDS]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.NUMBER_OF_MONTHLY_TRANSACTION]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.EXPECTED_FREQUENCY_OF_TRANSACTIONS]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.CLIENT_INTENDS_TO_USE_CORPAY_ACCOUNT_TO]: string;
 
     /** Company website */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_WEBSITE]: string;
@@ -387,6 +413,16 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Annual volume */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME]: string;
 
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.IS_CLIENT_CHARITABLE_ORGANIZATION]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.IS_CLIENT_DEALER_IN_STONES_PRECIOUS_METALS]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.IS_CLIENT_HIGH_VALUE_DEALER]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.IS_CLIENT_NETWORK_MARKETING_COMPANY]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.IS_CLIENT_REAL_ESTATE_COMPANY]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.IS_CLIENT_TRAVEL_OR_TOUR_COMPANY]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.IS_CLIENT_CANNABIS_RELATED_COMPANY]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.IS_CLIENT_CRYPTO_COMPANY]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.IS_CLIENT_MSBFI]: string;
+
     /** Current user owns more than 25 percent of company */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;
 
@@ -395,12 +431,9 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Beneficial owners */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]: string;
-
-    /** Fund destination countries */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_DESTINATION_COUNTRIES]: string;
-
-    /** Fund source countries */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_SOURCE_COUNTRIES]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.POLITICALLY_EXPOSED_PERSON]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.NAME_TITLE_POSITION_HELD]: string;
 
     /** Company directors full name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_DIRECTORS_FULL_NAME]: string;

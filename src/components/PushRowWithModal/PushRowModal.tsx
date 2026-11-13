@@ -4,10 +4,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import Text from '@components/Text';
 
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import searchOptions from '@libs/searchOptions';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
@@ -48,6 +50,7 @@ type ListItemType = {
 
 function PushRowModal({isVisible, selectedOptions, canSelectMultiple = false, onOptionChange, onConfirm, onClose, optionsList, headerTitle, searchInputTitle}: PushRowModalProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const initialSelectedValues = useInitialSelection(selectedOptions, {isVisible});
@@ -98,7 +101,7 @@ function PushRowModal({isVisible, selectedOptions, canSelectMultiple = false, on
                 testID="PushRowModal"
             >
                 <HeaderWithBackButton
-                    title={headerTitle}
+                    title={searchInputTitle ? headerTitle : translate('common.select')}
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
@@ -108,7 +111,8 @@ function PushRowModal({isVisible, selectedOptions, canSelectMultiple = false, on
                     onSelectRow={handleSelectRow}
                     onSelectionButtonPress={canSelectMultiple ? handleSelectRow : undefined}
                     confirmButtonOptions={canSelectMultiple ? {showButton: true, text: translate('common.save'), onConfirm} : undefined}
-                    textInputOptions={textInputOptions}
+                    customListHeaderContent={!searchInputTitle ? <Text style={[styles.mh5, styles.mb5]}>{headerTitle}</Text> : undefined}
+                    textInputOptions={searchInputTitle ? textInputOptions : undefined}
                     searchValueForFocusSync={debouncedSearchValue}
                     initiallyFocusedItemKey={initialSelectedValues.at(0)}
                     disableMaintainingScrollPosition

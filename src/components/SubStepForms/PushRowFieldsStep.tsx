@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -21,11 +22,13 @@ type PushRowField<TFormID extends keyof OnyxFormValuesMapping> = {
     description: string;
     modalHeaderTitle: string;
     searchInputTitle: string;
+    sentryLabel?: SentryLabel;
 };
 
 type PushRowFieldsStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps & {
     formID: TFormID;
     formTitle: string;
+    submitButtonText?: string;
     onSubmit: (values: FormOnyxValues<TFormID>) => void;
     pushRowFields: Array<PushRowField<TFormID>>;
 };
@@ -37,6 +40,7 @@ type PushRowFieldWidened = {
     description: string;
     modalHeaderTitle: string;
     searchInputTitle: string;
+    sentryLabel?: SentryLabel;
 };
 
 type PushRowFieldsStepPropsWidened = Omit<PushRowFieldsStepProps<keyof OnyxFormValuesMapping>, 'pushRowFields'> & {
@@ -47,7 +51,7 @@ type PushRowFieldsStepPropsWidened = Omit<PushRowFieldsStepProps<keyof OnyxFormV
  * Non-generic implementation so OXC's React Compiler can memoize the component.
  * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
  */
-function PushRowFieldsStepImpl({formID, formTitle, pushRowFields, onSubmit, isEditing}: PushRowFieldsStepPropsWidened) {
+function PushRowFieldsStepImpl({formID, formTitle, submitButtonText, pushRowFields, onSubmit, isEditing}: PushRowFieldsStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const pushRowFieldsIDs = pushRowFields.map((field) => field.inputID);
@@ -59,7 +63,7 @@ function PushRowFieldsStepImpl({formID, formTitle, pushRowFields, onSubmit, isEd
     return (
         <FormProvider
             formID={formID}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+            submitButtonText={submitButtonText ?? translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={onSubmit}
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.mh5]}
@@ -74,6 +78,7 @@ function PushRowFieldsStepImpl({formID, formTitle, pushRowFields, onSubmit, isEd
                     description={pushRowField.description}
                     modalHeaderTitle={pushRowField.modalHeaderTitle}
                     searchInputTitle={pushRowField.searchInputTitle}
+                    sentryLabel={pushRowField.sentryLabel}
                     inputID={pushRowField.inputID as string}
                     shouldSaveDraft={!isEditing}
                     defaultValue={pushRowField.defaultValue}

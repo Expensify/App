@@ -1,12 +1,15 @@
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
+import getCorpayOwnerDeclarationPayload from '@pages/ReimbursementAccount/NonUSD/utils/getCorpayOwnerDeclarationPayload';
 import getDraftValuesForBeneficialOwners from '@pages/ReimbursementAccount/NonUSD/utils/getDraftValuesForBeneficialOwners';
 import getOwnerDetailsAndOwnerFilesForBeneficialOwners from '@pages/ReimbursementAccount/NonUSD/utils/getOwnerDetailsAndOwnerFilesForBeneficialOwners';
 
@@ -17,23 +20,35 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 
 import {SafeString, Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 
 import BeneficialOwnerDetailsFormPages from './BeneficialOwnerDetailsFormPages';
 import BeneficialOwnersList from './BeneficialOwnersList';
+import OwnerDeclarations from './OwnerDeclarations';
 
 const {PAGE_NAME, BENEFICIAL_OWNER_INFO_STEP} = CONST.NON_USD_BANK_ACCOUNT;
 const SUB_PAGE_NAMES = BENEFICIAL_OWNER_INFO_STEP.SUB_PAGE_NAMES;
 const {OWNERSHIP_PERCENTAGE, PREFIX} = BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
-const {OWNS_MORE_THAN_25_PERCENT, ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE, BENEFICIAL_OWNERS, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {
+    OWNS_MORE_THAN_25_PERCENT,
+    ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE,
+    BENEFICIAL_OWNERS,
+    COMPANY_NAME,
+    ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP,
+    POLITICALLY_EXPOSED_PERSON,
+    NAME_TITLE_POSITION_HELD,
+} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
 const OUTER_SUB_PAGES = new Set<string>([
     SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER,
     SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER,
     SUB_PAGE_NAMES.ARE_THERE_MORE_BENEFICIAL_OWNERS,
     SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST,
+    SUB_PAGE_NAMES.OWNER_DECLARATIONS,
+    SUB_PAGE_NAMES.OWNER_DECLARATIONS_CONFIRMATION,
 ]);
 
 function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
@@ -46,8 +61,13 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const policyID = reimbursementAccount?.achData?.policyID;
 
-    const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
-    const isAnyoneElseOwner = reimbursementAccount?.achData?.corpay?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? reimbursementAccountDraft?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? false;
+    const isUserOwner = reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
+    const isAnyoneElseOwner = reimbursementAccountDraft?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? reimbursementAccount?.achData?.corpay?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? false;
+    const country = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY];
+    const isAustralianBusiness = country === CONST.COUNTRY.AU;
+    const hasUSCitizenOwners = reimbursementAccountDraft?.[ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP] ?? reimbursementAccount?.achData?.corpay?.[ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP];
+    const hasPoliticallyExposedPeople = reimbursementAccountDraft?.[POLITICALLY_EXPOSED_PERSON] ?? reimbursementAccount?.achData?.corpay?.[POLITICALLY_EXPOSED_PERSON];
+    const ownerPEPDetails = reimbursementAccountDraft?.[NAME_TITLE_POSITION_HELD] ?? reimbursementAccount?.achData?.corpay?.[NAME_TITLE_POSITION_HELD] ?? '';
     const savedBeneficialOwnerValues = getDraftValuesForBeneficialOwners(reimbursementAccount);
     const ownerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? savedBeneficialOwnerValues.beneficialOwnerKeys;
 
@@ -69,7 +89,13 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
 
     const isSubmittingRef = useRef(false);
 
-    const submit = ({anyIndividualOwn25PercentOrMore}: {anyIndividualOwn25PercentOrMore?: boolean} = {}) => {
+    const submit = ({
+        anyIndividualOwn25PercentOrMore,
+        declarations,
+    }: {
+        anyIndividualOwn25PercentOrMore?: boolean;
+        declarations?: Pick<ReimbursementAccountForm, typeof ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP | typeof POLITICALLY_EXPOSED_PERSON | typeof NAME_TITLE_POSITION_HELD>;
+    } = {}) => {
         const currentOwnerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
         const {ownerDetails, ownerFiles} = getOwnerDetailsAndOwnerFilesForBeneficialOwners(currentOwnerKeys, reimbursementAccountDraft);
 
@@ -80,8 +106,20 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
         });
 
         isSubmittingRef.current = true;
+        const hasUSCitizenship =
+            declarations?.[ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP] ??
+            reimbursementAccountDraft?.[ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP] ??
+            reimbursementAccount?.achData?.corpay?.[ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP];
+        const isPoliticallyExposed =
+            declarations?.[POLITICALLY_EXPOSED_PERSON] ?? reimbursementAccountDraft?.[POLITICALLY_EXPOSED_PERSON] ?? reimbursementAccount?.achData?.corpay?.[POLITICALLY_EXPOSED_PERSON];
+        const pepDetails =
+            declarations?.[NAME_TITLE_POSITION_HELD] ?? reimbursementAccountDraft?.[NAME_TITLE_POSITION_HELD] ?? reimbursementAccount?.achData?.corpay?.[NAME_TITLE_POSITION_HELD];
         saveCorpayOnboardingBeneficialOwners({
-            inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore}),
+            inputs: JSON.stringify({
+                ...ownerDetails,
+                anyIndividualOwn25PercentOrMore,
+                ...(isAustralianBusiness && getCorpayOwnerDeclarationPayload(hasUSCitizenship, isPoliticallyExposed, pepDetails)),
+            }),
             ...ownerFiles,
             beneficialOwnerIDs: currentOwnerKeys.length > 0 ? currentOwnerKeys.join(',') : undefined,
             bankAccountID,
@@ -148,6 +186,49 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
         Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
     };
 
+    const editOwnerDeclarations = () => {
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.OWNER_DECLARATIONS, backTo}));
+    };
+
+    const getDeclarationTitle = (value: boolean | string | undefined) => {
+        if (value === undefined || value === '') {
+            return '';
+        }
+        return translate(value === true || value === 'true' ? 'common.yes' : 'common.no');
+    };
+
+    const confirmOwnerDeclarations = () => {
+        const hasUSAnswer = hasUSCitizenOwners === true || hasUSCitizenOwners === false || hasUSCitizenOwners === 'true' || hasUSCitizenOwners === 'false';
+        const hasPEPAnswer =
+            hasPoliticallyExposedPeople === true || hasPoliticallyExposedPeople === false || hasPoliticallyExposedPeople === 'true' || hasPoliticallyExposedPeople === 'false';
+        // A direct link to confirmation must not turn missing declarations into No answers.
+        if (!hasUSAnswer || !hasPEPAnswer || ((hasPoliticallyExposedPeople === true || hasPoliticallyExposedPeople === 'true') && !ownerPEPDetails.trim())) {
+            editOwnerDeclarations();
+            return;
+        }
+        submit({anyIndividualOwn25PercentOrMore: isUserOwner || isAnyoneElseOwner});
+    };
+
+    const ownerDeclarationSummaryItems = [
+        {
+            id: ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP,
+            title: getDeclarationTitle(hasUSCitizenOwners),
+            description: translate('ownershipInfoStep.anyUSCitizenOwners'),
+            shouldShowRightIcon: true,
+            onPress: editOwnerDeclarations,
+        },
+        {
+            id: POLITICALLY_EXPOSED_PERSON,
+            title: getDeclarationTitle(hasPoliticallyExposedPeople),
+            description: translate('ownershipInfoStep.isPoliticallyExposed'),
+            shouldShowRightIcon: true,
+            onPress: editOwnerDeclarations,
+        },
+        ...(hasPoliticallyExposedPeople === true || hasPoliticallyExposedPeople === 'true'
+            ? [{id: NAME_TITLE_POSITION_HELD, title: ownerPEPDetails, description: translate('ownershipInfoStep.pepDetails'), shouldShowRightIcon: true, onPress: editOwnerDeclarations}]
+            : []),
+    ];
+
     const handleIsUserOwnerSelected = (value: boolean) => {
         const currentOwnerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[OWNS_MORE_THAN_25_PERCENT]: value});
@@ -172,7 +253,11 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
 
         if (!value && !isUserOwner) {
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: []});
-            submit({anyIndividualOwn25PercentOrMore: false});
+            if (isAustralianBusiness) {
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.OWNER_DECLARATIONS, backTo}));
+            } else {
+                submit({anyIndividualOwn25PercentOrMore: false});
+            }
             return;
         }
 
@@ -210,6 +295,17 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
             Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER, backTo}));
         } else if (currentSubPage === SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST) {
             Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.CONFIRMATION, backTo}));
+        } else if (currentSubPage === SUB_PAGE_NAMES.OWNER_DECLARATIONS) {
+            Navigation.goBack(
+                ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({
+                    policyID,
+                    page: PAGE_NAME.BENEFICIAL_OWNER_INFO,
+                    subPage: ownerKeys.length ? SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST : SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER,
+                    backTo,
+                }),
+            );
+        } else if (currentSubPage === SUB_PAGE_NAMES.OWNER_DECLARATIONS_CONFIRMATION) {
+            Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.OWNER_DECLARATIONS, backTo}));
         } else {
             Navigation.goBack();
         }
@@ -264,9 +360,50 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
             )}
             {currentSubPage === SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST && (
                 <BeneficialOwnersList
-                    handleConfirmation={submit}
+                    handleConfirmation={(value) => {
+                        if (!isAustralianBusiness) {
+                            submit(value);
+                            return;
+                        }
+                        Navigation.navigate(
+                            ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.OWNER_DECLARATIONS, backTo}),
+                        );
+                    }}
                     handleOwnerEdit={handleOwnerEdit}
                     ownerKeys={ownerKeys}
+                />
+            )}
+            {currentSubPage === SUB_PAGE_NAMES.OWNER_DECLARATIONS && (
+                <OwnerDeclarations
+                    onSubmit={(values) => {
+                        const declarations = {
+                            [ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP]: values[ANY_BENEFICIAL_OWNERS_HOLD_US_CITIZENSHIP],
+                            [POLITICALLY_EXPOSED_PERSON]: values[POLITICALLY_EXPOSED_PERSON],
+                            [NAME_TITLE_POSITION_HELD]: values[NAME_TITLE_POSITION_HELD],
+                        };
+                        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, declarations).then(() => {
+                            Navigation.navigate(
+                                ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({
+                                    policyID,
+                                    page: PAGE_NAME.BENEFICIAL_OWNER_INFO,
+                                    subPage: SUB_PAGE_NAMES.OWNER_DECLARATIONS_CONFIRMATION,
+                                    backTo,
+                                }),
+                            );
+                        });
+                    }}
+                />
+            )}
+            {currentSubPage === SUB_PAGE_NAMES.OWNER_DECLARATIONS_CONFIRMATION && (
+                <ConfirmationStep
+                    isEditing={false}
+                    onNext={confirmOwnerDeclarations}
+                    onMove={editOwnerDeclarations}
+                    pageTitle={translate('ownershipInfoStep.letsDoubleCheck')}
+                    summaryItems={ownerDeclarationSummaryItems}
+                    isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
+                    error={getLatestErrorMessage(reimbursementAccount)}
+                    showOnfidoLinks={false}
                 />
             )}
         </InteractiveStepWrapper>

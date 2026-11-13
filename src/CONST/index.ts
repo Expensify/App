@@ -1369,6 +1369,9 @@ const CONST = {
                 BUSINESS_TYPE: 'business-type',
                 PAYMENT_VOLUME: 'payment-volume',
                 AVERAGE_REIMBURSEMENT: 'average-reimbursement',
+                AU_PAYMENTS_AND_FUNDING: 'au-payments-and-funding',
+                AU_REGISTRATION: 'au-registration',
+                BUSINESS_ACTIVITIES: 'business-activities',
                 CONFIRMATION: 'confirmation',
             },
             PICKLIST: {
@@ -1378,6 +1381,13 @@ const CONST = {
                 PURPOSE_OF_TRANSACTION: 'PurposeOfTransaction',
                 TRADE_VOLUME_RANGE: 'TradeVolumeRange',
                 BUSINESS_TYPE: 'BusinessType',
+                SOURCE_OF_FUNDS: 'SourceOfFunds',
+                EXPECTED_FREQUENCY_OF_TRANSACTIONS: 'ExpectedFrequencyOfTransactions',
+                CLIENT_INTENDS_TO_USE_CORPAY_ACCOUNT_TO: 'ClientIntendsToUseCorpayAccountTo',
+            },
+            OTHER_PICKLIST_VALUES: {
+                APPLICANT_TYPE: 'Other',
+                SOURCE_OF_FUNDS: 'Others',
             },
         },
         BENEFICIAL_OWNER_INFO_STEP: {
@@ -1386,6 +1396,8 @@ const CONST = {
                 IS_ANYONE_ELSE_BENEFICIAL_OWNER: 'is-anyone-else-beneficial-owner',
                 ARE_THERE_MORE_BENEFICIAL_OWNERS: 'are-there-more-beneficial-owners',
                 BENEFICIAL_OWNERS_LIST: 'beneficial-owners-list',
+                OWNER_DECLARATIONS: 'owner-declarations',
+                OWNER_DECLARATIONS_CONFIRMATION: 'owner-declarations-confirmation',
                 NAME: 'name',
                 NATIONALITY: 'nationality',
                 OWNERSHIP_PERCENTAGE: 'ownership-percentage',
