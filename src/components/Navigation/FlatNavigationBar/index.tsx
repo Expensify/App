@@ -89,8 +89,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
     const {isCreateMenuActive, isCreateMenuVisible, showCreateMenu, hideCreateMenu} = useCreateMenuVisibility();
     const barContainerRef = useRef<View>(null);
-    const closeFrameIdRef = useRef<number | null>(null);
-    const prevIsCreateMenuVisibleRef = useRef(isCreateMenuVisible);
 
     // Only keyboard focus counts: an item clicked with the mouse keeps focus too, and must not hold the bar open after the pointer leaves.
     const hasKeyboardFocusInside = () => {
@@ -98,30 +96,16 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         return isHTMLElement(element) && !!element.querySelector(':focus-visible');
     };
 
-    useEffect(() => {
-        if (isCreateMenuVisible && closeFrameIdRef.current !== null) {
-            cancelAnimationFrame(closeFrameIdRef.current);
-            closeFrameIdRef.current = null;
+    // The menu's overlay covers the bar until its modal is gone, so the bar never reads as hovered before then.
+    // Checking any earlier ends the peek under a pointer that is still on the bar, and the bar then peeks right back.
+    const endPeekIfPointerAndFocusLeft = () => {
+        const element = barContainerRef.current;
+        const isHovered = isHTMLElement(element) && element.matches(':hover');
+        if (isCreateMenuVisible || isHovered || hasKeyboardFocusInside()) {
+            return;
         }
-
-        if (prevIsCreateMenuVisibleRef.current && !isCreateMenuVisible) {
-            if (closeFrameIdRef.current !== null) {
-                cancelAnimationFrame(closeFrameIdRef.current);
-            }
-            // FAB_OUT dismissal takes ~1ms on web, so giving the modal overlay one animation frame
-            // allows it to unmount before recalculating whether the pointer is over the bar.
-            closeFrameIdRef.current = requestAnimationFrame(() => {
-                closeFrameIdRef.current = null;
-                const element = barContainerRef.current;
-                const isHovered = isHTMLElement(element) && element.matches(':hover');
-                if (!isHovered && !hasKeyboardFocusInside()) {
-                    endPeek();
-                }
-            });
-        }
-
-        prevIsCreateMenuVisibleRef.current = isCreateMenuVisible;
-    }, [endPeek, isCreateMenuVisible]);
+        endPeek();
+    };
 
     const endPeekIfIdle = () => {
         if (isCreateMenuVisible || hasKeyboardFocusInside()) {
@@ -147,15 +131,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         }
         endPeek();
     };
-
-    useEffect(() => {
-        return () => {
-            if (closeFrameIdRef.current === null) {
-                return;
-            }
-            cancelAnimationFrame(closeFrameIdRef.current);
-        };
-    }, []);
 
     const accountLabel = currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : translate('initialSettingsPage.account');
 
@@ -214,6 +189,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 isCreateMenuVisible={isCreateMenuVisible}
                                                 showCreateMenu={showCreateMenu}
                                                 hideCreateMenu={hideCreateMenu}
+                                                onCreateMenuHidden={endPeekIfPointerAndFocusLeft}
                                             />
                                         </View>
                                         <ScrollView

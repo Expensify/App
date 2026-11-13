@@ -33,10 +33,13 @@ type FlatNavCreateButtonProps = {
     showCreateMenu: () => void;
 
     hideCreateMenu: () => void;
+
+    /** Called once the create menu has fully closed and its modal is gone from the screen */
+    onCreateMenuHidden?: () => void;
 };
 
 /** Opens the same create menu as the floating action button. */
-function FlatNavCreateButton({isCompact = false, isCreateMenuActive, isCreateMenuVisible, showCreateMenu, hideCreateMenu}: FlatNavCreateButtonProps) {
+function FlatNavCreateButton({isCompact = false, isCreateMenuActive, isCreateMenuVisible, showCreateMenu, hideCreateMenu, onCreateMenuHidden}: FlatNavCreateButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -72,6 +75,7 @@ function FlatNavCreateButton({isCompact = false, isCreateMenuActive, isCreateMen
                 anchorRef={buttonRef}
                 anchorPosition={anchorPosition}
                 anchorAlignment={CREATE_MENU_ANCHOR_ALIGNMENT}
+                onModalHide={onCreateMenuHidden}
             />
             <Button
                 ref={buttonRef}

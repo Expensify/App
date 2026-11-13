@@ -55,6 +55,7 @@ type MockCreateButtonProps = {
     isCreateMenuVisible?: boolean;
     showCreateMenu?: () => void;
     hideCreateMenu?: () => void;
+    onCreateMenuHidden?: () => void;
 };
 let mockCreateButtonProps: MockCreateButtonProps | undefined;
 jest.mock('@components/Navigation/FlatNavigationBar/FlatNavCreateButton', () => (props: MockCreateButtonProps) => {
@@ -416,9 +417,12 @@ describe('FlatNavigationBar', () => {
             // Then the bar stays peeking so the menu does not collapse out from under the pointer
             expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
 
-            // When the menu closes
+            // When the menu closes and its modal is gone from the screen
             act(() => {
                 mockCreateButtonProps?.hideCreateMenu?.();
+            });
+            act(() => {
+                mockCreateButtonProps?.onCreateMenuHidden?.();
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -445,6 +449,9 @@ describe('FlatNavigationBar', () => {
             mockIsElementHovered = true;
             act(() => {
                 mockCreateButtonProps?.hideCreateMenu?.();
+            });
+            act(() => {
+                mockCreateButtonProps?.onCreateMenuHidden?.();
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -483,13 +490,41 @@ describe('FlatNavigationBar', () => {
             act(() => {
                 mockCreateButtonProps?.hideCreateMenu?.();
             });
+            act(() => {
+                mockCreateButtonProps?.onCreateMenuHidden?.();
+            });
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar stays peeking so the keyboard user still sees labels
             expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
         });
 
-        it('cancels the collapse frame if the create menu reopens immediately in the same frame', async () => {
+        it('keeps the bar peeking while the closing create menu is still on screen', async () => {
+            // Given a collapsed bar currently peeking with the Create menu open and the pointer away from the bar
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockCreateButtonProps?.showCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the menu starts closing, but its modal has not finished hiding yet
+            act(() => {
+                mockCreateButtonProps?.hideCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, because the modal's overlay still covers the bar and hides whether the pointer is on it
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('keeps the bar peeking if the create menu reopens before the previous close finished', async () => {
             // Given a collapsed bar currently peeking with the Create menu open
             await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
             renderBar(NAVIGATION_TABS.HOME);
@@ -504,17 +539,19 @@ describe('FlatNavigationBar', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // When the menu closes, which schedules the hover check for the next frame, and reopens before that frame runs
-            // (two separate acts, so the closed state really renders instead of being batched away with the reopen)
+            // When the menu closes, reopens, and only then reports the earlier close as finished
             act(() => {
                 mockCreateButtonProps?.hideCreateMenu?.();
             });
             act(() => {
                 mockCreateButtonProps?.showCreateMenu?.();
             });
+            act(() => {
+                mockCreateButtonProps?.onCreateMenuHidden?.();
+            });
             await waitForBatchedUpdatesWithAct();
 
-            // Then the pending check is cancelled, so the bar stays peeking even though the pointer is not over it
+            // Then the bar stays peeking under the open menu even though the pointer is not over it
             expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
         });
 
