@@ -245,6 +245,8 @@ export default {
     tableSwitchColumnWidth: 58,
     tableCaretColumnWidth: 20,
     tableMemberCellAvatarWidth: avatarSizes.avatarSizeSmall + 12,
+    // An approver or owner cell's avatar and the gap2 the cell lays it out with, which the name starts after.
+    tableInlineAvatarCellWidth: avatarSizes.avatarSizeXxxSmall + 8,
     workspaceTagsTableCountColumnWidth: 100,
     domainTableActionColumnWidth: 64,
     domainAdminsTableActionColumnWidth: 220,

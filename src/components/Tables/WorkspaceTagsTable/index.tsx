@@ -9,8 +9,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -82,7 +84,7 @@ export default function WorkspaceTagsTable({
     const shouldShowTagCountColumn = isMultiLevelTags && !shouldUseNarrowTableLayout;
     const shouldShowEnabledColumn = !isMultiLevelTags;
 
-    const tagTableColumns: Array<TableColumn<WorkspaceTagTableColumnKey>> = [
+    const tagTableColumns: Array<TableColumn<WorkspaceTagTableColumnKey, WorkspaceTagTableRowData>> = [
         {
             key: 'name',
             label: translate('common.name'),
@@ -92,6 +94,11 @@ export default function WorkspaceTagsTable({
                 // editableCellHeader matches the padded name cell so the label and value share an edge.
                 containerStyles: [styles.editableCellHeader],
             },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.name, fontSize: fontScale.text}],
+                // Padding and border sit inside the track. Once a long name sets the column width, that chrome has to be measured or the name clips.
+                extraWidth: variables.editableCellChromeWidth,
+            },
         },
         ...(shouldShowGLCodeColumn
             ? [
@@ -99,6 +106,9 @@ export default function WorkspaceTagsTable({
                       key: 'glCode' as const,
                       label: translate('workspace.tags.glCode'),
                       sortable: true,
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceTagTableRowData) => (item.glCode ? [{text: item.glCode, fontSize: fontScale.text}] : []),
+                      },
                   },
               ]
             : []),
@@ -108,6 +118,10 @@ export default function WorkspaceTagsTable({
                       key: 'approver' as const,
                       label: translate('common.approver'),
                       sortable: true,
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceTagTableRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName, fontSize: fontScale.text}] : []),
+                          extraWidth: variables.tableInlineAvatarCellWidth,
+                      },
                   },
               ]
             : []),
@@ -203,6 +217,8 @@ export default function WorkspaceTagsTable({
         <Table
             // useSorting reads initialSortColumn only on mount, so remount the table when switching between single- and multi-level tags.
             key={isMultiLevelTags ? 'multiLevelTags' : 'singleLevelTags'}
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_TAGS}
             data={tags}
             // Without a sort column, multi-level tags keep their orderWeight (import) order from getTagLists.
             initialSortColumn={isMultiLevelTags ? undefined : 'name'}

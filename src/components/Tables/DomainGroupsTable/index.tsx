@@ -1,13 +1,18 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+import {getBadgeChromeWidth, getBadgeColumnDragMinWidth, measureBadgeLabelWidth} from '@components/Table/badgeCellWidths';
 
 import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -25,6 +30,7 @@ type DomainGroupsTableProps = {
 };
 
 export default function DomainGroupsTable({domainAccountID, groups}: DomainGroupsTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<DomainGroupRowData, DomainGroupsTableColumnKey>>(null);
@@ -32,11 +38,23 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const domainGroupsTableColumns: Array<TableColumn<DomainGroupsTableColumnKey>> = [
+    const hasDefaultGroup = groups.some((group) => group.isDefault);
+    const defaultBadgeLabel = translate('common.default');
+    const defaultBadgeExtraWidth = hasDefaultGroup ? getBadgeChromeWidth(styles) : 0;
+    const defaultBadgeWidths = hasDefaultGroup ? [measureBadgeLabelWidth(defaultBadgeLabel)] : [];
+
+    const domainGroupsTableColumns: Array<TableColumn<DomainGroupsTableColumnKey, DomainGroupRowData>> = [
         {
             key: 'name',
             label: translate('common.name'),
             sortable: true,
+            dynamicSizing: {
+                // The default group renders a badge after its name, so that label is measured with the name and
+                // extraWidth covers the gap and the badge's padding and border.
+                getContentToMeasure: (item) => [{text: item.isDefault ? `${item.name}${defaultBadgeLabel}` : item.name, fontSize: fontScale.text}],
+                extraWidth: defaultBadgeExtraWidth,
+                dragMinWidth: getBadgeColumnDragMinWidth(styles, 0, defaultBadgeWidths),
+            },
         },
         {
             key: 'members',
@@ -78,6 +96,8 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.DOMAIN_GROUPS}
             ref={tableRef}
             data={groups}
             columns={domainGroupsTableColumns}

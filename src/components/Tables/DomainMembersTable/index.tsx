@@ -8,8 +8,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -93,11 +95,20 @@ export default function DomainMembersTable({
     const groupOptionValuesKey = filterConfig?.group.options.map((option) => option.value).join(',') ?? '';
     const isEmpty = members.length === 0;
 
-    const domainMembersTableColumns: Array<TableColumn<DomainMembersTableColumnKey>> = [
+    const domainMembersTableColumns: Array<TableColumn<DomainMembersTableColumnKey, DomainMemberRowData>> = [
         {
             key: 'member',
             label: translate('domain.members.title'),
             sortable: true,
+            dynamicSizing: {
+                // The cell stacks the member's name above their email, so whichever of the two renders wider decides the
+                // column's width.
+                getContentToMeasure: (item) => [
+                    {text: item.name, fontSize: fontScale.text},
+                    {text: item.email, fontSize: fontScale.label},
+                ],
+                extraWidth: variables.tableMemberCellAvatarWidth,
+            },
         },
         ...(shouldShowGroupColumn
             ? [
@@ -105,6 +116,9 @@ export default function DomainMembersTable({
                       key: 'group' as const,
                       label: translate('common.group'),
                       sortable: true,
+                      dynamicSizing: {
+                          getContentToMeasure: (item: DomainMemberRowData) => (item.groupName ? [{text: item.groupName, fontSize: fontScale.text}] : []),
+                      },
                   },
               ]
             : []),
@@ -145,6 +159,8 @@ export default function DomainMembersTable({
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.DOMAIN_MEMBERS}
             ref={tableRef}
             data={members}
             columns={domainMembersTableColumns}

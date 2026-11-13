@@ -1,6 +1,7 @@
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
+import {getBadgeChromeWidth, getBadgeColumnDragMinWidth, measureBadgeLabelWidth} from '@components/Table/badgeCellWidths';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -83,21 +85,57 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const workspaceTableColumns: Array<TableColumn<WorkspaceTableColumnKey>> = [
+    const defaultBadgeLabel = translate('common.default');
+    const requestedBadgeLabel = translate('workspace.common.requested');
+    const hasDefaultBadge = workspaces.some((workspace) => workspace.isDefault);
+    const hasRequestedBadge = workspaces.some((workspace) => workspace.isJoinRequestPending);
+    const badgeChromeWidth = hasDefaultBadge || hasRequestedBadge ? getBadgeChromeWidth(styles) : 0;
+    // The Requested badge leads with an icon and its margin.
+    const requestedBadgeIconWidth = hasRequestedBadge ? variables.iconSizeExtraSmall + styles.mr1.marginRight : 0;
+    const shownBadgeWidths: number[] = [];
+    if (hasDefaultBadge) {
+        shownBadgeWidths.push(measureBadgeLabelWidth(defaultBadgeLabel));
+    }
+    if (hasRequestedBadge) {
+        shownBadgeWidths.push(requestedBadgeIconWidth + measureBadgeLabelWidth(requestedBadgeLabel));
+    }
+
+    const workspaceTableColumns: Array<TableColumn<WorkspaceTableColumnKey, WorkspaceRowData>> = [
         {
             sortable: true,
             key: 'workspaces',
             label: translate('common.workspaces'),
+            dynamicSizing: {
+                // Badge labels are measured with the name, so a row with a badge needs more room than one without.
+                getContentToMeasure: (item) => [
+                    {
+                        text: `${item.title}${item.isDefault ? defaultBadgeLabel : ''}${item.isJoinRequestPending ? requestedBadgeLabel : ''}`,
+                        fontSize: fontScale.text,
+                    },
+                ],
+                extraWidth: variables.tableMemberCellAvatarWidth + badgeChromeWidth + requestedBadgeIconWidth,
+                // Only the name truncates, so a drag must leave room for the avatar and the badge next to it.
+                dragMinWidth: getBadgeColumnDragMinWidth(styles, variables.tableMemberCellAvatarWidth, shownBadgeWidths),
+            },
         },
         {
             sortable: true,
             key: 'owner',
             label: translate('common.owner'),
+            dynamicSizing: {
+                getContentToMeasure: (item) => (item.ownerName ? [{text: item.ownerName, fontSize: fontScale.text}] : []),
+                extraWidth: variables.tableInlineAvatarCellWidth,
+            },
         },
         {
             sortable: true,
             key: 'type',
             label: translate('workspace.common.workspaceType'),
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: getUserFriendlyWorkspaceType(item.type, translate), fontSize: fontScale.text}],
+                // A workspace type is one of a short, known set of labels, so the column always shows them in full.
+                shouldFitContent: true,
+            },
         },
         {
             sortable: false,
@@ -210,6 +248,8 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     return (
         <Table
             ref={ref}
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_LIST}
             data={canSeeFilter ? workspaces : workspaces.filter((w) => !w.isArchived)}
             columns={workspaceTableColumns}
             renderItem={renderTableItem}

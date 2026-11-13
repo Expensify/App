@@ -63,6 +63,7 @@ type WorkspaceDistanceRatesTableRowProps = {
     unit?: Unit;
 };
 
+/** Formats a rate's start or end date the way its cell shows it, so the table can size the column from the same text. */
 function formatDate(dateString: string | null | undefined, dateFnsLocale: DateFnsLocale | undefined): string {
     if (!dateString) {
         return '';
@@ -314,4 +315,5 @@ function WorkspaceDistanceRatesTableRow({
 }
 
 export default WorkspaceDistanceRatesTableRow;
+export {formatDate};
 export type {DistanceRateTableItemData};

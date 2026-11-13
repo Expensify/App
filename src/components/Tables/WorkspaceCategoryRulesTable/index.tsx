@@ -8,7 +8,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -65,7 +68,7 @@ function WorkspaceCategoryRulesTableImpl({
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const columns: Array<TableColumn<CategoryRulesTableColumnKey>> = [
+    const columns: Array<TableColumn<CategoryRulesTableColumnKey, CategoryRulesTableItem>> = [
         {
             key: 'type',
             label: typeColumnLabel,
@@ -73,8 +76,22 @@ function WorkspaceCategoryRulesTableImpl({
             width: typeColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
-        {key: 'condition', label: conditionColumnLabel, sortable: true},
-        {key: 'rule', label: ruleColumnLabel, sortable: true},
+        {
+            key: 'condition',
+            label: conditionColumnLabel,
+            sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.conditionText, fontSize: fontScale.text}],
+            },
+        },
+        {
+            key: 'rule',
+            label: ruleColumnLabel,
+            sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.ruleDescription, fontSize: fontScale.text}],
+            },
+        },
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
     ];
 
@@ -108,6 +125,8 @@ function WorkspaceCategoryRulesTableImpl({
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_CATEGORY_RULES}
             data={rulesData}
             columns={columns}
             selectionEnabled={selectionEnabled}

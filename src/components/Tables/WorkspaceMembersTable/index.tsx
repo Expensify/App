@@ -1,6 +1,7 @@
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
+import {getBadgeChromeWidth} from '@components/Table/badgeCellWidths';
 import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
@@ -76,9 +77,6 @@ type WorkspaceMembersTableProps = {
     bulkActionOptions?: Array<DropdownOption<WorkspaceMemberBulkActionType>>;
 };
 
-/** Width the approver cell's avatar and the gap the row lays it out with, which the name starts after. */
-const APPROVER_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spacing2;
-
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
     APPROVE_ONLY: 'approveOnly',
@@ -113,8 +111,7 @@ export default function WorkspaceMembersTable({
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     useCopySelectionEvent();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-    // The badge sits after the name with gap2, and its padding and border apply on both sides, so those values are doubled.
-    const ownerBadgeExtraWidth = members.some((member) => member.isOwner) ? styles.gap2.gap + styles.defaultBadge.paddingHorizontal * 2 + styles.defaultBadge.borderWidth * 2 : 0;
+    const ownerBadgeExtraWidth = members.some((member) => member.isOwner) ? getBadgeChromeWidth(styles) : 0;
     const ownerMemberColumnDragMinWidth = Math.ceil(variables.tableMemberCellAvatarWidth + variables.workspaceRoomsMembersColumnWidth + ownerBadgeExtraWidth);
 
     const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
@@ -144,7 +141,7 @@ export default function WorkspaceMembersTable({
                       label: getFirstApproverLabel(shouldUseOrdinalApproverLabel, translate, toLocaleOrdinalWithWords),
                       dynamicSizing: {
                           getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName}] : []),
-                          extraWidth: APPROVER_CELL_AVATAR_WIDTH,
+                          extraWidth: variables.tableInlineAvatarCellWidth,
                       },
                   },
               ]

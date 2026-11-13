@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -38,7 +39,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const columns: Array<TableColumn<ExpenseDefaultsTableColumnKey>> = [
+    const columns: Array<TableColumn<ExpenseDefaultsTableColumnKey, ExpenseDefaultTableItem>> = [
         {
             key: 'type',
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnType'),
@@ -50,11 +51,17 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             key: 'condition',
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnCondition'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.conditionText, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'rule',
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnRule'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.ruleDescription, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'actions',
@@ -112,6 +119,8 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_EXPENSE_DEFAULTS}
             data={rulesData}
             columns={columns}
             selectionEnabled={selectionEnabled}
