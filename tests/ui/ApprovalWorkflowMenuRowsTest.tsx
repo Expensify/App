@@ -1,4 +1,4 @@
-/** Approval rows keep their pills, navigation, error feedback and disabled state when composed. */
+/** Approval rows keep their pills, navigation and error feedback when composed. */
 import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import MenuItem from '@components/MenuItem';
@@ -93,10 +93,10 @@ function renderEditor() {
     );
 }
 
-function renderLimitPage() {
+function renderLimitPage(approverIndex = 0) {
     return render(
         <WorkspaceWorkflowsApprovalsApprovalLimitPage
-            {...createMock<React.ComponentProps<typeof WorkspaceWorkflowsApprovalsApprovalLimitPage>>({route: {params: {policyID, approverIndex: 0}}})}
+            {...createMock<React.ComponentProps<typeof WorkspaceWorkflowsApprovalsApprovalLimitPage>>({route: {params: {policyID, approverIndex}}})}
             {...{policy}}
         />,
     );
@@ -128,7 +128,7 @@ describe('Approval workflow composed rows', () => {
         expect(view.UNSAFE_getAllByType(MenuItem.FieldValue).at(1)).toHaveProperty('props.accessibilityLabel', 'Approver One');
         expect(screen.getByText('Member One')).toBeOnTheScreen();
         expect(screen.getByText('Approver One')).toBeOnTheScreen();
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, 0));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0));
     });
 
     it('keeps Everyone non-interactive in the default workflow', () => {
@@ -198,52 +198,42 @@ describe('Approval workflow composed rows', () => {
         fireEvent.press(screen.getByText('workflowsPage.approverInMultipleWorkflows'), pressEvent);
 
         // Then the existing approver editor still opens
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, 0));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0));
     });
 
-    it('keeps the additional approver value labelled and opens the over-limit selector', () => {
-        // Given an approval limit with an additional approver
-        mockWorkflow.approvers[0] = {...mockWorkflow.approvers[0], email: 'approver@example.com', displayName: 'Approver One', overLimitForwardsTo: 'additional@example.com'};
+    it('preserves the primary approver change action in the redesigned editor', () => {
+        // Given an existing workflow with its primary approver
+        renderLimitPage();
 
-        // When the additional approver row is pressed
-        const view = renderLimitPage();
+        // When the named primary approver is pressed
+        fireEvent.press(screen.getByRole('button', {name: 'Approver One'}), pressEvent);
+
+        // Then the current approver-change route opens without restoring the removed over-limit picker
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.getRoute(policyID, 0));
+    });
+
+    it('retains conditional approver titles and edit navigation', () => {
+        // Given an additional approver who only receives reports over a set amount
+        mockWorkflow.approvers.push({email: 'additional@example.com', displayName: 'Additional Approver', overLimitAmount: 1000});
+
+        // When the composed additional approver row is pressed
+        renderEditor();
         fireEvent.press(screen.getByRole('button', {name: 'Additional Approver'}), pressEvent);
 
-        // Then the composed field carries the person's name and keeps its navigation action
-        expect(view.UNSAFE_getByType(MenuItem.FieldValue).props.accessibilityLabel).toBe('Additional Approver');
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, 0));
+        // Then the new conditional title and approval-limit destination are retained
+        expect(screen.getByText('workflowsPage.ifReportIsOver')).toBeOnTheScreen();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, 1));
     });
 
-    it('dims and blocks the additional approver row when the primary approver is missing', () => {
+    it('does not restore the removed additional-approver picker when the primary approver is missing', () => {
         // Given an edit flow with an unselected primary approver
         mockWorkflow.approvers = [undefined];
-        const view = renderLimitPage();
-        const root = view.UNSAFE_getAllByType(MenuItem.Root).find(({props}) => props.sentryLabel === CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_ADDITIONAL_APPROVER);
 
-        // When the additional approver row is pressed
-        if (!root) {
-            throw new Error('Expected an additional approver row');
-        }
-        fireEvent.press(within(root).getByRole('button'), pressEvent);
-
-        // Then isDisabled drives both the visual opacity and the interaction guard
-        expect(root?.props.isDisabled).toBe(true);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(view.UNSAFE_queryByType(MenuItem.FieldValue)).toBeNull();
-    });
-
-    it('shows a red dot and help text when a limit is saved without an additional approver', () => {
-        // Given a positive approval limit without anyone selected to approve over it
-        mockWorkflow.approvers = [{email: 'approver@example.com', displayName: 'Approver One', approvalLimit: 1000}];
+        // When the redesigned approval-limit editor renders
         const view = renderLimitPage();
 
-        // When the admin saves the incomplete limit
-        fireEvent.press(screen.getByRole('button', {name: 'common.save'}), pressEvent);
-
-        // Then validation remains on the approver row with both visible error indicators
-        expect(screen.getByTestId('menu-item-brick-road-indicator')).toBeOnTheScreen();
-        expect(screen.getByText('workflowsApprovalLimitPage.enterApproverError')).toBeOnTheScreen();
-        expect(view.UNSAFE_getByType(MenuItem.HelpText).props.isError).toBe(true);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
+        // Then only the primary approver field remains, without an obsolete disabled picker
+        expect(view.UNSAFE_getAllByType(MenuItem.Root)).toHaveLength(1);
+        expect(screen.queryByText('workflowsApprovalLimitPage.additionalApproverLabel')).toBeNull();
     });
 });

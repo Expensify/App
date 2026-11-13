@@ -57,8 +57,8 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
@@ -122,6 +122,7 @@ function WorkspaceInviteMessageComponent({
     const workspaceInviteRoleDraft = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : draftInviteRole;
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
@@ -217,8 +218,11 @@ function WorkspaceInviteMessageComponent({
                 avatar: currentUserPersonalDetails?.avatar,
             },
             filteredReportActions,
-            shouldShowApproverRow ? validatedApprover : undefined,
-            shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
+            {
+                approverEmail: shouldShowApproverRow ? validatedApprover : undefined,
+                hasOfficeWorkArrangement: shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
+                policyCategories,
+            },
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearWorkspaceInviteWorkArrangementDraft(policyID);

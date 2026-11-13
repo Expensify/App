@@ -4,6 +4,7 @@ import {setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,7 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
+import useRulesPrefetch from './useRulesPrefetch';
 
 type UseUpdateTransactionCategoryParams = {
     /** ID of the expense being written to, and of the draft a not-yet-created expense lives in */
@@ -87,6 +89,9 @@ function useUpdateTransactionCategory({
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    // A split's category tax is resolved when the category is written, so the rules have to be on their way before
+    // the user picks one. Nothing recomputes it afterwards, because a split draft gets no server response.
+    useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
     const allTransactionViolations = useAllTransactionViolations(transactionID);
 
     const isSplitUpdate = isEditingSplit && !!transaction;
@@ -94,7 +99,17 @@ function useUpdateTransactionCategory({
 
     const updateCategory = (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => {
         if (isSplitUpdate) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction ?? transaction, {category}, getCurrencyDecimals, getCurrencySymbol, policy);
+            setDraftSplitTransaction(
+                transaction.transactionID,
+                splitDraftTransaction ?? transaction,
+                {category},
+                getCurrencyDecimals,
+                getCurrencySymbol,
+                policy,
+                undefined,
+                undefined,
+                rules,
+            );
             return;
         }
 
@@ -126,7 +141,7 @@ function useUpdateTransactionCategory({
             return;
         }
 
-        setMoneyRequestCategory(transactionID, category, policy, getCurrencyDecimals);
+        setMoneyRequestCategory(transactionID, category, policy);
     };
 
     return {updateCategory, isDraftUpdate: !isSplitUpdate && !isExistingExpenseUpdate};

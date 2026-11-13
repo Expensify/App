@@ -207,6 +207,7 @@ const WORKFLOW_FILTER_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
 ]);
+const VIOLATION_HAS_VALUES = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION] as const;
 
 function isFooterCount(value: string): value is SearchFooterCount {
     return VALID_FOOTER_COUNTS.has(value);
@@ -875,7 +876,7 @@ function getQueryWithFooterSelection(
  * search snapshots can still include FORWARDED actions with violation data.
  */
 function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
-    return queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+    return queryHasHasFilter(queryJSON, VIOLATION_HAS_VALUES);
 }
 
 /**
@@ -908,7 +909,7 @@ function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): bo
     return (
         queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER ||
         queryJSON.flatFilters.some((filter) => WORKFLOW_FILTER_KEYS.has(filter.key)) ||
-        queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], true)
+        queryHasHasFilter(queryJSON, VIOLATION_HAS_VALUES, true)
     );
 }
 
@@ -916,7 +917,7 @@ function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): bo
  * Same meaning as queryHasViolationFilter, for the advanced-filters form `has` array rather than parsed query JSON.
  */
 function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefined): boolean {
-    return !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+    return VIOLATION_HAS_VALUES.some((violationHasValue) => !!hasValues?.includes(violationHasValue));
 }
 
 /**

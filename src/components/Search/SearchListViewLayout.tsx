@@ -126,6 +126,7 @@ function SearchListViewLayoutContent({
         columnResizingID,
         ...resizableLayout,
         columnGap: variables.searchTableColumnGap,
+        hasStoredColumnWidths: !!storedTableColumnWidths,
     });
 
     const resizableColumnWidths: Partial<Record<SearchColumnType, number>> = {};

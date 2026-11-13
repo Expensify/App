@@ -892,6 +892,11 @@ const staticStyles = (theme: ThemeColors) =>
             paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
         },
 
+        // The "y" at the end of the wordmark already leaves empty space on its right, so the badge sits closer than the default badge margin
+        flatNavigationBarEnvironmentBadge: {
+            marginLeft: 6,
+        },
+
         flatNavigationBarCreateButtonContainer: {
             marginHorizontal: variables.flatNavigationBarCreateButtonInset,
             marginBottom: variables.flatNavigationBarCreateButtonGap,
@@ -5198,15 +5203,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         headerEnvBadge: {
-            position: 'absolute',
-            bottom: -8,
-            left: -8,
             height: 12,
-            width: 22,
             paddingLeft: 4,
             paddingRight: 4,
             alignItems: 'center',
-            zIndex: -1,
         },
 
         headerEnvBadgeText: {
@@ -6643,11 +6643,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
-        workflowApprovalLimitText: {
-            marginLeft: 32,
-            paddingBottom: 0,
-        },
-
         userPillsContainer: {
             gap: 4,
             marginTop: 4,
@@ -6904,11 +6899,6 @@ const staticStyles = (theme: ThemeColors) =>
         wideRHPExtendedCardInterpolatorStyles: {
             ...getRHPExtendedCardFrame(theme),
             width: animatedWideRHPWidth,
-        },
-
-        singleRHPExtendedCardInterpolatorStyles: {
-            ...getRHPExtendedCardFrame(theme),
-            width: variables.rhpWidth,
         },
 
         // The floating card is the containing block (translateZ0), so a resizable single RHP's card fills it at whatever width
@@ -7325,7 +7315,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 : flex.flex1) satisfies ViewStyle,
 
         // Sized like the lone floating card, so a drag paints its width through the CSS variable and the handle sits on its left edge.
-        resizableSingleRHPExtendedCardInterpolatorStyles: (singleRHPWidth: number) =>
+        singleRHPExtendedCardInterpolatorStyles: (singleRHPWidth: number) =>
             ({
                 ...getRHPExtendedCardFrame(theme),
                 // Border-box card, so the border is added back on top of the width or the content gets clipped.

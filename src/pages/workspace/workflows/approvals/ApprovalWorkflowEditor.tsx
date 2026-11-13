@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import {getApprovalLimitDescription, getNonMemberApproverError} from '@libs/WorkflowUtils';
+import {getApproverTitles, getNonMemberApproverError} from '@libs/WorkflowUtils';
 
 import {callIfAuthenticated} from '@userActions/Session';
 
@@ -63,8 +63,18 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const approverDescription = (index: number) =>
-        approverCount > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
+    const approverDescriptions = getApproverTitles({
+        approvers: approvalWorkflow.approvers,
+        getTitle: (position, count, approver, isLast) => {
+            if (approverCount <= 1) {
+                return translate('workflowsPage.approver');
+            }
+            return position > 0 && isLast ? translate('workflowsPage.finalApprover') : `${toLocaleOrdinalWithWords(position + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
+        },
+        currency,
+        translate,
+        convertToDisplayString,
+    });
 
     const getApprovalPendingAction = (index: number) => {
         // The approver's own `pendingAction` takes precedence — it's set when an approver was
@@ -132,7 +142,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     };
 
     const editApprover = (approverIndex: number) => {
-        if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+        // Every report reaches the first approver, so there's nothing to set for them besides who they are
+        if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE || approverIndex === 0) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
@@ -222,14 +233,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     // reaches all of them. With rules each workflow routes through its own rules and the edit stays in this one.
                     const isApproverInMultipleWorkflows =
                         !shouldUseApprovalWorkflowRules && !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
-                    const limitDescription = getApprovalLimitDescription({
-                        approver,
-                        currency,
-                        translate,
-                        formatPhoneNumber,
-                        convertToDisplayString,
-                    });
-                    const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
+                    const hintText = isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined;
 
                     return (
                         <OfflineWithFeedback
@@ -244,7 +248,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 style={errorText || hintText ? styles.pb0 : undefined}
                             >
                                 <MenuItem.Row>
-                                    <MenuItemField.Content name={approverDescription(approverIndex)}>
+                                    <MenuItemField.Content name={approverDescriptions.at(approverIndex) ?? ''}>
                                         {!!approver && (
                                             <MenuItem.FieldValue accessibilityLabel={formatPhoneNumber(approver.displayName)}>
                                                 <View style={styles.pr3}>

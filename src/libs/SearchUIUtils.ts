@@ -121,6 +121,7 @@ import {convertAttendeesToArray} from './AttendeeUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
+import {convertToBackendAmount} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
 import getTransactionFromTransactionListItem from './getTransactionFromTransactionListItem';
@@ -2217,7 +2218,7 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
  * Encapsulates the getIcons + shouldReportShowSubscript combination used in expense-report search results.
  *
  * For IOU reports under a personal policy with two user avatars (both users sent expenses),
- * the diagonal MultipleAvatars layout is used to match ReportActionAvatars behaviour.
+ * the diagonal MultipleAvatars layout is used to match IOUReportAvatar behaviour.
  * For workspace IOU/expense reports both user+workspace avatars are shown via subscript layout.
  * For reports under a personal policy that are not IOU reports, subscript is suppressed.
  */
@@ -2239,7 +2240,7 @@ function getSearchReportAvatarProps(
         const isPersonalPolicy = policy?.type === CONST.POLICY.TYPE.PERSONAL;
         const bothAreUserAvatars = avatarIcons.at(0)?.type === CONST.ICON_TYPE_AVATAR && avatarIcons.at(1)?.type === CONST.ICON_TYPE_AVATAR;
         if (isPersonalPolicy && bothAreUserAvatars && hasSecondAvatar) {
-            // DM IOU where both users sent expenses — use diagonal MultipleAvatars to match ReportActionAvatars
+            // DM IOU where both users sent expenses — use diagonal MultipleAvatars to match IOUReportAvatar
             avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL;
         } else {
             avatarType = hasSecondAvatar ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
@@ -2517,9 +2518,13 @@ function getTripSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumbe
         .map((trip) => {
             // Trip rooms have no owner, so the traveler comes from travelerAccountID
             const traveler = data.personalDetailsList?.[trip.travelerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails;
+            // Opening the room overwrites the snapshot's report total with the room's own 0, so read the fare the backend computes it from
+            const totalFare = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${trip.reportID}`]?.tripData?.payload?.tripPaymentInfo?.totalFare;
 
             return {
                 ...trip,
+                total: totalFare ? convertToBackendAmount(totalFare.amount) : trip.total,
+                currency: totalFare?.currencyCode ?? trip.currency,
                 tripName: StringUtils.lineBreaksToSpaces(Parser.htmlToText(trip.reportName ?? '')),
                 traveler,
                 formattedTraveler: temporaryGetDisplayNameOrDefault({passedPersonalDetails: traveler, translate, formatPhoneNumber}),
