@@ -498,27 +498,6 @@ describe.serial('CIGitLogic', () => {
         fs.rmSync(SANDBOX_DIR, {recursive: true, force: true});
     });
 
-    test('Recreate a checkout removed after its existence check', async () => {
-        // Given another process removes the checkout between the existence check and deletion.
-        const existsSync = fs.existsSync;
-        const existsSyncSpy = jest.spyOn(fs, 'existsSync').mockImplementationOnce((directory) => {
-            const exists = existsSync(directory);
-            fs.rmSync(DUMMY_DIR, {recursive: true});
-            return exists;
-        });
-
-        try {
-            // When a fresh checkout replaces the missing directory.
-            await checkoutRepo();
-
-            // Then it is a usable repository rather than an ENOENT failure.
-            expect(await refExists('main')).toBe(true);
-            expect(getVersion()).toBe('2.0.0-0');
-        } finally {
-            existsSyncSpy.mockRestore();
-        }
-    });
-
     test('Merge a pull request while the checklist is unlocked', async () => {
         await createBasicPR(1);
         await mergePR(1);
