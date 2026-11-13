@@ -8,7 +8,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOpenReimbursementAccountPageForWiseIntro from '@hooks/useOpenReimbursementAccountPageForWiseIntro';
 import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +31,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 
 type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO>;
@@ -51,6 +54,12 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
 
     const goBackToEntryPoint = () => Navigation.goBack(backPath);
 
+    const {isOffline} = useNetwork();
+    const isEligible = isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
+    // The intro stays mounted under the form on a direct link to the form, which reads for itself
+    const isFocused = useIsFocused();
+    useOpenReimbursementAccountPageForWiseIntro(bankAccountID, isFocused && isEligible && !isOffline && !isOnboardingSubmitted && !!isWiseReimbursementsBetaEnabled);
+
     // Close the page instead of showing "not found" when the user lacks the beta. Wait for betas to load first
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {
@@ -69,7 +78,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     return (
         <ScreenWrapper testID="WiseGlobalReimbursementsIntroPage">
             <FullPageNotFoundView
-                shouldShow={!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)}
+                shouldShow={!isEligible}
                 onBackButtonPress={goBackToEntryPoint}
             >
                 <Header>

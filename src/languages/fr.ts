@@ -3389,10 +3389,8 @@ ${amount} pour ${merchant} - ${date}`,
         approverInMultipleWorkflows: 'Ce membre appartient déjà à un autre circuit d’approbation. Toute mise à jour effectuée ici sera également répercutée là-bas.',
         approverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur ou supprimez ce flux de travail.',
         defaultWorkflowApproverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur.',
-        overLimitApproverNotWorkspaceMember:
-            'L’approbateur supplémentaire pour les notes de frais au-delà de la limite n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur supplémentaire.',
-        overLimitApproverInWorkflow:
-            'L’approbateur supplémentaire pour les notes de frais dépassant la limite est déjà un approbateur dans ce flux de travail. Choisissez un autre approbateur supplémentaire.',
+        overLimitAmountBelowPreviousApprover: 'Saisissez un total de note de frais au moins égal à celui de l’approbateur précédent.',
+        overLimitAmountAboveNextApprover: 'Saisissez un total de note de frais qui ne dépasse pas celui de l’approbateur suivant.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> approuve déjà les notes de frais de <strong>${name2}</strong>. Veuillez choisir un autre approbateur pour éviter un circuit d'approbation circulaire.`,
         emptyContent: {
@@ -3406,6 +3404,7 @@ ${amount} pour ${merchant} - ${date}`,
             `Les validations sont gérées par votre intégration ${provider}. Pour mettre à jour votre workflow de validation, accédez aux paramètres de connexion ${provider}.`,
         goToProviderSettings: ({provider}: {provider: string}) => `Aller aux paramètres ${provider}`,
         approverFromProvider: ({provider}: {provider: string}) => `de la part de ${provider}`,
+        ifReportIsOver: ({amount}: {amount: string}) => `Si la note de frais dépasse ${amount}`,
         finalApprover: 'Approbateur final',
         manager: 'Manager',
         submitFrequency: 'Fréquence de soumission',
@@ -3473,7 +3472,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     workflowsCreateApprovalsPage: {
         title: 'Confirmer',
-        header: 'Ajoutez d’autres approbateurs et confirmez.',
+        header: 'Ajoutez d’autres approbateurs ou confirmez',
         additionalApprover: 'Approbateur supplémentaire',
         submitButton: 'Ajouter un workflow',
     },
@@ -3481,6 +3480,9 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Modifier le workflow d’approbation',
         deleteTitle: 'Supprimer le workflow d’approbation',
         deletePrompt: 'Voulez-vous vraiment supprimer ce workflow d’approbation ? Tous les membres suivront ensuite le workflow par défaut.',
+        hiddenRoutesTitle: 'Certaines notes de frais seront acheminées différemment',
+        hiddenRoutesPrompt:
+            'Ce workflow a été configuré avec des approbateurs qui envoient certaines notes de frais à d’autres approbateurs selon leur total. L’enregistrer ne conserve que les approbateurs affichés ici, donc chaque note de frais passera par eux.',
     },
     workflowsExpensesFromPage: {
         title: 'Dépenses de',
@@ -3495,25 +3497,19 @@ ${amount} pour ${merchant} - ${date}`,
     workflowsApproverPage: {
         genericErrorMessage: 'L’approbateur n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
         title: 'Définir l’approbateur',
+        setFirstApprover: 'Définir le premier approbateur',
+        addApprover: 'Ajouter un approbateur',
         description: 'Cette personne approuvera les dépenses.',
     },
     workflowsApprovalLimitPage: {
-        title: 'Approbateur',
-        header: '(Facultatif) Vous souhaitez ajouter une limite d’approbation ?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Ajouter un autre approbateur lorsque <strong>${approverName}</strong> est l'approbateur et que la note de frais dépasse le montant ci-dessous :`
-                : 'Ajouter un autre approbateur lorsqu’une note de frais dépasse le montant ci-dessous :',
-        reportAmountLabel: 'Montant de la note de frais',
-        additionalApproverLabel: 'Approbateur supplémentaire',
-        skip: 'Ignorer',
+        whenShouldApprove: ({approverName}: {approverName: string}) => `Quand l’approbation de ${approverName} est-elle nécessaire ?`,
+        always: 'Toujours',
+        overSetAmount: 'Uniquement pour les notes de frais au-delà d’un montant défini',
+        reportTotal: 'Total de la note de frais',
+        approvesOverAmount: ({approverName, amount}: {approverName: string; amount: string}) => `${approverName} approuve uniquement les notes de frais de plus de ${amount}.`,
+        removeApprover: 'Supprimer l’approbateur',
         next: 'Suivant',
-        removeLimit: 'Supprimer la limite',
         enterAmountError: 'Veuillez saisir un montant valide',
-        enterApproverError: 'Un approbateur est obligatoire lorsque vous définissez une limite de note de frais',
-        enterBothError: 'Saisissez un montant de note de frais et un approbateur supplémentaire',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
-            `Les notes de frais supérieures à ${approvalLimit} sont transférées à ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Payeur autorisé',
