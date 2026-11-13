@@ -608,6 +608,7 @@ export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
 export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
 export type {default as SetCompanyCardTransactionLiability} from './SetCompanyCardTransactionLiability';
 export type {default as OpenPolicyCompanyCardsFeedParams} from './OpenPolicyCompanyCardsFeedParams';
+export type {default as SearchCompanyCardByNumberParams} from './SearchCompanyCardByNumberParams';
 export type {default as OpenPolicyAddCardFeedPageParams} from './OpenPolicyAddCardFeedPageParams';
 export type {default as SetFeedReimbursableParams} from './SetFeedReimbursableParams';
 export type {default as SetFeedStatementPeriodEndDayParams} from './SetFeedStatementPeriodEndDayParams';

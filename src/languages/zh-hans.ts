@@ -6961,6 +6961,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 allCards: '所有卡片',
                 assignedCards: '已分配',
                 unassignedCards: '未分配',
+                matchesLastFourDigitsOnly: '仅匹配最后 4 位数字',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `选择要导出交易的 ${integration} 账户。${exportPageLink ? `选择其他<a href="${exportPageLink}">导出选项</a>以更改可用账户。` : ''}`,

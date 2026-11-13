@@ -7257,6 +7257,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 allCards: 'Todos os cartões',
                 assignedCards: 'Atribuído',
                 unassignedCards: 'Não atribuído',
+                matchesLastFourDigitsOnly: 'Corresponde apenas aos últimos 4 dígitos',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `exportação ${integration} ${type.toLowerCase()}` : `Exportação do ${integration}`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Escolha a conta do ${integration} para a qual as transações devem ser exportadas.${exportPageLink ? ` Selecione uma <a href="${exportPageLink}">opção de exportação</a> diferente para alterar as contas disponíveis.` : ''}`,

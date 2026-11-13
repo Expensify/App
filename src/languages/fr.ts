@@ -7324,6 +7324,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 allCards: 'Toutes les cartes',
                 assignedCards: 'Assigné',
                 unassignedCards: 'Non assigné',
+                matchesLastFourDigitsOnly: 'Correspond uniquement aux 4 derniers chiffres',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `exportation ${integration} ${type.toLowerCase()}` : `Export ${integration}`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.${exportPageLink ? ` Sélectionnez une autre <a href="${exportPageLink}">option d’exportation</a> pour modifier les comptes disponibles.` : ''}`,

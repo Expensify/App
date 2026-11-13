@@ -12,6 +12,7 @@ import type {
     OpenPolicyCompanyCardsFeedParams,
     OpenPolicyExpensifyCardsPageParams,
     RequestFeedSetupParams,
+    SearchCompanyCardByNumberParams,
     SetCompanyCardExportAccountParams,
     SetFeedReimbursableParams,
     SetFeedStatementPeriodEndDayParams,
@@ -46,6 +47,7 @@ import type {
     StatementPeriodEnd,
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
+import type {CompanyCardNumberSearchResult} from '@src/types/onyx/CompanyCardNumberSearch';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -1645,6 +1647,77 @@ function getExpensifyCardStatementPDF(policyID: string | undefined, feedCountry:
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EXPENSIFY_CARD_STATEMENT_PDF, params, {optimisticData, successData, failureData});
 }
 
+// Tracks the latest in-flight search per scoped key. The response for a request whose ID no longer matches
+// is dropped so an older search can never overwrite a newer one, and a clear bumps the ID so any pending
+// callback becomes a no-op.
+const pendingCompanyCardNumberSearchIDs = new Map<string, number>();
+
+function getCompanyCardNumberSearchKey(policyID: string, consumerID: string) {
+    return `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}${policyID}_${consumerID}` as const;
+}
+
+/**
+ * Searches a policy's company card feed for a typed full card number. New Expensify never has the full
+ * number, so the backend does the match. Results go to a RAM-only Onyx key scoped by policyID and consumerID
+ * (one search surface, e.g. a table instance), so two surfaces open at once do not overwrite each other and
+ * nothing is written to disk. The typed number stays in component state.
+ */
+function searchCompanyCardByNumber(policyID: string, consumerID: string, cardNumber: string, feed: CompanyCardFeedWithNumber, domainAccountID: number) {
+    const searchKey = getCompanyCardNumberSearchKey(policyID, consumerID);
+    const requestID = (pendingCompanyCardNumberSearchIDs.get(searchKey) ?? 0) + 1;
+    pendingCompanyCardNumberSearchIDs.set(searchKey, requestID);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: searchKey,
+            // Optimistic data is logged by the API layer, so never include the typed card number here.
+            value: {isLoading: true, query: '', cards: [], hasError: false},
+        },
+    ];
+
+    const params: SearchCompanyCardByNumberParams = {
+        policyID,
+        cardNumber,
+        feed,
+        domainAccountID,
+    };
+
+    const setSearchError = () => {
+        if (pendingCompanyCardNumberSearchIDs.get(searchKey) !== requestID) {
+            return;
+        }
+        Onyx.merge(searchKey, {isLoading: false, query: cardNumber, cards: [], hasError: true});
+    };
+
+    // makeRequestWithSideEffects is used so we can read the matching cards from the response and store them.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_COMPANY_CARD_BY_NUMBER, params, {optimisticData})
+        .then((response) => {
+            if (pendingCompanyCardNumberSearchIDs.get(searchKey) !== requestID) {
+                return;
+            }
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                setSearchError();
+                return;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const cards = (response as {cards?: CompanyCardNumberSearchResult[]} | undefined)?.cards ?? [];
+            Onyx.merge(searchKey, {isLoading: false, query: cardNumber, cards, hasError: false});
+        })
+        .catch(setSearchError);
+}
+
+/**
+ * Clears a consumer's RAM-only company-card number search results and invalidates any in-flight request
+ * for that consumer so a late response cannot restore the results.
+ */
+function clearCompanyCardNumberSearch(policyID: string, consumerID: string) {
+    const searchKey = getCompanyCardNumberSearchKey(policyID, consumerID);
+    pendingCompanyCardNumberSearchIDs.set(searchKey, (pendingCompanyCardNumberSearchIDs.get(searchKey) ?? 0) + 1);
+    Onyx.set(searchKey, null);
+}
+
 export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
@@ -1677,4 +1750,6 @@ export {
     linkCardFeedToPolicy,
     startCardFeedRefresh,
     getExpensifyCardStatementPDF,
+    searchCompanyCardByNumber,
+    clearCompanyCardNumberSearch,
 };
