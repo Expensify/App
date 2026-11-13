@@ -195,6 +195,7 @@ import {
     isChatUsedForOnboarding,
     isClosedExpenseReportWithNoExpenses,
     isConciergeChatReport,
+    isCurrentUserInvoiceReceiver,
     isCurrentUserSubmitter,
     isCurrentUserTheOnlyParticipant,
     isDeprecatedGroupDM,
@@ -4060,6 +4061,7 @@ describe('ReportUtils', () => {
                 formatPhoneNumber,
                 parentReportName: undefined,
                 isParentReportArchived: true,
+                currentUserAccountID,
             });
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
@@ -4074,6 +4076,7 @@ describe('ReportUtils', () => {
                 formatPhoneNumber,
                 parentReportName: undefined,
                 isParentReportArchived: false,
+                currentUserAccountID,
             });
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
@@ -4100,6 +4103,7 @@ describe('ReportUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 parentReportName: undefined,
+                currentUserAccountID,
             });
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
@@ -4123,6 +4127,7 @@ describe('ReportUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 parentReportName: undefined,
+                currentUserAccountID,
             });
 
             // Then it omits the owner's expense chat and uses the current policy name when available.
@@ -4160,6 +4165,7 @@ describe('ReportUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     parentReportName: undefined,
+                    currentUserAccountID,
                 });
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
@@ -4174,6 +4180,7 @@ describe('ReportUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 parentReportName: undefined,
+                currentUserAccountID,
             });
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
@@ -4194,6 +4201,7 @@ describe('ReportUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 parentReportName: undefined,
+                currentUserAccountID,
             });
             expect(actual).toEqual({});
         });
@@ -4240,6 +4248,7 @@ describe('ReportUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     parentReportName: 'Resolved Parent Name',
+                    currentUserAccountID,
                 });
 
                 // Then the subtitle uses the passed name, not the one stored on the parent report
@@ -4256,6 +4265,7 @@ describe('ReportUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     parentReportName: undefined,
+                    currentUserAccountID,
                 });
 
                 // Then the subtitle falls back to the name stored on the parent report
@@ -4278,8 +4288,43 @@ describe('ReportUtils', () => {
                 translate: translateWithHiddenMarker,
                 formatPhoneNumber,
                 parentReportName: undefined,
+                currentUserAccountID,
             });
             expect(actual.reportName).toContain('HiddenMarker');
+        });
+        it('does not append the payer name when the passed account is the individual invoice receiver', () => {
+            // Given an invoice whose parent invoice room is received by account 1, while the Onyx session belongs to another account
+            // When the subtitle is built for account 1
+            const actual = getParentNavigationSubtitle({
+                report: baseArchivedPolicyExpenseChat,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                translate: translateLocal,
+                formatPhoneNumber,
+                parentReportName: undefined,
+                currentUserAccountID: 1,
+            });
+
+            // Then only the sender workspace is shown, because the receiver does not need to see their own name
+            expect(actual).toEqual({reportName: 'A workspace'});
+        });
+
+        it('appends the payer name when no account is passed', () => {
+            // Given an invoice room received by account 1
+            // When the subtitle is built before the current account is known
+            const actual = getParentNavigationSubtitle({
+                report: baseArchivedPolicyExpenseChat,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                translate: translateLocal,
+                formatPhoneNumber,
+                parentReportName: undefined,
+                currentUserAccountID: undefined,
+            });
+            const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
+
+            // Then nobody is treated as the receiver, so the payer name is shown
+            expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
 
         /**
@@ -4340,6 +4385,7 @@ describe('ReportUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     parentReportName: undefined,
+                    currentUserAccountID,
                 });
 
                 // Then the subtitle names the passed workspace, proving the payer is read off the argument and
@@ -4357,6 +4403,7 @@ describe('ReportUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     parentReportName: undefined,
+                    currentUserAccountID,
                 });
 
                 // Then the cached name never reaches the subtitle. Without a receiver policy `getInvoicePayerName`
@@ -16122,6 +16169,112 @@ describe('ReportUtils', () => {
             // Then passing the matching accountID returns true and a different one returns false
             expect(isActionCreator(reportAction, 999)).toBe(true);
             expect(isActionCreator(reportAction, 1000)).toBe(false);
+        });
+    });
+
+    describe('isCurrentUserInvoiceReceiver', () => {
+        const receiverAccountID = 60401;
+        const otherAccountID = 60402;
+        const adminReceiverPolicy = createMock<Policy>({...createRandomPolicy(60403), id: 'receiverAdminPolicy60403', role: CONST.POLICY.ROLE.ADMIN});
+        const userReceiverPolicy = createMock<Policy>({...createRandomPolicy(60404), id: 'receiverUserPolicy60404', role: CONST.POLICY.ROLE.USER});
+
+        const buildIndividualInvoiceRoom = (accountID: number): Report => ({
+            ...createRandomReport(60405, CONST.REPORT.CHAT_TYPE.INVOICE),
+            invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID},
+        });
+
+        const buildBusinessInvoiceRoom = (policyID: string): Report => ({
+            ...createRandomReport(60406, CONST.REPORT.CHAT_TYPE.INVOICE),
+            invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID},
+        });
+
+        beforeAll(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminReceiverPolicy.id}`, adminReceiverPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${userReceiverPolicy.id}`, userReceiverPolicy);
+            await waitForBatchedUpdates();
+        });
+
+        afterAll(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminReceiverPolicy.id}`, null);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${userReceiverPolicy.id}`, null);
+            await waitForBatchedUpdates();
+        });
+
+        describe('an individual invoice receiver', () => {
+            it('is the current user when the passed account is the receiver', () => {
+                // Given an invoice room received by an individual
+                const invoiceRoom = buildIndividualInvoiceRoom(receiverAccountID);
+
+                // When the check runs for that same account
+                // Then the user is the receiver
+                expect(isCurrentUserInvoiceReceiver(invoiceRoom, receiverAccountID)).toBe(true);
+            });
+
+            it('is not the current user when the passed account is somebody else', () => {
+                // Given an invoice room received by an individual
+                const invoiceRoom = buildIndividualInvoiceRoom(receiverAccountID);
+
+                // When the check runs for a different account
+                // Then the user is not the receiver
+                expect(isCurrentUserInvoiceReceiver(invoiceRoom, otherAccountID)).toBe(false);
+            });
+
+            it('is not the current user when no account is passed', () => {
+                // Given an invoice room received by an individual
+                const invoiceRoom = buildIndividualInvoiceRoom(receiverAccountID);
+
+                // When the check runs before the current account is known
+                // Then nobody is treated as the receiver
+                expect(isCurrentUserInvoiceReceiver(invoiceRoom, undefined)).toBe(false);
+            });
+        });
+
+        describe('a business invoice receiver', () => {
+            it('does not depend on the passed account', () => {
+                // Given an invoice room received by a workspace the user administers
+                const invoiceRoom = buildBusinessInvoiceRoom(adminReceiverPolicy.id);
+
+                // When the check runs for different accounts, or without one
+                // Then the result is driven by the workspace role only
+                expect(isCurrentUserInvoiceReceiver(invoiceRoom, otherAccountID)).toBe(true);
+                expect(isCurrentUserInvoiceReceiver(invoiceRoom, undefined)).toBe(true);
+            });
+
+            it('is not the current user when the user is only a member of the receiver workspace', () => {
+                // Given an invoice room received by a workspace where the user is not an admin
+                const invoiceRoom = buildBusinessInvoiceRoom(userReceiverPolicy.id);
+
+                // When the check runs
+                // Then the user is not the receiver
+                expect(isCurrentUserInvoiceReceiver(invoiceRoom, receiverAccountID)).toBe(false);
+            });
+
+            it('is not the current user when the receiver workspace is not available', () => {
+                // Given an invoice room received by a workspace that is not loaded in Onyx
+                const invoiceRoom = buildBusinessInvoiceRoom('missingReceiverPolicy60407');
+
+                // When the check runs
+                // Then the user is not the receiver
+                expect(isCurrentUserInvoiceReceiver(invoiceRoom, receiverAccountID)).toBe(false);
+            });
+        });
+
+        describe('a report without an invoice receiver', () => {
+            it('is not received by the current user', () => {
+                // Given a regular chat that has no invoice receiver
+                const chatReport: Report = {...createRandomReport(60408, undefined), invoiceReceiver: undefined};
+
+                // When the check runs, even for the report owner
+                // Then nobody is the receiver
+                expect(isCurrentUserInvoiceReceiver(chatReport, chatReport.ownerAccountID)).toBe(false);
+            });
+
+            it('is not received by the current user when the report is missing', () => {
+                // Given a report that is not loaded yet
+                // When the check runs
+                // Then nobody is the receiver
+                expect(isCurrentUserInvoiceReceiver(undefined, receiverAccountID)).toBe(false);
+            });
         });
     });
 

@@ -85,6 +85,7 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
         formatPhoneNumber,
         parentReportName: derivedParentReportName,
         isParentReportArchived,
+        currentUserAccountID,
     });
 
     const titleField: OnyxTypes.PolicyReportField | undefined = (() => {

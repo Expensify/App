@@ -263,6 +263,7 @@ function AvatarWithDisplayName({
         formatPhoneNumber,
         parentReportName: derivedParentReportName,
         isParentReportArchived,
+        currentUserAccountID,
     });
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);

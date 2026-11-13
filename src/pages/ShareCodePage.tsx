@@ -153,6 +153,7 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                     formatPhoneNumber,
                     parentReportName: derivedParentReportName,
                     isParentReportArchived,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                 }).workspaceName ?? getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
         }
     } else {

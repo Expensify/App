@@ -1787,10 +1787,9 @@ function getInvoiceReceiverPersonalDetail(report: OnyxEntry<Report>, personalDet
     return invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? personalDetailsList?.[invoiceReceiver.accountID] : undefined;
 }
 
-// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
+function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>, currentUserAccountID: number | undefined): boolean {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-        return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === report.invoiceReceiver.accountID;
+        return currentUserAccountID === report.invoiceReceiver.accountID;
     }
 
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
@@ -7469,6 +7468,8 @@ type GetParentNavigationSubtitleParams = {
     parentReportName: string | undefined;
 
     isParentReportArchived?: boolean;
+
+    currentUserAccountID: number | undefined;
 };
 
 /**
@@ -7482,6 +7483,7 @@ function getParentNavigationSubtitle({
     formatPhoneNumber,
     parentReportName,
     isParentReportArchived = false,
+    currentUserAccountID,
 }: GetParentNavigationSubtitleParams): ParentNavigationSummaryParams {
     // Bills have no parent chat, so their subtitle contains only the policy name.
     if (isBillReport(report)) {
@@ -7524,7 +7526,7 @@ function getParentNavigationSubtitle({
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         const senderWorkspaceName = getPolicyName({report: parentReport, policy, unavailableTranslation: translate('workspace.common.unavailable')});
-        const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
+        const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport, currentUserAccountID);
         const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(parentReport, getAllPersonalDetails());
         const invoicePayerName = getInvoicePayerName(parentReport, translate, formatPhoneNumber, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
 
