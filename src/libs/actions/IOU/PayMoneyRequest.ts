@@ -1,5 +1,4 @@
 import type {PaymentMethod} from '@components/KYCWall/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -9,9 +8,9 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
-import type HttpsError from '@libs/Errors/HttpsError';
+import HttpsError from '@libs/Errors/HttpsError';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import fileDownload from '@libs/fileDownload';
+import {isErrorResponseForFileDownload, rejectWithFileDownloadError} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -31,6 +30,7 @@ import {
     isIOUReport,
     updateReportPreview,
 } from '@libs/ReportUtils';
+import saveTextFile from '@libs/saveTextFile';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
@@ -1043,7 +1043,6 @@ type PayViaABAFunctionParams = {
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    translate: LocalizedTranslate;
     onDownloadFailed: (error?: HttpsError) => void;
     onPaid?: () => void;
 };
@@ -1065,7 +1064,6 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        translate,
         onDownloadFailed,
         onPaid,
     } = params;
@@ -1084,41 +1082,33 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
 
     // Matches the file names Classic gives ABA files
     const fileName = reportIDs.length === 1 ? `ABA_Report_${reportIDs.at(0)}.aba` : `ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`;
-    let hasDownloadFailed = false;
-    const handleDownloadFailed = (error?: HttpsError) => {
-        hasDownloadFailed = true;
-        onDownloadFailed(error);
-    };
 
     // The file download doesn't go through the write queue, so we wait for queued writes to reach the server first
     await API.waitForWrites(WRITE_COMMANDS.PAY_VIA_ABA);
-    return fileDownload(
-        translate,
-        getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}),
-        fileName,
-        '',
-        false,
-        formData,
-        CONST.NETWORK.METHOD.POST,
-        handleDownloadFailed,
-        undefined,
-        false,
-    ).then(() => {
-        if (hasDownloadFailed) {
-            return;
+    try {
+        const response = await fetch(getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), {method: CONST.NETWORK.METHOD.POST, body: formData, credentials: 'same-origin'});
+        if (isErrorResponseForFileDownload(response.headers.get('content-type'), fileName)) {
+            await rejectWithFileDownloadError(response);
         }
+        if (!response.ok) {
+            throw new Error('Failed to download the ABA file');
+        }
+        await saveTextFile({fileName, content: await response.text()});
+    } catch (error) {
+        onDownloadFailed(error instanceof HttpsError ? error : undefined);
+        return;
+    }
 
-        // A successful download means the reports are paid, so we mark them as paid now to stop the Pay button
-        // reappearing before the BE's pusher updates arrive.
-        Onyx.update(
-            reportIDs.map((reportID) => ({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
-            })),
-        );
-        onPaid?.();
-    });
+    // A successful download means the reports are paid, so we mark them as paid now to stop the Pay button
+    // reappearing before the BE's pusher updates arrive.
+    Onyx.update(
+        reportIDs.map((reportID) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
+        })),
+    );
+    onPaid?.();
 }
 
 function markReportPaymentReceived(

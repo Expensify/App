@@ -74,7 +74,6 @@ function usePayViaABA() {
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
-            translate,
             onPaid,
             onDownloadFailed: (error) => {
                 showDecisionModal({

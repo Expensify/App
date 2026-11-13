@@ -1,5 +1,3 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest, payViaABA} from '@libs/actions/IOU/PayMoneyRequest';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
@@ -8,11 +6,10 @@ import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {notifyNewAction} from '@libs/actions/Report/reportActionSubscribers';
 import * as APIActions from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import fileDownload from '@libs/fileDownload';
-import {translate} from '@libs/Localize';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
+import saveTextFile from '@libs/saveTextFile';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -77,7 +74,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native');
-jest.mock('@libs/fileDownload');
+jest.mock('@libs/saveTextFile');
 
 jest.mock('@src/libs/actions/Report/reportActionSubscribers', () => ({
     ...jest.requireActual<Record<string, unknown>>('@src/libs/actions/Report/reportActionSubscribers'),
@@ -3087,7 +3084,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
     });
 
     describe('payViaABA', () => {
-        const translateForTest: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
         const policy = {...createRandomPolicy(1), id: 'ABAPolicy', ownerAccountID: CARLOS_ACCOUNT_ID, role: CONST.POLICY.ROLE.ADMIN};
         const payViaABAParams = {
             policy,
@@ -3098,20 +3094,31 @@ describe('actions/IOU/PayMoneyRequest', () => {
             delegateAccountID: undefined,
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
-            translate: translateForTest,
         };
+        const abaFileResponse = {ok: true, headers: new Headers([['content-type', 'text/plain']]), text: () => Promise.resolve('ABA file')};
         let appendSpy: jest.SpyInstance;
+
+        const mockPayViaABAResponse = (response: Partial<Response>) => {
+            const defaultImplementation = mockFetch.getMockImplementation();
+            mockFetch.mockImplementation((input, options) => {
+                if (typeof input === 'string' && input.includes(WRITE_COMMANDS.PAY_VIA_ABA)) {
+                    return Promise.resolve(createMock<Response>(response));
+                }
+                return defaultImplementation ? defaultImplementation(input, options) : Promise.reject(new Error('No fetch mock'));
+            });
+        };
+        const getPayViaABACalls = () => mockFetch.mock.calls.filter(([input]) => typeof input === 'string' && input.includes(WRITE_COMMANDS.PAY_VIA_ABA));
 
         beforeEach(() => {
             appendSpy = jest.spyOn(FormData.prototype, 'append');
-            jest.mocked(fileDownload).mockResolvedValue();
+            mockPayViaABAResponse(abaFileResponse);
         });
 
         afterEach(() => {
             appendSpy.mockRestore();
         });
 
-        it('downloads the ABA file for a single report, named the way Classic names it', async () => {
+        it('saves the ABA file for a single report, named the way Classic names it', async () => {
             // Given a single report to pay
             const onDownloadFailed = jest.fn();
 
@@ -3121,18 +3128,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Then the PayViaABA command is posted for that report, paying held expenses too by default, and its response is saved as the report's ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123');
             expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'true');
-            expect(fileDownload).toHaveBeenCalledWith(
-                translateForTest,
-                expect.stringContaining(WRITE_COMMANDS.PAY_VIA_ABA),
-                'ABA_Report_123.aba',
-                '',
-                false,
-                expect.any(FormData),
-                CONST.NETWORK.METHOD.POST,
-                expect.any(Function),
-                undefined,
-                false,
-            );
+            const [, payViaABARequest] = getPayViaABACalls().at(0) ?? [];
+            expect(payViaABARequest?.method).toBe(CONST.NETWORK.METHOD.POST);
+            expect(saveTextFile).toHaveBeenCalledWith({fileName: 'ABA_Report_123.aba', content: 'ABA file'});
+            expect(onDownloadFailed).not.toHaveBeenCalled();
         });
 
         it('shows the reports as paid once their ABA file has downloaded', async () => {
@@ -3170,13 +3169,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
             expect(snapshot?.data?.[reportKey]).toMatchObject({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
         });
 
-        it('leaves the report unpaid when its ABA file fails to download', async () => {
-            // Given an approved report whose ABA file will fail to download
+        it('leaves the report unpaid when the backend returns an error instead of its ABA file', async () => {
+            // Given an approved report the backend won't pay, so it responds with an error instead of the file
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
-            jest.mocked(fileDownload).mockImplementationOnce((...args) => {
-                const onDownloadFailedArgument = args[7];
-                onDownloadFailedArgument?.();
-                return Promise.resolve();
+            mockPayViaABAResponse({
+                ok: true,
+                headers: new Headers([['content-type', 'application/json']]),
+                json: () => Promise.resolve({jsonCode: 402, message: CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT}),
             });
             const onDownloadFailed = jest.fn();
             const onPaid = jest.fn();
@@ -3185,14 +3184,15 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed, onPaid});
             await waitForBatchedUpdates();
 
-            // Then the user is told the download failed, and the report isn't shown as paid since the backend didn't pay it
-            expect(onDownloadFailed).toHaveBeenCalled();
+            // Then the user is told why with the backend's error, nothing is saved, and the report isn't shown as paid
+            expect(onDownloadFailed).toHaveBeenCalledWith(expect.objectContaining({message: CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT}));
+            expect(saveTextFile).not.toHaveBeenCalled();
             expect(onPaid).not.toHaveBeenCalled();
             const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
             expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
         });
 
-        it('downloads one ABA file for several reports, named with the date', async () => {
+        it('saves one ABA file for several reports, named with the date', async () => {
             // Given several reports to pay, leaving their held expenses for later
             const reportIDs = ['123', '456'];
 
@@ -3202,7 +3202,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Then one file pays them all, named the way Classic names a bulk ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123,456');
             expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'false');
-            expect(jest.mocked(fileDownload).mock.calls.at(0)?.at(2)).toBe(`ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`);
+            expect(saveTextFile).toHaveBeenCalledWith({fileName: `ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`, content: 'ABA file'});
         });
 
         it('navigates to the restricted action page instead of downloading when billable actions are restricted', () => {
@@ -3214,7 +3214,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             // Then they're told why they can't, and no file is downloaded
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            expect(fileDownload).not.toHaveBeenCalled();
+            expect(getPayViaABACalls()).toHaveLength(0);
         });
     });
 });
