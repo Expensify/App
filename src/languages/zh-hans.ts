@@ -12505,6 +12505,7 @@ ${reportName}`,
         }),
         offlineMessage: '您已离线。报表历史可能不是最新的。',
         toMarkAsDone: '标记为已完成',
+        receivedPayment: '已收款',
     },
 };
 export default translations;

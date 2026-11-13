@@ -13089,6 +13089,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         }),
         offlineMessage: 'Sie sind offline. Der Berichtsverlauf ist möglicherweise veraltet.',
         toMarkAsDone: 'als erledigt markieren',
+        receivedPayment: 'Zahlung erhalten',
     },
 };
 export default translations;

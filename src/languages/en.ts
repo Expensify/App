@@ -3924,6 +3924,7 @@ const translations = {
         submitted: 'submitted',
         approved: 'approved',
         paid: 'paid',
+        receivedPayment: 'received payment',
         toSubmit: 'to submit',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {

@@ -13049,6 +13049,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         }),
         offlineMessage: 'Jesteś offline. Historia raportów może być nieaktualna.',
         toMarkAsDone: 'oznacz jako wykonane',
+        receivedPayment: 'otrzymano płatność',
     },
 };
 export default translations;

@@ -13324,6 +13324,7 @@ ${reportName}`,
         }),
         offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
         toMarkAsDone: 'να επισημάνετε ως ολοκληρωμένο',
+        receivedPayment: 'λάβατε πληρωμή',
     },
 };
 export default translations;
