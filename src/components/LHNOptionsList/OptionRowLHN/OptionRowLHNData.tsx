@@ -1,5 +1,4 @@
 import type {OptionRowLHNDataProps} from '@components/LHNOptionsList/types';
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useIsCurrentReportID} from '@hooks/useCurrentReportID';
@@ -10,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import {useReportAttributesByID} from '@hooks/useReportAttributes';
+import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {

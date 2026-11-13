@@ -576,6 +576,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exports vers',
         shareReport: 'Partager la note de frais',
         reportShared: 'Note de frais partagée',
+        amount: 'Montant',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -1180,8 +1181,6 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeSpendCategoriesSubText: 'Organiser et classer les dépenses',
             customizeExpenseCategories: 'Personnalisez vos catégories de dépenses',
             customizeExpenseCategoriesSubText: 'Ajoutez les catégories de votre entreprise pour coder vos dépenses',
-            createExpense: 'Créer une dépense',
-            createExpenseSubText: 'Numérisez, faites glisser-déposer ou saisissez manuellement une dépense à l’aide du bouton +',
             linkPersonalCard: 'Lier une carte personnelle',
             linkPersonalCardSubText: 'Importer les dépenses automatiquement',
             configureApprovals: 'Configurer le flux d’approbation',
@@ -1200,6 +1199,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Définir les approbations de notes de frais',
             setupTravel: 'Configurer les déplacements',
             setupTravelSubText: 'Configurer des règles spécifiques aux déplacements',
+            addFirstReceipt: 'Ajoutez votre premier reçu',
+            addFirstReceiptSubText: 'Scanner ou saisir manuellement un reçu',
         },
         yourSpend: {
             title: 'Vos dépenses',
@@ -1269,6 +1270,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noExpensesInRange: 'Aucune dépense dans cette plage',
         efficiency: 'Efficacité',
         workflowEfficiency: 'Efficacité du flux de travail',
+        averageProcessingTime: 'Délai moyen de traitement',
         longestToSubmit: 'Le plus long à soumettre',
         slowestToApprove: 'Plus lent à approuver',
         mostTimeToPay: 'Délai de paiement le plus long',
@@ -1516,6 +1518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: 'Supprimer cette dépense',
         removeExpenseConfirmation: 'Voulez-vous vraiment supprimer ce reçu ? Cette action est irréversible.',
         addExpense: 'Ajouter une dépense',
+        createAnExpense: 'Créer une dépense',
         chooseRecipient: 'Choisir le destinataire',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Créer une dépense de ${amount}`,
         confirmDetails: 'Confirmer les détails',
@@ -5272,6 +5275,10 @@ ${amount} pour ${merchant} - ${date}`,
                 hardApproval: (time: string) => `Annulation automatique dans ${time} si non approuvé.`,
             },
         },
+        bookingCount: ({count}: {count: number}) => ({
+            one: `${count} réservation`,
+            other: `${count} réservations`,
+        }),
     },
     workspace: {
         common: {
@@ -7686,10 +7693,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reimbursementAccount: 'compte de remboursement',
             welcomeNote: 'Veuillez commencer à utiliser mon nouvel espace de travail',
             delayedSubmission: 'soumission retardée',
-            merchantRules: 'Règles de commerçant',
+            merchantRules: 'Paramètres par défaut des dépenses',
             merchantRulesCount: () => ({
-                one: '1 règle de commerçant',
-                other: (count: number) => `${count} règles de commerçant`,
+                one: '1 dépense par défaut',
+                other: (count: number) => `${count} paramètres de dépenses par défaut`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l’espace de travail d’origine.`,
@@ -9104,8 +9111,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 matchType: 'Type de correspondance',
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
-                duplicateRuleTitle: 'Une règle de commerçant similaire existe déjà',
-                duplicateRulePrompt: (merchantName: string) => `Votre règle existante pour « ${merchantName} » aura la priorité sur celle-ci. Enregistrer quand même ?`,
+                duplicateRuleTitle: 'Une règle similaire existe déjà',
+                duplicateRulePrompt: (conditionName: string) => `Votre règle existante « ${conditionName} » aura la priorité sur celle-ci. Enregistrer quand même ?`,
                 saveAnyway: 'Enregistrer quand même',
                 applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses non soumises existantes',
                 findRule: 'Règle de recherche de commerçant',
@@ -9115,19 +9122,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 thenApplyFollowingDefaults: 'Appliquez ensuite les valeurs par défaut suivantes :',
                 vendorUnavailable: 'Fournisseur indisponible',
                 confirmErrorCategory: 'Veuillez sélectionner une catégorie',
-                confirmErrorCategoryTax: 'Veuillez sélectionner un taux de taxe',
-                confirmErrorCondition: 'Veuillez saisir un commerçant',
-                confirmErrorConditionAndDefault: 'Saisissez un commerçant et appliquez au moins un paramètre par défaut',
-                turnOnTaxesFirstTitle: 'Activer d’abord les taxes',
-                turnOnTaxesFirstPrompt: 'Les règles de catégorie définissent un taux de taxe par défaut. Activez les taxes dans les paramètres de votre espace de travail pour les utiliser.',
-                categoryRulesApplyGoingForwardTitle: 'Les règles de catégorie s’appliquent à partir de maintenant',
-                categoryRulesApplyGoingForwardPrompt:
-                    'Un taux de taxe par défaut s’applique aux nouvelles dépenses de cette catégorie. Les dépenses déjà existantes ne seront pas modifiées.',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
-                    'Le taux de taxe sélectionné est désormais le taux par défaut de votre espace de travail, cette règle n’est donc plus valide. Choisissez un autre taux de taxe.',
-                addTaxRateFirstTitle: 'Ajoutez d’abord un taux de taxe',
-                addTaxRateFirstPrompt:
-                    'Les règles de catégorie définissent un taux de taxe par défaut. Ajoutez un taux de taxe autre que le taux par défaut de votre espace de travail pour les utiliser.',
+                confirmErrorCondition: 'Veuillez ajouter au moins une condition',
+                confirmErrorConditionAndDefault: 'Ajoutez au moins une condition et appliquez au moins une valeur par défaut',
                 createRuleFromExpenseAction: 'Créer une règle',
                 createRuleFromExpensePrompt: 'pour appliquer vos modifications à toutes les dépenses qui correspondent à vos critères.',
             },
@@ -9313,6 +9309,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Autorisé ${shownCount > 1 ? 'devises' : 'devise'} : ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
                 defaultRulesCannotBeDeleted: 'Les règles par défaut ne peuvent pas être supprimées',
+                tags: 'Tags',
+                multipleConditions: 'Conditions multiples',
             },
             agentRules: {
                 title: 'Règles d’agent',
@@ -9461,9 +9459,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 findRule: 'Trouver une règle',
                 rename: 'Renommer',
                 update: 'Mettre à jour',
-                merchantIs: (merchant: string) => `Le commerçant est « ${merchant} »`,
                 merchantTypeIs: (merchantType: string) => `Le type de commerçant est « ${merchantType} »`,
                 categoryIs: (category: string) => `La catégorie est « ${category} »`,
+                tagIs: (tag: string) => `Le tag est « ${tag} »`,
+                merchantContains: (merchant: string) => `Le commerçant contient « ${merchant} »`,
+                merchantExactlyMatches: (merchant: string) => `Le commerçant correspond exactement à « ${merchant} »`,
             },
             merchantTypeRule: {merchantType: 'Type de marchand', saveRule: 'Enregistrer la règle', confirmErrorCategory: 'Veuillez sélectionner une catégorie.'},
             requireFieldsTable: {
@@ -9533,14 +9533,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cta: 'Ajouter une règle IA',
             },
             categoriesDisabledEmptyState: {title: 'Les catégories ne sont pas activées', subtitle: 'Activez les catégories pour mieux contrôler vos dépenses.'},
-            expenseDefaultType: {
-                title: 'Appliquer les valeurs de dépense par défaut',
-                subtitle: 'Sur quoi cette règle doit-elle faire correspondre ?',
-                merchant: 'Commerçant',
-                merchantDescription: 'Mettre à jour les champs des dépenses d’un commerçant spécifique',
-                category: 'Catégorie',
-                categoryDescription: 'Définir un taux de taxe par défaut pour une catégorie spécifique',
-            },
             taxesDisabledEmptyState: {title: 'Les taxes ne sont pas activées', subtitle: 'Activez les taxes pour documenter et récupérer les taxes admissibles.', cta: 'Activer les taxes'},
         },
         planTypePage: {
@@ -11107,6 +11099,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateur',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infraction',
                 [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payé par',
+                [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Étape du workflow',
             },
             feed: 'Fil',
             withdrawalType: {
@@ -11170,6 +11163,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateurs',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infractions',
             [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payeurs',
+            [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Étapes du workflow',
+        },
+        workflowStages: {
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Créé → Soumis',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Soumis → Approuvé',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Approuvé → Payé',
         },
         moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',
@@ -11310,8 +11309,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             category: 'Catégorie',
             tag: 'Tag',
         },
-        switchToTableView: 'Passer à la vue tableau',
-        switchToExpenseView: 'Passer à la vue dépense',
     },
     report: {
         newReport: {

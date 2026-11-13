@@ -1546,9 +1546,7 @@ const CONST = {
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
-        SINGLE_EXPENSE_TABLE_VIEW: 'singleExpenseTableView',
         FLAT_NAV: 'flatNav',
-        CATEGORY_VISIBILITY: 'categoryVisibility',
         RECEIPT_TRANSLATION: 'receiptTranslation',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
@@ -2094,7 +2092,6 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2471,6 +2468,24 @@ const CONST = {
             MAX_GROUPING_TIME: 300000,
             MAX_SYSTEM_MESSAGE_COLLAPSE_TIME: 24 * 60 * 60 * 1000,
         },
+        // Matches the backend's WORKFLOW_ACTIONS list
+        get WORKFLOW_ACTIONS() {
+            return [
+                this.ACTIONS.TYPE.SUBMITTED,
+                this.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                this.ACTIONS.TYPE.APPROVED,
+                this.ACTIONS.TYPE.UNAPPROVED,
+                this.ACTIONS.TYPE.REJECTED,
+                this.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                this.ACTIONS.TYPE.RETRACTED,
+                this.ACTIONS.TYPE.CLOSED,
+                this.ACTIONS.TYPE.REOPENED,
+                this.ACTIONS.TYPE.FORWARDED,
+                this.ACTIONS.TYPE.TAKE_CONTROL,
+                this.ACTIONS.TYPE.REROUTE,
+                this.ACTIONS.TYPE.REASSIGN_APPROVER,
+            ] as const;
+        },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
             USER: 'CANCEL_REASON_USER',
@@ -2678,10 +2693,6 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
-        },
-        SINGLE_EXPENSE_REPORT_VIEW: {
-            EXPENSE: 'expense',
-            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -3559,6 +3570,7 @@ const CONST = {
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
         HEIC: 'image/heic',
+        HEIF: 'image/heif',
     },
 
     IMAGE_CACHE_FILE_TYPES: {
@@ -5215,13 +5227,10 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
+            TAGS: 'tags',
             MERCHANTS: 'merchants',
+            MULTIPLE_CONDITIONS: 'multipleConditions',
             MERCHANT_TYPES: 'merchantTypes',
-        },
-        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
-        EXPENSE_DEFAULT_RULE_TYPE: {
-            MERCHANT: 'merchant',
-            CATEGORY: 'category',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
@@ -8216,10 +8225,24 @@ const CONST = {
             EVERYTHING_MOBILE: 'everythingMobile',
             TRAVEL_EXPENSE: 'travelExpense',
         },
+        SWITCH_RESULT: {
+            SAVED: 'saved',
+            FAILED: 'failed',
+        },
     },
 
     CACHE_API_KEYS: {
         ATTACHMENTS: 'attachments',
+    },
+
+    // Tells expensify.com whether to serve New Expensify or Expensify Classic. The server writes the same cookie, so the name, values and lifetime must match.
+    EXPERIENCE_COOKIE: {
+        NAME: 'experience',
+        VALUES: {
+            NEW: 'new',
+            CLASSIC: 'classic',
+        },
+        MAX_AGE_SECONDS: 365 * 24 * 60 * 60,
     },
 
     SESSION_STORAGE_KEYS: {
@@ -8444,6 +8467,7 @@ const CONST = {
             // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
             VIOLATION: 'violation',
             PAID_BY: 'paid-by',
+            WORKFLOW_STAGE: 'workflow-stage',
         },
         WORKFLOW_STAGES: {
             CREATED_SUBMITTED: 'created-submitted',
@@ -8812,6 +8836,10 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                WORKFLOW_STAGE: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8876,6 +8904,7 @@ const CONST = {
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 VIOLATION: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 PAID_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                WORKFLOW_STAGE: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -9882,6 +9911,7 @@ const CONST = {
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
+                AMOUNT: 'amount',
                 BILLABLE: 'billable',
                 CATEGORY: 'category',
                 COMMENT: 'comment',
@@ -10554,6 +10584,7 @@ const CONST = {
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
             WORKFLOW_EFFICIENCY: 'workflowEfficiency',
+            AVERAGE_PROCESSING_TIME: 'averageProcessingTime',
             LONGEST_TO_SUBMIT: 'longestToSubmit',
             SLOWEST_TO_APPROVE: 'slowestToApprove',
             MOST_TIME_TO_PAY: 'mostTimeToPay',

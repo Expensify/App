@@ -195,6 +195,7 @@ const SENTRY_LABEL = {
         WORKSPACES: 'NavigationTabBar-Workspaces',
         ACCOUNT: 'NavigationTabBar-Account',
         HOME: 'NavigationTabBar-Home',
+        COLLAPSE: 'NavigationTabBar-Collapse',
         FLOATING_ACTION_BUTTON: 'NavigationTabBar-FloatingActionButton',
         FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
         FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
@@ -431,6 +432,7 @@ const SENTRY_LABEL = {
         BACK_BUTTON: 'HeaderView-BackButton',
         CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
         DETAILS_BUTTON: 'HeaderView-DetailsButton',
+        EXPAND_BUTTON: 'HeaderView-ExpandButton',
         JOIN_BUTTON: 'HeaderView-JoinButton',
         NEW_CONCIERGE_CHAT_BUTTON: 'HeaderView-NewConciergeChatButton',
         CHRONOS_TIMER_MENU_START_TIMER: 'HeaderView-ChronosTimerMenuStartTimer',
@@ -1176,7 +1178,6 @@ const SENTRY_LABEL = {
         PAY: 'MoreMenu-Pay',
         DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
         MOVE_EXPENSE: 'MoreMenu-MoveExpense',
-        TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
         DUPLICATE_EXPENSE: 'MoreMenu-DuplicateExpense',
         SEND_TO_SOMEONE: 'MoreMenu-SendToSomeone',
         SEND_TO_EMPLOYER: 'MoreMenu-SendToEmployer',
@@ -1274,6 +1275,7 @@ const SENTRY_LABEL = {
     TRIP_ROOM_PREVIEW: {
         CARD: 'TripRoomPreview-Card',
         RESERVATION: 'TripRoomPreview-Reservation',
+        BOOKING: 'TripRoomPreview-Booking',
         VIEW_BUTTON: 'TripRoomPreview-ViewButton',
     },
     TRIP_DETAILS: {
@@ -2626,12 +2628,9 @@ const SENTRY_LABEL = {
             MERCHANT_RULE_MATCH_TYPE: 'WorkspaceRules-MerchantRuleMatchType',
             RANDOM_REPORT_AUDIT: 'WorkspaceRules-RandomReportAudit',
             SPEND_RULE_CARD_SAVE: 'WorkspaceRules-SpendRuleCardSave',
-            EXPENSE_DEFAULT_TYPE: {
-                CATEGORY: 'WorkspaceRules-ExpenseDefaultType-Category',
-                MERCHANT: 'WorkspaceRules-ExpenseDefaultType-Merchant',
-            },
             SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
             MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
+            TAG_RULE_ITEM: 'WorkspaceRules-TagRuleItem',
             MERCHANT_RULE_APPLY_TO_EXISTING_SWITCH: 'WorkspaceRules-MerchantRuleApplyToExistingSwitch',
             PROHIBITED_EXPENSE_SWITCH: 'WorkspaceRules-ProhibitedExpenseSwitch',
             REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
@@ -2654,6 +2653,7 @@ const SENTRY_LABEL = {
             IMPORT_MERCHANT_RULES: 'WorkspaceRules-ImportMerchantRules',
             NEW_RULE_BUTTON: 'WorkspaceRules-NewRuleButton',
             MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
+            TAG_TO_MATCH_SAVE: 'WorkspaceRules-TagToMatchSave',
             MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',
             MERCHANT_RULE_DESCRIBE: 'WorkspaceRules-MerchantRuleDescribe',
             MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
@@ -2960,6 +2960,7 @@ const SENTRY_LABEL = {
         COPY: 'TwoFactorAuth-Copy',
         COPY_CODES: 'TwoFactorAuth-CopyCodes',
         SECRET_COPY: 'TwoFactorAuth-SecretCopy',
+        RECOVERY_CODE_INPUT: 'TwoFactorAuth-RecoveryCodeInput',
         REQUIRED_OVERLAY_SIGN_OUT_BUTTON: 'TwoFactorAuth-RequiredOverlaySignOutButton',
         REQUIRED_OVERLAY_LEAVE_ACCOUNT_BUTTON: 'TwoFactorAuth-RequiredOverlayLeaveAccountButton',
         REQUIRED_OVERLAY_ENABLE_BUTTON: 'TwoFactorAuth-RequiredOverlayEnableButton',
@@ -3075,6 +3076,8 @@ const SENTRY_LABEL = {
     },
     BANK_ACCOUNT: {
         DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
+        ROUTING_NUMBER_INPUT: 'BankAccount-RoutingNumberInput',
+        ACCOUNT_NUMBER_INPUT: 'BankAccount-AccountNumberInput',
     },
     EARLY_DISCOUNT_BANNER: {
         DISMISS_BUTTON: 'EarlyDiscountBanner-DismissButton',
@@ -3101,6 +3104,7 @@ const SENTRY_LABEL = {
         VALIDATE: 'SignIn-Validate',
         SEND: 'SignIn-Send',
         CONFIRM: 'SignIn-Confirm',
+        RECOVERY_CODE_INPUT: 'SignIn-RecoveryCodeInput',
         FOOTER_LINK: {
             EXPENSE_MANAGEMENT: 'SignIn-FooterLink-ExpenseManagement',
             SPEND_MANAGEMENT: 'SignIn-FooterLink-SpendManagement',

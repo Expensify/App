@@ -147,6 +147,11 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ? (item.formattedPaidBy ?? '') : ''),
         getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ? `${CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY}:${item.accountID}` : ''),
     },
+    [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: {
+        titleIconName: 'Calendar',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? item.formattedWorkflowStage : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? `${CONST.SEARCH.SYNTAX_FILTER_KEYS.WORKFLOW_STAGE}:${item.workflowStage}` : ''),
+    },
 };
 
 export default CHART_GROUP_BY_CONFIG;

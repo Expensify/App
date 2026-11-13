@@ -577,6 +577,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exportiert nach',
         shareReport: 'Bericht teilen',
         reportShared: 'Bericht geteilt',
+        amount: 'Betrag',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -1160,8 +1161,6 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeSpendCategoriesSubText: 'Ausgaben organisieren und klassifizieren',
             customizeExpenseCategories: 'Passen Sie Ihre Ausgabenkategorien an',
             customizeExpenseCategoriesSubText: 'Fügen Sie die Kategorien Ihres Unternehmens hinzu, um Ihre Ausgaben zu kodieren',
-            createExpense: 'Ausgabe erstellen',
-            createExpenseSubText: 'Scannen Sie eine Ausgabe, ziehen Sie sie per Drag &amp; Drop herein oder geben Sie sie manuell über die + Schaltfläche ein',
             linkPersonalCard: 'Persönliche Karte verknüpfen',
             linkPersonalCardSubText: 'Spesen automatisch importieren',
             configureApprovals: 'Genehmigungsworkflow konfigurieren',
@@ -1180,6 +1179,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Berichtsfreigaben festlegen',
             setupTravel: 'Reisen einrichten',
             setupTravelSubText: 'Reisespezifische Regeln konfigurieren',
+            addFirstReceipt: 'Fügen Sie Ihren ersten Beleg hinzu',
+            addFirstReceiptSubText: 'Beleg scannen oder manuell eingeben',
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1262,6 +1263,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noExpensesInRange: 'Keine Ausgaben in diesem Bereich',
         efficiency: 'Effizienz',
         workflowEfficiency: 'Workflow-Effizienz',
+        averageProcessingTime: 'Durchschnittliche Bearbeitungszeit',
         longestToSubmit: 'Am längsten bis zur Einreichung',
         slowestToApprove: 'Am langsamsten bei der Genehmigung',
         mostTimeToPay: 'Längste Zahlungsfrist',
@@ -1508,6 +1510,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: 'Diesen Beleg entfernen',
         removeExpenseConfirmation: 'Möchtest du diesen Beleg wirklich entfernen? Diese Aktion kann nicht rückgängig gemacht werden.',
         addExpense: 'Ausgabe hinzufügen',
+        createAnExpense: 'Ausgabe erstellen',
         chooseRecipient: 'Empfänger auswählen',
         createExpenseWithAmount: ({amount}: {amount: string}) => `${amount}-Ausgabe erstellen`,
         confirmDetails: 'Details bestätigen',
@@ -5262,6 +5265,10 @@ ${amount} für ${merchant} – ${date}`,
                 hardApproval: (time: string) => `Wird automatisch in ${time} storniert, wenn nicht genehmigt.`,
             },
         },
+        bookingCount: ({count}: {count: number}) => ({
+            one: '1 Buchung',
+            other: `${count} Buchungen`,
+        }),
     },
     workspace: {
         common: {
@@ -7659,10 +7666,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             reimbursementAccount: 'Erstattungskonto',
             welcomeNote: 'Bitte verwende meinen neuen Arbeitsbereich',
             delayedSubmission: 'verspätete Einreichung',
-            merchantRules: 'Händlerregeln',
+            merchantRules: 'Standardwerte für Ausgaben',
             merchantRulesCount: () => ({
-                one: '1 Händlerregel',
-                other: (count: number) => `${count} Händlerregeln`,
+                one: '1 Standardwert für Ausgaben',
+                other: (count: number) => `${count} Standardwerte für Ausgaben`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Sie sind dabei, ${newWorkspaceName ?? ''} mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Workspace zu erstellen und zu teilen.`,
@@ -9078,8 +9085,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 matchType: 'Abgleichstyp',
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Exakte Übereinstimmung',
-                duplicateRuleTitle: 'Ähnliche Händlerregel existiert bereits',
-                duplicateRulePrompt: (merchantName: string) => `Ihre bestehende Regel für „${merchantName}“ hat Vorrang vor dieser. Trotzdem speichern?`,
+                duplicateRuleTitle: 'Ähnliche Regel existiert bereits',
+                duplicateRulePrompt: (conditionName: string) => `Ihre bestehende Regel für „${conditionName}“ hat Vorrang vor dieser. Trotzdem speichern?`,
                 saveAnyway: 'Trotzdem speichern',
                 applyToExistingUnsubmittedExpenses: 'Auf bestehende nicht eingereichte Ausgaben anwenden',
                 findRule: 'Händlerregel finden',
@@ -9089,18 +9096,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 thenApplyFollowingDefaults: 'Wenden Sie dann die folgenden Standardwerte an:',
                 vendorUnavailable: 'Anbieter nicht verfügbar',
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus',
-                confirmErrorCategoryTax: 'Bitte wählen Sie einen Steuersatz aus',
-                confirmErrorCondition: 'Bitte geben Sie einen Händler ein',
-                confirmErrorConditionAndDefault: 'Geben Sie einen Händler ein und wenden Sie mindestens eine Standardeinstellung an',
-                turnOnTaxesFirstTitle: 'Schalten Sie zuerst Steuern ein',
-                turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen Standardsteuersatz fest. Aktivieren Sie Steuern in Ihren Workspace-Einstellungen, um sie zu verwenden.',
-                categoryRulesApplyGoingForwardTitle: 'Kategorienregeln gelten ab jetzt',
-                categoryRulesApplyGoingForwardPrompt: 'Ein Standardsatz für Steuern gilt für neue Ausgaben in dieser Kategorie. Bereits vorhandene Ausgaben werden nicht geändert.',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
-                    'Der ausgewählte Steuersatz ist jetzt die Voreinstellung für Ihren Workspace, daher ist diese Regel nicht mehr gültig. Wählen Sie einen anderen Steuersatz.',
-                addTaxRateFirstTitle: 'Fügen Sie zuerst einen Steuersatz hinzu',
-                addTaxRateFirstPrompt:
-                    'Kategorienregeln legen einen standardmäßigen Steuersatz fest. Fügen Sie einen anderen Steuersatz als den Standard Ihres Arbeitsbereichs hinzu, um sie zu verwenden.',
+                confirmErrorCondition: 'Bitte fügen Sie mindestens eine Bedingung hinzu',
+                confirmErrorConditionAndDefault: 'Fügen Sie mindestens eine Bedingung hinzu und wenden Sie mindestens eine Standardeinstellung an',
                 createRuleFromExpenseAction: 'Regel erstellen',
                 createRuleFromExpensePrompt: 'um Ihre Änderungen auf alle Ausgaben anzuwenden, die Ihren Kriterien entsprechen.',
             },
@@ -9286,6 +9283,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Erlaubt ${shownCount > 1 ? 'Währungen' : 'Währung'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
                 defaultRulesCannotBeDeleted: 'Standardregeln können nicht gelöscht werden',
+                tags: 'Tags',
+                multipleConditions: 'Mehrere Bedingungen',
             },
             agentRules: {
                 title: 'Agentenregeln',
@@ -9434,9 +9433,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 findRule: 'Regel suchen',
                 rename: 'Umbenennen',
                 update: 'Aktualisieren',
-                merchantIs: (merchant: string) => `Händler ist „${merchant}“`,
                 merchantTypeIs: (merchantType: string) => `Händlertyp ist „${merchantType}"`,
                 categoryIs: (category: string) => `Kategorie ist „${category}“`,
+                tagIs: (tag: string) => `Tag ist „${tag}“`,
+                merchantContains: (merchant: string) => `Händler enthält „${merchant}“`,
+                merchantExactlyMatches: (merchant: string) => `Händler stimmt exakt mit „${merchant}“ überein`,
             },
             merchantTypeRule: {merchantType: 'Händlerart', saveRule: 'Regel speichern', confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.'},
             requireFieldsTable: {
@@ -9506,14 +9507,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cta: 'KI-Regel hinzufügen',
             },
             categoriesDisabledEmptyState: {title: 'Kategorien sind nicht aktiviert', subtitle: 'Aktivieren Sie Kategorien, um Ihre Ausgaben besser zu kontrollieren.'},
-            expenseDefaultType: {
-                title: 'Standardspesen übernehmen',
-                subtitle: 'Worauf soll diese Regel angewendet werden?',
-                merchant: 'Händler',
-                merchantDescription: 'Felder bei Ausgaben eines bestimmten Händlers aktualisieren',
-                category: 'Kategorie',
-                categoryDescription: 'Legen Sie einen Standardsteuersatz für eine bestimmte Kategorie fest',
-            },
             taxesDisabledEmptyState: {
                 title: 'Steuern sind nicht aktiviert',
                 subtitle: 'Aktivieren Sie Steuern, um anfallende Steuern zu dokumentieren und zurückzufordern.',
@@ -11074,6 +11067,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Verstoß',
                 [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Bezahlt von',
+                [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow-Stufe',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -11137,6 +11131,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Verstöße',
             [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Zahler',
+            [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow-Stufen',
+        },
+        workflowStages: {
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Erstellt → Eingereicht',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Eingereicht → Genehmigt',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Genehmigt → Bezahlt',
         },
         moneyRequestReport: {emptyStateTitle: 'Noch keine Ausgaben', accessPlaceHolder: 'Für Details öffnen'},
         noCategory: 'Keine Kategorie',
@@ -11277,8 +11277,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             category: 'Kategorie',
             tag: 'Tag',
         },
-        switchToTableView: 'Zur Tabellenansicht wechseln',
-        switchToExpenseView: 'Zur Ausgabenansicht wechseln',
     },
     report: {
         newReport: {

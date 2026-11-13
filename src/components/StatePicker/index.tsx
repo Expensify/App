@@ -4,6 +4,7 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Option} from '@libs/searchOptions';
 
 import {callIfAuthenticated} from '@userActions/Session';
@@ -20,7 +21,7 @@ import StateSelectorModal from './StateSelectorModal';
 
 type State = keyof typeof COMMON_CONST.STATES;
 
-type StatePickerProps = {
+type StatePickerProps = ForwardedFSClassProps & {
     value?: string;
 
     /** Callback when the list item is selected */
@@ -30,7 +31,7 @@ type StatePickerProps = {
     errorText?: string;
 };
 
-function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerProps) {
+function StatePicker({value, errorText, onInputChange = () => {}, forwardedFSClass}: StatePickerProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -53,6 +54,7 @@ function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerPr
                 <MenuItemField.Row
                     name={translate('common.state')}
                     value={value ? translate(`allStates.${value as State}.stateName`) : undefined}
+                    forwardedFSClass={forwardedFSClass}
                 >
                     {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                     <MenuItem.Chevron />

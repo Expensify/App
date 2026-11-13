@@ -2,6 +2,7 @@ import type {ConfirmationListLayoutProps} from '@components/MoneyRequestConfirma
 import type {DistanceRequestControllerProps} from '@components/MoneyRequestConfirmationList/DistanceRequestController';
 import type {FieldAutoSelectorProps} from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import type {SplitBillControllerProps} from '@components/MoneyRequestConfirmationList/SplitBillController';
+import type {SplitCategoryTaxControllerProps} from '@components/MoneyRequestConfirmationList/SplitCategoryTaxController';
 import type {TaxControllerProps} from '@components/MoneyRequestConfirmationList/TaxController';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import type {SharedFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
@@ -55,6 +56,9 @@ type ConfirmationListData = {
 
     /** Spread onto `SplitBillController` */
     splitBillControllerProps: SplitBillControllerProps;
+
+    /** Spread onto `SplitCategoryTaxController` */
+    splitCategoryTaxControllerProps: SplitCategoryTaxControllerProps;
 
     /** Spread onto `FieldAutoSelector` */
     fieldAutoSelectProps: FieldAutoSelectorProps;

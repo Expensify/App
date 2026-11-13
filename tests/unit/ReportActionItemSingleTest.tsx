@@ -149,7 +149,7 @@ describe('ReportActionItemSingle', () => {
             await waitFor(() => {
                 expect(screen.getByText('Manager Person & Owner Person')).toBeOnTheScreen();
             });
-            expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeOnTheScreen();
+            expect(screen.getByTestId('Avatar-MultipleAvatars')).toBeOnTheScreen();
         });
     });
 

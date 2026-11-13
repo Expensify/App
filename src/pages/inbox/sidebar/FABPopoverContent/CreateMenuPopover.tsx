@@ -33,10 +33,13 @@ type CreateMenuPopoverProps = {
 
     /** How the menu lines up with `anchorPosition` */
     anchorAlignment?: AnchorAlignment;
+
+    /** Called once the menu has fully closed and its modal is gone from the screen */
+    onModalHide?: () => void;
 };
 
 /** The create menu with every item, for any button that opens it. */
-function CreateMenuPopover({isVisible, onClose, anchorRef, anchorPosition, anchorAlignment}: CreateMenuPopoverProps) {
+function CreateMenuPopover({isVisible, onClose, anchorRef, anchorPosition, anchorAlignment, onModalHide}: CreateMenuPopoverProps) {
     const [reportID] = useState(() => generateReportID());
 
     return (
@@ -47,6 +50,7 @@ function CreateMenuPopover({isVisible, onClose, anchorRef, anchorPosition, ancho
             anchorRef={anchorRef}
             anchorPosition={anchorPosition}
             anchorAlignment={anchorAlignment}
+            onModalHide={onModalHide}
             animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
             animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
         >

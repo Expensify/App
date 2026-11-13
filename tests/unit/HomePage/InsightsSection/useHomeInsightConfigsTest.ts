@@ -34,14 +34,14 @@ describe('useHomeInsightConfigs', () => {
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
         // Then the widget's subtitle names the default range the charts already query
-        expect(result.current.date).toEqual(DEFAULT_INSIGHTS_FILTERS.date);
+        expect(result.current.date).toEqual(DEFAULT_INSIGHTS_FILTERS[CONST.INSIGHTS.DASHBOARD.SPEND].date);
     });
 
     it('reports the date saved on the Insights page', async () => {
         // Given a Spend dashboard saved on a custom range
         const date = {from: '2026-09-01', to: '2026-10-15'};
         await Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {
-            [SPEND_SEARCH_KEY]: {query: buildInsightsQueryString({...DEFAULT_INSIGHTS_FILTERS, date, groupCurrency: CONST.CURRENCY.USD})},
+            [SPEND_SEARCH_KEY]: {query: buildInsightsQueryString({...DEFAULT_INSIGHTS_FILTERS[CONST.INSIGHTS.DASHBOARD.SPEND], date, groupCurrency: CONST.CURRENCY.USD})},
         });
         await waitForBatchedUpdates();
 
