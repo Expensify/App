@@ -783,7 +783,8 @@ function createExpenseByType({
             const policySubRates = sourceCustomUnit.customUnitRateID ? (getPerDiemRateCustomUnitRate(params.policyParams?.policy, sourceCustomUnit.customUnitRateID)?.subRates ?? []) : [];
 
             // Expensify Classic saves per diem dates with a time zone offset, like 2026-07-31T05:30:00.000+02:00, and saves sub-rates
-            // without their price. CreatePerDiemRequest rejects those dates, so the copy keeps the time the user entered (2026-07-31 05:30:00).
+            // without their price and with the quantity as a string ("12"). CreatePerDiemRequest rejects those dates and string
+            // quantities, so the copy keeps the time the user entered (2026-07-31 05:30:00) and sends the quantity as a number.
             // A sub-rate without a price takes it from the workspace. One with a price keeps it, because duplicateReport sets
             // the report total from the source expenses' amounts.
             const customUnit = {
@@ -799,6 +800,7 @@ function createExpenseByType({
                     : sourceCustomUnit.attributes,
                 subRates: sourceCustomUnit.subRates?.map((subRate) => ({
                     ...subRate,
+                    quantity: Number(subRate.quantity),
                     rate: subRate.rate ?? policySubRates.find((policySubRate) => policySubRate.id === subRate.id)?.rate,
                 })),
             };

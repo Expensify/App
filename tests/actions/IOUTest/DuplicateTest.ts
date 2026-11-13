@@ -2937,9 +2937,9 @@ describe('actions/Duplicate', () => {
                 },
             };
 
-            // And a per diem expense saved by Expensify Classic, which stores dates with a time zone offset and sub-rates without a price
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The sub-rate type requires a price, but Expensify Classic data has none
-            const classicSubRates = [{key: '0', id: 'subrate-1', name: 'Full Day', quantity: 1}] as unknown as TransactionCustomUnit['subRates'];
+            // And a per diem expense saved by Expensify Classic, which stores dates with a time zone offset, and sub-rates without a price and with the quantity as a string
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The sub-rate type requires a numeric quantity and a price, but Expensify Classic data has neither
+            const classicSubRates = [{key: '0', id: 'subrate-1', name: 'Full Day', quantity: '12'}] as unknown as TransactionCustomUnit['subRates'];
             const classicPerDiemTransaction = {
                 ...mockTransaction,
                 amount: -5000,
@@ -2997,8 +2997,8 @@ describe('actions/Duplicate', () => {
             const writeCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST));
             expect(writeCall?.[1]).toEqual(expect.objectContaining({startDateTime: '2026-07-31 05:30:00', endDateTime: '2026-07-31 20:00:00'}));
 
-            // And the sub-rate carries the workspace's price, which Expensify Classic didn't save, so the copy isn't priced from a missing value
-            expect(JSON.parse(String(writeCall?.[1]?.subRates))).toEqual([expect.objectContaining({id: 'subrate-1', quantity: 1, rate: 5000})]);
+            // And the sub-rate carries the workspace's price, which Expensify Classic didn't save, and a numeric quantity, because the server rejects a string
+            expect(JSON.parse(String(writeCall?.[1]?.subRates))).toEqual([expect.objectContaining({id: 'subrate-1', quantity: 12, rate: 5000})]);
         });
 
         it('per diem expense whose workspace price changed since it was created', async () => {
