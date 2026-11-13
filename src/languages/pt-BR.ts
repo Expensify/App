@@ -1300,12 +1300,17 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Ops! O campo ("${fieldName}") contém um ou mais valores vazios. Revise e tente novamente.`,
         invalidApprovalLimit: 'Os limites de aprovação devem ser valores válidos na moeda do espaço de trabalho.',
         approverColumn: (position: number) => `Aprovador(a) ${position}`,
+        approverApprovalTypeColumn: (position: number) => `Tipo de aprovação do aprovador ${position}`,
         approverLimitColumn: (position: number) => `Limite de aprovador ${position}`,
-        approverOverLimitApproverColumn: (position: number) => `Aprovador ${position} acima do limite`,
         approversOutOfOrder: (rowNumber: number) => `Opa! A linha ${rowNumber} está sem aprovador. Liste os aprovadores em ordem, começando pelo Aprovador 1, e tente novamente.`,
         approverRepeated: (rowNumber: number) => `Ops! A linha ${rowNumber} lista o mesmo aprovador mais de uma vez. Revise e tente novamente.`,
-        approvalLimitIncomplete: (rowNumber: number) =>
-            `Ops! A linha ${rowNumber} tem um limite de aprovação sem um aprovador para excesso de limite, ou um aprovador para excesso de limite sem um limite de aprovação. Revise e tente novamente.`,
+        invalidApprovalType: (rowNumber: number) => `Ops! A linha ${rowNumber} tem um tipo de aprovação diferente de "Always" ou "Over limit". Revise e tente novamente.`,
+        firstApproverOverLimit: (rowNumber: number) =>
+            `Ops! A linha ${rowNumber} define o Aprovador 1 como "Over limit", mas todo relatório vai para o Aprovador 1. Revise e tente novamente.`,
+        approvalLimitMismatch: (rowNumber: number) =>
+            `Ops! A linha ${rowNumber} tem um aprovador "Over limit" sem limite, ou um limite para um aprovador que não é "Over limit". Revise e tente novamente.`,
+        decreasingApprovalLimits: (rowNumber: number) =>
+            `Ops! A linha ${rowNumber} tem um aprovador "Over limit" com um limite menor que o do aprovador "Over limit" logo antes dele. Revise e tente novamente.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Ops! O campo ("${fieldName}") contém um ou mais valores com mais de ${limit} caracteres. Revise e tente novamente.`,
         importSuccessfulTitle: 'Importação concluída',
         importCategoriesNoneAddedOrUpdated: 'Nenhuma categoria foi adicionada ou atualizada.',

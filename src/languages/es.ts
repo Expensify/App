@@ -1292,13 +1292,18 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores vacíos. Por favor, revísalo e inténtalo de nuevo.`,
         invalidApprovalLimit: 'Los límites de aprobación deben ser importes válidos en la moneda del espacio de trabajo.',
         approverColumn: (position: number) => `Aprobador ${position}`,
+        approverApprovalTypeColumn: (position: number) => `Tipo de aprobación del aprobador ${position}`,
         approverLimitColumn: (position: number) => `Límite del aprobador ${position}`,
-        approverOverLimitApproverColumn: (position: number) => `Aprobador ${position} por encima del límite de aprobación`,
         approversOutOfOrder: (rowNumber: number) =>
             `¡Ups! Falta un aprobador en la fila ${rowNumber}. Por favor, indica los aprobadores en orden, empezando por Aprobador 1, e inténtalo de nuevo.`,
         approverRepeated: (rowNumber: number) => `¡Ups! La fila ${rowNumber} indica al mismo aprobador más de una vez. Por favor, revísala e inténtalo de nuevo.`,
-        approvalLimitIncomplete: (rowNumber: number) =>
-            `¡Ups! La fila ${rowNumber} tiene un límite de aprobación sin un aprobador para excesos de límite, o un aprobador para excesos de límite sin un límite de aprobación. Por favor, revisa y vuelve a intentarlo.`,
+        invalidApprovalType: (rowNumber: number) => `¡Ups! La fila ${rowNumber} tiene un tipo de aprobación que no es "Always" ni "Over limit". Por favor, revísala e inténtalo de nuevo.`,
+        firstApproverOverLimit: (rowNumber: number) =>
+            `¡Ups! La fila ${rowNumber} configura al Aprobador 1 como "Over limit", pero todos los informes van al Aprobador 1. Por favor, revísala e inténtalo de nuevo.`,
+        approvalLimitMismatch: (rowNumber: number) =>
+            `¡Ups! La fila ${rowNumber} tiene un aprobador "Over limit" sin límite, o un límite para un aprobador que no es "Over limit". Por favor, revísala e inténtalo de nuevo.`,
+        decreasingApprovalLimits: (rowNumber: number) =>
+            `¡Ups! La fila ${rowNumber} tiene un aprobador "Over limit" con un límite menor que el del aprobador "Over limit" justo anterior. Por favor, revísala e inténtalo de nuevo.`,
         fieldValueTooLong: (fieldName, limit) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores de más de ${limit} caracteres. Por favor, revísalo e inténtalo de nuevo.`,
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',

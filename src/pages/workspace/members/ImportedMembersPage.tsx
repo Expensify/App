@@ -75,8 +75,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const isControlPolicy = isControlPolicyUtil(policy);
 
-    // With rules, each row lists every approver of the member's workflow, each with their own limit, instead of
-    // the member's own submitsTo, forwardsTo and limit
+    // With rules, each row lists every approver of the member's workflow, each with their own approval type and limit,
+    // instead of the member's own submitsTo, forwardsTo and limit
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
 
     // Approval workflows don't route any report while approvals are off, so their approvers are only imported while approvals are on
@@ -104,8 +104,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             for (let position = 1; position <= approverCount; position++) {
                 columnRoles.push(
                     {text: translate('spreadsheet.approverColumn', position), value: getApproverColumnRole(position, 'approver')},
-                    {text: translate('spreadsheet.approverLimitColumn', position), value: getApproverColumnRole(position, 'approvalLimit')},
-                    {text: translate('spreadsheet.approverOverLimitApproverColumn', position), value: getApproverColumnRole(position, 'overLimitApprover')},
+                    {text: translate('spreadsheet.approverApprovalTypeColumn', position), value: getApproverColumnRole(position, 'approvalType')},
+                    {text: translate('spreadsheet.approverLimitColumn', position), value: getApproverColumnRole(position, 'limit')},
                 );
             }
         }
@@ -150,7 +150,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const decimals = getCurrencyDecimals(currency);
         const hasInvalidApprovalLimit = columns.some(
             (column, columnIndex) =>
-                (column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD || parseApproverColumnRole(column)?.field === 'approvalLimit') &&
+                (column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD || parseApproverColumnRole(column)?.field === 'limit') &&
                 spreadsheet?.data?.at(columnIndex)?.some((value, index) => {
                     if (containsHeader && index === 0) {
                         return false;
@@ -307,9 +307,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const allMembers = [...(members ?? [])];
 
         // Add approvers who are not in the workspace
-        const approverEmails = (members ?? []).flatMap((member) => (member.approvers ?? []).flatMap((approver) => [approver.email, approver.overLimitForwardsTo ?? '']));
+        const approverEmails = (members ?? []).flatMap((member) => (member.approvers ?? []).map((approver) => approver.email));
         for (const approverEmail of approverEmails) {
-            if (!approverEmail || allMembers.some((member) => member.email === approverEmail) || isPolicyMemberWithoutPendingDelete(approverEmail, policy)) {
+            if (allMembers.some((member) => member.email === approverEmail) || isPolicyMemberWithoutPendingDelete(approverEmail, policy)) {
                 continue;
             }
             isRoleMissing = true;

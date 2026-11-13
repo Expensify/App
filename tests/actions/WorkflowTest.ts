@@ -2054,8 +2054,8 @@ describe('actions/Workflow', () => {
             await createForwardApproveRules(policyID, [employee1Email, employee2Email], ownerEmail);
             await setUpPolicy(policy);
 
-            // When a spreadsheet lists the same two approvers for both of them, the first one with a limit
-            const approvers = [{email: employee3Email, approvalLimit: 10000, overLimitForwardsTo: employee4Email}, {email: ownerEmail}];
+            // When a spreadsheet lists the same approvers for both of them, the second one an over limit approver
+            const approvers = [{email: employee3Email}, {email: employee4Email, overLimitAmount: 10000}, {email: ownerEmail}];
             importApprovalWorkflowRules({
                 policy,
                 rules: await getRulesCollection(),

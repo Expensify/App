@@ -1297,12 +1297,16 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
         invalidApprovalLimit: 'Goedkeuringslimieten moeten geldige bedragen in de valuta van de werkruimte zijn.',
         approverColumn: (position: number) => `Fiatteur ${position}`,
+        approverApprovalTypeColumn: (position: number) => `Goedkeuringstype van fiatteur ${position}`,
         approverLimitColumn: (position: number) => `Limiet voor ${position} van goedkeurder`,
-        approverOverLimitApproverColumn: (position: number) => `Fiatteur ${position} bovenlimiet-fiatterer`,
         approversOutOfOrder: (rowNumber: number) => `Oeps! Rij ${rowNumber} mist een fiatteur. Geef de fiatteurs op in volgorde, beginnend met Fiatteur 1, en probeer het opnieuw.`,
         approverRepeated: (rowNumber: number) => `Oeps! Rij ${rowNumber} bevat dezelfde fiatteur meer dan één keer. Controleer het en probeer het opnieuw.`,
-        approvalLimitIncomplete: (rowNumber: number) =>
-            `Oeps! Rij ${rowNumber} heeft een goedkeuringslimiet zonder een goedkeurder voor boven de limiet, of een goedkeurder voor boven de limiet zonder een goedkeuringslimiet. Controleer dit en probeer het opnieuw.`,
+        invalidApprovalType: (rowNumber: number) => `Oeps! Rij ${rowNumber} heeft een goedkeuringstype dat niet "Always" of "Over limit" is. Controleer het en probeer het opnieuw.`,
+        firstApproverOverLimit: (rowNumber: number) => `Oeps! Rij ${rowNumber} zet Fiatteur 1 op "Over limit", maar elk rapport gaat naar Fiatteur 1. Controleer het en probeer het opnieuw.`,
+        approvalLimitMismatch: (rowNumber: number) =>
+            `Oeps! Rij ${rowNumber} heeft een fiatteur met "Over limit" zonder limiet, of een limiet voor een fiatteur die niet op "Over limit" staat. Controleer het en probeer het opnieuw.`,
+        decreasingApprovalLimits: (rowNumber: number) =>
+            `Oeps! Rij ${rowNumber} heeft een fiatteur met "Over limit" en een lagere limiet dan de fiatteur met "Over limit" direct ervoor. Controleer het en probeer het opnieuw.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Oeps! Het veld („${fieldName}”) bevat een of meer waarden die langer zijn dan ${limit} tekens. Controleer het en probeer het opnieuw.`,
         importSuccessfulTitle: 'Import geslaagd',

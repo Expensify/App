@@ -1285,12 +1285,17 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に1つ以上の空の値が含まれています。確認してもう一度お試しください。`,
         invalidApprovalLimit: '承認上限額は、ワークスペースの通貨で有効な金額である必要があります。',
         approverColumn: (position: number) => `承認者 ${position}`,
+        approverApprovalTypeColumn: (position: number) => `承認者 ${position} 承認タイプ`,
         approverLimitColumn: (position: number) => `承認者 ${position} 上限`,
-        approverOverLimitApproverColumn: (position: number) => `承認者 ${position} 上位承認者`,
         approversOutOfOrder: (rowNumber: number) => `おっと！行 ${rowNumber} に承認者がいません。承認者は承認者 1 から順に入力して、もう一度お試しください。`,
         approverRepeated: (rowNumber: number) => `おっと！${rowNumber} 行目で同じ承認者が複数回指定されています。確認してから、もう一度お試しください。`,
-        approvalLimitIncomplete: (rowNumber: number) =>
-            `おっと！行 ${rowNumber} に、上限超過承認者の設定がない承認限度額、または承認限度額の設定がない上限超過承認者があります。内容を確認して、もう一度お試しください。`,
+        invalidApprovalType: (rowNumber: number) => `おっと！行 ${rowNumber} の承認タイプが「Always」でも「Over limit」でもありません。内容を確認して、もう一度お試しください。`,
+        firstApproverOverLimit: (rowNumber: number) =>
+            `おっと！行 ${rowNumber} で承認者 1 が「Over limit」に設定されていますが、すべてのレポートは承認者 1 に送られます。内容を確認して、もう一度お試しください。`,
+        approvalLimitMismatch: (rowNumber: number) =>
+            `おっと！行 ${rowNumber} に、上限のない「Over limit」の承認者、または「Over limit」ではない承認者の上限があります。内容を確認して、もう一度お試しください。`,
+        decreasingApprovalLimits: (rowNumber: number) =>
+            `おっと！行 ${rowNumber} に、直前の「Over limit」の承認者より低い上限の「Over limit」の承認者があります。内容を確認して、もう一度お試しください。`,
         fieldValueTooLong: (fieldName: string, limit: number) => `おっと！フィールド（「${fieldName}」）に${limit}文字を超える値が1つ以上含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
         importCategoriesNoneAddedOrUpdated: 'カテゴリーは追加も更新もされていません。',

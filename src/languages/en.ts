@@ -1446,12 +1446,16 @@ const translations = {
         emptyMappedField: (fieldName: string) => `Oops! The field ("${fieldName}") contains one or more empty values. Please review and try again.`,
         invalidApprovalLimit: 'Approval limits must be valid amounts for the workspace currency.',
         approverColumn: (position: number) => `Approver ${position}`,
+        approverApprovalTypeColumn: (position: number) => `Approver ${position} approval type`,
         approverLimitColumn: (position: number) => `Approver ${position} limit`,
-        approverOverLimitApproverColumn: (position: number) => `Approver ${position} over limit approver`,
         approversOutOfOrder: (rowNumber: number) => `Oops! Row ${rowNumber} is missing an approver. Please list approvers in order, starting with Approver 1, and try again.`,
         approverRepeated: (rowNumber: number) => `Oops! Row ${rowNumber} lists the same approver more than once. Please review and try again.`,
-        approvalLimitIncomplete: (rowNumber: number) =>
-            `Oops! Row ${rowNumber} has an approval limit without an over limit approver, or an over limit approver without an approval limit. Please review and try again.`,
+        invalidApprovalType: (rowNumber: number) => `Oops! Row ${rowNumber} has an approval type that isn't "Always" or "Over limit". Please review and try again.`,
+        firstApproverOverLimit: (rowNumber: number) => `Oops! Row ${rowNumber} sets Approver 1 to "Over limit", but every report goes to Approver 1. Please review and try again.`,
+        approvalLimitMismatch: (rowNumber: number) =>
+            `Oops! Row ${rowNumber} has an "Over limit" approver without a limit, or a limit for an approver who isn't "Over limit". Please review and try again.`,
+        decreasingApprovalLimits: (rowNumber: number) =>
+            `Oops! Row ${rowNumber} has an "Over limit" approver with a lower limit than the "Over limit" approver right before them. Please review and try again.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Oops! The field ("${fieldName}") contains one or more values longer than ${limit} characters. Please review and try again.`,
         importSuccessfulTitle: 'Import successful',
         importCategoriesNoneAddedOrUpdated: 'No categories have been added or updated.',

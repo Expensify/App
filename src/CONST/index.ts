@@ -9949,8 +9949,8 @@ const CONST = {
 
         // The members import has these columns for every approver of a member's workflow, so their roles end with the approver's position, like `approverLimit2`
         APPROVER: 'approver',
+        APPROVER_APPROVAL_TYPE: 'approverApprovalType',
         APPROVER_LIMIT: 'approverLimit',
-        APPROVER_OVER_LIMIT_APPROVER: 'approverOverLimitApprover',
     },
 
     IMPORT_SPREADSHEET: {
@@ -9966,6 +9966,13 @@ const CONST = {
 
         // How many approvers the members import reads for each member
         MAX_APPROVERS: 10,
+
+        // What an approver's approval type column holds in the members import and export. Over limit approvers only get the
+        // reports over their limit, and an empty approval type means Always.
+        APPROVER_APPROVAL_TYPE: {
+            ALWAYS: 'Always',
+            OVER_LIMIT: 'Over limit',
+        },
     },
 
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.

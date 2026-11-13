@@ -235,22 +235,29 @@ describe('ImportedMembersPage', () => {
     });
 
     it('imports the approvers each row lists, adding the approvers who are not members yet', async () => {
-        // Given multiple approvers, and a row whose first approver has a limit with a new over limit approver, then a new second approver
+        // Given multiple approvers, and a row whose first approver is followed by two new over limit approvers, for the reports
+        // over $100 and over $200
         await seedOnyx(
             buildSpreadsheet(
                 [
                     CONST.CSV_IMPORT_COLUMNS.EMAIL,
                     getApproverColumnRole(1, 'approver'),
-                    getApproverColumnRole(1, 'approvalLimit'),
-                    getApproverColumnRole(1, 'overLimitApprover'),
                     getApproverColumnRole(2, 'approver'),
+                    getApproverColumnRole(2, 'approvalType'),
+                    getApproverColumnRole(2, 'limit'),
+                    getApproverColumnRole(3, 'approver'),
+                    getApproverColumnRole(3, 'approvalType'),
+                    getApproverColumnRole(3, 'limit'),
                 ],
                 [
                     ['Email', 'member@example.com'],
                     ['Approver 1', ADMIN_EMAIL],
-                    ['Approver 1 limit', '100'],
-                    ['Approver 1 over limit approver', 'director@example.com'],
-                    ['Approver 2', 'cfo@example.com'],
+                    ['Approver 2', 'director@example.com'],
+                    ['Approver 2 approval type', 'Over limit'],
+                    ['Approver 2 limit', '100'],
+                    ['Approver 3', 'cfo@example.com'],
+                    ['Approver 3 approval type', 'Over limit'],
+                    ['Approver 3 limit', '200'],
                 ],
             ),
             buildControlPolicy(),
@@ -268,10 +275,14 @@ describe('ImportedMembersPage', () => {
         fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the member gets the approvers in order, with the limit in cents, and the new approvers join the workspace too
+        // Then the member gets the approvers in order, with the limits in cents, and the new approvers join the workspace too
         expect(setImportedSpreadsheetMemberDataSpy).toHaveBeenCalledWith(
             [
-                {email: 'member@example.com', role: '', approvers: [{email: ADMIN_EMAIL, approvalLimit: 10000, overLimitForwardsTo: 'director@example.com'}, {email: 'cfo@example.com'}]},
+                {
+                    email: 'member@example.com',
+                    role: '',
+                    approvers: [{email: ADMIN_EMAIL}, {email: 'director@example.com', overLimitAmount: 10000}, {email: 'cfo@example.com', overLimitAmount: 20000}],
+                },
                 {email: 'director@example.com', role: ''},
                 {email: 'cfo@example.com', role: ''},
             ],

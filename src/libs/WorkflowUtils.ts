@@ -111,15 +111,9 @@ function isOptionalOverLimitApprover(approver: Approver | undefined): boolean {
     return approver?.overLimitAmount !== undefined;
 }
 
-/**
- * The approvers of a workflow imported from a spreadsheet. A spreadsheet lists an over-limit approver along with the approver
- * whose approval limit adds them, and they get the reports over it right after that approver.
- */
+/** The approvers of a workflow imported from a spreadsheet, which lists each one in their own place, over-limit approvers included */
 function getApproversFromImportedApprovers(importedApprovers: ImportedSpreadsheetApprover[]): Approver[] {
-    return importedApprovers.flatMap(({email, approvalLimit, overLimitForwardsTo}) => [
-        {email, displayName: email},
-        ...(approvalLimit && approvalLimit > 0 && overLimitForwardsTo ? [{email: overLimitForwardsTo, displayName: overLimitForwardsTo, overLimitAmount: approvalLimit}] : []),
-    ]);
+    return importedApprovers.map(({email, overLimitAmount}) => ({email, displayName: email, ...(overLimitAmount !== undefined && {overLimitAmount})}));
 }
 
 /** Whether the email names someone, rather than the "no one" Expensify Classic can store for nobody */

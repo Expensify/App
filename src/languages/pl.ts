@@ -1324,13 +1324,18 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
         invalidApprovalLimit: 'Limity zatwierdzania muszą być prawidłowymi kwotami w walucie przestrzeni roboczej.',
         approverColumn: (position: number) => `Osoba zatwierdzająca ${position}`,
+        approverApprovalTypeColumn: (position: number) => `Typ zatwierdzania osoby zatwierdzającej ${position}`,
         approverLimitColumn: (position: number) => `Limit osoby zatwierdzającej na stanowisku ${position}`,
-        approverOverLimitApproverColumn: (position: number) => `Osoba zatwierdzająca ${position} ponadlimitowy zatwierdzający`,
         approversOutOfOrder: (rowNumber: number) =>
             `Ups! W wierszu ${rowNumber} brakuje akceptującego. Wymień akceptujących w kolejności, zaczynając od Akceptującego 1, i spróbuj ponownie.`,
         approverRepeated: (rowNumber: number) => `Ups! Wiersz ${rowNumber} zawiera tego samego akceptującego więcej niż raz. Sprawdź to i spróbuj ponownie.`,
-        approvalLimitIncomplete: (rowNumber: number) =>
-            `Ups! Wiersz ${rowNumber} ma limit zatwierdzania bez osoby zatwierdzającej ponad limit albo osobę zatwierdzającą ponad limit bez limitu zatwierdzania. Sprawdź to i spróbuj ponownie.`,
+        invalidApprovalType: (rowNumber: number) => `Ups! Wiersz ${rowNumber} ma typ zatwierdzania inny niż „Always” lub „Over limit”. Sprawdź to i spróbuj ponownie.`,
+        firstApproverOverLimit: (rowNumber: number) =>
+            `Ups! Wiersz ${rowNumber} ustawia osobę zatwierdzającą 1 na „Over limit”, ale każdy raport trafia do osoby zatwierdzającej 1. Sprawdź to i spróbuj ponownie.`,
+        approvalLimitMismatch: (rowNumber: number) =>
+            `Ups! Wiersz ${rowNumber} ma osobę zatwierdzającą „Over limit” bez limitu albo limit dla osoby zatwierdzającej, która nie ma typu „Over limit”. Sprawdź to i spróbuj ponownie.`,
+        decreasingApprovalLimits: (rowNumber: number) =>
+            `Ups! Wiersz ${rowNumber} ma osobę zatwierdzającą „Over limit” z niższym limitem niż osoba zatwierdzająca „Over limit” bezpośrednio przed nią. Sprawdź to i spróbuj ponownie.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej wartości dłuższych niż ${limit} znaków. Sprawdź je i spróbuj ponownie.`,
         importSuccessfulTitle: 'Import zakończony powodzeniem',
         importCategoriesNoneAddedOrUpdated: 'Nie dodano ani nie zaktualizowano żadnych kategorii.',

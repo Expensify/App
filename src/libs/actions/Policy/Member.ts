@@ -1540,8 +1540,8 @@ function declineJoinRequest(reportID: string | undefined, reportAction: OnyxEntr
 }
 
 /**
- * @param shouldIncludeApprovers - Whether each row lists the member's approvers in order, each with their approval limit, instead of the member's own
- * submitsTo, approvesTo and approval limit
+ * @param shouldIncludeApprovers - Whether each row lists the member's approvers in order, each with their approval type and limit, instead of the
+ * member's own submitsTo, approvesTo and approval limit
  */
 function downloadMembersCSV(policyID: string, shouldIncludeApprovers: boolean, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MEMBERS_CSV, {

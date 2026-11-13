@@ -1344,13 +1344,18 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες κενές τιμές. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         invalidApprovalLimit: 'Τα όρια έγκρισης πρέπει να είναι έγκυρα ποσά στο νόμισμα του χώρου εργασίας.',
         approverColumn: (position: number) => `Εγκριτής ${position}`,
+        approverApprovalTypeColumn: (position: number) => `Τύπος έγκρισης εγκρίνοντα ${position}`,
         approverLimitColumn: (position: number) => `Όριο εγκρίνοντα ${position}`,
-        approverOverLimitApproverColumn: (position: number) => `Εγκρίνων ${position} ανώτατος εγκρίνων ορίου`,
         approversOutOfOrder: (rowNumber: number) =>
             `Ωχ! Η γραμμή ${rowNumber} δεν έχει εγκρίνων. Παρακαλούμε καταχωρίστε τους εγκρίνοντες με τη σειρά, ξεκινώντας με Εγκρίνων 1, και δοκιμάστε ξανά.`,
         approverRepeated: (rowNumber: number) => `Ουπς! Η γραμμή ${rowNumber} έχει τον ίδιο εγκρίνων πάνω από μία φορά. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
-        approvalLimitIncomplete: (rowNumber: number) =>
-            `Ουπς! Η γραμμή ${rowNumber} έχει όριο έγκρισης χωρίς υπεύθυνο έγκρισης για υπέρβαση ορίου ή υπεύθυνο έγκρισης για υπέρβαση ορίου χωρίς όριο έγκρισης. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        invalidApprovalType: (rowNumber: number) => `Ουπς! Η γραμμή ${rowNumber} έχει τύπο έγκρισης που δεν είναι «Always» ή «Over limit». Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        firstApproverOverLimit: (rowNumber: number) =>
+            `Ουπς! Η γραμμή ${rowNumber} ορίζει τον Εγκρίνοντα 1 ως «Over limit», αλλά κάθε αναφορά πηγαίνει στον Εγκρίνοντα 1. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        approvalLimitMismatch: (rowNumber: number) =>
+            `Ουπς! Η γραμμή ${rowNumber} έχει εγκρίνοντα «Over limit» χωρίς όριο ή όριο για εγκρίνοντα που δεν είναι «Over limit». Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        decreasingApprovalLimits: (rowNumber: number) =>
+            `Ουπς! Η γραμμή ${rowNumber} έχει εγκρίνοντα «Over limit» με χαμηλότερο όριο από τον εγκρίνοντα «Over limit» ακριβώς πριν από αυτόν. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες τιμές μεγαλύτερες από ${limit} χαρακτήρες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         importSuccessfulTitle: 'Η εισαγωγή ήταν επιτυχής',
