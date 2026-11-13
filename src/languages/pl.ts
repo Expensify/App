@@ -1873,6 +1873,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Wszystkie wydatki zostały wstrzymane. Sprawdź komentarze, aby poznać kolejne kroki.',
         expenseDuplicate: 'Ten wydatek ma szczegóły podobne do innego. Sprawdź duplikaty, aby kontynuować.',
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
+        someDuplicatesAreUnavailable: 'Nie udało się wczytać niektórych z tych duplikatów, więc możesz tylko zachować wszystkie.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
         keepSelected: 'Zachowaj wybrane',

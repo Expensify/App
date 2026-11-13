@@ -1842,6 +1842,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Alle Ausgaben wurden angehalten. Bitte prüfen Sie die Kommentare für die nächsten Schritte.',
         expenseDuplicate: 'Diese Ausgabe hat ähnliche Details wie eine andere. Bitte überprüfe die Duplikate, um fortzufahren.',
         someDuplicatesArePaid: 'Einige dieser Duplikate wurden bereits genehmigt oder bezahlt.',
+        someDuplicatesAreUnavailable: 'Einige dieser Duplikate konnten nicht geladen werden, daher kannst du nur alle behalten.',
         reviewDuplicates: 'Duplikate prüfen',
         keepAll: 'Alle behalten',
         keepSelected: 'Auswahl behalten',

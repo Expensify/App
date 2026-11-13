@@ -238,7 +238,7 @@ function DynamicConfirmationPage() {
                                 }
                                 // Auth's MergeTransactions also rejects a merge when the kept expense's report is no
                                 // longer editable, so block it here and explain rather than failing server-side.
-                                if (!TransactionUtils.canMergeDuplicates(iouReport, transactionIDList)) {
+                                if (!TransactionUtils.canMergeDuplicates(iouReport, newTransaction?.reportID, transactionIDList)) {
                                     setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
                                     return;
                                 }

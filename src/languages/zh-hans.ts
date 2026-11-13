@@ -1765,6 +1765,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: '所有报销都已被搁置。请查看评论以了解下一步操作。',
         expenseDuplicate: '此报销与另一笔报销的明细相似。请查看可能重复的报销后再继续。',
         someDuplicatesArePaid: '其中一些重复项已被批准或支付。',
+        someDuplicatesAreUnavailable: '部分重复项无法加载，因此只能全部保留。',
         reviewDuplicates: '审核重复项',
         keepAll: '全部保留',
         keepSelected: '保留所选项',

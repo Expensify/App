@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDuplicateReportsStatus from '@hooks/useDuplicateReportsStatus';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -83,6 +84,15 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
     const {duplicateTransactions} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
+    const duplicateTransactionIDs = rawTransactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+    const loadedDuplicateTransactions = Object.values(duplicateTransactions ?? {}).filter(
+        (duplicate): duplicate is NonNullable<typeof duplicate> => !!duplicate && duplicate.transactionID !== transaction?.transactionID,
+    );
+    // The violation can list this expense or the same ID twice, while the loaded duplicates are keyed and exclude this expense.
+    const expectedDuplicateIDs = new Set(duplicateTransactionIDs.filter((id) => id !== transaction?.transactionID));
+    const {hasUnloadedReport: hasUnloadedDuplicateReport, hasSettledOrApprovedReport: hasSettledOrApprovedDuplicate} = useDuplicateReportsStatus(loadedDuplicateTransactions);
+    // Same rule as Keep selected on the review page: a duplicate that is missing, approved or paid is left out of the merge and Confirm fails.
+    const canKeepThisOne = !hasUnloadedDuplicateReport && !hasSettledOrApprovedDuplicate && loadedDuplicateTransactions.length >= expectedDuplicateIDs.size;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -158,6 +168,9 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE) {
+            if (!canKeepThisOne) {
+                return null;
+            }
             return (
                 <Button
                     sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.KEEP_THIS_ONE}
@@ -176,9 +189,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                                 route.params.backTo ?? Navigation.getActiveRoute(),
                                 reportID,
                                 transaction,
-                                removeSettledAndApprovedTransactions(
-                                    Object.values(duplicateTransactions ?? {}).filter((t): t is NonNullable<typeof t> => !!t && t.transactionID !== transaction?.transactionID),
-                                ),
+                                removeSettledAndApprovedTransactions(loadedDuplicateTransactions),
                                 policy,
                                 policyCategories,
                                 policyTags ?? {},

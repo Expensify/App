@@ -1819,6 +1819,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'すべての経費が保留になっています。次のステップについてはコメントを確認してください。',
         expenseDuplicate: 'この経費は別の経費と詳細がよく似ています。続行するには重複しているものを確認してください。',
         someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
+        someDuplicatesAreUnavailable: 'これらの重複の一部を読み込めなかったため、すべてを保持することしかできません。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
         keepSelected: '選択したものを保持',
