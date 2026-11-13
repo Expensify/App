@@ -961,6 +961,18 @@ describe('buildChartSeries with the duration metric', () => {
         expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2 * DAY, undefined]);
     });
 
+    it('leaves a compared group with no expenses in that period with nothing to compare', () => {
+        // Given members and the previous period, which reports a member it has no expenses for with a count and duration of 0
+        const data = [memberGroup('Alice', 4 * DAY), memberGroup('Bob', 2 * DAY)];
+        const compared = [memberGroup('Alice', 2 * DAY), {...memberGroup('Bob', 0), count: 0}];
+
+        // When the series is built for a bar chart compared against those rows
+        const {rows} = buildDurationSeries({data, comparison: {data: compared, color: themeColors.green200}});
+
+        // Then that member has no compared value, because a bar at 0 days would read as reports that took no time at all
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2 * DAY, undefined]);
+    });
+
     it('works out the compared shares among the compared durations', () => {
         // Given members and their durations in the previous period
         const data = [memberGroup('Alice', 4 * DAY), memberGroup('Bob', 2 * DAY)];

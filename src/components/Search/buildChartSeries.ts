@@ -163,7 +163,8 @@ function buildChartSeries({
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
     const isDurationMetric = metric === CONST.SEARCH.CHART_METRIC.DURATION;
     // A group none of whose reports completed the stage has no duration, and plotting it as 0 would read as reports that took no time at all.
-    const hasChartedValue = (item: GroupedItem) => !isDurationMetric || getAverageDuration(item) !== undefined;
+    // A compared period reports a group it has no expenses for with a count and duration of 0 rather than null, so the count is checked too.
+    const hasChartedValue = (item: GroupedItem) => !isDurationMetric || (!!item.count && getAverageDuration(item) !== undefined);
     const data = allData.filter(hasChartedValue);
     const comparison = allComparison && !isChartAverage(allComparison) ? {...allComparison, data: allComparison.data.filter(hasChartedValue)} : allComparison;
     const average = isChartAverage(comparison) ? comparison : undefined;
