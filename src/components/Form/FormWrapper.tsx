@@ -68,6 +68,8 @@ type FormWrapperProps = ChildrenProps &
         /** Fires at most once per frame during scrolling. */
         onScroll?: ScrollViewProps['onScroll'];
 
+        onScrollBeginDrag?: ScrollViewProps['onScrollBeginDrag'];
+
         /** Prevents the submit button from triggering blur on mouse down. */
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
@@ -110,6 +112,7 @@ function FormWrapper({
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
+    onScrollBeginDrag,
     forwardedFSClass,
     sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
     ref,
@@ -164,14 +167,14 @@ function FormWrapper({
         }, CONST.ANIMATED_TRANSITION);
     };
 
-    const scrollTo = (y: number, animated = true) => {
-        if (!animated) {
-            formRef.current?.scrollTo({y: Math.max(y, 0), animated: false});
+    const scrollTo: FormWrapperRef['scrollTo'] = (y, {animated = true, shouldWaitForKeyboard = true} = {}) => {
+        if (!shouldWaitForKeyboard) {
+            formRef.current?.scrollTo({y: Math.max(y, 0), animated});
             return;
         }
         // Wait for the keyboard animation to complete
         setTimeout(() => {
-            formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
+            formRef.current?.scrollTo({y: Math.max(y, 0), animated});
         }, CONST.ANIMATED_TRANSITION);
     };
 
@@ -290,6 +293,7 @@ function FormWrapper({
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
                     onScroll={onScroll}
+                    onScrollBeginDrag={onScrollBeginDrag}
                 >
                     {scrollViewContent()}
                 </ScrollViewWithContext>
@@ -303,6 +307,7 @@ function FormWrapper({
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
                     onScroll={onScroll}
+                    onScrollBeginDrag={onScrollBeginDrag}
                 >
                     {scrollViewContent()}
                 </ScrollView>

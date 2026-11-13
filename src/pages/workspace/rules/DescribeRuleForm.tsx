@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRevealEditedInput from '@hooks/useRevealEditedInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -142,10 +143,6 @@ function DescribeRuleForm({
     const formRef = useRef<FormRef>(null);
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const inputTopOffsetRef = useRef(0);
-    const inputHeightRef = useRef(0);
-    const scrollViewportRef = useRef({offset: 0, height: 0});
-    const isInputFocusedRef = useRef(false);
-    const recoveryFrameRef = useRef<number | undefined>(undefined);
     const pendingGenerationRef = useRef<PendingGeneration>(undefined);
     const [submittedGenerationID, setSubmittedGenerationID] = useState<string>();
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
@@ -161,39 +158,10 @@ function DescribeRuleForm({
     const canCreateAnyway = !!refusalSuggestedPrompt && !!onAgentRuleFallback;
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
-    const cancelInputRecovery = () => {
-        if (recoveryFrameRef.current === undefined) {
-            return;
-        }
-        cancelAnimationFrame(recoveryFrameRef.current);
-        recoveryFrameRef.current = undefined;
-    };
-
-    useEffect(() => cancelInputRecovery, [cancelInputRecovery, isActive, shouldUseScrollView]);
-
-    const revealEditedInput = () => {
-        if (!isActive || !shouldUseScrollView || !isInputFocusedRef.current || recoveryFrameRef.current !== undefined) {
-            return;
-        }
-        // Wait for the edit's layout, and combine edits arriving in the same frame.
-        recoveryFrameRef.current = requestAnimationFrame(() => {
-            recoveryFrameRef.current = undefined;
-            const {offset, height} = scrollViewportRef.current;
-            if (!isInputFocusedRef.current || height <= 0 || inputHeightRef.current <= 0) {
-                return;
-            }
-            // The bounded multiline input scrolls its own text to the caret. Only move the outer form if its box is obscured.
-            const inputTop = inputTopOffsetRef.current;
-            const inputBottom = inputTop + Math.min(inputHeightRef.current, height);
-            const targetOffset = Math.max(0, Math.min(inputTop, Math.max(offset, inputBottom - height)));
-            if (targetOffset === offset) {
-                return;
-            }
-            scrollViewportRef.current.offset = targetOffset;
-            // Editing does not open the keyboard; avoid queuing delayed scrolls that could override subsequent manual scrolling.
-            formRef.current?.scrollTo(targetOffset, false);
-        });
-    };
+    const {measureInput, trackScroll, markFocused, markBlurred, revealEditedInput, cancelRecovery} = useRevealEditedInput({
+        isEnabled: isActive && shouldUseScrollView,
+        scrollTo: (offset) => formRef.current?.scrollTo(offset, {animated: true, shouldWaitForKeyboard: false}),
+    });
 
     const finish = () => {
         pendingGenerationRef.current = undefined;
@@ -304,7 +272,7 @@ function DescribeRuleForm({
     };
 
     const submit = (values: FormOnyxValues<NewRulePromptFormID>) => {
-        cancelInputRecovery();
+        cancelRecovery();
         const prompt = values[INPUT_IDS.PROMPT]?.trim() ?? '';
         if (!prompt) {
             setNewRulePromptEmptyError();
@@ -342,9 +310,8 @@ function DescribeRuleForm({
             style={style}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             shouldUseScrollView={shouldUseScrollView}
-            onScroll={({nativeEvent}) => {
-                scrollViewportRef.current = {offset: nativeEvent.contentOffset.y, height: nativeEvent.layoutMeasurement.height};
-            }}
+            onScroll={trackScroll}
+            onScrollBeginDrag={cancelRecovery}
             // scrollToInput moves the whole box above the keyboard. If Android also moves the box, the page moves two times.
             shouldScrollChildToFocus={false}
             submitFlexEnabled={submitFlexEnabled}
@@ -362,7 +329,7 @@ function DescribeRuleForm({
                 style={inputContainerStyle}
                 onLayout={(event) => {
                     inputTopOffsetRef.current = event.nativeEvent.layout.y;
-                    inputHeightRef.current = event.nativeEvent.layout.height;
+                    measureInput(event);
                 }}
             >
                 <InputWrapper
@@ -378,13 +345,10 @@ function DescribeRuleForm({
                     onKeyPress={submitFormOnModEnter}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_PROMPT}
                     onFocus={() => {
-                        isInputFocusedRef.current = true;
+                        markFocused();
                         scrollToInput();
                     }}
-                    onBlur={() => {
-                        isInputFocusedRef.current = false;
-                        cancelInputRecovery();
-                    }}
+                    onBlur={markBlurred}
                     onChangeText={revealEditedInput}
                     maxLength={CONST.GENERATED_RULE.PROMPT_MAX_LENGTH}
                     multiline

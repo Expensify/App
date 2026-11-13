@@ -107,6 +107,8 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Fires at most once per frame during scrolling. */
     onScroll?: ScrollViewProps['onScroll'];
 
+    onScrollBeginDrag?: ScrollViewProps['onScrollBeginDrag'];
+
     /** Use stricter HTML-like tag validation (e.g. blocks <✓>, <123>). */
     shouldUseStrictHtmlTagValidation?: boolean;
 
@@ -411,8 +413,8 @@ function FormProvider({
         formWrapperRef.current?.scrollToEnd();
     }, []);
 
-    const scrollTo = useCallback((y: number, animated?: boolean) => {
-        formWrapperRef.current?.scrollTo(y, animated);
+    const scrollTo = useCallback((...args: Parameters<FormWrapperRef['scrollTo']>) => {
+        formWrapperRef.current?.scrollTo(...args);
     }, []);
 
     useImperativeHandle(ref, () => ({

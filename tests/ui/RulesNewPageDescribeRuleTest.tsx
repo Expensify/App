@@ -312,10 +312,10 @@ describe('New rule describe section', () => {
             fireEvent.changeText(input, 'A multiline\nrule description');
             act(() => frameSpy.mock.calls.at(0)?.at(0)?.(0));
 
-            // Then one immediate scroll reveals the bounded box, leaving internal caret scrolling to the input
+            // Then one animated scroll starts without a keyboard delay, leaving internal caret scrolling to the input
             expect(frameSpy).toHaveBeenCalledTimes(1);
             expect(mockScrollTo).toHaveBeenCalledTimes(1);
-            expect(mockScrollTo).toHaveBeenCalledWith(expectedOffset, false);
+            expect(mockScrollTo).toHaveBeenCalledWith(expectedOffset, {animated: true, shouldWaitForKeyboard: false});
         });
 
         it('does not move the form while the description is already visible', async () => {
@@ -376,7 +376,7 @@ describe('New rule describe section', () => {
             act(() => frameSpy.mock.calls.at(0)?.at(0)?.(0));
 
             // Then recovery reveals the input without changing the existing refusal scroll
-            expect(mockScrollTo).toHaveBeenCalledWith(420, false);
+            expect(mockScrollTo).toHaveBeenCalledWith(420, {animated: true, shouldWaitForKeyboard: false});
             expect(mockScrollToEnd).toHaveBeenCalledTimes(1);
         });
 

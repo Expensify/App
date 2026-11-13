@@ -230,8 +230,8 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
-    /** Non-animated scrolling runs immediately, without waiting for the keyboard animation. */
-    scrollTo: (y: number, animated?: boolean) => void;
+    /** Defaults to animated scrolling after the keyboard transition. Editing an already-focused input can skip that wait. */
+    scrollTo: (y: number, options?: {animated?: boolean; shouldWaitForKeyboard?: boolean}) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;
