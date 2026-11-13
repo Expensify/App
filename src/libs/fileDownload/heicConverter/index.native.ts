@@ -18,16 +18,14 @@ import type {HeicConverterFunction} from './types';
 const convertImageWithManipulator = async (
     file: FileObject,
     sourceUri: string,
-    {
-        onSuccess = () => {},
-        onError = () => {},
-        onFinish = () => {},
-    }: {
+    callbacks?: {
         onSuccess?: (convertedFile: FileObject) => void;
         onError?: (error: unknown, originalFile: FileObject) => void;
         onFinish?: () => void;
-    } = {},
+    },
 ) => {
+    // Keep the params simple. Hermes resolves the first await in an async arrow with destructured or default params as undefined (facebook/hermes#1761).
+    const {onSuccess = () => {}, onError = () => {}, onFinish = () => {}} = callbacks ?? {};
     try {
         const manipulatedImage = await ImageManipulator.manipulate(sourceUri).renderAsync();
         const manipulationResult = await manipulatedImage.saveAsync({format: SaveFormat.JPEG});
