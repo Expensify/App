@@ -32,6 +32,9 @@ type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyID: Filter | undefined;
 };
 
+// The pagination state is always replaced wholesale, never mutated, so every reset can share this object.
+const EMPTY_PAGINATION = {hasMore: false, nextCursor: '', isLoadingMore: false};
+
 function UserSelector({value = [], isNegatable, policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
@@ -40,9 +43,9 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const shouldFocusInputOnScreenFocus = autoFocus && canFocusInputOnScreenFocus();
-    const [isSearching, setIsSearching] = useState(() => ready && !isOffline);
+    const [isSearching, setIsSearching] = useState(ready && !isOffline);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [pagination, setPagination] = useState({hasMore: false, nextCursor: '', isLoadingMore: false});
+    const [pagination, setPagination] = useState(EMPTY_PAGINATION);
     const [serverScopedLoginsByPolicy, setServerScopedLoginsByPolicy] = useState<{policyIDs: string; logins: string[]}>({policyIDs: '', logins: []});
     const requestSeqRef = useRef(0);
 
@@ -116,12 +119,12 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
 
     const trimmedSearchTerm = debouncedSearchTerm.trim();
 
-    // Reset pagination synchronously (without an effect) whenever the search key changes, so a new
+    // Reset pagination synchronously (without an effect) whenever the search params change, so a new
     // search never reuses the previous query's cursor. See https://react.dev/reference/react/useState#storing-information-from-previous-renders
-    const [prevSearchKey, setPrevSearchKey] = useState({trimmedSearchTerm, policyIDs, isOffline});
-    if (prevSearchKey.trimmedSearchTerm !== trimmedSearchTerm || prevSearchKey.policyIDs !== policyIDs || prevSearchKey.isOffline !== isOffline) {
-        setPrevSearchKey({trimmedSearchTerm, policyIDs, isOffline});
-        setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
+    const [prevSearchParams, setPrevSearchParams] = useState({trimmedSearchTerm, policyIDs, isOffline});
+    if (prevSearchParams.trimmedSearchTerm !== trimmedSearchTerm || prevSearchParams.policyIDs !== policyIDs || prevSearchParams.isOffline !== isOffline) {
+        setPrevSearchParams({trimmedSearchTerm, policyIDs, isOffline});
+        setPagination(EMPTY_PAGINATION);
         setIsSearching(ready && !isOffline);
     }
 
@@ -139,6 +142,25 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         setPagination({hasMore, nextCursor, isLoadingMore: false});
     };
 
+    // Shared by the effect that fetches the first page and by loadMoreUsers. An empty cursor means a new
+    // search, so the request cancels in-flight ones and a failure resets the whole pagination.
+    const fetchUserFiltersPage = (cursor: string, requestSeq: number) => {
+        const isFirstPage = cursor === '';
+        openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor, policyIDs: policyIDs || undefined}, isFirstPage)
+            .then((result) => applyUserFiltersResponse(requestSeq, result))
+            .catch(() => {
+                if (requestSeq !== requestSeqRef.current) {
+                    return;
+                }
+                if (isFirstPage) {
+                    setIsSearching(false);
+                    setPagination(EMPTY_PAGINATION);
+                } else {
+                    setPagination((prev) => ({...prev, isLoadingMore: false}));
+                }
+            });
+    };
+
     useEffect(() => {
         if (!ready || isOffline) {
             return;
@@ -146,16 +168,8 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
 
         const requestSeq = ++requestSeqRef.current;
 
-        openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor: '', policyIDs: policyIDs || undefined}, true)
-            .then((result) => applyUserFiltersResponse(requestSeq, result))
-            .catch(() => {
-                if (requestSeq !== requestSeqRef.current) {
-                    return;
-                }
-                setIsSearching(false);
-                setPagination({hasMore: false, nextCursor: '', isLoadingMore: false});
-            });
-    }, [ready, isOffline, trimmedSearchTerm, policyIDs, applyUserFiltersResponse]);
+        fetchUserFiltersPage('', requestSeq);
+    }, [ready, isOffline, trimmedSearchTerm, policyIDs, fetchUserFiltersPage]);
 
     const loadMoreUsers = () => {
         if (isOffline || !pagination.hasMore || pagination.isLoadingMore || isSearching) {
@@ -165,14 +179,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         const requestSeq = requestSeqRef.current;
         setPagination((prev) => ({...prev, isLoadingMore: true}));
 
-        openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor: pagination.nextCursor, policyIDs: policyIDs || undefined}, false)
-            .then((result) => applyUserFiltersResponse(requestSeq, result))
-            .catch(() => {
-                if (requestSeq !== requestSeqRef.current) {
-                    return;
-                }
-                setPagination((prev) => ({...prev, isLoadingMore: false}));
-            });
+        fetchUserFiltersPage(pagination.nextCursor, requestSeq);
     };
 
     // The current user and selected public-profile users without a login are excluded from personalDetails, so include them in the list when present.
