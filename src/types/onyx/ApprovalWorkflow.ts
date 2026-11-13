@@ -70,25 +70,10 @@ type Approver = {
     isNotWorkspaceMember?: boolean;
 
     /**
-     * Is this approver's `overLimitForwardsTo` no longer a workspace member. Reports over the approval limit still go
-     * to them, so the workflow is shown with an error until an admin picks a new additional approver.
+     * Report total, in cents, that the approver only gets the reports over, which makes them an optional over-limit approver.
+     * Undefined when they get every report.
      */
-    isOverLimitForwardsToNotWorkspaceMember?: boolean;
-
-    /**
-     * If report total is above this limit, the report will be forwarded to 'overLimitForwardsTo' instead of 'forwardsTo'
-     */
-    approvalLimit?: number | null;
-
-    /**
-     * Email of the user this user forwards all approved reports to when report total is above 'approvalLimit'
-     */
-    overLimitForwardsTo?: string;
-
-    /**
-     * Display name of the user this user forwards all approved reports to when report total is above 'approvalLimit'
-     */
-    overLimitForwardsToDisplayName?: string;
+    overLimitAmount?: number;
 };
 
 /**
