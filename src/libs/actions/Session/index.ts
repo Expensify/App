@@ -383,7 +383,7 @@ function signOutAndRedirectToSignIn(
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
-    if (isAnonymousUser()) {
+    if (isAnonymousUser(session)) {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             if (shouldResetToHome) {
                 Navigation.resetToHome();
