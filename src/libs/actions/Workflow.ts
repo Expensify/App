@@ -13,6 +13,7 @@ import {
     convertApprovalWorkflowToPolicyEmployees,
     extractSubmitterEmails,
     getApproverChainKey,
+    getDefaultWorkflowRules,
     getNonMemberApproverError,
     getOverLimitForwardsToDisplayName,
     getWorkflowMemberEmails,
@@ -513,11 +514,7 @@ function buildReturnToDefaultWorkflowDiff({
     // A policy has a single default workflow, so when its rules route differently from the chain we were handed, the
     // members still join those rules. New rules declaring themselves default would stand up a second default workflow.
     if (hasRuleBasedDefault) {
-        return Object.fromEntries(
-            Object.entries(existingRules)
-                .filter(([, rule]) => !!rule.isDefaultApprovalWorkflow)
-                .map(([ruleID, rule]) => [ruleID, addMembersToRule(rule, memberEmails)]),
-        );
+        return Object.fromEntries(Object.entries(getDefaultWorkflowRules(existingRules, defaultApprover)).map(([ruleID, rule]) => [ruleID, addMembersToRule(rule, memberEmails)]));
     }
 
     if (memberEmails.every((email) => employees[email]?.submitsTo === defaultApprover)) {
