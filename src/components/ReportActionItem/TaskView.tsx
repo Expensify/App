@@ -295,9 +295,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                         )}
                                     </MenuItem.Row>
                                 ) : (
-                                    <MenuItemField.Row name={translate('task.assignee')}>
-                                        {canEditAssignee && <MenuItem.Chevron />}
-                                    </MenuItemField.Row>
+                                    <MenuItemField.Row name={translate('task.assignee')}>{canEditAssignee && <MenuItem.Chevron />}</MenuItemField.Row>
                                 )}
                             </MenuItem.Root>
                         </OfflineWithFeedback>

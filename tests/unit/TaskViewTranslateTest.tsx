@@ -4,8 +4,8 @@ import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import TaskView from '@components/ReportActionItem/TaskView';
 
-import {getDisplayNameForParticipant, isOpenTaskReport} from '@libs/ReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getDisplayNameForParticipant, isOpenTaskReport} from '@libs/ReportUtils';
 
 import * as TaskActions from '@userActions/Task';
 
@@ -81,7 +81,11 @@ describe('TaskView', () => {
             // When the assigned UserPill or empty field row is rendered and pressed.
             render(
                 <OnyxListItemProvider>
-                    <TaskView report={taskReport} parentReport={undefined} action={undefined} />
+                    <TaskView
+                        report={taskReport}
+                        parentReport={undefined}
+                        action={undefined}
+                    />
                 </OnyxListItemProvider>,
             );
             const assigneeRoot = screen.UNSAFE_getAllByType(MenuItem.Root).find((root) => root.props.sentryLabel === CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE);

@@ -630,7 +630,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <MenuItem.Root
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_WORK_ARRANGEMENT}
                                     testID="member-work-arrangement-menu-item"
-                                    onPress={canWriteMembers ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID)), session) : undefined}
+                                    onPress={
+                                        canWriteMembers
+                                            ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID)), session)
+                                            : undefined
+                                    }
                                 >
                                     <MenuItemField.Row
                                         name={translate('workspace.people.workArrangement')}
