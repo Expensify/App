@@ -54,6 +54,7 @@ import {clearPolicyErrorField, openPolicyReceiptPartnersPage} from '@userActions
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
@@ -74,6 +75,15 @@ type RouteParams = {
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     isIntuitEnterpriseSuite?: string;
     tab?: ConnectionsTab;
+};
+
+const TAB_SENTRY_LABELS: Record<ConnectionsTab, SentryLabel> = {
+    [CONST.TAB.CONNECTIONS.ALL]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.ALL,
+    [CONST.TAB.CONNECTIONS.ACCOUNTING]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.ACCOUNTING,
+    [CONST.TAB.CONNECTIONS.PEOPLE]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.PEOPLE,
+    [CONST.TAB.CONNECTIONS.RECRUITING]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.RECRUITING,
+    [CONST.TAB.CONNECTIONS.RECEIPTS]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.RECEIPTS,
+    [CONST.TAB.CONNECTIONS.AI]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.AI,
 };
 
 type MergeSetupFlow = {
@@ -218,6 +228,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const tabs: Array<TabSelectorBaseItem<ConnectionsTab>> = visibleTabs.map((tab) => ({
         key: tab,
         title: translate(`workspace.connections.tabs.${tab}`),
+        sentryLabel: TAB_SENTRY_LABELS[tab],
     }));
 
     const searchLabel = translate('workspace.connections.findConnections');

@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: '取消',
         dismiss: '关闭',
         resizeColumn: ({columnName}: {columnName: string}) => `调整${columnName}列宽`,
-        columnWidth: ({width}: {width: number}) => `${width} 像素`,
+        resizePanel: '调整面板宽度',
+        widthInPixels: ({width}: {width: number}) => `${width} 像素`,
         proceed: '继续',
         unshare: '取消共享',
         yes: '是',
@@ -564,6 +565,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: '无结果。请尝试调整筛选条件或搜索内容',
         unableToDisplayChart: '无法显示图表',
         webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
+        webAssemblyNotSupported: '您的浏览器中无法使用 WebAssembly。请尝试使用其他浏览器查看图表。',
         chartFailedToLoad: '无法加载图表。请刷新页面后重试。',
         apiKey: 'API 密钥',
         exportsTo: '导出到',
@@ -7622,6 +7624,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 onWaitlist: '您在候补名单中',
                 waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
             },
+            integrationWaitlist: {
+                comingSoon: '即将推出',
+                joinWaitlist: '加入候补名单',
+                onWaitlist: '您在候补名单中',
+                onTheList: '你已在名单上！',
+                waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
+            },
             setup: '连接',
             connectToSandbox: '连接到沙盒',
             lastSync: (relativeDate: string) => `上次同步于 ${relativeDate}`,
@@ -8023,6 +8032,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             statusExpired: '已过期',
             statusInactive: '未启用',
             unit: '单位',
+            ukFuelRateTaxError: '请添加20%的税率，以跟踪英国建议燃油费率的税额。',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) => `请在${integrationName}中添加20%的税率，以跟踪英国建议燃油费率的税额。`,
             taxFeatureNotEnabledMessage: '<muted-text>必须在工作区中启用税费才能使用此功能。前往<a href="#">更多功能</a>进行更改。</muted-text>',
             deleteDistanceRate: '删除距离费率',
             areYouSureDelete: () => ({
@@ -9315,6 +9326,7 @@ ${reportName}`,
             },
         },
         digits: {
+            entity: '实体',
             updateCurrencyTitle: '更新工作区货币？',
             updateCurrencyPrompt: 'Digits 目前仅适用于在美国运营且使用美元的公司。',
             importDescription: '选择要导入的 Digits 配置。',
@@ -10487,7 +10499,9 @@ ${reportName}`,
             completed: '已完成',
             amount: {
                 lessThan: (amount?: string) => `少于 ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `小于或等于 ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `大于 ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `大于或等于 ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `介于 ${greaterThan} 和 ${lessThan} 之间`;
@@ -10730,6 +10744,8 @@ ${reportName}`,
             category: '类别',
             tag: '标签',
         },
+        switchToTableView: '切换到表格视图',
+        switchToExpenseView: '切换到报销视图',
     },
     report: {
         newReport: {
