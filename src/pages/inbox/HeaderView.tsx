@@ -94,6 +94,7 @@ import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 
+import {closeConciergePage} from '@userActions/ConciergeThreads';
 import {joinRoom} from '@userActions/Report';
 import {callIfAuthenticated} from '@userActions/Session';
 
@@ -181,6 +182,13 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // The Concierge page starts new conversations from the New button of its list
     const shouldShowNewConciergeChatButton = !isInSidePanel && !isInConciergePage && isConciergeThread;
     const isInNarrowConciergePage = isInConciergePage && shouldUseNarrowLayout;
+    const goBackFromConciergePage = () => {
+        if (isConciergeChat) {
+            closeConciergePage(ROUTES.CONCIERGE_CHATS);
+            return;
+        }
+        Navigation.goBack(ROUTES.CONCIERGE_CHATS);
+    };
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true);
@@ -434,7 +442,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                             {shouldShowBackButton && (
                                 <PressableWithoutFeedback
                                     ref={setBackButtonRef}
-                                    onPress={isInNarrowConciergePage ? () => Navigation.goBack(ROUTES.CONCIERGE_CHATS) : onNavigationMenuButtonClicked}
+                                    onPress={isInNarrowConciergePage ? goBackFromConciergePage : onNavigationMenuButtonClicked}
                                     style={[styles.LHNToggle, contentHeaderHeightStyle, shouldUseNarrowLayout && styles.pl5]}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
                                     accessibilityLabel={translate('common.back')}

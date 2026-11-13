@@ -452,6 +452,7 @@ type AddCommentParams = {
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
     shouldNavigateToConciergeThread?: boolean;
+    isInConciergePage?: boolean;
 };
 
 type AddActionsParams = {
@@ -471,6 +472,7 @@ type AddActionsParams = {
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
     shouldNavigateToConciergeThread?: boolean;
+    isInConciergePage?: boolean;
 };
 
 type AddAttachmentWithCommentParams = {
@@ -488,6 +490,7 @@ type AddAttachmentWithCommentParams = {
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
     shouldNavigateToConciergeThread?: boolean;
+    isInConciergePage?: boolean;
 };
 
 type MergeReportsProps = {
@@ -925,6 +928,7 @@ function addActions({
     conciergeReportID,
     conciergeThreadReportID,
     shouldNavigateToConciergeThread = true,
+    isInConciergePage = false,
 }: AddActionsParams) {
     if (!report?.reportID) {
         return;
@@ -1338,7 +1342,7 @@ function addActions({
             if (!shouldNavigateToConciergeThread) {
                 return;
             }
-            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
+            Navigation.navigate(isInConciergePage ? ROUTES.CONCIERGE_CONVERSATION.getRoute(conciergeThreadReportID) : getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
         });
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
@@ -1360,6 +1364,7 @@ function addAttachmentWithComment({
     conciergeReportID,
     conciergeThreadReportID,
     shouldNavigateToConciergeThread,
+    isInConciergePage,
 }: AddAttachmentWithCommentParams) {
     if (!report?.reportID) {
         return;
@@ -1389,6 +1394,7 @@ function addAttachmentWithComment({
             conciergeReportID,
             conciergeThreadReportID,
             shouldNavigateToConciergeThread,
+            isInConciergePage,
         });
         handlePlaySound();
         return;
@@ -1446,6 +1452,7 @@ function addComment({
     conciergeReportID,
     conciergeThreadReportID,
     shouldNavigateToConciergeThread,
+    isInConciergePage,
 }: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
@@ -1465,6 +1472,7 @@ function addComment({
         conciergeReportID,
         conciergeThreadReportID,
         shouldNavigateToConciergeThread,
+        isInConciergePage,
     });
 }
 

@@ -1,5 +1,3 @@
-import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
-
 import {setInboxTab} from '@libs/actions/User';
 import getReportAttributesUpdates from '@libs/getReportAttributesUpdates';
 import Log from '@libs/Log';
@@ -140,7 +138,7 @@ function SidebarOrderedReportsContextProvider({
     const {isBetaEnabled} = usePermissions();
     const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const isBillPayBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_BILL_PAY);
-    const shouldHideConciergeConversations = useShouldUseFlatNavigationBar();
+    const shouldHideConciergeConversations = isBetaEnabled(CONST.BETAS.FLAT_NAV);
     // useOnyx only gives us a new reference when the guide set actually differs, so comparing references
     // below is enough to detect late guide hydration.
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);

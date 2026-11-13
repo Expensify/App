@@ -7,6 +7,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
@@ -19,6 +20,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
@@ -39,6 +41,7 @@ function SidePanelButton({style}: SidePanelButtonProps) {
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const delegateAccountID = useDelegateAccountID();
+    const {isBetaEnabled} = usePermissions();
 
     if (shouldHideHelpButton) {
         return null;
@@ -52,6 +55,11 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={() => {
+                    if (isBetaEnabled(CONST.BETAS.FLAT_NAV)) {
+                        Navigation.navigate(ROUTES.CONCIERGE);
+                        return;
+                    }
+
                     // Capture the report the user is viewing (still topmost at press time) so Concierge can act on it
                     // after we navigate away. This is the only entry that threads a source report, so context is scoped
                     // to Concierge opened via this sidebar button. Search, LHN, and deep links never carry it.

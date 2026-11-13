@@ -1,6 +1,7 @@
 /** The sidebar of the Concierge page: the user's Concierge conversations, newest activity first, and a button to start a new one. */
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import TopBar from '@components/Navigation/TopBar';
@@ -14,13 +15,14 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 
-import {loadConciergeThreads, openConciergeConversation, openConciergeMessage} from '@userActions/ConciergeThreads';
+import {closeConciergePage, loadConciergeThreads, openConciergeConversation, openConciergeMessage} from '@userActions/ConciergeThreads';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,6 +45,7 @@ function ConciergeSidebarScreen() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.CONCIERGE);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     // The cursor of the page already asked for, so a list end reached twice doesn't load that page twice
     const requestedCursorRef = useRef<string | undefined>(undefined);
     const reloadFirstPage = () => {
@@ -96,30 +99,41 @@ function ConciergeSidebarScreen() {
         });
     };
 
+    const newChatButton = (
+        <Button
+            size={CONST.BUTTON_SIZE.SMALL}
+            onPress={startNewChat}
+            sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_SIDEBAR.NEW_CHAT}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('common.new')}</Button.Text>
+        </Button>
+    );
+
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
             style={styles.sidebar}
             testID="ConciergeSidebarScreen"
             // eslint-disable-next-line react/jsx-props-no-spreading -- The tab root wrapper props are shared by every tab root screen
-            {...tabRootScreenWrapperProps}
+            {...(shouldUseNarrowLayout ? {} : tabRootScreenWrapperProps)}
         >
-            <TopBar
-                breadcrumbLabel={translate('common.concierge.title')}
-                shouldDisplaySearch={false}
-            >
-                {/* The top bar keeps a 12px right margin of its own, so 8px here lands the button 20px from the edge. */}
-                <View style={styles.mr2}>
-                    <Button
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        onPress={startNewChat}
-                        sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_SIDEBAR.NEW_CHAT}
-                    >
-                        <Button.Icon src={icons.Plus} />
-                        <Button.Text>{translate('common.new')}</Button.Text>
-                    </Button>
-                </View>
-            </TopBar>
+            {shouldUseNarrowLayout ? (
+                <HeaderWithBackButton
+                    title={translate('common.concierge.title')}
+                    onBackButtonPress={() => closeConciergePage(ROUTES.HOME)}
+                >
+                    {newChatButton}
+                </HeaderWithBackButton>
+            ) : (
+                <TopBar
+                    breadcrumbLabel={translate('common.concierge.title')}
+                    shouldDisplaySearch={false}
+                >
+                    {/* The top bar keeps a 12px right margin of its own, so 8px here lands the button 20px from the edge. */}
+                    <View style={styles.mr2}>{newChatButton}</View>
+                </TopBar>
+            )}
             <View style={styles.flex1}>
                 <FlashList
                     data={conversations}

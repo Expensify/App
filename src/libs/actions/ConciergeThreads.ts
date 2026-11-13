@@ -1,10 +1,11 @@
 /** Loads the Concierge conversations listed on the Concierge page, and opens them. */
 import {read} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {IntroSelected, PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -53,8 +54,28 @@ type OpenConciergeMessageParams = {
 
 /** Opens a thread on a Concierge message, so the message becomes its own conversation, even while offline */
 function openConciergeMessage({message, conciergeReport, currentUserAccountID, introSelected, isSelfTourViewed, participantsPersonalDetails, delegateAccountID}: OpenConciergeMessageParams) {
-    const thread = createChildReport(undefined, message, conciergeReport, currentUserAccountID, introSelected, isSelfTourViewed, participantsPersonalDetails, conciergeReport, delegateAccountID);
+    const thread = createChildReport(
+        undefined,
+        message,
+        conciergeReport,
+        currentUserAccountID,
+        introSelected,
+        isSelfTourViewed,
+        participantsPersonalDetails,
+        conciergeReport,
+        delegateAccountID,
+    );
     openConciergeConversation(thread.reportID);
 }
 
-export {loadConciergeThreads, openConciergeConversation, openConciergeMessage};
+/** On narrow layouts Concierge opens on top of the screen the user was on, so closing it returns there */
+function closeConciergePage(fallbackRoute: Route) {
+    const rootState = navigationRef.getRootState();
+    if (rootState?.index) {
+        Navigation.pop(rootState.key);
+        return;
+    }
+    Navigation.goBack(fallbackRoute);
+}
+
+export {closeConciergePage, loadConciergeThreads, openConciergeConversation, openConciergeMessage};
