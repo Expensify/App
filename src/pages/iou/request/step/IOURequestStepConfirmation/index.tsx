@@ -91,6 +91,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import {deepEqual} from 'fast-equals';
 import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -122,7 +123,7 @@ function useConfirmationParticipants({participants, iouType, privateIsArchivedMa
     // Keep the projected rows immutable across the receipt-validation and list hooks.
     'use memo';
 
-    return (
+    const projectedParticipants =
         participants?.map((participant) => {
             if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                 return participant;
@@ -144,8 +145,19 @@ function useConfirmationParticipants({participants, iouType, privateIsArchivedMa
                       reportDraft: participantReportDraft,
                       pendingDeleteMemberAccountIDs: undefined,
                   });
-        }) ?? []
-    );
+        }) ?? [];
+
+    // The rows are rebuilt whenever any report, personal detail or archive flag changes, e.g. when the report dropdown
+    // fetches outstanding reports as it opens. New rows make the list behind the dropdown register its arrow keys again,
+    // on top of the dropdown's, so the dropdown can't be navigated. Equal rows keep the previous array to prevent that.
+    // A deep comparison is needed because every row holds fresh nested objects, such as its icons.
+    const [stableParticipants, setStableParticipants] = useState(projectedParticipants);
+    const areParticipantsEqual = deepEqual(stableParticipants, projectedParticipants);
+    if (!areParticipantsEqual) {
+        setStableParticipants(projectedParticipants);
+    }
+
+    return areParticipantsEqual ? stableParticipants : projectedParticipants;
 }
 
 function IOURequestStepConfirmationContent({
