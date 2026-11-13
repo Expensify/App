@@ -1201,6 +1201,23 @@ function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
 }
 
 /**
+ * Swaps the fullscreen route under the open RHP and leaves the RHP up.
+ * Synchronous so a beforeRemove listener can change what an in-flight back reveals.
+ * This does not mark a pre-insert. That flag belongs to cancel cleanup, and this swap is the destination.
+ */
+function replaceFullscreenUnderRHP(route: Route) {
+    if (!canNavigate('replaceFullscreenUnderRHP', {route}) || !navigationRef.current) {
+        Log.hmmm(`[Navigation] Unable to replace fullscreen under RHP. Can't navigate.`, {route});
+        return;
+    }
+
+    navigationRef.current.dispatch({
+        type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+        payload: {route},
+    });
+}
+
+/**
  * Reveals the destination fullscreen route under the currently open RHP before dismissing it.
  * Used after expense submission (and similar flows) so the target screen (e.g. Search inside TabNavigator)
  * is ready behind the modal: one dismiss animation instead of dismiss-then-navigate (two animations).
@@ -1418,6 +1435,7 @@ export default {
     isValidateLoginFlow,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
+    replaceFullscreenUnderRHP,
     revealRouteBeforeDismissingModal,
     getPreMountedFullscreenRouteKey,
     getIsRevealingPreMountedFullscreen,
