@@ -98,7 +98,7 @@ function useCreateNavigationMatchTerms() {
     const {translate} = useLocalize();
 
     return {
-        createExpense: [translate('iou.createExpense'), translate('iou.addExpense'), translate('homePage.gettingStartedSection.createExpense')],
+        createExpense: [translate('iou.createExpense'), translate('iou.addExpense'), translate('iou.createAnExpense'), translate('homePage.gettingStartedSection.addFirstReceipt')],
         createReport: [translate('report.newReport.createReport')],
         trackDistance: [translate('iou.trackDistance')],
         chat: [translate('sidebarScreen.fabNewChat'), `${translate('common.new')} ${translate('common.chat')}`],

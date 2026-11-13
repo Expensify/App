@@ -4516,7 +4516,7 @@ describe('SearchUIUtils', () => {
                 currency: 'USD',
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                formattedWeek: 'Jan 25 - Jan 31, 2026',
+                formattedWeek: 'Jan 25\u2009–\u200931, 2026',
                 shortFormattedWeek: 'Jan 25 - 31, ’26',
                 lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                 transactions: [],
@@ -5020,7 +5020,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                    formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                    formattedQuarter: 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)',
                     shortFormattedQuarter: 'Q1 ’26',
                     sortKey: 20261,
                     transactions: [],
@@ -5034,7 +5034,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                    formattedQuarter: 'Q4 2025 (Oct 1 - Dec 31)',
+                    formattedQuarter: 'Q4 2025 (Oct 1\u2009–\u2009Dec 31)',
                     shortFormattedQuarter: 'Q4 ’25',
                     sortKey: 20254,
                     transactions: [],
@@ -5101,8 +5101,8 @@ describe('SearchUIUtils', () => {
             );
 
             expect(result).toHaveLength(2);
-            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1 - Mar 31)')).toBe(true);
-            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1 - Sep 30)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1\u2009–\u2009Sep 30)')).toBe(true);
         });
 
         it('should calculate sortKey correctly for quarter groups', () => {
@@ -5138,7 +5138,7 @@ describe('SearchUIUtils', () => {
                 currency: 'USD',
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                formattedQuarter: 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)',
                 shortFormattedQuarter: 'Q1 ’26',
                 sortKey: 20261,
                 transactions: [],
@@ -5156,7 +5156,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                    formattedWeek: 'Jan 25 - Jan 31, 2026',
+                    formattedWeek: 'Jan 25\u2009–\u200931, 2026',
                     shortFormattedWeek: 'Jan 25 - 31, ’26',
                     lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                     transactions: [],
@@ -5169,7 +5169,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                    formattedWeek: 'Dec 21 - Dec 27, 2025',
+                    formattedWeek: 'Dec 21\u2009–\u200927, 2025',
                     shortFormattedWeek: 'Dec 21 - 27, ’25',
                     lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2025-12-21', undefined, new Date().getFullYear() !== 2025),
                     transactions: [],
@@ -7489,6 +7489,27 @@ describe('SearchUIUtils', () => {
                 const item = sections.find((s) => s.transactionID === filterTestTxID);
                 expect(item?.submitted).toBe(submittedAt);
                 expect(item?.approved).toBe(approvedAt);
+            });
+
+            it('should keep the snapshot approved date on a paid report when the live report from OpenReport lacks it', async () => {
+                // Given a paid report whose Search snapshot has an approved date
+                const approvedAt = '2024-12-22 09:30:00';
+                const reportFields = {...report1, reportID: filterTestReportID, type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED};
+                const data = makeFilterTestData({...reportFields, approved: approvedAt});
+
+                // And the same report is already in Onyx without the approved date, as happens after opening it in Inbox first
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${filterTestReportID}`, {...reportFields, approved: undefined});
+                await waitForBatchedUpdates();
+
+                // When the expense rows are built
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+
+                // Then the live report is layered over the snapshot report, so the approved date is not lost
+                expect(item?.approved).toBe(approvedAt);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${filterTestReportID}`, null);
+                await waitForBatchedUpdates();
             });
 
             it('should keep submitted/approved blank for a still-Open (never submitted) report even if unrelated live actions exist', () => {
@@ -16953,6 +16974,23 @@ describe('SearchUIUtils', () => {
     describe('mapFiltersFormToLabelValueList', () => {
         const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
 
+        it.each([
+            {form: {amountGreaterThan: '6000', amountGreaterThanOrEqualTo: '5000'}, expected: 'Greater than 60.00, Greater than or equal to 50.00'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD', amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Between 50.00 AUD and 100.00 AUD'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD'}, expected: 'Greater than or equal to 50.00 AUD'},
+            {form: {amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Less than or equal to 100.00 AUD'},
+        ])('shows inclusive amount bounds in one chip: $expected', ({form, expected}) => {
+            // Given inclusive operands must appear in the filter bar, not only in the search AST.
+            const formatAmount = (amount: number) => (amount / 100).toFixed(2);
+
+            // When the hydrated form is mapped to visible chips.
+            const chips = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, formatAmount);
+
+            // Then bounds share the Amount chip and keep their comparison currency.
+            expect(chips).toHaveLength(1);
+            expect(chips.at(0)).toMatchObject({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, value: expected});
+        });
+
         it('places default filters before non-default filters', () => {
             const form = {
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: 'hotel',
@@ -17480,11 +17518,11 @@ describe('Trip search', () => {
         report_3: buildTrip('3', {reportName: 'Oslo React Meetup', startDate: '2026-11-04T00:00:00'}),
     };
 
-    const getTripSections = (shouldReturnTripRooms: boolean) =>
+    const getTripSections = (shouldReturnTripRooms: boolean, data: OnyxTypes.SearchResults['data'] = tripData) =>
         SearchUIUtils.getSections({
             dateFnsLocale: undefined,
             type: CONST.SEARCH.DATA_TYPES.TRIP,
-            data: tripData,
+            data,
             currentAccountID: 628,
             currentUserEmail: 'travel-admin@cplustest.com',
             translate: translateLocal,
@@ -17509,6 +17547,30 @@ describe('Trip search', () => {
             expect.objectContaining({keyForList: '1', tripName: 'Tokyo Sales Conference', formattedTraveler: 'Travel Employee', status: CONST.SEARCH.TRIP_STATUS.UPCOMING}),
         );
         expect(rows.find((row) => row.reportID === '2')?.formattedTraveler).toBe('Travel Admin');
+    });
+
+    it('shows and sorts by the trip fare instead of the room total', () => {
+        // Given a trip whose room total was overwritten to 0 when the room was opened, while its fare is still in the trip payload
+        const data = createMock<OnyxTypes.SearchResults['data']>({
+            ...tripData,
+            report_1: buildTrip('1', {total: 0}),
+            reportNameValuePairs_1: {tripData: {payload: {tripPaymentInfo: {totalFare: {amount: 2956.71, currencyCode: 'EUR'}}}}},
+        });
+
+        // When the search results are turned into rows and sorted by total
+        const [rows] = getSectionsByType(getTripSections(true, data), SearchUIUtils.isTripListItemType);
+        const sorted = getSortedSectionsByType(
+            SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, rows, localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.SORT_ORDER.DESC, undefined, {
+                shouldReturnTripRooms: true,
+            }),
+            SearchUIUtils.isTripListItemType,
+        );
+
+        // Then the row shows the fare in cents, rounded since the fare is a float, and sorts by it like the backend does
+        expect(sorted.at(0)).toEqual(expect.objectContaining({reportID: '1', total: 295671, currency: 'EUR'}));
+
+        // And trips without a payload keep the room total
+        expect(sorted.find((row) => row.reportID === '2')?.total).toBe(159732);
     });
 
     it('keeps the expense rows for a trip search without the beta', () => {

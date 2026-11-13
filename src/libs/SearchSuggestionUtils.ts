@@ -9,6 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -71,6 +72,7 @@ type SearchTypeMenuItem = {
         shouldShowResetFilters?: boolean;
         buttons?: Array<{
             buttonText: TranslationPaths;
+            sentryLabel: SentryLabel;
             buttonAction: () => void;
             buttonVariant?: ButtonVariant;
             icon?: IconAsset;

@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Annuler',
         dismiss: 'Fermer',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionner la colonne ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        resizePanel: 'Redimensionner le panneau',
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Continuer',
         unshare: 'Arrêter le partage',
         yes: 'Oui',
@@ -569,6 +570,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
         unableToDisplayChart: 'Impossible d’afficher le graphique',
         webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
+        webAssemblyNotSupported: 'WebAssembly n’est pas disponible dans votre navigateur. Essayez un autre navigateur pour afficher les graphiques.',
         chartFailedToLoad: 'Le graphique n’a pas pu être chargé. Veuillez actualiser la page et réessayer.',
         apiKey: 'Clé API',
         exportsTo: 'Exports vers',
@@ -1178,8 +1180,6 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeSpendCategoriesSubText: 'Organiser et classer les dépenses',
             customizeExpenseCategories: 'Personnalisez vos catégories de dépenses',
             customizeExpenseCategoriesSubText: 'Ajoutez les catégories de votre entreprise pour coder vos dépenses',
-            createExpense: 'Créer une dépense',
-            createExpenseSubText: 'Numérisez, faites glisser-déposer ou saisissez manuellement une dépense à l’aide du bouton +',
             linkPersonalCard: 'Lier une carte personnelle',
             linkPersonalCardSubText: 'Importer les dépenses automatiquement',
             configureApprovals: 'Configurer le flux d’approbation',
@@ -1198,6 +1198,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Définir les approbations de notes de frais',
             setupTravel: 'Configurer les déplacements',
             setupTravelSubText: 'Configurer des règles spécifiques aux déplacements',
+            addFirstReceipt: 'Ajoutez votre premier reçu',
+            addFirstReceiptSubText: 'Scanner ou saisir manuellement un reçu',
         },
         yourSpend: {
             title: 'Vos dépenses',
@@ -1265,6 +1267,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Tout afficher',
         topExpenses: 'Dépenses principales',
         noExpensesInRange: 'Aucune dépense dans cette plage',
+        efficiency: 'Efficacité',
+        workflowEfficiency: 'Efficacité du flux de travail',
+        longestToSubmit: 'Le plus long à soumettre',
+        slowestToApprove: 'Plus lent à approuver',
+        mostTimeToPay: 'Délai de paiement le plus long',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1509,6 +1516,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: 'Supprimer cette dépense',
         removeExpenseConfirmation: 'Voulez-vous vraiment supprimer ce reçu ? Cette action est irréversible.',
         addExpense: 'Ajouter une dépense',
+        createAnExpense: 'Créer une dépense',
         chooseRecipient: 'Choisir le destinataire',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Créer une dépense de ${amount}`,
         confirmDetails: 'Confirmer les détails',
@@ -2072,6 +2080,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'a restauré cette dépense',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `les taux kilométriques ont été mis à jour pour le nouvel espace de travail - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} note de frais`,
+                other: (count: number) => `${formattedCount ?? count} notes de frais`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3376,10 +3390,8 @@ ${amount} pour ${merchant} - ${date}`,
         approverInMultipleWorkflows: 'Ce membre appartient déjà à un autre circuit d’approbation. Toute mise à jour effectuée ici sera également répercutée là-bas.',
         approverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur ou supprimez ce flux de travail.',
         defaultWorkflowApproverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur.',
-        overLimitApproverNotWorkspaceMember:
-            'L’approbateur supplémentaire pour les notes de frais au-delà de la limite n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur supplémentaire.',
-        overLimitApproverInWorkflow:
-            'L’approbateur supplémentaire pour les notes de frais dépassant la limite est déjà un approbateur dans ce flux de travail. Choisissez un autre approbateur supplémentaire.',
+        overLimitAmountBelowPreviousApprover: 'Saisissez un total de note de frais au moins égal à celui de l’approbateur précédent.',
+        overLimitAmountAboveNextApprover: 'Saisissez un total de note de frais qui ne dépasse pas celui de l’approbateur suivant.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> approuve déjà les notes de frais de <strong>${name2}</strong>. Veuillez choisir un autre approbateur pour éviter un circuit d'approbation circulaire.`,
         emptyContent: {
@@ -3393,6 +3405,7 @@ ${amount} pour ${merchant} - ${date}`,
             `Les validations sont gérées par votre intégration ${provider}. Pour mettre à jour votre workflow de validation, accédez aux paramètres de connexion ${provider}.`,
         goToProviderSettings: ({provider}: {provider: string}) => `Aller aux paramètres ${provider}`,
         approverFromProvider: ({provider}: {provider: string}) => `de la part de ${provider}`,
+        ifReportIsOver: ({amount}: {amount: string}) => `Si la note de frais dépasse ${amount}`,
         finalApprover: 'Approbateur final',
         manager: 'Manager',
         submitFrequency: 'Fréquence de soumission',
@@ -3460,7 +3473,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     workflowsCreateApprovalsPage: {
         title: 'Confirmer',
-        header: 'Ajoutez d’autres approbateurs et confirmez.',
+        header: 'Ajoutez d’autres approbateurs ou confirmez',
         additionalApprover: 'Approbateur supplémentaire',
         submitButton: 'Ajouter un workflow',
     },
@@ -3468,6 +3481,9 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Modifier le workflow d’approbation',
         deleteTitle: 'Supprimer le workflow d’approbation',
         deletePrompt: 'Voulez-vous vraiment supprimer ce workflow d’approbation ? Tous les membres suivront ensuite le workflow par défaut.',
+        hiddenRoutesTitle: 'Certaines notes de frais seront acheminées différemment',
+        hiddenRoutesPrompt:
+            'Ce workflow a été configuré avec des approbateurs qui envoient certaines notes de frais à d’autres approbateurs selon leur total. L’enregistrer ne conserve que les approbateurs affichés ici, donc chaque note de frais passera par eux.',
     },
     workflowsExpensesFromPage: {
         title: 'Dépenses de',
@@ -3482,25 +3498,19 @@ ${amount} pour ${merchant} - ${date}`,
     workflowsApproverPage: {
         genericErrorMessage: 'L’approbateur n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
         title: 'Définir l’approbateur',
+        setFirstApprover: 'Définir le premier approbateur',
+        addApprover: 'Ajouter un approbateur',
         description: 'Cette personne approuvera les dépenses.',
     },
     workflowsApprovalLimitPage: {
-        title: 'Approbateur',
-        header: '(Facultatif) Vous souhaitez ajouter une limite d’approbation ?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Ajouter un autre approbateur lorsque <strong>${approverName}</strong> est l'approbateur et que la note de frais dépasse le montant ci-dessous :`
-                : 'Ajouter un autre approbateur lorsqu’une note de frais dépasse le montant ci-dessous :',
-        reportAmountLabel: 'Montant de la note de frais',
-        additionalApproverLabel: 'Approbateur supplémentaire',
-        skip: 'Ignorer',
+        whenShouldApprove: ({approverName}: {approverName: string}) => `Quand l’approbation de ${approverName} est-elle nécessaire ?`,
+        always: 'Toujours',
+        overSetAmount: 'Uniquement pour les notes de frais au-delà d’un montant défini',
+        reportTotal: 'Total de la note de frais',
+        approvesOverAmount: ({approverName, amount}: {approverName: string; amount: string}) => `${approverName} approuve uniquement les notes de frais de plus de ${amount}.`,
+        removeApprover: 'Supprimer l’approbateur',
         next: 'Suivant',
-        removeLimit: 'Supprimer la limite',
         enterAmountError: 'Veuillez saisir un montant valide',
-        enterApproverError: 'Un approbateur est obligatoire lorsque vous définissez une limite de note de frais',
-        enterBothError: 'Saisissez un montant de note de frais et un approbateur supplémentaire',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
-            `Les notes de frais supérieures à ${approvalLimit} sont transférées à ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Payeur autorisé',
@@ -7998,6 +8008,13 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 onWaitlist: 'Vous êtes sur la liste d’attente',
                 waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Bientôt disponible',
+                joinWaitlist: 'Rejoindre la liste d’attente',
+                onWaitlist: 'Vous êtes sur la liste d’attente',
+                onTheList: 'Vous êtes sur la liste !',
+                waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
+            },
             setup: 'Connecter',
             connectToSandbox: 'Se connecter à Sandbox',
             lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
@@ -8413,6 +8430,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             statusExpired: 'Expiré',
             statusInactive: 'Inactif',
             unit: 'Unité',
+            ukFuelRateTaxError: 'Veuillez ajouter un taux de taxe de 20 % pour suivre la taxe sur les tarifs de carburant recommandés au Royaume-Uni.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Veuillez ajouter un taux de taxe de 20 % dans ${integrationName} pour suivre la taxe sur les tarifs de carburant recommandés au Royaume-Uni.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Les taxes doivent être activées sur l’espace de travail pour utiliser cette fonctionnalité. Rendez-vous dans <a href="#">Plus de fonctionnalités</a> pour effectuer cette modification.</muted-text>',
             deleteDistanceRate: 'Supprimer le taux de distance',
@@ -9802,6 +9822,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
         },
         digits: {
+            entity: 'Entité',
             updateCurrencyTitle: 'Mettre à jour la devise de l’espace de travail ?',
             updateCurrencyPrompt: 'Digits n’est actuellement disponible que pour les entreprises basées aux États-Unis qui opèrent en USD.',
             importDescription: 'Choisissez quelles configurations Digits importer.',
@@ -10188,6 +10209,25 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             return `a modifié les reçus détaillés de la catégorie « ${categoryName} » en ${newValue} (auparavant ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `a renommé la catégorie « ${oldName} » en « ${newName} »`,
+        setCategoryVisibility: (members: string, categories: string) => `a configuré ${members} pour ne voir que ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `a modifié ${members} pour qu’ils ne voient que ${categories}`,
+        clearedCategoryVisibility: (members: string) => `a modifié ${members} pour voir toutes les catégories`,
+        quotedCategoryName: (categoryName: string) => `« ${categoryName} »`,
+        oneCategory: (categoryName: string) => `la catégorie ${categoryName}`,
+        someCategories: (categoryList: string) => `les catégories ${categoryList}`,
+        everyone: 'tout le monde',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 catégorie',
+            other: `${count} catégories`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 membre',
+            other: `${count} membres`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Catégories : ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Membres : ${memberList}`,
+        categoryVisibilityReasonDeleted: ', car leur seule catégorie a été supprimée. Mettez à jour la visibilité de leur catégorie si nécessaire.',
+        categoryVisibilityReasonDisabled: ', car leur seule catégorie a été désactivée. Mettez à jour la visibilité de leurs catégories si nécessaire.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `a supprimé l’indication de description « ${oldValue} » de la catégorie « ${categoryName} »`;
@@ -10924,6 +10964,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             sortAscending: 'Trier par ordre croissant',
             sortDescending: 'Trier par ordre décroissant',
             hideColumn: 'Masquer la colonne',
+            resetColumnSizes: 'Réinitialiser la largeur des colonnes',
         },
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
@@ -11007,7 +11048,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             completed: 'Terminé',
             amount: {
                 lessThan: (amount?: string) => `Inférieur à ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Inférieur ou égal à ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Supérieur à ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Supérieur ou égal à ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Entre ${greaterThan} et ${lessThan}`;
@@ -11064,6 +11107,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateur',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infraction',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payé par',
             },
             feed: 'Fil',
             withdrawalType: {
@@ -11126,6 +11170,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateurs',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infractions',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payeurs',
         },
         moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',

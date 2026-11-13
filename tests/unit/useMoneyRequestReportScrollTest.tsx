@@ -15,6 +15,7 @@ import type {ReactNode} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import Onyx from 'react-native-onyx';
+import {makeMutable} from 'react-native-reanimated';
 
 import createMock from '../utils/createMock';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
@@ -121,7 +122,15 @@ const mockCompleteSkippedMarkAsRead = jest.fn();
 const mockOnScrolledOverThresholdChange = jest.fn();
 
 function buildActionListContextValue() {
-    return {scrollOffsetRef: mockScrollOffsetRef, getScrollOffset: () => mockScrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+    return {
+        scrollOffsetRef: mockScrollOffsetRef,
+        scrollMetricsSV: makeMutable({offset: 0, distanceToOldestEnd: 0, distanceToNewestEnd: 0, viewportHeight: 0}),
+        syncScrollSharedValues: () => {},
+        collapsedHeaderHeightSV: makeMutable(0),
+        getScrollOffset: () => mockScrollOffsetRef.current,
+        registerListRef: () => {},
+        getListRef: () => null,
+    };
 }
 
 function Wrapper({children}: {children: ReactNode}) {

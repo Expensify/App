@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import MenuItem from '@components/MenuItem';
 import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
@@ -213,6 +214,10 @@ describe('WorkspaceMemberDetailsPage', () => {
 
         // Then the member details include the work arrangement item
         expect(await screen.findByTestId('member-work-arrangement-menu-item')).toBeOnTheScreen();
+        const workArrangementRoot = screen.UNSAFE_getAllByType(MenuItem.Root).find((root) => root.props.testID === 'member-work-arrangement-menu-item');
+        expect(workArrangementRoot?.props.isDisabled).toBeUndefined();
+        expect(workArrangementRoot?.props.onPress).toEqual(expect.any(Function));
+        expect(workArrangementRoot?.findAll((node) => node.type === MenuItem.Chevron)).toHaveLength(1);
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
@@ -1100,15 +1105,20 @@ describe('WorkspaceMemberDetailsPage', () => {
     });
 
     it('should render the read-only role of the owner at full opacity and without a caret', async () => {
+        // Given the workspace owner's role cannot be edited.
         const {unmount} = renderPage({policyID: policy.id, accountID: String(ownerAccountID)});
         await waitForBatchedUpdatesWithAct();
 
+        // When the role row is displayed.
         const roleItem = await screen.findByTestId('member-role-menu-item');
 
-        // The owner's role stays disabled so the edit flow cannot be opened...
-        expect(roleItem).toBeDisabled();
+        // Then omitting the press action prevents editing without disabled-row dimming.
+        const roleRoot = screen.UNSAFE_getAllByType(MenuItem.Root).find((root) => root.props.testID === 'member-role-menu-item');
+        expect(roleRoot).toBeDefined();
+        expect(roleRoot?.props.onPress).toBeUndefined();
+        expect(roleRoot?.props.isDisabled).toBeUndefined();
+        expect(roleRoot?.findAll((node) => node.type === MenuItem.Chevron)).toHaveLength(0);
 
-        // ...but it must not be dimmed or keep the caret, so it matches the other read-only fields.
         expect(roleItem).not.toHaveStyle({opacity: 0.5});
         expect(within(roleItem).queryByTestId('ArrowRight Icon')).not.toBeOnTheScreen();
 

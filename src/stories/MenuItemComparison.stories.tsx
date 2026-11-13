@@ -1,4 +1,6 @@
 /* eslint-disable rulesdir/prefer-actions-set-data -- stories seed Onyx directly so the ID-driven avatar cases render real data */
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Button from '@components/Button';
@@ -13,7 +15,6 @@ import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation'
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
@@ -1328,9 +1329,9 @@ function Comparison() {
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
-                                <ReportActionAvatars
-                                    singleAvatarContainerStyle={[styles.actionAvatar]}
-                                    accountIDs={[STORY_ACCOUNT_ID]}
+                                <AccountAvatar
+                                    accountID={STORY_ACCOUNT_ID}
+                                    containerStyle={[styles.actionAvatar]}
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
@@ -1371,7 +1372,7 @@ function Comparison() {
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
-                                <ReportActionAvatars
+                                <ReportAvatar
                                     singleAvatarContainerStyle={[styles.actionAvatar]}
                                     reportID={STORY_REPORT_ID}
                                 />

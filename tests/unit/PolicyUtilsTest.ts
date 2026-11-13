@@ -154,6 +154,7 @@ import {
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
+import {getUKFuelRateTaxErrors, getUKFuelRatesWithInvalidTax, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils/errors';
 import {getApprovalChain, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -185,6 +186,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -378,6 +380,161 @@ const policyTags = {
 };
 
 describe('PolicyUtils', () => {
+    describe('UK fuel rate VAT warnings', () => {
+        describe.each(['quickbooksOnline', 'xero', 'netsuite'] as const)('%s tax-import warning copy', (connection) => {
+            it.each([false, true])('uses integration copy only when tax import is enabled: %s', (isImported) => {
+                // Given local tax tracking is on, independently of the integration's tax-import setting
+                const policy = createUKFuelRateTaxPolicy();
+                const connections = createMock<Connections>({
+                    ...(connection === 'quickbooksOnline' ? {quickbooksOnline: createMock<Connections['quickbooksOnline']>({config: {syncTax: isImported}})} : {}),
+                    ...(connection === 'xero' ? {xero: createMock<Connections['xero']>({config: {importTaxRates: isImported}})} : {}),
+                    ...(connection === 'netsuite' ? {netsuite: createMock<Connections['netsuite']>({options: {config: {syncOptions: {syncTax: isImported}}}})} : {}),
+                });
+                policy.connections = connections;
+                const translate = TestHelper.translateLocal;
+                const message = isImported
+                    ? translate('workspace.distanceRates.ukFuelRateTaxErrorWithIntegration', {integrationName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connection]})
+                    : translate('workspace.distanceRates.ukFuelRateTaxError');
+
+                // When both pages build their fuel warning
+                const settingsErrors = getUKFuelRateTaxErrors(policy, translate);
+                const detailsErrors = getUKFuelRateTaxErrors(policy, translate, 'fuel');
+
+                // Then a connection alone never directs the admin away from workspace-managed taxes
+                expect(settingsErrors).toEqual({ukFuelRateTax: message});
+                expect(detailsErrors).toEqual(settingsErrors);
+            });
+        });
+
+        it('does not warn on another rate when a fuel band is invalid', () => {
+            // Given a workspace with an invalid fuel band and a separate valid rate
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit) {
+                throw new Error('Expected distance unit');
+            }
+            unit.rates.other = {...unit.rates.fuel, customUnitRateID: 'other', attributes: {taxRateExternalID: 'valid'}};
+            policy.taxRates = createMock<Policy['taxRates']>({taxes: {valid: {name: 'VAT', value: '20%'}}});
+
+            // When viewing the valid rate or a rate no longer present
+            const otherErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'other');
+            const missingErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'missing');
+
+            // Then only settings and the affected rate show the warning
+            expect(otherErrors).toEqual({});
+            expect(missingErrors).toEqual({});
+            expect(getUKFuelRateTaxErrors(policy, TestHelper.translateLocal)).toHaveProperty('ukFuelRateTax');
+        });
+
+        it.each([false, true])('retains only the latest workspace dismissal failure with dismissed=%s', (isDismissed) => {
+            // Given a failed workspace-wide dismissal and a separate rate-save error
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit?.attributes) {
+                throw new Error('Expected distance unit attributes');
+            }
+            unit.attributes.isUKFuelRateTaxErrorDismissed = isDismissed;
+            unit.errorFields = {isUKFuelRateTaxErrorDismissed: {'100': 'Old dismissal failure', '200': 'Latest dismissal failure'}};
+            unit.rates.fuel.errorFields = {taxRateExternalID: {'300': 'Rate-save failure'}};
+
+            // When building the independent fuel-warning row for either page
+            const settingsErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal);
+            const detailsErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'fuel');
+
+            // Then the latest dismissal failure survives even without a warning, and save errors stay separate
+            const expectedErrors = {
+                ...(!isDismissed ? {ukFuelRateTax: TestHelper.translateLocal('workspace.distanceRates.ukFuelRateTaxError')} : {}),
+                '200': 'Latest dismissal failure',
+            };
+            expect(settingsErrors).toEqual(expectedErrors);
+            expect(detailsErrors).toEqual(expectedErrors);
+            expect(unit.rates.fuel.errorFields.taxRateExternalID).toEqual({'300': 'Rate-save failure'});
+        });
+
+        it('returns no errors before the policy or distance unit loads', () => {
+            // Given no policy, or a policy whose distance unit has not loaded
+            const policy = createUKFuelRateTaxPolicy();
+            policy.customUnits = {};
+
+            // When building errors during loading
+            const missingPolicyErrors = getUKFuelRateTaxErrors(undefined, TestHelper.translateLocal);
+            const missingUnitErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'fuel');
+
+            // Then neither page receives an error
+            expect(missingPolicyErrors).toEqual({});
+            expect(missingUnitErrors).toEqual({});
+        });
+
+        it.each(['', 'deleted', 'disabled', 'pendingDelete', 'valid'])('checks the %s tax code', (taxCode) => {
+            // Given a fuel band mapped to each possible tax code state
+            const policy = createUKFuelRateTaxPolicy();
+            policy.taxRates = createMock<Policy['taxRates']>({
+                taxes: {
+                    disabled: {name: 'Disabled', value: '20%', isDisabled: true},
+                    pendingDelete: {name: 'Deleting', value: '20%', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    valid: {name: 'VAT', value: '20%'},
+                },
+            });
+            const attributes = policy.customUnits?.distance.rates.fuel.attributes;
+            if (!attributes) {
+                throw new Error('Expected fuel rate attributes');
+            }
+            attributes.taxRateExternalID = taxCode;
+            // When the policy is checked
+            const rates = getUKFuelRatesWithInvalidTax(policy);
+            // Then only a selectable tax code clears the warning and workspace red dot
+            expect(rates).toHaveLength(taxCode === 'valid' ? 0 : 1);
+            expect(getPolicyBrickRoadIndicatorStatus(policy, false)).toBe(taxCode === 'valid' ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it.each(['taxOff', 'distanceTaxOff', 'distanceFeatureOff', 'member', 'dismissed', 'disabled', 'deleting', 'standardMileage', 'nonUK', 'custom'])(
+            'does not warn for %s',
+            (scenario) => {
+                // Given a policy outside the warning's eligibility rules
+                const policy = createUKFuelRateTaxPolicy();
+                const unit = policy.customUnits?.distance;
+                if (!unit?.attributes || !policy.tax || !unit.rates.fuel.attributes?.governmentRate) {
+                    throw new Error('Expected fuel rate and distance tax attributes');
+                }
+                const rate = unit.rates.fuel;
+                const governmentRate = unit.rates.fuel.attributes.governmentRate;
+                if (scenario === 'taxOff') {
+                    policy.tax.trackingEnabled = false;
+                }
+                if (scenario === 'distanceTaxOff') {
+                    unit.attributes.taxEnabled = false;
+                }
+                if (scenario === 'distanceFeatureOff') {
+                    policy.areDistanceRatesEnabled = false;
+                }
+                if (scenario === 'member') {
+                    policy.role = CONST.POLICY.ROLE.USER;
+                }
+                if (scenario === 'dismissed') {
+                    unit.attributes.isUKFuelRateTaxErrorDismissed = true;
+                }
+                if (scenario === 'disabled') {
+                    rate.enabled = false;
+                }
+                if (scenario === 'deleting') {
+                    rate.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                }
+                if (scenario === 'standardMileage') {
+                    governmentRate.sourceRateID = 'GB_2026-04-06';
+                }
+                if (scenario === 'nonUK') {
+                    governmentRate.sourceRateID = 'US_PETROL_2026-01-01';
+                }
+                if (scenario === 'custom') {
+                    rate.attributes = {};
+                }
+                // When the policy is checked
+                const shouldShow = shouldShowUKFuelRateTaxError(policy);
+                // Then it is excluded from the warning's eligibility rules
+                expect(shouldShow).toBe(false);
+            },
+        );
+    });
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -1565,12 +1722,13 @@ describe('PolicyUtils', () => {
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
             });
 
-            it('blocks assigning the approve-only role', () => {
-                const peopleAdminPolicy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
-                const adminPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+            it('allows People Admins to assign the approve-only role', () => {
+                // Given a People Admin on a Control workspace
+                const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
 
-                expect(canMemberAssignRole(peopleAdminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
-                expect(canMemberAssignRole(adminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+                // When they assign the approve-only role
+                // Then assignment is allowed because it stays within a People Admin's authority
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(true);
             });
 
             it('gives approve-only members read-only access like members', () => {
@@ -6889,6 +7047,48 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['cf-1']);
             });
 
+            it('uses only active Zoho Books vendors when Zoho Books and Business Central are both configured', () => {
+                // Given a workspace configured with both Business Central and Zoho Books, whose list also has a customer and an inactive vendor
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = createMock<Connections>({
+                    ...policy.connections,
+                    [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+                        config: {isConfigured: true},
+                        data: {
+                            vendors: [
+                                {id: 'zb-1', name: 'Zoho Books vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                                {id: 'zb-2', name: 'Zoho Books customer', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.CUSTOMER},
+                                {id: 'zb-3', name: 'Inactive Zoho Books vendor', isActive: false, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                            ],
+                        },
+                    },
+                });
+
+                // When resolving the vendor source without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then Zoho Books is the source, so the vendor field never shows the beta-gated Business Central list,
+                // and only active vendor-type records can be picked
+                expect(isVendorFeatureAvailable).toBe(true);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['zb-1']);
+            });
+
+            it('uses the Zoho Books empty state when the synced list has no vendors', () => {
+                // Given a configured Zoho Books workspace whose synced vendor list is empty
+                const translate = TestHelper.translateLocal;
+                const policy = createMock<Policy>({connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {config: {isConfigured: true}, data: {vendors: []}}})});
+
+                // When the vendor picker asks for its empty state
+                const emptyState = getVendorEmptyState(policy, translate);
+
+                // Then it points the admin to Zoho Books, where the vendors have to be added
+                expect(emptyState).toEqual({
+                    title: translate('workspace.zohoBooks.noVendorsFound'),
+                    subtitle: translate('workspace.zohoBooks.noVendorsFoundDescription'),
+                });
+            });
+
             it('uses the Business Central empty state when the synced list has no vendors', () => {
                 const translate = TestHelper.translateLocal;
                 expect(getVendorEmptyState(buildBusinessCentralPolicy([]), translate)).toEqual({
@@ -7227,6 +7427,25 @@ describe('PolicyUtils', () => {
                 const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
 
                 // Then only a configured connection enables Campfire vendor matching
+                expect(isVendorFeatureAvailableWithBeta).toBe(expected);
+                expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
+            });
+
+            it.each([
+                {name: 'configured connection', connection: {config: {isConfigured: true}}, expected: true},
+                {name: 'unconfigured connection', connection: {config: {isConfigured: false}}, expected: false},
+                {name: 'missing configuration flag', connection: {config: {}}, expected: false},
+                {name: 'missing configuration', connection: {}, expected: false},
+                {name: 'missing connection', connection: undefined, expected: false},
+            ])('checks Zoho Books vendor matching for $name independently of the beta', ({connection, expected}) => {
+                // Given a Zoho Books workspace whose connection may not be ready for vendor matching
+                const policy = createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: connection}});
+
+                // When checking availability with and without beta enrollment
+                const isVendorFeatureAvailableWithBeta = hasVendorFeature(policy, true);
+                const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
+
+                // Then only a configured connection enables Zoho Books vendor matching, because Zoho Books is GA and needs no beta
                 expect(isVendorFeatureAvailableWithBeta).toBe(expected);
                 expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
             });
@@ -8102,6 +8321,28 @@ describe('PolicyUtils', () => {
                 });
 
                 expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBe('campfire_vendor_1');
+            });
+
+            it('resolves Zoho Books default vendor', () => {
+                // Given a Zoho Books workspace with a default company card vendor
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'zoho_books_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                // When resolving the default vendor for Zoho Books
+                const defaultVendorID = getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS);
+
+                // Then it's the Zoho Books export default vendor, which unmatched expenses fall back to
+                expect(defaultVendorID).toBe('zoho_books_vendor_1');
             });
 
             it('resolves Business Central default vendor', () => {

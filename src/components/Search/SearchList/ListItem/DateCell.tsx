@@ -11,7 +11,6 @@ import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 
-import {format} from 'date-fns';
 import React from 'react';
 
 type DateCellProps = {
@@ -41,9 +40,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
 
     let formattedDate: string;
     if (shouldUseLocalTimeZone && date) {
-        const localDate = getLocalDateFromDatetime(date);
-        const isPastYear = localDate.getFullYear() !== getLocalDateFromDatetime().getFullYear();
-        formattedDate = isPastYear ? format(localDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale}) : DateUtils.formatToMonthDay(localDate, dateFnsLocale);
+        formattedDate = DateUtils.formatLocalDateToMonthDayWithOptionalYear(getLocalDateFromDatetime(date), getLocalDateFromDatetime().getFullYear(), dateFnsLocale);
     } else {
         formattedDate = DateUtils.formatToMonthDayWithOptionalYearInUTC(date, dateFnsLocale);
     }

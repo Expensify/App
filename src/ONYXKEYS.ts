@@ -59,6 +59,9 @@ const ONYXKEYS = {
     /** The Wise onboarding page saves still running, by save ID. RAM-only, since a page with an SSN skips the queue, so its save ends when the app closes and must not keep the flow saving after a reload. */
     RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES: 'wiseOnboardingPendingSaves',
 
+    /** The ID of the bank account whose business details the Wise intro page has started reading. RAM-only, since a reload ends the read. */
+    RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID: 'wiseIntroReadBankAccountID',
+
     /** Ordered reportIDs from the latest SearchForReports response, used to display server search results in the tier order Auth returned. */
     RAM_ONLY_SEARCH_RESULT_REPORT_IDS: 'searchResultReportIDs',
     /** Boolean flag set whenever we are searching for users in the server */
@@ -70,6 +73,9 @@ const ONYXKEYS = {
     /** Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe */
     PERSISTED_REQUESTS: 'networkRequestQueue',
     PERSISTED_ONGOING_REQUESTS: 'networkOngoingRequestQueue',
+
+    /** Unsent requests set aside when SAML signs someone out, sent again if the same account signs back in */
+    REQUESTS_KEPT_ON_SAML_SIGN_OUT: 'requestsKeptOnSAMLSignOut',
 
     /** Comment edits saved while their attachment was still uploading, replayed once it syncs */
     DEFERRED_ATTACHMENT_EDITS: 'deferredAttachmentEdits',
@@ -197,6 +203,13 @@ const ONYXKEYS = {
     /** Agent templates for the add-agent Suggestions */
     AGENT_TEMPLATES: 'agentTemplates',
 
+    /**
+     * Accounting integration waitlist requests that are still pending or that failed, by workspace and integration.
+     * NVP_ACCOUNTING_INTEGRATION_WAITLIST is an array the server replaces as a whole on every response, so pending and
+     * error state is kept in this key instead, where one response can't wipe another workspace's pending request.
+     */
+    ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS: 'accountingIntegrationWaitlistRequests',
+
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
 
@@ -207,6 +220,9 @@ const ONYXKEYS = {
 
     /** UTC signup timestamp for the account's Exact Online waitlist membership */
     NVP_EXACT_ONLINE_WAITLIST: 'nvp_expensify_exactOnlineWaitlist',
+
+    /** Accounting integrations the user is waiting for, one entry per integration and workspace */
+    NVP_ACCOUNTING_INTEGRATION_WAITLIST: 'nvp_accountingIntegrationWaitlist',
 
     /** This NVP contains list of at most 5 recent attendees */
     NVP_RECENT_ATTENDEES: 'nvp_expensify_recentAttendees',
@@ -976,6 +992,12 @@ const ONYXKEYS = {
 
     /** List of transaction authorization challenges we have attempted to respond to */
     LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS: 'locallyProcessed3DSTransactionReviews',
+
+    /** Declined transactions that the cardholder has to review as possible fraud */
+    TRANSACTIONS_PENDING_FRAUD_REVIEW: 'transactionsPendingFraudReview',
+
+    /** Fraud reviews answered on this device, so the device doesn't prompt for them again */
+    LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS: 'locallyProcessedFraudTransactionReviews',
 
     /** Whether the user has denied the contact import permission prompt */
     HAS_DENIED_CONTACT_IMPORT_PROMPT: 'hasDeniedContactImportPrompt',
@@ -1804,6 +1826,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
+    [ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT]: OnyxTypes.RequestsKeptOnSAMLSignOut;
     [ONYXKEYS.DEFERRED_ATTACHMENT_EDITS]: OnyxTypes.DeferredAttachmentEdits;
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
@@ -1853,11 +1876,15 @@ type OnyxValuesMapping = {
     [ONYXKEYS.QUEUE_FLUSHED_DATA]: AnyOnyxUpdate[];
     [ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW]: OnyxTypes.TransactionsPending3DSReview;
     [ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS]: OnyxTypes.LocallyProcessed3DSChallengeReviews;
+    [ONYXKEYS.TRANSACTIONS_PENDING_FRAUD_REVIEW]: OnyxTypes.TransactionsPendingFraudReview;
+    [ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS]: OnyxTypes.LocallyProcessedFraudTransactionReviews;
 
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST]: string;
+    [ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST]: OnyxTypes.AccountingIntegrationWaitlist;
+    [ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS]: OnyxTypes.AccountingIntegrationWaitlistRequests;
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
@@ -1977,6 +2004,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
     [ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES]: Record<string, boolean>;
+    [ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID]: number;
     [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;

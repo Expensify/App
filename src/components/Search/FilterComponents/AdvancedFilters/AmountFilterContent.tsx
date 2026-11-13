@@ -3,7 +3,6 @@ import ScrollView from '@components/ScrollView';
 import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterInput';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
@@ -13,7 +12,7 @@ import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatAmountFilterValue, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
+import {formatAmountFilterValue, getAmountFilterFormValues, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -23,7 +22,7 @@ import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {Fragment, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 const BETWEEN_MODIFIER = 'Between';
@@ -88,15 +87,49 @@ function AmountInput({ref, baseFilterKey, modifier, value, label, autoFocus}: Am
     );
 }
 
+type AmountFilterOptionProps = AmountInputProps & {
+    selectedModifier: ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | typeof BETWEEN_MODIFIER;
+    onSelectModifier: (modifier: ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>) => void;
+};
+
+function AmountFilterOption({ref, baseFilterKey, modifier, value, label, autoFocus, selectedModifier, onSelectModifier}: AmountFilterOptionProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const isSelected = selectedModifier === modifier;
+
+    return (
+        <>
+            <SingleSelectListItem
+                item={{keyForList: modifier, text: label, isSelected}}
+                showTooltip={false}
+                onSelectRow={() => onSelectModifier(modifier)}
+                wrapperStyle={styles.optionRowCompact}
+            />
+            {isSelected && (
+                <AmountInput
+                    ref={ref}
+                    baseFilterKey={baseFilterKey}
+                    modifier={modifier}
+                    value={value}
+                    label={translate(FILTER_VIEW_MAP[baseFilterKey].labelKey)}
+                    autoFocus={autoFocus}
+                />
+            )}
+        </>
+    );
+}
+
 type AmountBetweenInputProps = {
     ref: React.Ref<AmountFilterHandle>;
     baseFilterKey: SearchAmountFilterKeys;
     greaterThanValue: string;
     lessThanValue: string;
+    greaterThanModifier: typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN | typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO;
+    lessThanModifier: typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN | typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO;
     autoFocus?: boolean;
 };
 
-function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue, autoFocus}: AmountBetweenInputProps) {
+function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue, greaterThanModifier, lessThanModifier, autoFocus}: AmountBetweenInputProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const initialGreaterThan = getAmountFilterInputValue(greaterThanValue);
@@ -110,8 +143,8 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
-            const greaterThanKey = `${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
-            const lessThanKey = `${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
+            const greaterThanKey = `${baseFilterKey}${greaterThanModifier}`;
+            const lessThanKey = `${baseFilterKey}${lessThanModifier}`;
             return {
                 [greaterThanKey]: formatAmountFilterValue(greaterThanAmount, greaterThanCurrency),
                 [lessThanKey]: formatAmountFilterValue(lessThanAmount, lessThanCurrency),
@@ -126,8 +159,10 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
         inputRef.current?.focus();
     }, [didScreenTransitionEnd, autoFocus]);
 
-    const greaterThanLabel = translate('search.filters.amount.greaterThan');
-    const lessThanLabel = translate('search.filters.amount.lessThan');
+    const greaterThanLabel = translate(
+        greaterThanModifier === CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO ? 'search.filters.amount.greaterThanOrEqualTo' : 'search.filters.amount.greaterThan',
+    );
+    const lessThanLabel = translate(lessThanModifier === CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO ? 'search.filters.amount.lessThanOrEqualTo' : 'search.filters.amount.lessThan');
 
     return (
         <View style={[styles.flexColumn, styles.gap1, styles.ph4, styles.mv2]}>
@@ -157,20 +192,24 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
+    const greaterThanModifier = value[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO]
+        ? CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO
+        : CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN;
+    const lessThanModifier = value[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO] ? CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO : CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN;
 
     const getInitialSelectedAmountModifier = () => {
-        const hasLessThan = !!value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
-        const hasGreaterThan = !!value?.[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];
+        const hasLessThan = !!value[lessThanModifier];
+        const hasGreaterThan = !!value[greaterThanModifier];
         if (hasLessThan && hasGreaterThan) {
             return BETWEEN_MODIFIER;
         }
 
         if (hasGreaterThan) {
-            return CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN;
+            return greaterThanModifier;
         }
 
         if (hasLessThan) {
-            return CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN;
+            return lessThanModifier;
         }
 
         return CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO;
@@ -184,27 +223,11 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
             return;
         }
 
-        const formValues: AmountFilterValues = {};
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = undefined;
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = undefined;
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = undefined;
-        onChange({
-            ...formValues,
-            ...inputRef.current.getValue(),
-        });
+        const inputValues = inputRef.current.getValue();
+        // Keep constraints outside the active input so confirming a raw query cannot broaden it.
+        const formValues = getAmountFilterFormValues(baseFilterKey, selectedModifier === getInitialSelectedAmountModifier() ? value : undefined);
+        onChange({...formValues, ...inputValues});
     };
-
-    const modifierConfig: Array<ListItem<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | typeof BETWEEN_MODIFIER>> = [
-        {keyForList: CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, text: translate('search.filters.amount.equalTo'), isSelected: selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO},
-        {
-            keyForList: CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN,
-            text: translate('search.filters.amount.greaterThan'),
-            isSelected: selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN,
-        },
-        {keyForList: CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN, text: translate('search.filters.amount.lessThan'), isSelected: selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN},
-        {keyForList: BETWEEN_MODIFIER, text: translate('search.filters.amount.between'), isSelected: selectedModifier === BETWEEN_MODIFIER},
-    ];
-    const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
 
     const button = (
         <Button
@@ -227,35 +250,73 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
                 // so we set a minimum height to have enough visibility.
                 style={[StyleUtils.getMinimumHeight(50)]}
             >
-                {modifierConfig.map((config) => (
-                    <Fragment key={config.keyForList}>
-                        <SingleSelectListItem
-                            item={config}
-                            showTooltip={false}
-                            onSelectRow={() => setSelectedModifier(config.keyForList)}
-                            wrapperStyle={styles.optionRowCompact}
-                        />
-                        {config.isSelected &&
-                            (config.keyForList === BETWEEN_MODIFIER ? (
-                                <AmountBetweenInput
-                                    ref={inputRef}
-                                    baseFilterKey={baseFilterKey}
-                                    greaterThanValue={value?.[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN] ?? ''}
-                                    lessThanValue={value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN] ?? ''}
-                                    autoFocus={autoFocus}
-                                />
-                            ) : (
-                                <AmountInput
-                                    ref={inputRef}
-                                    baseFilterKey={baseFilterKey}
-                                    modifier={config.keyForList}
-                                    value={value?.[config.keyForList] ?? ''}
-                                    label={label}
-                                    autoFocus={autoFocus}
-                                />
-                            ))}
-                    </Fragment>
-                ))}
+                <AmountFilterOption
+                    ref={inputRef}
+                    baseFilterKey={baseFilterKey}
+                    modifier={CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}
+                    value={value[CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO] ?? ''}
+                    label={translate('search.filters.amount.equalTo')}
+                    selectedModifier={selectedModifier}
+                    onSelectModifier={setSelectedModifier}
+                    autoFocus={autoFocus}
+                />
+                <AmountFilterOption
+                    ref={inputRef}
+                    baseFilterKey={baseFilterKey}
+                    modifier={CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}
+                    value={value[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN] ?? ''}
+                    label={translate('search.filters.amount.greaterThan')}
+                    selectedModifier={selectedModifier}
+                    onSelectModifier={setSelectedModifier}
+                    autoFocus={autoFocus}
+                />
+                <AmountFilterOption
+                    ref={inputRef}
+                    baseFilterKey={baseFilterKey}
+                    modifier={CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}
+                    value={value[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN] ?? ''}
+                    label={translate('search.filters.amount.lessThan')}
+                    selectedModifier={selectedModifier}
+                    onSelectModifier={setSelectedModifier}
+                    autoFocus={autoFocus}
+                />
+                <AmountFilterOption
+                    ref={inputRef}
+                    baseFilterKey={baseFilterKey}
+                    modifier={CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO}
+                    value={value[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO] ?? ''}
+                    label={translate('search.filters.amount.greaterThanOrEqualTo')}
+                    selectedModifier={selectedModifier}
+                    onSelectModifier={setSelectedModifier}
+                    autoFocus={autoFocus}
+                />
+                <AmountFilterOption
+                    ref={inputRef}
+                    baseFilterKey={baseFilterKey}
+                    modifier={CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO}
+                    value={value[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO] ?? ''}
+                    label={translate('search.filters.amount.lessThanOrEqualTo')}
+                    selectedModifier={selectedModifier}
+                    onSelectModifier={setSelectedModifier}
+                    autoFocus={autoFocus}
+                />
+                <SingleSelectListItem
+                    item={{keyForList: BETWEEN_MODIFIER, text: translate('search.filters.amount.between'), isSelected: selectedModifier === BETWEEN_MODIFIER}}
+                    showTooltip={false}
+                    onSelectRow={() => setSelectedModifier(BETWEEN_MODIFIER)}
+                    wrapperStyle={styles.optionRowCompact}
+                />
+                {selectedModifier === BETWEEN_MODIFIER && (
+                    <AmountBetweenInput
+                        ref={inputRef}
+                        baseFilterKey={baseFilterKey}
+                        greaterThanValue={value[greaterThanModifier] ?? ''}
+                        lessThanValue={value[lessThanModifier] ?? ''}
+                        greaterThanModifier={greaterThanModifier}
+                        lessThanModifier={lessThanModifier}
+                        autoFocus={autoFocus}
+                    />
+                )}
                 {shouldButtonBeInScrollView && button}
             </ScrollView>
             {!shouldButtonBeInScrollView && button}
