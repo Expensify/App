@@ -1,0 +1,70 @@
+name: Reassure duration noise study (temporary experiment)
+
+# Runs only on the PR that carries this file. Not meant to be merged.
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '.github/workflows/reassureNoiseStudy.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  noise-study:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      - name: Setup NodeJS
+        uses: ./.github/actions/composite/setupNode
+
+      # Same key as reassurePerformanceTests.yml, restore-only.
+      - name: Restore Jest transform cache
+        # v5.0.1
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .jest-cache
+          key: ${{ format('{0}-{1}-jest-perf-{2}', runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**', 'babel.config.js', 'config/babel/**', 'jest.config.js', '.nvmrc')) }}
+
+      - name: Record runner hardware
+        shell: bash
+        run: |
+          mkdir -p noise-results
+          {
+            echo "cpus=$(nproc)"
+            grep -m1 'model name' /proc/cpuinfo || true
+            free -m | sed -n 2p
+          } | tee noise-results/runner.txt
+
+      # Six passes over the same code on one runner. Every pass is written as a baseline so each
+      # one lands in its own file; pairs are compared offline with reassure-compare.
+      - name: Run six identical perf-local passes
+        shell: bash
+        run: |
+          set -e
+          for i in 1 2 3 4 5 6; do
+            START=$(date +%s)
+            NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline --testMatch '<rootDir>/tests/perf-local/**/*.perf-local.ts'
+            END=$(date +%s)
+            cp .reassure/baseline.perf "noise-results/pass-$i.perf"
+            echo "pass=$i seconds=$((END-START)) load=$(cut -d' ' -f1-3 /proc/loadavg)" | tee -a noise-results/passes.txt
+          done
+
+      - name: Upload results
+        if: ${{ !cancelled() }}
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: noise-results-${{ matrix.runner }}
+          path: noise-results
