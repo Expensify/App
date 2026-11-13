@@ -28,6 +28,8 @@ import createMockScreenNavigation from '../utils/createMockScreenNavigation';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+// The screen is rendered outside a navigator, which the flow's discard guard needs
+jest.mock('@pages/iou/request/step/CreateFlowRootDiscardGuard', () => () => null);
 jest.mock('@components/MenuItemWithTopDescription', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View, Text} = require('react-native');

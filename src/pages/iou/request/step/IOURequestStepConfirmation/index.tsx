@@ -27,7 +27,7 @@ import useStableArrayReference from '@hooks/useStableArrayReference';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestBillable, setMoneyRequestDraftHasUserEdits, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -66,6 +66,7 @@ import useSubmissionOnboardingIntent from '@pages/iou/request/step/confirmation/
 import useSubmitLock from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
 import {resolveSubmissionPath, SUBMISSION_PATH} from '@pages/iou/request/step/confirmation/submission/utils/resolveSubmissionPath';
 import TelemetrySpanManager from '@pages/iou/request/step/confirmation/TelemetrySpanManager';
+import CreateFlowRootDiscardGuard from '@pages/iou/request/step/CreateFlowRootDiscardGuard';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 
@@ -558,10 +559,12 @@ function IOURequestStepConfirmationContent({
 
     const setBillable = (billable: boolean) => {
         setMoneyRequestBillable(currentTransactionID, billable);
+        setMoneyRequestDraftHasUserEdits(currentTransactionID);
     };
 
     const setReimbursable = (reimbursable: boolean) => {
         setMoneyRequestReimbursable(currentTransactionID, reimbursable);
+        setMoneyRequestDraftHasUserEdits(currentTransactionID);
     };
 
     // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.
@@ -700,6 +703,15 @@ function IOURequestStepConfirmationContent({
                 requestType={requestType}
                 hasReceipt={!!transaction?.receipt}
             />
+            {!shouldHideHeader && action === CONST.IOU.ACTION.CREATE && (
+                <CreateFlowRootDiscardGuard
+                    // Runs only after the user picks Discard, so Cancel keeps the tracking and the destination opened early under the RHP
+                    onBeforeClose={() => {
+                        cancelTracking();
+                        cleanupPreMount();
+                    }}
+                />
+            )}
             <DraftWorkspaceOpener
                 isCreatingTrackExpense={isCreatingTrackExpense}
                 policyID={policyID}

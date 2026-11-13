@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
@@ -27,6 +28,7 @@ import {
     getMoneyRequestParticipantsFromReport,
     initMoneyRequest,
     setMoneyRequestBillable,
+    setMoneyRequestDraftHasUserEdits,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReimbursable,
     updateLastLocationPermissionPrompt,
@@ -42,6 +44,7 @@ import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDefaultReimbursableForPolicy, getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
+import {hasMoneyRequestDraftUserEdits} from '@libs/MoneyRequestUtils';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
@@ -292,10 +295,12 @@ function SubmitDetailsPage({
 
     const setBillable = (billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
+        setMoneyRequestDraftHasUserEdits(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     };
 
     const setReimbursable = (reimbursable: boolean) => {
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reimbursable);
+        setMoneyRequestDraftHasUserEdits(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     };
 
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
@@ -345,6 +350,13 @@ function SubmitDetailsPage({
 
     const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
         shouldPreservePreInsertedRouteOnUnmount: () => hasCalledReveal.current,
+    });
+
+    // This page attaches the shared file itself, so the file alone isn't a change. A receipt the user replaced or cropped is.
+    const hasUserEdits = hasMoneyRequestDraftUserEdits(transaction, {seededReceiptSource: sharedFileSource});
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => hasUserEdits,
+        onConfirm: cleanupPreMount,
     });
 
     // Single entry point for the pending-navigation reveal — the ref guard makes it safe to call from either
@@ -607,6 +619,7 @@ function SubmitDetailsPage({
             return;
         }
         formHasBeenSubmitted.current = true;
+        suppressDiscardPrompt();
         // Nothing ever deletes from ReceiptStorage, so we only adopt once the user submits. A cancelled share stays in
         // the share extension's own folder, which the next share wipes.
         ReceiptStorage.adopt(currentReceiptSource, currentReceiptName)
@@ -627,6 +640,7 @@ function SubmitDetailsPage({
                     (file) => onSuccess(file, locationPermissionGranted),
                     () => {
                         formHasBeenSubmitted.current = false;
+                        suppressDiscardPrompt(false);
                         setIsConfirming(false);
                     },
                     currentReceiptType,
@@ -668,7 +682,10 @@ function SubmitDetailsPage({
                 <HeaderWithBackButton
                     title={translate('iou.confirmDetails')}
                     onBackButtonPress={() => {
-                        cleanupPreMount();
+                        // With edits, the prompt asks first, and cleans up only if the user picks Discard
+                        if (!hasUserEdits) {
+                            cleanupPreMount();
+                        }
                         Navigation.goBack();
                     }}
                 />

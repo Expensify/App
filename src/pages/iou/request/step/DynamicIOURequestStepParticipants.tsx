@@ -45,6 +45,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
+import CreateFlowRootDiscardGuard from './CreateFlowRootDiscardGuard';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -233,6 +234,7 @@ function DynamicIOURequestStepParticipants({route, navigation, transaction: init
             shouldShowWrapper
             testID="DynamicIOURequestStepParticipants"
         >
+            {action === CONST.IOU.ACTION.CREATE && <CreateFlowRootDiscardGuard />}
             {!!skipConfirmation && (
                 <FormHelpMessage
                     style={[styles.ph4, styles.mb4]}

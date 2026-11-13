@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestDraftHasUserEdits, setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -111,6 +111,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
         }
 
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
+        setMoneyRequestDraftHasUserEdits(transactionID);
     };
 
     useEffect(() => {

@@ -4,7 +4,14 @@ import {isParticipantP2P} from '@libs/IOUUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
 
-import {setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestTag} from '@userActions/IOU/MoneyRequest';
+import {
+    setCustomUnitRateID,
+    setMoneyRequestCategory,
+    setMoneyRequestDraftHasUserEdits,
+    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTag,
+} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -84,6 +91,7 @@ function useConfirmationParticipantSelection({
         if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
             return false;
         }
+        setMoneyRequestDraftHasUserEdits(transactionID);
         // P2P chats don't support negative amounts, so a negative expense picked for a P2P recipient stays on the
         // self DM instead of failing at submit. An expense already on a workspace chat keeps its workspace.
         const isTransactionOnPolicyExpenseChat = transaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);

@@ -32,6 +32,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useFocusEffect} from '@react-navigation/native';
+import noop from 'lodash/noop';
 import React, {useEffect, useRef, useState} from 'react';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -100,6 +101,8 @@ function IOURequestStepHours({
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
+        // Switching tabs already clears the draft, so Discard has nothing extra to do. Without a handler, the tab switch doesn't ask at all.
+        onTabSwitchDiscard: isEmbeddedInStartPage ? noop : undefined,
     });
 
     useFocusEffect(() => {

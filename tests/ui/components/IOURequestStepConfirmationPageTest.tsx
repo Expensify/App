@@ -13,6 +13,7 @@ import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as IOUUtils from '@libs/IOUUtils';
+import {isFlowDiscardPromptSuppressed, releaseFlowDiscardPromptSuppression} from '@libs/Navigation/helpers/discardPromptState';
 import * as IsReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import * as SubmitWithDismissFirst from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,6 +47,12 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import {setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
+// The screen is rendered outside a navigator, which the flow's discard guard needs, so this stands in for it
+jest.mock('@pages/iou/request/step/CreateFlowRootDiscardGuard', () => () => {
+    const {createElement} = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<{View: React.ComponentType<{testID: string}>}>('react-native');
+    return createElement(View, {testID: 'MockCreateFlowRootDiscardGuard'});
+});
 jest.mock('@rnmapbox/maps', () => {
     return {
         default: jest.fn(),
@@ -2386,6 +2393,57 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
+        it('mutes the flow discard guard before the submit leaves the flow', async () => {
+            // Given a create flow draft ready to submit
+            releaseFlowDiscardPromptSuppression();
+            const transactionID = 'tx-unreported-suppress';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 1000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
+                    created: '2025-01-15',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                });
+            });
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user submits the expense
+            fireEvent.press(await screen.findByText(/^Create .*expense/i));
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+
+            // Then the flow's discard guard stays quiet while the RHP closes, instead of asking to discard the expense just created
+            expect(isFlowDiscardPromptSuppressed()).toBe(true);
+            releaseFlowDiscardPromptSuppression();
+        });
+
         it('should route unreported distance expense to the self DM through trackExpense and skip createDistanceRequest', async () => {
             // Given a distance expense started from global create and headed to the self DM, which is the only flow that
             // leaves the draft unreported (reportID 0) at confirmation
@@ -3363,6 +3421,23 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Then it still wraps itself, so the standalone screen keeps trapping focus exactly as before
             expect(await screen.findByTestId(CONFIRMATION_SCREEN_TEST_ID)).toBeOnTheScreen();
+        });
+
+        it('leaves guarding the flow to the start page when embedded', async () => {
+            // Given the body embedded in the start page, which guards the whole flow
+            await renderConfirmation({isEmbedded: true});
+
+            // Then the body adds no flow guard of its own, so leaving the flow prompts once
+            expect(await screen.findByText(/^(Create|Split) /i)).toBeOnTheScreen();
+            expect(screen.queryByTestId('MockCreateFlowRootDiscardGuard')).not.toBeOnTheScreen();
+        });
+
+        it('guards the flow on the standalone route, where dropping a receipt can open it with no start page below', async () => {
+            // Given the standalone RHP route of a create flow
+            await renderConfirmation({isEmbedded: false});
+
+            // Then it mounts the flow guard, which only reacts when the screen is the first one of the flow
+            expect(await screen.findByTestId('MockCreateFlowRootDiscardGuard')).toBeOnTheScreen();
         });
     });
 });

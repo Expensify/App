@@ -4,6 +4,7 @@ import type {AfterTransition} from '@hooks/usePreMountDestination';
 import {armTransitionBarrier} from '@libs/API';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import {suppressFlowDiscardPrompt} from '@libs/Navigation/helpers/discardPromptState';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
@@ -453,6 +454,8 @@ function SubmitExpenseOrchestrator({
     };
 
     const dispatchSubmitHandler = (locationPermissionGranted: boolean) => {
+        // Every handler below closes the flow after a submit, so don't ask to discard the expense that was just created
+        suppressFlowDiscardPrompt();
         startSubmitSpans();
         const rootState = navigationRef.getRootState();
         const snapshot = buildNavigationSnapshot(rootState);
