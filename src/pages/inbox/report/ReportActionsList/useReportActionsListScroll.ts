@@ -150,7 +150,7 @@ function useReportActionsListScroll({
     };
 
     const trackViewableRowIndexes = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
-        viewableRowIndexesRef.current = new Set(info.viewableItems.map((token) => token.index).filter((index) => index !== null));
+        viewableRowIndexesRef.current = new Set(info.viewableItems.map((token) => token.index).filter((index) => typeof index === 'number'));
         onViewableItemsChanged(info);
     };
 
