@@ -210,7 +210,7 @@ describe('ReportField', () => {
         await waitForBatchedUpdates();
     };
 
-    it.each([false, true])('shows an interactive New report field with only non-reimbursable reports (global create: %s)', async (isFromGlobalCreate) => {
+    it.each([false, true])('shows a disabled New report field with only non-reimbursable reports (global create: %s)', async (isFromGlobalCreate) => {
         // Given two retracted reports which the save path cannot add a new expense to
         await addNonReimbursableExpense(outstandingReport);
         await addNonReimbursableExpense(otherOutstandingReport);
@@ -221,11 +221,11 @@ describe('ReportField', () => {
         // When creating an expense from either the global button or the workspace chat
         renderReportRow();
 
-        // Then the default agrees with the save path without changing the outstanding-report interaction rule
+        // Then the default agrees with the save path and cannot open a picker with no eligible report
         await waitFor(() => {
             expect(mockReportName).toBe('iou.newReport');
-            expect(mockIsInteractive).toBe(true);
-            expect(mockShouldOpenInDropdown).toBe(true);
+            expect(mockIsInteractive).toBe(false);
+            expect(mockShouldOpenInDropdown).toBe(false);
         });
     });
 
