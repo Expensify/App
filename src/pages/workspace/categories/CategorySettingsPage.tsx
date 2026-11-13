@@ -17,6 +17,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMembersNeedCategoryModal from '@hooks/useMembersNeedCategoryModal';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
@@ -24,11 +25,12 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
-import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -41,12 +43,16 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
+import FontUtils from '@styles/utils/FontUtils';
+
 import {clearCategoryErrors, deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
@@ -66,6 +72,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {convertToDisplayString} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Plus', 'Bolt']);
     const {showConfirmModal} = useConfirmModal();
+    const {policyMemberAccountIDs, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyID);
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
     const {canWrite: canWriteCategories, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
@@ -111,8 +118,10 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const policyHasTags = hasTags(policyTags);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : undefined);
@@ -145,6 +154,13 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             showCannotDeleteOrDisableLastCategoryModal();
             return;
         }
+        if (!value) {
+            const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, [policyCategory.name], policyMemberAccountIDs);
+            if (membersWithoutVisibleCategories.length > 0) {
+                showMembersNeedCategoryModal(membersWithoutVisibleCategories, [policyCategory.name]);
+                return;
+            }
+        }
         setWorkspaceCategoryEnabled({
             isVendorMatchingBetaEnabled,
             policyData,
@@ -161,6 +177,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             setupCategoriesAndTagsHasOutstandingChildTask,
             setupCategoriesAndTagsParentReportAction,
             policyHasTags,
+            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
         });
     };
 
@@ -179,6 +196,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             hasOutstandingChildTask,
             parentReportAction,
             isVendorMatchingBetaEnabled,
+            getReviewWorkspaceSettingsTaskCompletion(),
         );
         navigateBack();
     };
@@ -238,6 +256,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 <Switch
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_ENABLE_SWITCH}
                                     onToggle={updateWorkspaceCategoryEnabled}
                                     disabled={!canWriteCategories}
                                     disabledAction={withReadOnlyFallback()}
@@ -248,6 +267,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_NAME}
                             name={translate('common.name')}
                             onPress={canWriteCategories ? navigateToEditCategory : undefined}
                             value={decodedCategoryName}
@@ -255,6 +275,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_GL_CODE}
                             name={translate('workspace.categories.glCode')}
                             onPress={
                                 canWriteCategories
@@ -284,6 +305,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['Payroll Code']}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_PAYROLL_CODE}
                             name={translate('workspace.categories.payrollCode')}
                             onPress={
                                 canWriteCategories
@@ -313,6 +335,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                         <>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
                                 <MenuItemFieldHTML
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_DESCRIPTION_HINT}
                                     name={translate('workspace.rules.categoryRules.descriptionHint')}
                                     value={policyCategory?.commentHint}
                                     onPress={
@@ -325,6 +348,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 />
                             </OfflineWithFeedback>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_APPROVER}
                                 name={translate('workspace.rules.categoryRules.approver')}
                                 value={approverText}
                                 onPress={
@@ -345,6 +369,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     )}
                     {canWriteCategories && !isThereAnyAccountingConnection && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_DELETE}
                             icon={expensifyIcons.Trashcan}
                             title={translate('workspace.categories.deleteCategory')}
                             onPress={async () => {
@@ -376,20 +401,35 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     key={rule.key}
                                     pendingAction={rule.pendingAction}
                                 >
-                                    <MenuItem
-                                        icon={expensifyIcons.Bolt}
-                                        title={rule.summary}
-                                        numberOfLinesTitle={3}
-                                        shouldShowBasicTitle
-                                        onPress={() => navigateToCategoryRule(rule.dynamicRoutePath)}
-                                        shouldShowRightIcon={!rule.isDisabled}
-                                        interactive={!rule.isDisabled}
-                                        disabled={rule.isDisabled}
-                                    />
+                                    <MenuItem.Root
+                                        sentryLabel={rule.sentryLabel}
+                                        onPress={rule.isDisabled ? undefined : callIfAuthenticated(() => navigateToCategoryRule(rule.dynamicRoutePath), session)}
+                                        isDisabled={rule.isDisabled}
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItem.Leading>
+                                                <MenuItem.Icon src={expensifyIcons.Bolt} />
+                                            </MenuItem.Leading>
+                                            <MenuItem.Content>
+                                                <MenuItem.Title
+                                                    numberOfLines={3}
+                                                    style={FontUtils.fontFamily.platform.EXP_NEUE}
+                                                >
+                                                    {rule.summary}
+                                                </MenuItem.Title>
+                                            </MenuItem.Content>
+                                            {!rule.isDisabled && (
+                                                <MenuItem.Trailing>
+                                                    <MenuItem.Chevron />
+                                                </MenuItem.Trailing>
+                                            )}
+                                        </MenuItem.Row>
+                                    </MenuItem.Root>
                                 </OfflineWithFeedback>
                             ))}
                             {canWriteRules && (
                                 <MenuItemAction
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_CREATE_RULE}
                                     icon={expensifyIcons.Plus}
                                     title={translate('workspace.rules.categoryRules.createNewRule')}
                                     onPress={() => navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_NEW.path)}

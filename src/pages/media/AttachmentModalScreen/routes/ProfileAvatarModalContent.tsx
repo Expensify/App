@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
@@ -50,19 +50,16 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
 
     const onDownloadAttachment = useDownloadAttachment();
 
-    const contentProps = useMemo<AttachmentModalBaseContentProps>(
-        () => ({
-            source,
-            originalFileName,
-            headerTitle: displayName,
-            isLoading,
-            shouldShowNotFoundPage,
-            maybeIcon: true,
-            onDownloadAttachment,
-            shouldCloseOnSwipeDown: true,
-        }),
-        [displayName, isLoading, onDownloadAttachment, originalFileName, shouldShowNotFoundPage, source],
-    );
+    const contentProps: AttachmentModalBaseContentProps = {
+        source,
+        originalFileName,
+        headerTitle: displayName,
+        isLoading,
+        shouldShowNotFoundPage,
+        maybeIcon: true,
+        onDownloadAttachment,
+        shouldCloseOnSwipeDown: true,
+    };
 
     return (
         <AttachmentModalContainer

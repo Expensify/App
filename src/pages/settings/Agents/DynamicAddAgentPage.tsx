@@ -34,7 +34,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
+import {canMemberWrite, POLICY_ROLE_RANKING} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, createCompanyAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
@@ -50,7 +50,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {TextInputKeyPressEvent} from 'react-native';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {Platform, View} from 'react-native';
 
 import {PROMPT_MAX_AUTO_GROW_HEIGHT, PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
@@ -91,7 +91,8 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
     const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, undefined, policy, currentUserLogin ?? '');
-    const defaultRole = availableRoleItems.at(0)?.value;
+    // The role list is ordered for display, so the default comes from the role hierarchy instead.
+    const defaultRole = POLICY_ROLE_RANKING.find((role) => availableRoleItems.some((item) => item.value === role));
     const roleOptions = availableRoleItems.map((roleItem) => ({
         label: roleItem.text,
         value: roleItem.value,
@@ -138,15 +139,13 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     }
 
     // Reset the draft when the add flow is dismissed without creating the agent, so the next session starts fresh.
-    useBeforeRemove(
-        useCallback(() => {
-            hasLeftPageRef.current = true;
-            if (hasSubmittedRef.current || !avatarDraft) {
-                return;
-            }
-            clearNewAgentAvatarDraft();
-        }, [avatarDraft]),
-    );
+    useBeforeRemove(() => {
+        hasLeftPageRef.current = true;
+        if (hasSubmittedRef.current || !avatarDraft) {
+            return;
+        }
+        clearNewAgentAvatarDraft();
+    });
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AGENT_FORM>): Errors => {
         const errors: Errors = {};

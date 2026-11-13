@@ -1,4 +1,9 @@
+import type {DevelopmentOrigins} from './csp';
+
 import {getCSP, NONCE_PLACEHOLDER} from './csp';
+import {isAPIRequest} from './developmentAPIProxy';
+import getDevelopmentConfig from './developmentConfig';
+import fetchDevelopmentResponse from './fetchDevelopmentResponse';
 
 /** Content-hashed build output (`main-<16 hex>.bundle.js`, `main.<10 hex>.css`, ...), emitted at the root of `dist/`. */
 const HASHED_ASSET_PATH = /^\/[^/]+(?:-[0-9a-f]{16}\.bundle\.js|\.[0-9a-f]{10}\.[a-z0-9]+)$/;
@@ -84,19 +89,20 @@ function buildAssetRequest(request: Request, url: URL, pathSuffix = ''): Request
     return assetRequest;
 }
 
-function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'], nonce: string) {
+function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, developmentOrigins?: DevelopmentOrigins) {
     headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    headers.set('Content-Security-Policy', getCSP(environment, nonce));
+    headers.set('Content-Security-Policy', getCSP(environment, nonce, developmentOrigins));
     headers.set('X-Frame-Options', 'SAMEORIGIN');
     headers.set('X-Content-Type-Options', 'nosniff');
     headers.set('Referrer-Policy', 'origin-when-cross-origin');
+    headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     // Used by react-native-release-profiler
     headers.set('Document-Policy', 'js-profiling');
 }
 
-function createNotFoundResponse(environment: Env['ENVIRONMENT'], nonce: string): Response {
+function createNotFoundResponse(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, developmentOrigins?: DevelopmentOrigins): Response {
     const notFound = new Response('Not Found', {status: 404, headers: {'Content-Type': 'text/plain; charset=utf-8'}});
-    setSecurityHeaders(notFound.headers, environment, nonce);
+    setSecurityHeaders(notFound.headers, environment, nonce, developmentOrigins);
     return notFound;
 }
 
@@ -179,6 +185,7 @@ async function getPreviousBuildFile(env: Env, url: URL, method: string, mayHaveT
 export default {
     async fetch(request, env): Promise<Response> {
         const url = new URL(request.url);
+        const isDevelopment = env.ENVIRONMENT === 'development';
         const nonce = generateNonce();
 
         // Twins are only served as an encoding of the original.
@@ -186,19 +193,40 @@ export default {
             return createNotFoundResponse(env.ENVIRONMENT, nonce);
         }
 
+        // The app's forms keep `method="post" action="/"` for password managers, so a submit the app doesn't cancel
+        // reaches here. Static Assets only serves GET and HEAD, so load the same page instead of returning a 405.
+        // Locally, API requests are POSTs through this Worker to the backend.
+        if (request.method === 'POST' && !(isDevelopment && isAPIRequest(url.pathname))) {
+            const redirect = new Response(null, {status: 303, headers: {Location: `${url.origin}${url.pathname}${url.search}`, 'Cache-Control': 'no-store'}});
+            setSecurityHeaders(redirect.headers, env.ENVIRONMENT, nonce);
+            return redirect;
+        }
+
         const isNavigation = request.headers.get('Sec-Fetch-Mode') === 'navigate';
         const isAASAPath = url.pathname === AASA_PATH || url.pathname === LEGACY_AASA_PATH;
-        const isPrecompressed = PRECOMPRESSED_PATH.test(url.pathname);
+        const isPrecompressed = !isDevelopment && PRECOMPRESSED_PATH.test(url.pathname);
         // Cloudflare presents every request with `Accept-Encoding: br, gzip` and decodes the twin for clients without Brotli.
-        let served = await getAsset(env, request, url, isPrecompressed);
+        let served: ServedFile;
+        let developmentOrigins: DevelopmentOrigins | undefined;
+        if (isDevelopment) {
+            const {upstream, backendOrigins} = getDevelopmentConfig(env);
+            const assetResponse = await fetchDevelopmentResponse(request, upstream);
+            if (assetResponse.status === 101 || isAPIRequest(url.pathname)) {
+                return assetResponse;
+            }
+            developmentOrigins = {hmrOrigin: url.origin.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:'), backendOrigins};
+            served = {response: assetResponse, isBrotli: false};
+        } else {
+            served = await getAsset(env, request, url, isPrecompressed);
+        }
 
         // The SPA fallback answers every miss with index.html. A browser asking for a missing chunk needs the file from
         // an earlier build, or a real 404.
         if (isHTMLResponse(served.response) && (isAASAPath || (!isNavigation && STATIC_FILE_PATH.test(url.pathname)))) {
-            const previousBuildFile = isAASAPath ? null : await getPreviousBuildFile(env, url, request.method, isPrecompressed);
+            const previousBuildFile = isAASAPath || isDevelopment ? null : await getPreviousBuildFile(env, url, request.method, isPrecompressed);
             if (!previousBuildFile) {
                 await served.response.body?.cancel();
-                return createNotFoundResponse(env.ENVIRONMENT, nonce);
+                return createNotFoundResponse(env.ENVIRONMENT, nonce, developmentOrigins);
             }
             await served.response.body?.cancel();
             served = previousBuildFile;
@@ -206,13 +234,17 @@ export default {
 
         const {response: file, isBrotli} = served;
         const headers = new Headers(file.headers);
-        setSecurityHeaders(headers, env.ENVIRONMENT, nonce);
+        setSecurityHeaders(headers, env.ENVIRONMENT, nonce, developmentOrigins);
 
         if (isAASAPath) {
             headers.set('Content-Type', 'application/json');
         }
 
-        if (HASHED_ASSET_PATH.test(url.pathname)) {
+        if (isDevelopment) {
+            headers.set('Cache-Control', 'no-store');
+            headers.delete('ETag');
+            headers.delete('Last-Modified');
+        } else if (HASHED_ASSET_PATH.test(url.pathname)) {
             headers.set('Cache-Control', 'public, max-age=31536000, immutable');
         }
 
@@ -244,4 +276,4 @@ export default {
             })
             .transform(new Response(file.body, {status: file.status, statusText: file.statusText, headers}));
     },
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler<Env | DevelopmentEnv>;

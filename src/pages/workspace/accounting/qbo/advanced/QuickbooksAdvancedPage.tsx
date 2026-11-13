@@ -7,7 +7,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -19,7 +18,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -31,7 +29,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const reimbursementAccountIDs = [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID];
@@ -46,31 +44,24 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
 
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const accountingMethod = policy?.connections?.quickbooksOnline?.config?.accountingMethod;
     const {bankAccounts, creditCards, expenseAccounts, otherCurrentAssetAccounts, vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qboConfig?.nonReimbursableBillDefaultVendor);
 
-    const qboAccountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
-    const invoiceAccountCollectionOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
+    const qboAccountOptions = [...(bankAccounts ?? []), ...(creditCards ?? [])];
+    const invoiceAccountCollectionOptions = [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])];
 
-    const isSyncReimbursedSwitchOn = useMemo(
-        () => !!qboConfig?.collectionAccountID || !!qboConfig?.reimbursementAccountID,
-        [qboConfig?.collectionAccountID, qboConfig?.reimbursementAccountID],
-    );
+    const isSyncReimbursedSwitchOn = !!qboConfig?.collectionAccountID || !!qboConfig?.reimbursementAccountID;
 
     const reimbursementAccountID = qboConfig?.reimbursementAccountID;
-    const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name, [qboAccountOptions, reimbursementAccountID]);
+    const selectedQboAccountName = qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name;
     const collectionAccountID = qboConfig?.collectionAccountID;
 
-    const selectedInvoiceCollectionAccountName = useMemo(
-        () => invoiceAccountCollectionOptions?.find(({id}) => id === collectionAccountID)?.name,
-        [invoiceAccountCollectionOptions, collectionAccountID],
-    );
+    const selectedInvoiceCollectionAccountName = invoiceAccountCollectionOptions?.find(({id}) => id === collectionAccountID)?.name;
 
     const fxExpenseAccount = qboConfig?.fxExpenseAccount;
-    const selectedFxExpenseAccountName = useMemo(() => expenseAccounts?.find(({id}) => id === fxExpenseAccount)?.name, [expenseAccounts, fxExpenseAccount]);
+    const selectedFxExpenseAccountName = expenseAccounts?.find(({id}) => id === fxExpenseAccount)?.name;
     const autoCreateVendorConst = CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR;
     const defaultVendorConst = CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR;
 
@@ -79,6 +70,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const AccordionMenuItems = [
         {
             key: 'qboBillPaymentAccount',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.ADVANCED_ROW.BILL_PAYMENT_ACCOUNT,
             title: selectedQboAccountName,
             description: translate('workspace.qbo.advancedConfig.qboBillPaymentAccount', integrationName),
             onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID))),
@@ -88,6 +80,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             key: 'qboInvoiceCollectionAccount',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.ADVANCED_ROW.INVOICE_COLLECTION_ACCOUNT,
             title: selectedInvoiceCollectionAccountName,
             description: translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount', integrationName),
             onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID))),
@@ -99,6 +92,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             ? [
                   {
                       key: 'qboFxExpenseAccount',
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.ADVANCED_ROW.FX_EXPENSE_ACCOUNT,
                       title: selectedFxExpenseAccountName,
                       description: translate('workspace.qbo.advancedConfig.qboFxExpenseAccount', integrationName),
                       onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR.getRoute(policyID))),
@@ -117,7 +111,10 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     key={item.key}
                     pendingAction={item.pendingAction}
                 >
-                    <MenuItemSectionRoot onPress={item.onPress}>
+                    <MenuItemSectionRoot
+                        onPress={item.onPress}
+                        sentryLabel={item.sentryLabel}
+                    >
                         <MenuItemField.Row
                             name={item.description}
                             value={item.title}
@@ -136,6 +133,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription', integrationName),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription', integrationName),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.INVITE_EMPLOYEES_SWITCH,
             isActive: !!qboConfig?.syncPeople,
             onToggle: () => updateQuickbooksOnlineSyncPeople(policyID, !qboConfig?.syncPeople),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
@@ -146,6 +144,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
             subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription', integrationName),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription', integrationName),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.AUTO_CREATE_VENDOR_SWITCH,
             isActive: !!qboConfig?.autoCreateVendor,
             onToggle: (isOn: boolean) => {
                 const nonReimbursableVendorCurrentValue = nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
@@ -170,6 +169,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.accounting.reimbursedReports'),
             subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription', integrationName),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription', integrationName),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.SYNC_REIMBURSED_REPORTS_SWITCH,
             isActive: isSyncReimbursedSwitchOn,
             onToggle: () => {
                 updateQuickbooksOnlineSyncReimbursedReports(
@@ -187,7 +187,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="QuickbooksAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -197,7 +197,10 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], qboConfig?.pendingFields)}>
-                <MenuItemSectionRoot onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path))}>
+                <MenuItemSectionRoot
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path))}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.AUTO_SYNC}
+                >
                     <MenuItemField.Row
                         name={translate('workspace.accounting.autoSync')}
                         value={qboConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
@@ -220,6 +223,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     title={item.title}
                     subtitle={item.subtitle}
                     switchAccessibilityLabel={item.switchAccessibilityLabel}
+                    switchSentryLabel={item.switchSentryLabel}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={styles.mv3}
                     isActive={item.isActive}

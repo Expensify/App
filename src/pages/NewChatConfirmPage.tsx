@@ -2,7 +2,8 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -98,6 +99,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
         <>
             <View style={styles.avatarSectionWrapper}>
                 <AvatarWithImagePicker
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.GROUP_AVATAR}
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
                     source={groupAvatarSource}
                     avatar={groupAvatar}
@@ -114,14 +116,18 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                     style={styles.w100}
                 />
             </View>
-            <MenuItemWithTopDescription
-                title={groupName}
+            <MenuItem.Root
+                sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.GROUP_NAME_FIELD}
                 onPress={navigateToEditChatName}
-                shouldShowRightIcon
-                shouldCheckActionAllowedOnPress={false}
-                description={translate('newRoomPage.groupName')}
-                wrapperStyle={[styles.ph4]}
-            />
+                style={styles.ph4}
+            >
+                <MenuItemField.Row
+                    name={translate('newRoomPage.groupName')}
+                    value={groupName}
+                >
+                    <MenuItem.Chevron />
+                </MenuItemField.Row>
+            </MenuItem.Root>
         </>
     );
 }
@@ -148,11 +154,14 @@ function NewChatConfirmPage() {
     );
 
     const selectedParticipants: ListItem[] = selectedOptions
-        .map((selectedOption: Participant) => {
+        .map((selectedOption: Participant, index) => {
             const accountID = selectedOption.accountID;
             const isAdmin = personalData.accountID === accountID;
             const section: ListItem = {
-                login: selectedOption?.login ?? '',
+                // Keep the draft's login so unselectOption can match the participant. Once a login created offline syncs,
+                // getParticipantsOption resolves it to the real account, whose login can differ (for example, a phone
+                // number saved without the SMS domain).
+                login: participants.at(index)?.login ?? '',
                 text: selectedOption?.text ?? '',
                 keyForList: selectedOption?.keyForList ?? '',
                 isSelected: !isAdmin,

@@ -1,7 +1,6 @@
 import SubscriptCardFeedAvatar from '@components/Avatar/layouts/SubscriptCardFeedAvatar';
 
 import CONST from '@src/CONST';
-import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -14,8 +13,11 @@ type AccountAvatarWithCardFeedProps = {
     /** Account ID of the cardholder. `CONST.DEFAULT_NUMBER_ID` renders a placeholder avatar, so the card icon keeps its slot when the cardholder is unknown. */
     accountID: number;
 
-    /** Card feed to display as the subscript */
-    cardFeed: CardFeedWithNumber;
+    /**
+     * Bank name of the card feed displayed as the avatar subscript.
+     * Raw text is accepted because getCardFeedIcon resolves legacy and unknown values.
+     */
+    cardFeed: string;
 
     /** Size of the subscript card feed icon */
     cardFeedIconSize?: {width: number; height: number};

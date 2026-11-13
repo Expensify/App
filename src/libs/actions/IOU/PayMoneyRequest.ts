@@ -5,14 +5,14 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import * as API from '@libs/API';
 import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getAllReportActions, getElsewherePaymentReportActionMessage, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getElsewherePaymentReportActionMessageBG, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
@@ -34,8 +34,7 @@ import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
-import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
-import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
+import {getIntroSelectedCompanySize, getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -119,6 +118,7 @@ type PayMoneyRequestFunctionParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
+    isWiseReimbursementsBetaEnabled: boolean;
     onPaid?: () => void;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
@@ -129,6 +129,9 @@ type PayMoneyRequestFunctionParams = {
     isFallbackChatReport?: boolean;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+
+    /** The Wise quote the admin confirmed */
+    wiseQuoteID?: string;
 };
 
 function getPayMoneyRequestParams({
@@ -231,7 +234,7 @@ function getPayMoneyRequestParams({
             introSelected,
             activePolicy,
             conciergeChat,
-            companySize: introSelected?.companySize as OnboardingCompanySize,
+            companySize: getIntroSelectedCompanySize(introSelected),
             isSelfTourViewed,
             delegateAccountID,
             // This workspace is created by the invoice payment command, which does not apply CreatePolicy's
@@ -302,7 +305,14 @@ function getPayMoneyRequestParams({
     }
     let optimisticNextStep = null;
     if (!isInvoiceReport) {
-        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser, rules});
+        // A paid report has no next approver, so personalDetailsByLogins isn't needed.
+        optimisticNextStep = buildOptimisticNextStep({
+            report: iouReport,
+            predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            isTrackIntentUser,
+            rules,
+            personalDetailsByLogins: undefined,
+        });
     }
 
     const optimisticChatReport = {
@@ -418,7 +428,8 @@ function getPayMoneyRequestParams({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', 0),
+                    // Same key as the preview copy below, so dismissing this one clears that one too.
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },
         },
@@ -433,11 +444,19 @@ function getPayMoneyRequestParams({
 
     // In case the report preview action is loaded locally, let's update it.
     if (optimisticReportPreviewAction) {
+        // Mirror the error onto the chat's preview, which the payer can still reach once the paid report is gone.
+        // An IOU report only ever hangs off a one-on-one chat, so workspace expense reports are untouched.
+        const shouldMirrorPayFailure = isIOUReport(iouReport);
+        // Clear our own previous failure so a retry does not keep showing a stale RBR. Only when one is there, or
+        // the merge would leave an empty errors object behind, which reads as truthy to other consumers.
+        const hasStalePayFailure = shouldMirrorPayFailure && CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY in (optimisticReportPreviewAction.errors ?? {});
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+                [optimisticReportPreviewAction.reportActionID]: hasStalePayFailure
+                    ? {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}}
+                    : optimisticReportPreviewAction,
             },
         });
         onyxData.failureData?.push({
@@ -446,6 +465,8 @@ function getPayMoneyRequestParams({
             value: {
                 [optimisticReportPreviewAction.reportActionID]: {
                     created: optimisticReportPreviewAction.created,
+                    // Only shown once the preview is deleted, see getVisibleReportActionErrors.
+                    ...(shouldMirrorPayFailure ? {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.payFailedExpenseDeleted', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY)} : {}),
                 },
             },
         });
@@ -660,6 +681,7 @@ function cancelPayment(
     const hasConnectedBankAccount = !!policy?.achAccount?.accountNumber;
     const predictedNextStatus = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && hasConnectedBankAccount ? CONST.REPORT.STATUS_NUM.SUBMITTED : statusNum;
 
+    // The next step is only SUBMITTED for Optional approval policies, which never look up the next approver, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
         predictedNextStatus,
@@ -670,6 +692,7 @@ function cancelPayment(
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins: undefined,
     });
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
     const expenseReportActions = getAllReportActions(expenseReport.reportID);
@@ -754,12 +777,14 @@ function cancelPayment(
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
                 canCancelReimbursement: expenseReport.canCancelReimbursement,
                 isCancelledIOU: false,
+                // A paid report has no next approver, so personalDetailsByLogins isn't needed.
                 nextStep:
                     buildOptimisticNextStep({
                         report: expenseReport,
                         predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
                         isTrackIntentUser,
                         rules,
+                        personalDetailsByLogins: undefined,
                     }) ?? null,
                 pendingFields: {
                     nextStep: null,
@@ -867,13 +892,29 @@ function completePaymentOnboarding(
         onboardingPolicyID,
         paymentSelected,
         wasInvited: true,
-        companySize: introSelected?.companySize as OnboardingCompanySize,
+        companySize: getIntroSelectedCompanySize(introSelected),
         introSelected,
         isSelfTourViewed,
         conciergeChat,
         currentUserAccountID,
         delegateAccountID,
     });
+}
+
+/**
+ * Returns the paying bank account when the payment must wait for global reimbursements onboarding, so payMoneyRequest opens the onboarding instead of paying.
+ */
+function getBankAccountToSetUpBeforePaying({
+    paymentType,
+    methodID,
+    bankAccountList,
+    isWiseReimbursementsBetaEnabled,
+}: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled'>): OnyxTypes.BankAccount | undefined {
+    if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !methodID) {
+        return undefined;
+    }
+    const bankAccount = bankAccountList?.[methodID];
+    return shouldSetUpGlobalReimbursementsBeforePaying(bankAccount) ? bankAccount : undefined;
 }
 
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
@@ -897,6 +938,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         amountOwed,
         ownerBillingGracePeriodEnd,
         methodID,
+        isWiseReimbursementsBetaEnabled,
         onPaid,
         additionalOnyxData,
         shouldPlaySuccessSound = true,
@@ -907,6 +949,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isFallbackChatReport,
         rules,
         bankAccountList,
+        wiseQuoteID,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -915,6 +958,17 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         shouldRestrictUserBillableActions(policyForBillingRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
     ) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
+        return;
+    }
+
+    // The backend rejects this payment until the account is set up for global reimbursements, so open the onboarding right away instead of showing an optimistic payment
+    const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
+    if (methodID && bankAccountToSetUp) {
+        Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, {
+            bankAccountID: methodID,
+            bankCountry: bankAccountToSetUp.bankCountry,
+            bankCurrency: bankAccountToSetUp.bankCurrency,
+        });
         return;
     }
 
@@ -949,6 +1003,15 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         rules,
     });
 
+    // Wise takes a quote for one transfer only, so a payment retried after a failure asks for a new quote
+    if (wiseQuoteID && iouReport?.reportID) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {wiseQuote: null, wiseQuoteRequest: null},
+        });
+    }
+
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
@@ -957,7 +1020,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     if (shouldPlaySuccessSound) {
         playSound(SOUNDS.SUCCESS);
     }
-    API.write(apiCommand, payMoneyRequestParams, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
+    API.write(apiCommand, {...payMoneyRequestParams, wiseQuoteID}, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
     return payMoneyRequestParams.optimisticHoldReportID;
 }
@@ -995,14 +1058,20 @@ function markReportPaymentReceived(
     // buildOptimisticIOUReportAction formats the action's `message` as "paid ... elsewhere", so override it with
     // the "received payment" copy here. Keeping the action's message in sync fixes the optimistic chat/report
     // preview, which derives lastMessageText/lastMessageHtml from this action.
-    // translateLocal is used because this runs outside a React component where the useLocalize hook is unavailable.
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const receivedPaymentMessage = getElsewherePaymentReportActionMessage(translateLocal, optimisticIOUReportAction.originalMessage);
+    const receivedPaymentMessage = getElsewherePaymentReportActionMessageBG(optimisticIOUReportAction.originalMessage);
     optimisticIOUReportAction.message = [{html: receivedPaymentMessage, text: receivedPaymentMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}];
 
     const reportPreviewAction = getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
     const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, true) : null;
-    const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser, rules});
+    // A paid report has no next approver, so personalDetailsByLogins isn't needed.
+    const optimisticNextStep = buildOptimisticNextStep({
+        report: iouReport,
+        predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+        isTrackIntentUser,
+        rules,
+        personalDetailsByLogins: undefined,
+    });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -1053,7 +1122,11 @@ function markReportPaymentReceived(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+                // Clear any mirrored failure, or it resurfaces as a phantom error once the report is deleted.
+                [optimisticReportPreviewAction.reportActionID]:
+                    CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY in (optimisticReportPreviewAction.errors ?? {})
+                        ? {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}}
+                        : optimisticReportPreviewAction,
             },
         });
     }
@@ -1259,4 +1332,5 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export type {PayMoneyRequestFunctionParams};

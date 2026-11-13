@@ -21,7 +21,7 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
 
     const isInLandscapeMode = useIsInLandscapeMode();
 
-    const data = useConfirmationListData(props);
+    const data = useConfirmationListData({...props, isScanRequest: true});
     const {transactionID} = data.layoutProps;
 
     // Multi-scan switches between expenses on the same list, so remember which ones have their fields revealed
@@ -56,7 +56,6 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
     return (
         <ConfirmationListLayout
             {...data.layoutProps}
-            fieldFlags={{isScanRequest: true}}
             isCompactMode={isCompactMode}
             listFooterContent={
                 <ScanFooter

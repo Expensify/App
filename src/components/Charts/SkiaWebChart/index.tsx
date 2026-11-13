@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import {useIsInsideChartReveal, useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
@@ -7,31 +8,32 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Log from '@libs/Log';
+import {markCanvasKitLoadStarted} from '@libs/telemetry/integrations/canvasKitNoiseFilter';
 
 import variables from '@styles/variables';
 
 import type {TranslationPaths} from '@src/languages/types';
 import viewRef from '@src/types/utils/viewRef';
 
-import type {ComponentType} from 'react';
+import type {ComponentType, LazyExoticComponent} from 'react';
 
 import * as Sentry from '@sentry/react-native';
-import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
-import React, {useRef, useState} from 'react';
+import {LoadSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
+import React, {lazy, Suspense, useRef, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import {View} from 'react-native';
 
-import isSkiaWebSupported from './isSkiaWebSupported';
+import getSkiaWebUnsupportedReason from './getSkiaWebUnsupportedReason';
 import useIsSkiaSurfaceUnavailable from './useIsSkiaSurfaceUnavailable';
+
+type ChartLoader<TProps> = () => Promise<{default: ComponentType<TProps>}>;
 
 type SkiaWebChartProps<TProps> = {
     /** Lazily imports the Skia-backed chart component to render. */
-    getComponent: () => Promise<{default: ComponentType<TProps>}>;
+    getComponent: ChartLoader<TProps>;
 
     /** Props forwarded to the lazily-loaded chart component. */
     componentProps: TProps;
-
-    /** Identifies the loading skeleton span for telemetry. */
 };
 
 type ChartUnavailableProps = {
@@ -46,10 +48,43 @@ type ChartUnavailableProps = {
  */
 const locateCanvasKitFile = (file: string) => (file === 'canvaskit.wasm' ? __CANVASKIT_WASM_URL__ : `/${file}`);
 
+/**
+ * One lazy component per chart loader, kept for the session. A lazy component renders without suspending only once
+ * its own load has resolved, so one created per mount (as `WithSkiaWeb` does) suspends on every mount, and production
+ * React commits the fallback for a few frames even when the chart's code and CanvasKit are already loaded.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- each loader renders a chart with its own props, so the map holds every props type
+const lazyCharts = new Map<ChartLoader<any>, LazyExoticComponent<ComponentType<any>>>();
+
+function getLazyChart<TProps>(getComponent: ChartLoader<TProps>) {
+    const cachedChart = lazyCharts.get(getComponent);
+    if (cachedChart) {
+        return cachedChart as LazyExoticComponent<ComponentType<TProps>>;
+    }
+
+    const LazyChart = lazy(async () => {
+        try {
+            markCanvasKitLoadStarted();
+            // The glue mutates `opts` into the module object, so give each load its own object rather than sharing one.
+            await LoadSkiaWeb({locateFile: locateCanvasKitFile});
+            return await getComponent();
+        } catch (error) {
+            // React keeps a lazy component's rejection for good, so drop it and let the next mount retry the load.
+            lazyCharts.delete(getComponent);
+            throw error;
+        }
+    });
+    lazyCharts.set(getComponent, LazyChart);
+    return LazyChart;
+}
+
 function ChartUnavailable({description = 'common.webGLNotSupported'}: ChartUnavailableProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['MonitorSyncNo']);
+
+    // This state never loads, and Skia draws none of it, so an enclosing ChartReveal shows it at once
+    useReportChartLoading(false, false);
 
     return (
         <View style={styles.chartWebFallback}>
@@ -62,6 +97,15 @@ function ChartUnavailable({description = 'common.webGLNotSupported'}: ChartUnava
             <Text style={[styles.textSupporting, styles.textAlignCenter]}>{translate(description)}</Text>
         </View>
     );
+}
+
+/**
+ * Draws nothing, so an enclosing ChartReveal keeps its spinner up while Skia loads.
+ * Reports loading so the reveal also holds that spinner until Skia has drawn the chart that replaces this.
+ */
+function ChartSkiaLoading() {
+    useReportChartLoading(true);
+    return null;
 }
 
 function ChartFailedToLoad() {
@@ -86,9 +130,9 @@ const logSkiaLoadError = (error: Error, info: {componentStack?: string | null}) 
 };
 
 /**
- * Shared web wrapper around `WithSkiaWeb` for the chart entry points (Pie/Line/Bar and the Victory
+ * Shared web wrapper that loads CanvasKit and the chart's code for the chart entry points (Pie/Line/Bar and the Victory
  * renderer). When the environment can't provide a usable WebGL/Skia surface it shows an "unable to
- * display chart" empty state instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `isSkiaWebSupported`).
+ * display chart" empty state instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `getSkiaWebUnsupportedReason`).
  * If CanvasKit itself fails to load or link, the error boundary degrades to the same empty state.
  */
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
@@ -97,25 +141,29 @@ const logSkiaLoadError = (error: Error, info: {componentStack?: string | null}) 
 function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElement | null>(null);
+    const isInsideChartReveal = useIsInsideChartReveal();
 
-    // Probe once per mount (not per render) so re-rendering doesn't repeatedly create WebGL contexts,
-    // while a fresh chart still re-checks capability instead of trusting a stale session-wide result.
-    const [isSupported] = useState(() => isSkiaWebSupported());
+    // Probed on each mount, so a fresh chart re-checks capability instead of trusting a stale session-wide result.
+    const [unsupportedReason] = useState(() => getSkiaWebUnsupportedReason());
 
     // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
     // renderer reporting that and degrade to the empty state.
     const isSurfaceUnavailable = useIsSkiaSurfaceUnavailable(containerRef);
 
-    // If unsupported, the device can't give CanvasKit a usable WebGL surface.
-    if (!isSupported || isSurfaceUnavailable) {
-        return <ChartUnavailable />;
+    // Missing WebAssembly needs a different explanation from an unavailable drawing surface.
+    if (unsupportedReason || isSurfaceUnavailable) {
+        return <ChartUnavailable description={unsupportedReason} />;
     }
 
-    const fallback = (
+    const fallback = isInsideChartReveal ? (
+        <ChartSkiaLoading />
+    ) : (
         <View style={styles.chartWebFallback}>
             <ActivityIndicator size="large" />
         </View>
     );
+
+    const LazyChart = getLazyChart(getComponent);
 
     return (
         <View
@@ -126,13 +174,10 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
                 FallbackComponent={ChartFailedToLoad}
                 onError={logSkiaLoadError}
             >
-                {/* The glue mutates `opts` into the module object, so give each mount its own object rather than sharing one. */}
-                <WithSkiaWeb
-                    opts={{locateFile: locateCanvasKitFile}}
-                    getComponent={getComponent}
-                    componentProps={componentProps}
-                    fallback={fallback}
-                />
+                <Suspense fallback={fallback}>
+                    {/* eslint-disable-next-line react-hooks/static-components -- getLazyChart returns the same component for a loader on every render, so its state is never reset */}
+                    <LazyChart {...componentProps} />
+                </Suspense>
             </ErrorBoundary>
         </View>
     );

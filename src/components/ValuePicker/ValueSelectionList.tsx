@@ -10,7 +10,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import CONST from '@src/CONST';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {ValueSelectionListProps} from './types';
 
@@ -27,22 +27,22 @@ function ValueSelectionList({
     const {translate} = useLocalize();
     const initialSelectedValue = useInitialSelection(selectedItem?.value ? selectedItem.value : undefined, isVisible === undefined ? {resetOnFocus: true} : {isVisible});
 
-    const options = useMemo(() => {
-        const mappedOptions = items.map((item) => ({
-            value: item.value ?? '',
-            alternateText: item.description,
-            alternateTextComponent: item.alternateTextComponent,
-            text: item.label ?? '',
-            keyForList: item.value ?? '',
-            isDisabled: item.isDisabled,
-            rightElement: item.rightElement,
-            shouldHideSelectionButton: item.shouldHideSelectionButton,
-            titleStyles: item.titleStyles,
-        }));
-        const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : []);
-
-        return orderedOptions.map((item) => ({...item, isSelected: item.value === selectedItem?.value}));
-    }, [initialSelectedValue, items, selectedItem?.value]);
+    const mappedOptions = items.map((item) => ({
+        value: item.value ?? '',
+        alternateText: item.description,
+        alternateTextComponent: item.alternateTextComponent,
+        text: item.label ?? '',
+        keyForList: item.value ?? '',
+        isDisabled: item.isDisabled,
+        rightElement: item.rightElement,
+        shouldHideSelectionButton: item.shouldHideSelectionButton,
+        titleStyles: item.titleStyles,
+    }));
+    const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : []);
+    const options = orderedOptions.map((item) => ({
+        ...item,
+        isSelected: item.value === selectedItem?.value,
+    }));
 
     const [searchValue, setSearchValue, filteredOptions] = useSearchResults(options, (option, searchInput) => tokenizedSearch([option], searchInput, () => [option.text]).length > 0);
 

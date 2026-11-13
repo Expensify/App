@@ -32,6 +32,12 @@ import SubmitButtonShadow from './SubmitButtonShadow';
 
 type ReceiptWithTransactionID = Receipt & {transactionID: string};
 
+/** How many previews mount per render batch while scrolling. */
+const MAX_PREVIEWS_TO_RENDER_PER_BATCH = 2;
+
+/** How far beyond the visible strip previews stay mounted, in screen lengths (the list's default is 21). */
+const PREVIEWS_WINDOW_SIZE = 3;
+
 type ReceiptPreviewItemProps = {
     /** The draft receipt to preview, or undefined for a placeholder slot */
     item: ReceiptWithTransactionID | undefined;
@@ -160,6 +166,10 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
                     keyExtractor={(_, index) => index.toString()}
                     renderItem={renderItem}
                     getItemLayout={(data, index) => ({length: previewItemSize, offset: previewItemSize * index, index})}
+                    // Each preview decodes a photo, so mount only what fits on screen plus a little scroll margin, a few at a time
+                    initialNumToRender={Math.ceil(initialReceiptsAmount)}
+                    maxToRenderPerBatch={MAX_PREVIEWS_TO_RENDER_PER_BATCH}
+                    windowSize={PREVIEWS_WINDOW_SIZE}
                     style={isInLandscapeMode ? styles.ph2 : styles.pv2}
                     scrollEnabled={isScrollEnabled}
                     showsHorizontalScrollIndicator={false}

@@ -3,7 +3,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -12,7 +11,6 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
 
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -23,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type {SageIntacctConnectionsConfig, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): TranslationPaths | undefined {
     switch (displayType) {
@@ -48,34 +46,38 @@ const checkForUserDimensionWithError = (config?: SageIntacctConnectionsConfig) =
 const checkForUserDimensionWithPendingAction = (config?: SageIntacctConnectionsConfig) =>
     config?.mappings?.dimensions?.some((dimension) => !!config?.pendingFields?.[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimension.dimension}`]);
 
+const MAPPING_ROW_SENTRY_LABELS = {
+    [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_MAPPING_ROW.DEPARTMENTS,
+    [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_MAPPING_ROW.CLASSES,
+    [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_MAPPING_ROW.LOCATIONS,
+    [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_MAPPING_ROW.CUSTOMERS,
+    [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_MAPPING_ROW.PROJECTS,
+};
+
 function SageIntacctImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const sageIntacctConfig = policy?.connections?.intacct?.config;
     const sageIntacctData = policy?.connections?.intacct?.data;
 
-    const mappingItems = useMemo(
-        () =>
-            Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
-                const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
-                return {
-                    description: Str.recapitalize(translate('workspace.intacct.mappingTitle', mapping)),
-                    action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
-                    title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
-                    subscribedSettings: [mapping],
-                };
-            }),
-        [policyID, sageIntacctConfig?.mappings, translate],
-    );
+    const mappingItems = Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
+        const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
+        return {
+            description: Str.recapitalize(translate('workspace.intacct.mappingTitle', mapping)),
+            sentryLabel: MAPPING_ROW_SENTRY_LABELS[mapping],
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
+            title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
+            subscribedSettings: [mapping],
+        };
+    });
 
     const isExpenseType = sageIntacctConfig?.export.reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT;
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="SageIntacctImportPage"
             headerTitle="workspace.accounting.import"
             headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
@@ -90,6 +92,9 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 title={translate(isExpenseType ? 'workspace.intacct.expenseTypes' : 'workspace.accounting.accounts')}
                 subtitle={translate(isExpenseType ? 'workspace.intacct.expenseTypesDescription' : 'workspace.intacct.accountTypesDescription')}
                 switchAccessibilityLabel={translate(isExpenseType ? 'workspace.intacct.expenseTypesDescription' : 'workspace.intacct.accountTypesDescription')}
+                switchSentryLabel={
+                    isExpenseType ? CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.EXPENSE_TYPES_SWITCH : CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.ACCOUNTS_SWITCH
+                }
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive
@@ -99,6 +104,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('common.billable')}
                 switchAccessibilityLabel={translate('common.billable')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.BILLABLE_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={sageIntacctConfig?.mappings?.syncItems ?? false}
@@ -114,6 +120,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                     pendingAction={settingsPendingAction(section.subscribedSettings, sageIntacctConfig?.pendingFields)}
                 >
                     <MenuItemField
+                        sentryLabel={section.sentryLabel}
                         name={section.description}
                         onPress={section.action}
                         value={section.title}
@@ -128,6 +135,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
             {!!sageIntacctData?.taxSolutionIDs && sageIntacctData?.taxSolutionIDs?.length > 0 && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.TAX, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], sageIntacctConfig?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_TAX}
                         name={translate('common.tax')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX.getRoute(policyID))}
                         value={
@@ -143,6 +151,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
 
             <OfflineWithFeedback pendingAction={checkForUserDimensionWithPendingAction(sageIntacctConfig) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.USER_DIMENSIONS}
                     name={translate('workspace.intacct.userDefinedDimensions')}
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
                     value={

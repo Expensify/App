@@ -28,6 +28,9 @@ import type {
     TransactionMonthGroupListItemType,
     TransactionQuarterGroupListItemType,
     TransactionTagGroupListItemType,
+    TransactionApproverGroupListItemType,
+    TransactionViolationGroupListItemType,
+    TransactionPaidByGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -108,8 +111,17 @@ type SelectedTransactionInfo = {
     /** Whether the transaction was selected through its group header */
     isSelectedViaGroup?: boolean;
 
-    /** Whether every transaction in the group is selected. False when a `limit:` left some of the group unloaded. */
+    /** Whether every transaction in the group is selected. Only a fully loaded group earns it, and a partly loaded one can only keep it. */
     isEntireGroupSelected?: boolean;
+
+    /** The group-by count at the header check, lowered if that count falls. A rise past it means a new expense joined. */
+    claimedGroupCount?: number;
+
+    /** The group's count when the selection last covered all of it, so a rise past it means a new expense joined */
+    coveredGroupCount?: number;
+
+    /** Set on a row a refresh left off its group's loaded page and kept selected, whose amount and flags date from when it last loaded */
+    isKeptOffPage?: boolean;
 };
 
 /** Model of selected transactions */
@@ -165,13 +177,16 @@ type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type ExpenseReportSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE_REPORT>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
+type TripRoomSearchStatus = ValueOf<typeof CONST.SEARCH.TRIP_STATUS>;
 type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
-type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
+type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TripRoomSearchStatus | TaskSearchStatus;
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
 type SearchFooterCount = ValueOf<typeof CONST.SEARCH.FOOTER_COUNT>;
 type SearchFooterTotal = ValueOf<typeof CONST.SEARCH.FOOTER_TOTAL>;
 type SearchCompareMode = ValueOf<typeof CONST.SEARCH.COMPARE>;
+type SearchChartMetric = ValueOf<typeof CONST.SEARCH.CHART_METRIC>;
+type SearchChartCountDimension = ValueOf<typeof CONST.SEARCH.CHART_COUNT_DIMENSION>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
 type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -184,6 +199,7 @@ type SyntaxFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>
+    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TRIP>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>
@@ -194,7 +210,8 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>;
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER>;
 
 type SearchQueryContextValue = {
     currentSearchHash: number;
@@ -266,6 +283,8 @@ type SearchSelectionActionsValue = {
      * `shouldPreserveAllMatchingSelection` keeps that mode active for row toggles and records removed rows as exclusions.
      * `shouldClearAllMatchingSelectionWhenEmpty` exits that mode when no selected rows or additional results remain.
      * `reconciledExcludedTransactions` refreshes or prunes exclusions when the underlying search data changes.
+     * `deselectedWithoutEntry` names keys deselected while they had no entry of their own, such as a group excluded whole,
+     * which the previous/next diff cannot see leave.
      */
     applySelection: (
         updater: (previousSelectedTransactions: SelectedTransactions, previousSelection: PreviousSelectionSlices) => SelectedTransactions,
@@ -275,6 +294,7 @@ type SearchSelectionActionsValue = {
             shouldPreserveAllMatchingSelection?: boolean;
             shouldClearAllMatchingSelectionWhenEmpty?: boolean;
             reconciledExcludedTransactions?: SelectedTransactions;
+            deselectedWithoutEntry?: SelectedTransactions;
         },
     ) => void;
     /** Read on demand without subscribing, so a handler can anchor from the live selection without re-rendering every row */
@@ -288,7 +308,8 @@ type SearchSelectionActionsValue = {
         (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
         (clearIDs: true, unused?: undefined): void;
     };
-    removeTransaction: (transactionID: string | undefined) => void;
+    /** Takes an expense out of the selection after an action on it. A deleted expense leaves its group. One rejected or moved stays in it, which makes a group checked through its header a partial selection */
+    removeTransaction: (transactionID: string | undefined, options: {isDeleted: boolean}) => void;
     selectAllMatchingItems: (on: boolean) => void;
 };
 
@@ -378,7 +399,7 @@ type SearchAmountFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED;
-type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
+type SearchAmountValues = Partial<Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string>>;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
@@ -441,6 +462,7 @@ type SearchAutocompleteResult = {
 
 type SearchAutocompleteQueryRange = {
     key: SearchFilterKey;
+    negated?: boolean;
     length: number;
     start: number;
     value: string;
@@ -476,7 +498,10 @@ type GroupedItem =
     | TransactionMonthGroupListItemType
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
-    | TransactionQuarterGroupListItemType;
+    | TransactionQuarterGroupListItemType
+    | TransactionApproverGroupListItemType
+    | TransactionViolationGroupListItemType
+    | TransactionPaidByGroupListItemType;
 
 type SearchChartDataRow = {
     /** The point plotted on the chart */
@@ -557,5 +582,7 @@ export type {
     SearchCustomColumnIds,
     GroupedItem,
     SearchChartDataRow,
+    SearchChartMetric,
+    SearchChartCountDimension,
     SearchFilterCommonProps,
 };

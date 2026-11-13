@@ -10,8 +10,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type Props = {
@@ -19,6 +20,7 @@ type Props = {
     /** Friendly name of the plan the workspace was upgraded to (e.g. Collect or Control) */
     planName?: string;
     afterUpgradeAcknowledged: () => void;
+    confirmSentryLabel: SentryLabel;
     /** Whether is categorizing the expense */
     isCategorizing?: boolean;
     /** Whether is adding an unreported expense to a report */
@@ -29,47 +31,37 @@ type Props = {
     buttonText?: string;
 };
 
-function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade, buttonText}: Props) {
+function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, confirmSentryLabel, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade, buttonText}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const [subscriptionLink, setSubscriptionLink] = useState('');
 
-    const updateSubscriptionLink = useCallback(() => {
+    const updateSubscriptionLink = () => {
         const backTo = Navigation.getActiveRoute();
         setSubscriptionLink(`${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(backTo)}`);
-    }, [environmentURL]);
+    };
 
     useEffect(() => {
         Navigation.isNavigationReady().then(() => updateSubscriptionLink());
     }, [updateSubscriptionLink]);
 
-    const description = useMemo(() => {
-        if (isCategorizing || isReporting) {
-            return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.categorizeMessage')}</Text>;
-        }
-
-        if (isTravelUpgrade) {
-            return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.travelMessage')}</Text>;
-        }
-
-        if (isDistanceRateUpgrade) {
-            return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.distanceRateMessage')}</Text>;
-        }
-
-        return (
-            <View style={[styles.renderHTML, styles.w100]}>
+    let description;
+    if (isCategorizing || isReporting) {
+        description = <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.categorizeMessage')}</Text>;
+    } else if (isTravelUpgrade) {
+        description = <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.travelMessage')}</Text>;
+    } else if (isDistanceRateUpgrade) {
+        description = <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.distanceRateMessage')}</Text>;
+    } else {
+        description = (
+            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.w100]}>
                 <RenderHTML html={translate('workspace.upgrade.completed.successMessage', policyName, planName ?? translate('workspace.type.control'), subscriptionLink)} />
             </View>
         );
-    }, [isDistanceRateUpgrade, isCategorizing, isReporting, isTravelUpgrade, policyName, planName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
+    }
 
-    const heading = useMemo(() => {
-        if (isCategorizing || isReporting) {
-            return translate('workspace.upgrade.completed.createdWorkspace');
-        }
-        return translate('workspace.upgrade.completed.headline');
-    }, [isCategorizing, isReporting, translate]);
+    const heading = isCategorizing || isReporting ? translate('workspace.upgrade.completed.createdWorkspace') : translate('workspace.upgrade.completed.headline');
 
     return (
         <ConfirmationPage>
@@ -80,6 +72,7 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
             </ConfirmationPage.Content>
             <FixedFooter>
                 <ConfirmationPage.PrimaryButton
+                    sentryLabel={confirmSentryLabel}
                     text={buttonText ?? translate('workspace.upgrade.completed.gotIt')}
                     onPress={afterUpgradeAcknowledged}
                 />

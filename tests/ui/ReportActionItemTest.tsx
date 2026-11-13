@@ -20,6 +20,7 @@ import type * as UrlType from '@libs/Url';
 
 import PaymentContent from '@pages/inbox/report/actionContents/PaymentContent';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+import ReportActionItemContentCreated from '@pages/inbox/report/ReportActionItemContentCreated';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import ReportActionItemParentAction from '@pages/inbox/report/ReportActionItemParentAction';
 
@@ -31,7 +32,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, DecisionName, Report, ReportAction} from '@src/types/onyx';
+import type {BankAccountList, DecisionName, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 
@@ -147,7 +148,7 @@ describe('ReportActionItem', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
+    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false, report?: Report) {
         return render(
             <ComposeProviders
                 components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider, PlaybackContextProvider]}
@@ -157,7 +158,7 @@ describe('ReportActionItem', () => {
                         <ReportActionItem
                             reportsParentHierarchy={undefined}
                             chatReport={undefined}
-                            report={undefined}
+                            report={report}
                             transactionThreadReport={undefined}
                             parentReportAction={undefined}
                             action={action}
@@ -171,6 +172,235 @@ describe('ReportActionItem', () => {
             </ComposeProviders>,
         );
     }
+
+    describe('Bill Pay creation and submission history', () => {
+        const processorAccountID = 456;
+
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, 0, 'Concierge'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 0, 'Concierge'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, 0, 'Concierge'],
+        ] as const)('credits %s to processor %s as %s', async (actionName, processor, actorName) => {
+            // Given bill intake submits as the receiver, while the creation action records who created the bill.
+            const senderAccountID = 321;
+            const bill: Report = {
+                reportID: '9876',
+                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+                managerID: 789,
+                billSenderAccountID: senderAccountID,
+            };
+            const createdAction = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, processor ? {processor} : {}),
+                reportActionID: '12344',
+                reportID: bill.reportID,
+                created: '2025-07-12 08:03:17.653',
+            };
+            const isCreation = actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+            const action = isCreation ? createdAction : {...createReportAction(actionName, {harvesting: true}), reportID: bill.reportID};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`, bill);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${bill.reportID}`, {[createdAction.reportActionID]: createdAction, [action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Receiver'},
+                    [senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'},
+                    [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones', login: 'tom@example.com'},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: 'concierge@expensify.com'},
+                });
+            });
+
+            // When NewDot renders the event, including submissions saved with a harvest token.
+            renderItemWithAction(action, false, bill);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then each event shows only its own message and timestamp, with the creator instead of the token's owner.
+            expect(screen.getByText(actorName)).toBeOnTheScreen();
+            expect(screen.getByText(isCreation ? 'created this bill on behalf of Sender' : 'sent this bill to Receiver')).toBeOnTheScreen();
+            expect(screen.queryByText(isCreation ? 'sent this bill to Receiver' : 'created this bill on behalf of Sender')).not.toBeOnTheScreen();
+            expect(screen.getByText(DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, action.created, CONST.DEFAULT_TIME_ZONE.selected))).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('iou.automaticallySubmitted'))).not.toBeOnTheScreen();
+        });
+
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, 0, 'Concierge'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 0, 'Concierge'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, 0, 'Concierge'],
+        ] as const)('credits invoice action %s to processor %s as %s', async (actionName, processor, actorName) => {
+            // Given the vendor submits the invoice to the receiver, while the creation action records who created the bill.
+            const senderAccountID = 321;
+            const invoice: Report = {
+                reportID: '9877',
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: senderAccountID,
+                managerID: ACTOR_ACCOUNT_ID,
+            };
+            const createdAction = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, processor ? {processor} : {}),
+                reportActionID: '12344',
+                reportID: invoice.reportID,
+                actorAccountID: senderAccountID,
+                created: '2025-07-12 08:03:17.653',
+            };
+            const isCreation = actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+            const action = isCreation ? createdAction : {...createReportAction(actionName, {}), reportID: invoice.reportID, actorAccountID: senderAccountID};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9878});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[createdAction.reportActionID]: createdAction, [action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Receiver'},
+                    [senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'},
+                    [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones', login: 'tom@example.com'},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: 'concierge@expensify.com'},
+                });
+            });
+
+            // When NewDot renders the invoice event.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then each event shows only its own message and timestamp, with the bill's creator instead of the vendor.
+            expect(screen.getByText(actorName)).toBeOnTheScreen();
+            expect(screen.getByText(isCreation ? 'created this invoice on behalf of Sender' : 'sent this invoice to Receiver')).toBeOnTheScreen();
+            expect(screen.queryByText(isCreation ? 'sent this invoice to Receiver' : 'created this invoice on behalf of Sender')).not.toBeOnTheScreen();
+            expect(screen.getByText(DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, action.created, CONST.DEFAULT_TIME_ZONE.selected))).toBeOnTheScreen();
+        });
+
+        it.each([
+            {betaEnabled: true, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, transactionCount: 1, showsHeader: false},
+            {betaEnabled: false, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, transactionCount: 1, showsHeader: true},
+            {betaEnabled: true, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE, transactionCount: 1, showsHeader: true},
+            {betaEnabled: true, view: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, transactionCount: 2, showsHeader: false},
+        ])('respects the single-expense invoice header preference: $view, beta: $betaEnabled, expenses: $transactionCount', async ({betaEnabled, view, transactionCount, showsHeader}) => {
+            // Given a linked invoice whose report surface uses the saved, beta-gated preference.
+            const senderAccountID = 321;
+            const invoice: Report = {reportID: '9884', type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: senderAccountID, managerID: ACTOR_ACCOUNT_ID, transactionCount};
+            const action = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {processor: processorAccountID}), reportID: invoice.reportID, actorAccountID: senderAccountID};
+            const transactions = Object.fromEntries(
+                Array.from({length: transactionCount}, (_, index) => {
+                    const transaction = createMock<Transaction>({transactionID: `invoice-expense-${index}`, reportID: invoice.reportID, amount: 100, currency: CONST.CURRENCY.USD});
+                    return [transaction.transactionID, transaction];
+                }),
+            );
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, betaEnabled ? [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW] : []);
+                await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, view);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9885});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[action.reportActionID]: action});
+                await Onyx.set(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {[invoice.reportID]: {transactions, violations: {}}});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'},
+                    [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones'},
+                });
+            });
+
+            // When the creation history row renders beneath the report surface.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then table layouts omit the extra expense header, but creation history remains visible in every layout.
+            expect(screen.getByText('created this invoice on behalf of Sender')).toBeOnTheScreen();
+            expect(screen.UNSAFE_queryByType(ReportActionItemContentCreated) !== null).toBe(showsHeader);
+        });
+
+        it.each([
+            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.ACTIONS.TYPE.CREATED, 'created this bill on behalf of sender1@sender.com'],
+            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 'sent this bill to receiver@receiver.com'],
+            [CONST.REPORT.TYPE.INVOICE, CONST.REPORT.ACTIONS.TYPE.CREATED, 'created this invoice on behalf of sender1@sender.com'],
+            [CONST.REPORT.TYPE.INVOICE, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 'sent this invoice to receiver@receiver.com'],
+        ] as const)('uses the submission emails when personal details omit names for %s %s', async (type, actionName, message) => {
+            // Given the API omits the other company's names and logins but includes both emails with the submission.
+            const senderAccountID = 321;
+            const isInvoice = type === CONST.REPORT.TYPE.INVOICE;
+            const report: Report = {
+                reportID: '9880',
+                type,
+                ownerAccountID: isInvoice ? senderAccountID : ACTOR_ACCOUNT_ID,
+                managerID: ACTOR_ACCOUNT_ID,
+                billSenderAccountID: isInvoice ? undefined : senderAccountID,
+            };
+            const createdAction = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {}), reportActionID: '12344'};
+            const submittedAction = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {to: 'receiver@receiver.com'}),
+                submitterEmail: 'sender1@sender.com',
+            };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, isInvoice ? {billID: 9881} : {});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [submittedAction.reportActionID]: submittedAction,
+                });
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID},
+                    [senderAccountID]: {accountID: senderAccountID},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: CONST.EMAIL.CONCIERGE},
+                });
+            });
+
+            // When the receiver opens the bill or the sender opens its invoice.
+            renderItemWithAction(actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? createdAction : submittedAction, false, report);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the history names the participant from the submission rather than displaying Hidden.
+            expect(screen.getByText('Concierge')).toBeOnTheScreen();
+            expect(screen.getByText(message)).toBeOnTheScreen();
+            expect(screen.queryByText(/on behalf of Hidden|sent this (bill|invoice) to Hidden/)).not.toBeOnTheScreen();
+        });
+
+        it('keeps the invoice submission receiver when the current manager changes', async () => {
+            // Given the invoice now has a different manager from the account that received its submission.
+            const currentManagerAccountID = 789;
+            const invoice: Report = {reportID: '9882', type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: 321, managerID: currentManagerAccountID};
+            const action = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {submittedTo: ACTOR_ACCOUNT_ID, to: 'receiver@receiver.com'}), actorAccountID: 321};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9883});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Original receiver'},
+                    [currentManagerAccountID]: {accountID: currentManagerAccountID, displayName: 'Current manager'},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: CONST.EMAIL.CONCIERGE},
+                });
+            });
+
+            // When the sender opens the invoice's submission history.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the history names the account recorded on that submission, not the current manager.
+            expect(screen.getByText('sent this invoice to Original receiver')).toBeOnTheScreen();
+            expect(screen.queryByText('sent this invoice to Current manager')).not.toBeOnTheScreen();
+        });
+
+        it('keeps the usual wording on an invoice that is not linked to a bill', async () => {
+            // Given an invoice that was sent without bill intake, so it has no linked bill.
+            const senderAccountID = 321;
+            const invoice: Report = {reportID: '9879', type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: senderAccountID, managerID: ACTOR_ACCOUNT_ID};
+            const action = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {}), reportID: invoice.reportID, actorAccountID: senderAccountID};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'}});
+            });
+
+            // When NewDot renders the invoice submission.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the history keeps the vendor as the actor and doesn't use the Bill Pay wording.
+            expect(screen.getByText('Sender')).toBeOnTheScreen();
+            expect(screen.queryByText(/created this invoice on behalf of/)).not.toBeOnTheScreen();
+            expect(screen.queryByText(/sent this invoice to/)).not.toBeOnTheScreen();
+        });
+    });
 
     describe('Edited file attachments', () => {
         const attachmentURL = 'https://www.expensify.com/chat-attachments/12345/w_abc.csv';
@@ -986,7 +1216,7 @@ describe('ReportActionItem', () => {
 
             expect(openLink).toHaveBeenCalledTimes(1);
             // Without areRulesEnabled on policy, the link points to the help URL
-            expect(openLink).toHaveBeenCalledWith(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL, expect.any(String));
+            expect(openLink).toHaveBeenCalledWith(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL, expect.any(String), false, undefined);
         });
     });
 
@@ -1593,6 +1823,48 @@ describe('ReportActionItem', () => {
 
             expect(screen.getByText(/paid with Expensify/i)).toBeOnTheScreen();
         });
+
+        it('IOU PAY through Wise links to the payment details', async () => {
+            // Given a bank account payment that Wise has created the transfer for, so the backend added its final amounts
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                creditedAmount: 7743,
+                creditedCurrency: CONST.CURRENCY.GBP,
+                fee: 129,
+                rate: 0.7743,
+                debitedAmount: 10129,
+            });
+
+            // When the paid message is rendered in its report
+            renderItemWithAction(action, false, createMock<Report>({reportID: '1'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then View details follows it, since the payment details have every amount to show
+            expect(screen.getByText(translateLocal('iou.viewDetails'))).toBeOnTheScreen();
+        });
+
+        it('IOU PAY through Corpay has no link to the payment details', async () => {
+            // Given a cross-border payment with only the employee's amount and currency, as Corpay records it
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                creditedAmount: 7743,
+                creditedCurrency: CONST.CURRENCY.GBP,
+            });
+
+            // When the paid message is rendered in its report
+            renderItemWithAction(action, false, createMock<Report>({reportID: '1'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the message shows without View details, since there are no fees or rate to show behind it
+            expect(screen.getByText(/paid £77.43/i)).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('iou.viewDetails'))).toBeNull();
+        });
     });
 
     describe('Reimbursement actions', () => {
@@ -1944,6 +2216,23 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/Chase Visa connection has been broken for 30 days/)).toBeOnTheScreen();
         });
 
+        it('COMPANY_CARD_CONNECTION_BROKEN_30_DAYS action shows the bank name when the feed has no custom name', async () => {
+            // Given a reminder for a feed that had no custom name, so the saved feed name is the bank itself
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
+                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                policyID: 'pol123',
+            });
+
+            // When the reminder is shown
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it names the feed the way the company cards page does, not by the bank
+            expect(screen.getByText(/The Chase connection has been broken for 30 days/)).toBeOnTheScreen();
+            expect(screen.queryByText(/oauth\.chase\.com/)).not.toBeOnTheScreen();
+        });
+
         it('PLAID_BALANCE_FAILURE action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE, {
                 maskedAccountNumber: '***1234',
@@ -2042,6 +2331,20 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/5678/)).toBeOnTheScreen();
+        });
+
+        it('AUTO_PAY_FEE_DISCLOSURE action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE, {
+                policyID: 'pol123',
+                accountID: ACTOR_ACCOUNT_ID,
+                bankName: 'Chase',
+                lastFour: '5678',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/enabled by test@test.com on the Chase account ending in 5678/)).toBeOnTheScreen();
+            expect(screen.getAllByRole(CONST.ROLE.LINK, {name: 'auto-pay settings'}).length).toBeGreaterThan(0);
         });
 
         it('RENAMED action', async () => {
@@ -2474,6 +2777,7 @@ describe('ReportActionItem', () => {
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <PaymentContent
                         action={action}
+                        reportID={undefined}
                         expectedDate={undefined}
                         policyID={undefined}
                     />
@@ -3349,7 +3653,7 @@ describe('ReportActionItem', () => {
             fireEvent.press(bankLoginLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('/personal-card/100'), expect.anything(), expect.anything(), undefined);
         });
 
         it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection 30 days', async () => {
@@ -3373,7 +3677,7 @@ describe('ReportActionItem', () => {
             fireEvent.press(bankLoginLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('/personal-card/100'), expect.anything(), expect.anything(), undefined);
         });
 
         it('isCardBrokenConnectionAction renders no tappable link when card connection is not broken', async () => {

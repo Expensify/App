@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
@@ -25,9 +24,11 @@ import type {ComponentRef} from 'react';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {HomeInsightConfig} from './useHomeInsightConfigs';
+
 type InsightTitleDropdownProps = {
     /** The insight options to list in the dropdown, in display order */
-    configs: SearchTypeMenuItem[];
+    configs: HomeInsightConfig[];
 
     selectedKey: SearchKey;
 
@@ -70,6 +71,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
         icon: icons[config.icon],
         isSelected: config.key === selectedKey,
         onSelected: () => onSelect(config.key),
+        sentryLabel: config.sentryLabel,
     }));
 
     return (
@@ -79,7 +81,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
                 onPress={openMenu}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}
-                sentryLabel="InsightTitleDropdown"
+                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.INSIGHT_TITLE_DROPDOWN}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
             >
                 <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{title}</Text>

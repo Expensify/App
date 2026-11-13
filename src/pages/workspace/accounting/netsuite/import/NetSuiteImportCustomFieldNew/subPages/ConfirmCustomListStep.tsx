@@ -17,6 +17,12 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import React from 'react';
 import {View} from 'react-native';
 
+const ROW_SENTRY_LABELS = {
+    [INPUT_IDS.LIST_NAME]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONFIRM_CUSTOM_LIST_ROW.LIST_NAME,
+    [INPUT_IDS.TRANSACTION_FIELD_ID]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONFIRM_CUSTOM_LIST_ROW.TRANSACTION_FIELD_ID,
+    [INPUT_IDS.MAPPING]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONFIRM_CUSTOM_LIST_ROW.MAPPING,
+};
+
 function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, onNext}: CustomFieldSubPageWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -38,6 +44,7 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('workspace.common.letsDoubleCheck')}</Text>
             {fieldNames.map((fieldName, index) => (
                 <MenuItemField
+                    sentryLabel={ROW_SENTRY_LABELS[fieldName]}
                     key={fieldName}
                     name={translate(`workspace.netsuite.import.importCustomFields.customLists.fields.${fieldName}` as TranslationPaths)}
                     value={
@@ -52,6 +59,7 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
             ))}
             <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONFIRM_CUSTOM_LIST_SUBMIT}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}

@@ -1,5 +1,7 @@
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
+import {useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -7,7 +9,9 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftMerchantRule} from '@libs/actions/User';
@@ -20,15 +24,34 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import variables from '@styles/variables';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 import type {ExpenseDefaultRuleType} from '@src/types/form/MerchantRuleForm';
 
 import React from 'react';
 import {View} from 'react-native';
 
 type ExpenseDefaultTypePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_EXPENSE_DEFAULT_TYPE>;
+
+function ExpenseDefaultLockIcon() {
+    const theme = useTheme();
+    const {isHovered, isPressed} = useMenuItemInteraction();
+    const icons = useMemoizedLazyExpensifyIcons(['Lock']);
+
+    return (
+        <Icon
+            src={icons.Lock}
+            fill={isHovered || isPressed ? theme.iconHovered : theme.icon}
+            width={variables.iconSizeNormal}
+            height={variables.iconSizeNormal}
+        />
+    );
+}
 
 /**
  * Picks what an expense default matches on before the editor opens, so the editor can drop the condition and the
@@ -39,8 +62,8 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const illustrations = useMemoizedLazyIllustrations(['FoodTruck', 'FolderOpen']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
 
     const {showConfirmModal} = useConfirmModal();
 
@@ -72,6 +95,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
     const options = [
         {
             key: 'merchant',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.EXPENSE_DEFAULT_TYPE.MERCHANT,
             icon: illustrations.FoodTruck,
             title: translate('workspace.rules.expenseDefaultType.merchant'),
             description: translate('workspace.rules.expenseDefaultType.merchantDescription'),
@@ -80,6 +104,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
         },
         {
             key: 'category',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.EXPENSE_DEFAULT_TYPE.CATEGORY,
             icon: illustrations.FolderOpen,
             title: translate('workspace.rules.expenseDefaultType.category'),
             description: translate('workspace.rules.expenseDefaultType.categoryDescription'),
@@ -108,19 +133,29 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.expenseDefaultType.subtitle')}</Text>
                     <View style={styles.mh5}>
                         {options.map((option) => (
-                            <MenuItem
+                            <MenuItem.Root
+                                sentryLabel={option.sentryLabel}
                                 key={option.key}
-                                icon={option.icon}
-                                title={option.title}
-                                description={option.description}
-                                shouldShowRightIcon
-                                iconRight={option.isLocked ? expensifyIcons.Lock : undefined}
-                                onPress={option.onPress}
-                                displayInDefaultIconColor
-                                iconWidth={variables.iconSizeExtraLarge}
-                                iconHeight={variables.iconSizeExtraLarge}
-                                wrapperStyle={styles.rulesNewMenuItem}
-                            />
+                                onPress={callIfAuthenticated(option.onPress, session)}
+                                style={styles.rulesNewMenuItem}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <View style={styles.popoverMenuIcon}>
+                                            <Icon
+                                                src={option.icon}
+                                                width={variables.iconSizeExtraLarge}
+                                                height={variables.iconSizeExtraLarge}
+                                            />
+                                        </View>
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{option.title}</MenuItem.Title>
+                                        <MenuItem.Description>{option.description}</MenuItem.Description>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>{option.isLocked ? <ExpenseDefaultLockIcon /> : <MenuItem.Chevron />}</MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         ))}
                     </View>
                 </ScrollView>

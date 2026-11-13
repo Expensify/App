@@ -1,24 +1,17 @@
 import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
-import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getReportName} from '@libs/ReportNameUtils';
-import {
-    generateReportID,
-    getNewestOutstandingReportForUser,
-    getOutstandingReportsForUser,
-    isMoneyRequestReport,
-    isReportOutstanding,
-    shouldCreateNewMoneyRequestReport,
-    sortOutstandingReportsBySelected,
-} from '@libs/ReportUtils';
+import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -32,9 +25,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import React from 'react';
 
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldDropdown from './ExpenseFieldDropdown';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
-import {reportFieldTransactionStateSelector} from './selectors';
+import ReportFieldDropdown from './ReportFieldDropdown';
+import {reportFieldTransactionStateSelector, shouldReportFieldBeEditable} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type ReportFieldProps = {
@@ -54,7 +48,8 @@ type ReportFieldProps = {
 function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate, localeCompare} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
+    const [ownerPersonalDetail] = usePersonalDetail(ownerAccountID);
 
     const policyID = selectedParticipants?.at(0)?.policyID;
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
@@ -66,7 +61,6 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const transactionReportID = transactionState?.reportID;
     const participantReportID = transactionState?.participantReportID;
     const isFromGlobalCreate = transactionState?.isFromGlobalCreate ?? false;
-    const isScanRequest = transactionState?.isScanRequest ?? false;
 
     // Per-key report subscriptions instead of full COLLECTION.REPORT
     const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`);
@@ -83,27 +77,14 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const transactionReportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${transactionReportID}`];
     const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, rules, transactionReportNameValuePair, false)) || isUnreported;
 
-    const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
-
     const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {}, false).sort(
         (report1, report2) => sortOutstandingReportsBySelected(report1, report2, undefined, localeCompare),
     );
 
-    // Resolve the default report the same way the save path (MoneyRequestBuilder) does, so the field never shows a report
-    // the expense won't be added to. For example, a submitted report awaiting approval can still accept expenses when picked,
-    // but it is never used as the default, so the field shows "New report" instead.
-    const newestOutstandingReport = iouReport ? undefined : getNewestOutstandingReportForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {});
-    const defaultReport = iouReport ?? newestOutstandingReport;
-    const shouldCreateNewReport = shouldCreateNewMoneyRequestReport(defaultReport, mainReport, isScanRequest, isBetaEnabled(CONST.BETAS.ASAP_SUBMIT), rules, action);
-    const defaultReportID = shouldCreateNewReport ? undefined : defaultReport?.reportID;
-
-    const outstandingReportID = isPolicyExpenseChat ? defaultReportID : reportID;
-    const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
-
-    // The field shows "New report" when saving would create a report, so any outstanding report is an alternative the user can pick.
-    const isNewReport = !reportIDToUse;
+    const outstandingReportID = isPolicyExpenseChat ? (iouReportIDFromMain ?? availableOutstandingReports.at(0)?.reportID) : reportID;
 
     const [selectedReportID, selectedReport] = (() => {
+        const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
         if (!reportIDToUse) {
             // Even if we have no report to use we still need a report id for proper navigation
             return [generateReportID(), undefined] as const;
@@ -116,8 +97,6 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
             reportToUse = mainReport;
         } else if (reportIDToUse === iouReportIDFromMain) {
             reportToUse = iouReport;
-        } else if (reportIDToUse === newestOutstandingReport?.reportID) {
-            reportToUse = newestOutstandingReport;
         } else {
             reportToUse = availableOutstandingReports.find((r) => r?.reportID === reportIDToUse);
         }
@@ -134,10 +113,13 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         return name;
     })();
 
-    const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false);
+    const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false, ownerPersonalDetail?.login);
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = (isUnreported || isNewReport ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
+    const shouldReportBeEditable = shouldReportFieldBeEditable(outstandingReports, selectedReportID, isUnreported) && !isMoneyRequestReport(reportID);
+    // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
+    // the destination step when the workspace changes), so those keep the full page.
+    const shouldOpenInDropdown = !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;
 
     const openReportPage = () => {
         if (!transactionID || !selectedReportID) {
@@ -148,12 +130,22 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldRow
+            <ExpenseFieldDropdown
                 name={translate('common.report')}
                 // The field row renders plain text, so an HTML report name (e.g. a room with a markup name) is
                 // flattened first. Plain names pass through unchanged, with their entities decoded.
                 value={Parser.htmlToText(reportName)}
                 onPress={openReportPage}
+                shouldOpenInDropdown={shouldOpenInDropdown}
+                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                renderDropdown={(dropdownProps) =>
+                    !!transactionID && (
+                        <ReportFieldDropdown
+                            {...dropdownProps}
+                            transactionID={transactionID}
+                        />
+                    )
+                }
                 // A report the user cannot change reads as a disabled field, the same as every other locked field
                 // on this form: the row itself owns that rule.
                 isInteractive={shouldReportBeEditable}

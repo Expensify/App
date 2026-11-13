@@ -22,7 +22,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ValueOf} from 'type-fest';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -48,24 +48,18 @@ function DynamicNetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProp
     const pendingAction =
         settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ?? settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.accountingMethods.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.accountingMethods.description')}</Text>
+        </View>
     );
 
-    const selectExpenseReportApprovalLevel = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.accountingMethod) {
-                updateNetSuiteAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
-            }
-            Navigation.goBack(backPath);
-        },
-        [backPath, config?.accountingMethod, policyID],
-    );
+    const selectExpenseReportApprovalLevel = (row: MenuListItem) => {
+        if (row.value !== config?.accountingMethod) {
+            updateNetSuiteAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
+        }
+        Navigation.goBack(backPath);
+    };
 
     return (
         <SelectionScreen

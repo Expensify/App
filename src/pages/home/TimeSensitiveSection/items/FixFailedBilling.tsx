@@ -15,6 +15,8 @@ function FixFailedBilling() {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.FIX_FAILED_BILLING}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.FIX_FAILED_BILLING}
             icon={icons.CreditCard}
             title={translate('homePage.timeSensitiveSection.fixFailedBilling.title')}
             subtitle={translate('homePage.timeSensitiveSection.fixFailedBilling.subtitle')}

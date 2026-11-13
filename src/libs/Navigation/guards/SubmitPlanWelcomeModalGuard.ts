@@ -37,6 +37,10 @@ let hasLoadedApp = false;
 
 let hasRedirectedToSubmitPlanModal = false;
 
+// Whether the POLICY subscription last saw a workspace where the user can create reports. Undefined until it is
+// computed for an otherwise-eligible user.
+let hadReportablePolicy: boolean | undefined;
+
 // An `intent=submit` deeplink delivers the same outcome as this modal without asking, so the modal must not open on
 // top of it. Recorded outside Onyx because the deeplink can only mark the modal shown from a React effect, which runs
 // after the microtask that schedules the proactive redirect below.
@@ -66,6 +70,7 @@ function getSubmitPlanWelcomeModalRoute(basePath?: string): Route {
 function resetSessionFlag() {
     hasRedirectedToSubmitPlanModal = false;
     hasPendingSubmitDeeplink = false;
+    hadReportablePolicy = undefined;
 }
 
 /**
@@ -150,7 +155,7 @@ Onyx.connectWithoutView({
 // the proactive check. They intentionally do NOT drive navigation: by the time the session/app-load signal
 // fires, every value below has already landed in the same OpenApp batch. Driving navigation from these
 // (especially the high-churn POLICY collection) would recompute eligibility on every unrelated mutation for
-// the whole session.
+// the whole session. The one exception is POLICY losing the user's last reportable workspace, handled below.
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
     callback: (value) => {
@@ -169,6 +174,20 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (value) => {
         policies = value;
+
+        // Deleting the user's last workspace (for example, while offline) neither navigates nor reloads the app, so
+        // nothing else re-checks the modal. To keep this high-churn collection cheap, only users who are otherwise
+        // eligible recompute workspace eligibility, and only losing the last reportable workspace triggers a check.
+        if (introSelected?.choice !== CONST.ONBOARDING_CHOICES.EMPLOYER || !hasCompletedGuidedSetupFlow || hasShownSubmitMigrationModal || hasRedirectedToSubmitPlanModal) {
+            hadReportablePolicy = undefined;
+            return;
+        }
+
+        const hasReportablePolicy = getGroupPoliciesWhereReportCanBeCreated(policies, session?.email).length > 0;
+        if (!hasReportablePolicy && hadReportablePolicy !== false) {
+            scheduleSubmitPlanWelcomeModalEvaluation();
+        }
+        hadReportablePolicy = hasReportablePolicy;
     },
 });
 

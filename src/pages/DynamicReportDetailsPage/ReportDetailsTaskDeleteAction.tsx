@@ -77,6 +77,7 @@ function ReportDetailsTaskDeleteActionContent({report, parentReport, parentRepor
 
     return (
         <MenuItemAction
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.DELETE_TASK}
             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
             icon={expensifyIcons.Trashcan}
             title={translate('common.delete')}

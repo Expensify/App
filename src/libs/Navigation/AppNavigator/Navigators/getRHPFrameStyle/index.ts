@@ -1,13 +1,10 @@
-import variables from '@styles/variables';
-
-// The frame width is added into react-navigation's card styles, which only understand react-native Animated.
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
+import {RHP_FLOATING_CARD_BORDERS_WIDTH} from '@libs/Navigation/helpers/rhpFloatingCardInset';
+import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import type GetRHPFrameStyle from './types';
 
 /** Narrow keeps the full-bleed frame, the stacked report flow uses an invisible one (each card draws its own modal), everything else is a single floating card. */
-const getRHPFrameStyle: GetRHPFrameStyle = ({styles, animatedWidth, shouldUseNarrowLayout, shouldUseCenteredFrame}) => {
+const getRHPFrameStyle: GetRHPFrameStyle = ({styles, animatedWidth, singleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame}) => {
     if (shouldUseNarrowLayout) {
         return [styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, {width: '100%'}];
     }
@@ -16,10 +13,8 @@ const getRHPFrameStyle: GetRHPFrameStyle = ({styles, animatedWidth, shouldUseNar
         return [styles.pAbsolute, styles.RHPCenteredFrame, {width: animatedWidth}];
     }
 
-    // Border-box card, so the border is added back on top of the width or the wide RHP's fixed-width panes get clipped.
-    // A plain number stays plain, because an animated node only resolves inside an Animated component.
-    const floatingCardWidth =
-        typeof animatedWidth === 'number' ? animatedWidth + 2 * variables.rhpFloatingCardBorderWidth : Animated.add(animatedWidth, 2 * variables.rhpFloatingCardBorderWidth);
+    // Border-box card, so the border is added back on top of the width or the content gets clipped.
+    const floatingCardWidth = getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_BORDERS_WIDTH);
 
     // translateZ0 makes the frame a containing block that clips the fixed RHP screen to the radius.
     return [styles.pAbsolute, styles.overflowHidden, styles.translateZ0, styles.RHPFloatingCard, {width: floatingCardWidth}];

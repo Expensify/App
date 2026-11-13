@@ -7,7 +7,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -16,7 +15,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
 
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -29,7 +27,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -37,36 +35,32 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
 
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const xeroConfig = policy?.connections?.xero?.config;
     const {pendingFields, errorFields, sync} = xeroConfig ?? {};
     const {bankAccounts, expenseAccounts} = policy?.connections?.xero?.data ?? {};
     const {invoiceCollectionsAccountID, reimbursementAccountID} = sync ?? {};
     const accountingMethod = xeroConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
 
-    const getSelectedAccountName = useMemo(
-        () => (accountID: string | undefined) => {
-            if (!accountID) {
-                return;
-            }
+    const getSelectedAccountName = (accountID: string | undefined) => {
+        if (!accountID) {
+            return;
+        }
 
-            const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountID);
-            return selectedAccount?.name;
-        },
-        [bankAccounts],
-    );
+        const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountID);
+        return selectedAccount?.name;
+    };
 
     const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID);
     const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID);
     const selectedFxExpenseAccountName = (expenseAccounts ?? []).find((account) => account.id === xeroConfig?.fxExpenseAccount)?.name;
 
-    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
+    const currentXeroOrganizationName = getCurrentXeroOrganizationName(policy ?? undefined);
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!sync?.syncReimbursedReports);
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="XeroAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={currentXeroOrganizationName}
@@ -77,7 +71,10 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.AUTO_SYNC, CONST.XERO_CONFIG.ACCOUNTING_METHOD], xeroConfig?.pendingFields)}>
-                <MenuItemSectionRoot onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path))}>
+                <MenuItemSectionRoot
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path))}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.AUTO_SYNC}
+                >
                     <MenuItemField.Row
                         name={translate('workspace.accounting.autoSync')}
                         value={xeroConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
@@ -95,6 +92,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.reimbursedReports')}
                 subtitle={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
                 switchAccessibilityLabel={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.SYNC_REIMBURSED_REPORTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={styles.mv3}
                 isActive={!!sync?.syncReimbursedReports}
@@ -109,7 +107,10 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <>
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}>
-                        <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID))}>
+                        <MenuItemSectionRoot
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID))}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.BILL_PAYMENT_ACCOUNT}
+                        >
                             <MenuItemField.Row
                                 name={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                                 value={selectedBillPaymentAccountName ? String(selectedBillPaymentAccountName) : undefined}
@@ -123,7 +124,10 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     </OfflineWithFeedback>
                     {canConfigureCurrencyConversionFees && (
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}>
-                            <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR.getRoute(policyID))}>
+                            <MenuItemSectionRoot
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR.getRoute(policyID))}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.FX_EXPENSE_ACCOUNT}
+                            >
                                 <MenuItemField.Row
                                     name={translate('workspace.xero.advancedConfig.xeroFxExpenseAccount')}
                                     value={selectedFxExpenseAccountName}
@@ -137,7 +141,10 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         </OfflineWithFeedback>
                     )}
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], pendingFields)}>
-                        <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID))}>
+                        <MenuItemSectionRoot
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID))}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.INVOICE_COLLECTION_ACCOUNT}
+                        >
                             <MenuItemField.Row
                                 name={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
                                 value={selectedBankAccountName ? String(selectedBankAccountName) : undefined}

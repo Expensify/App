@@ -16,7 +16,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
-import React, {memo} from 'react';
+import React from 'react';
 
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
@@ -193,4 +193,4 @@ function ReportActionItemFragment({
     }
 }
 
-export default memo(ReportActionItemFragment);
+export default ReportActionItemFragment;
