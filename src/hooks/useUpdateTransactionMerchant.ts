@@ -5,6 +5,9 @@
 import {updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
 
 import CONST from '@src/CONST';
+import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import type {MoneyRequestUpdateParams} from './useMoneyRequestUpdateParams';
 
@@ -13,6 +16,9 @@ import useNetwork from './useNetwork';
 type UseUpdateTransactionMerchantParams = {
     /** ID of the saved expense being written to */
     transactionID: string | undefined;
+
+    /** The saved expense being written to, whose current values the write builds on */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** What the write needs to recompute the expense's violations, read once by the caller */
     updateParams: MoneyRequestUpdateParams;
@@ -23,14 +29,14 @@ type UseUpdateTransactionMerchantResult = {
     updateMerchant: (merchant: string) => void;
 };
 
-function useUpdateTransactionMerchant({transactionID, updateParams}: UseUpdateTransactionMerchantParams): UseUpdateTransactionMerchantResult {
+function useUpdateTransactionMerchant({transactionID, transaction, updateParams}: UseUpdateTransactionMerchantParams): UseUpdateTransactionMerchantResult {
     const {isOffline} = useNetwork();
 
     const updateMerchant = (merchant: string) => {
         if (!transactionID) {
             return;
         }
-        updateMoneyRequestMerchant({...updateParams, transactionID, value: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, isOffline});
+        updateMoneyRequestMerchant({...updateParams, transactionID, transaction, value: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, isOffline});
     };
 
     return {updateMerchant};

@@ -295,7 +295,7 @@ describe('ExpenseFieldRow', () => {
 
             // When the form renders it
             let contentCell = screen.getByText(FIELD_NAME).parent;
-            while (contentCell && contentCell.type !== 'View') {
+            while (contentCell && String(contentCell.type) !== 'View') {
                 contentCell = contentCell.parent;
             }
 

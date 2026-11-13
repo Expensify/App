@@ -58,6 +58,7 @@ function useUpdateTransactionDate({transaction, updateParams: allUpdateParams, d
         updateMoneyRequestDate({
             ...updateParams,
             transactionID,
+            transaction,
             transactions: duplicates.duplicateTransactions,
             transactionViolations: duplicates.duplicateTransactionViolations,
             value: created,

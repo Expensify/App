@@ -41,7 +41,7 @@ type MerchantInputFieldProps = {
 function MerchantInputField({transaction, updateParams, errorText = '', children}: MerchantInputFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {updateMerchant} = useUpdateTransactionMerchant({transactionID: transaction?.transactionID, updateParams});
+    const {updateMerchant} = useUpdateTransactionMerchant({transactionID: transaction?.transactionID, transaction, updateParams});
 
     const merchant = getTransactionDetails(transaction)?.merchant;
     const savedMerchant = isInvalidMerchantValue(merchant) ? '' : (merchant ?? '');
