@@ -22,9 +22,9 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {callIfAuthenticated} from '@userActions/Session';
-
 import variables from '@styles/variables';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -153,13 +153,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
                                         <MenuItem.Title>{option.title}</MenuItem.Title>
                                         <MenuItem.Description>{option.description}</MenuItem.Description>
                                     </MenuItem.Content>
-                                    <MenuItem.Trailing>
-                                        {option.isLocked ? (
-                                            <ExpenseDefaultLockIcon />
-                                        ) : (
-                                            <MenuItem.Chevron />
-                                        )}
-                                    </MenuItem.Trailing>
+                                    <MenuItem.Trailing>{option.isLocked ? <ExpenseDefaultLockIcon /> : <MenuItem.Chevron />}</MenuItem.Trailing>
                                 </MenuItem.Row>
                             </MenuItem.Root>
                         ))}

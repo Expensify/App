@@ -12,9 +12,9 @@ import {clearIssueNewCardFlow, setIssueNewCardStepAndData} from '@libs/actions/C
 import {getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {callIfAuthenticated} from '@userActions/Session';
-
 import variables from '@styles/variables';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

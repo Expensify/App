@@ -33,11 +33,36 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const mockShowConfirmModal = jest.fn();
 
 jest.mock('@components/Icon', () => jest.fn(() => null));
-jest.mock('@components/InteractiveStepWrapper', () => ({children}: PropsWithChildren) => children);
-jest.mock('@components/ScreenWrapper', () => ({children}: PropsWithChildren) => children);
-jest.mock('@components/ScrollView', () => ({children}: PropsWithChildren) => children);
-jest.mock('@components/BlockingViews/FullPageOfflineBlockingView', () => ({children}: PropsWithChildren) => children);
-jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({children}: PropsWithChildren) => children);
+jest.mock(
+    '@components/InteractiveStepWrapper',
+    () =>
+        ({children}: PropsWithChildren) =>
+            children,
+);
+jest.mock(
+    '@components/ScreenWrapper',
+    () =>
+        ({children}: PropsWithChildren) =>
+            children,
+);
+jest.mock(
+    '@components/ScrollView',
+    () =>
+        ({children}: PropsWithChildren) =>
+            children,
+);
+jest.mock(
+    '@components/BlockingViews/FullPageOfflineBlockingView',
+    () =>
+        ({children}: PropsWithChildren) =>
+            children,
+);
+jest.mock(
+    '@pages/workspace/AccessOrNotFoundWrapper',
+    () =>
+        ({children}: PropsWithChildren) =>
+            children,
+);
 jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => () => null);
 jest.mock('@hooks/usePolicy', () => () => undefined);
 jest.mock('@hooks/useConfirmModal', () => () => ({showConfirmModal: mockShowConfirmModal}));
@@ -103,7 +128,11 @@ describe('Illustrated composable menu rows', () => {
         // Given the card-type step before a card type is selected.
         render(
             <LocaleContextProvider>
-                <CardTypeStep policy={undefined} stepNames={[]} startStepIndex={0} />
+                <CardTypeStep
+                    policy={undefined}
+                    stepNames={[]}
+                    startStepIndex={0}
+                />
             </LocaleContextProvider>,
         );
 
