@@ -702,6 +702,14 @@ const CONST = {
             FAILED: 'failed',
         },
         DELETE_EXPENSES: 'deleteExpenses',
+
+        /** Why a bulk bank payment left a report unpaid, as the backend groups the skipped reports */
+        SKIP_REASON: {
+            NOTHING_TO_PAY: 'nothingToPay',
+            NEEDS_GLOBAL_REIMBURSEMENTS: 'needsGlobalReimbursements',
+            DEPOSIT_ACCOUNT_NEEDS_GLOBAL_REIMBURSEMENTS: 'depositAccountNeedsGlobalReimbursements',
+            NEEDS_QUOTE: 'needsQuote',
+        },
     },
 
     SECURE_DOWNLOAD_TYPE: {

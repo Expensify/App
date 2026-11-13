@@ -13110,6 +13110,18 @@ const translations = {
             one: "1 report wasn't paid through the bank account because it's non-reimbursable or has a total amount of zero or less. You can manually mark it as paid if you'd prefer.",
             other: `${count} reports weren't paid through the bank account because they are either non-reimbursable or have a total amount of zero or less. You can manually mark them as paid if you'd prefer.`,
         }),
+        skippedNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: "1 report wasn't paid because the bank account needs global reimbursements set up first.",
+            other: `${count} reports weren't paid because the bank account needs global reimbursements set up first.`,
+        }),
+        skippedDepositAccountNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: "1 report wasn't paid because the member's bank account isn't set up for global reimbursements yet.",
+            other: `${count} reports weren't paid because the members' bank accounts aren't set up for global reimbursements yet.`,
+        }),
+        skippedNeedsQuoteBody: ({count}: {count: number}) => ({
+            one: "1 report wasn't paid because it's paid out in another currency. Pay it from the report to confirm the exchange rate.",
+            other: `${count} reports weren't paid because they're paid out in another currency. Pay each one from the report to confirm the exchange rate.`,
+        }),
         notHeldBody: ({count}: {count: number}) => ({
             one: "Expenses on 1 report couldn't be held.",
             other: `Expenses on ${count} reports couldn't be held.`,
