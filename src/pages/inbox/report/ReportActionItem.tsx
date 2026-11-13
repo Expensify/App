@@ -22,6 +22,7 @@ import useOriginalReportID from '@hooks/useOriginalReportID';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,9 +41,7 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import Permissions from '@libs/Permissions';
 import {
-    extractLinksFromMessageHtml,
     getAgentPromptUpdatedMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
@@ -79,7 +78,6 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
-import {expandURLPreview} from '@userActions/Report';
 import {clearErrorWithOriginalTransactionError} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
@@ -100,7 +98,6 @@ import {useNavigation} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {displayNameOrDefaultSelector} from '@selectors/PersonalDetails';
 import {agentZeroProcessingAgentIDsSelector, isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
-import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {useContext, useEffect, useRef} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -109,7 +106,6 @@ import ActionContentRouter from './actionContents/ActionContentRouter';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
-import LinkPreviewer from './LinkPreviewer';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import {useReportActionItemState} from './ReportActionIndexContext';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
@@ -220,6 +216,7 @@ function ReportActionItem({
         selector: isLinkedToBillSelector,
     });
     const isBillPayCreatedAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && isBillPayHistoryAction(action, report, isInvoiceLinkedToBill);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(isBillPayCreatedAction ? reportID : undefined);
     const IOUOriginalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(action) : undefined;
     const transactionID = isMoneyRequestAction(action) && IOUOriginalMessage?.IOUTransactionID;
     const isACHPaymentAction = IOUOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && IOUOriginalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
@@ -267,7 +264,6 @@ function ReportActionItem({
     const popoverAnchorRef = useRef<ComponentRef<typeof View>>(null);
 
     useExpandedSystemMessageFocus(action.reportActionID, popoverAnchorRef, onExpandedSystemMessageReady);
-    const downloadedPreviews = useRef<{reportActionID: string; urls: string[]}>({reportActionID: action.reportActionID, urls: []});
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useReportActionItemState(!!isReportActionLinked);
 
@@ -387,23 +383,6 @@ function ReportActionItem({
 
         hideEmojiPicker(true);
     }, [isDeletedParentAction, action.reportActionID]);
-
-    useEffect(() => {
-        if (!Permissions.canUseLinkPreviews()) {
-            return;
-        }
-
-        const urls = extractLinksFromMessageHtml(action);
-        if (
-            (downloadedPreviews.current.reportActionID === action.reportActionID && deepEqual(downloadedPreviews.current.urls, urls)) ||
-            action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-        ) {
-            return;
-        }
-
-        downloadedPreviews.current = {reportActionID: action.reportActionID, urls};
-        expandURLPreview(reportID, action.reportActionID);
-    }, [action, reportID]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
@@ -532,7 +511,8 @@ function ReportActionItem({
 
     // The table view renders its own report header. Other views still need the header above the creation history row.
     const shouldShowBillPayReportHeader =
-        isBillPayCreatedAction && !((isMoneyRequestReport(report) || isInvoiceReport(report)) && shouldDisplayReportTableView(report, transactionsOnReport));
+        isBillPayCreatedAction &&
+        !((isMoneyRequestReport(report) || isInvoiceReport(report)) && shouldDisplayReportTableView(report, transactionsOnReport, shouldUseTableViewForSingleExpense));
     const shouldShowCreatedAction =
         shouldShowBillPayReportHeader || (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isHarvestCreatedExpenseReport && !!parentReportActionForTransactionThread);
 
@@ -713,11 +693,6 @@ function ReportActionItem({
                                                                 isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
                                                                 isThreadReportParentAction={isThreadReportParentAction}
                                                             />
-                                                            {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
-                                                                <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>
-                                                                    <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
-                                                                </View>
-                                                            )}
                                                             {!isOnSearch && !isMessageDeleted(action) && action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && (
                                                                 <ReportActionItemEmojiReactions
                                                                     reportAction={action}

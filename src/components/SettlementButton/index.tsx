@@ -268,6 +268,7 @@ function SettlementButton({
         icon: icons.CheckCircle,
         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         shouldUpdateSelectedIndex: false,
+        sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PAY_ELSEWHERE,
     };
 
     const personalBankAccountList = getLatestPersonalBankAccount();
@@ -296,6 +297,7 @@ function SettlementButton({
                     text: translate('iou.settleWallet', ''),
                     value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                     icon: icons.Wallet,
+                    sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PERSONAL,
                 });
             } else if (canUsePersonalBankAccount) {
                 buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
@@ -326,6 +328,7 @@ function SettlementButton({
                         value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         description: account.description,
                         shouldIgnoreCompactStyle: true,
+                        sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.BUSINESS_BANK_ACCOUNT,
                         onSelected: () =>
                             runPaymentAction(CONST.IOU.PAYMENT_TYPE.VBBA, () =>
                                 onPress({
@@ -349,6 +352,7 @@ function SettlementButton({
                     icon: icons.Building,
                     value: p.id,
                     shouldUpdateSelectedIndex: false,
+                    sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PAY_WITH_WORKSPACE,
                 });
             }
         }
@@ -401,6 +405,7 @@ function SettlementButton({
                         description: formattedPaymentMethod?.description ?? '',
                         icon: formattedPaymentMethod?.icon,
                         shouldUpdateSelectedIndex: true,
+                        sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.INVOICE_PAYMENT_MENU.BANK_ACCOUNT,
                         onSelected: () =>
                             runPaymentAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, () =>
                                 onPress({
@@ -452,6 +457,7 @@ function SettlementButton({
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
                     icon: icons.Bank,
+                    sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.INVOICE_PAYMENT_MENU.ADD_BANK_ACCOUNT,
                     onSelected: () => {
                         if (payAsBusiness) {
                             navigateToBusinessBankAccountRoute();
@@ -470,6 +476,7 @@ function SettlementButton({
                         icon: icons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         shouldUpdateSelectedIndex: true,
+                        sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.INVOICE_PAYMENT_MENU.PAY_ELSEWHERE,
                         onSelected: () => runPaymentAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness})),
                     },
                 ];
@@ -488,6 +495,7 @@ function SettlementButton({
                     icon: icons.User,
                     value: invoiceDefaultValue,
                     backButtonText: translate('iou.individual'),
+                    sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.INVOICE_INDIVIDUAL,
                     subMenuItems: getInvoicesOptions(false),
                 });
                 buttonOptions.push({
@@ -495,6 +503,7 @@ function SettlementButton({
                     icon: icons.Building,
                     value: invoiceDefaultValue,
                     backButtonText: translate('iou.business'),
+                    sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.INVOICE_BUSINESS,
                     subMenuItems: getInvoicesOptions(true),
                 });
             } else {

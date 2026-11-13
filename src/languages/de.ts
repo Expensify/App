@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Abbrechen',
         dismiss: 'Schließen',
         resizeColumn: ({columnName}: {columnName: string}) => `Spalte ${columnName} in der Größe ändern`,
-        columnWidth: ({width}: {width: number}) => `${width} Pixel`,
+        resizePanel: 'Bereich in der Größe ändern',
+        widthInPixels: ({width}: {width: number}) => `${width} Pixel`,
         proceed: 'Weiter',
         unshare: 'Freigabe aufheben',
         yes: 'Ja',
@@ -570,6 +571,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Keine Ergebnisse. Bitte passen Sie Ihre Filter oder Suchanfrage an',
         unableToDisplayChart: 'Diagram kann nicht angezeigt werden',
         webGLNotSupported: 'Ihr Browser unterstützt WebGL nicht. Bitte aktivieren Sie es oder wechseln Sie den Browser.',
+        webAssemblyNotSupported: 'WebAssembly ist in Ihrem Browser nicht verfügbar. Versuchen Sie einen anderen Browser, um Diagramme anzuzeigen.',
         chartFailedToLoad: 'Das Diagramm konnte nicht geladen werden. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.',
         apiKey: 'API-Schlüssel',
         exportsTo: 'Exportiert nach',
@@ -7987,6 +7989,13 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 onWaitlist: 'Sie stehen auf der Warteliste',
                 waitlistDescription: 'Concierge sendet Ihnen eine Nachricht, sobald diese Integration bereit ist, und erklärt Ihnen, wie Sie die Verbindung herstellen.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Demnächst verfügbar',
+                joinWaitlist: 'Warteliste beitreten',
+                onWaitlist: 'Sie stehen auf der Warteliste',
+                onTheList: 'Sie stehen auf der Liste!',
+                waitlistDescription: 'Concierge sendet Ihnen eine Nachricht, sobald diese Integration bereit ist, und erklärt Ihnen, wie Sie die Verbindung herstellen.',
+            },
             setup: 'Verbinden',
             connectToSandbox: 'Mit Sandbox verbinden',
             lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
@@ -8400,6 +8409,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             statusExpired: 'Abgelaufen',
             statusInactive: 'Inaktiv',
             unit: 'Einheit',
+            ukFuelRateTaxError: 'Bitte füge einen Steuersatz von 20 % hinzu, um die Steuer für die britischen Advisory Fuel Rates zu erfassen.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Bitte füge in ${integrationName} einen Steuersatz von 20 % hinzu, um die Steuer für die britischen Advisory Fuel Rates zu erfassen.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Steuern müssen im Workspace aktiviert sein, um diese Funktion zu verwenden. Gehe zu <a href="#">Weitere Funktionen</a>, um das zu ändern.</muted-text>',
             deleteDistanceRate: 'Entfernungsrate löschen',
@@ -11007,7 +11019,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             completed: 'Abgeschlossen',
             amount: {
                 lessThan: (amount?: string) => `Weniger als ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Kleiner oder gleich ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Größer als ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Größer oder gleich ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Zwischen ${greaterThan} und ${lessThan}`;
@@ -11268,6 +11282,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             category: 'Kategorie',
             tag: 'Tag',
         },
+        switchToTableView: 'Zur Tabellenansicht wechseln',
+        switchToExpenseView: 'Zur Ausgabenansicht wechseln',
     },
     report: {
         newReport: {

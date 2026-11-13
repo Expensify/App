@@ -4,11 +4,11 @@
  * properties so React doesn't render mid-drag, and the layout is saved to Onyx once the column settles.
  */
 import getDraggedSize from '@components/ResizeHandle/getDraggedSize';
+import useKeyboardResize from '@components/ResizeHandle/useKeyboardResize';
+import type {KeyboardResize} from '@components/ResizeHandle/useKeyboardResize';
 import usePointerDrag from '@components/ResizeHandle/usePointerDrag';
 import {SCROLL_EXTENT_FLOOR_VARIABLE, TABLE_COLUMN_SCROLLER_SELECTOR} from '@components/Table/columnResize/columnWidthExpressions';
-import getKeyboardResizeAction from '@components/Table/columnResize/getKeyboardResizeAction';
 
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
@@ -54,14 +54,6 @@ type Drag = {
     hasMovedPointer: boolean;
 };
 
-/** Arrow-key width painted on a column but not stored yet. */
-type KeyboardResize = {
-    columnKey: string;
-
-    /** The column's width before the first arrow press. */
-    startWidth: number;
-};
-
 function useColumnResize({
     columnResizingID,
     resizableColumnKeys = [],
@@ -74,12 +66,8 @@ function useColumnResize({
     columnGap,
 }: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const dragRef = useRef<Drag | null>(null);
-
-    // Stored on key release, so a held arrow doesn't store on every repeat, each store's render clearing the painted width
-    // and pulling the edge back mid-hold.
-    const keyboardResizeRef = useRef<KeyboardResize | null>(null);
+    const keyboardResizeRef = useRef<KeyboardResize<string> | null>(null);
 
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef, keyboardResizeRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
@@ -167,88 +155,24 @@ function useColumnResize({
         settleColumn(columnKey, resetWidth, false);
     };
 
-    const stepColumnWidth = (columnKey: string, step: number, handle: HTMLDivElement) => {
-        const width = readColumnWidth(columnKey);
+    const {getKeyboardHandleProps} = useKeyboardResize<string>({
+        keyboardResizeRef,
+        isDragging: () => !!dragRef.current,
+        readSize: readColumnWidth,
+        getBounds: (columnKey) => ({min: getMinWidth(columnKey)}),
+        paintSize: (columnKey, width) => writeColumnWidths(getResizedColumnWidths(columnKey, width)),
+        settleSize: ({target, startSize}) => settlePaintedWidth(target, startSize),
+        onActivate: toggleColumnFit,
+        onShowFocus: revealIndicator,
+        onBlur: () => {
+            // A drag that took focus elsewhere hides its own line when it ends.
+            if (dragRef.current) {
+                return;
+            }
 
-        if (width === undefined) {
-            return;
-        }
-
-        const steppedWidth = getDraggedSize(width, step, {min: getMinWidth(columnKey)});
-
-        // A column already past the bound would otherwise jump to it, against the arrow pressed.
-        if (Math.sign(steppedWidth - width) !== Math.sign(step)) {
-            return;
-        }
-
-        keyboardResizeRef.current ??= {columnKey, startWidth: width};
-        writeColumnWidths(getResizedColumnWidths(columnKey, steppedWidth));
-
-        // Nothing renders until the key is released, so screen readers would otherwise announce the old width on each press.
-        handle.setAttribute('aria-valuenow', String(steppedWidth));
-        handle.setAttribute('aria-valuetext', translate('common.columnWidth', {width: steppedWidth}));
-    };
-
-    /** Stores the width the arrow keys painted. Shared by key release and blur. */
-    const commitKeyboardResize = () => {
-        const keyboardResize = keyboardResizeRef.current;
-
-        if (!keyboardResize) {
-            return;
-        }
-
-        keyboardResizeRef.current = null;
-        settlePaintedWidth(keyboardResize.columnKey, keyboardResize.startWidth);
-    };
-
-    const handleKeyDown = (columnKey: string, event: React.KeyboardEvent<HTMLDivElement>) => {
-        const action = getKeyboardResizeAction(event);
-
-        // A drag owns the column's width until it ends.
-        if (!action || dragRef.current) {
-            return;
-        }
-
-        // Otherwise the arrows also scroll the table sideways, Space scrolls the page, and Enter reaches global shortcuts.
-        event.preventDefault();
-        event.stopPropagation();
-
-        // A pointer focus shows no line, so the first key press brings it up.
-        revealIndicator(event.currentTarget);
-
-        if (action.type === 'step') {
-            stepColumnWidth(columnKey, action.step, event.currentTarget);
-            return;
-        }
-
-        // Holding the key would otherwise flip between fitted and reset on every repeat.
-        if (event.repeat) {
-            return;
-        }
-
-        commitKeyboardResize();
-        toggleColumnFit(columnKey);
-    };
-
-    const handleFocus = (event: React.FocusEvent<HTMLDivElement>) => {
-        // Pointer presses focus the edge too, and they show the line only once a drag starts.
-        if (!event.currentTarget.matches(':focus-visible')) {
-            return;
-        }
-
-        revealIndicator(event.currentTarget);
-    };
-
-    const handleBlur = () => {
-        commitKeyboardResize();
-
-        // A drag that took focus elsewhere hides its own line when it ends.
-        if (dragRef.current) {
-            return;
-        }
-
-        hideIndicator();
-    };
+            hideIndicator();
+        },
+    });
 
     const pointerDrag = usePointerDrag<Drag>({
         dragRef,
@@ -293,11 +217,6 @@ function useColumnResize({
     const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
         const handle = event.currentTarget;
 
-        // The drag cancels pointerdown, which would otherwise keep the press from focusing the edge for the arrow keys. Focused
-        // before the drag starts, so the edge losing focus hides its line. A script focus inherits the last input's modality, so
-        // after any key press it would otherwise match :focus-visible and show the focus ring and line on a plain click.
-        handle.focus({preventScroll: true, focusVisible: false});
-
         pointerDrag.startDrag(event, () => ({columnKey, handle, startClientX: event.clientX, startWidth: readColumnWidth(columnKey) ?? 0, hasMovedPointer: false}));
     };
 
@@ -315,27 +234,12 @@ function useColumnResize({
         const width = readColumnWidth(columnKey) ?? 0;
 
         return {
-            role: CONST.ROLE.SEPARATOR,
-            tabIndex: 0,
-            // The DOM names these attributes, so they can't follow the naming convention.
-            /* eslint-disable @typescript-eslint/naming-convention */
-            'aria-orientation': 'vertical',
-            'aria-valuenow': width,
-            // Widened to take in a width already past the bound, which the arrow keys leave alone.
-            'aria-valuemin': Math.min(getMinWidth(columnKey), width),
             // Columns have no widest width, and a focusable separator's maximum otherwise defaults to 100.
-            'aria-valuemax': Number.MAX_SAFE_INTEGER,
-            // Screen readers otherwise announce the width as a percentage of that maximum, which rounds to 0%.
-            'aria-valuetext': translate('common.columnWidth', {width}),
-            /* eslint-enable @typescript-eslint/naming-convention */
+            ...getKeyboardHandleProps(columnKey, {size: width, min: getMinWidth(columnKey), max: Number.MAX_SAFE_INTEGER}),
             style: {...getHandleStyle(columnGap), ...styles.cursorColResize},
             ref: trackHeadingHover,
             onPointerDown: (event) => handlePointerDown(columnKey, event),
             ...pointerDrag.handlers,
-            onKeyDown: (event) => handleKeyDown(columnKey, event),
-            onKeyUp: commitKeyboardResize,
-            onFocus: handleFocus,
-            onBlur: handleBlur,
         };
     };
 

@@ -19,7 +19,6 @@ import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
 
 import addUtilsToWindow from './addUtilsToWindow';
-import registerAppductTools from './appductTools';
 import platformSetup from './platformSetup';
 import telemetry from './telemetry';
 
@@ -159,8 +158,6 @@ export default function () {
 
     // Perform any other platform-specific setup
     platformSetup();
-
-    registerAppductTools();
 
     addUtilsToWindow();
 }

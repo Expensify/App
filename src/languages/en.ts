@@ -102,14 +102,17 @@ const translations = {
         unableToDisplayChart: 'Unable to display chart',
         // @context Shown below "Unable to display chart". "WebGL" is a graphics technology name; keep it untranslated.
         webGLNotSupported: "Your browser doesn't support WebGL. Please enable it or switch browsers.",
+        webAssemblyNotSupported: 'WebAssembly is unavailable in your browser. Try another browser to view charts.',
         // @context Shown below "Unable to display chart" when the chart renderer failed to load, e.g. after an app update while the page stayed open.
         chartFailedToLoad: 'The chart could not be loaded. Please refresh the page and try again.',
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
         dismiss: 'Dismiss',
         // @context Accessible name of the draggable edge between two table columns. "columnName" is the heading of the column to the left of the edge.
         resizeColumn: ({columnName}: {columnName: string}) => `Resize ${columnName} column`,
-        // @context Spoken by screen readers for the width of a table column while its edge is resized.
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        // @context Accessible name of the draggable edge of a side panel, such as the right-hand panel.
+        resizePanel: 'Resize panel',
+        // @context Spoken by screen readers for the width of a table column or panel while its edge is resized.
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Proceed',
         unshare: 'Unshare',
@@ -8584,6 +8587,13 @@ const translations = {
                 onWaitlist: 'You’re on the waitlist',
                 waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Coming soon',
+                joinWaitlist: 'Join waitlist',
+                onWaitlist: 'You’re on the waitlist',
+                onTheList: 'You’re on the list!',
+                waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
+            },
             setup: 'Connect',
             connectToSandbox: 'Connect to sandbox',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
@@ -9163,6 +9173,9 @@ const translations = {
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
+            ukFuelRateTaxError: 'Please add a 20% tax rate to track tax on the UK Advisory Fuel Rates.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Please add a 20% tax rate in ${integrationName} to track tax on the UK Advisory Fuel Rates.`,
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
@@ -11329,7 +11342,9 @@ const translations = {
             completed: 'Completed',
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Less than or equal to ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Greater than or equal to ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Between ${greaterThan} and ${lessThan}`;
@@ -11574,6 +11589,8 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
+        switchToTableView: 'Switch to table view',
+        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {
