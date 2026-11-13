@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -33,6 +33,7 @@ jest.mock('@pages/Insights/ai/InsightsAICardSkeleton', () => {
 });
 
 const SKELETON_TEST_ID = 'InsightsAICardSkeleton';
+const mockAskConcierge = jest.fn();
 
 const INSIGHTS_SCOPE: InsightsScope = {
     searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
@@ -65,12 +66,12 @@ const TREND: AIInsight = {
     explainPrompt: 'Why has Advertising spend gone down 3 months in a row?',
 };
 
-async function renderRow(insights: AIInsight[] | undefined, hasFailedToLoad = false) {
+async function renderRow(insights: AIInsight[] | undefined, hasFailedToLoad = false, insightsScope = INSIGHTS_SCOPE) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <InsightsAICardRow
                 insights={insights}
-                insightsScope={INSIGHTS_SCOPE}
+                insightsScope={insightsScope}
                 hasFailedToLoad={hasFailedToLoad}
             />
         </ComposeProviders>,
@@ -82,8 +83,14 @@ describe('InsightsAICardRow', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
     beforeEach(async () => {
+        mockAskConcierge.mockClear();
         jest.mocked(useNetwork).mockReturnValue({isOffline: false});
-        jest.mocked(useAskConcierge).mockReturnValue({askConcierge: jest.fn(), askConciergeWithAttachment: jest.fn(), shouldShowAskConcierge: true, conciergeTargetReportID: undefined});
+        jest.mocked(useAskConcierge).mockReturnValue({
+            askConcierge: mockAskConcierge,
+            askConciergeWithAttachment: jest.fn(),
+            shouldShowAskConcierge: true,
+            conciergeTargetReportID: undefined,
+        });
         await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
         await waitForBatchedUpdatesWithAct();
     });
@@ -157,5 +164,37 @@ describe('InsightsAICardRow', () => {
         // Then each chip reads its direction, since the arrow and color are only visual
         expect(screen.getByLabelText(/Up 400%/)).toBeOnTheScreen();
         expect(screen.getByLabelText(/Down .*30,318/)).toBeOnTheScreen();
+    });
+
+    it('explains matching child tags using each card’s parent and level', async () => {
+        // Given the same child tag under two parents and a dashboard set to another level
+        const scope = {...INSIGHTS_SCOPE, tagLevel: 1};
+        const cards = ['US', 'EU'].map((parentTagPath) => ({...SPIKE, id: parentTagPath, title: `Marketing (${parentTagPath})`, tagLevel: 2, parentTagPath}));
+        await renderRow(cards, false, scope);
+
+        // When each card is explained
+        const buttons = screen.getAllByText('Explain');
+        fireEvent.press(buttons[0]);
+        fireEvent.press(buttons[1]);
+
+        // Then the selected card overrides only its request, without changing dashboard scope
+        expect(mockAskConcierge).toHaveBeenNthCalledWith(1, SPIKE.explainPrompt, {insightsScope: {...scope, tagLevel: 2, tagParent: 'US'}});
+        expect(mockAskConcierge).toHaveBeenNthCalledWith(2, SPIKE.explainPrompt, {insightsScope: {...scope, tagLevel: 2, tagParent: 'EU'}});
+        expect(scope).toStrictEqual({...INSIGHTS_SCOPE, tagLevel: 1});
+    });
+
+    it.each(['', 'US\\:East:New York\\\\Office'])('preserves encoded parent %j without changing legacy card scope', async (parentTagPath) => {
+        // Given tag metadata that is empty for independent tags or contains separator escapes
+        const scope = {...INSIGHTS_SCOPE, tagLevel: 1};
+        await renderRow([{...SPIKE, id: 'tag', tagLevel: 3, parentTagPath}, TREND], false, scope);
+
+        // When the tag card and a legacy card are explained
+        const buttons = screen.getAllByText('Explain');
+        fireEvent.press(buttons[0]);
+        fireEvent.press(buttons[1]);
+
+        // Then parent bytes survive and cards without metadata retain their original scope
+        expect(mockAskConcierge).toHaveBeenNthCalledWith(1, SPIKE.explainPrompt, {insightsScope: {...scope, tagLevel: 3, tagParent: parentTagPath}});
+        expect(mockAskConcierge).toHaveBeenNthCalledWith(2, TREND.explainPrompt, {insightsScope: scope});
     });
 });
