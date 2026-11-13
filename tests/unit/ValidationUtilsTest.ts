@@ -19,7 +19,7 @@ import {
     isValidEmailWithTLD,
     isValidExpirationDate,
     isValidInputLength,
-    isValidLegalName,
+    isValidDisplayName,
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
@@ -473,15 +473,34 @@ describe('ValidationUtils', () => {
         });
     });
 
-    describe('ValidateLegalName', () => {
-        test('Valid legal name', () => {
-            expect(isValidLegalName('test name')).toBe(true);
-            expect(isValidLegalName(`X Æ A test`)).toBe(true);
+    describe('isValidDisplayName', () => {
+        test.each(['test name', 'X Æ A test', 'a hyphenated-name', "O'Connor", 'άλφα', '李明', 'X Æ A-12'])('accepts names without commas or semicolons: %s', (name) => {
+            // Given a name containing characters supported by legal-name forms
+            // When checking the shared name-character rule
+            const isValid = isValidDisplayName(name);
+
+            // Then punctuation and non-Latin scripts do not block the name
+            expect(isValid).toBe(true);
         });
 
-        test('Invalid legal name', () => {
-            expect(isValidLegalName(`a hyphenated-name`)).toBe(false);
-            expect(isValidLegalName('άλφα')).toBe(false);
+        test.each(['Smith, Jones', 'Smith; Jones'])('rejects names containing a comma or semicolon: %s', (name) => {
+            // Given a name containing a prohibited separator
+            // When checking the shared name-character rule
+            const isValid = isValidDisplayName(name);
+
+            // Then the form can show the comma-or-semicolon error
+            expect(isValid).toBe(false);
+        });
+
+        test.each(['', '   '])('leaves empty-name rejection to required-field validation: %s', (name) => {
+            // Given an empty or whitespace-only name
+            // When applying character and required-field validation separately
+            const hasValidCharacters = isValidDisplayName(name);
+            const isRequiredValuePresent = isRequiredFulfilled(name);
+
+            // Then the required-field rule still rejects the name
+            expect(hasValidCharacters).toBe(true);
+            expect(isRequiredValuePresent).toBe(false);
         });
     });
 
