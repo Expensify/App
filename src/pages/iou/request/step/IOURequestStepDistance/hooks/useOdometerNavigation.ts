@@ -63,7 +63,7 @@ type UseOdometerNavigationParams = {
     currentUserAccountID: number;
 
     /** Current user's personal details — passed through to the navigation util. */
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 
     /** Current user's localCurrencyCode — passed through to the navigation util for draft-workspace creation. */
     currentUserLocalCurrency: string | undefined;
