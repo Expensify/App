@@ -422,7 +422,7 @@ function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCo
  * (ordered by the snapshot's start date) when that rate is an unmodified government rate, and is enabled otherwise.
  *
  * A failed request restores the policy's current auto-update flag and country, which is what the server still has.
- * Tax toggles pass shouldUpdateSettings: false to copy rates without changing auto-update settings or the distance unit.
+ * Tax toggles pass shouldUpdateSettings: false to preserve auto-update settings while correcting the distance unit to match the server.
  */
 function buildOnyxDataForGovernmentRateAutoUpdate(
     policy: Policy,
@@ -524,7 +524,7 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
             optimisticRates[customUnitRateID] = {
                 customUnitRateID,
                 name: governmentMileageRate.name,
-                rate: shouldUpdateSettings ? governmentMileageRate.rate : getGovernmentRateAmountForUnit(governmentMileageRate.rate, governmentMileageRate.sourceRateID, currentUnit),
+                rate: governmentMileageRate.rate,
                 currency: governmentMileageRate.currency,
                 enabled,
                 startDate: governmentMileageRate.startDate,
@@ -547,7 +547,7 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
     }
 
     const expectedUnit = countryCode ? getExpectedUnitForCountry(countryCode) : getExpectedUnitForCurrency(outputCurrency);
-    const shouldCorrectUnit = shouldUpdateSettings && shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
+    const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
 
     // The failure data restores the state the server still has, so the previous values decide what to write back
     const failureAutoUpdateValue = policy.shouldAutoUpdateGovernmentDistanceRates ? true : null;

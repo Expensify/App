@@ -6455,10 +6455,6 @@ describe('actions/Policy', () => {
                 expect(policy?.pendingFields?.autoUpdateGovernmentRateCountry).toEqual(initialPolicy.pendingFields?.autoUpdateGovernmentRateCountry);
                 expect(policy?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toEqual(initialPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates);
                 expect(policy?.errorFields?.shouldAutoUpdateGovernmentDistanceRates).toEqual(initialPolicy.errorFields?.shouldAutoUpdateGovernmentDistanceRates);
-                if (initialPolicy.customUnits?.[customUnitID]) {
-                    expect(policy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(initialPolicy.customUnits[customUnitID]?.attributes?.unit);
-                }
-                expect(policy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBe(initialPolicy.customUnits?.[customUnitID]?.pendingFields?.attributes);
             };
 
             afterEach(async () => {
@@ -6466,7 +6462,7 @@ describe('actions/Policy', () => {
                 await mockFetch.resume();
             });
 
-            it('copies missing bands immediately with matching request IDs and clears pending actions on success', async () => {
+            it('switches km to mi with unconverted bands and clears pending fields on success', async () => {
                 // Given a GBP workspace about to become eligible, using kilometers and holding unrelated auto-update feedback
                 const policy = buildPolicy();
                 policy.errorFields = {shouldAutoUpdateGovernmentDistanceRates: {previous: 'Previous auto-update error'}};
@@ -6478,7 +6474,7 @@ describe('actions/Policy', () => {
                 toggleTax(policy);
                 await waitForBatchedUpdates();
 
-                // Then only bands are added, existing rates and settings are preserved, and the request uses their IDs
+                // Then the unit matches the server and only bands are added, with the published per-mile amounts and request IDs
                 let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
                 const newRates = getRates(updatedPolicy).filter((rate) => rate.customUnitRateID !== existingRate.customUnitRateID);
                 expect(newRates).toHaveLength(2);
@@ -6492,11 +6488,13 @@ describe('actions/Policy', () => {
                     expect(rate.customUnitRateID).toBe(sourceRateID ? ids[sourceRateID] : undefined);
                     expect(rate.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                     expect(rate.attributes?.taxClaimablePercentage).toBe(snapshot?.taxClaimablePercentage);
-                    expect(rate.rate).toBe(Math.round((45 / CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS) * 100) / 100);
-                    expect(snapshot?.rate).toBe(45);
+                    expect(rate.rate).toBe(petrolRate.rate);
+                    expect(snapshot?.rate).toBe(petrolRate.rate);
                     expect(rate.attributes?.taxRateExternalID).toBeUndefined();
                 }
                 expect(updatedPolicy?.customUnits?.[customUnitID]?.rates?.existing).toEqual(existingRate);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                 expectSettingsUnchanged(updatedPolicy, policy);
 
                 // When the request succeeds
@@ -6507,6 +6505,13 @@ describe('actions/Policy', () => {
                 updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
                 expect(getRates(updatedPolicy)).toHaveLength(3);
                 expect(getRates(updatedPolicy).every((rate) => !rate.pendingAction)).toBe(true);
+                expect(
+                    getRates(updatedPolicy)
+                        .filter((rate) => rate.customUnitRateID !== existingRate.customUnitRateID)
+                        .map((rate) => rate.rate),
+                ).toEqual([petrolRate.rate, dieselRate.rate]);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBeUndefined();
                 expectSettingsUnchanged(updatedPolicy, policy);
             });
 
@@ -6538,6 +6543,8 @@ describe('actions/Policy', () => {
                 expect(getRates(updatedPolicy)).toEqual([existingRate]);
                 expect(updatedPolicy?.tax?.trackingEnabled).toBe(true);
                 expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.taxEnabled).toBe(true);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBeUndefined();
                 expectSettingsUnchanged(updatedPolicy, policy);
             });
 
@@ -6625,7 +6632,7 @@ describe('actions/Policy', () => {
                 expect(toggle === 'workspace' ? updatedPolicy?.pendingFields?.tax : updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.taxEnabled).toBeUndefined();
             });
 
-            it('deletes new bands on failure without touching auto-update feedback or the distance unit', async () => {
+            it('deletes new bands and restores km on failure without touching auto-update feedback', async () => {
                 // Given a workspace about to become eligible with no auto-update error
                 const policy = buildPolicy();
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
@@ -6635,7 +6642,10 @@ describe('actions/Policy', () => {
                 // When the tax toggle adds bands optimistically and then fails
                 toggleTax(policy);
                 await waitForBatchedUpdates();
-                expect(getRates(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`))).toHaveLength(3);
+                const optimisticPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                expect(getRates(optimisticPolicy)).toHaveLength(3);
+                expect(optimisticPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+                expect(optimisticPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                 await mockFetch.resume();
                 await waitForBatchedUpdates();
 
@@ -6644,6 +6654,8 @@ describe('actions/Policy', () => {
                 expect(getRates(updatedPolicy)).toEqual([existingRate]);
                 expect(updatedPolicy?.tax?.trackingEnabled).toBe(policy.tax?.trackingEnabled);
                 expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes).toEqual(policy.customUnits?.[customUnitID]?.attributes);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBeUndefined();
                 expectSettingsUnchanged(updatedPolicy, policy);
             });
 
@@ -6714,6 +6726,10 @@ describe('actions/Policy', () => {
                 expect(params.optimisticRateIDs).toBeUndefined();
                 const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
                 expect(getRates(updatedPolicy)).toEqual(scenario === 'missing custom unit' ? [] : [existingRate]);
+                if (policy.customUnits?.[customUnitID]) {
+                    expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(policy.customUnits[customUnitID]?.attributes?.unit);
+                }
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBeUndefined();
                 expectSettingsUnchanged(updatedPolicy, policy);
             });
 
