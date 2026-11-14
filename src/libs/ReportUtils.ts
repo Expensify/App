@@ -11986,11 +11986,6 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         return otherParticipants.length === 1;
     }
 
-    // Prevent requesting money if pending IOU report waiting for their bank account already exists
-    if (hasIOUWaitingOnCurrentUserBankAccount(report, currentUserAccountID)) {
-        return false;
-    }
-
     // Members without create-expenses permission get no create options in the workspace chats and reports.
     if (!!policy?.id && report?.policyID === policy.id && !canCreateExpensesOnPolicy(policy)) {
         return false;

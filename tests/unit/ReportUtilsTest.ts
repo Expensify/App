@@ -5485,6 +5485,37 @@ describe('ReportUtils', () => {
         });
 
         describe('return only submit expense and track expense options if', () => {
+            it('the workspace chat has a report waiting on the current user to add a bank account', async () => {
+                // Given a workspace chat whose last expense report cannot be paid until its owner adds a bank account
+                const waitingReport: Report = {
+                    reportID: 'waitingOnBankAccountReport',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: currentUserAccountID,
+                    isWaitingOnBankAccount: true,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                };
+                const chatReport: Report = {
+                    reportID: 'waitingOnBankAccountChat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                    ownerAccountID: currentUserAccountID,
+                    iouReportID: waitingReport.reportID,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${waitingReport.reportID}`, waitingReport);
+                await waitForBatchedUpdates();
+
+                // When the submitter opens the expense options in their workspace chat
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(chatReport, undefined, [currentUserAccountID], undefined, false, false, currentUserAccountID);
+
+                // Then the pending payment does not prevent new expenses, but the approved report still cannot accept them
+                expect(moneyRequestOptions).toEqual([CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.TRACK]);
+                expect(canRequestMoney(waitingReport, undefined, [], undefined, currentUserAccountID)).toBe(false);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${waitingReport.reportID}`, null);
+            });
+
             it("it is an expense report tied to user's own policy expense chat", () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}102`, {
                     reportID: '102',

@@ -47,7 +47,6 @@ import {
     getReportOrDraftReport,
     getViolatingReportIDForRBRInLHN,
     hasExpensifyGuidesEmails,
-    hasIOUWaitingOnCurrentUserBankAccount,
     isChatThread,
     isDefaultRoom,
     isDM,
@@ -2050,11 +2049,6 @@ function isValidReport(
     }
 
     if (!canUserPerformWriteAction(option.item, option.private_isArchived) && !includeReadOnly) {
-        return false;
-    }
-
-    // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
-    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(option.item)) {
         return false;
     }
 
