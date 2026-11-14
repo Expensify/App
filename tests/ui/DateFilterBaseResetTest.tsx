@@ -5,6 +5,9 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
+import RangeDatePicker from '@components/Search/FilterComponents/RangeDatePicker';
+
+import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +37,13 @@ const emptyDateValues: SearchDateValues = {
 
 const Stack = createStackNavigator();
 
-function renderDateFilterBase(props: {onSubmit?: jest.Mock; onReset?: jest.Mock; defaultDateValues?: SearchDateValues}) {
+function renderDateFilterBase(props: {
+    onSubmit?: jest.Mock;
+    onReset?: jest.Mock;
+    defaultDateValues?: SearchDateValues;
+    forceVerticalCalendars?: boolean;
+    selectedDateModifier?: SearchDateModifier;
+}) {
     return render(
         <NavigationContainer>
             <Stack.Navigator>
@@ -47,6 +56,8 @@ function renderDateFilterBase(props: {onSubmit?: jest.Mock; onReset?: jest.Mock;
                                 presets={[]}
                                 onSubmit={props.onSubmit ?? jest.fn()}
                                 onReset={props.onReset}
+                                forceVerticalCalendars={props.forceVerticalCalendars}
+                                selectedDateModifier={props.selectedDateModifier}
                             />
                         </ComposeProviders>
                     )}
@@ -67,6 +78,19 @@ describe('DateFilterBase reset', () => {
     afterEach(async () => {
         await Onyx.clear();
         jest.clearAllMocks();
+    });
+
+    it.each([
+        [undefined, true],
+        [true, true],
+        [false, false],
+    ])('passes calendar orientation %s through while preserving the default', (forceVerticalCalendars, expected) => {
+        // Given a shared date filter, whose existing consumers need stacked calendars by default
+        // When a containing pane requests an orientation for Custom range
+        const view = renderDateFilterBase({forceVerticalCalendars, selectedDateModifier: CONST.SEARCH.DATE_MODIFIERS.RANGE});
+
+        // Then the range picker receives that orientation, defaulting to vertical for unchanged callers
+        expect(view.UNSAFE_getByType(RangeDatePicker).props.forceVertical).toBe(expected);
     });
 
     it('calls onReset with cleared date values when reset is pressed', () => {

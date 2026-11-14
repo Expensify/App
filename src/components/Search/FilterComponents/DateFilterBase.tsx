@@ -62,6 +62,8 @@ type DateFilterBaseProps = {
     shouldShowButtonsOnlyWithDateModifier?: boolean;
     /** Whether to render the built-in HeaderWithBackButton. Defaults to true. */
     shouldShowHeader?: boolean;
+    /** Keep calendars stacked unless the containing pane has room for both. */
+    forceVerticalCalendars?: boolean;
     ref?: React.Ref<DateFilterBaseHandle>;
     style?: StyleProp<ViewStyle>;
 };
@@ -81,6 +83,7 @@ function DateFilterBase({
     shouldShowActionButtons: shouldShowActionButtonsProp = true,
     shouldShowButtonsOnlyWithDateModifier = false,
     shouldShowHeader = true,
+    forceVerticalCalendars = true,
     ref,
     selectedDateModifier: selectedDateModifierProp,
     onSelectDateModifier,
@@ -238,7 +241,7 @@ function DateFilterBase({
                     isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
                     onDateValuesChange={handleDateValuesChange}
                     onRangeValidationErrorChange={setShouldShowRangeError}
-                    forceVerticalCalendars
+                    forceVerticalCalendars={forceVerticalCalendars}
                 />
             </ScrollView>
             {shouldShowRangeError && (

@@ -96,11 +96,13 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
               </Button>
           );
 
-    const filtersPopup = ({closeOverlay}: PopoverComponentProps) => (
+    const filtersPopup = ({closeOverlay, setPopoverWidth, isExpanded}: PopoverComponentProps) => (
         <SearchAdvancedFiltersPopup
             queryJSON={queryJSON}
             closeOverlay={closeOverlay}
             filterSearchInputRef={filterSearchInputRef}
+            setPopoverWidth={setPopoverWidth}
+            isExpanded={isExpanded}
         />
     );
 

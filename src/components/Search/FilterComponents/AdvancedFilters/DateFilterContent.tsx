@@ -27,11 +27,23 @@ type DateFilterContentProps = WithRequiredSentryLabel & {
     hasFeed: boolean;
     size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     style?: StyleProp<ViewStyle>;
+    forceVerticalCalendars?: boolean;
     onDateModifierSelected: (modifier: SearchDateModifier | null) => void;
     onChange: (values: SearchDateValues) => void;
 };
 
-function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, size, style, sentryLabel, onDateModifierSelected, onChange}: DateFilterContentProps) {
+function DateFilterContent({
+    baseFilterKey,
+    value,
+    selectedDateModifier,
+    hasFeed,
+    size,
+    style,
+    forceVerticalCalendars,
+    sentryLabel,
+    onDateModifierSelected,
+    onChange,
+}: DateFilterContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const dateFilterRef = useRef<DateFilterBaseHandle>(null);
@@ -61,6 +73,7 @@ function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed,
                 presets={getDatePresets(baseFilterKey, hasFeed)}
                 onSubmit={onChange}
                 shouldShowActionButtons={false}
+                forceVerticalCalendars={forceVerticalCalendars}
             />
             {!!selectedDateModifier && (
                 <Button

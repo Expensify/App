@@ -19,7 +19,8 @@ import type {TextInputFilterContentProps} from './TextInputFilterContent';
 
 type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'onChange' | 'buttonText'>;
 type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'baseFilterKey' | 'value' | 'onChange' | 'buttonText'>;
-type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'baseFilterKey' | 'value' | 'hasFeed' | 'onChange'> & {buttonText?: string};
+type DateFilterViewProps = Partial<Pick<DateFilterContentProps, 'selectedDateModifier' | 'onDateModifierSelected' | 'forceVerticalCalendars'>>;
+type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'baseFilterKey' | 'value' | 'hasFeed' | 'onChange'> & DateFilterViewProps & {buttonText?: string};
 type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'> & {buttonText?: string};
 type MerchantFilterContentWrapperProps = Pick<MerchantFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'merchantOperator' | 'onChange' | 'buttonText'>;
 type ListFilterContentWrapperProps = Omit<ListFilterContentProps, 'onChange' | 'onNegationChange' | 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'> & {
@@ -32,6 +33,7 @@ type SearchAdvancedFiltersContentProps = {
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     ready?: boolean;
     buttonText?: string;
+    dateFilterProps?: DateFilterViewProps;
     components: {
         Merchant: React.ComponentType<MerchantFilterContentWrapperProps>;
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
@@ -43,7 +45,7 @@ type SearchAdvancedFiltersContentProps = {
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components, buttonText, onChange}: SearchAdvancedFiltersContentProps) {
+function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components, buttonText, dateFilterProps, onChange}: SearchAdvancedFiltersContentProps) {
     if (isAmountFilterKey(baseFilterKey)) {
         const AmountFilter = components.Amount;
         return (
@@ -66,6 +68,7 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
 
         return (
             <DateFilter
+                {...dateFilterProps}
                 key={baseFilterKey}
                 baseFilterKey={baseFilterKey}
                 value={{
@@ -149,6 +152,7 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
 
 export default SearchAdvancedFiltersContent;
 export type {
+    DateFilterViewProps,
     TextInputFilterContentWrapperProps,
     MerchantFilterContentWrapperProps,
     AmountFilterContentWrapperProps,

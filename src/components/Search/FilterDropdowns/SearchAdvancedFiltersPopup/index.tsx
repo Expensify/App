@@ -4,6 +4,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import SafeTriangle from '@components/SafeTriangle';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+import type {DateFilterViewProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import SearchNLFilterContent from '@components/Search/FilterComponents/AdvancedFilters/SearchNLFilterContent';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -26,8 +27,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMatchingFilters, hasFilterContentValuesChanged, isLabelMatchingSearchValue} from '@libs/SearchUIUtils';
-import type {SearchFilter} from '@libs/SearchUIUtils';
+import {getMatchingFilters, hasFilterContentValuesChanged, isDateFilterKey, isLabelMatchingSearchValue} from '@libs/SearchUIUtils';
+import type {SearchDateModifier, SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -38,7 +39,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import type {ComponentRef, Ref} from 'react';
 
-import React, {Activity, useRef, useState} from 'react';
+import React, {Activity, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
@@ -56,6 +57,8 @@ type SearchAdvancedFiltersPopupProps = {
 
     /** Ref to the filter search input, so the popover can focus it once it has opened */
     filterSearchInputRef?: Ref<BaseTextInputRef>;
+    setPopoverWidth?: (width: number | undefined) => void;
+    isExpanded: boolean;
 };
 
 /** Which filter contents are mounted and what each was given. */
@@ -109,6 +112,7 @@ type MountedFilterContentProps = {
 
     /** Whether the content may derive itself, or has to stand as its own loading state for now. */
     ready: boolean;
+    dateFilterProps?: DateFilterViewProps;
 
     /** Called with the values a change in the content produces. */
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
@@ -117,7 +121,7 @@ type MountedFilterContentProps = {
 // React Compiler caches the whole `mountedFilters.map()` in one slot, so every element is rebuilt on each change. Each
 // content sits in its own component, so a hover ends the render at the boundary of those whose props did not change.
 // `onChange` changes with the form, so an edit still re-renders them all.
-function MountedFilterContent({filterKey, values, ready, onChange}: MountedFilterContentProps) {
+function MountedFilterContent({filterKey, values, ready, onChange, dateFilterProps}: MountedFilterContentProps) {
     const styles = useThemeStyles();
 
     return (
@@ -127,21 +131,26 @@ function MountedFilterContent({filterKey, values, ready, onChange}: MountedFilte
                 baseFilterKey={filterKey}
                 components={filterComponents}
                 ready={ready}
+                dateFilterProps={dateFilterProps}
                 onChange={onChange}
             />
         </View>
     );
 }
 
-function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputRef}: SearchAdvancedFiltersPopupProps) {
+function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputRef, setPopoverWidth, isExpanded}: SearchAdvancedFiltersPopupProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
+    const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const {isBetaEnabled} = usePermissions();
     const canUseNLFilters = isBetaEnabled(CONST.BETAS.NL_FILTERS);
     const [isDescribeMode, setIsDescribeMode] = useState(canUseNLFilters);
+    if ((!isExpanded || isDescribeMode) && selectedDateModifier !== null) {
+        setSelectedDateModifier(null);
+    }
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const filterContentRef = useRef<ComponentRef<typeof View>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
@@ -160,6 +169,9 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
 
     // Shows a filter's content. A visited one stays mounted, so a return reveals it rather than building it again.
     const showFilter = (filterKey: SearchFilter['key']) => {
+        if (filterKey !== activeFilter) {
+            setSelectedDateModifier(null);
+        }
         setMountedFilterState((currentState) => {
             if (currentState.activeFilter === filterKey) {
                 return currentState;
@@ -177,7 +189,12 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
                 formAtMount: isBuilt ? {...currentState.formAtMount, [filterKey]: searchAdvancedFiltersForm} : currentState.formAtMount,
                 // The filter being left keeps the values it had while shown, so hiding it costs no render.
                 formWhileHidden: {...currentState.formWhileHidden, [currentState.activeFilter]: searchAdvancedFiltersForm},
-                contentVersions: isStale ? {...currentState.contentVersions, [filterKey]: (currentState.contentVersions[filterKey] ?? 0) + 1} : currentState.contentVersions,
+                contentVersions: {
+                    ...currentState.contentVersions,
+                    ...(isStale ? {[filterKey]: (currentState.contentVersions[filterKey] ?? 0) + 1} : {}),
+                    // Discard un-applied date picks when leaving their sub-view.
+                    ...(selectedDateModifier ? {[currentState.activeFilter]: (currentState.contentVersions[currentState.activeFilter] ?? 0) + 1} : {}),
+                },
                 // A remounted content derives itself from scratch, so it waits for the cursor again like a new one.
                 readyFilters: isStale ? currentState.readyFilters.filter((key) => key !== filterKey) : currentState.readyFilters,
             };
@@ -262,6 +279,16 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
     const filters = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, listedSearchValue, translate);
     const isActiveFilterListed = filters.some((section) => section.includes(activeFilter));
     const isDescribeSearchListed = isDescribeSearchMatching(listedSearchValue);
+    const rangePopoverWidth = CONST.ADVANCED_FILTERS_POPOVER_WIDTH - CONST.ADVANCED_FILTERS_CONTENT_WIDTH + CONST.POPOVER_DATE_RANGE_WIDTH;
+    const canFitHorizontalRange = windowWidth - 2 * variables.gutterWidth >= rangePopoverWidth;
+    const shouldExpandRange =
+        isExpanded && !isDescribeMode && isActiveFilterListed && isDateFilterKey(activeFilter) && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && canFitHorizontalRange;
+    const popoverHeight = shouldExpandRange ? CONST.ADVANCED_FILTERS_RANGE_POPOVER_HEIGHT : CONST.ADVANCED_FILTERS_POPOVER_HEIGHT;
+
+    // Keep the overlay width in sync when the viewport changes while a range is open.
+    useEffect(() => {
+        setPopoverWidth?.(shouldExpandRange ? rangePopoverWidth : undefined);
+    }, [shouldExpandRange, rangePopoverWidth, setPopoverWidth]);
 
     // A cleared input lists every filter without waiting, so the content goes back to the first one with it.
     const changeFilterSearchValue = (searchValue: string) => {
@@ -292,7 +319,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
 
     return (
         <SafeTriangle submenuRef={filterContentRef}>
-            <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
+            <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, popoverHeight))]}>
                 <View style={[styles.typeFiltersPopupContainer, StyleUtils.getWidthStyle(CONST.ADVANCED_FILTERS_POPOVER_WIDTH - CONST.ADVANCED_FILTERS_CONTENT_WIDTH)]}>
                     <FilterList
                         style={[styles.flex1, styles.pt2]}
@@ -369,6 +396,15 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
                                       filterKey={filterKey}
                                       values={filterKey === activeFilter ? searchAdvancedFiltersForm : formWhileHidden[filterKey]}
                                       ready={mayDeriveContent(filterKey)}
+                                      dateFilterProps={
+                                          isDateFilterKey(filterKey)
+                                              ? {
+                                                    selectedDateModifier: filterKey === activeFilter ? selectedDateModifier : null,
+                                                    onDateModifierSelected: setSelectedDateModifier,
+                                                    forceVerticalCalendars: !canFitHorizontalRange,
+                                                }
+                                              : undefined
+                                      }
                                       onChange={updateFilterQueryParams}
                                   />
                               </Activity>

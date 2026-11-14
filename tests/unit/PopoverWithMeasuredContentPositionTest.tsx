@@ -49,6 +49,37 @@ function renderPopoverAt(vertical: number, verticalAlignment: ValueOf<typeof CON
 }
 
 describe('PopoverWithMeasuredContentBase vertical positioning', () => {
+    it('keeps the right edge anchored when static width expands and contracts', () => {
+        // Given a right-anchored popover with a static width
+        const anchorRef = createRef<View>();
+        const renderPopover = (width: number) => (
+            <PopoverWithMeasuredContentBase
+                isVisible
+                onClose={() => {}}
+                anchorRef={anchorRef}
+                anchorPosition={{horizontal: 950, vertical: 0}}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                popoverDimensions={{height: POPOVER_HEIGHT, width}}
+            >
+                <Text>content</Text>
+            </PopoverWithMeasuredContentBase>
+        );
+        const view = render(renderPopover(POPOVER_WIDTH));
+        expect(mockAnchorPosition?.left).toBe(950 - POPOVER_WIDTH);
+
+        // When a range view widens the popover
+        view.rerender(renderPopover(923));
+
+        // Then positioning uses the new width rather than the initial static width
+        expect(mockAnchorPosition?.left).toBe(27);
+
+        // When leaving the range view
+        view.rerender(renderPopover(POPOVER_WIDTH));
+
+        // Then the original right-aligned position is restored
+        expect(mockAnchorPosition?.left).toBe(950 - POPOVER_WIDTH);
+    });
+
     describe('BOTTOM alignment (popover opens above the anchor)', () => {
         it('pins the popover bottom edge to the anchor when the popover fits above it', () => {
             // Given an anchor 450px down a 600px window, which leaves room for the 400px popover above it

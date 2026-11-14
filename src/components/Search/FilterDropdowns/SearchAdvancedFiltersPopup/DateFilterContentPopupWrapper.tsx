@@ -12,9 +12,18 @@ import CONST from '@src/CONST';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-function DateFilterContentPopupWrapper({baseFilterKey, value, hasFeed, onChange}: DateFilterContentWrapperProps) {
+function DateFilterContentPopupWrapper({
+    baseFilterKey,
+    value,
+    hasFeed,
+    onChange,
+    selectedDateModifier: selectedDateModifierProp,
+    onDateModifierSelected,
+    forceVerticalCalendars,
+}: DateFilterContentWrapperProps) {
     const styles = useThemeStyles();
-    const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
+    const [selectedDateModifierState, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
+    const selectedDateModifier = selectedDateModifierProp === undefined ? selectedDateModifierState : selectedDateModifierProp;
     // Report field date filters have per-field keys, which aren't in FILTER_VIEW_MAP; they all apply as the report field filter.
     const applySentryLabel = hasKey(FILTER_VIEW_MAP, baseFilterKey) ? FILTER_VIEW_MAP[baseFilterKey].applySentryLabel : CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.REPORT_FIELD;
 
@@ -27,7 +36,8 @@ function DateFilterContentPopupWrapper({baseFilterKey, value, hasFeed, onChange}
                 selectedDateModifier={selectedDateModifier}
                 style={[styles.flexShrink1]}
                 sentryLabel={applySentryLabel}
-                onDateModifierSelected={setSelectedDateModifier}
+                onDateModifierSelected={onDateModifierSelected ?? setSelectedDateModifier}
+                forceVerticalCalendars={forceVerticalCalendars}
                 onChange={onChange}
             />
         </View>

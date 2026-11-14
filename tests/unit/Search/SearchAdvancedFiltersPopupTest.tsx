@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import type {DateFilterViewProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import CONST from '@src/CONST';
@@ -30,6 +31,11 @@ let mockRenderCountByFilter: Record<string, number> = {};
 
 /** The filter values each mounted content was last rendered with. */
 let mockValuesByFilter: Record<string, Partial<SearchAdvancedFiltersForm> | undefined> = {};
+let mockDateFilterProps: DateFilterViewProps | undefined;
+let mockWindowDimensions = {windowWidth: 1440, windowHeight: 900};
+const mockSetPopoverWidth = jest.fn();
+
+jest.mock('@hooks/useWindowDimensions', () => () => mockWindowDimensions);
 
 // Captured from what the popup hands the filter list, so tests can drive the cursor and read what is highlighted.
 let mockOnHoverIn: ((filterKey: string) => void) | undefined;
@@ -85,7 +91,20 @@ jest.mock('@hooks/usePermissions', () => ({
 // Stand-in for the filter content, the expensive part being mounted or kept alive.
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent', () => ({
     __esModule: true,
-    default: ({baseFilterKey, ready, values}: {baseFilterKey: string; ready?: boolean; values?: Partial<SearchAdvancedFiltersForm>}) => {
+    default: ({
+        baseFilterKey,
+        ready,
+        values,
+        dateFilterProps,
+    }: {
+        baseFilterKey: string;
+        ready?: boolean;
+        values?: Partial<SearchAdvancedFiltersForm>;
+        dateFilterProps?: DateFilterViewProps;
+    }) => {
+        if (dateFilterProps) {
+            mockDateFilterProps = dateFilterProps;
+        }
         const isCreated = mockUseRef(false);
         if (!isCreated.current) {
             isCreated.current = true;
@@ -119,11 +138,12 @@ jest.mock('@hooks/useOnyx', () => ({
 
 // The popover exists on web only, and jest-expo's resolver prefers the native variant, which renders nothing.
 const SearchAdvancedFiltersPopup = require<{
-    default: React.ComponentType<{queryJSON: SearchQueryJSON | undefined}>;
+    default: React.ComponentType<{queryJSON: SearchQueryJSON | undefined; isExpanded: boolean; setPopoverWidth: (width: number | undefined) => void}>;
 }>('../../../src/components/Search/FilterDropdowns/SearchAdvancedFiltersPopup/index.tsx').default;
 
 /** Renders the popup again, which carries a reassigned form into it while the shown filter stays put. */
 let rerenderPopup: () => void;
+let setPopupExpanded: (isExpanded: boolean) => void;
 
 // Only forwarded to the mocked query hook, so it is never read.
 const queryJSON = undefined;
@@ -190,8 +210,24 @@ beforeEach(() => {
     mockReadyByFilter = {};
     mockRenderCountByFilter = {};
     mockValuesByFilter = {};
-    const view = render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
-    rerenderPopup = () => view.rerender(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+    mockDateFilterProps = undefined;
+    mockWindowDimensions = {windowWidth: 1440, windowHeight: 900};
+    const view = render(
+        <SearchAdvancedFiltersPopup
+            queryJSON={queryJSON}
+            isExpanded
+            setPopoverWidth={mockSetPopoverWidth}
+        />,
+    );
+    setPopupExpanded = (isExpanded) =>
+        view.rerender(
+            <SearchAdvancedFiltersPopup
+                queryJSON={queryJSON}
+                isExpanded={isExpanded}
+                setPopoverWidth={mockSetPopoverWidth}
+            />,
+        );
+    rerenderPopup = () => setPopupExpanded(true);
 });
 
 afterEach(() => {
@@ -199,6 +235,79 @@ afterEach(() => {
 });
 
 describe('SearchAdvancedFiltersPopup', () => {
+    it.each([FILTER_KEYS.DATE, FILTER_KEYS.SUBMITTED, FILTER_KEYS.APPROVED, FILTER_KEYS.PAID, FILTER_KEYS.EXPORTED, FILTER_KEYS.WITHDRAWN])(
+        'widens the %s custom range and restores the preset width on Back or Apply',
+        (filterKey) => {
+            // Given a date filter in a viewport wide enough for the sidebar and both calendars
+            hoverAndRest(filterKey);
+
+            // When Custom range is selected
+            act(() => mockDateFilterProps?.onDateModifierSelected?.(CONST.SEARCH.DATE_MODIFIERS.RANGE));
+
+            // Then the overlay includes the full calendar pane, rather than squeezing it beside the sidebar
+            expect(mockSetPopoverWidth).toHaveBeenLastCalledWith(CONST.ADVANCED_FILTERS_POPOVER_WIDTH - CONST.ADVANCED_FILTERS_CONTENT_WIDTH + CONST.POPOVER_DATE_RANGE_WIDTH);
+            expect(mockDateFilterProps?.forceVerticalCalendars).toBe(false);
+
+            // When Back or Apply returns to the preset list
+            act(() => mockDateFilterProps?.onDateModifierSelected?.(null));
+
+            // Then the default overlay width is restored
+            expect(mockSetPopoverWidth).toHaveBeenLastCalledWith(undefined);
+        },
+    );
+
+    it('stacks calendars when resizing below the complete popover width without losing the range view', () => {
+        // Given a horizontal range view
+        hoverAndRest(FILTER_KEYS.DATE);
+        act(() => mockDateFilterProps?.onDateModifierSelected?.(CONST.SEARCH.DATE_MODIFIERS.RANGE));
+
+        // When the viewport no longer fits the sidebar, calendars and gutters
+        mockWindowDimensions = {windowWidth: 900, windowHeight: 600};
+        rerenderPopup();
+
+        // Then the compact scrollable layout is used, while keeping the selected modifier
+        expect(mockSetPopoverWidth).toHaveBeenLastCalledWith(undefined);
+        expect(mockDateFilterProps?.forceVerticalCalendars).toBe(true);
+        expect(mockDateFilterProps?.selectedDateModifier).toBe(CONST.SEARCH.DATE_MODIFIERS.RANGE);
+
+        // When the window is widened again
+        mockWindowDimensions = {windowWidth: 1440, windowHeight: 900};
+        rerenderPopup();
+
+        // Then both calendars are allowed side by side again
+        expect(mockDateFilterProps?.forceVerticalCalendars).toBe(false);
+        expect(mockSetPopoverWidth).toHaveBeenLastCalledWith(923);
+    });
+
+    it('does not reopen an un-applied range when returning to a filter', () => {
+        // Given Custom range open on Date
+        hoverAndRest(FILTER_KEYS.DATE);
+        act(() => mockDateFilterProps?.onDateModifierSelected?.(CONST.SEARCH.DATE_MODIFIERS.RANGE));
+
+        // When another filter is visited and Date is hovered again
+        hoverAndRest(FILTER_KEYS.TYPE);
+        hoverAndRest(FILTER_KEYS.DATE);
+
+        // Then hovering does not expand the overlay again, and the draft content was replaced
+        expect(mockDateFilterProps?.selectedDateModifier).toBeNull();
+        expect(mockSetPopoverWidth).toHaveBeenLastCalledWith(undefined);
+        expect(mockOnContentCreated.mock.calls.filter(([filterKey]) => filterKey === FILTER_KEYS.DATE)).toHaveLength(2);
+    });
+
+    it('restores normal sizing when closing and reopening the popup', () => {
+        // Given Custom range open on Date
+        hoverAndRest(FILTER_KEYS.DATE);
+        act(() => mockDateFilterProps?.onDateModifierSelected?.(CONST.SEARCH.DATE_MODIFIERS.RANGE));
+
+        // When the popup closes and reopens
+        setPopupExpanded(false);
+        setPopupExpanded(true);
+
+        // Then range sizing and its sub-view do not survive the close
+        expect(mockSetPopoverWidth).toHaveBeenLastCalledWith(undefined);
+        expect(mockDateFilterProps?.selectedDateModifier).toBeNull();
+    });
+
     it('shows every row the cursor passes over and withholds the contact list from all but the one it stops on', () => {
         const peopleFilters = [FILTER_KEYS.FROM, FILTER_KEYS.TO, FILTER_KEYS.ATTENDEE, FILTER_KEYS.ASSIGNEE];
         for (const filterKey of peopleFilters) {
