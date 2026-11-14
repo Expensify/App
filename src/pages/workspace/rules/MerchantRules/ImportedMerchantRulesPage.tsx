@@ -20,7 +20,7 @@ import Tab from '@libs/actions/Tab';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getExpenseDefaultFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
 import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
-import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
+import {findDuplicateColumnLabel, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -389,11 +389,10 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         if (!hasMerchantFilterColumn || !hasActionColumn) {
             errors.required = translate('spreadsheet.importMerchantRulesRequiredColumns');
         } else {
-            const duplicate = findDuplicate(columns);
-            const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
+            const duplicate = findDuplicateColumnLabel(columns, columnRoles);
 
-            if (duplicateColumn) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
+            if (duplicate) {
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else {
                 errors = {};
             }

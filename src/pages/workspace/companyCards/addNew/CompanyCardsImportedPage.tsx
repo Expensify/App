@@ -12,7 +12,7 @@ import usePolicy from '@hooks/usePolicy';
 
 import {applyCompanyCardColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import {getCSVFeedType} from '@libs/CardUtils';
-import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
+import {findDuplicateColumnLabel, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
@@ -139,7 +139,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             return errors;
         }
 
-        const duplicate = findDuplicate(columns);
+        const duplicate = findDuplicateColumnLabel(columns, columnRoles);
         if (duplicate) {
             errors.duplicates = translate('workspace.companyCards.addNewCard.csvErrors.duplicateColumns', duplicate);
             return errors;

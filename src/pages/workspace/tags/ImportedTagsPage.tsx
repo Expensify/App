@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
 import {importPolicyTags} from '@libs/actions/Policy/Tag';
-import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
+import {findDuplicateColumnLabel, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -76,7 +76,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         if (missingRequiredColumns) {
             errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
         } else {
-            const duplicate = findDuplicate(columns);
+            const duplicate = findDuplicateColumnLabel(columns, columnRoles);
             const tagsNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
             const tagsNames = tagsNamesColumn !== -1 ? spreadsheet?.data[tagsNamesColumn] : [];
             const containsEmptyName = tagsNames?.some((name, index) => (!containsHeader || index > 0) && !name?.toString().trim());

@@ -11,7 +11,7 @@ import usePolicy from '@hooks/usePolicy';
 
 import {importPolicyCategories} from '@libs/actions/Policy/Category';
 import {buildCategoriesFromSpreadsheet} from '@libs/ImportCategoriesUtils';
-import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
+import {findDuplicateColumnLabel, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -91,15 +91,14 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         if (missingRequiredColumns) {
             errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
         } else {
-            const duplicate = findDuplicate(columns);
-            const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
+            const duplicate = findDuplicateColumnLabel(columns, columnRoles);
 
             const categoriesNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
             const categoriesNames = categoriesNamesColumn !== -1 ? spreadsheet?.data[categoriesNamesColumn] : [];
             const containsEmptyName = categoriesNames?.some((name, index) => (!containsHeader || index > 0) && !name?.toString().trim());
 
-            if (duplicateColumn) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
+            if (duplicate) {
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else if (containsEmptyName) {
                 errors.emptyNames = translate('spreadsheet.emptyMappedField', translate('common.name'));
             } else {
