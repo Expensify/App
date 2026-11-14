@@ -9,7 +9,10 @@ type UpdateWiseOnboardingAdditionalDataParams = {
     /** The onboarding page the answers belong to. The server answers any other step with 400 Invalid step. */
     step: ValueOf<typeof CONST.WISE.ONBOARDING_STEP>;
 
-    /** JSON of the page's answers under flat keys, such as `address.city`. It holds a typed SSN, so it is redacted from the logs. */
+    /**
+     * JSON of the page's answers under flat keys, such as `address.city`. It holds a typed SSN, so it is redacted from the logs.
+     * A page whose only answers are files sends `{}`, since the server rejects `[]` as "Inputs is not a valid json object".
+     */
     inputs: string;
 
     /** JSON of the uploaded file keys the user kept, by field. Left out, the step's files stay as they are. */

@@ -67,6 +67,7 @@ function DynamicFormFlow({
     isRefreshingRequirements,
     refreshError,
     unsavedPageKeys,
+    isLoading,
     layout = 'auto',
     hasConfirmation = true,
     shouldDisableNextWhenOffline,
@@ -212,7 +213,7 @@ function DynamicFormFlow({
         Navigation.navigate(buildRoute(unavailablePageTarget), {forceReplace: true});
     }, [isOnUnavailablePage, buildRoute, unavailablePageTarget]);
 
-    /** Typed answers are drafted as FormProvider cleaned them and inputs left untouched are drafted with their defaults, so the draft matches what the page validated. Sensitive answers go to memory only and reach the screen apart from the draft ones. Lists are drafted as they change, so the screen gets their drafted entries, which hold no sensitive answers. */
+    /** Typed answers are drafted as FormProvider cleaned them and inputs left untouched are drafted with their defaults, so the draft matches what the page validated. Sensitive answers are kept in memory and handed to the screen as a separate argument, never written to the draft. Lists are drafted as they change, so the screen gets their drafted entries, which hold no sensitive answers. */
     const handlePageSubmit = (page: DynamicFormPage, pageValues: DynamicFormValues) => {
         const currentValues = {...values, ...pageValues};
         const pageFields = getContentFields(page.content).filter(isSupportedField);
@@ -359,7 +360,7 @@ function DynamicFormFlow({
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
             shouldShowOfflineIndicatorInWideScreen={shouldDisableNextWhenOffline}
         >
-            {isDraftLoading || isRedirecting || isClearingEarlierVisit || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
+            {isLoading || isDraftLoading || isRedirecting || isClearingEarlierVisit || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>

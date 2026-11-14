@@ -6,6 +6,7 @@ import type {DynamicFormField} from '@src/types/onyx';
 import getAddressInputKeys, {getAddressCountry} from './getAddressInputKeys';
 import getFieldOptions, {getOptionLabel} from './getFieldOptions';
 import isCountryCode from './isCountryCode';
+import {getListItemFiles, getListItems} from './listItems';
 
 /** Street, then city, then state and zip, then country, as in "1 Main Street, Springfield, IL 62701, United States" */
 function formatAddress(fieldKey: string, values: DynamicFormValues, translate: LocalizedTranslate): string {
@@ -29,7 +30,8 @@ function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormVal
     if (Array.isArray(answer)) {
         const items: unknown[] = answer;
         if (field.type === 'file') {
-            return translate('dynamicForm.fileCount', {count: items.length});
+            const count = field.uploads ? getListItems(answer).reduce((sum, entry) => sum + getListItemFiles(entry).length, 0) : items.length;
+            return translate('dynamicForm.fileCount', {count});
         }
         if (field.type !== 'multiselect' && field.type !== 'countryMultiselect') {
             return '';

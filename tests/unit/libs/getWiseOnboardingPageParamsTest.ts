@@ -1,4 +1,4 @@
-import getWiseOnboardingPageParams, {getSavedFileAnswers, toSavedFile} from '@libs/getWiseOnboardingPageParams';
+import getWiseOnboardingPageParams, {getLabelledFileKey, getSavedFileAnswers, toSavedFile} from '@libs/getWiseOnboardingPageParams';
 
 import type {DynamicFormPage} from '@src/types/onyx';
 
@@ -8,6 +8,9 @@ jest.mock('@libs/isFileUploadable', () => ({__esModule: true, default: (file: un
 const BANK_ACCOUNT_ID = 1;
 const CITY_KEY = 'address.city';
 const FIRST_ID_DOCUMENT_PART = 'idDocument[0]';
+const REVENUE_TAX_RETURNS = getLabelledFileKey('REVENUE', 'TAX_DOCUMENTS');
+const REVENUE_BANK_STATEMENTS = getLabelledFileKey('REVENUE', 'BANK_STATEMENT');
+const REVENUE_INVOICES = getLabelledFileKey('REVENUE', 'INVOICES');
 
 const REPRESENTATIVE_PAGE: DynamicFormPage = {
     key: 'representative',
@@ -110,6 +113,86 @@ describe('getWiseOnboardingPageParams', () => {
         expect(params.documents).toBe(JSON.stringify({idDocument: []}));
     });
 
+    it('sends an empty object as the inputs of a page whose only answers are files', () => {
+        // Given a page that asks for nothing but a file, answered with one new file
+        const page: DynamicFormPage = {key: 'BUSINESS_SOURCE_OF_WEALTH_PROOF', content: [{key: 'proofFile', type: 'file', required: true}]};
+        const proofFile = new File(['statement'], 'statement.pdf', {type: 'application/pdf'});
+
+        // When the page is turned into a save request
+        const params = getPageParams(BANK_ACCOUNT_ID, page, {proofFile: [proofFile]});
+
+        // Then inputs is `{}`, since the server rejects `[]` as "Inputs is not a valid json object", and the file still goes as its own part
+        expect(params.inputs).toBe('{}');
+        expect(params['proofFile[0]']).toBe(proofFile);
+    });
+
+    it('sends the files of a labelled field under its key and their type, listing every type it offers', () => {
+        // Given a source of funds that keeps a saved tax return and adds a new bank statement, and offers invoices too
+        const page: DynamicFormPage = {
+            key: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
+            content: [{key: 'REVENUE', type: 'file', required: true, uploads: [{fileTypes: [{key: 'TAX_DOCUMENTS'}, {key: 'INVOICES'}]}, {fileTypes: [{key: 'BANK_STATEMENT'}]}]}],
+        };
+        const statement = new File(['statement'], 'statement.pdf', {type: 'application/pdf'});
+        const answers = {
+            REVENUE: [
+                {id: 'TAX_DOCUMENTS', fileType: 'TAX_DOCUMENTS', files: [toSavedFile('kyc/1/tax.pdf')]},
+                {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [statement]},
+            ],
+        };
+
+        // When the page is turned into a save request
+        const params = getPageParams(BANK_ACCOUNT_ID, page, answers);
+
+        // Then each file goes under `<source>.<document type>`, so the server knows both, and the unused type is listed empty, so a removed invoice is removed on the server too
+        expect(params[`${REVENUE_BANK_STATEMENTS}[0]`]).toBe(statement);
+        expect(params.documents).toBe(JSON.stringify({[REVENUE_TAX_RETURNS]: ['kyc/1/tax.pdf'], [REVENUE_INVOICES]: [], [REVENUE_BANK_STATEMENTS]: []}));
+        expect(params.inputs).toBe('{}');
+    });
+
+    it('sends the picked sources as the list Wise takes, each with whether it funds daily operations', () => {
+        // Given the sources page answered with a loan, revenue and grants, after the daily operations page said only the loan funds them
+        const page: DynamicFormPage = {key: 'BUSINESS_SOURCE_OF_WEALTH_INFO', content: [{key: 'businessSourceOfWealthInfo', type: 'multiselect', required: true}]};
+
+        // When the page is turned into a save request
+        const params = getPageParams(BANK_ACCOUNT_ID, page, {businessSourceOfWealthInfo: ['BUSINESS_LOAN', 'REVENUE', 'GRANTS'], sourceOfFunds: ['BUSINESS_LOAN']});
+
+        // Then the inputs are Wise's sourceOfWealthList, one entry per picked source, since the server replaces the saved page on every save, and the new source has a boolean too, since Submit needs one on every entry
+        expect(JSON.parse(params.inputs)).toEqual({
+            sourceOfWealthList: [
+                {businessSourceOfWealthInfo: 'BUSINESS_LOAN', isSourceOfFund: true},
+                {businessSourceOfWealthInfo: 'REVENUE', isSourceOfFund: false},
+                {businessSourceOfWealthInfo: 'GRANTS', isSourceOfFund: false},
+            ],
+        });
+    });
+
+    it('makes a lone picked source fund daily operations', () => {
+        // Given the sources page answered with revenue alone, which skips the daily operations page
+        const page: DynamicFormPage = {key: 'BUSINESS_SOURCE_OF_WEALTH_INFO', content: [{key: 'businessSourceOfWealthInfo', type: 'multiselect', required: true}]};
+
+        // When the page is turned into a save request
+        const params = getPageParams(BANK_ACCOUNT_ID, page, {businessSourceOfWealthInfo: ['REVENUE'], sourceOfFunds: []});
+
+        // Then revenue funds daily operations, whatever the daily operations page held
+        expect(JSON.parse(params.inputs)).toEqual({sourceOfWealthList: [{businessSourceOfWealthInfo: 'REVENUE', isSourceOfFund: true}]});
+    });
+
+    it('sends every picked source with whether it funds daily operations from the daily operations page', () => {
+        // Given the daily operations page answered with the loan, out of the loan and revenue picked before
+        const page: DynamicFormPage = {key: 'BUSINESS_SOURCE_OF_WEALTH_INFO', content: [{key: 'sourceOfFunds', type: 'multiselect', required: true}]};
+
+        // When the page is turned into a save request with the picked sources
+        const params = getPageParams(BANK_ACCOUNT_ID, page, {sourceOfFunds: ['BUSINESS_LOAN'], businessSourceOfWealthInfo: ['BUSINESS_LOAN', 'REVENUE']});
+
+        // Then each source says whether it funds daily operations
+        expect(JSON.parse(params.inputs)).toEqual({
+            sourceOfWealthList: [
+                {businessSourceOfWealthInfo: 'BUSINESS_LOAN', isSourceOfFund: true},
+                {businessSourceOfWealthInfo: 'REVENUE', isSourceOfFund: false},
+            ],
+        });
+    });
+
     it('gives nothing for a page whose key is not a step the server accepts', () => {
         // Given a page keyed by something other than a step, which the server would answer with 400 Invalid step
         const page: DynamicFormPage = {key: 'ownership', content: [{key: 'description', type: 'text', required: true}]};
@@ -132,6 +215,22 @@ describe('getSavedFileAnswers', () => {
 
         // Then each field lists the saved files, so the next save sends their keys instead of uploading them again, and the emptied field stays empty
         expect(answers).toEqual({idDocument: [toSavedFile('kyc/1/passport.jpg')], proofOfAddress: []});
+    });
+
+    it('groups the files of a labelled field into an entry per type', () => {
+        // Given the server's file keys for a source of funds, with a tax return and a bank statement, and invoices the user removed
+        const documents = {BUSINESS_SOURCE_OF_WEALTH_PROOF: {[REVENUE_TAX_RETURNS]: ['kyc/1/tax.pdf'], [REVENUE_BANK_STATEMENTS]: ['kyc/1/statement.pdf'], [REVENUE_INVOICES]: []}};
+
+        // When they are turned into draft answers
+        const answers = getSavedFileAnswers(documents);
+
+        // Then the source holds one entry per type that has files, as its upload field stores them
+        expect(answers).toEqual({
+            REVENUE: [
+                {id: 'TAX_DOCUMENTS', fileType: 'TAX_DOCUMENTS', files: [toSavedFile('kyc/1/tax.pdf')]},
+                {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [toSavedFile('kyc/1/statement.pdf')]},
+            ],
+        });
     });
 
     it('leaves out the files of a page whose save failed', () => {

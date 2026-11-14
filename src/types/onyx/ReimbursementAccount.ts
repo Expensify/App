@@ -263,6 +263,15 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     };
 };
 
+/** One source of the company's money, as Wise's BUSINESS_SOURCE_OF_WEALTH_INFO takes it */
+type WiseSourceOfWealthEntry = {
+    /** Wise's source of wealth value, such as REVENUE */
+    businessSourceOfWealthInfo: string;
+
+    /** Whether the source funds the business's daily operations. Missing until the user answers it. */
+    isSourceOfFund?: boolean;
+};
+
 /** Wise onboarding data, stored under additionalData.wise */
 type WiseBusinessOnboarding = {
     /** Onboarding status */
@@ -272,7 +281,7 @@ type WiseBusinessOnboarding = {
     currency?: string;
 
     /** The answers of each saved intake page, by page key. A key a later save dropped comes back as null. */
-    pages?: Record<string, DynamicFormSavedValues>;
+    pages?: Record<string, DynamicFormSavedValues | {sourceOfWealthList?: WiseSourceOfWealthEntry[]}>;
 
     /** Uploaded file keys, by page key then by field */
     documents?: Record<string, Record<string, string[]>>;
@@ -371,4 +380,14 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 export default ReimbursementAccount;
-export type {Corpay, WiseBusinessOnboarding, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};
+export type {
+    Corpay,
+    WiseBusinessOnboarding,
+    WiseSourceOfWealthEntry,
+    BankAccountStep,
+    BankAccountSubStep,
+    ACHData,
+    ReimbursementAccountStep,
+    ReimbursementAccountSubStep,
+    ACHDataReimbursementAccount,
+};

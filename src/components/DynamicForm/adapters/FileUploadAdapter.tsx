@@ -1,8 +1,6 @@
-import FormContext from '@components/Form/FormContext';
+import useUploadErrorAnnouncement from '@components/DynamicForm/hooks/useUploadErrorAnnouncement';
 import FSClassView from '@components/FSClassView';
 import UploadFile from '@components/UploadFile';
-
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
@@ -11,7 +9,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {ComponentProps, ComponentRef, Ref} from 'react';
 import type {View} from 'react-native';
 
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 
 /** UploadFile settings the adapter passes through unchanged */
 type UploadFileSettings = Pick<ComponentProps<typeof UploadFile>, 'buttonText' | 'acceptedFileTypes' | 'fileLimit' | 'maxFileSize' | 'accessibilityLabel'>;
@@ -36,11 +34,7 @@ function FileUploadAdapter({value, onInputChange = () => {}, errorText = '', for
     const [uploadError, setUploadError] = useState('');
     const files = Array.isArray(value) ? value : [];
 
-    const shownError = uploadError || errorText;
-    const {getErrorAnnouncementKey} = useContext(FormContext);
-    const errorAnnouncementKey = getErrorAnnouncementKey();
-    // UploadFile shows the error through a live region, which VoiceOver ignores, so it is announced as it appears and again on each submit
-    useAccessibilityAnnouncement(shownError, !!shownError, {shouldAnnounceOnNative: true, announcementKey: errorAnnouncementKey});
+    const shownError = useUploadErrorAnnouncement(uploadError, errorText);
 
     // UploadFile takes no FullStory class, so the mask goes on a View around it
     return (
@@ -65,3 +59,4 @@ function FileUploadAdapter({value, onInputChange = () => {}, errorText = '', for
 }
 
 export default FileUploadAdapter;
+export type {UploadFileSettings};

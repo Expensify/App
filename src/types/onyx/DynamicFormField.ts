@@ -189,6 +189,27 @@ type DynamicFormFileField = DynamicFormFieldBase & {
 
     /** Largest size of one file, in bytes. The form-wide limit applies when not set. */
     maxFileSize?: number;
+
+    /** Upload buttons, each taking its own kinds of document. Files list under their button, and the answer is one `{id, fileType, files}` entry per kind used. A required field needs a file on every button. */
+    uploads?: DynamicFormFileUpload[];
+};
+
+/** One upload button of a file field */
+type DynamicFormFileUpload = {
+    /** The kinds of document the button takes. With one kind the button opens the file picker, with more it asks which kind first. */
+    fileTypes: DynamicFormFieldOption[];
+
+    /** Button text, shown when there is no labelKey. "Upload file" when neither is set. */
+    label?: string;
+
+    /** Translation of `label`, used instead of it when set */
+    labelKey?: TranslationPaths;
+
+    /** Hint under the button, such as what the document must show */
+    description?: string;
+
+    /** Translation of `description`, used instead of it when set */
+    descriptionKey?: TranslationPaths;
 };
 
 /** A money amount */
@@ -321,6 +342,7 @@ export type {
     DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,
