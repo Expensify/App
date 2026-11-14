@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -61,9 +61,8 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
             testID="WriteCapabilityPage"
         >
             <FullPageNotFoundView shouldShow={!isAbleToEdit}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('writeCapabilityPage.label')}
-                    shouldShowBackButton
                     onBackButtonPress={goBack}
                 />
                 <SelectionList

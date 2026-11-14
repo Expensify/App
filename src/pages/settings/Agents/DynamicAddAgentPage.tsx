@@ -6,7 +6,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues, FormRef} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -260,7 +260,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         >
             <FullPageNotFoundView shouldShow={!canWriteAgents}>
                 <CollapsibleHeaderOnKeyboard>
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('addAgentPage.title')}
                         onBackButtonPress={() => Navigation.goBack(backPath)}
                     />

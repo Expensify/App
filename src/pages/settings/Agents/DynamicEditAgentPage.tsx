@@ -1,6 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
@@ -119,7 +119,7 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('editAgentPage.title')}
                 onBackButtonPress={handleBackPress}
             />
