@@ -268,6 +268,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [categories, policy?.rules?.approvalRules]);
 
     const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']) && isControlPolicyWithWideLayout;
+    const shouldShowPayrollCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['Payroll Code']) && isControlPolicyWithWideLayout;
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(categoryApproverEmails).length > 0;
 
     const isSelectionModeActive = selectedCategoryKeys.length > 0 || isMobileSelectionModeEnabled;
@@ -289,6 +290,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 keyForList: value.name,
                 name: getDecodedCategoryName(value.name),
                 glCode: value['GL Code'],
+                payrollCode: value['Payroll Code'],
                 disabled: isDisabled,
                 approverAvatar,
                 approverAccountID,
@@ -714,6 +716,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         emptyStateSubtitleText={subtitleText}
                         emptyStateButtons={emptyStateButtons}
                         shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                        shouldShowPayrollCodeColumn={shouldShowPayrollCodeColumn}
                         shouldShowApproverColumn={shouldShowApproverColumn}
                         onRowSelectionChange={setSelectedCategoryKeys}
                         headerComponent={hasVisibleCategories ? headerContent : undefined}

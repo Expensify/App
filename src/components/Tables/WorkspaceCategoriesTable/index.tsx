@@ -19,11 +19,12 @@ import React from 'react';
 
 import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
 
-type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
+type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'payrollCode' | 'approver' | 'enabled' | 'actions';
 
 type WorkspaceCategoryTableRowData = TableData & {
     name: string;
     glCode?: string;
+    payrollCode?: string;
     enabled: boolean;
     approverAvatar?: AvatarSource;
     approverAccountID?: number;
@@ -44,6 +45,7 @@ type WorkspaceCategoriesTableProps = {
     categories: WorkspaceCategoryTableRowData[];
     selectionEnabled: boolean;
     shouldShowGLCodeColumn: boolean;
+    shouldShowPayrollCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     selectedKeys: string[];
     emptyStateSubtitleText: React.ReactNode;
@@ -58,6 +60,7 @@ export default function WorkspaceCategoriesTable({
     selectedKeys,
     selectionEnabled,
     shouldShowGLCodeColumn,
+    shouldShowPayrollCodeColumn,
     shouldShowApproverColumn,
     emptyStateSubtitleText,
     emptyStateButtons,
@@ -83,6 +86,15 @@ export default function WorkspaceCategoriesTable({
                   {
                       key: 'glCode' as const,
                       label: translate('workspace.categories.glCode'),
+                      sortable: true,
+                  },
+              ]
+            : []),
+        ...(shouldShowPayrollCodeColumn
+            ? [
+                  {
+                      key: 'payrollCode' as const,
+                      label: translate('workspace.categories.payrollCode'),
                       sortable: true,
                   },
               ]
@@ -134,12 +146,18 @@ export default function WorkspaceCategoriesTable({
             return localeCompare(glCode1, glCode2) * orderMultiplier;
         }
 
+        if (activeSorting.columnKey === 'payrollCode') {
+            const payrollCode1 = item1.payrollCode ?? '';
+            const payrollCode2 = item2.payrollCode ?? '';
+            return localeCompare(payrollCode1, payrollCode2) * orderMultiplier;
+        }
+
         return localeCompare(item1.name, item2.name) * orderMultiplier;
     };
 
     const isItemInSearch: IsItemInSearchCallback<WorkspaceCategoryTableRowData> = (item, searchValue) => {
         const searchLower = searchValue.toLowerCase();
-        const results = tokenizedSearch([item], searchLower, (option) => [option.name, option.glCode ?? '']);
+        const results = tokenizedSearch([item], searchLower, (option) => [option.name, option.glCode ?? '', option.payrollCode ?? '']);
         return results.length > 0;
     };
 
@@ -148,6 +166,7 @@ export default function WorkspaceCategoriesTable({
             item={item}
             rowIndex={index}
             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+            shouldShowPayrollCodeColumn={shouldShowPayrollCodeColumn}
             shouldShowApproverColumn={shouldShowApproverColumn}
             shouldUseNarrowTableLayout={shouldUseNarrowLayout || isMediumScreenWidth}
         />
