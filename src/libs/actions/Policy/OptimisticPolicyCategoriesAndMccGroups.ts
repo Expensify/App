@@ -70,7 +70,7 @@ function buildOptimisticPolicyWithExistingCategories(policyID: string, categorie
 }
 
 function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
-    const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+    const optimisticCategoryMap = categories.reduce<Record<string, PolicyCategory>>((acc, category) => {
         acc[category] = {
             name: category,
             enabled: true,
@@ -124,7 +124,7 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
         ],
     };
 
-    return onyxData;
+    return {...onyxData, categories: optimisticCategoryMap};
 }
 
 const DEFAULT_MCC_GROUP: Record<string, MccGroup> = Object.fromEntries(
