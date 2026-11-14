@@ -19,6 +19,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
@@ -36,7 +37,6 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getReportAction} from '@libs/ReportActionsUtils';
 import {isHiddenForCurrentUser, isInvoiceReport, isMoneyRequestReport, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
@@ -231,6 +231,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const navigationSuggestions = useNavigationSuggestions(textInputValue, isSearchRouterActive);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
+    const contextualReportParentAction = useParentReportAction(contextualReport, {shouldIgnoreThreadReplies: true});
     const [contextualReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(contextualReport?.reportID)}`, {
         selector: pendingDeleteMemberAccountIDsSelector,
     });
@@ -271,8 +272,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             return undefined;
         }
         let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
-        const reportAction = getReportAction(contextualReport?.parentReportID, contextualReport?.parentReportActionID);
-        const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+        const shouldParserToHTML = !!contextualReportParentAction && contextualReportParentAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
         if (!reportForContextualSearch) {
             if (!contextualReport) {
                 return undefined;
