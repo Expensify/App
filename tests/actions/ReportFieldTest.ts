@@ -1,4 +1,6 @@
+import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import {getLatestError} from '@libs/ErrorUtils';
 import {generateFieldID} from '@libs/WorkspaceReportFieldUtils';
 
 import CONST from '@src/CONST';
@@ -61,6 +63,57 @@ describe('actions/ReportField', () => {
     });
 
     describe('createReportField', () => {
+        it.each(['New Field', 'Failed Field'])('does not count failed adds when assigning the order of %s', async (name) => {
+            // Given valid, failed, and offline fields, including a possible retry with the same name
+            const field = {
+                name: 'Valid Field',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: '',
+                values: [],
+                disabledOptions: [],
+                fieldID: generateFieldID('Valid Field'),
+                orderWeight: 1,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+            };
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                fieldList: {
+                    [ReportUtils.getReportFieldKey(field.fieldID)]: field,
+                    [ReportUtils.getReportFieldKey(generateFieldID('Failed Field'))]: {
+                        ...field,
+                        name: 'Failed Field',
+                        fieldID: generateFieldID('Failed Field'),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        errors: {[DateUtils.getMicroseconds()]: 'Creation failed'},
+                    },
+                    [ReportUtils.getReportFieldKey(generateFieldID('Offline Field'))]: {
+                        ...field,
+                        name: 'Offline Field',
+                        fieldID: generateFieldID('Offline Field'),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When creating or retrying a field while the request is pending
+            mockFetch.pause();
+            ReportField.createReportField({policy: fakePolicy, name, type: CONST.REPORT_FIELD_TYPES.TEXT, initialValue: '', listValues: [], disabledListValues: [], policyReportIDs: []});
+            await waitForBatchedUpdates();
+
+            // Then only the valid and offline fields contribute to the new position
+            const policy = await connectToFetchPolicy(fakePolicy.id);
+            expect(policy?.fieldList?.[ReportUtils.getReportFieldKey(generateFieldID(name))]?.orderWeight).toBe(3);
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD).at(0)?.[1]?.body;
+            const reportFields = body instanceof FormData ? body.get('reportFields') : null;
+            expect(reportFields).toContain('"orderWeight":3');
+        });
+
         afterEach(() => {
             // Make sure paused fetches don’t leak between tests
             mockFetch?.resume?.();
@@ -230,6 +283,186 @@ describe('actions/ReportField', () => {
             // Check if the policy pending action was cleared
             expect(policy?.fieldList?.[reportFieldKey].pendingAction).toBeFalsy();
         });
+
+        it('keeps the failed report field with an error until the error is dismissed', async () => {
+            // Given a workspace with a report title error
+            const reportFieldName = 'Test Field';
+            const reportFieldID = generateFieldID(reportFieldName);
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+            const titleErrors = {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: 'Title error'};
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                fieldList: {},
+                errorFields: {fieldList: titleErrors},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When creating a report field fails on the server
+            mockFetch.pause();
+            ReportField.createReportField({
+                policy: fakePolicy,
+                name: reportFieldName,
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                initialValue: '{field:DoesNotExist}',
+                listValues: [],
+                disabledListValues: [],
+                policyReportIDs: [],
+            });
+            await waitForBatchedUpdates();
+            mockFetch.fail();
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the field stays in the list with its error so the user can see which field failed, and the title error is kept
+            let policy = await connectToFetchPolicy(fakePolicy.id);
+            expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(policy?.fieldList?.[reportFieldKey]?.errors).toBeTruthy();
+            expect(policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]).toBe(titleErrors[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
+
+            // When an unrelated policy action clears the shared errors
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {errorFields: null});
+            policy = await connectToFetchPolicy(fakePolicy.id);
+
+            // Then the field remains failed and excluded from report fields even without policy errors
+            expect(policy?.fieldList?.[reportFieldKey]?.errors).toBeTruthy();
+            expect(ReportUtils.isFailedReportFieldAdd(policy?.fieldList?.[reportFieldKey])).toBe(true);
+            expect(ReportUtils.getReportFieldsWithoutFailedAdds(policy?.fieldList)).toEqual({});
+
+            // When the user dismisses the error
+            ReportField.clearReportFieldErrors(policy, reportFieldID);
+            await waitForBatchedUpdates();
+
+            // Then the failed field and its errors are removed without recreating shared errors
+            policy = await connectToFetchPolicy(fakePolicy.id);
+            expect(policy?.fieldList?.[reportFieldKey]).toBeUndefined();
+            expect(policy?.errorFields).toBeFalsy();
+        });
+    });
+
+    it.each([false, true])('keeps the latest field-local server error and clears it on retry (invoice: %p)', async (isInvoiceField) => {
+        // Given a failed field creation with a detailed server error in the new response location
+        const fakePolicy = createRandomPolicy(0);
+        const name = 'Invalid Formula Field';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+        const reportFieldID = generateFieldID(name, isInvoiceField ? CONST.REPORT_FIELD_TARGETS.INVOICE : undefined);
+        const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+        const command = isInvoiceField ? WRITE_COMMANDS.CREATE_WORKSPACE_INVOICE_FIELD : WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD;
+        const serverErrorTime = DateUtils.getMicroseconds() + 1000000;
+        const serverMessage = 'Formula field {field:DoesNotExist} not recognized';
+        mockFetch.mockAPICommand(command, () => ({
+            jsonCode: 400,
+            onyxData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    value: {fieldList: {[fieldKey]: {errors: {[serverErrorTime]: serverMessage}}}},
+                },
+            ],
+        }));
+        const args: CreateReportFieldParams = {
+            policy: fakePolicy,
+            name,
+            type: CONST.REPORT_FIELD_TYPES.TEXT,
+            initialValue: '{field:DoesNotExist}',
+            listValues: [],
+            disabledListValues: [],
+            policyReportIDs: [],
+            isInvoiceField,
+        };
+
+        // When the server rejects the formula
+        ReportField.createReportField(args);
+        await waitForBatchedUpdates();
+        let policy = await connectToFetchPolicy(fakePolicy.id);
+
+        // Then the detailed server error wins over the generic failure fallback
+        expect(getLatestError(policy?.fieldList?.[fieldKey]?.errors ?? undefined)).toEqual({[serverErrorTime]: serverMessage});
+        expect(ReportUtils.isFailedReportFieldAdd(policy?.fieldList?.[fieldKey])).toBe(true);
+
+        // When the user retries with a valid value and the same name
+        mockFetch.mockAPICommand(command, () => ({jsonCode: 200}));
+        mockFetch.pause();
+        ReportField.createReportField({...args, policy, initialValue: 'Valid value'});
+        await waitForBatchedUpdates();
+        policy = await connectToFetchPolicy(fakePolicy.id);
+
+        // Then stale errors are cleared immediately and remain cleared after success
+        expect(policy?.fieldList?.[fieldKey]?.defaultValue).toBe('Valid value');
+        expect(policy?.fieldList?.[fieldKey]?.errors).toBeFalsy();
+        expect(ReportUtils.isFailedReportFieldAdd(policy?.fieldList?.[fieldKey])).toBe(false);
+        mockFetch.resume();
+        await waitForBatchedUpdates();
+        policy = await connectToFetchPolicy(fakePolicy.id);
+        expect(policy?.fieldList?.[fieldKey]?.errors).toBeFalsy();
+        expect(policy?.fieldList?.[fieldKey]?.pendingAction).toBeFalsy();
+    });
+
+    describe('clearReportFieldErrors', () => {
+        it.each([undefined, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD])('keeps an error-free field with pending action %s when clearing errors', async (pendingAction) => {
+            // Given an existing field or an offline add that has not failed
+            const reportField: OnyxValueWithOfflineFeedback<PolicyReportField> = {
+                name: 'Offline Field',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: '',
+                values: [],
+                disabledOptions: [],
+                fieldID: generateFieldID('Offline Field'),
+                orderWeight: 1,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+                ...(pendingAction ? {pendingAction} : {}),
+            };
+            const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+            const fakePolicy = {...createRandomPolicy(0), fieldList: {[fieldKey]: reportField}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When a caller clears errors before creation has completed
+            ReportField.clearReportFieldErrors(fakePolicy, reportField.fieldID);
+            await waitForBatchedUpdates();
+
+            // Then the field and its pending action remain intact
+            const policy = await connectToFetchPolicy(fakePolicy.id);
+            expect(policy?.fieldList?.[fieldKey]).toEqual(reportField);
+        });
+
+        it('clears the errors of an existing report field without removing it', async () => {
+            // Given an existing report field whose initial value update was rejected by the server
+            const reportFieldName = 'Test Field';
+            const reportFieldID = generateFieldID(reportFieldName);
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+            const reportField: PolicyReportField = {
+                name: reportFieldName,
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: 'Default Value',
+                values: [],
+                disabledOptions: [],
+                fieldID: reportFieldID,
+                orderWeight: 1,
+                deletable: false,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+            };
+            const errorKey = DateUtils.getMicroseconds();
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                fieldList: {[reportFieldKey]: {...reportField, errors: {[errorKey]: 'Formula field {field:DoesNotExist} not recognized'}}},
+                errorFields: {fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: 'Title error'}},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When the user dismisses the error
+            ReportField.clearReportFieldErrors(fakePolicy, reportFieldID);
+            await waitForBatchedUpdates();
+
+            // Then the error is cleared and the field is kept, because it already exists on the server
+            const policy = await connectToFetchPolicy(fakePolicy.id);
+            expect(policy?.fieldList?.[reportFieldKey]).toEqual(reportField);
+            expect(policy?.fieldList?.[reportFieldKey]?.errors).toBeFalsy();
+            expect(policy?.errorFields).toEqual(fakePolicy.errorFields);
+        });
     });
 
     it('optimistically treats Text type with formula-like initial value as Formula', async () => {
@@ -372,6 +605,61 @@ describe('actions/ReportField', () => {
                 [reportFieldKey]: fakeReportField,
             });
         });
+
+        it('leaves a report field that failed to be created out of the request and keeps its error', async () => {
+            // Given a workspace with a field to delete and a field that failed to be created, which is still pending ADD with its error
+            const reportFieldToDelete: PolicyReportField = {
+                name: 'Field To Delete',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: 'Default Value',
+                values: [],
+                disabledOptions: [],
+                fieldID: generateFieldID('Field To Delete'),
+                orderWeight: 1,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+            };
+            const failedReportField: OnyxValueWithOfflineFeedback<PolicyReportField> = {
+                ...reportFieldToDelete,
+                name: 'Failed Field',
+                defaultValue: '{field:DoesNotExist}',
+                fieldID: generateFieldID('Failed Field'),
+                orderWeight: 2,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                errors: {[DateUtils.getMicroseconds()]: 'Formula field {field:DoesNotExist} not recognized'},
+            };
+            const reportFieldToDeleteKey = ReportUtils.getReportFieldKey(reportFieldToDelete.fieldID);
+            const failedReportFieldKey = ReportUtils.getReportFieldKey(failedReportField.fieldID);
+            const titleError = 'Invalid report title';
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                errorFields: {fieldList: {[DateUtils.getMicroseconds()]: 'Earlier delete failed', [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleError}},
+                fieldList: {
+                    [reportFieldToDeleteKey]: reportFieldToDelete,
+                    [failedReportFieldKey]: failedReportField,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When the user deletes the other field before dismissing the error
+            ReportField.deleteReportFields({policy: fakePolicy, reportFieldsToUpdate: [reportFieldToDeleteKey]});
+            await waitForBatchedUpdates();
+
+            // Then the failed field isn't sent to the server as a remaining field, because it was never created there
+            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD).at(0)?.[1]?.body;
+            const reportFields = body instanceof FormData ? body.get('reportFields') : null;
+            expect(reportFields).toBe(JSON.stringify([]));
+
+            // Then the failed field keeps its error, so it's still treated as failed until the error is dismissed
+            const policy = await connectToFetchPolicy(fakePolicy.id);
+            expect(policy?.fieldList?.[reportFieldToDeleteKey]).toBeUndefined();
+            expect(policy?.fieldList?.[failedReportFieldKey]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(policy?.fieldList?.[failedReportFieldKey]?.errors).toEqual(failedReportField.errors);
+            expect(ReportUtils.isFailedReportFieldAdd(policy?.fieldList?.[failedReportFieldKey])).toBe(true);
+            expect(policy?.errorFields?.fieldList).toEqual({[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleError});
+        });
     });
 
     describe('updateReportFieldInitialValue', () => {
@@ -476,11 +764,24 @@ describe('actions/ReportField', () => {
             policy = await connectToFetchPolicy(fakePolicy.id);
 
             // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
-                [reportFieldKey]: reportField,
-            });
-            // Check if the policy errors was set
-            expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
+            expect(policy?.fieldList?.[reportFieldKey]).toMatchObject(reportField);
+            expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
+            expect(policy?.fieldList?.[reportFieldKey]?.errors).toBeTruthy();
+
+            // When the user retries the existing field update with a valid value
+            mockFetch.succeed();
+            mockFetch.pause();
+            ReportField.updateReportFieldInitialValue({policy, reportFieldID, newInitialValue: 'Valid value'});
+            await waitForBatchedUpdates();
+            policy = await connectToFetchPolicy(fakePolicy.id);
+
+            // Then retry clears the old error optimistically and success keeps it cleared
+            expect(policy?.fieldList?.[reportFieldKey]?.errors).toBeFalsy();
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+            policy = await connectToFetchPolicy(fakePolicy.id);
+            expect(policy?.fieldList?.[reportFieldKey]?.errors).toBeFalsy();
+            expect(policy?.fieldList?.[reportFieldKey]?.defaultValue).toBe('Valid value');
         });
 
         it('reverts optimistic type to text when new initial value is non-formula', async () => {

@@ -61,7 +61,7 @@ import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValue
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, Icon, OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
     OriginalMessageChangePolicy,
     OriginalMessageExportIntegration,
@@ -5858,6 +5858,23 @@ function getReportFieldKey(reportFieldId: string | undefined) {
 }
 
 /**
+ * Whether a policy report field failed to be created. It stays on the policy, pending ADD with an error, until the error
+ * is dismissed. Fields still pending ADD without an error (for example, created offline) haven't failed.
+ */
+function isFailedReportFieldAdd(reportField: OnyxValueWithOfflineFeedback<PolicyReportField> | undefined): boolean {
+    return reportField?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(reportField.errors);
+}
+
+/**
+ * Get the policy report fields without the ones that failed to be created
+ */
+function getReportFieldsWithoutFailedAdds<TReportField extends OnyxValueWithOfflineFeedback<PolicyReportField>>(
+    fieldList: Record<string, TReportField> | undefined,
+): Record<string, TReportField> {
+    return Object.fromEntries(Object.entries(fieldList ?? {}).filter(([, reportField]) => !isFailedReportFieldAdd(reportField)));
+}
+
+/**
  * Get the report fields attached to the policy given policyID
  */
 function getReportFieldsByPolicyID(policy: OnyxEntry<Policy>): Policy['fieldList'] {
@@ -5880,7 +5897,7 @@ function getReportFieldsByPolicyID(policy: OnyxEntry<Policy>): Policy['fieldList
  * Get the report fields that we should display a MoneyReportView gets opened
  */
 
-function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields: PolicyReportField[]): PolicyReportField[] {
+function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields: Array<OnyxValueWithOfflineFeedback<PolicyReportField>>): PolicyReportField[] {
     // Get the report fields that are attached to a report. These will persist even if a field is deleted from the policy.
     const reportFields = Object.values(report?.fieldList ?? {});
     const reportIsSettled = isSettled(report?.reportID);
@@ -5892,7 +5909,10 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
 
     // If the report is unsettled, we want to merge the new fields that get added to the policy with the fields that
     // are attached to the report.
-    const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
+    // Policy fields that failed to be created are skipped.
+    const reportFieldIDs = new Set(reportFields.map(({fieldID}) => fieldID));
+    const availablePolicyReportFields = policyReportFields.filter((policyReportField) => !isFailedReportFieldAdd(policyReportField));
+    const mergedFieldIds = Array.from(new Set([...availablePolicyReportFields.map(({fieldID}) => fieldID), ...reportFieldIDs]));
 
     const fields = mergedFieldIds.map((id) => {
         const field = report?.fieldList?.[getReportFieldKey(id)] ?? report?.fieldList?.[id];
@@ -8306,7 +8326,7 @@ function buildOptimisticIOUReport(
         parentReportID: chatReportID,
         created,
         lastVisibleActionCreated: created,
-        fieldList: policy?.fieldList,
+        fieldList: policy?.fieldList ? getReportFieldsWithoutFailedAdds(policy.fieldList) : undefined,
         parentReportActionID,
     };
 }
@@ -8531,7 +8551,7 @@ function buildOptimisticExpenseReport({
     }
     // Otherwise, keep the default format: `${policyName} owes ${formattedTotal}`
 
-    expenseReport.fieldList = policy?.fieldList;
+    expenseReport.fieldList = policy?.fieldList ? getReportFieldsWithoutFailedAdds(policy.fieldList) : undefined;
 
     return expenseReport;
 }
@@ -16029,6 +16049,8 @@ export {
     getReimbursementQueuedActionMessage,
     getReportDescription,
     getReportFieldKey,
+    getReportFieldsWithoutFailedAdds,
+    isFailedReportFieldAdd,
     getReportFieldMaps,
     getReportIDFromLink,
     getReportTransactions,

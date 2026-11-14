@@ -151,6 +151,7 @@ import {
     getReportActionWithSmartscanError,
     getReportFieldMaps,
     getReportFieldsByPolicyID,
+    getReportFieldsWithoutFailedAdds,
     getReportForHeader,
     getReportIDFromLink,
     getReportNotificationPreference,
@@ -20717,6 +20718,34 @@ describe('ReportUtils', () => {
             expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
 
+        it('should leave report fields that failed to be created out of the report field list', async () => {
+            // Given a policy with a saved field and a field that failed to be created, which is still pending ADD with its error
+            const policyID = '3';
+            const baseField = createMock<PolicyReportField>({type: CONST.REPORT_FIELD_TYPES.TEXT, values: [], disabledOptions: [], defaultValue: ''});
+            const savedField = {...baseField, fieldID: 'field_id_SAVED', name: 'Saved'};
+            const failedField = {...baseField, fieldID: 'field_id_FAILED', name: 'Failed', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: {1: 'Error'}};
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                fieldList: {expensify_field_id_SAVED: savedField, expensify_field_id_FAILED: failedField},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            // When an expense report is built before the error is dismissed
+            const expenseReport = buildOptimisticExpenseReport({
+                rules: undefined,
+                chatReportID: undefined,
+                policyID,
+                payeeAccountID: 1,
+                total: 100,
+                currency: CONST.CURRENCY.USD,
+                isASAPSubmitBetaEnabled: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then only the saved field is copied to the report, because the failed field doesn't exist on the server
+            expect(Object.keys(expenseReport.fieldList ?? {})).toEqual(['expensify_field_id_SAVED']);
+        });
+
         it('should keep the English workspace fallback in the report name when another locale is loaded', async () => {
             // Given a chat report that cannot be resolved, so the report name falls back to the "unavailable workspace" copy
             const chatReportID = '9999';
@@ -24479,6 +24508,92 @@ describe('ReportUtils', () => {
                 },
             ]);
             expect(getAvailableReportFields(report, policyFieldList)).toEqual(expectedFieldList);
+        });
+
+        it('should skip policy fields that failed to be created', async () => {
+            // Given an unsettled report and a policy field that failed to be created, so it is still pending ADD on the policy with an error and was removed from the report
+            const report = createMock<Report>({
+                reportID: '3',
+                policyID: '1',
+                fieldList: fieldList1,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const failedPolicyField = {...fieldList2.expensify_field_id_LIST_POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: {1: 'Error'}};
+
+            // When getting the available report fields
+            const availableFields = getAvailableReportFields(report, [failedPolicyField]);
+
+            // Then the failed field is not shown on the report
+            expect(availableFields).toEqual(Object.values(fieldList1));
+        });
+
+        it('should keep policy fields pending ADD without an error that are not on the report', async () => {
+            // Given a report created after a field was added offline, so the field is pending ADD on the policy, has no error, and was never written to this report
+            const report = createMock<Report>({
+                reportID: 'reportCreatedAfterOfflineFieldAdd',
+                policyID: '1',
+                fieldList: {},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const pendingPolicyField = {...fieldList2.expensify_field_id_LIST_POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+
+            // When getting the available report fields
+            const availableFields = getAvailableReportFields(report, [pendingPolicyField]);
+
+            // Then the pending field is still shown, because it hasn't failed
+            expect(availableFields.map(({fieldID}) => fieldID)).toEqual(['field_id_LIST_POLICY']);
+        });
+
+        it('should keep policy fields pending ADD that are already on the report', async () => {
+            // Given an unsettled report that has an optimistically added field, which is also pending ADD on the policy
+            const report = createMock<Report>({
+                reportID: '4',
+                policyID: '1',
+                fieldList: fieldList1,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const pendingPolicyField = {...fieldList1.expensify_field_id_LIST, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+
+            // When getting the available report fields
+            const availableFields = getAvailableReportFields(report, [pendingPolicyField]);
+
+            // Then the optimistic field is still shown on the report
+            expect(availableFields.map(({fieldID}) => fieldID)).toEqual(['field_id_LIST']);
+        });
+    });
+
+    describe('getReportFieldsWithoutFailedAdds', () => {
+        const baseField = createMock<PolicyReportField>({type: 'text', values: [], disabledOptions: [], defaultValue: ''});
+        const savedField = {...baseField, fieldID: 'field_id_SAVED', name: 'Saved'};
+        const offlineField = {...baseField, fieldID: 'field_id_OFFLINE', name: 'Offline', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        const failedField = {...baseField, fieldID: 'field_id_FAILED', name: 'Failed', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: {1: 'Error'}};
+        const updateFailedField = {...baseField, fieldID: 'field_id_UPDATE_FAILED', name: 'Update failed', errors: {2: 'Error'}};
+        const fieldList = {
+            expensify_field_id_SAVED: savedField,
+            expensify_field_id_OFFLINE: offlineField,
+            expensify_field_id_FAILED: failedField,
+            expensify_field_id_UPDATE_FAILED: updateFailedField,
+        };
+
+        it('should leave out only the fields that failed to be created', () => {
+            // Given a policy with a saved field, a field added offline, a field whose creation failed, and an existing field whose update failed
+
+            // When removing the failed adds
+            const fields = getReportFieldsWithoutFailedAdds(fieldList);
+
+            // Then only the field whose creation failed is left out, because it doesn't exist on the server. The others do, or are still being created.
+            expect(Object.keys(fields)).toEqual(['expensify_field_id_SAVED', 'expensify_field_id_OFFLINE', 'expensify_field_id_UPDATE_FAILED']);
+        });
+
+        it.each([undefined, null, {}])('should keep pending adds with empty errors: %p', (errors) => {
+            // Given a pending field whose creation has not failed
+            const pendingFieldList = {expensify_field_id_OFFLINE: {...offlineField, errors}};
+
+            // When removing failed adds without relying on shared policy errors
+            const fields = getReportFieldsWithoutFailedAdds(pendingFieldList);
+
+            // Then no field is left out, because a pending ADD without an error hasn't failed
+            expect(fields).toEqual(pendingFieldList);
         });
     });
 

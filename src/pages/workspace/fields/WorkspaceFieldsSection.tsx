@@ -16,15 +16,17 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
+import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
+import {isFailedReportFieldAdd} from '@libs/ReportUtils';
 import {getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
+import {clearReportFieldErrors, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
@@ -34,7 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import {authTokenTypeSelector} from '@src/selectors/Session';
 import type {Policy, PolicyConnectionName} from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -49,7 +51,9 @@ type FieldListValue = NonNullable<Policy['fieldList']>[string];
 
 type FieldListItem = {
     fieldID: string;
+    errors: Errors;
     isDisabled: boolean;
+    isFailedAdd: boolean;
     keyForList: string;
     pendingAction?: PendingAction;
     rightLabel: string;
@@ -150,12 +154,15 @@ function WorkspaceFieldsSection({
                   keyForList: String(field.fieldID),
                   fieldID: field.fieldID,
                   pendingAction: field.pendingAction,
+                  errors: getLatestError(field.errors ?? undefined),
                   isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                  isFailedAdd: isFailedReportFieldAdd(field),
                   rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
               }));
 
     const navigateToFieldSettings = (item: FieldListItem) => {
-        if (!canWrite) {
+        // A field that failed to be created doesn't exist on the server, so its settings can't be saved. The user dismisses the error instead.
+        if (!canWrite || item.isFailedAdd) {
             return;
         }
 
@@ -163,11 +170,17 @@ function WorkspaceFieldsSection({
     };
 
     const renderItem = ({item}: ListRenderItemInfo<FieldListItem>) => (
-        <OfflineWithFeedback pendingAction={item.pendingAction}>
+        <OfflineWithFeedback
+            pendingAction={item.pendingAction}
+            errors={item.errors}
+            errorRowStyles={cardPaddingHorizontal}
+            errorRowTextStyles={styles.mv2}
+            onClose={() => clearReportFieldErrors(policy, item.fieldID)}
+        >
             <MenuItem.Root
                 sentryLabel={rowSentryLabel}
                 style={cardPaddingHorizontal}
-                onPress={!item.isDisabled && canWrite ? callIfAuthenticated(() => navigateToFieldSettings(item), session) : undefined}
+                onPress={!item.isDisabled && !item.isFailedAdd && canWrite ? callIfAuthenticated(() => navigateToFieldSettings(item), session) : undefined}
                 isDisabled={item.isDisabled}
             >
                 <MenuItem.Row>
@@ -176,7 +189,7 @@ function WorkspaceFieldsSection({
                     </MenuItem.Content>
                     <MenuItem.Trailing>
                         <MenuItem.RightLabel>{item.rightLabel}</MenuItem.RightLabel>
-                        {!item.isDisabled && canWrite && <MenuItem.Chevron />}
+                        {!item.isDisabled && !item.isFailedAdd && canWrite && <MenuItem.Chevron />}
                     </MenuItem.Trailing>
                 </MenuItem.Row>
             </MenuItem.Root>

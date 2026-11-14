@@ -3794,6 +3794,9 @@ type PolicyReportFieldType = 'text' | 'date' | 'dropdown' | 'formula';
 type PolicyReportField = {
     name: string;
 
+    /** Field-level validation or request errors keyed by microtime, independent of shared policy errors. */
+    errors?: OnyxCommon.Errors | null;
+
     /** Default value assigned to the field */
     defaultValue: string;
 
