@@ -7290,7 +7290,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     statementCloseDateRequired: 'Seleziona una data di chiusura dell’estratto conto.',
                 },
                 corporate: 'Limita l’eliminazione delle transazioni',
-                personal: 'Consenti ai titolari di carta di eliminare le transazioni',
+                personal: 'Permetti ai titolari di carta di eliminare le transazioni',
                 setFeedNameDescription: 'Dai al feed della carta un nome univoco così potrai distinguerlo dagli altri',
                 setTransactionLiabilityDescription: 'Si applica solo alle nuove transazioni. Gli amministratori possono eliminare le transazioni con questa impostazione disattivata.',
                 emptyAddedFeedTitle: 'Nessuna carta in questo feed',
