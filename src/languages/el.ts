@@ -2736,6 +2736,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Διαχειριστείτε όλες τις συσκευές στις οποίες έχετε συνδεθεί με τον λογαριασμό σας Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Μάθετε περισσότερα</a>.',
         revoke: 'Ανακαλέστε',
         unknownDevice: 'Άγνωστη συσκευή',
+        signOutAllDevices: 'Αποσύνδεση από όλες τις συσκευές',
+        signOutAllDevicesConfirmation: 'Θα αποσυνδεθείτε από όλες τις συσκευές, συμπεριλαμβανομένης αυτής. Θα χρειαστεί να συνδεθείτε ξανά για να χρησιμοποιήσετε το Expensify.',
+        signOutAllDevicesError: 'Δεν μπορέσαμε να σας αποσυνδέσουμε από όλες τις συσκευές. Δοκιμάστε ξανά.',
+        signOutAllDevicesSuccess: 'Αποσυνδεθήκατε από όλες τις συσκευές.',
     },
     twoFactorAuth: {
         headerTitle: 'Έλεγχος ταυτότητας δύο παραγόντων',

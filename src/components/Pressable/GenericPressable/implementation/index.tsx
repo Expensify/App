@@ -50,6 +50,7 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             role={shouldRenderAsNonNativeButton ? undefined : role}
             id={props.id}
             aria-label={props.accessibilityLabel}
+            aria-busy={props['aria-busy'] ?? props.accessibilityState?.busy}
             aria-labelledby={props.accessibilityLabelledBy}
             aria-valuenow={props.accessibilityValue?.now}
             aria-valuemin={props.accessibilityValue?.min}

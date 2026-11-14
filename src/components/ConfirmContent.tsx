@@ -239,6 +239,7 @@ function ConfirmContent({
                             onPress={onConfirm}
                             size={CONST.BUTTON_SIZE.LARGE}
                             accessibilityLabel={confirmText || translate('common.yes')}
+                            accessibilityState={{busy: !!isConfirmLoading}}
                             isDisabled={(isOffline && shouldDisableConfirmButtonWhenOffline) || isConfirmDisabled}
                             isLoading={isConfirmLoading}
                             sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CONFIRM_BUTTON}
@@ -272,6 +273,7 @@ function ConfirmContent({
                             variant={confirmButtonVariant}
                             style={[styles.flex1]}
                             onPress={onConfirm}
+                            accessibilityState={{busy: !!isConfirmLoading}}
                             isDisabled={(isOffline && shouldDisableConfirmButtonWhenOffline) || isConfirmDisabled}
                             isLoading={isConfirmLoading}
                             sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CONFIRM_BUTTON}

@@ -2574,6 +2574,10 @@ const translations: TranslationDeepObject<typeof en> = {
         description: '管理所有已使用你的 Expensify 账户登录的设备。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">了解详情</a>.',
         revoke: '撤销',
         unknownDevice: '未知设备',
+        signOutAllDevices: '退出所有设备上的登录',
+        signOutAllDevicesConfirmation: '你将退出所有设备上的登录，包括此设备。你需要重新登录才能使用 Expensify。',
+        signOutAllDevicesError: '我们无法退出你在所有设备上的登录。请重试。',
+        signOutAllDevicesSuccess: '你已退出所有设备上的登录。',
     },
     twoFactorAuth: {
         headerTitle: '双重身份验证',
