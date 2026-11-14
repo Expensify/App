@@ -1570,9 +1570,9 @@ type OriginalMessageCompanyCardConsentExpiring = {
     policyID?: string;
 
     /** The feed's internal name */
-    bank?: string;
+    bank?: CompanyCardFeedWithNumber;
 
-    /** The feed's display name */
+    /** The feed's custom name, or its internal name when the feed has no custom name */
     feedName?: string;
 
     /** Unix timestamp for the consent period that created this warning */

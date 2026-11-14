@@ -6157,10 +6157,10 @@ function getCompanyCardConnectionBroken30DaysMessage(translate: LocalizedTransla
 
 function getCompanyCardConsentExpiringMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
     const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING) ? getOriginalMessage(action) : undefined;
-    const {feedName = 'company', policyID = '', warningDaysBeforeExpiry = 0} = originalMessage ?? {};
+    const {feedName = 'company', bank, policyID = '', warningDaysBeforeExpiry = 0} = originalMessage ?? {};
     const workspaceCompanyCardRoute = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}` : '';
     return translate('report.actions.type.companyCardConsentExpiring', {
-        feedName,
+        feedName: getCompanyCardConnectionBrokenFeedName(translate, feedName, bank),
         warningDaysBeforeExpiry,
         workspaceCompanyCardRoute,
     });
