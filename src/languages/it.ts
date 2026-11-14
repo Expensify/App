@@ -11197,6 +11197,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         success: {
             title: 'Scaricato!',
             message: 'Allegato scaricato correttamente!',
+            open: 'Apri',
             qrMessage:
                 'Controlla la cartella delle foto o dei download per una copia del tuo codice QR. Suggerimento: aggiungilo a una presentazione così il tuo pubblico potrà scannerizzarlo e connettersi direttamente con te.',
         },

@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
-import fileDownload from '@libs/fileDownload';
+import downloadAttachmentFile from '@libs/fileDownload/downloadAttachmentFile';
 import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
@@ -158,7 +158,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
                     sentryLabel={CONST.SENTRY_LABEL.DOT_INDICATOR_MESSAGE.DOWNLOAD_RECEIPT}
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={() => {
-                        fileDownload(translate, receiptError.source, receiptError.filename);
+                        downloadAttachmentFile(translate, receiptError.source, receiptError.filename ?? '', false);
                     }}
                 >
                     <Button.Icon src={expensifyIcons.Download} />

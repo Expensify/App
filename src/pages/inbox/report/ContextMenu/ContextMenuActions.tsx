@@ -16,7 +16,7 @@ import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
 import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
-import fileDownload from '@libs/fileDownload';
+import downloadAttachmentFile from '@libs/fileDownload/downloadAttachmentFile';
 import {getDownloadFileName} from '@libs/fileDownload/FileUtils';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
@@ -1774,12 +1774,19 @@ const ContextMenuActions: ContextMenuAction[] = [
             setDownload(sourceID, true);
             const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
             const isAnchorTag = anchorRegex.test(html);
-            fileDownload(translate, sourceURLWithAuth, getDownloadFileName(originalFileName ?? '', sourceURL ?? ''), '', isAnchorTag && isMobileSafari()).then(() =>
-                setDownload(sourceID, false),
-            );
-            if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            const startDownload = () =>
+                downloadAttachmentFile(translate, sourceURLWithAuth, getDownloadFileName(originalFileName ?? '', sourceURL ?? ''), undefined, isAnchorTag && isMobileSafari()).then(() =>
+                    setDownload(sourceID, false),
+                );
+            if (!closePopover) {
+                startDownload();
+                return;
             }
+            // The iOS share sheet can't be presented while the context menu is still closing, so the download starts once it is hidden
+            hideContextMenu(true, () => {
+                startDownload();
+                ReportActionComposeFocusManager.focus();
+            });
         },
         getDescription: () => {},
         shouldDisable: (download) => download?.isDownloading ?? false,

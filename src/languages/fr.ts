@@ -11280,6 +11280,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         success: {
             title: 'Téléchargement effectué !',
             message: 'Pièce jointe téléchargée avec succès !',
+            open: 'Ouvrir',
             qrMessage:
                 'Vérifiez vos dossiers de photos ou de téléchargements pour une copie de votre code QR. Astuce : ajoutez-le à une présentation pour que votre audience puisse le scanner et se connecter directement avec vous.',
         },

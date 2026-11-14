@@ -26,16 +26,18 @@ import getImageResolution from './getImageResolution';
 /**
  * Show alert on successful attachment download
  * @param successMessage
+ * @param onOpen when given, the alert also offers to open the saved file
  */
-function showSuccessAlert(translate: LocalizedTranslate, successMessage?: string) {
+function showSuccessAlert(translate: LocalizedTranslate, successMessage?: string, onOpen?: () => void) {
     Alert.alert(
         translate('fileDownload.success.title'),
         // successMessage can be an empty string and we want to default to `Localize.translate('fileDownload.success.message')`
         successMessage || translate('fileDownload.success.message'),
         [
+            ...(onOpen ? [{text: translate('fileDownload.success.open'), onPress: onOpen}] : []),
             {
                 text: translate('common.ok'),
-                style: 'cancel',
+                style: 'cancel' as const,
             },
         ],
         {cancelable: false},
@@ -225,21 +227,25 @@ function appendExtensionFromMimeType(fileName: string, mimeType: string | undefi
     return fileExtension ? `${fileName}.${fileExtension}` : fileName;
 }
 
+let mimeTypeByExtension: Map<string, string> | undefined;
+
 /**
- * Returns the MIME type for a given file extension.
+ * Returns the first MIME type mime-db registers for a file extension, e.g. `mp4` resolves to `video/mp4`.
  * Falls back to 'application/octet-stream' for unrecognized extensions.
+ * The extension map is built on first use because mime-db holds a few thousand entries.
  */
 function getMimeType(fileExtension: string): string {
-    const ext = fileExtension.toLowerCase();
-    const MIME_TYPES: Record<string, string> = {
-        txt: CONST.SHARE_FILE_MIMETYPE.TEXT,
-        csv: CONST.SHARE_FILE_MIMETYPE.CSV,
-        pdf: CONST.SHARE_FILE_MIMETYPE.PDF,
-        html: CONST.SHARE_FILE_MIMETYPE.HTML,
-        xml: CONST.SHARE_FILE_MIMETYPE.XML,
-        zip: CONST.SHARE_FILE_MIMETYPE.ZIP,
-    };
-    return MIME_TYPES[ext] ?? 'application/octet-stream';
+    if (!mimeTypeByExtension) {
+        mimeTypeByExtension = new Map();
+        for (const [mimeType, {extensions}] of Object.entries(mimeDb)) {
+            for (const extension of extensions ?? []) {
+                if (!mimeTypeByExtension.has(extension)) {
+                    mimeTypeByExtension.set(extension, mimeType);
+                }
+            }
+        }
+    }
+    return mimeTypeByExtension.get(fileExtension.toLowerCase()) ?? 'application/octet-stream';
 }
 
 /**
