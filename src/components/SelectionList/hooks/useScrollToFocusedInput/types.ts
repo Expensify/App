@@ -15,7 +15,7 @@ type UseScrollToFocusedInputResult = {
     scrollInputIntoView: (input: MeasurableInput) => void;
 };
 
-type UseScrollToFocusedInput = (listRef: RefObject<Pick<FlashListRef<unknown>, 'scrollToOffset'> | null>, isKeyboardShown: boolean) => UseScrollToFocusedInputResult;
+type UseScrollToFocusedInput = (listRef: RefObject<Pick<FlashListRef<unknown>, 'scrollToOffset'> | null>) => UseScrollToFocusedInputResult;
 
 // eslint-disable-next-line import/prefer-default-export
 export type {UseScrollToFocusedInput};

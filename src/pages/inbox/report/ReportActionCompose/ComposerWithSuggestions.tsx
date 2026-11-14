@@ -7,7 +7,7 @@ import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
-import useKeyboardState from '@hooks/useKeyboardState';
+import useKeyboardShownRef from '@hooks/useKeyboardShownRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -210,7 +210,7 @@ function ComposerWithSuggestions({
 }: ComposerWithSuggestionsProps) {
     const lastReportAction = useLastEditableAction(reportID);
     const route = useRoute();
-    const {isKeyboardShown} = useKeyboardState();
+    const isKeyboardShownRef = useKeyboardShownRef();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -557,7 +557,7 @@ function ComposerWithSuggestions({
 
     const handleKeyPress = (event: TextInputKeyPressEvent) => {
         const webEvent = event as unknown as KeyboardEvent;
-        if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
+        if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShownRef.current)) {
             return;
         }
 
