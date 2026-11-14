@@ -111,6 +111,25 @@ describe('InternationalDepositAccountContent completion navigation', () => {
         expect(nextPage).toHaveBeenCalledTimes(1);
     });
 
+    it('exits when confirmation loses focus before creation succeeds and then regains focus', () => {
+        // Given confirmation was covered by an edit while its creation request was still pending
+        const {rerender} = render(<TestFlow />);
+        jest.mocked(useIsFocused).mockReturnValue(false);
+        rerender(<TestFlow />);
+
+        // When creation succeeds while confirmation is unfocused, then confirmation regains focus
+        act(() => mockStep.mock.lastCall?.[0].onNext());
+        expect(goBackSpy).not.toHaveBeenCalled();
+        jest.mocked(useIsFocused).mockReturnValue(true);
+        rerender(<TestFlow />);
+
+        // Then the completed flow exits rather than allowing the same account to be submitted again
+        expect(goBackSpy).toHaveBeenCalledTimes(1);
+        expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET);
+        expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+        expect(nextPage).toHaveBeenCalledTimes(1);
+    });
+
     it('does not exit an unfinished confirmation when it regains focus', () => {
         // Given confirmation has not advanced, including when a creation request fails
         const {rerender} = render(<TestFlow />);

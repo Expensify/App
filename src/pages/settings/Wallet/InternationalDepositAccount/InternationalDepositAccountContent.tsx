@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubPage from '@hooks/useSubPage';
 
@@ -165,8 +166,8 @@ function InternationalDepositAccountContent({
     useAndroidBackButtonHandler(handleBackButtonPress);
 
     const hasMovedToSuccess = useRef(false);
-    const wasUnfocusedAfterSuccess = useRef(false);
     const isFocused = useIsFocused();
+    const prevIsFocused = usePrevious(isFocused);
     const leaveFlow = useEffectEvent(() => handleFinishStep());
 
     const handleNextScreen = () => {
@@ -183,20 +184,12 @@ function InternationalDepositAccountContent({
     // Each step stays mounted under the next one. Returning to a completed confirmation means
     // the user went back from success, so leave the flow instead of allowing another submission.
     useEffect(() => {
-        if (!hasMovedToSuccess.current) {
+        if (!hasMovedToSuccess.current || !isFocused || prevIsFocused) {
             return;
         }
-        if (!isFocused) {
-            wasUnfocusedAfterSuccess.current = true;
-            return;
-        }
-        if (!wasUnfocusedAfterSuccess.current) {
-            return;
-        }
-        wasUnfocusedAfterSuccess.current = false;
         hasMovedToSuccess.current = false;
         leaveFlow();
-    }, [isFocused]);
+    }, [isFocused, prevIsFocused]);
 
     return (
         <ScreenWrapper
