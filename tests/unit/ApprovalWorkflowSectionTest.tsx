@@ -5,6 +5,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
 import React from 'react';
@@ -93,9 +94,42 @@ describe('ApprovalWorkflowSection', () => {
         const errorMessage = screen.UNSAFE_getAllByType(FormHelpMessage).find((message) => message.props.message === 'workflowsPage.approverNotWorkspaceMember');
         expect(errorMessage?.props.shouldShowRedDotIndicator).toBe(true);
         expect(errorMessage?.props.style).toEqual(expect.arrayContaining([expect.objectContaining({alignItems: 'flex-start'})]));
-        const approverRow = screen.UNSAFE_getAllByType(MenuItem).find((item) => item.props.errorText === 'workflowsPage.approverNotWorkspaceMember');
+        const approverRow = screen.UNSAFE_getAllByType(MenuItem).find((item) => item.props.sentryLabel === CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER);
         expect(approverRow?.props.brickRoadIndicator).toBeUndefined();
         expect(approverRow?.props.shouldBeAccessible).toBe(false);
+    });
+
+    it.each([false, true])('shows the unchanged error below the forwarding note when the primary approver is missing: %s', (isNotWorkspaceMember) => {
+        // Given a workflow with a forwarding limit and a removed primary or additional approver
+        const brokenWorkflow: ApprovalWorkflow = {
+            ...baseWorkflow,
+            approvers: [
+                {
+                    ...baseWorkflow.approvers[0],
+                    approvalLimit: 50000,
+                    overLimitForwardsTo: 'removed@example.com',
+                    isOverLimitForwardsToNotWorkspaceMember: true,
+                    isNotWorkspaceMember,
+                },
+            ],
+        };
+
+        // When the workflow card renders
+        renderSection({approvalWorkflow: brokenWorkflow, onPress: jest.fn()});
+
+        // Then the forwarding note precedes the original error copy, with aligned text and a first-line dot
+        const errorKey = isNotWorkspaceMember ? 'workflowsPage.approverNotWorkspaceMember' : 'workflowsPage.overLimitApproverNotWorkspaceMember';
+        const approverRow = screen.UNSAFE_getAllByType(MenuItem).find((item) => item.props.sentryLabel === CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER);
+        const errorMessage = screen.UNSAFE_getAllByType(FormHelpMessage).find((message) => message.props.message === errorKey);
+        expect(approverRow).toBeDefined();
+        expect(errorMessage).toBeDefined();
+        expect(approverRow?.props.helperText).toBe('workflowsApprovalLimitPage.forwardLimitDescription');
+        expect(approverRow?.parent).toBe(errorMessage?.parent);
+        const siblings = approverRow?.parent?.children ?? [];
+        expect(siblings.findIndex((child) => child === approverRow)).toBeLessThan(siblings.findIndex((child) => child === errorMessage));
+        expect(screen.getByText(errorKey)).toBeTruthy();
+        expect(errorMessage?.props.shouldShowRedDotIndicator).toBe(true);
+        expect(errorMessage?.props.style).toEqual(expect.arrayContaining([expect.objectContaining({marginLeft: 20}), expect.objectContaining({alignItems: 'flex-start'})]));
     });
 
     it('does not show the non-member error for a regular approver', () => {

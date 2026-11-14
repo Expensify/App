@@ -17,6 +17,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import Button from './Button';
+import FormHelpMessage from './FormHelpMessage';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -222,10 +223,13 @@ function ApprovalWorkflowSection({
                                 }
                                 helperText={getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString})}
                                 helperTextStyle={styles.workflowApprovalLimitText}
-                                shouldShowRedDotIndicator
-                                errorTextStyle={styles.alignItemsStart}
-                                errorText={getApproverError(approver)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
+                            />
+                            <FormHelpMessage
+                                message={getApproverError(approver)}
+                                isError
+                                shouldShowRedDotIndicator
+                                style={[styles.ml5, styles.alignItemsStart, styles.mt1, styles.mb0]}
                             />
                         </View>
                     </OfflineWithFeedback>
