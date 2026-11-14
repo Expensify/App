@@ -4,6 +4,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,7 +21,7 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type AddressPageProps = {
@@ -43,6 +44,8 @@ type AddressPageProps = {
 function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {state: stateFromUrl, country: countryFromUrl} = useGeographicalStateAndCountryFromRoute();
+    const hasAddressChanged = useRef(Boolean(stateFromUrl || countryFromUrl));
 
     // Check if country is valid
     const {street} = address ?? {};
@@ -55,7 +58,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
     const [zipcode, setZipcode] = useState(address?.zip);
 
     useEffect(() => {
-        if (!address) {
+        if (!address || hasAddressChanged.current) {
             return;
         }
         setState(address.state);
@@ -72,24 +75,30 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
             return;
         }
-        if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
-            setCurrentCountry(getCountryCode(addressPart) ?? '');
-            setState('');
-            setCity('');
-            setZipcode('');
+        if (addressPartKey === INPUT_IDS.COUNTRY) {
+            if (addressPart !== currentCountry) {
+                setCurrentCountry(getCountryCode(addressPart) ?? '');
+                setState('');
+                setCity('');
+                setZipcode('');
+            }
+            hasAddressChanged.current = true;
             return;
         }
         if (addressPartKey === INPUT_IDS.STATE) {
+            hasAddressChanged.current = true;
             setState(addressPart);
             setCity('');
             setZipcode('');
             return;
         }
         if (addressPartKey === INPUT_IDS.CITY) {
+            hasAddressChanged.current = true;
             setCity(addressPart);
             setZipcode('');
             return;
         }
+        hasAddressChanged.current = true;
         setZipcode(addressPart);
     };
 

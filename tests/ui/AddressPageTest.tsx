@@ -91,6 +91,36 @@ describe('AddressPageTest', () => {
         expect(stateInputAfterParams.props.value).toEqual('Test');
     });
 
+    it('should display the state from the URL parameter instead of the saved state', async () => {
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.PRIVATE_PERSONAL_DETAILS}`, {
+                addresses: [
+                    {
+                        state: 'CA',
+                        country: 'US',
+                        street: '123 Main St',
+                    },
+                ],
+            });
+            await Onyx.merge(`${ONYXKEYS.IS_LOADING_APP}`, false);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+
+        await waitForBatchedUpdatesWithAct();
+
+        Navigation.setParams({
+            state: 'MO',
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('Missouri')).toBeOnTheScreen();
+    });
+
     it('should prefill address line 2 from explicit street2', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
