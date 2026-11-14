@@ -3,7 +3,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import {isEmptyPeriodAfterToday} from '@components/Search/isPeriodAfterToday';
 import applyRunningTotal from '@components/Search/runningTotal';
-import type {GroupedItem, SearchGroupBy} from '@components/Search/types';
+import type {GroupedItem, SearchChartCountDimension, SearchGroupBy} from '@components/Search/types';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import escapeCsvField from '@libs/escapeCsvField';
@@ -20,18 +20,34 @@ type BuildInsightsChartCSVParams = {
     translate: LocalizedTranslate;
     today: string;
     shouldShowRunningTotal?: boolean;
+    countDimension?: SearchChartCountDimension;
 };
 
 const GROUP_HEADER_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.FROM]: 'common.from',
+    [CONST.SEARCH.GROUP_BY.APPROVER]: 'common.approver',
     [CONST.SEARCH.GROUP_BY.MERCHANT]: 'common.merchant',
     [CONST.SEARCH.GROUP_BY.CATEGORY]: 'common.category',
+    [CONST.SEARCH.GROUP_BY.PAID_BY]: 'search.filters.groupBy.paid-by',
+    [CONST.SEARCH.GROUP_BY.VIOLATION]: 'search.filters.groupBy.violation',
+    [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'search.filters.groupBy.workflow-stage',
 };
 
-function buildInsightsChartCSV({data, groupBy, dateFilterStart, currency, getCurrencyDecimals, translate, today, shouldShowRunningTotal}: BuildInsightsChartCSVParams): string {
+function buildInsightsChartCSV({
+    data,
+    groupBy,
+    dateFilterStart,
+    currency,
+    getCurrencyDecimals,
+    translate,
+    today,
+    shouldShowRunningTotal,
+    countDimension = CONST.SEARCH.CHART_COUNT_DIMENSION.EXPENSE,
+}: BuildInsightsChartCSVParams): string {
     const {getLabel, getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
     const groupHeader = translate(GROUP_HEADER_KEYS[groupBy] ?? 'common.date');
-    const header = [groupHeader, translate('common.expenses'), translate('common.total'), translate('common.currency')].map(escapeCsvField).join(',');
+    const countHeader = translate(countDimension === CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT ? 'common.reports' : 'common.expenses');
+    const header = [groupHeader, countHeader, translate('common.total'), translate('common.currency')].map(escapeCsvField).join(',');
 
     // Trimmed before the running total, which replaces each period's count with the count so far
     const lastKeptIndex = data.findLastIndex((item) => !isEmptyPeriodAfterToday(item, groupBy, today, dateFilterStart));

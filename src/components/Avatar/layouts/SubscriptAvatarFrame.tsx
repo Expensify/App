@@ -32,7 +32,7 @@ function SubscriptAvatarFrame({size, containerStyle, primary, secondary}: Subscr
     return (
         <View
             style={[StyleUtils.getContainerStyles(size), containerStyle]}
-            testID="ReportActionAvatars-Subscript"
+            testID="Avatar-Subscript"
         >
             {primary}
             {secondary}

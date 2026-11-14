@@ -3,6 +3,7 @@ import DistanceRequestController from '@components/MoneyRequestConfirmationList/
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useDistanceConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useDistanceConfirmationListData';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
+import SplitCategoryTaxController from '@components/MoneyRequestConfirmationList/SplitCategoryTaxController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import DistanceManualFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceManualFooter';
@@ -86,6 +87,7 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
                 distanceState={distanceState}
             />
             <SplitBillController {...data.splitBillControllerProps} />
+            <SplitCategoryTaxController {...data.splitCategoryTaxControllerProps} />
             <FieldAutoSelector {...data.fieldAutoSelectProps} />
         </ConfirmationListLayout>
     );

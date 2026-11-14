@@ -24,6 +24,7 @@ import {
     canSendInvoiceFromWorkspace,
     canShowReimbursableToggleForPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
+    canSubmitOwnReportOnPolicy,
     canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
@@ -71,11 +72,16 @@ import {
     getPolicyForAssignedCard,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getRateValueWithDecimals,
+    areRateAmountsEqual,
     getOwnerChangePayerSuccessData,
     getOwnedPaidPolicies,
     getSageIntacctVendors,
     arePaymentsEnabled,
+    getPolicyBankAccountCountry,
+    getReimbursementAccountCountries,
     getReimbursementChoice,
+    hasReimbursementCountries,
     isPolicyPayer,
     getReimburserEmail,
     getRuleApprovers,
@@ -150,13 +156,14 @@ import {
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
+import {getUKFuelRateTaxErrors, getUKFuelRatesWithInvalidTax, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils/errors';
 import {getApprovalChain, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
+import type {BankAccount, PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
     Connections,
@@ -181,6 +188,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -374,6 +382,161 @@ const policyTags = {
 };
 
 describe('PolicyUtils', () => {
+    describe('UK fuel rate VAT warnings', () => {
+        describe.each(['quickbooksOnline', 'xero', 'netsuite'] as const)('%s tax-import warning copy', (connection) => {
+            it.each([false, true])('uses integration copy only when tax import is enabled: %s', (isImported) => {
+                // Given local tax tracking is on, independently of the integration's tax-import setting
+                const policy = createUKFuelRateTaxPolicy();
+                const connections = createMock<Connections>({
+                    ...(connection === 'quickbooksOnline' ? {quickbooksOnline: createMock<Connections['quickbooksOnline']>({config: {syncTax: isImported}})} : {}),
+                    ...(connection === 'xero' ? {xero: createMock<Connections['xero']>({config: {importTaxRates: isImported}})} : {}),
+                    ...(connection === 'netsuite' ? {netsuite: createMock<Connections['netsuite']>({options: {config: {syncOptions: {syncTax: isImported}}}})} : {}),
+                });
+                policy.connections = connections;
+                const translate = TestHelper.translateLocal;
+                const message = isImported
+                    ? translate('workspace.distanceRates.ukFuelRateTaxErrorWithIntegration', {integrationName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connection]})
+                    : translate('workspace.distanceRates.ukFuelRateTaxError');
+
+                // When both pages build their fuel warning
+                const settingsErrors = getUKFuelRateTaxErrors(policy, translate);
+                const detailsErrors = getUKFuelRateTaxErrors(policy, translate, 'fuel');
+
+                // Then a connection alone never directs the admin away from workspace-managed taxes
+                expect(settingsErrors).toEqual({ukFuelRateTax: message});
+                expect(detailsErrors).toEqual(settingsErrors);
+            });
+        });
+
+        it('does not warn on another rate when a fuel band is invalid', () => {
+            // Given a workspace with an invalid fuel band and a separate valid rate
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit) {
+                throw new Error('Expected distance unit');
+            }
+            unit.rates.other = {...unit.rates.fuel, customUnitRateID: 'other', attributes: {taxRateExternalID: 'valid'}};
+            policy.taxRates = createMock<Policy['taxRates']>({taxes: {valid: {name: 'VAT', value: '20%'}}});
+
+            // When viewing the valid rate or a rate no longer present
+            const otherErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'other');
+            const missingErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'missing');
+
+            // Then only settings and the affected rate show the warning
+            expect(otherErrors).toEqual({});
+            expect(missingErrors).toEqual({});
+            expect(getUKFuelRateTaxErrors(policy, TestHelper.translateLocal)).toHaveProperty('ukFuelRateTax');
+        });
+
+        it.each([false, true])('retains only the latest workspace dismissal failure with dismissed=%s', (isDismissed) => {
+            // Given a failed workspace-wide dismissal and a separate rate-save error
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit?.attributes) {
+                throw new Error('Expected distance unit attributes');
+            }
+            unit.attributes.isUKFuelRateTaxErrorDismissed = isDismissed;
+            unit.errorFields = {isUKFuelRateTaxErrorDismissed: {'100': 'Old dismissal failure', '200': 'Latest dismissal failure'}};
+            unit.rates.fuel.errorFields = {taxRateExternalID: {'300': 'Rate-save failure'}};
+
+            // When building the independent fuel-warning row for either page
+            const settingsErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal);
+            const detailsErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'fuel');
+
+            // Then the latest dismissal failure survives even without a warning, and save errors stay separate
+            const expectedErrors = {
+                ...(!isDismissed ? {ukFuelRateTax: TestHelper.translateLocal('workspace.distanceRates.ukFuelRateTaxError')} : {}),
+                '200': 'Latest dismissal failure',
+            };
+            expect(settingsErrors).toEqual(expectedErrors);
+            expect(detailsErrors).toEqual(expectedErrors);
+            expect(unit.rates.fuel.errorFields.taxRateExternalID).toEqual({'300': 'Rate-save failure'});
+        });
+
+        it('returns no errors before the policy or distance unit loads', () => {
+            // Given no policy, or a policy whose distance unit has not loaded
+            const policy = createUKFuelRateTaxPolicy();
+            policy.customUnits = {};
+
+            // When building errors during loading
+            const missingPolicyErrors = getUKFuelRateTaxErrors(undefined, TestHelper.translateLocal);
+            const missingUnitErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'fuel');
+
+            // Then neither page receives an error
+            expect(missingPolicyErrors).toEqual({});
+            expect(missingUnitErrors).toEqual({});
+        });
+
+        it.each(['', 'deleted', 'disabled', 'pendingDelete', 'valid'])('checks the %s tax code', (taxCode) => {
+            // Given a fuel band mapped to each possible tax code state
+            const policy = createUKFuelRateTaxPolicy();
+            policy.taxRates = createMock<Policy['taxRates']>({
+                taxes: {
+                    disabled: {name: 'Disabled', value: '20%', isDisabled: true},
+                    pendingDelete: {name: 'Deleting', value: '20%', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    valid: {name: 'VAT', value: '20%'},
+                },
+            });
+            const attributes = policy.customUnits?.distance.rates.fuel.attributes;
+            if (!attributes) {
+                throw new Error('Expected fuel rate attributes');
+            }
+            attributes.taxRateExternalID = taxCode;
+            // When the policy is checked
+            const rates = getUKFuelRatesWithInvalidTax(policy);
+            // Then only a selectable tax code clears the warning and workspace red dot
+            expect(rates).toHaveLength(taxCode === 'valid' ? 0 : 1);
+            expect(getPolicyBrickRoadIndicatorStatus(policy, false)).toBe(taxCode === 'valid' ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it.each(['taxOff', 'distanceTaxOff', 'distanceFeatureOff', 'member', 'dismissed', 'disabled', 'deleting', 'standardMileage', 'nonUK', 'custom'])(
+            'does not warn for %s',
+            (scenario) => {
+                // Given a policy outside the warning's eligibility rules
+                const policy = createUKFuelRateTaxPolicy();
+                const unit = policy.customUnits?.distance;
+                if (!unit?.attributes || !policy.tax || !unit.rates.fuel.attributes?.governmentRate) {
+                    throw new Error('Expected fuel rate and distance tax attributes');
+                }
+                const rate = unit.rates.fuel;
+                const governmentRate = unit.rates.fuel.attributes.governmentRate;
+                if (scenario === 'taxOff') {
+                    policy.tax.trackingEnabled = false;
+                }
+                if (scenario === 'distanceTaxOff') {
+                    unit.attributes.taxEnabled = false;
+                }
+                if (scenario === 'distanceFeatureOff') {
+                    policy.areDistanceRatesEnabled = false;
+                }
+                if (scenario === 'member') {
+                    policy.role = CONST.POLICY.ROLE.USER;
+                }
+                if (scenario === 'dismissed') {
+                    unit.attributes.isUKFuelRateTaxErrorDismissed = true;
+                }
+                if (scenario === 'disabled') {
+                    rate.enabled = false;
+                }
+                if (scenario === 'deleting') {
+                    rate.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                }
+                if (scenario === 'standardMileage') {
+                    governmentRate.sourceRateID = 'GB_2026-04-06';
+                }
+                if (scenario === 'nonUK') {
+                    governmentRate.sourceRateID = 'US_PETROL_2026-01-01';
+                }
+                if (scenario === 'custom') {
+                    rate.attributes = {};
+                }
+                // When the policy is checked
+                const shouldShow = shouldShowUKFuelRateTaxError(policy);
+                // Then it is excluded from the warning's eligibility rules
+                expect(shouldShow).toBe(false);
+            },
+        );
+    });
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -489,6 +652,28 @@ describe('PolicyUtils', () => {
                 expect(result).toHaveLength(1);
                 expect(result.at(0)?.id).toBe(activePolicy.id);
             });
+
+            it('excludes workspaces where the member cannot create expenses', () => {
+                // Given a member workspace and an approve-only workspace
+                // When the workspace pickers collect policies with expense chat
+                // Then the approve-only workspace is left out, since no expense can be created in it
+                const memberPolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'member', role: CONST.POLICY.ROLE.USER, pendingAction: null});
+                const approveOnlyPolicy = createMock<Policy>({
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    name: 'approve-only',
+                    role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                    pendingAction: null,
+                });
+                const policies = createCollection<Policy>(
+                    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                    (index) => (index === 0 ? memberPolicy : approveOnlyPolicy),
+                    2,
+                );
+
+                const result = getActivePoliciesWithExpenseChat(policies, undefined);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.id).toBe(memberPolicy.id);
+            });
         });
 
         describe('per diem policy filters', () => {
@@ -594,6 +779,25 @@ describe('PolicyUtils', () => {
                         pendingAction: null,
                         // Explicit off must be respected, so the lingering custom unit cannot re-enable it
                         arePerDiemRatesEnabled: false,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                };
+
+                expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
+            });
+
+            it('excludes a per diem workspace where the member cannot create expenses', () => {
+                // Given a control workspace with per diem rates where the member is approve-only
+                // When the per diem workspace list is built
+                // Then the workspace is left out, so an approve-only member cannot start a per diem expense there
+                const policies: OnyxCollection<Policy> = {
+                    approveOnly: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
                         customUnits: {
                             ABCDEF: perDiemCustomUnit,
                         },
@@ -1520,12 +1724,13 @@ describe('PolicyUtils', () => {
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
             });
 
-            it('blocks assigning the approve-only role', () => {
-                const peopleAdminPolicy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
-                const adminPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+            it('allows People Admins to assign the approve-only role', () => {
+                // Given a People Admin on a Control workspace
+                const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
 
-                expect(canMemberAssignRole(peopleAdminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
-                expect(canMemberAssignRole(adminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+                // When they assign the approve-only role
+                // Then assignment is allowed because it stays within a People Admin's authority
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(true);
             });
 
             it('gives approve-only members read-only access like members', () => {
@@ -1567,6 +1772,12 @@ describe('PolicyUtils', () => {
                 });
 
                 expect(canCreateExpensesOnPolicy(policyWithDifferentViewerRole, memberLogin)).toBe(false);
+            });
+
+            it('lets a submitter submit their own report only when their role can create expenses', () => {
+                expect(canSubmitOwnReportOnPolicy(buildPolicy(CONST.POLICY.ROLE.USER), memberLogin)).toBe(true);
+                expect(canSubmitOwnReportOnPolicy(buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY), memberLogin)).toBe(false);
+                expect(canSubmitOwnReportOnPolicy({...buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY), type: CONST.POLICY.TYPE.PERSONAL}, memberLogin)).toBe(true);
             });
 
             it('allows Guest assignment only on Control workspaces', () => {
@@ -2203,6 +2414,62 @@ describe('PolicyUtils', () => {
                 expect(pickedDefault?.name).toBe('Default Rate');
             });
         });
+        describe('getRateValueWithDecimals', () => {
+            it.each([
+                [0, '0.00'],
+                [1, '1.00'],
+                [0.1, '0.10'],
+                [0.12, '0.12'],
+                [0.123, '0.123'],
+                [0.1234, '0.1234'],
+                [0.12346, '0.1235'],
+                [0.12001, '0.12'],
+                [0.99999, '1.00'],
+                [0.1 + 0.2, '0.30'],
+            ])('formats %s as %s', (value, expected) => {
+                // Given a rate amount with up to four meaningful decimals or extra calculation precision
+                // When preparing the raw amount for an editor
+                const displayValue = getRateValueWithDecimals(value);
+
+                // Then Classic precision is preserved without unnecessary zeros beyond two decimals
+                expect(displayValue).toBe(expected);
+            });
+
+            it('leaves locale separators to the display caller', () => {
+                // Given a locale whose decimal separator is a comma
+                const toCommaDigit = (digit: string) => (digit === '.' ? ',' : digit);
+
+                // When preparing the raw editor value and the localized display value
+                const editorValue = getRateValueWithDecimals(0.123);
+                const displayValue = getRateDisplayValue(0.123, toCommaDigit, true);
+
+                // Then the editor receives a numeric string while the display keeps its locale separator
+                expect(editorValue).toBe('0.123');
+                expect(displayValue).toBe('0,123');
+            });
+        });
+
+        describe('areRateAmountsEqual', () => {
+            it.each<[string | number, string | number, boolean]>([
+                ['0.1', '0.10', true],
+                ['0.1', '0.1000', true],
+                [0.1, '0.1000', true],
+                ['0.1000', 0.1, true],
+                [0.1 + 0.2, '0.3000', true],
+                ['0.12344', '0.1234', true],
+                ['', 0, true],
+                ['0.1000', '0.1001', false],
+                ['0.1234', '0.1235', false],
+            ])('compares %s and %s as %s at editor precision', (firstAmount, secondAmount, expected) => {
+                // Given saved and entered amounts with different padding or calculation precision
+                // When deciding whether an editor should persist a change
+                const areEqual = areRateAmountsEqual(firstAmount, secondAmount);
+
+                // Then formatting differences are ignored without losing meaningful fourth-decimal changes
+                expect(areEqual).toBe(expected);
+            });
+        });
+
         describe('getRateDisplayValue', () => {
             it('should return an empty string for NaN', () => {
                 // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
@@ -4406,6 +4673,75 @@ describe('PolicyUtils', () => {
             });
         });
 
+        describe('hasReimbursementCountries', () => {
+            it('returns false when there is no policy', () => {
+                // Given no policy, which happens while a workspace is still loading
+
+                // When we check for selected countries before policy data has loaded
+                const hasCountries = hasReimbursementCountries(undefined);
+
+                // Then missing policy data does not imply any selected countries
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns false when no countries are selected', () => {
+                // Given a workspace with an empty countries list and no business bank account
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {}}});
+
+                // When we check for selected countries on an unconfigured workspace
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then an empty list does not count as a country selection
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns false when every country has a falsy value', () => {
+                // Given a workspace whose countries are all deselected
+                // @ts-expect-error - Defensively handles malformed country entries that violate the object type.
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: null}}});
+
+                // When we check countries that retain deselected entries in Onyx
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then deselected entries do not count as selected countries
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns true when a country has a truthy value', () => {
+                // Given a workspace with a selected business bank account country
+                // @ts-expect-error - Defensively handles malformed country entries that violate the object type.
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: []}}});
+
+                // When we check a mixture of selected and deselected countries
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then the truthy entry counts even when its array is empty
+                expect(hasCountries).toBe(true);
+            });
+
+            it('returns false when only a business bank account is connected', () => {
+                // Given a workspace with a connected business bank account and no countries
+                const policy = createMock<Policy>({id: '1', achAccount: {bankAccountID: 123}});
+
+                // When we check country selection independently of connected accounts
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then a bank account alone does not count as a selected country
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns false when the bank account ID is 0 and countries are missing', () => {
+                // Given a workspace whose achAccount has no real bank account ID
+                const policy = createMock<Policy>({id: '1', achAccount: {bankAccountID: 0}});
+
+                // When we check a workspace without reimbursement country data
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then missing countries do not count regardless of the bank account ID
+                expect(hasCountries).toBe(false);
+            });
+        });
+
         describe('arePaymentsEnabled', () => {
             it.each([
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, true],
@@ -4422,6 +4758,70 @@ describe('PolicyUtils', () => {
 
                 // Then only a disabled workspace turns payments off, whichever of the two values it reports
                 expect(paymentsEnabled).toBe(expected);
+            });
+        });
+
+        describe('getReimbursementAccountCountries', () => {
+            it('should return countries with a connected bank account and the country of the workspace bank account', () => {
+                // Given a workspace with an AU withdrawal account in its countries and a GB account the admin owns
+                const policy = createMock<Policy>({
+                    id: '1',
+                    outputCurrency: CONST.CURRENCY.GBP,
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                    reimbursement: {countries: {AU: {bankAccountID: 1}, FR: {}}},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({accountData: {additionalData: {country: 'GB'}}})};
+
+                // When the countries that can't be deselected are read
+                const countries = getReimbursementAccountCountries(policy, getPolicyBankAccountCountry(policy, bankAccountList));
+
+                // Then both account countries are returned, because the server never removes either one
+                expect(countries).toEqual(['AU', 'GB']);
+            });
+
+            it('should treat a workspace bank account with no country as a US account', () => {
+                // Given a legacy bank account that the admin owns and that has no country
+                const policy = createMock<Policy>({
+                    id: '1',
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({accountData: {additionalData: {}}})};
+
+                // When the bank account's country is read
+                const country = getPolicyBankAccountCountry(policy, bankAccountList);
+
+                // Then it is US, because legacy US accounts were saved without a country
+                expect(country).toBe(CONST.COUNTRY.US);
+            });
+
+            it('should read the top-level bankCountry when the bank account has no nested country', () => {
+                // Given a GB bank account that the admin owns and that only has the top-level bankCountry
+                const policy = createMock<Policy>({
+                    id: '1',
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({bankCountry: 'GB', accountData: {additionalData: {}}})};
+
+                // When the bank account's country is read
+                const country = getPolicyBankAccountCountry(policy, bankAccountList);
+
+                // Then it is GB, so US isn't added and locked for a workspace whose bank account is outside the US
+                expect(country).toBe('GB');
+            });
+
+            it('should fall back to US for a USD workspace whose bank account the admin does not own', () => {
+                // Given a USD workspace whose bank account isn't in the admin's bank account list
+                const policy = createMock<Policy>({
+                    id: '1',
+                    outputCurrency: CONST.CURRENCY.USD,
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+
+                // When the countries that can't be deselected are read
+                const countries = getReimbursementAccountCountries(policy, getPolicyBankAccountCountry(policy, {}));
+
+                // Then US is returned, because a USD workspace's bank account is always in the US
+                expect(countries).toEqual([CONST.COUNTRY.US]);
             });
         });
 
@@ -6750,6 +7150,48 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['cf-1']);
             });
 
+            it('uses only active Zoho Books vendors when Zoho Books and Business Central are both configured', () => {
+                // Given a workspace configured with both Business Central and Zoho Books, whose list also has a customer and an inactive vendor
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = createMock<Connections>({
+                    ...policy.connections,
+                    [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+                        config: {isConfigured: true},
+                        data: {
+                            vendors: [
+                                {id: 'zb-1', name: 'Zoho Books vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                                {id: 'zb-2', name: 'Zoho Books customer', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.CUSTOMER},
+                                {id: 'zb-3', name: 'Inactive Zoho Books vendor', isActive: false, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                            ],
+                        },
+                    },
+                });
+
+                // When resolving the vendor source without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then Zoho Books is the source, so the vendor field never shows the beta-gated Business Central list,
+                // and only active vendor-type records can be picked
+                expect(isVendorFeatureAvailable).toBe(true);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['zb-1']);
+            });
+
+            it('uses the Zoho Books empty state when the synced list has no vendors', () => {
+                // Given a configured Zoho Books workspace whose synced vendor list is empty
+                const translate = TestHelper.translateLocal;
+                const policy = createMock<Policy>({connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {config: {isConfigured: true}, data: {vendors: []}}})});
+
+                // When the vendor picker asks for its empty state
+                const emptyState = getVendorEmptyState(policy, translate);
+
+                // Then it points the admin to Zoho Books, where the vendors have to be added
+                expect(emptyState).toEqual({
+                    title: translate('workspace.zohoBooks.noVendorsFound'),
+                    subtitle: translate('workspace.zohoBooks.noVendorsFoundDescription'),
+                });
+            });
+
             it('uses the Business Central empty state when the synced list has no vendors', () => {
                 const translate = TestHelper.translateLocal;
                 expect(getVendorEmptyState(buildBusinessCentralPolicy([]), translate)).toEqual({
@@ -7088,6 +7530,25 @@ describe('PolicyUtils', () => {
                 const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
 
                 // Then only a configured connection enables Campfire vendor matching
+                expect(isVendorFeatureAvailableWithBeta).toBe(expected);
+                expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
+            });
+
+            it.each([
+                {name: 'configured connection', connection: {config: {isConfigured: true}}, expected: true},
+                {name: 'unconfigured connection', connection: {config: {isConfigured: false}}, expected: false},
+                {name: 'missing configuration flag', connection: {config: {}}, expected: false},
+                {name: 'missing configuration', connection: {}, expected: false},
+                {name: 'missing connection', connection: undefined, expected: false},
+            ])('checks Zoho Books vendor matching for $name independently of the beta', ({connection, expected}) => {
+                // Given a Zoho Books workspace whose connection may not be ready for vendor matching
+                const policy = createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: connection}});
+
+                // When checking availability with and without beta enrollment
+                const isVendorFeatureAvailableWithBeta = hasVendorFeature(policy, true);
+                const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
+
+                // Then only a configured connection enables Zoho Books vendor matching, because Zoho Books is GA and needs no beta
                 expect(isVendorFeatureAvailableWithBeta).toBe(expected);
                 expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
             });
@@ -7963,6 +8424,28 @@ describe('PolicyUtils', () => {
                 });
 
                 expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBe('campfire_vendor_1');
+            });
+
+            it('resolves Zoho Books default vendor', () => {
+                // Given a Zoho Books workspace with a default company card vendor
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'zoho_books_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                // When resolving the default vendor for Zoho Books
+                const defaultVendorID = getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS);
+
+                // Then it's the Zoho Books export default vendor, which unmatched expenses fall back to
+                expect(defaultVendorID).toBe('zoho_books_vendor_1');
             });
 
             it('resolves Business Central default vendor', () => {

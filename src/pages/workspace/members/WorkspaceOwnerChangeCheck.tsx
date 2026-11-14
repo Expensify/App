@@ -59,11 +59,14 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
         updateDisplayTexts();
     }, [updateDisplayTexts]);
 
+    // Failed settlements or an uncleared balance block the transfer, so the button exits the flow instead of requesting the change
+    const isOwnerChangeBlocked = error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE;
+
     const confirm = () => {
         if (!policyID) {
             return;
         }
-        if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
+        if (isOwnerChangeBlocked) {
             // cannot transfer ownership if there are failed settlements, or we cannot clear the balance
             clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.goBack();
@@ -80,6 +83,7 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             <Text style={styles.flex1}>{displayTexts.text}</Text>
             <View style={styles.pb5}>
                 <Button
+                    sentryLabel={isOwnerChangeBlocked ? CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.OWNER_CHANGE_CHECK_DISMISS : CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.OWNER_CHANGE_CHECK_CONFIRM}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={confirm}

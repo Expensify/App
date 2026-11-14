@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
+import {getTransactionsMatchingRule} from '@libs/actions/Policy/Rules';
 import {buildExpenseDefaultFilters} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -53,18 +53,22 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [isLoading] = useOnyx(ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW);
-    const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION);
+    const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION);
 
     // The preview matches on everything the rule does, so it asks with the tree the rule would be saved with.
     const filters = buildExpenseDefaultFilters(form ?? {});
 
+    // A fresh tree is built on every render, so the request is keyed on what the tree holds rather than on its
+    // identity. Keying on the tree itself asks again on every render, and each answer renders again.
+    const serializedFilters = filters ? JSON.stringify(filters) : '';
+
     useEffect(() => {
-        if (isOffline || !filters) {
+        if (isOffline || !serializedFilters) {
             return;
         }
 
-        getTransactionsMatchingCodingRule(policyID, filters);
-    }, [filters, policyID, isOffline]);
+        getTransactionsMatchingRule(policyID, serializedFilters);
+    }, [serializedFilters, policyID, isOffline]);
 
     const matchingTransactionsArray = Object.values(matchingTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const hasMatchingTransactions = !!filters && matchingTransactionsArray.length > 0;
@@ -77,6 +81,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
         <UnreportedExpenseListItem
             readOnly
             showTooltip
+            policyID={policyID}
             item={{...item, keyForList: item.transactionID, errors: undefined}}
             onSelectRow={() => {}}
         />

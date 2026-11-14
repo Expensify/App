@@ -164,9 +164,9 @@ describe('ReportHeaderAvatars', () => {
     it('renders both halves of the subscript avatar', async () => {
         await renderHeaderAvatars(iouReport.reportID);
 
-        expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeOnTheScreen();
-        expect(screen.getByTestId('ReportActionAvatars-Subscript-MainAvatar')).toBeOnTheScreen();
-        expect(screen.getByTestId('ReportActionAvatars-Subscript-SecondaryAvatar')).toBeOnTheScreen();
+        expect(screen.getByTestId('Avatar-Subscript')).toBeOnTheScreen();
+        expect(screen.getByTestId('Avatar-Subscript-MainAvatar')).toBeOnTheScreen();
+        expect(screen.getByTestId('Avatar-Subscript-SecondaryAvatar')).toBeOnTheScreen();
     });
 
     it('gives the primary avatar and the subscript badge their own press target', async () => {
@@ -205,9 +205,9 @@ describe('ReportHeaderAvatars', () => {
     it('renders diagonal avatars with their own press targets when both DM members have expenses on the report', async () => {
         await renderHeaderAvatars(iouDMReport.reportID);
 
-        expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeOnTheScreen();
-        expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars-MainAvatar')).toBeOnTheScreen();
-        expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars-SecondaryAvatar')).toBeOnTheScreen();
+        expect(screen.getByTestId('Avatar-MultipleAvatars')).toBeOnTheScreen();
+        expect(screen.getByTestId('Avatar-MultipleAvatars-MainAvatar')).toBeOnTheScreen();
+        expect(screen.getByTestId('Avatar-MultipleAvatars-SecondaryAvatar')).toBeOnTheScreen();
         expect(screen.getAllByRole(CONST.ROLE.BUTTON)).toHaveLength(2);
     });
 

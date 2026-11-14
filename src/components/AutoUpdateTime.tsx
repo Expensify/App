@@ -23,7 +23,7 @@ function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
     const [, setTick] = useState(0);
     const minuteRef = useRef(new Date().getMinutes());
     const currentUserLocalTime = getLocalDateFromDatetime(undefined, timezone.selected);
-    const timezoneName = timezone.selected ? DateUtils.getZoneAbbreviation(currentUserLocalTime, timezone.selected) : '';
+    const timezoneName = timezone.selected ? DateUtils.getZoneAbbreviation(currentUserLocalTime, timezone.selected, dateFnsLocale) : '';
 
     useEffect(() => {
         const interval = setInterval(() => {

@@ -53,7 +53,6 @@ import touchEventBoundaryProps from './libs/telemetry/touchEventBoundaryProps';
 import {ConciergeChatHistoryProvider} from './pages/inbox/ConciergeChatHistoryContext';
 import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
-import './setup/fraudProtection';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 

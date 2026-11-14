@@ -1,5 +1,5 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
+import {getMerchantRuleDraftFromTransaction, getOfferableMerchantRuleSuggestionFields, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
 import {arePolicyRulesEnabled, isControlPolicy} from '@libs/PolicyUtils';
 import {isMerchantMissing} from '@libs/TransactionUtils';
 
@@ -17,7 +17,10 @@ type MerchantRuleSuggestionResult = {
     /** The edits that can be turned into a merchant rule, or undefined when no callout should render */
     suggestion: MerchantRuleSuggestion | undefined;
 
-    /** Every field edited on that expense so far, which the rule is pre-seeded from */
+    /** The expense being offered for, which is the one edited most recently */
+    transactionID: string | undefined;
+
+    /** The confirmed edits on that expense, which the rule is pre-seeded from */
     fields: MerchantRuleSuggestionField[];
 
     /** Which levels of a multi-level tag were edited, so untouched levels stay out of the rule */
@@ -40,28 +43,27 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(storedSuggestion?.transactionID)}`);
+    const offeringTransactionID = storedSuggestion?.transactionID;
+    const [confirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION}${getNonEmptyStringOnyxID(offeringTransactionID)}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(offeringTransactionID)}`);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
 
     // The callout belongs on a screen showing the expense itself: its transaction thread, or a report holding only
     // that expense. A report listing several shows no expense detail. Asking the report what it holds beats trusting
     // whichever report was in scope during the edit.
     const reportTransactions = useReportTransactions(reportID);
-    const isOneExpenseReportForSuggestion = reportTransactions.length === 1 && reportTransactions.at(0)?.transactionID === storedSuggestion?.transactionID;
-    const isHostingReport = !!reportID && (reportID === storedSuggestion?.reportID || isOneExpenseReportForSuggestion);
-    const isForThisExpenseView = isMerchantRuleSuggestionLive(storedSuggestion) && isHostingReport;
+    const isOneExpenseReportForSuggestion = reportTransactions.length === 1 && reportTransactions.at(0)?.transactionID === offeringTransactionID;
+    const suggestionReportID = offeringTransactionID ? storedSuggestion?.reportIDs?.[offeringTransactionID] : undefined;
+    const isHostingReport = !!reportID && (reportID === suggestionReportID || isOneExpenseReportForSuggestion);
+    const isForThisExpenseView = isMerchantRuleSuggestionLive(storedSuggestion, confirmation) && isHostingReport;
     // Offer it to exactly who the rule page lets in: write access to Rules on a Control workspace. Admins today, and
     // editors, who can already create the same rule from workspace settings. The rule page is Control-only, so
     // without that check a Collect workspace would be offered a callout that lands on Not Found.
     const canCreateMerchantRule = canWriteRules && isControlPolicy(policy) && arePolicyRulesEnabled(policy, policyCategories);
     const suggestion = isForThisExpenseView && canCreateMerchantRule ? storedSuggestion : undefined;
 
-    // Filtered from the canonical list, not the record's own keys, so the order is fixed and only known fields reach
-    // the draft.
-    const editedFields = suggestion ? suggestion.editedFields?.[suggestion.transactionID] : undefined;
-    const fields = Object.values(CONST.MERCHANT_RULE_SUGGESTION_FIELDS).filter((field) => !!editedFields?.[field]);
-
-    const editedTagLevels = suggestion?.editedTagLevels?.[suggestion.transactionID];
+    const fields = suggestion ? getOfferableMerchantRuleSuggestionFields(suggestion, confirmation) : [];
+    const editedTagLevels = suggestion && offeringTransactionID ? suggestion.editedTagLevels?.[offeringTransactionID] : undefined;
     // Built here rather than only on press, so an offer that would apply nothing never appears. Clearing a field is
     // still an edit worth recording, but the rule it would make sets that field to empty, which changes nothing.
     const draft = suggestion && transaction ? getMerchantRuleDraftFromTransaction(transaction, fields, policy, editedTagLevels) : undefined;
@@ -70,10 +72,10 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     // A rule matches on merchant, so an expense without one (a receipt still scanning) can't seed one. Nor can an
     // offer with nothing recorded, which is how an expense reads once its fields are cleared.
     if (!suggestion || !transaction || isMerchantMissing(transaction) || fields.length === 0 || !hasUpdatesToApply) {
-        return {suggestion: undefined, fields: [], editedTagLevels: undefined, transaction: undefined, policy: undefined};
+        return {suggestion: undefined, transactionID: undefined, fields: [], editedTagLevels: undefined, transaction: undefined, policy: undefined};
     }
 
-    return {suggestion, fields, editedTagLevels, transaction, policy};
+    return {suggestion, transactionID: offeringTransactionID, fields, editedTagLevels, transaction, policy};
 }
 
 export default useMerchantRuleSuggestion;

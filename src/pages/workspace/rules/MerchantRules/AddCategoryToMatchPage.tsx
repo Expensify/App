@@ -178,6 +178,7 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
                     }
                     footerContent={
                         <FormAlertWithSubmitButton
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_CATEGORY_TO_MATCH_SAVE}
                             buttonText={translate('common.save')}
                             isAlertVisible={false}
                             onSubmit={handleSave}

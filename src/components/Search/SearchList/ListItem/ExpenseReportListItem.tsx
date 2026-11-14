@@ -1,6 +1,7 @@
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {
     ReportSubmitToPopoverRoot,
     SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
@@ -50,7 +51,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
+import {autoReportedRejectedExpenseViolationsSelector, transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React from 'react';
 import {View} from 'react-native';
 // We need direct access to useOnyx to fetch live policy data at render time
@@ -114,6 +115,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {isSelectAllChecked: isSelected, isIndeterminate} = useGroupCheckboxState({
         groupKey: item.keyForList,
         groupTransactions: reportItem.transactions ?? [],
+        groupCount: undefined,
     });
     const {translate, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -212,6 +214,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress} = useSearchSubmitPopoverGuard();
@@ -247,6 +251,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [liveViolationsForSnapshotTransactions] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: transactionViolationsByIDsSelector(snapshotTransactionIDs),
     });
+    // Approving also recomputes the chat's hasOutstandingChildRequest, which checks sibling reports' transactions for auto-reported rejected expenses.
+    const [autoReportedRejectedExpenseViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: autoReportedRejectedExpenseViolationsSelector});
     const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
         useReportPaymentContext({
             chatReportPolicyID: chatReport?.policyID,
@@ -264,6 +270,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             hash: currentSearchHash,
             item: liveReportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
+            policyID: snapshotReport?.policyID || reportItem.policyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin,
@@ -273,6 +280,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
+            isAccountLocked,
+            onAccountLocked: showLockedAccountModal,
             personalPolicyID,
             confirmSubmitReportViolations,
             ownerBillingGracePeriodEnd,
@@ -291,8 +300,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             isTrackIntentUser,
             // Pass the row-scoped, live violations (keyed by this report's snapshot transactions) instead of the
             // whole TRANSACTION_VIOLATIONS collection, so the Approve action reads live data without re-rendering
-            // every row on unrelated violation changes.
-            allViolations: liveViolationsForSnapshotTransactions,
+            // every row on unrelated violation changes. Auto-reported rejected expense violations are merged in for the sibling reports'
+            // hasOutstandingChildRequest check.
+            allViolations: {...autoReportedRejectedExpenseViolations, ...liveViolationsForSnapshotTransactions},
             rules,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
             ...pressTimeInputs,

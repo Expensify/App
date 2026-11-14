@@ -28,6 +28,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useState} from 'react';
 
+import useIsMobileWebLandscape from './useIsMobileWebLandscape';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -157,8 +158,9 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef, getListRef} = useActionListContext();
+    const {scrollOffsetRef, syncScrollSharedValues, getListRef} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
+    const isMobileWebLandscape = useIsMobileWebLandscape();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const backTo = route?.params?.backTo;
@@ -229,7 +231,14 @@ function useReportActionsScroll({
         // The list is hidden behind the expanded composer, so scrolling it must not bring the Latest messages pill back
         shouldDisablePillTracking: shouldDisablePillTracking || isComposerFullSize,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+            const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+            scrollOffsetRef.current = contentOffset.y;
+            syncScrollSharedValues({
+                offset: contentOffset.y,
+                distanceToOldestEnd: contentSize.height - layoutMeasurement.height - contentOffset.y,
+                distanceToNewestEnd: contentOffset.y,
+                viewportHeight: layoutMeasurement.height,
+            });
         },
         actionBadgeTargetIndex,
         getVisibleIndexRange: () => {
@@ -428,6 +437,10 @@ function useReportActionsScroll({
             return;
         }
         reportScrollManager.scrollToBottom();
+        // A list remounted for the live tail already sits at the bottom, so no scroll event corrects the offset left
+        // by the linked message. Sync it here, or the next content size change shows the Latest messages pill again.
+        scrollOffsetRef.current = 0;
+        setIsFloatingMessageCounterVisible(false);
         setIsScrollToBottomEnabled(false);
         completeLiveTailPruneAfterScrollToBottom();
     };
@@ -479,7 +492,7 @@ function useReportActionsScroll({
         initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {
         initialScrollIndex = renderedVisibleReportActions.length - 1;
-        initialScrollIndexParams = {viewOffset: windowHeight};
+        initialScrollIndexParams = isMobileWebLandscape ? {viewPosition: 1, viewOffset: windowHeight} : {viewOffset: windowHeight};
     }
 
     return {

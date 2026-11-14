@@ -25,7 +25,7 @@ You can update the following profile settings:
 - **Timezone** – Set the correct timezone for expense and report timestamps.
 - **Theme** – Switch between light mode, dark mode, or your device settings, and enable high contrast mode.
 - **Notifications** – Customize how and when you receive email and app notifications.
-- **Personal information** – Add or update your legal name, date of birth, phone number, and address.
+- **Personal information** – Add or update your legal name, date of birth, phone number, and home address.
 
 ---
 
@@ -160,12 +160,12 @@ You can also enable high contrast mode from the [login page](https://new.expensi
 
 ## How to update your personal information
 
-To update your legal name, date of birth, phone number, or address:
+To update your legal name, date of birth, phone number, or home address:
 
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile**.
 3. Scroll to the **Private** section.
-4. Select **Legal name**, **Date of birth**, **Phone number**, or **Address**.
+4. Select **Legal name**, **Date of birth**, **Phone number**, or **Home address**.
 5. Enter the updated information.
 6. Select **Save**.
 7. Enter the security code sent to your email or phone to verify the changes.
@@ -173,6 +173,10 @@ To update your legal name, date of birth, phone number, or address:
 When typing in the **Address line 1** field, a list of address suggestions appears. Select a suggestion to auto-populate the address fields including city, state, ZIP code, and country.
 
 If no address is saved, the **Country** field is pre-filled based on your current location.
+
+Your home address remains private account information. If your workspace uses **Exclude usual commute** and you are office-based, you need a saved home address to create distance expenses. Expensify uses it with your office and work arrangement to calculate the reimbursable distance.
+
+[Learn how commute exclusions affect distance expenses](/articles/new-expensify/reports-and-expenses/Distance-Expenses#how-the-exclude-commutes-setting-affects-distance-expenses).
 
 ---
 

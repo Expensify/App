@@ -27,6 +27,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
@@ -68,9 +69,15 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, normalizeDatePresetsInQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import {getExpenseReportIDs, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import {getSearchColumnResizingID, isReportEntry, savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getFooterSelectionFromQuery,
+    isGroupBySupportedBySearch,
+    normalizeDatePresetsInQuery,
+    serializeQueryJSONForBackend,
+} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -260,6 +267,7 @@ type HandleActionButtonPressParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
     goToItem: () => void;
+    policyID: string | undefined;
     snapshotReport: Report;
     snapshotPolicy: Policy;
     submitterLogin: string | undefined;
@@ -269,6 +277,8 @@ type HandleActionButtonPressParams = {
     currentSearchKey?: SearchKey;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
+    isAccountLocked?: boolean;
+    onAccountLocked?: () => void;
     personalPolicyID: string | undefined;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
@@ -308,6 +318,7 @@ function handleActionButtonPress({
     hash,
     item,
     goToItem,
+    policyID,
     snapshotReport,
     snapshotPolicy,
     submitterLogin,
@@ -317,6 +328,8 @@ function handleActionButtonPress({
     currentSearchKey,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
+    isAccountLocked,
+    onAccountLocked,
     personalPolicyID,
     ownerBillingGracePeriodEnd,
     onPendingCardTransactionsBlock,
@@ -370,6 +383,7 @@ function handleActionButtonPress({
                 hash,
                 item,
                 goToItem,
+                policyID,
                 snapshotReport,
                 snapshotPolicy,
                 lastPaymentMethod,
@@ -402,6 +416,10 @@ function handleActionButtonPress({
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             if (isDelegateAccessRestricted) {
                 onDelegateAccessRestricted?.();
+                return;
+            }
+            if (isAccountLocked) {
+                onAccountLocked?.();
                 return;
             }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
@@ -496,7 +514,7 @@ function handleActionButtonPress({
             const connectedIntegration = getValidConnectedIntegration(exportPolicy);
 
             if (!connectedIntegration) {
-                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID: item?.policyID});
+                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID});
                 return;
             }
 
@@ -616,6 +634,7 @@ type GetPayActionCallbackParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
     goToItem: () => void;
+    policyID: string | undefined;
     snapshotReport: Report;
     snapshotPolicy: Policy;
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
@@ -649,6 +668,7 @@ function getPayActionCallback({
     hash,
     item,
     goToItem,
+    policyID,
     snapshotReport,
     snapshotPolicy,
     lastPaymentMethod,
@@ -681,7 +701,7 @@ function getPayActionCallback({
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
         return;
     }
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
@@ -707,6 +727,22 @@ function getPayActionCallback({
     }
 
     const chatReportPolicyForPayment = chatReportPolicy ?? getPolicyFromSearchSnapshot(chatReportForPayment.policyID, searchData, undefined);
+    const methodID = lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined;
+
+    // One-tap pay can't show the Wise quote, so the report opens and the admin pays from there
+    if (
+        shouldConfirmWiseQuoteBeforePaying({
+            paymentType: lastPolicyPaymentMethod,
+            methodID,
+            bankAccountList,
+            isWiseReimbursementsBetaEnabled,
+            iouReport: snapshotReport,
+            policy: paymentPolicy,
+        })
+    ) {
+        goToItem();
+        return;
+    }
 
     payMoneyRequest({
         bankAccountList,
@@ -725,7 +761,7 @@ function getPayActionCallback({
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
+        methodID,
         isWiseReimbursementsBetaEnabled,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
@@ -807,6 +843,7 @@ function getApproveActionCallback({
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
         getCurrencyDecimals,
+        allTransactionViolations: allViolations,
         personalDetailsByLogins,
     });
 }
@@ -1013,7 +1050,10 @@ function deleteSavedSearch(savedSearchID: string) {
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.SEARCH_FILTERS>> = [
+    const searchKey = savedSearchIDToSearchKey(savedSearchID);
+    // The saved query may have been edited across data types, and each type keeps its own widths.
+    const tableColumnWidths = Object.fromEntries(Object.values(CONST.SEARCH.DATA_TYPES).map((type) => [getSearchColumnResizingID(type, searchKey), null]));
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.SEARCH_FILTERS | typeof ONYXKEYS.TABLE_COLUMN_WIDTHS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SAVED_SEARCHES,
@@ -1025,8 +1065,13 @@ function deleteSavedSearch(savedSearchID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SEARCH_FILTERS,
             value: {
-                [savedSearchIDToSearchKey(savedSearchID)]: null,
+                [searchKey]: null,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.TABLE_COLUMN_WIDTHS,
+            value: tableColumnWidths,
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
@@ -1301,7 +1346,11 @@ function handlePreventSearchAPI(hash: number | undefined) {
  * Builds the backend-facing query from a client queryJSON: strips client-only fields and rewrites client-side-sorted
  * columns to a backend-supported date sort.
  */
-function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
+function getBackendQueryJSON(searchQueryJSON: Readonly<SearchQueryJSON>) {
+    // The Search command rejects Insights-only group-bys as invalid, so they're left out
+    const queryJSON = isGroupBySupportedBySearch(searchQueryJSON.groupBy)
+        ? searchQueryJSON
+        : {...searchQueryJSON, groupBy: undefined, inputQuery: buildSearchQueryString({...searchQueryJSON, groupBy: undefined})};
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
@@ -1317,6 +1366,17 @@ function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
           }
         : queryJSONWithoutFlatFilters;
     return {backendQueryJSON, limit};
+}
+
+/** The IDs of the expense reports in search data */
+function getExpenseReportIDs(data: SearchResults['data']): Record<string, boolean> {
+    const reportIDs: Record<string, boolean> = {};
+    for (const key of Object.keys(data)) {
+        if (isReportEntry(key) && isExpenseReport(data[key])) {
+            reportIDs[key.replace(ONYXKEYS.COLLECTION.REPORT, '')] = true;
+        }
+    }
+    return reportIDs;
 }
 
 function search({
@@ -2308,6 +2368,12 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
+/** Moves every report matching the search query that the user can move to the given workspace. */
+function queueBulkChangeReportPolicy(jsonQuery: string, policyID: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE);
+    write(WRITE_COMMANDS.QUEUE_BULK_CHANGE_REPORT_POLICY, {jsonQuery, policyID, bulkActionID}, onyxData);
+}
+
 /**
  * Queues a bulk approval for every report matching the given search query. The backend pages through all matches itself,
  * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
@@ -2707,7 +2773,8 @@ function setOptimisticDataForTransactionThreadPreview(
     delegateAccountID: number | undefined,
     IOUTransactionID?: string,
 ) {
-    const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
+    const {reportID, report, amount, currency, transactionID, created, from} = item;
+    const policyID = report?.policyID;
     const moneyRequestReportActionID = item?.reportAction?.reportActionID;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
     const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
@@ -2779,6 +2846,7 @@ export {
     queueBulkPayReports,
     queueBulkApproveReports,
     queueBulkSubmitReports,
+    queueBulkChangeReportPolicy,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
@@ -2801,6 +2869,7 @@ export {
     getExportTemplates,
     getReportType,
     getTotalFormattedAmount,
+    getExpenseReportIDs,
     setOptimisticDataForTransactionThreadPreview,
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,

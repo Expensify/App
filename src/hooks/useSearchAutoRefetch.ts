@@ -5,7 +5,8 @@ import {search} from '@libs/actions/Search';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {isReportActionEntry} from '@libs/SearchUIUtils';
+import {shouldRefetchSearchOnReportActionChange} from '@libs/SearchQueryUtils';
+import {getValidGroupBy, isReportActionEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,6 +18,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
+import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useNetwork from './useNetwork';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 
@@ -74,9 +76,12 @@ function useSearchAutoRefetch({
 }: UseSearchAutoRefetch) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
+    const isInPreloadedTab = useIsInPreloadedTab();
     const searchTriggeredRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const shouldRefetchOnReportActionChange = shouldRefetchSearchOnReportActionChange(queryJSON);
+    const isGroupedSearch = !!getValidGroupBy(queryJSON.groupBy);
     const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
 
     const searchResultsData = searchResults?.data;
@@ -96,6 +101,11 @@ function useSearchAutoRefetch({
     useEffect(() => {
         // Trip rows don't change when transactions or report actions do
         if (shouldReturnTripRooms) {
+            return;
+        }
+
+        // A preloaded tab refreshes its whole snapshot on first open, so a refetch deferred while hidden would only repeat it.
+        if (isInPreloadedTab) {
             return;
         }
 
@@ -127,11 +137,19 @@ function useSearchAutoRefetch({
         // The rows and the footer total are served from the Search snapshot, and the footer total is computed by the
         // server, so those edits only become visible after a refetch.
         const hasChangedResultTransaction =
-            !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData);
+            !isChat &&
+            !hasTransactionsIDsChange &&
+            hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData, isGroupedSearch);
         const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
 
+        // Submitting, approving or forwarding a report changes no transaction, but it can move the report's expenses in or out of the results.
+        const hasRelevantReportActionChange = !isChat && shouldRefetchOnReportActionChange && hasAddedWorkflowReportAction(reportActions, previousReportActions);
+
         // Check if there is a change in the transactions or report actions list
-        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction || hasChangedResultMemberCustomField) || hasPendingSearchRef.current) {
+        if (
+            (isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction || hasChangedResultMemberCustomField || hasRelevantReportActionChange) ||
+            hasPendingSearchRef.current
+        ) {
             // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
             // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
             // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
@@ -169,7 +187,14 @@ function useSearchAutoRefetch({
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
-            if (!hasAGenuinelyNewID && !hasChangedResultTransaction && !hasChangedResultMemberCustomField && !hadPendingSearch && currentSearchResultIDs.length > 0) {
+            if (
+                !hasAGenuinelyNewID &&
+                !hasChangedResultTransaction &&
+                !hasChangedResultMemberCustomField &&
+                !hasRelevantReportActionChange &&
+                !hadPendingSearch &&
+                currentSearchResultIDs.length > 0
+            ) {
                 const currentIDsSet = new Set(isChat ? reportActionsIDs : currentTransactionIDs);
                 const hasDeletedID = currentSearchResultIDs.some((id) => !currentIDsSet.has(id));
                 if (!hasDeletedID) {
@@ -200,10 +225,13 @@ function useSearchAutoRefetch({
         memberCustomFields,
         previousMemberCustomFields,
         isChat,
+        shouldRefetchOnReportActionChange,
+        isGroupedSearch,
         searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
         shouldReturnTripRooms,
+        isInPreloadedTab,
     ]);
 
     useEffect(() => {
@@ -286,6 +314,9 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
  * snapshot keys and never touches the transaction collection.
  *
  * A move counts too: the report row owes its count and total to the snapshot, so a transaction never on screen still invalidates it.
+ *
+ * Grouped results only hold the groups. Their transactions and reports live in each group's child snapshot, so neither
+ * check can tell whether a change touches a group, and any changed transaction counts.
  */
 function hasChangedTransactionInSearchResults(
     transactions: OnyxCollection<Transaction>,
@@ -293,6 +324,7 @@ function hasChangedTransactionInSearchResults(
     previousTransactions: OnyxCollection<Transaction>,
     previousTransactionKeys: Set<string>,
     searchResultsData: Partial<SearchResults['data']> | undefined,
+    isGroupedSearch: boolean,
 ): boolean {
     if (!searchResultsData) {
         return false;
@@ -307,6 +339,9 @@ function hasChangedTransactionInSearchResults(
         if (!transaction?.transactionID || !previousTransactionKeys.has(key) || previousTransaction === transaction) {
             continue;
         }
+        if (isGroupedSearch) {
+            return true;
+        }
         if (transaction.reportID !== previousTransaction?.reportID && (isReportInSearchResults(transaction.reportID) || isReportInSearchResults(previousTransaction?.reportID))) {
             return true;
         }
@@ -320,6 +355,32 @@ function hasChangedTransactionInSearchResults(
 
     const searchResultIDs = new Set(extractTransactionIDsFromSearchResults(searchResultsData));
     return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
+}
+
+const WORKFLOW_ACTION_TYPES = new Set<string>(CONST.REPORT.WORKFLOW_ACTIONS);
+
+/**
+ * Whether a workflow report action was added, which can change the report's approver, workflow dates and its submitted or approved violations.
+ *
+ * Onyx only replaces the report action maps it writes, so maps with an unchanged reference are skipped, and the walk stops at the first match.
+ */
+function hasAddedWorkflowReportAction(reportActions: OnyxCollection<ReportActions>, previousReportActions: OnyxCollection<ReportActions>): boolean {
+    for (const [key, actions] of Object.entries(reportActions ?? {})) {
+        const previousActions = previousReportActions?.[key];
+        if (!actions || actions === previousActions) {
+            continue;
+        }
+        for (const [reportActionID, reportAction] of Object.entries(actions)) {
+            if (previousActions?.[reportActionID]) {
+                continue;
+            }
+            if (reportAction && WORKFLOW_ACTION_TYPES.has(reportAction.actionName)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function hasChangedMemberCustomField(memberCustomFields: MemberCustomFieldsByPolicyID | undefined, previousMemberCustomFields: MemberCustomFieldsByPolicyID | undefined): boolean {
