@@ -154,7 +154,6 @@ describe('visibleReportActions', () => {
             role: CONST.POLICY.ROLE.APPROVE_ONLY,
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
         };
         const memberPolicy: Policy = {
             ...approveOnlyPolicy,
