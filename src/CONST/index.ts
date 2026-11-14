@@ -7988,6 +7988,7 @@ const CONST = {
      * Constant for prefix of violations.
      */
     VIOLATIONS_PREFIX: 'violations.',
+    NON_DEFAULT_VIOLATION_PREFIX: 'nonDefault',
 
     /**
      * Constants with different types for the modifiedAmount violation
@@ -8021,6 +8022,14 @@ const CONST = {
         MISSING_CATEGORY: 'missingCategory',
         MISSING_COMMENT: 'missingComment',
         MISSING_TAG: 'missingTag',
+        NONDEFAULT_AMOUNT: 'nonDefaultAmount',
+        NONDEFAULT_BILLABLE: 'nonDefaultBillable',
+        NONDEFAULT_CATEGORY: 'nonDefaultCategory',
+        NONDEFAULT_COMMENT: 'nonDefaultComment',
+        NONDEFAULT_MERCHANT: 'nonDefaultMerchant',
+        NONDEFAULT_REIMBURSABLE: 'nonDefaultReimbursable',
+        NONDEFAULT_TAG: 'nonDefaultTag',
+        NONDEFAULT_TAX: 'nonDefaultTax',
         MODIFIED_AMOUNT: 'modifiedAmount',
         MODIFIED_DATE: 'modifiedDate',
         INCREASED_DISTANCE: 'increasedDistance',

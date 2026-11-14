@@ -225,6 +225,31 @@ describe('useViolations', () => {
     });
 
     describe('getViolationsForField - missingTag with dependent tags', () => {
+        it.each([
+            {order: 'first', nonDefaultTagFirst: true},
+            {order: 'last', nonDefaultTagFirst: false},
+        ])('should filter each tag violation when nonDefaultTag comes $order', ({nonDefaultTagFirst}) => {
+            // Given a missing Department and a default mismatch in either order
+            const missingTag: TransactionViolation = {
+                name: CONST.VIOLATIONS.MISSING_TAG,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {tagName: 'Department'},
+            };
+            const nonDefaultTag: TransactionViolation = {name: CONST.VIOLATIONS.NONDEFAULT_TAG, type: CONST.VIOLATION_TYPES.VIOLATION};
+            const violations = nonDefaultTagFirst ? [nonDefaultTag, missingTag] : [missingTag, nonDefaultTag];
+
+            // When we query the Department and Project tag lists
+            const {result} = renderHook(() => useViolations(violations, false));
+            const departmentViolations = result.current.getViolationsForField('tag', {tagListName: 'Department'}, true);
+            const projectViolations = result.current.getViolationsForField('tag', {tagListName: 'Project'}, true);
+
+            // Then only Department shows the missing tag, while both retain the default mismatch
+            expect(departmentViolations.map((violation) => violation.name)).toEqual(
+                nonDefaultTagFirst ? [CONST.VIOLATIONS.NONDEFAULT_TAG, CONST.VIOLATIONS.MISSING_TAG] : [CONST.VIOLATIONS.MISSING_TAG, CONST.VIOLATIONS.NONDEFAULT_TAG],
+            );
+            expect(projectViolations.map((violation) => violation.name)).toEqual([CONST.VIOLATIONS.NONDEFAULT_TAG]);
+        });
+
         it('should add tagName to missingTag violation when policyHasDependentTags is true', () => {
             // Given a missingTag violation on a policy with dependent tags
             // Dependent tags means selecting one tag affects available options in another
