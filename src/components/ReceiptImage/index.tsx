@@ -4,6 +4,7 @@ import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
+import type {ExpoImageStyle} from '@components/Image/types';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import LocalPDFReceiptPreview from '@components/ReportActionItem/LocalPDFReceiptPreview';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -16,7 +17,7 @@ import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {ImageProps, ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -117,7 +118,7 @@ type ReceiptImageProps = (
     onLoadFailure?: () => void;
 
     resizeMode?: ImageProps['resizeMode'];
-    style?: StyleProp<ViewStyle & ImageStyle>;
+    style?: StyleProp<ViewStyle & ExpoImageStyle>;
 
     /** Low-resolution URI shown as a placeholder while the full image loads */
     previewUri?: string;

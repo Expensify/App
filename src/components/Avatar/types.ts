@@ -1,17 +1,19 @@
+import type {ExpoImageStyle} from '@components/Image/types';
+
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {AvatarShape, AvatarSizeName} from '@styles/utils';
 
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 type AvatarCommonProps = {
     /** Source for the avatar. Can be a URL or an icon. */
     source?: AvatarSource;
 
     /** Extra styles for the rendered image, or for the container of the rendered icon/initials */
-    imageStyles?: StyleProp<ViewStyle & ImageStyle>;
+    imageStyles?: StyleProp<ViewStyle & ExpoImageStyle>;
 
     /** Additional styles for the rendered icon/initials, or for the container of the rendered image */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
