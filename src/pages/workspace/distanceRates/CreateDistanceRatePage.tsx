@@ -90,7 +90,6 @@ function CreateDistanceRatePage({
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = customUnit?.customUnitID;
     const distanceUnit = customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const unitLabel = translate(distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'common.mile' : 'common.kilometer');
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
     const isDistanceRateUpgrade = transactionID && reportID;
@@ -229,6 +228,7 @@ function CreateDistanceRatePage({
     const isGovernmentRateInMiles = (getExpectedUnitForCountry(governmentRateCountry) ?? distanceUnit) === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const governmentRateUnit = isGovernmentRateInMiles ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS;
     const governmentAmountLabel = translate('workspace.distanceRates.amountPerUnit', translate(isGovernmentRateInMiles ? 'common.mile' : 'common.kilometer'));
+    const customAmountLabel = translate('workspace.distanceRates.amountPerUnit', translate(distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'common.mile' : 'common.kilometer'));
     const governmentAmount = currentGovernmentRate
         ? convertAmountToDisplayString(getGovernmentRateAmountForUnit(currentGovernmentRate.rate, currentGovernmentRate.sourceRateID, governmentRateUnit), currency)
         : undefined;
@@ -379,7 +379,7 @@ function CreateDistanceRatePage({
                                     currency={currency}
                                     isCurrencyPressable={false}
                                     displayAsTextInput
-                                    label={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
+                                    label={customAmountLabel}
                                 />
                             </>
                         )}
