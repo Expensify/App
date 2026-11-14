@@ -1,6 +1,8 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 
 import NetSuiteExportConfigurationPage from '@pages/workspace/accounting/netsuite/export/NetSuiteExportConfigurationPage';
 
@@ -11,6 +13,7 @@ import type {Policy} from '@src/types/onyx';
 import type {ComponentProps} from 'react';
 
 import React from 'react';
+import type {Button, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -28,8 +31,16 @@ const mockPolicy = createMock<Policy>({
 });
 
 jest.mock('@components/ConnectionLayout', () => {
-    const RN = jest.requireActual<Record<string, React.ComponentType<{children?: React.ReactNode}>>>('react-native');
-    return ({children}: {children?: React.ReactNode}) => <RN.View>{children}</RN.View>;
+    const RN = jest.requireActual<{Button: typeof Button; View: typeof View}>('react-native');
+    return ({children, onBackButtonPress}: {children?: React.ReactNode; onBackButtonPress?: () => void}) => (
+        <RN.View>
+            <RN.Button
+                title="Back"
+                onPress={() => onBackButtonPress?.()}
+            />
+            {children}
+        </RN.View>
+    );
 });
 
 jest.mock('@components/MenuItem/presets/MenuItemField', () => {
@@ -51,6 +62,7 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => ''));
+jest.mock('@navigation/helpers/goBackFromExportConnection');
 
 const travelBillingSettings = {
     [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
@@ -72,9 +84,44 @@ describe('NetSuiteExportConfigurationPage', () => {
     });
 
     beforeEach(async () => {
+        jest.clearAllMocks();
+        mockPolicy.connections = createMock<Policy['connections']>({netsuite: {options: {config: {syncOptions: {}}, data: {}}}});
         await Onyx.clear();
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
         await waitForBatchedUpdatesWithAct();
+    });
+
+    it.each([
+        [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY, CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT, false],
+        [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL, CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT, false],
+        [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE, CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT, false],
+        [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT, CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY, true],
+        [undefined, CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY, false],
+        [undefined, CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL, false],
+        [undefined, CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE, false],
+        [undefined, CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT, true],
+        [undefined, undefined, true],
+    ])('uses card destination %s with reimbursable fallback %s to decide whether to skip the account page (%s)', async (cardDestination, reimbursableDestination, shouldSkipAccountPage) => {
+        // Given card exports take precedence over reimbursable exports when deciding whether account mapping exists
+        mockPolicy.connections = createMock<Policy['connections']>({
+            netsuite: {
+                options: {
+                    config: {
+                        syncOptions: {},
+                        nonreimbursableExpensesExportDestination: cardDestination,
+                        reimbursableExpensesExportDestination: reimbursableDestination,
+                    },
+                    data: {},
+                },
+            },
+        });
+        await renderPage();
+
+        // When the user returns from the export configuration page
+        fireEvent.press(screen.getByText('Back'));
+
+        // Then supported card destinations retain the account page regardless of the reimbursable setting
+        expect(goBackFromExportConnection).toHaveBeenCalledWith(shouldSkipAccountPage, '');
     });
 
     it('shows the travel billing export setting when the travel feed lives on the domain', async () => {

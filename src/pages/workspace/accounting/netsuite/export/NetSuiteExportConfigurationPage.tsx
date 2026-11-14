@@ -54,9 +54,12 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {isBetaEnabled} = usePermissions();
 
     const config = policy?.connections?.netsuite?.options.config;
+    const netSuiteConfig = config?.nonreimbursableExpensesExportDestination ?? config?.reimbursableExpensesExportDestination;
+    // Only skip the per-card account page when the effective company card destination has no account mapping.
     const shouldGoBackToSpecificRoute =
-        config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT ||
-        config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT;
+        netSuiteConfig !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL &&
+        netSuiteConfig !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY &&
+        netSuiteConfig !== CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path);
 
     const goBack = () => {
