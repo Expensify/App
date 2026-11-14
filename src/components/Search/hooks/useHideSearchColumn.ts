@@ -2,7 +2,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchCustomColumnIds, SearchQueryJSON} from '@components/Search/types';
 
 import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
-import {getCustomColumns, getRequiredSearchColumns, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
+import {getCustomColumns, getPinnedColumns, getQueryWithPinnedColumns, getRequiredSearchColumns, getValidGroupBy, navigateToSearchWithColumns, setColumnPin} from '@libs/SearchUIUtils';
 
 type HideSearchColumn = {
     /** The shown columns users can hide from their menu. */
@@ -27,7 +27,9 @@ function useHideSearchColumn(queryJSON: SearchQueryJSON, columns: SearchColumnTy
     const hidableColumns = new Set(canHideAnyColumn ? shownColumns.filter((column) => !requiredColumns.has(column)) : []);
 
     const hideColumn = (column: SearchColumnType) => {
-        const query = buildSearchQueryString({...queryJSON, columns: columnsToSave.filter((columnToSave) => columnToSave !== column)});
+        // A hidden column can't stay pinned, or showing it again would bring it back pinned.
+        const pinnedColumns = setColumnPin(getPinnedColumns(queryJSON), column, undefined);
+        const query = buildSearchQueryString({...getQueryWithPinnedColumns(queryJSON, pinnedColumns), columns: columnsToSave.filter((columnToSave) => columnToSave !== column)});
         navigateToSearchWithColumns(query, currentSearchKey);
     };
 

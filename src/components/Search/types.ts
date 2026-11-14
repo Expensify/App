@@ -417,6 +417,8 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE;
 
@@ -440,6 +442,10 @@ type SearchQueryAST = {
     filters: ASTNode;
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
+    /** Columns moved to the table's start, in the order they were pinned. They change only how the table is laid out, so they never change the search's hash. */
+    leftPinnedColumns?: SearchColumnType | SearchColumnType[];
+    /** Columns moved to the table's end, in the order they were pinned. */
+    rightPinnedColumns?: SearchColumnType | SearchColumnType[];
     groupColumns?: SearchColumnType[];
     limit?: number;
     compare?: SearchCompareMode;

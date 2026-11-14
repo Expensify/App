@@ -23,7 +23,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "leftPinnedColumns", "rightPinnedColumns", "limit", "view", "footerCount", "footerTotal", "footerCurrency"
   ]);
 }
 
@@ -148,6 +148,8 @@ autocompleteKey "key"
       / footerCount
       / footerCurrency
       / footerTotal
+      / leftPinnedColumns
+      / rightPinnedColumns
     )
 
 filterKey

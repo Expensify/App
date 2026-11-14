@@ -1529,7 +1529,20 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, groupBy, view, columns, limit, footerCount, footerTotal, footerCurrency, [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator, ...otherFilters} = supportedFilterValues;
+    const {
+        type,
+        groupBy,
+        view,
+        columns,
+        leftPinnedColumns,
+        rightPinnedColumns,
+        limit,
+        footerCount,
+        footerTotal,
+        footerCurrency,
+        [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator,
+        ...otherFilters
+    } = supportedFilterValues;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -1561,6 +1574,18 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         const filterValueArray = [...new Set<string>(columns)].filter((column) => shouldIncludeViolationsColumn || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         if (filterValueArray.length) {
             filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
+        }
+    }
+
+    // A column taken off the table stops being pinned, so adding it back later doesn't pin it again by surprise.
+    const shownColumns = columns?.length ? new Set<string>(columns) : undefined;
+    for (const [key, pinnedColumns] of [
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS, leftPinnedColumns],
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS, rightPinnedColumns],
+    ] as const) {
+        const pinnedColumnsToSave = [...new Set<string>(pinnedColumns ?? [])].filter((column) => !shownColumns || shownColumns.has(column));
+        if (pinnedColumnsToSave.length) {
+            filtersString.push(`${key}:${pinnedColumnsToSave.map((value) => sanitizeSearchValue(value)).join(',')}`);
         }
     }
 
@@ -2381,6 +2406,14 @@ function buildFilterFormValuesFromQuery(
         filtersForm[FILTER_KEYS.COLUMNS] = columns;
     }
 
+    if (queryJSON.leftPinnedColumns) {
+        filtersForm[FILTER_KEYS.LEFT_PINNED_COLUMNS] = [queryJSON.leftPinnedColumns].flat();
+    }
+
+    if (queryJSON.rightPinnedColumns) {
+        filtersForm[FILTER_KEYS.RIGHT_PINNED_COLUMNS] = [queryJSON.rightPinnedColumns].flat();
+    }
+
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
     }
@@ -2734,7 +2767,7 @@ function buildUserReadableQueryString({
     reportAttributes,
     bankAccountList,
 }: BuildUserReadableQueryStringParams) {
-    const {type, groupBy, view, columns, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
+    const {type, groupBy, view, columns, leftPinnedColumns, rightPinnedColumns, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
@@ -2808,9 +2841,15 @@ function buildUserReadableQueryString({
         title += ` view:${getUserFriendlyValue(view)}`;
     }
 
-    if (columns && columns.length > 0) {
-        const columnValue = Array.isArray(columns) ? columns.map((column) => getUserFriendlyValue(column)).join(',') : getUserFriendlyValue(columns);
-        title += ` columns:${columnValue}`;
+    for (const [key, columnsValue] of [
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS, columns],
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS, leftPinnedColumns],
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS, rightPinnedColumns],
+    ] as const) {
+        const columnList = [columnsValue ?? []].flat();
+        if (columnList.length > 0) {
+            title += ` ${getUserFriendlyKey(key)}:${columnList.map((column) => getUserFriendlyValue(column)).join(',')}`;
+        }
     }
 
     for (const filterObject of filters) {

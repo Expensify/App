@@ -8964,6 +8964,11 @@ const CONST = {
             CENTER: 'center',
             END: 'end',
         },
+        /** The edge of the Spend table a pinned column is moved to. */
+        PINNED_COLUMN_SIDE: {
+            LEFT: 'left',
+            RIGHT: 'right',
+        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -9070,6 +9075,8 @@ const CONST = {
             VIEW: 'view',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
+            LEFT_PINNED_COLUMNS: 'leftPinnedColumns',
+            RIGHT_PINNED_COLUMNS: 'rightPinnedColumns',
             LIMIT: 'limit',
             COMPARE: 'compare',
         },
@@ -9264,6 +9271,8 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             APPROVER: 'approver',
             COLUMNS: 'columns',
+            LEFT_PINNED_COLUMNS: 'left-pinned-columns',
+            RIGHT_PINNED_COLUMNS: 'right-pinned-columns',
             LIMIT: 'limit',
             FOOTER_COUNT: 'footer-count',
             FOOTER_TOTAL: 'footer-total',

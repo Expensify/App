@@ -767,6 +767,8 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.PAYER,
     FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
+    FILTER_KEYS.LEFT_PINNED_COLUMNS,
+    FILTER_KEYS.RIGHT_PINNED_COLUMNS,
     FILTER_KEYS.KEYWORD,
     FILTER_KEYS.FOOTER_COUNT,
     FILTER_KEYS.FOOTER_TOTAL,
@@ -7325,6 +7327,74 @@ function hasGroupWithConversionAmount(column: keyof typeof conversionAmountGroup
     });
 }
 
+type PinnedColumnSide = ValueOf<typeof CONST.SEARCH.PINNED_COLUMN_SIDE>;
+
+/** The columns pinned to each edge of the table, each in the order it was pinned. A column is pinned to one edge at most. */
+type PinnedColumns = Record<PinnedColumnSide, SearchColumnType[]>;
+
+type PinnedColumnLayout = {
+    /** Every shown column in the order the table lays them out: the left pins, the unpinned columns, then the right pins. */
+    columns: SearchColumnType[];
+
+    /** The shown columns moved to the table's start, in layout order. */
+    leftPinned: SearchColumnType[];
+
+    /** The shown columns moved to the table's end, in layout order. Includes a trailing action column whenever any column is pinned right, since it ends that region. */
+    rightPinned: SearchColumnType[];
+};
+
+/** Reads the query's pins. A query can name a column twice, so the left list wins, and within a list its first mention does. */
+function getPinnedColumns({leftPinnedColumns, rightPinnedColumns}: Pick<SearchQueryJSON, 'leftPinnedColumns' | 'rightPinnedColumns'>): PinnedColumns {
+    const left = [...new Set<SearchColumnType>([leftPinnedColumns ?? []].flat())];
+    const leftSet = new Set(left);
+    const right = [...new Set<SearchColumnType>([rightPinnedColumns ?? []].flat())].filter((column) => !leftSet.has(column));
+    return {left, right};
+}
+
+/** Pins a column to an edge, after the columns already there, or unpins it when no edge is given. Pinning to the other edge moves it. */
+function setColumnPin(pinnedColumns: PinnedColumns, column: SearchColumnType, side: PinnedColumnSide | undefined): PinnedColumns {
+    const left = pinnedColumns.left.filter((pinnedColumn) => pinnedColumn !== column);
+    const right = pinnedColumns.right.filter((pinnedColumn) => pinnedColumn !== column);
+    if (side === CONST.SEARCH.PINNED_COLUMN_SIDE.LEFT) {
+        left.push(column);
+    } else if (side === CONST.SEARCH.PINNED_COLUMN_SIDE.RIGHT) {
+        right.push(column);
+    }
+    return {left, right};
+}
+
+/** The query with its pins replaced. An edge with no pins is left out of the query rather than written empty. */
+function getQueryWithPinnedColumns(queryJSON: SearchQueryJSON, pinnedColumns: PinnedColumns): SearchQueryJSON {
+    return {
+        ...queryJSON,
+        leftPinnedColumns: pinnedColumns.left.length > 0 ? pinnedColumns.left : undefined,
+        rightPinnedColumns: pinnedColumns.right.length > 0 ? pinnedColumns.right : undefined,
+    };
+}
+
+/**
+ * Orders the shown columns around their pins. The header, the rows and the column widths all read this one order, so a pinned
+ * column moves everywhere at once. Pins on columns the table doesn't show are ignored.
+ */
+function getPinnedColumnLayout(columns: SearchColumnType[], pinnedColumns: PinnedColumns): PinnedColumnLayout {
+    const shownColumns = new Set(columns);
+    const leftPinned = pinnedColumns.left.filter((column) => shownColumns.has(column));
+    const rightPinned = pinnedColumns.right.filter((column) => shownColumns.has(column));
+
+    if (leftPinned.length === 0 && rightPinned.length === 0) {
+        return {columns, leftPinned, rightPinned};
+    }
+
+    const pinned = new Set([...leftPinned, ...rightPinned]);
+    const unpinned = columns.filter((column) => !pinned.has(column));
+
+    // The action column ends the row, so the right pins go before it rather than after it.
+    const trailingColumn = unpinned.at(-1) === CONST.SEARCH.TABLE_COLUMNS.ACTION && rightPinned.length > 0 ? unpinned.pop() : undefined;
+    const rightRegion = trailingColumn ? [...rightPinned, trailingColumn] : rightPinned;
+
+    return {columns: [...leftPinned, ...unpinned, ...rightRegion], leftPinned, rightPinned: rightRegion};
+}
+
 /**
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
@@ -8544,6 +8614,10 @@ export {
     getWithdrawalStatusOptions,
     getWithdrawalStatusDisplayText,
     getColumnsToShow,
+    getPinnedColumnLayout,
+    getPinnedColumns,
+    getQueryWithPinnedColumns,
+    setColumnPin,
     isReportDetailsCustomColumn,
     insertColumnBeforeTotalAmount,
     getHasOptions,
@@ -8605,6 +8679,9 @@ export {
     SEARCH_TYPE_MENU_ICON_NAMES,
 };
 export type {
+    PinnedColumnLayout,
+    PinnedColumns,
+    PinnedColumnSide,
     SavedSearchMenuItem,
     SearchTypeMenuSection,
     SearchTypeMenuItem,
