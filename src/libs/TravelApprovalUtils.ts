@@ -53,6 +53,11 @@ function canApproveBooking(tripData: TripRoomData, pnrID: string, accountID: num
     return !!booking.approverAccountIDs?.includes(accountID);
 }
 
+/** Whether the user can approve or reject at least one booking in the trip */
+function canApproveAnyBooking(tripData: TripRoomData, accountID: number | undefined, now: Date = new Date()): boolean {
+    return Object.keys(tripData?.bookingApprovalState ?? {}).some((pnrID) => canApproveBooking(tripData, pnrID, accountID, now));
+}
+
 /** The outstanding booking whose deadline comes first, which is the one trip-level places show */
 function getEarliestOutstandingBooking(tripData: TripRoomData, now: Date = new Date()): BookingApproval | undefined {
     let earliestBooking: BookingApproval | undefined;
@@ -134,4 +139,4 @@ function getBookingStatusBadge(translate: LocalizedTranslate, badgeColors: Theme
     return {text: translate(`travel.approval.status.${booking.status}`), backgroundColor: colors.backgroundColor, textColor: colors.textColor};
 }
 
-export {canApproveBooking, getBookingDeadlineDate, getBookingStatusBadge, getEarliestOutstandingBooking, getTripDeadlineText};
+export {canApproveAnyBooking, canApproveBooking, getBookingDeadlineDate, getBookingStatusBadge, getEarliestOutstandingBooking, getTripDeadlineText};

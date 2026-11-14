@@ -1149,10 +1149,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT]: {
         policyID: string;
         approverIndex: number;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: {
-        policyID: string;
-        approverIndex: number;
+
+        /** Whether the page was reached by picking a new approver, rather than by opening an approver already in the workflow */
+        isAddingApprover?: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;

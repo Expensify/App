@@ -42,6 +42,9 @@ type InsightsDataTableProps = {
 
     isLoading?: boolean;
 
+    /** Defaults to `SKELETON_ROW_COUNT` */
+    skeletonRowCount?: number;
+
     /** Called with the group whose row is pressed */
     onRowPress?: (item: GroupedItem) => void;
 };
@@ -58,7 +61,7 @@ function isMemberGroup(
     );
 }
 
-function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsDataTableProps) {
+function InsightsDataTable({rows, formatValue, isLoading, skeletonRowCount = SKELETON_ROW_COUNT, onRowPress}: InsightsDataTableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -71,7 +74,7 @@ function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsD
     const formatGroupValue = (item: GroupedItem, value: number) => (formatValue ? formatValue(value) : convertToDisplayString(item.total ?? 0, item.currency));
 
     if (isLoading) {
-        return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
+        return <InsightsDataTableSkeleton fixedNumItems={skeletonRowCount} />;
     }
 
     if (rows.length === 0) {

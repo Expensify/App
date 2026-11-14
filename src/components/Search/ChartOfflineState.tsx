@@ -6,8 +6,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
-
 import React from 'react';
 
 /** Stands in for a chart that has no data stored and can't fetch any while offline. */
@@ -21,7 +19,6 @@ function ChartOfflineState() {
         <BlockingView
             icon={icons.OfflineCloud}
             iconColor={theme.offline}
-            iconWidth={variables.iconSizeUltraLarge}
             title={translate('common.youAppearToBeOffline')}
             titleStyles={[styles.mt0, styles.mb2]}
             subtitle={translate('common.thisFeatureRequiresInternet')}

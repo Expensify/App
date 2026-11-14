@@ -1,12 +1,17 @@
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useOnyx from '@hooks/useOnyx';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
@@ -17,11 +22,12 @@ import React, {useEffect, useRef} from 'react';
 
 import type {MenuItemProps} from './MenuItem';
 
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import MenuItem from './MenuItem';
+import MenuItemField from './MenuItem/presets/MenuItemField';
 
 type State = keyof typeof COMMON_CONST.STATES;
 
-type StateSelectorProps = {
+type StateSelectorProps = ForwardedFSClassProps & {
     /** Form error text. e.g when no state is selected */
     errorText?: string;
 
@@ -39,9 +45,9 @@ type StateSelectorProps = {
     ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
-function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, ref}: StateSelectorProps) {
-    const styles = useThemeStyles();
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, forwardedFSClass, ref}: StateSelectorProps) {
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
 
     const didOpenStateSelector = useRef(false);
@@ -74,25 +80,34 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
     }, [stateFromUrl, onBlur, isFocused]);
 
     const title = stateCode && stateCode in COMMON_CONST.STATES ? translate(`allStates.${stateCode}.stateName`) : '';
-    const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
-        <MenuItemWithTopDescription
+        <MenuItem.Root
             sentryLabel={CONST.SENTRY_LABEL.STATE_SELECTOR.OPEN}
-            descriptionTextStyle={descStyle}
             ref={ref}
-            shouldShowRightIcon
-            title={title}
-            // Label can be an empty string
-            description={label || translate('common.state')}
-            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={errorText}
             onPress={() => {
-                didOpenStateSelector.current = true;
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_STATE.getRoute(stateCode, label)));
+                callIfAuthenticated(() => {
+                    didOpenStateSelector.current = true;
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_STATE.getRoute(stateCode, label)));
+                }, session)();
             }}
-            wrapperStyle={wrapperStyle}
-        />
+            style={wrapperStyle}
+        >
+            <MenuItemField.Row
+                name={label || translate('common.state')}
+                value={title}
+                forwardedFSClass={forwardedFSClass}
+            >
+                {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                <MenuItem.Chevron />
+            </MenuItemField.Row>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 

@@ -68,8 +68,8 @@ function sortIcons(icons: Icon[], sortBy: SortBy | undefined, localeCompare: Ret
 
 /**
  * Renders several known accounts as an overlapping row of avatars, resolving the icons from the personal-details context
- * (zero Onyx subscriptions). Use `AccountAvatar` when there is exactly one account, and `ReportActionAvatars` when the
- * actors still have to be resolved from a report, a report action or a policy.
+ * (zero Onyx subscriptions). Use `AccountAvatar` when there is exactly one account, and `ReportAvatar`, `useActionAvatar`
+ * or `PolicyAvatar` when the actors still have to be resolved from a report, a report action or a policy.
  */
 function MultiAccountAvatar({
     accountIDs,
@@ -84,8 +84,7 @@ function MultiAccountAvatar({
 
     const filteredAccountIDs = accountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
     const hasAccountsToRender = filteredAccountIDs.length > 0;
-    // When no account resolves, render one placeholder avatar instead of collapsing the slot,
-    // matching the fallback ReportActionAvatars renders for an empty account list.
+    // When no account resolves, render one placeholder avatar instead of collapsing the slot.
     const icons = useAccountIcons(hasAccountsToRender ? filteredAccountIDs : [CONST.DEFAULT_NUMBER_ID], invitedEmailsToAccountIDs);
     const placeholderIcon = icons.at(0);
 

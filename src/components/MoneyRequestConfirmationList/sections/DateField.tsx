@@ -61,6 +61,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
 
@@ -133,6 +134,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                 isDraft: shouldUseTransactionDraft(action),
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 getCurrencyDecimals,
+                rules,
             });
         }
     };

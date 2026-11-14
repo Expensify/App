@@ -86,5 +86,4 @@ function getAuthServerEndpoints(): Promise<AuthServerEndpoints> {
     return metadataPromise;
 }
 
-export {getAuthServerEndpoints};
-export type {AuthServerEndpoints};
+export default getAuthServerEndpoints;

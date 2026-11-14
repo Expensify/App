@@ -28,9 +28,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Onboarding} from '@src/types/onyx';
+import type {HardwareBackPressEvent} from '@src/types/utils/ReactNativeCompat';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {HardwareBackPressEvent} from 'react-native/Libraries/Utilities/BackHandler';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer, StackActions} from '@react-navigation/native';

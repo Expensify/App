@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {validateRateValue} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {areRateAmountsEqual, getDistanceRateCustomUnit, getRateValueWithDecimals} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -43,10 +43,10 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
     const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
-    const currentRateValue = (parseFloat((rate?.rate ?? 0).toString()) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+    const currentRateValue = getRateValueWithDecimals((rate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
 
     const submitRate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
-        if (currentRateValue === values.rate) {
+        if (areRateAmountsEqual(currentRateValue, values.rate)) {
             Navigation.goBack();
             return;
         }

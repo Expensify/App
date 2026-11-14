@@ -121,6 +121,17 @@ describe('insightsAccess', () => {
             expect(dashboards).toEqual([SPEND, COMPLIANCE]);
         });
 
+        it('hides Compliance once its only qualifying workspace is deleted offline', () => {
+            // Given an admin with the beta whose only workspace is waiting for the server to confirm its deletion
+            const policies = toCollection([{...buildPolicy(1, CONST.POLICY.ROLE.ADMIN), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]);
+
+            // When the dashboards they can open are resolved
+            const dashboards = getAccessibleDashboards(policies, LOGIN, isComplianceBetaEnabled);
+
+            // Then Compliance is gone right away, instead of turning into a not-found page on reconnect
+            expect(dashboards).toEqual([SPEND]);
+        });
+
         it('offers Efficiency to admins and auditors with the beta, on every plan', () => {
             // Given an admin of a Collect workspace and an auditor of a Control workspace, both with the beta
             const adminPolicies = toCollection([buildPolicy(1, CONST.POLICY.ROLE.ADMIN, CONST.POLICY.TYPE.TEAM)]);
