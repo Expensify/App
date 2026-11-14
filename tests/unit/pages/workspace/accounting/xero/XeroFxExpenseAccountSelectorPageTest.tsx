@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {updateXeroFxExpenseAccount} from '@userActions/connections/Xero';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import type {ComponentType} from 'react';
@@ -148,7 +149,7 @@ describe('XeroFxExpenseAccountSelectorPage', () => {
 
         // Then: the account is written and we return to Advanced.
         expect(updateXeroFxExpenseAccount).toHaveBeenCalledWith('1', TRAVEL_ACCOUNT.id, undefined);
-        expect(Navigation.goBack).toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute('1'));
     });
 
     it('clears the saved account when None is saved', () => {
@@ -165,6 +166,22 @@ describe('XeroFxExpenseAccountSelectorPage', () => {
 
         // Then: the setting is cleared so the cost stays off the spend money transaction.
         expect(updateXeroFxExpenseAccount).toHaveBeenCalledWith('1', '', TRAVEL_ACCOUNT.id);
-        expect(Navigation.goBack).toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute('1'));
+    });
+    it('returns to its own Advanced page without saving when Back is pressed', () => {
+        // Given an account has been selected without saving it.
+        renderPicker({expenseAccounts: [TRAVEL_ACCOUNT]});
+        act(() => {
+            getSelectionScreenProps().onSelectRow({value: TRAVEL_ACCOUNT.id, text: TRAVEL_ACCOUNT.name, keyForList: TRAVEL_ACCOUNT.id});
+        });
+
+        // When the shared picker's Back button is pressed.
+        act(() => {
+            getSelectionScreenProps().onBackButtonPress?.();
+        });
+
+        // Then this integration's route is preserved and the draft is discarded.
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute('1'));
+        expect(updateXeroFxExpenseAccount).not.toHaveBeenCalled();
     });
 });

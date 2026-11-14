@@ -3,12 +3,15 @@ import {act, render} from '@testing-library/react-native';
 import SelectionScreen from '@components/SelectionScreen';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
 
 import {updateQuickbooksDesktopFxExpenseAccount} from '@libs/actions/connections/QuickbooksDesktop';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import type {ComponentType} from 'react';
@@ -34,7 +37,7 @@ jest.mock('@hooks/useCanConfigureCurrencyConversionFees', () => ({
 
 jest.mock('@hooks/useDynamicBackPath', () => ({
     __esModule: true,
-    default: () => undefined,
+    default: jest.fn(),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -69,6 +72,8 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
     default: {isHybridApp: jest.fn(() => false)},
 }));
+
+const BACK_PATH = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute('1'));
 
 const TRAVEL_ACCOUNT = {id: 'a1', name: 'Travel'};
 
@@ -111,6 +116,7 @@ function getSelectionScreenProps() {
 describe('DynamicQuickbooksDesktopFxExpenseAccountSelectPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.mocked(useDynamicBackPath).mockReturnValue(BACK_PATH);
     });
 
     it('blocks the picker when out-of-pocket expenses export before they are paid', () => {
@@ -222,7 +228,7 @@ describe('DynamicQuickbooksDesktopFxExpenseAccountSelectPage', () => {
 
         // Then: the account is written and we return to Advanced.
         expect(updateQuickbooksDesktopFxExpenseAccount).toHaveBeenCalledWith('1', TRAVEL_ACCOUNT.id, undefined);
-        expect(Navigation.goBack).toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledWith(BACK_PATH);
     });
 
     it('clears the saved account when None is saved', () => {
@@ -239,6 +245,35 @@ describe('DynamicQuickbooksDesktopFxExpenseAccountSelectPage', () => {
 
         // Then: the setting is cleared so the cost stays off the export.
         expect(updateQuickbooksDesktopFxExpenseAccount).toHaveBeenCalledWith('1', '', TRAVEL_ACCOUNT.id);
-        expect(Navigation.goBack).toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledWith(BACK_PATH);
+    });
+    it.each([ROUTES.POLICY_ACCOUNTING.getRoute('1'), ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute('1')])('preserves the dynamic parent from %s for Back and Save', (basePath) => {
+        // Given the picker was opened from either accounting entry point.
+        const backPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, basePath);
+        jest.mocked(useDynamicBackPath).mockReturnValue(backPath);
+        renderPicker({expenseAccounts: [TRAVEL_ACCOUNT]});
+
+        // When Back is pressed.
+        act(() => {
+            getSelectionScreenProps().onBackButtonPress?.();
+        });
+
+        // Then this picker's dynamic suffix is used and Back does not persist anything.
+        expect(useDynamicBackPath).toHaveBeenCalledWith(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT.path);
+        expect(Navigation.goBack).toHaveBeenLastCalledWith(backPath);
+        expect(updateQuickbooksDesktopFxExpenseAccount).not.toHaveBeenCalled();
+
+        // When an account is selected and saved through the same screen callback.
+        act(() => {
+            getSelectionScreenProps().onSelectRow({value: TRAVEL_ACCOUNT.id, text: TRAVEL_ACCOUNT.name, keyForList: TRAVEL_ACCOUNT.id});
+        });
+        act(() => {
+            getSelectionScreenProps().confirmButtonOptions?.onConfirm?.();
+        });
+
+        // Then Save also returns to the original dynamic parent, rather than a shared route.
+        expect(Navigation.goBack).toHaveBeenCalledTimes(2);
+        expect(Navigation.goBack).toHaveBeenLastCalledWith(backPath);
+        expect(updateQuickbooksDesktopFxExpenseAccount).toHaveBeenCalledTimes(1);
     });
 });
