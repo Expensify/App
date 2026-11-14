@@ -684,7 +684,7 @@ describe('useTodoCounts', () => {
                 chatReports.map((chatReport) => [
                     chatReport.reportID,
                     createMock<ReportAttributes>({
-                        requiresAttention: requiresAttentionFromCurrentUser(chatReport, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined),
+                        requiresAttention: requiresAttentionFromCurrentUser(chatReport, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, undefined),
                     }),
                 ]),
             );

@@ -125,6 +125,10 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             hasGuidesEmails: ReportUtils.isDefaultRoom(report) ? ReportUtils.hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined) : false,
             conciergeReportID,
             requiresAttention,
+            // The metadata is only read when `requiresAttention` is missing, which here means reportAttributes has not
+            // computed this report yet. Subscribing to the whole metadata collection to cover that moment would cost
+            // this module another Onyx connection for a count that corrects itself on the next recompute.
+            pendingExpenseActionMetadata: undefined,
             derivedIsEmptyReport,
         });
     });

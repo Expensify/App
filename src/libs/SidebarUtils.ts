@@ -152,6 +152,7 @@ type ShouldDisplayReportInLHNParams = {
     isDefaultRoomsBetaEnabled: boolean;
     isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
+    pendingExpenseActionMetadata: OnyxEntry<ReportMetadata>;
     draftComment: OnyxEntry<string>;
     transactions: OnyxCollection<Transaction>;
     isOffline: boolean;
@@ -173,6 +174,7 @@ function shouldDisplayReportInLHN({
     isDefaultRoomsBetaEnabled,
     isBillPayBetaEnabled = false,
     transactionViolations,
+    pendingExpenseActionMetadata,
     draftComment,
     transactions,
     isOffline,
@@ -252,6 +254,7 @@ function shouldDisplayReportInLHN({
         includeSelfDM: true,
         isReportArchived,
         requiresAttention,
+        pendingExpenseActionMetadata,
         derivedIsEmptyReport: reportAttributes?.[report?.reportID]?.isEmpty,
         currentUserLogin,
         currentUserAccountID,
@@ -387,6 +390,10 @@ function getReportsToDisplayInLHN({
             isDefaultRoomsBetaEnabled,
             isBillPayBetaEnabled,
             transactionViolations,
+            // The metadata is only read when `requiresAttention` is missing, which here means reportAttributes has not
+            // computed this report yet. reportAttributes already depends on REPORT_METADATA and applies the same
+            // pending-DEW-approve check, so a subscription here would only cover that moment.
+            pendingExpenseActionMetadata: undefined,
             draftComment: reportDraftComment,
             transactions,
             isOffline,
@@ -494,6 +501,10 @@ function updateReportsToDisplayInLHN({
             isDefaultRoomsBetaEnabled,
             isBillPayBetaEnabled,
             transactionViolations,
+            // The metadata is only read when `requiresAttention` is missing, which here means reportAttributes has not
+            // computed this report yet. reportAttributes already depends on REPORT_METADATA and applies the same
+            // pending-DEW-approve check, so a subscription here would only cover that moment.
+            pendingExpenseActionMetadata: undefined,
             draftComment: reportDraftComment,
             transactions,
             isOffline,

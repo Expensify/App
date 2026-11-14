@@ -1950,6 +1950,7 @@ function isValidReport(
     chatReport: OnyxEntry<Report>,
     hasGuidesEmails: boolean,
     derivedIsEmptyReport: boolean | undefined,
+    derivedRequiresAttention: boolean | undefined,
 ): boolean {
     const {
         isDefaultRoomsBetaEnabled = false,
@@ -1998,6 +1999,11 @@ function isValidReport(
         hasGuidesEmails,
         derivedIsEmptyReport,
         transactionViolations,
+        requiresAttention: derivedRequiresAttention,
+        // The metadata is only read when `requiresAttention` is missing, which here means reportAttributes has not
+        // computed this report yet. reportAttributes already depends on REPORT_METADATA and applies the same
+        // pending-DEW-approve check, so a subscription here would only cover that moment.
+        pendingExpenseActionMetadata: undefined,
     });
 
     if (!shouldBeInOptionList) {
@@ -2510,6 +2516,7 @@ function getValidOptions(
                 // TODO: Pass guideAccountIDs in Phase B. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
                 isDefaultRoom(report.item) ? hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined) : false,
                 report.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined,
+                report.reportID ? reportAttributesDerived?.[report.reportID]?.requiresAttention : undefined,
             );
         };
 

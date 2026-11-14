@@ -5331,7 +5331,7 @@ function getReasonAndReportActionThatRequiresAttention({
     allReportActions: allReportActionsParam,
     reports,
     policies: policiesParam,
-    reportMetadata: reportMetadataParam,
+    reportMetadata,
     cardList,
     reportsTransactions,
 }: GetReasonAndReportActionThatRequiresAttentionParams): ReasonAndReportActionThatRequiresAttention | null {
@@ -5377,9 +5377,6 @@ function getReasonAndReportActionThatRequiresAttention({
             reportAction: getActionableJoinRequestPendingReportAction(optionOrReport.reportID),
         };
     }
-
-    // TODO: Remove this fallback once every caller threads the metadata, so this stops reading the module-level Onyx.connect. See https://github.com/Expensify/App/issues/66421
-    const reportMetadata = reportMetadataParam ?? allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
 
     // Prefer the policies collection callers already have on hand (e.g. reportAttributes.ts's own OnyxDerived
     // dependency) over the deprecated allPolicies module cache, which is populated by its own independently-timed
@@ -5523,6 +5520,7 @@ function requiresAttentionFromCurrentUser(
     currentUserLogin: string,
     currentUserAccountID: number,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    pendingExpenseActionMetadata: OnyxEntry<ReportMetadata>,
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
 ) {
@@ -5531,10 +5529,9 @@ function requiresAttentionFromCurrentUser(
         currentUserLogin,
         currentUserAccountID,
         transactionViolations,
+        reportMetadata: pendingExpenseActionMetadata,
         parentReportAction,
         isReportArchived,
-        // TODO: Pass the real reportMetadata in the next PR. See https://github.com/Expensify/App/issues/66421
-        reportMetadata: undefined,
     });
 }
 
@@ -11517,6 +11514,8 @@ type ShouldReportBeInOptionListParams = {
     requiresAttention?: boolean;
     /** Needed when `requiresAttention` is not pre-computed: the SUBMIT badge is suppressed when every expense was auto-rejected, which is only knowable from the violations. */
     transactionViolations?: OnyxCollection<TransactionViolations>;
+    /** Needed when `requiresAttention` is not pre-computed: an approve already pending in a dynamic external workflow suppresses the green dot. */
+    pendingExpenseActionMetadata: OnyxEntry<ReportMetadata>;
     /** Pre-computed isEmpty flag from reportAttributes derived value. When provided, skips the module-level reportAttributesDerivedValue read inside isEmptyReport. */
     derivedIsEmptyReport: boolean | undefined;
     hasGuidesEmails: boolean;
@@ -11541,6 +11540,7 @@ function reasonForReportToBeInOptionList({
     conciergeReportID,
     requiresAttention,
     transactionViolations,
+    pendingExpenseActionMetadata,
     derivedIsEmptyReport,
     hasGuidesEmails,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
@@ -11619,7 +11619,15 @@ function reasonForReportToBeInOptionList({
 
     if (
         requiresAttention ??
-        requiresAttentionFromCurrentUser(report, currentUserLogin ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, transactionViolations, undefined, isReportArchived)
+        requiresAttentionFromCurrentUser(
+            report,
+            currentUserLogin ?? '',
+            currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            transactionViolations,
+            pendingExpenseActionMetadata,
+            undefined,
+            isReportArchived,
+        )
     ) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }

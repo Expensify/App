@@ -887,6 +887,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBeNull();
         });
@@ -901,6 +902,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
@@ -918,6 +920,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
@@ -934,6 +937,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
@@ -954,6 +958,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
@@ -982,6 +987,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
@@ -1003,6 +1009,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -1019,6 +1026,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
@@ -1032,6 +1040,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
@@ -1094,6 +1103,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1156,6 +1166,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1170,6 +1181,7 @@ describe('DebugUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1189,6 +1201,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 hasGuidesEmails: false,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
                 transactionViolations,
             });
 

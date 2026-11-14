@@ -201,6 +201,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             }),
         );
     });
