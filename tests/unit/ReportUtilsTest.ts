@@ -4738,6 +4738,47 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
+        it('returns false when the outstanding child is the member own open report with expenses on a workspace they cannot create expenses on', async () => {
+            // Given the member's own open report with expenses on an approve-only workspace
+            // When the LHN checks whether their workspace chat needs attention
+            // Then the outstanding-child flag alone does not show the GBR, since the member cannot submit their own report on that workspace
+            const expenseReportID = '7103';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 1,
+                total: -1000,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(103, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            const transaction = {
+                ...createRandomTransaction(7103),
+                transactionID: '7103',
+                reportID: expenseReportID,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {role: CONST.POLICY.ROLE.APPROVE_ONLY});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+        });
+
         it('returns true when the outstanding child is the member own empty report on a workspace they can create expenses on', async () => {
             // Given the member's own open, empty report on a workspace where they are a regular member
             // When the LHN checks whether their workspace chat needs attention
