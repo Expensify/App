@@ -205,6 +205,8 @@ function PrivatePersonalDetailsPage() {
     };
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
+        // Resolve US state names to codes so hasChanges compares equivalent values and submission uses codes.
+        // Other countries accept free-text states, so preserve those values.
         const normalizedValues = values[INPUT_IDS.COUNTRY] === CONST.COUNTRY.US ? {...values, [INPUT_IDS.STATE]: resolveStateCode(values[INPUT_IDS.STATE] ?? '')} : values;
         if (!hasChanges(normalizedValues)) {
             Navigation.goBack();
