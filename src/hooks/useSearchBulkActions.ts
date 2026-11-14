@@ -81,6 +81,8 @@ import {
     isIndividualInvoiceRoom,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
+    isMoneyRequestReportPendingDeletion,
+    isProcessingReport,
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
@@ -191,6 +193,7 @@ import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
+import useStrictPolicyRules from './useStrictPolicyRules';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useUndeleteTransactions from './useUndeleteTransactions';
@@ -692,6 +695,7 @@ function getChatReportForBulkPay(
 type ExportMenuItem = DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'accessibilityLabel' | 'shouldCallAfterModalHide'>;
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -3297,7 +3301,25 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
             selectedReports.length &&
-            selectedReports.every((report) => report.canChangeApprover);
+            selectedReports.every((selectedReport) => {
+                if (selectedReport.canChangeApprover) {
+                    return true;
+                }
+                const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
+                // Current approvers can reassign without workspace admin access when strict policy rules are off.
+                const canReassignAsApprover =
+                    !isLoadingSecurityGroup &&
+                    !areStrictPolicyRulesEnabled &&
+                    report?.managerID === accountID &&
+                    isExpenseReportUtil(report) &&
+                    isProcessingReport(report) &&
+                    !isMoneyRequestReportPendingDeletion(report);
+                if (!canReassignAsApprover) {
+                    return false;
+                }
+                const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
+                return !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+            });
 
         if (shouldShowChangeApproverOption) {
             options.push({
@@ -3663,6 +3685,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return buildResult(options);
     }, [
         selectedTransactionsKeys,
+        areStrictPolicyRulesEnabled,
+        isLoadingSecurityGroup,
         showOfflineModal,
         showDownloadErrorModal,
         cardList,

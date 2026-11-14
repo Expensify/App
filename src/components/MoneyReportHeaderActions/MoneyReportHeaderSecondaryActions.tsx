@@ -39,6 +39,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useShareActions from '@hooks/useShareActions';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -103,6 +104,7 @@ const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
 };
 
 function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef, isDisabled}: MoneyReportHeaderSecondaryActionsProps) {
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
@@ -417,6 +419,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     // Compute list of applicable secondary action keys
     const secondaryActions = moneyRequestReport
         ? getSecondaryReportActions({
+              areStrictPolicyRulesEnabled,
+              isLoadingSecurityGroup,
               currentUserLogin: currentUserLogin ?? '',
               currentUserAccountID: accountID,
               submitterLogin,

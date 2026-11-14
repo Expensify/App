@@ -31,6 +31,7 @@ describe('SearchChangeApproverPage', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: 123,
         });
         const allPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy} as OnyxCollection<Policy>;
 
@@ -40,8 +41,47 @@ describe('SearchChangeApproverPage', () => {
                     selectedReports: [{reportID: report.reportID, policyID}],
                     onyxReports: {[report.reportID]: report},
                     allPolicies,
+                    currentUserAccountID: 456,
+                    areStrictPolicyRulesEnabled: true,
+                    isLoadingSecurityGroup: false,
                 }),
             ).toBe(true);
+        });
+
+        it('should return true when the current approver can reassign with strict policy rules disabled', () => {
+            // Given a non-admin current approver and strict policy rules are disabled
+            const memberPolicy = {...policy, role: CONST.POLICY.ROLE.USER};
+
+            // When checking whether the selected report can be reassigned
+            const canReassign = canReassignAllReports({
+                selectedReports: [{reportID: report.reportID, policyID}],
+                onyxReports: {[report.reportID]: report},
+                allPolicies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: memberPolicy},
+                currentUserAccountID: report.managerID ?? CONST.DEFAULT_NUMBER_ID,
+                areStrictPolicyRulesEnabled: false,
+                isLoadingSecurityGroup: false,
+            });
+
+            // Then the current approver can reassign the report
+            expect(canReassign).toBe(true);
+        });
+
+        it('should return false when the current approver cannot reassign with strict policy rules enabled', () => {
+            // Given a non-admin current approver and strict policy rules are enabled
+            const memberPolicy = {...policy, role: CONST.POLICY.ROLE.USER};
+
+            // When checking whether the selected report can be reassigned
+            const canReassign = canReassignAllReports({
+                selectedReports: [{reportID: report.reportID, policyID}],
+                onyxReports: {[report.reportID]: report},
+                allPolicies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: memberPolicy},
+                currentUserAccountID: report.managerID ?? CONST.DEFAULT_NUMBER_ID,
+                areStrictPolicyRulesEnabled: true,
+                isLoadingSecurityGroup: false,
+            });
+
+            // Then reassignment is unavailable to non-admins
+            expect(canReassign).toBe(false);
         });
 
         it('should return false when a report is no longer processing', () => {
@@ -50,8 +90,29 @@ describe('SearchChangeApproverPage', () => {
                     selectedReports: [{reportID: report.reportID, policyID}],
                     onyxReports: {[report.reportID]: {...report, statusNum: CONST.REPORT.STATUS_NUM.APPROVED}},
                     allPolicies,
+                    currentUserAccountID: 456,
+                    areStrictPolicyRulesEnabled: true,
+                    isLoadingSecurityGroup: false,
                 }),
             ).toBe(false);
+        });
+
+        it('should return false when the user is not an admin or current approver', () => {
+            // Given a non-admin who is not the selected report's current approver
+            const memberPolicy = {...policy, role: CONST.POLICY.ROLE.USER};
+
+            // When checking whether the selected report can be reassigned
+            const canReassign = canReassignAllReports({
+                selectedReports: [{reportID: report.reportID, policyID}],
+                onyxReports: {[report.reportID]: report},
+                allPolicies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: memberPolicy},
+                currentUserAccountID: 456,
+                areStrictPolicyRulesEnabled: false,
+                isLoadingSecurityGroup: false,
+            });
+
+            // Then reassignment is unavailable
+            expect(canReassign).toBe(false);
         });
 
         it('should return false when a selected report is missing from Onyx', () => {
@@ -60,6 +121,9 @@ describe('SearchChangeApproverPage', () => {
                     selectedReports: [{reportID: report.reportID, policyID}],
                     onyxReports: {},
                     allPolicies,
+                    currentUserAccountID: 456,
+                    areStrictPolicyRulesEnabled: true,
+                    isLoadingSecurityGroup: false,
                 }),
             ).toBe(false);
         });

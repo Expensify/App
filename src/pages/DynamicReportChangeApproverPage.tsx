@@ -11,6 +11,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
@@ -18,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isProcessingReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,6 +55,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
     const {isBetaEnabled} = usePermissions();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -62,12 +64,19 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
 
+    const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    // Members only have the reassignment action, so its destination must still be available.
+    const canMemberReassignApprover =
+        !isLoadingSecurityGroup && !areStrictPolicyRulesEnabled && currentUserDetails.accountID === report?.managerID && isProcessingReport(report) && isApprovalEnabled;
+    const hasAdminPermission = isPolicyAdmin(policy);
+    const approverType = hasAdminPermission ? selectedApproverType : APPROVER_TYPE.REASSIGN_APPROVER;
+
     const goBack = () => {
         Navigation.goBack(backPath);
     };
 
     const changeApprover = () => {
-        if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
+        if (approverType === APPROVER_TYPE.ADD_APPROVER) {
             if (policy && !isControlPolicy(policy)) {
                 Navigation.navigate(
                     ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -81,7 +90,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
-        if (selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
+        if (approverType === APPROVER_TYPE.REASSIGN_APPROVER) {
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(report.reportID));
             return;
         }
@@ -90,35 +99,36 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         Navigation.dismissToPreviousRHP();
     };
 
-    const data: Array<ListItem<ApproverType>> = [
-        {
+    const data: Array<ListItem<ApproverType>> = [];
+    if (hasAdminPermission) {
+        data.push({
             text: translate('iou.changeApprover.actions.addApprover'),
             keyForList: APPROVER_TYPE.ADD_APPROVER,
             alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
-            isSelected: selectedApproverType === APPROVER_TYPE.ADD_APPROVER,
-        },
-    ];
-    if (isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
+            isSelected: approverType === APPROVER_TYPE.ADD_APPROVER,
+        });
+    }
+    if (hasAdminPermission && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
         data.push({
             text: translate('iou.changeApprover.actions.bypassApprovers'),
             keyForList: APPROVER_TYPE.BYPASS_APPROVER,
             alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
-            isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
+            isSelected: approverType === APPROVER_TYPE.BYPASS_APPROVER,
         });
     }
-    if (isPolicyAdmin(policy) && !isPendingDeletePolicy(policy)) {
+    if ((hasAdminPermission || canMemberReassignApprover) && !isPendingDeletePolicy(policy)) {
         data.push({
             text: translate('iou.changeApprover.actions.reassignApprover'),
             keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
             alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
-            isSelected: selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER,
+            isSelected: approverType === APPROVER_TYPE.REASSIGN_APPROVER,
         });
     }
     const approverTypes = data;
 
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) ||
-        !isPolicyAdmin(policy) ||
+        (!hasAdminPermission && !canMemberReassignApprover) ||
         isPendingDeletePolicy(policy) ||
         !isMoneyRequestReport(report) ||
         isMoneyRequestReportPendingDeletion(report);
@@ -162,7 +172,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
                 confirmButtonOptions={confirmButtonOptions}
                 shouldUpdateFocusedIndex
                 customListHeader={listHeader}
-                initiallyFocusedItemKey={selectedApproverType}
+                initiallyFocusedItemKey={approverType}
             />
         </ScreenWrapper>
     );

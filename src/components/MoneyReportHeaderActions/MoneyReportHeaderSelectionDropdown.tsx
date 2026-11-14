@@ -22,6 +22,7 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useSelectionModePayment from '@hooks/useSelectionModePayment';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 
@@ -56,6 +57,7 @@ type MoneyReportHeaderSelectionDropdownProps = {
 };
 
 function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportInSearch, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const route = useRoute();
     const {startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu: openHoldMenuAsync, openRejectModal} = useMoneyReportHeaderModals();
@@ -153,6 +155,8 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const computedSecondaryActions = moneyRequestReport
         ? getSecondaryReportActions({
+              areStrictPolicyRulesEnabled,
+              isLoadingSecurityGroup,
               currentUserLogin: currentUserLogin ?? '',
               currentUserAccountID: accountID,
               submitterLogin,
