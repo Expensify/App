@@ -1,5 +1,5 @@
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,7 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 
 import type {PaymentCardParams} from '@libs/API/parameters';
-import Navigation from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -63,10 +62,7 @@ function DebitCardPage() {
             includeSafeAreaPaddingBottom={false}
             testID="DebitCardPage"
         >
-            <HeaderWithBackButton
-                title={translate('addDebitCardPage.addADebitCard')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('addDebitCardPage.addADebitCard')} />
             <PaymentCardForm
                 showAcceptTerms
                 shouldShowPaymentCardForm

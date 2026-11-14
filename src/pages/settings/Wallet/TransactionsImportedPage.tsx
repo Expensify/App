@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -157,7 +157,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.companyCards.importTransactions.title')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(existingCardID ? Number(existingCardID) : undefined))}
             />

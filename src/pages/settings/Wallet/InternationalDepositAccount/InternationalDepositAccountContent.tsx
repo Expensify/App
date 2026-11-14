@@ -1,7 +1,7 @@
 import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
 import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
@@ -178,11 +178,10 @@ function InternationalDepositAccountContent({
             ) : (
                 <CollapsibleHeaderOnKeyboardGroup>
                     <CollapsibleHeaderOnKeyboardGroupMember>
-                        <HeaderWithBackButton
-                            title={translate('bankAccount.addBankAccount')}
-                            shouldShowBackButton={pageIndex !== CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS}
-                            onBackButtonPress={handleBackButtonPress}
-                        />
+                        <Header>
+                            {pageIndex !== CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS && <Header.BackButton onPress={handleBackButtonPress} />}
+                            <Header.Title title={translate('bankAccount.addBankAccount')} />
+                        </Header>
                     </CollapsibleHeaderOnKeyboardGroupMember>
                     <CurrentPage
                         isEditing={isEditing}

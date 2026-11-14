@@ -1,5 +1,5 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -80,7 +80,7 @@ function SelectBankStep() {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('personalCard.addPersonalCard')}
                 onBackButtonPress={handleBackButtonPress}
             />
