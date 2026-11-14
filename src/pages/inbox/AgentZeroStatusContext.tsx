@@ -27,6 +27,7 @@ type AgentZeroStatusState = {
      * current user — a human viewing the chat is never the thinking persona.
      */
     candidateAgentIDs: number[];
+    parentReportActionID?: string;
 };
 
 type AgentZeroStatusActions = {
@@ -38,6 +39,7 @@ type ReportMeta = {
     chatType: Report['chatType'];
     isDM: boolean;
     parentReportID: Report['parentReportID'];
+    parentReportActionID: Report['parentReportActionID'];
     participantAccountIDs: number[];
 };
 
@@ -46,6 +48,7 @@ function reportMetaSelector(report: OnyxEntry<Report>): ReportMeta {
         chatType: getReportChatType(report),
         isDM: isDM(report),
         parentReportID: getReportParentReportID(report),
+        parentReportActionID: report?.parentReportActionID,
         participantAccountIDs: getReportParticipantAccountIDs(report),
     };
 }
@@ -82,7 +85,7 @@ const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defa
  */
 function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [reportMeta] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportMetaSelector});
-    const {chatType, isDM: isDMReport = false, parentReportID, participantAccountIDs} = reportMeta ?? {};
+    const {chatType, isDM: isDMReport = false, parentReportID, parentReportActionID, participantAccountIDs} = reportMeta ?? {};
     const [agentParticipantAccountID] = usePersonalDetailsByIDs(participantAccountIDs, getCustomAgentParticipantAccountID(participantAccountIDs));
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -90,7 +93,9 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
     // Read once here and hand it to the gate rather than subscribing again inside it — the
     // selector narrows to a short accountID list, so this only re-renders when the set of
     // actively-processing agents changes.
-    const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingAgentIDsSelector});
+    const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+        selector: (reportNameValuePairs) => agentZeroProcessingAgentIDsSelector(reportNameValuePairs, parentReportActionID),
+    });
 
     // Concierge answers each question in a thread off the Concierge DM, so those threads carry its indicator too.
     const isConciergeChat = !!conciergeReportID && (reportID === conciergeReportID || parentReportID === conciergeReportID);
@@ -109,6 +114,7 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
             reportID={reportID}
             isActive={!!reportID && isAgentZeroChat}
             serverAgentIDs={serverAgentIDs}
+            parentReportActionID={parentReportActionID}
             includeConcierge={isConciergeChat || isAdmin}
             customAgentDMAccountID={customAgentDMAccountID}
         >
@@ -121,10 +127,18 @@ function AgentZeroStatusGate({
     reportID,
     isActive,
     serverAgentIDs,
+    parentReportActionID,
     includeConcierge,
     customAgentDMAccountID,
     children,
-}: React.PropsWithChildren<{reportID: string | undefined; isActive: boolean; serverAgentIDs: number[] | undefined; includeConcierge: boolean; customAgentDMAccountID?: number}>) {
+}: React.PropsWithChildren<{
+    reportID: string | undefined;
+    isActive: boolean;
+    serverAgentIDs: number[] | undefined;
+    parentReportActionID?: string;
+    includeConcierge: boolean;
+    customAgentDMAccountID?: number;
+}>) {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     // When the agent's reply (ADDCOMMENT) lands before the server's indicator-clear NVP update,
@@ -196,7 +210,7 @@ function AgentZeroStatusGate({
         return a - b;
     });
 
-    const stateValue = {candidateAgentIDs};
+    const stateValue = {candidateAgentIDs, parentReportActionID};
     const actionsValue = {kickoffWaitingIndicator};
 
     return (

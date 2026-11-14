@@ -47,7 +47,7 @@ type ConciergeThinkingMessageProps = {
  * bubble is attributed to the agent the server actually named — not a guessed persona.
  */
 function ConciergeThinkingMessage({reportID}: ConciergeThinkingMessageProps) {
-    const {candidateAgentIDs} = useAgentZeroStatus();
+    const {candidateAgentIDs, parentReportActionID} = useAgentZeroStatus();
     const shouldSuppress = useShouldSuppressConciergeIndicators(reportID);
 
     if (shouldSuppress || !reportID || candidateAgentIDs.length === 0) {
@@ -58,17 +58,18 @@ function ConciergeThinkingMessage({reportID}: ConciergeThinkingMessageProps) {
         <>
             {candidateAgentIDs.map((agentAccountID) => (
                 <ConciergeThinkingBubble
-                    key={agentAccountID}
+                    key={`${agentAccountID}-${parentReportActionID ?? ''}`}
                     reportID={reportID}
                     agentAccountID={agentAccountID}
+                    parentReportActionID={parentReportActionID}
                 />
             ))}
         </>
     );
 }
 
-function ConciergeThinkingBubble({reportID, agentAccountID}: {reportID: string; agentAccountID: number}) {
-    const {isProcessing, reasoningHistory, statusLabel} = useAgentZeroStatusIndicator(reportID, agentAccountID);
+function ConciergeThinkingBubble({reportID, agentAccountID, parentReportActionID}: {reportID: string; agentAccountID: number; parentReportActionID?: string}) {
+    const {isProcessing, reasoningHistory, statusLabel} = useAgentZeroStatusIndicator(reportID, agentAccountID, parentReportActionID);
 
     if (!isProcessing) {
         return null;

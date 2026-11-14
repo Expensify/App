@@ -148,6 +148,9 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
      */
     agentZeroProcessingRequestIndicator?: Record<string, string | null> | string;
 
+    /** App-only live thread labels keyed by parent report action ID, then by persona accountID. */
+    agentZeroProcessingRequestIndicatorByParentAction?: Record<string, Record<string, string | null>>;
+
     parentReportID?: string;
 
     /** The trip data for a trip room */

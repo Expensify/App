@@ -857,8 +857,12 @@ function unsubscribeFromReportReasoningChannel(reportID: string) {
  * to auto-clear stale indicators when the CLEAR update was missed. Only the given
  * agent's slot is cleared so a co-resident agent's indicator stays intact.
  */
-function clearAgentZeroProcessingIndicator(reportID: string, agentAccountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: {[agentAccountID]: null}});
+function clearAgentZeroProcessingIndicator(reportID: string, agentAccountID: number, parentReportActionID?: string) {
+    const indicators = {[agentAccountID]: null};
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+        agentZeroProcessingRequestIndicator: indicators,
+        ...(parentReportActionID && {agentZeroProcessingRequestIndicatorByParentAction: {[parentReportActionID]: indicators}}),
+    });
     AgentZeroReasoningStore.clearReasoning(reportID, agentAccountID);
 }
 
