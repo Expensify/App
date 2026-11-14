@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {AuthorizeTransactionCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import ScenarioConfigs from '@components/MultifactorAuthentication/config/scenarios';
 import {DeniedTransactionServerFailureScreen, DeniedTransactionSuccessScreen} from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
@@ -116,12 +116,11 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         }
         return (
             <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('multifactorAuthentication.reviewTransaction.reviewTransaction')}
                     onBackButtonPress={() => {
                         Navigation.closeRHPFlow();
                     }}
-                    shouldShowBackButton
                 />
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
@@ -132,10 +131,9 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('multifactorAuthentication.reviewTransaction.reviewTransaction')}
                 onBackButtonPress={showConfirmModal}
-                shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>

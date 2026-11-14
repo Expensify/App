@@ -1,7 +1,7 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -30,10 +30,7 @@ function ImTeacherUpdateEmailPage() {
 
     return (
         <ScreenWrapper testID="ImTeacherUpdateEmailPage">
-            <HeaderWithBackButton
-                title={translate('teachersUnitePage.iAmATeacher')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('teachersUnitePage.iAmATeacher')} />
             <BlockingView
                 linkTranslationKey="notFound.goBackHome"
                 shouldEmbedLinkWithSubtitle

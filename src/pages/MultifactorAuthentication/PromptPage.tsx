@@ -1,7 +1,7 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
@@ -54,10 +54,9 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                 },
             }}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('multifactorAuthentication.letsVerifyItsYou')}
                 onBackButtonPress={requestCancel}
-                shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
                 <MultifactorAuthenticationPromptContent
