@@ -977,7 +977,7 @@ function computeReportName({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
-        const {originalID} = getOriginalMessage(parentReportAction) ?? {};
+        const {originalID, isPartialApproval} = getOriginalMessage(parentReportAction) ?? {};
         const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
         const reportName = computeReportName({
             dateFnsLocale,
@@ -1003,7 +1003,7 @@ function computeReportName({
             formatPhoneNumber,
             rules,
         });
-        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translate);
+        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translate, isPartialApproval);
     }
 
     if (isTaskReport(report)) {

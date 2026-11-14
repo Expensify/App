@@ -19,11 +19,11 @@ type CreatedReportForUnapprovedTransactionsActionProps = {
 };
 
 function CreatedReportForUnapprovedTransactionsAction({action}: CreatedReportForUnapprovedTransactionsActionProps) {
-    const {originalID} = getOriginalMessage(action) ?? {};
+    const {originalID, isPartialApproval} = getOriginalMessage(action) ?? {};
     const {translate} = useLocalize();
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalID}`);
     const reportName = getReportName(originalReport);
-    const htmlContent = `<comment><muted-text>${getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(action, originalReport), translate)}</muted-text></comment>`;
+    const htmlContent = `<comment><muted-text>${getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(action, originalReport), translate, isPartialApproval)}</muted-text></comment>`;
 
     return (
         <ReportActionItemBasicMessage>
