@@ -524,7 +524,7 @@ function signOutAndRedirectToSignIn(
                     });
                 });
             } else {
-                redirectToSignIn(signOutReason).then(() => {
+                redirectToSignIn(signOutReason, undefined, undefined, shouldStashSession).then(() => {
                     Onyx.multiSet(onyxSetParams);
 
                     if (hasSwitchedAccountInHybridMode) {

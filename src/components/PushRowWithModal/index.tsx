@@ -135,7 +135,12 @@ function PushRowWithModal(props: PushRowWithModalProps) {
                     {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                     {shouldAllowChange && <MenuItem.Chevron />}
                 </MenuItemField.Row>
-                {!!errorText && <MenuItem.HelpText message={errorText} isError />}
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        message={errorText}
+                        isError
+                    />
+                )}
             </MenuItem.Root>
             <PushRowModal
                 isVisible={isModalVisible}

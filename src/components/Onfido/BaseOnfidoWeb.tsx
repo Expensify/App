@@ -179,6 +179,8 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit, ref}: OnfidoProps) {
     return (
         <div
             id={CONST.ONFIDO.CONTAINER_ID}
+            // The SDK renders ID document photos and selfies, so Fullstory must not record anything inside it
+            className={CONST.FULLSTORY.CLASS.EXCLUDE}
             ref={mergeRefs(ref, containerRef)}
         />
     );

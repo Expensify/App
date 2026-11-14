@@ -265,7 +265,12 @@ function ConfirmationStep({
                     {!!brickRoadIndicator && <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />}
                     {shouldShowRightIcon && <MenuItem.Chevron />}
                 </MenuItemField.Row>
-                {!!errorText && <MenuItem.HelpText message={errorText} isError />}
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        message={errorText}
+                        isError
+                    />
+                )}
             </MenuItem.Root>
         );
     };

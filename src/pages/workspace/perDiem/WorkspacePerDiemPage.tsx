@@ -219,6 +219,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             text: translate('common.settings'),
             onSelected: openSettings,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.MORE_MENU_SETTINGS,
         });
     }
     if (canWritePerDiem) {
@@ -233,6 +234,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
             },
             value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.MORE_MENU_IMPORT_SPREADSHEET,
         });
     }
     // Admins can download the CSV before adding rates, to use it as an import template
@@ -248,6 +250,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 close(() => downloadPerDiemCSV(policyID, showDownloadErrorModal, translate));
             },
             value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.MORE_MENU_DOWNLOAD_CSV,
         });
     }
     const secondaryActions = menuItems;
@@ -262,6 +265,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate('workspace.perDiem.deleteRates', {count: selectedSubRateKeys.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.BULK_ACTIONS_DELETE,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
@@ -341,6 +345,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             ? [
                   {
                       buttonText: translate('spreadsheet.importSpreadsheet'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.EMPTY_STATE_IMPORT_SPREADSHEET,
                       buttonAction: () => {
                           if (isOffline) {
                               showOfflineModal();

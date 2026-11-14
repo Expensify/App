@@ -438,7 +438,12 @@ function AmountField({
                                         </MenuItem.Trailing>
                                     )}
                                 </MenuItem.Row>
-                                {shouldDisplayFieldError && amountIsMissing && <MenuItem.HelpText message={translate('common.error.enterAmount')} isError />}
+                                {shouldDisplayFieldError && amountIsMissing && (
+                                    <MenuItem.HelpText
+                                        message={translate('common.error.enterAmount')}
+                                        isError
+                                    />
+                                )}
                             </MenuItem.Root>
                         )}
                     </View>

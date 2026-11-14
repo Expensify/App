@@ -3,6 +3,8 @@ import type {EditableProps} from '@components/EditableCell';
 
 import useLocalize from '@hooks/useLocalize';
 
+import {getRateValueWithDecimals} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import type {Rate} from '@src/types/onyx/Policy';
 
@@ -21,7 +23,7 @@ type WorkspaceDistanceRateValueCellProps = {
 function WorkspaceDistanceRateValueCell({rate, displayText, children, canEdit, onSave}: WorkspaceDistanceRateValueCellProps) {
     const {translate} = useLocalize();
     const currency = rate.currency ?? CONST.CURRENCY.USD;
-    const rateValue = (parseFloat((rate.rate ?? 0).toString()) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+    const rateValue = getRateValueWithDecimals((rate.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
 
     return (
         <InlineNumberEditCell
