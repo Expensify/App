@@ -416,7 +416,7 @@ function AmountField({
                                 onPress={openAmountPage}
                                 isDisabled={didConfirm}
                                 isInteractive={canOpenAmountPage}
-                                errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
+                                errorText={shouldShowAmountMissingError ? translate('common.error.enterAmount') : ''}
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
                             />
                         ) : (
@@ -431,14 +431,14 @@ function AmountField({
                                         <MenuItem.FieldName>{translate('iou.amount')}</MenuItem.FieldName>
                                         <MenuItem.FieldValue style={styles.moneyRequestConfirmationAmount}>{formattedAmount}</MenuItem.FieldValue>
                                     </MenuItem.Content>
-                                    {(canOpenAmountPage || (shouldDisplayFieldError && amountIsMissing)) && (
+                                    {(canOpenAmountPage || shouldShowAmountMissingError) && (
                                         <MenuItem.Trailing>
-                                            {shouldDisplayFieldError && amountIsMissing && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                            {shouldShowAmountMissingError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                                             {canOpenAmountPage && <MenuItem.Chevron />}
                                         </MenuItem.Trailing>
                                     )}
                                 </MenuItem.Row>
-                                {shouldDisplayFieldError && amountIsMissing && (
+                                {shouldShowAmountMissingError && (
                                     <MenuItem.HelpText
                                         message={translate('common.error.enterAmount')}
                                         isError
