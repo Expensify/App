@@ -373,6 +373,11 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyGuest = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.GUEST;
 
 /**
+ * Checks if the current user has the approve-only role on the policy.
+ */
+const isPolicyApproveOnly = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.APPROVE_ONLY;
+
+/**
  * Checks if the current user is a workspace or card admin of the policy and the policy has a card product enabled.
  */
 const isAdminOfCardEnabledPolicy = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean =>
@@ -424,6 +429,7 @@ export {
     getPolicyApproverLogins,
     isPolicyUser,
     isPolicyGuest,
+    isPolicyApproveOnly,
     isPolicyAuditor,
     isAdminOfCardEnabledPolicy,
     isPolicyEmployee,
