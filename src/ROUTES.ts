@@ -3866,9 +3866,9 @@ const ROUTES = {
     },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
-        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string) => {
+        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string, governmentRateCountry?: string) => {
             const base = policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const);
-            const urlWithParams = reportID || upgradePlanType ? getUrlWithParams(base, {reportID, upgradePlanType}) : base;
+            const urlWithParams = reportID || upgradePlanType || governmentRateCountry ? getUrlWithParams(base, {reportID, upgradePlanType, governmentRateCountry}) : base;
             return getUrlWithBackToParam(urlWithParams, backTo);
         },
     },

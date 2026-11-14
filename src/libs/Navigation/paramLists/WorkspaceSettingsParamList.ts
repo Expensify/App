@@ -196,6 +196,9 @@ type WorkspaceSettingsParamList = {
         categoryId?: string;
         reportID?: string;
         upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
+
+        /** Euro country picked in Add rate, which the government rate is turned on for once the upgrade completes */
+        governmentRateCountry?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_DOWNGRADE]: {
         policyID?: string;
