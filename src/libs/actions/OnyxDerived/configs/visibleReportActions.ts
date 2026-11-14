@@ -3,18 +3,18 @@ import {
     isActionableWhisperRequiringWritePermission,
     isActionOfType,
     isConciergeCategoryOptions,
-    isResolvedActionableWhisper,
-    isWhisperActionTargetedToOthers,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
-import {canCreateRoomInReport, isSupportTicket} from '@libs/ReportUtils';
+import {isSupportTicket} from '@libs/ReportUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
@@ -34,6 +34,9 @@ function shouldSkipCachingAction(action: ReportAction): boolean {
  */
 function computeReportVisibility(
     reportID: string,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    currentUserEmail: string | undefined,
     reportActions: ReportActions,
     currentUserAccountID: number | undefined,
     isSupportTicketReport: boolean,
@@ -54,8 +57,19 @@ function computeReportVisibility(
             continue;
         }
         if (isActionableReportMentionWhisper(action)) {
-            reportVisibility[action.reportActionID] =
-                !isWhisperActionTargetedToOthers(action, currentUserAccountID) && !isResolvedActionableWhisper(action) && canCreateRoomInReport(action.reportID ?? reportID);
+            // Write permission is still checked at runtime in isReportActionVisible, so pass true here to run the remaining visibility checks (deleted, resolved, targeted, room-creation permission) against the snapshot.
+            reportVisibility[action.reportActionID] = shouldReportActionBeVisible(
+                action,
+                actionID,
+                true,
+                currentUserAccountID,
+                reportID,
+                isSupportTicketReport,
+                reportActions,
+                report,
+                policy,
+                currentUserEmail,
+            );
             continue;
         }
         // A replacement ticket has its own active survey, so the original ticket's survey is stale.
@@ -77,12 +91,13 @@ export default createOnyxDerivedValueConfig({
     // SESSION dependency is needed for whisper targeting when user changes.
     // POLICY dependency is needed so room-creation whispers recompute when a workspace member's role changes.
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.POLICY],
-    compute: ([allReportActions, session, allReports, allReportNameValuePairs], {sourceValues, currentValue, triggeredKeys}): VisibleReportActionsDerivedValue => {
+    compute: ([allReportActions, session, allReports, allReportNameValuePairs, allPolicies], {sourceValues, currentValue, triggeredKeys}): VisibleReportActionsDerivedValue => {
         if (!allReportActions) {
             return {};
         }
 
         const currentUserAccountID = session?.accountID;
+        const currentUserEmail = session?.email;
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS];
@@ -126,9 +141,10 @@ export default createOnyxDerivedValueConfig({
             }
 
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const policy = report?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
             const isSupportTicketReport = isSupportTicket(report);
             const isReplacedSupportTicket = isSupportTicketReport && !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]?.reopenedAsReportID;
-            result[reportID] = computeReportVisibility(reportID, reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket);
+            result[reportID] = computeReportVisibility(reportID, report, policy, currentUserEmail, reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket);
         }
 
         return result;

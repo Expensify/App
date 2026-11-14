@@ -1729,6 +1729,9 @@ function shouldReportActionBeVisible(
     reportID?: string,
     isSupportTicketReport = false,
     reportActions?: OnyxEntry<ReportActions>,
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
+    currentUserEmail?: string,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1793,7 +1796,7 @@ function shouldReportActionBeVisible(
         return false;
     }
 
-    if (isActionableWhisperRequiringRoomCreationPermission(reportAction, reportID)) {
+    if (isActionableWhisperRequiringRoomCreationPermission(reportAction, reportID, report, policy, currentUserEmail)) {
         return false;
     }
 
@@ -3486,8 +3489,14 @@ function isActionableWhisperRequiringWritePermission(reportAction: OnyxEntry<Rep
 /**
  * Checks if a report action's visibility depends on whether the current user can create rooms in the report.
  */
-function isActionableWhisperRequiringRoomCreationPermission(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
-    return isActionableReportMentionWhisper(reportAction) && !canCreateRoomInReport(reportAction.reportID ?? reportID);
+function isActionableWhisperRequiringRoomCreationPermission(
+    reportAction: OnyxEntry<ReportAction>,
+    reportID: string | undefined,
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
+    currentUserEmail?: string,
+): boolean {
+    return isActionableReportMentionWhisper(reportAction) && !canCreateRoomInReport(reportAction.reportID ?? reportID, report, policy, currentUserEmail);
 }
 
 function getExportIntegrationLastMessageText(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, integrationName?: string): string {

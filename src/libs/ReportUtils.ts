@@ -12519,13 +12519,13 @@ function canEditRoomVisibility(policy: OnyxEntry<Policy>, isReportArchived: bool
 /**
  * Whether the current user can create policy rooms on the workspace of the given report.
  */
-function canCreateRoomInReport(reportID: string | undefined): boolean {
-    const report = getReportOrDraftReport({reportID});
-    const policy = report?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+function canCreateRoomInReport(reportID: string | undefined, reportParam?: OnyxEntry<Report>, policyParam?: OnyxEntry<Policy>, currentUserEmailParam?: string): boolean {
+    const report = reportParam ?? getReportOrDraftReport({reportID});
+    const policy = policyParam ?? (report?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined);
     if (!policy) {
         return true;
     }
-    return canMemberWritePolicyUtils(policy, deprecatedCurrentUserEmail ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS);
+    return canMemberWritePolicyUtils(policy, currentUserEmailParam ?? deprecatedCurrentUserEmail ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS);
 }
 
 /**
