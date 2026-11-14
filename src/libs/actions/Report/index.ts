@@ -3379,18 +3379,18 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     }
 
     // Find the latest report actions from other users
-    const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
-        if (
+    const reportActionsFromOtherUsers = Object.values(reportActions ?? {}).filter(
+        (current) =>
             !ReportActionsUtils.isDeletedAction(current) &&
             current.actorAccountID !== currentUserAccountID &&
-            (!latest || current.created > latest.created) &&
             // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
-            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
-        ) {
-            return current;
-        }
-        return latest;
-    }, null);
+            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER),
+    );
+    const eligibleReportActions = reportAction?.created
+        ? reportActionsFromOtherUsers
+        : reportActionsFromOtherUsers.filter((action) => ReportActionsUtils.canReportActionTriggerUnreadMarker(action, currentUserAccountID));
+    const unreadCandidates = eligibleReportActions.length > 0 ? eligibleReportActions : reportActionsFromOtherUsers;
+    const latestReportActionFromOtherUsers = unreadCandidates.reduce((latest: ReportAction | null, current) => (!latest || current.created > latest.created ? current : latest), null);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];

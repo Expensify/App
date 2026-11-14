@@ -1054,6 +1054,98 @@ describe('actions/Report', () => {
         return setPromise;
     });
 
+    describe.each([
+        {
+            name: 'a NetSuite export',
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 12:00:00.000'},
+        },
+        {
+            name: 'a payment meant for someone else',
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+            originalMessage: {actionableForAccountIDs: [3]},
+        },
+    ])('marking unread with $name', ({actionName, originalMessage}) => {
+        const reportID = 'scoped-unread';
+        const currentUserAccountID = 1;
+        const comment = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'comment',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 2,
+            created: '2023-01-01 11:00:00.000',
+            message: [{type: 'COMMENT', text: 'An ordinary comment', html: 'An ordinary comment'}],
+        });
+        const informational = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'informational',
+            actionName,
+            originalMessage,
+            actorAccountID: 2,
+            created: '2023-01-01 12:00:00.000',
+            message: [{type: 'COMMENT', text: 'System message', html: 'System message'}],
+        });
+
+        beforeEach(async () => {
+            apiWriteSpy.mockResolvedValue(undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                lastVisibleActionCreated: informational.created,
+                lastReadTime: informational.created,
+                lastActorAccountID: informational.actorAccountID,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('uses the newest eligible message when marking the whole chat unread', () => {
+            // Given a read chat whose newest activity cannot show an automatic divider
+            const reportActions = {comment, informational};
+
+            // When the user marks the chat unread without choosing a specific message
+            Report.markCommentAsUnread(reportID, reportActions, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
+
+            // Then the read time points to the ordinary comment without storing a manual message anchor
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_AS_UNREAD,
+                expect.objectContaining({reportActionID: comment.reportActionID, lastReadTime: DateUtils.subtractMillisecondsFromDateTime(comment.created, 1)}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({manuallyMarkedUnreadReportActionID: null})})]),
+                }),
+            );
+        });
+
+        it('keeps a specific message unread even when automatic dividers are filtered', () => {
+            // Given the same system message and an older ordinary comment
+            const reportActions = {comment, informational};
+
+            // When the user explicitly marks the system message unread
+            Report.markCommentAsUnread(reportID, reportActions, informational, currentUserAccountID, false);
+
+            // Then the chosen message still supplies the read time and manual anchor
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_AS_UNREAD,
+                expect.objectContaining({reportActionID: informational.reportActionID, lastReadTime: DateUtils.subtractMillisecondsFromDateTime(informational.created, 1)}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({manuallyMarkedUnreadReportActionID: informational.reportActionID})})]),
+                }),
+            );
+        });
+
+        it('keeps the existing fallback when no eligible message from another user exists', () => {
+            // Given only filtered activity from another user and a newer comment from the current user
+            const ownComment = {...comment, actorAccountID: currentUserAccountID, created: '2023-01-01 13:00:00.000'};
+
+            // When the whole chat is marked unread
+            Report.markCommentAsUnread(reportID, {ownComment, informational}, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
+
+            // Then the system message still supplies the fallback rather than the user's own comment
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_AS_UNREAD,
+                expect.objectContaining({reportActionID: informational.reportActionID, lastReadTime: DateUtils.subtractMillisecondsFromDateTime(informational.created, 1)}),
+                expect.anything(),
+            );
+        });
+    });
+
     it('Should properly update comment with links', async () => {
         /* This tests a variety of scenarios when a user edits a comment.
          * We should generate a link when editing a message unless the link was

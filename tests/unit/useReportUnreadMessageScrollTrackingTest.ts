@@ -84,6 +84,68 @@ describe('useReportUnreadMessageScrollTracking', () => {
     describe('when scrolling', () => {
         const onTrackScrollingMockFn = jest.fn();
 
+        it.each([false, true])('finishes a skipped read at the newest end without a divider when inverted is %s', (isInverted) => {
+            // Given a focused chat without a divider and a read waiting for the user to scroll down
+            const offsetRef = {current: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 100};
+            const onUnreadActionVisible = jest.fn();
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible,
+                    onTrackScrolling: (event) => {
+                        offsetRef.current = event.nativeEvent.contentOffset.y;
+                    },
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted,
+                }),
+            );
+            expect(onUnreadActionVisible).not.toHaveBeenCalled();
+
+            // When the scroll handler reports that the newest messages have been reached
+            act(() => result.current.trackVerticalScrolling(emptyScrollEventMock));
+
+            // Then the existing callback can finish the skipped read in either list direction
+            expect(onUnreadActionVisible).toHaveBeenCalledTimes(1);
+        });
+
+        describe.each([false, true])('without a visible divider when inverted is %s', (isInverted) => {
+            it.each([
+                {name: 'newer messages are not loaded', hasNewerActions: true},
+                {name: 'another screen has focus', isFocused: false},
+                {name: 'a real unread divider exists', unreadMarkerReportActionIndex: 5},
+                {name: 'initial positioning is not finished', shouldDisablePillTracking: true},
+                {name: 'the user is still reading older messages', offset: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD},
+                {name: 'there is no scroll event', hasScrollEvent: false},
+            ])(
+                'does not finish a skipped read when $name',
+                ({hasNewerActions = false, isFocused = true, unreadMarkerReportActionIndex = -1, shouldDisablePillTracking = false, offset = 0, hasScrollEvent = true}) => {
+                    // Given a chat that has not met every condition for completing a skipped read
+                    jest.mocked(useIsFocused).mockReturnValue(isFocused);
+                    const onUnreadActionVisible = jest.fn();
+                    const {result} = renderHook(() =>
+                        useReportUnreadMessageScrollTracking({
+                            reportID,
+                            currentVerticalScrollingOffsetRef: {current: offset},
+                            onUnreadActionVisible,
+                            onTrackScrolling: jest.fn(),
+                            hasNewerActions,
+                            unreadMarkerReportActionIndex,
+                            isInverted,
+                            shouldDisablePillTracking,
+                        }),
+                    );
+
+                    // When scroll tracking runs before those conditions are met
+                    act(() => result.current.trackVerticalScrolling(hasScrollEvent ? emptyScrollEventMock : undefined));
+
+                    // Then it leaves the skipped read for the existing read logic to complete later
+                    expect(onUnreadActionVisible).not.toHaveBeenCalled();
+                },
+            );
+        });
+
         it('resumes pill tracking after initial positioning and hides it when returning to the newest messages', () => {
             // Given initial positioning keeps the pill hidden while the list reports its scroll position.
             const offsetRef = {current: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 100};
