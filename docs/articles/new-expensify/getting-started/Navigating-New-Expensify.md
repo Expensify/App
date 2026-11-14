@@ -87,8 +87,10 @@ Your selected tab is remembered, so the Inbox reopens to the same tab the next t
 From **Spend**, you can:
 
 - Open **Explore** and choose **Reports** (expense reports), **Expenses**, or **Chats**
-- Use **To-do** shortcuts such as **Submit**, **Approve**, **Pay**, and **Export**
+- Use shortcuts such as **Drafts**, **Needs approval**, and **Ready to pay** under **Expense reports**, and **Awaiting export** under **Accounting**
 - Apply filters and narrow results using the **Workspace filter** inside **Filters**
+
+**Note:** If you chose **Track expenses for my business** or **Organize my personal spending** during onboarding and **Workflows** is disabled on all of your workspaces, the **Drafts**, **Needs approval**, **Ready to pay**, and **Awaiting export** shortcuts don't appear.
 
 ---
 
