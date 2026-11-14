@@ -60,6 +60,19 @@ describe('SearchNavigationUtils', () => {
     });
 
     describe('navigateToCannedSpendSearch', () => {
+        it('restores the edited Approve query without restoring To or touching Reports', () => {
+            // Given the last Approve query after removing To through advanced filters
+            const defaultQuery = 'type:expense-report action:approve to:123';
+            const lastQuery = 'type:expense-report action:approve status:approved';
+
+            // When revisiting Needs approval
+            navigateToCannedSpendSearch(SEARCH_KEYS.APPROVE, defaultQuery, lastQuery, clearSelectedTransactions);
+
+            // Then the query and Approve context are restored together
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: lastQuery, searchKey: SEARCH_KEYS.APPROVE}));
+        });
+
         it('should clear the selection and open the default query when there is no last query', () => {
             // Given a canned search the user has never left a query on
             // When we navigate to it

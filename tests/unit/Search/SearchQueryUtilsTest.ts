@@ -2,6 +2,7 @@ import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@comp
 
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import {clearPreservedNavigatorStates, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
@@ -15,6 +16,7 @@ import {
     buildSearchQueryString,
     buildUserReadableQueryString,
     doesQueryMatchDefaultFilterKeysAndType,
+    doesQueryMatchSearchContext,
     getAllPolicyValues,
     getAllPolicyValuesMap,
     getConnectedIntegrationNamesForPolicies,
@@ -7013,6 +7015,57 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(result.size).toBe(2);
+        });
+    });
+
+    describe('doesQueryMatchSearchContext', () => {
+        it.each([...TODO_SEARCH_KEYS])('keeps %s after removing its other default filters', (searchKey) => {
+            // Given a to-do search whose recipient and other default filters can be edited
+            const todoDefaultQuery = `type:expense-report action:${searchKey} to:123 reimbursable:yes`;
+            const editedQuery = `type:expense-report action:${searchKey} status:approved policyID:456`;
+
+            // When the edited query is validated and restored with its explicit tab
+            const matches = doesQueryMatchSearchContext(buildSearchQueryJSON(editedQuery), buildSearchQueryJSON(todoDefaultQuery), searchKey);
+
+            // Then its action keeps it on the same tab, including when revisiting
+            expect(matches).toBe(true);
+            expect(getValidLastQuery(editedQuery, todoDefaultQuery, searchKey)).toBe(editedQuery);
+        });
+
+        it.each([
+            'type:expense-report',
+            'type:expense-report action:pay',
+            'type:expense-report -action:approve',
+            'type:expense-report action:approve,pay',
+            'type:expense-report action:approve -action:approve',
+            'type:expense-report action:approve action:pay',
+            'type:expense-report action>approve',
+            'type:expense action:approve',
+        ])('rejects an incompatible Approve query: %s', (query) => {
+            // Given the default Approve query and an incompatible type or action
+            const todoDefaultQuery = 'type:expense-report action:approve to:123';
+
+            // When checking and restoring the query with an explicit Approve key
+            const matches = doesQueryMatchSearchContext(buildSearchQueryJSON(query), buildSearchQueryJSON(todoDefaultQuery), CONST.SEARCH.SEARCH_KEYS.APPROVE);
+
+            // Then an action key alone is insufficient to keep the Approve context
+            expect(matches).toBe(false);
+            expect(getValidLastQuery(query, todoDefaultQuery, CONST.SEARCH.SEARCH_KEYS.APPROVE)).toBe(todoDefaultQuery);
+        });
+
+        it('does not relax validation without a to-do key', () => {
+            // Given a query missing a filter from the default
+            const todoDefaultQuery = 'type:expense-report action:approve to:123';
+            const query = 'type:expense-report action:approve';
+
+            // When validating without a key or with an ordinary Reports key
+            const queryJSON = buildSearchQueryJSON(query);
+            const defaultQueryJSON = buildSearchQueryJSON(todoDefaultQuery);
+
+            // Then both cases still require the default filter keys
+            expect(doesQueryMatchSearchContext(queryJSON, defaultQueryJSON)).toBe(false);
+            expect(doesQueryMatchSearchContext(queryJSON, defaultQueryJSON, CONST.SEARCH.SEARCH_KEYS.REPORTS)).toBe(false);
+            expect(getValidLastQuery(query, todoDefaultQuery)).toBe(todoDefaultQuery);
         });
     });
 

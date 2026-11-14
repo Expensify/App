@@ -20,7 +20,7 @@ type SpendTabSearchKey = typeof CONST.SEARCH.SEARCH_KEYS.EXPENSES | typeof CONST
 function navigateToCannedSpendSearch(searchKey: SearchKey, searchQuery: string, lastSearchQuery: string | undefined, clearSelectedTransactions: () => void) {
     clearSelectedTransactions();
     setSearchContext(false);
-    const query = getValidLastQuery(lastSearchQuery, searchQuery);
+    const query = getValidLastQuery(lastSearchQuery, searchQuery, searchKey);
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey}));
 }
 
@@ -46,7 +46,7 @@ function navigateToFlatNavItem(item: FlatNavItem, searchFilters: OnyxEntry<Searc
     }
 
     clearSelectedTransactions();
-    navigateToSearch({query: normalizeDatePresetsInQuery(getValidLastQuery(lastSearchQuery, item.query)), name: item.name, searchKey: item.key});
+    navigateToSearch({query: normalizeDatePresetsInQuery(getValidLastQuery(lastSearchQuery, item.query, item.key)), name: item.name, searchKey: item.key});
 }
 
 /** Opens the item a section lands on. Does nothing when the section has no item that can be opened. */
