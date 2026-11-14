@@ -3,6 +3,7 @@ import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAu
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
+import type TransactionsPendingFraudReview from './TransactionsPendingFraudReview';
 import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 
 /** Model of commands data */
@@ -30,6 +31,9 @@ type Response<TKey extends OnyxKey> = {
 
     /** Collection of onyx updates (SET/MERGE/...) */
     onyxData?: Array<OnyxUpdate<TKey>>;
+
+    /** Pagination pages for the items in onyxData. They are applied after onyxData, and skipped whenever onyxData is skipped. */
+    paginationOnyxData?: Array<OnyxUpdate<TKey>>;
 
     /** ID of the request that triggered this response */
     requestID?: string;
@@ -71,6 +75,11 @@ type Response<TKey extends OnyxKey> = {
     /** Commands data */
     data?: Data;
 
+    /** Details sent with a failure, such as the members SetWorkspaceCategoriesEnabled would leave without a category they can use */
+    additionalData?: {
+        accountIDs?: number[];
+    };
+
     /** Used to pass error type for error handling purposes */
     type?: string;
 
@@ -85,6 +94,9 @@ type Response<TKey extends OnyxKey> = {
 
     /** Whether the account is set for testing Travel and should use the sandbox environment */
     isTestAccount?: boolean;
+
+    /** Whether the account can enable Travel without a guide verifying the business first */
+    canSkipVerification?: boolean;
 
     /** User authorization token to authorize Pusher connections */
     auth?: string;
@@ -129,6 +141,9 @@ type Response<TKey extends OnyxKey> = {
 
     /** Transactions pending 3DS review returned from GetTransactionsPending3DSReview */
     transactionsPending3DSReview?: TransactionsPending3DSReview;
+
+    /** Transactions pending fraud review returned from GetTransactionsPendingFraudReview */
+    transactionsPendingFraudReview?: TransactionsPendingFraudReview;
 
     /** Cache key returned from GetExpensifyCardStatementPDF */
     statementKey?: string;

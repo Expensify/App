@@ -4,6 +4,7 @@ import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useTheme from '@hooks/useTheme';
 
 import FS from '@libs/Fullstory';
@@ -34,7 +35,7 @@ import * as Sentry from '@sentry/react-native';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 
 import AppNavigator from './AppNavigator';
-import {cleanPreservedNavigatorStates, clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getNavigationBaseTheme from './getNavigationBaseTheme';
 import createDynamicRoute from './helpers/dynamicRoutesUtils/createDynamicRoute';
 import getActiveTabName from './helpers/getActiveTabName';
@@ -145,13 +146,15 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     const previousAuthenticated = usePrevious(authenticated);
 
     const [initialState] = useState(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
         const shouldRedirectCompletedUser = !!path && isOnboardingPath(path) && !isJoinWorkspaceTaskPath(path);
-        if (isOnboardingCompleted && shouldRedirectCompletedUser) {
+        // An initial state skips OnboardingGuard, so copilot and supportal sessions are kept out of onboarding here too
+        if ((isOnboardingCompleted || shouldSuppressPromotionalUI) && shouldRedirectCompletedUser) {
             return getAdaptedStateFromPath(ROUTES.HOME);
         }
 
@@ -246,9 +249,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // Drop the previous session's preserved navigator states. Otherwise restoreTabNavigatorRoutes
-        // reattaches the prior TAB_NAVIGATOR subtree to the public sign-in route (which shares that name).
-        clearPreservedNavigatorStates();
+        // Drop the previous session's navigation caches. Otherwise restoreTabNavigatorRoutes reattaches
+        // the prior TAB_NAVIGATOR subtree to the public sign-in route (which shares that name).
+        Navigation.clearSessionNavigationState();
 
         const stateToReset = getStateToResetAfterLogout(navigationRef.getRootState());
         if (!stateToReset) {

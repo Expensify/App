@@ -20,6 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {AutoReportingOffset} from '@src/types/onyx/Policy';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -62,7 +63,7 @@ type AutoReportingOffsetRowProps = {
     onCloseError?: () => void;
 
     /** Sentry label of the row */
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
 };
 
 function AutoReportingOffsetRow({name, value, onPress, pendingAction, errors, onCloseError, sentryLabel}: AutoReportingOffsetRowProps) {

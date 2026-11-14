@@ -37,6 +37,7 @@ import type {BulkPaySelectionData, SearchQueryJSON, SelectedTransactions} from '
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
 import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
+import {getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
 
 type SearchBulkActionsButtonProps = {
     queryJSON: SearchQueryJSON;
@@ -122,9 +123,9 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         }, 0);
     };
     const {selectedItemsCount, excludedItemsCount} = {
-        selectedItemsCount: getItemsCount(selectedTransactions, 1),
+        selectedItemsCount: getItemsCount(mergeRowsIntoPartlyLoadedGroups(selectedTransactions, searchData, areAllMatchingItemsSelected), 1),
         // Excluded items come off the server count, which only sums expenses, so a cash back row takes nothing off.
-        excludedItemsCount: getItemsCount(excludedTransactions, 0),
+        excludedItemsCount: getItemsCount(excludedTransactions, 0) - getItemsCount(getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions), 0),
     };
 
     const payBulkSelectedItem = (subItem: PopoverMenuItem, triggerKYCFlow: (kycParams: ContinueActionParams) => void) =>

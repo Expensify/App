@@ -97,6 +97,9 @@ type ValuePickerProps = ForwardedFSClassProps & {
 
     /** Number of lines to show for alternate text */
     alternateNumberOfSupportedLines?: number;
+
+    /** Only applies to the row that opens the modal, since the inline list has no single control to disable */
+    disabled?: boolean;
 };
 
 export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

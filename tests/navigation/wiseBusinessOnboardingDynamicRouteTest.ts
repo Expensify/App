@@ -62,7 +62,7 @@ describe('Wise business onboarding dynamic routes', () => {
 
     it.each([
         ['the terms', DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path, SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS],
-        ['more info needed', DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED],
+        ['the status', DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS],
     ] as const)('opens %s on top of the intro, since each page after the form replaces the one before', (_label, suffix, screen) => {
         // Given the page's suffix appended to the intro, where the replaced form leaves it
         const route = createDynamicRoute(suffix, getIntroPath(ROUTES.SETTINGS_WALLET));

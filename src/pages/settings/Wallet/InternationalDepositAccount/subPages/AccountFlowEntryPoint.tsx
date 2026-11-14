@@ -120,12 +120,14 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                     <View style={[styles.mt4, cardEdgeToEdge]}>
                         <View style={cardMenuItemInset}>
                             <MenuItemNavigation
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONNECT_WITH_PLAID}
                                 title={translate('bankAccount.connectOnlineWithPlaid')}
                                 icon={expensifyIcons.Bank}
                                 isDisabled={!!isPlaidDisabled}
                                 onPress={handleConnectPlaid}
                             />
                             <MenuItemNavigation
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONNECT_MANUALLY}
                                 title={translate('bankAccount.connectManually')}
                                 icon={expensifyIcons.Connect}
                                 onPress={handleConnectManually}

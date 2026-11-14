@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useLayoutEffect, useRef} from 'react';
 import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -22,6 +23,10 @@ type SwitchProps = {
     onToggle: (isOn: boolean) => void;
 
     accessibilityLabel: string;
+
+    /** Label for Sentry tracking, from `CONST.SENTRY_LABEL`. */
+    sentryLabel: SentryLabel;
+
     disabled?: boolean;
 
     /** Whether the switch is mid-flight (an optimistic update is pending). Shows a spinner and blocks interaction. */
@@ -48,7 +53,19 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, showLockIcon, disabledAction, isNested, shouldAnimateOnExternalChange = false, focusable}: SwitchProps) {
+function Switch({
+    isOn,
+    onToggle,
+    accessibilityLabel,
+    sentryLabel,
+    disabled,
+    pending = false,
+    showLockIcon,
+    disabledAction,
+    isNested,
+    shouldAnimateOnExternalChange = false,
+    focusable,
+}: SwitchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
@@ -133,7 +150,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
             // disable hover dim for switch
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
-            sentryLabel={enhancedAccessibilityLabel}
+            sentryLabel={sentryLabel}
         >
             <Animated.View style={[styles.switchTrack, animatedSwitchTrackStyle]}>
                 <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>

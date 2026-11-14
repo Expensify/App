@@ -1784,6 +1784,48 @@ describe('ReportActionItem', () => {
 
             expect(screen.getByText(/paid with Expensify/i)).toBeOnTheScreen();
         });
+
+        it('IOU PAY through Wise links to the payment details', async () => {
+            // Given a bank account payment that Wise has created the transfer for, so the backend added its final amounts
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                creditedAmount: 7743,
+                creditedCurrency: CONST.CURRENCY.GBP,
+                fee: 129,
+                rate: 0.7743,
+                debitedAmount: 10129,
+            });
+
+            // When the paid message is rendered in its report
+            renderItemWithAction(action, false, createMock<Report>({reportID: '1'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then View details follows it, since the payment details have every amount to show
+            expect(screen.getByText(translateLocal('iou.viewDetails'))).toBeOnTheScreen();
+        });
+
+        it('IOU PAY through Corpay has no link to the payment details', async () => {
+            // Given a cross-border payment with only the employee's amount and currency, as Corpay records it
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                creditedAmount: 7743,
+                creditedCurrency: CONST.CURRENCY.GBP,
+            });
+
+            // When the paid message is rendered in its report
+            renderItemWithAction(action, false, createMock<Report>({reportID: '1'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the message shows without View details, since there are no fees or rate to show behind it
+            expect(screen.getByText(/paid £77.43/i)).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('iou.viewDetails'))).toBeNull();
+        });
     });
 
     describe('Reimbursement actions', () => {
@@ -2133,6 +2175,23 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/Chase Visa connection has been broken for 30 days/)).toBeOnTheScreen();
+        });
+
+        it('COMPANY_CARD_CONNECTION_BROKEN_30_DAYS action shows the bank name when the feed has no custom name', async () => {
+            // Given a reminder for a feed that had no custom name, so the saved feed name is the bank itself
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
+                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                policyID: 'pol123',
+            });
+
+            // When the reminder is shown
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it names the feed the way the company cards page does, not by the bank
+            expect(screen.getByText(/The Chase connection has been broken for 30 days/)).toBeOnTheScreen();
+            expect(screen.queryByText(/oauth\.chase\.com/)).not.toBeOnTheScreen();
         });
 
         it('PLAID_BALANCE_FAILURE action', async () => {
@@ -2679,6 +2738,7 @@ describe('ReportActionItem', () => {
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <PaymentContent
                         action={action}
+                        reportID={undefined}
                         expectedDate={undefined}
                         policyID={undefined}
                     />
