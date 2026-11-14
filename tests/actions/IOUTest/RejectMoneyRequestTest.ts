@@ -443,6 +443,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
+                    isChatReportArchived: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -474,6 +475,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
+                    isChatReportArchived: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -521,6 +523,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
+                    isChatReportArchived: false,
                 });
                 await waitForBatchedUpdates();
                 await mockFetch?.resume?.();
@@ -564,6 +567,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
+                    isChatReportArchived: false,
                 });
                 await waitForBatchedUpdates();
 
