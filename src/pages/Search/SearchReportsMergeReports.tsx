@@ -24,7 +24,14 @@ import {getReportFromSearchSnapshot, setSearchMergeReportIDs} from '@libs/action
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {canMergeReports, doReportsHaveMatchingReportFieldValues, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID, isReportExportedOrPending} from '@libs/ReportUtils';
+import {
+    canMergeReports,
+    doReportsHaveMatchingReportFieldValues,
+    getMoneyRequestSpendBreakdown,
+    getPersonalDetailsForAccountID,
+    isArchivedReport,
+    isReportExportedOrPending,
+} from '@libs/ReportUtils';
 
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 
@@ -213,6 +220,8 @@ function SearchMergeReports() {
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            // The merge candidates always share one parent chat, so its archived state covers every source report.
+            isChatReportArchived: isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${destinationReport.parentReportID}`]),
         });
 
         Navigation.dismissModal({

@@ -39,6 +39,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {reportID} = route.params ?? {};
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -79,6 +80,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             comment,
             allPolicies,
             allReports,
+            allReportNameValuePairs,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),

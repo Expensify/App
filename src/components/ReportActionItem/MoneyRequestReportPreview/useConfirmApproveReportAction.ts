@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
@@ -38,6 +39,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail, delegateAccountID} = actionButtonData;
+    const isChatReportArchived = useReportIsArchived(iouReport?.chatReportID);
 
     return (full = true) => {
         if (isDelegateAccessRestricted) {
@@ -65,6 +67,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
                 delegateAccountID,
                 isTrackIntentUser,
                 allTransactionViolations,
+                isChatReportArchived,
             });
         }
     };

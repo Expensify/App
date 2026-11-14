@@ -125,6 +125,7 @@ type PrepareRejectMoneyRequestDataParams = {
     options?: RejectMoneyRequestOptions;
     shouldUseBulkAction?: boolean;
     reportTransactionsCollection: Record<string, OnyxTypes.Transaction>;
+    isChatReportArchived: boolean;
 };
 
 function prepareRejectMoneyRequestData({
@@ -141,6 +142,7 @@ function prepareRejectMoneyRequestData({
     options,
     shouldUseBulkAction,
     reportTransactionsCollection,
+    isChatReportArchived,
 }: PrepareRejectMoneyRequestDataParams): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -811,6 +813,7 @@ function prepareRejectMoneyRequestData({
             currentUserAccountIDParam,
             allTransactionViolations,
             undefined,
+            isChatReportArchived,
         );
 
         if (policyExpenseChat.hasOutstandingChildRequest !== shouldHaveOutstandingChildRequest) {

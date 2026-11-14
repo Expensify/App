@@ -660,6 +660,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     bankAccountList,
                                     delegateAccountID,
                                     hash: currentSearchHash,
+                                    isChatReportArchived,
                                 });
                             }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
                         },

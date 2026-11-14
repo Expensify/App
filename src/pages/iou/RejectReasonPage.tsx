@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
@@ -27,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
-import {getReportPolicyID} from '@selectors/Report';
+import {getReportChatReportID, getReportPolicyID} from '@selectors/Report';
 import React, {useEffect} from 'react';
 
 import RejectReasonFormView from './RejectReasonFormView';
@@ -43,6 +44,8 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {transactionID, reportID, backTo} = route.params;
     const {removeTransaction} = useSearchSelectionActions();
     const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: getReportPolicyID});
+    const [chatReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: getReportChatReportID});
+    const isChatReportArchived = useReportIsArchived(chatReportID);
     const policy = usePolicy(reportPolicyID);
     const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -70,6 +73,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             getCurrencyDecimals,
             rules,
             reportTransactionsCollection,
+            isChatReportArchived,
         });
         removeTransaction(transactionID, {isDeleted: false});
         // If the super wide rhp is not opened, dismiss the entire modal.

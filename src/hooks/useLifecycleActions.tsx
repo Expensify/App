@@ -235,6 +235,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             isTrackIntentUser,
             rules,
             allTransactionViolations,
+            isChatReportArchived,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
@@ -416,6 +417,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                                 allTransactionViolationsRef.current,
                                 getCurrencyDecimals,
                                 rules,
+                                isChatReportArchived,
                             );
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -434,6 +436,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     allTransactionViolationsRef.current,
                     getCurrencyDecimals,
                     rules,
+                    isChatReportArchived,
                 );
             },
         },

@@ -159,6 +159,7 @@ describe('PaymentUtils', () => {
             ownerLogin: undefined,
             allTransactionViolations: undefined,
             personalDetailsByLogins: {},
+            isChatReportArchived: false,
         };
 
         beforeEach(() => {
@@ -263,6 +264,7 @@ describe('PaymentUtils', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
         });
 
@@ -293,6 +295,7 @@ describe('PaymentUtils', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
         });
 

@@ -432,6 +432,7 @@ describe('SearchActions', () => {
                 comment: 'rejecting',
                 allPolicies: {},
                 allReports: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: baseReport},
+                allReportNameValuePairs: {},
                 currentUserAccountIDParam: 1,
                 currentUserLogin: 'test@example.com',
                 isASAPSubmitBetaEnabled: false,

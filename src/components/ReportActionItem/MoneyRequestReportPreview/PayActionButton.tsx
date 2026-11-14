@@ -15,6 +15,7 @@ import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import getHoldMenuAmounts from '@libs/HoldMenuUtils';
@@ -63,6 +64,7 @@ function PayActionButton() {
     const actionButtonData = useReportPreviewActionButtonData(iouReportID);
     const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
     const chatReportPolicy = usePolicy(chatReport?.policyID);
+    const isChatReportArchived = useReportIsArchived(chatReportID);
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
@@ -137,6 +139,7 @@ function PayActionButton() {
                     delegateAccountID,
                     isTrackIntentUser,
                     rules,
+                    isChatIOUReportArchived: isChatReportArchived,
                 });
             } else {
                 payWithWiseQuote({
@@ -165,6 +168,7 @@ function PayActionButton() {
                     isTrackIntentUser,
                     conciergeChat,
                     rules,
+                    isChatIOUReportArchived: isChatReportArchived,
                 });
             }
         }

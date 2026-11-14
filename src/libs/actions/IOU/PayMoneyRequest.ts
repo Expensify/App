@@ -83,6 +83,7 @@ type PayInvoiceArgs = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isChatIOUReportArchived: boolean;
 };
 
 type PayMoneyRequestData = {
@@ -129,6 +130,7 @@ type PayMoneyRequestFunctionParams = {
     isFallbackChatReport?: boolean;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isChatIOUReportArchived: boolean;
 
     /** The Wise quote the admin confirmed */
     wiseQuoteID?: string;
@@ -163,6 +165,7 @@ function getPayMoneyRequestParams({
     getCurrencyDecimals,
     isFallbackChatReport,
     rules,
+    isChatIOUReportArchived,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -192,6 +195,7 @@ function getPayMoneyRequestParams({
     isFallbackChatReport?: boolean;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isChatIOUReportArchived: boolean;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -260,8 +264,10 @@ function getPayMoneyRequestParams({
         onyxData.failureData?.push(...(policyFailureData ?? []), {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicy?.id ?? null});
     }
 
+    let isEffectiveChatReportArchived = isChatIOUReportArchived;
     if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && existingB2BInvoiceReport) {
         chatReport = existingB2BInvoiceReport;
+        isEffectiveChatReportArchived = false;
     }
 
     const unheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
@@ -318,7 +324,15 @@ function getPayMoneyRequestParams({
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmailParam, currentUserAccountIDParam, allTransactionViolations, undefined),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(
+            chatReport,
+            iouReport?.reportID,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
+            allTransactionViolations,
+            undefined,
+            isEffectiveChatReportArchived,
+        ),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
@@ -949,6 +963,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isFallbackChatReport,
         rules,
         bankAccountList,
+        isChatIOUReportArchived,
         wiseQuoteID,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
@@ -1001,6 +1016,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         getCurrencyDecimals,
         isFallbackChatReport,
         rules,
+        isChatIOUReportArchived,
     });
 
     // Wise takes a quote for one transfer only, so a payment retried after a failure asks for a new quote
@@ -1035,6 +1051,7 @@ function markReportPaymentReceived(
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<OnyxTypes.Rule>,
+    isChatReportArchived: boolean,
 ) {
     if (!chatReport || !iouReport) {
         return;
@@ -1080,7 +1097,15 @@ function markReportPaymentReceived(
             value: {
                 ...chatReport,
                 iouReportID: null,
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport.reportID, currentUserEmail, currentUserAccountID, allTransactionViolations, undefined),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    iouReport.reportID,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    allTransactionViolations,
+                    undefined,
+                    isChatReportArchived,
+                ),
                 lastMessageText: getReportActionText(optimisticIOUReportAction),
                 lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
             },
@@ -1228,6 +1253,7 @@ function payInvoice({
     getCurrencyDecimals,
     rules,
     bankAccountList,
+    isChatIOUReportArchived,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -1269,6 +1295,7 @@ function payInvoice({
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        isChatIOUReportArchived,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;

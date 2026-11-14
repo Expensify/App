@@ -45,6 +45,10 @@ function getReportPolicyID(report: OnyxEntry<Report>) {
     return report?.policyID;
 }
 
+function getReportChatReportID(report: OnyxEntry<Report>) {
+    return report?.chatReportID;
+}
+
 function getReportOwnerAccountID(report: OnyxEntry<Report>) {
     return report?.ownerAccountID;
 }
@@ -459,6 +463,7 @@ export {
     getReportParentReportID,
     getReportHasParentAccess,
     getReportPolicyID,
+    getReportChatReportID,
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
