@@ -19,6 +19,7 @@ import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
+import TabRootRevealingContext from './NativeTabNavigator/TabRootRevealingContext';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
@@ -39,7 +40,7 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
+    const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled, setIsTabRootRevealing} = useNativeTabNavigator();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     // A tab with no bar item draws no icon.
@@ -53,41 +54,43 @@ function TabNavigator() {
               };
 
     return (
-        <Tab.Navigator
-            backBehavior="fullHistory"
-            layout={renderNativeTabLayout}
-            screenLayout={bottomTabScreenLayoutWrapper}
-            screenOptions={getScreenOptions}
-            UNSTABLE_router={tabRouterOverride}
-            screenListeners={(props) => tabScreenListeners({...props, session})}
-        >
-            <Tab.Screen
-                name={SCREENS.HOME}
-                component={HomePage}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigator}
-            />
-            <Tab.Screen
-                name={SCREENS.INSIGHTS}
-                component={InsightsPage}
-                // The tab opens on Spend dashboard once, then keeps the last dashboard in navigation state until the app restarts.
-                initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigator}
-            />
-        </Tab.Navigator>
+        <TabRootRevealingContext.Provider value={setIsTabRootRevealing}>
+            <Tab.Navigator
+                backBehavior="fullHistory"
+                layout={renderNativeTabLayout}
+                screenLayout={bottomTabScreenLayoutWrapper}
+                screenOptions={getScreenOptions}
+                UNSTABLE_router={tabRouterOverride}
+                screenListeners={(props) => tabScreenListeners({...props, session})}
+            >
+                <Tab.Screen
+                    name={SCREENS.HOME}
+                    component={HomePage}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    component={ReportsSplitNavigator}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                    component={SearchFullscreenNavigator}
+                />
+                <Tab.Screen
+                    name={SCREENS.INSIGHTS}
+                    component={InsightsPage}
+                    // The tab opens on Spend dashboard once, then keeps the last dashboard in navigation state until the app restarts.
+                    initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                    component={WorkspaceNavigator}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                    component={SettingsSplitNavigator}
+                />
+            </Tab.Navigator>
+        </TabRootRevealingContext.Provider>
     );
 }
 

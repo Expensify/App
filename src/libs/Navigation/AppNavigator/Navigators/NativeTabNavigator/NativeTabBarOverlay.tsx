@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry/cancelTabNavigationSpans';
 
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
@@ -39,13 +40,15 @@ function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 's
         cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPANS[selectedTab]);
     }, [selectedTab]);
 
-    // The buttons follow whatever the navigator decided for the bar itself.
     const shouldShowNativeTabBar = !!activeRoute && descriptors[activeRoute.key]?.options.tabBarStyle?.display !== 'none';
+    // The bar comes back under the screen leaving in a swipe back, while the buttons sit above every screen, so they wait
+    // for the navigation state to reach the root.
+    const shouldShowFloatingButtons = shouldShowNativeTabBar && isTabRouteAtRoot(activeRoute);
 
     return (
         <>
             {!!isDebugModeEnabled && shouldShowNativeTabBar && <DebugTabView selectedTab={selectedTab} />}
-            {shouldShowNativeTabBar && (
+            {shouldShowFloatingButtons && (
                 // The shadow and the buttons belong to the bar, so they fade with it rather than appearing in place.
                 // They leave faster than they come in, so they stop covering a bar that is still sliding out.
                 <Animated.View
