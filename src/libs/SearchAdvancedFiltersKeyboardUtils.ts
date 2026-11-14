@@ -49,12 +49,18 @@ function focusFirstShownControl(container: HTMLElement): boolean {
     return true;
 }
 
-/** Focuses the shown row next to the given one, among the rows of its kind, and stops at the ends. */
+/**
+ * Focuses the shown row next to the given one, among the rows of its kind, and stops at the ends. A single line input
+ * between the rows, like the amount under "Equal to", is a stop too, since the arrow keys have no lines to move through in it.
+ */
 function focusAdjacentShownRow(container: HTMLElement, row: HTMLElement, step: 1 | -1): boolean {
-    if (!row.matches(FILTER_ROW_SELECTOR)) {
+    const isInput = row instanceof HTMLInputElement;
+    if (!isInput && !row.matches(FILTER_ROW_SELECTOR)) {
         return false;
     }
-    const rowsOfKind = findShown(container, FILTER_ROW_SELECTOR).filter((element) => element.getAttribute('role') === row.getAttribute('role'));
+    const rowsOfKind = findShown(container, `${FILTER_ROW_SELECTOR}, input`).filter(
+        (element) => isInput || element instanceof HTMLInputElement || element.getAttribute('role') === row.getAttribute('role'),
+    );
     const adjacentIndex = rowsOfKind.indexOf(row) + step;
     // A negative index would count from the end, so the first row stays put on the up arrow.
     const adjacentRow = adjacentIndex >= 0 ? rowsOfKind.at(adjacentIndex) : undefined;

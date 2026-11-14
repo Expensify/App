@@ -167,16 +167,37 @@ describe('useFilterPanesKeyboardNavigation', () => {
             throw new Error('Rows were not created');
         }
         firstRow.focus();
+        const takeArrowKey = (event: KeyboardEvent) => event.preventDefault();
         if (isTakenByList) {
-            firstRow.addEventListener('keydown', (event) => event.preventDefault());
+            document.addEventListener('keydown', takeArrowKey, true);
         }
 
         // When the down arrow is pressed
         const event = pressKey(firstRow, CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+        document.removeEventListener('keydown', takeArrowKey, true);
 
         // Then only an arrow key nobody took moves the focus, and it no longer scrolls the content
         expect(document.activeElement).toBe(isFocusMoved ? nextRow : firstRow);
         expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('moves the focus out of an input that keeps its keys from bubbling', () => {
+        // Given an amount input above a row, which stops its keys at the input as a text input does on web
+        const panes = createPanes();
+        renderNavigation(panes);
+        const nextRow = document.createElement('div');
+        nextRow.tabIndex = 0;
+        nextRow.setAttribute('role', CONST.ROLE.OPTION);
+        markShown(nextRow);
+        panes.contentContainer.appendChild(nextRow);
+        panes.contentInput.addEventListener('keydown', (event) => event.stopPropagation());
+        panes.contentInput.focus();
+
+        // When the down arrow is pressed in the input
+        pressKey(panes.contentInput, CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+
+        // Then the focus moves to the row below it
+        expect(document.activeElement).toBe(nextRow);
     });
 
     it('leaves the keys to an input method while it composes text', () => {

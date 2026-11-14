@@ -165,14 +165,15 @@ function useFilterPanesKeyboardNavigation<Row>({
     });
 
     // Rows outside a selection list, like the date presets, have nothing moving between them. A selection list marks the
-    // arrow keys it takes as handled, so only the ones left over move the focus here, after every other listener.
+    // arrow keys it takes as handled on the document, so only the ones left over move the focus here. A text input stops
+    // its keys from bubbling, so this listens on the way down, past the document.
     const handleUnhandledArrowKey = useEffectEvent((event: KeyboardEvent) => {
         const contentContainer = contentContainerRef.current;
         const isArrowDown = event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey;
         if (event.defaultPrevented || (!isArrowDown && event.key !== CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey) || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
             return;
         }
-        if (!(contentContainer instanceof HTMLElement) || !(event.target instanceof HTMLElement) || !contentContainer.contains(event.target)) {
+        if (!(contentContainer instanceof HTMLElement) || !(event.target instanceof HTMLElement)) {
             return;
         }
         if (focusAdjacentShownRow(contentContainer, event.target, isArrowDown ? 1 : -1)) {
@@ -182,14 +183,19 @@ function useFilterPanesKeyboardNavigation<Row>({
 
     useEffect(() => {
         const onKeyDown = (event: KeyboardEvent) => handleKeyDown(event);
-        const onUnhandledKeyDown = (event: KeyboardEvent) => handleUnhandledArrowKey(event);
         window.addEventListener('keydown', onKeyDown, true);
-        window.addEventListener('keydown', onUnhandledKeyDown);
-        return () => {
-            window.removeEventListener('keydown', onKeyDown, true);
-            window.removeEventListener('keydown', onUnhandledKeyDown);
-        };
+        return () => window.removeEventListener('keydown', onKeyDown, true);
     }, []);
+
+    useEffect(() => {
+        const contentContainer = contentContainerRef.current;
+        if (!(contentContainer instanceof HTMLElement)) {
+            return;
+        }
+        const onUnhandledKeyDown = (event: KeyboardEvent) => handleUnhandledArrowKey(event);
+        contentContainer.addEventListener('keydown', onUnhandledKeyDown, true);
+        return () => contentContainer.removeEventListener('keydown', onUnhandledKeyDown, true);
+    }, [contentContainerRef]);
 }
 
 export default useFilterPanesKeyboardNavigation;

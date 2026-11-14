@@ -272,4 +272,25 @@ describe('focusAdjacentShownRow', () => {
         expect(moved).toBe(false);
         expect(document.activeElement).toBe(customDateButton);
     });
+
+    it('moves through an input that sits between the rows', () => {
+        // Given an amount input under the first row, with the focus in it
+        const {container, firstRow, middleRow} = createRows();
+        const amountInput = document.createElement('input');
+        setShown(amountInput, true);
+        firstRow.after(amountInput);
+        amountInput.focus();
+
+        // When moving down out of the input, and then up twice
+        focusAdjacentShownRow(container, amountInput, 1);
+        const focusedAfterDown = document.activeElement;
+        focusAdjacentShownRow(container, middleRow, -1);
+        const focusedAfterUp = document.activeElement;
+        focusAdjacentShownRow(container, amountInput, -1);
+
+        // Then the input is a stop between the rows on either side of it
+        expect(focusedAfterDown).toBe(middleRow);
+        expect(focusedAfterUp).toBe(amountInput);
+        expect(document.activeElement).toBe(firstRow);
+    });
 });
