@@ -243,6 +243,7 @@ function WorkspaceTravelBillingExportPage({route}: WorkspaceTravelBillingExportP
                             />
                         )}
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_EXPORT_PDF}
                             style={[styles.mh4, styles.mt3]}
                             onPress={processDownload}
                             isLoading={isDownloading}
@@ -251,6 +252,7 @@ function WorkspaceTravelBillingExportPage({route}: WorkspaceTravelBillingExportP
                             <Button.Text>{translate('workspace.moreFeatures.travel.travelBilling.exportToPDF')}</Button.Text>
                         </Button>
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_EXPORT_CSV}
                             style={[styles.m4, styles.mt3, styles.mb5]}
                             onPress={handleDownloadCSV}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}

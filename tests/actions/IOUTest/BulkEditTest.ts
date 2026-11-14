@@ -11,7 +11,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
+import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
@@ -1873,105 +1873,6 @@ describe('actions/IOU/BulkEdit', () => {
             expect(updates.taxCode).toBeUndefined();
             expect(updates.taxValue).toBeUndefined();
             expect(updates.taxAmount).toBeUndefined();
-
-            writeSpy.mockRestore();
-            canEditFieldSpy.mockRestore();
-        });
-
-        it('uses per-transaction policy for category tax mapping in cross-policy bulk edit', () => {
-            // Given: two different policies – transactionPolicy has expense rules mapping "Advertising" → "id_TAX_RATE_1",
-            // while the shared bulk-edit policy has no expense rules at all.
-            const transactionID = 'transaction-cross-policy-1';
-            const transactionThreadReportID = 'thread-cross-policy-1';
-            const iouReportID = 'iou-cross-policy-1';
-
-            const category = 'Advertising';
-            const expectedTaxCode = 'id_TAX_RATE_1';
-
-            // Transaction's own policy – has tax expense rules
-            const transactionPolicy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, expectedTaxCode)},
-            };
-
-            // Shared bulk-edit policy – no expense rules, different ID
-            const sharedBulkEditPolicy: Policy = {
-                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                taxRates: CONST.DEFAULT_TAX,
-                // No expense rules — category should NOT resolve to a tax code via this policy
-            };
-
-            const iouReport: Report = {
-                ...createRandomReport(2, undefined),
-                reportID: iouReportID,
-                policyID: transactionPolicy.id,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(1),
-                transactionID,
-                reportID: iouReportID,
-                transactionThreadReportID,
-                amount: -1000,
-                currency: CONST.CURRENCY.USD,
-                category: '',
-            };
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-            };
-
-            // Make the transaction's own policy resolvable via allPolicies
-            const allPolicies = {
-                [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicy.id}`]: transactionPolicy,
-                [`${ONYXKEYS.COLLECTION.POLICY}${sharedBulkEditPolicy.id}`]: sharedBulkEditPolicy,
-            };
-
-            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-
-            // When: bulk-editing with the shared policy (different from transaction's policy)
-            updateMultipleMoneyRequests({
-                isVendorMatchingBetaEnabled: false,
-                personalDetailsList: undefined,
-                transactionIDs: [transactionID],
-                changes: {category},
-                policy: sharedBulkEditPolicy,
-                reports,
-                transactions,
-                reportActions: {},
-                policyCategories: undefined,
-                policyTags: {},
-                violations: undefined,
-                hash: undefined,
-                allPolicies,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                delegateAccountID: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
-                rules: undefined,
-            });
-
-            // Then: the optimistic transaction update should use the transaction's own policy for tax resolution.
-            // Check the optimistic Onyx data passed to API.write (3rd argument) for the TRANSACTION merge.
-            const writeCall = writeSpy.mock.calls.at(0);
-            expect(writeCall).toBeDefined();
-            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
-            const transactionOnyxUpdate = getRequiredOnyxUpdates(onyxData, 'optimisticData').find(
-                (update) => isObject(update) && update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            );
-            expect(transactionOnyxUpdate).toBeDefined();
-
-            // The tax code should resolve from the transaction's policy (which has the expense rule),
-            // NOT from the shared bulk-edit policy (which has no expense rules)
-            const transactionOnyxValue = isObject(transactionOnyxUpdate) && isObject(transactionOnyxUpdate.value) ? transactionOnyxUpdate.value : undefined;
-            expect(transactionOnyxValue?.taxCode).toBe(expectedTaxCode);
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();

@@ -5,7 +5,8 @@ import type {ValueOf} from 'type-fest';
 import type {RuleFilterNode} from './RuleFilters';
 
 /**
- * A transaction lifecycle event that can fire an expense-default rule.
+ * A transaction lifecycle event that can fire an expense-default rule. A rule fires on both, so that editing the
+ * category of an existing expense applies the rule too.
  */
 type ExpenseDefaultTrigger = typeof CONST.RULES.TRIGGERS.CREATE_TRANSACTION | typeof CONST.RULES.TRIGGERS.UPDATE_TRANSACTION;
 
@@ -47,7 +48,7 @@ type ExpenseDefaultTaxValue = {
 /**
  * The value a `Set` action writes. Which of these is valid depends on the action's `field`.
  */
-type ExpenseDefaultActionValue = string | boolean | ExpenseDefaultTaxValue;
+type ExpenseDefaultActionValue = string | number | boolean | ExpenseDefaultTaxValue;
 
 /**
  * A single change applied to expenses that match the rule's filters.
@@ -83,4 +84,4 @@ type ExpenseDefaultRule = {
     actions: ExpenseDefaultActions;
 };
 
-export type {ExpenseDefaultAction, ExpenseDefaultActionField, ExpenseDefaultActions, ExpenseDefaultRule, ExpenseDefaultTaxValue, ExpenseDefaultTriggers};
+export type {ExpenseDefaultAction, ExpenseDefaultActionField, ExpenseDefaultActions, ExpenseDefaultRule, ExpenseDefaultTaxValue, ExpenseDefaultTrigger, ExpenseDefaultTriggers};

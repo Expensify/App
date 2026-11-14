@@ -25,6 +25,19 @@ const SENSITIVE_KEYS = new Set([
     'activationData',
     'ephemeralPublicKey',
     'opaquePaymentCard',
+    'ssn',
+    'ssnLast4',
+    'accountNumber',
+    'routingNumber',
+    'plaidAccessToken',
+    'publicToken',
+    'intacctPassword',
+    'netSuiteTokenID',
+    'netSuiteTokenSecret',
+    // These are sent as JSON strings, so key matching can't see the SSN and bank fields inside them.
+    'inputs',
+    'beneficialOwners',
+    'additionalData',
 ]);
 
 const REDACTED = '<redacted>';

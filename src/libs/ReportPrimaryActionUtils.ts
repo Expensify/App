@@ -10,6 +10,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
+    canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
     getManagerAccountID,
     getSubmitToAccountID,
@@ -36,7 +37,6 @@ import {
     isMoneyRequestAction,
 } from './ReportActionsUtils';
 import {
-    canAddTransaction as canAddTransactionUtil,
     canHoldUnholdReportAction,
     getMoneyRequestSpendBreakdown,
     getParentReport,
@@ -61,14 +61,15 @@ import {
     isReportApproved as isReportApprovedUtils,
     isReportManager,
     isSettled,
+    isExportInProgress,
 } from './ReportUtils';
 import {
     allHavePendingRTERViolation,
     getTransactionViolations,
+    hasOnlyUnsettledExpenses,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
-    isPending,
     isScanning,
     isTransactionSubmittable,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
@@ -121,17 +122,6 @@ type IsExportActionOptions = {
     reportTransactions?: Transaction[];
 };
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean, rules: OnyxCollection<Rule>) {
-    if (isChatReportArchived) {
-        return false;
-    }
-
-    const isExpenseReport = isExpenseReportUtils(report);
-    const canAddTransaction = canAddTransactionUtil(report, rules);
-
-    return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
-}
-
 function isSubmitAction(
     report: Report,
     reportTransactions: Transaction[],
@@ -182,6 +172,10 @@ function isSubmitAction(
         !!ownerLogin &&
         !isSubmitAndClose(policy) &&
         currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
+    // A role that cannot create expenses cannot submit its own report.
+    if (isReportSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
+        return false;
+    }
     const canBeSubmitter = isReportSubmitter || isWorkflowApprover;
     return isExpenseReport && canBeSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
@@ -218,7 +212,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
 
-    return !reportTransactions.every((transaction) => isPending(transaction));
+    return !hasOnlyUnsettledExpenses(reportTransactions, report);
 }
 
 function isPrimaryPayAction({
@@ -298,6 +292,10 @@ function isPrimaryPayAction({
 
 function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[], options?: IsExportActionOptions) {
     if (!policy) {
+        return false;
+    }
+
+    if (isExportInProgress(reportActions)) {
         return false;
     }
 
@@ -489,6 +487,7 @@ function getAllExpensesToHoldIfApplicable(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
 ) {
     if (!report || !reportActions || !hasOnlyHeldExpenses(reportTransactions)) {
         return [];
@@ -502,7 +501,7 @@ function getAllExpensesToHoldIfApplicable(
         const transactionID = getOriginalMessage(action)?.IOUTransactionID;
         const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
         const holdReportAction = getReportAction(action?.childReportID, `${transaction?.comment?.hold ?? ''}`);
-        return canHoldUnholdReportAction(report, action, holdReportAction, transaction, policy, currentUserAccountID, rules).canUnholdRequest;
+        return canHoldUnholdReportAction(report, action, holdReportAction, transaction, policy, currentUserAccountID, rules, reportOwnerLogin).canUnholdRequest;
     });
 }
 
@@ -550,7 +549,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             reportActions,
             canNonPayerAdminPay: true,
         }) && allExpensesHeld;
-    const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID, rules);
+    const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID, rules, ownerLogin);
 
     if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, ownerLogin, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
@@ -683,7 +682,6 @@ function getTransactionThreadPrimaryAction(
 export {
     getReportPrimaryAction,
     getTransactionThreadPrimaryAction,
-    isAddExpenseAction,
     isPrimaryPayAction,
     isExportAction,
     isApproveAction,

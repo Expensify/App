@@ -84,6 +84,8 @@ function Manual({onNext}: BankInfoSubStepProps) {
                 shouldSaveDraft
                 shouldUseDefaultValue={hasBankAccountData}
                 disabled={hasBankAccountData}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.ROUTING_NUMBER_INPUT}
             />
             <InputWrapper
                 InputComponent={TextInput}
@@ -97,6 +99,8 @@ function Manual({onNext}: BankInfoSubStepProps) {
                 shouldSaveDraft
                 shouldUseDefaultValue={hasBankAccountData}
                 disabled={hasBankAccountData}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.ACCOUNT_NUMBER_INPUT}
             />
         </FormProvider>
     );

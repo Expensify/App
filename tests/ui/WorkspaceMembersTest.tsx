@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import * as Member from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
@@ -269,6 +270,53 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
+        it('should group the roles into admin and other roles and badge the new ones', async () => {
+            // Given an admin selected for a role change on a Control workspace
+            await selectForRoleChange([adminEmail]);
+
+            // When the role screen opens
+            const {unmount} = renderRolePage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both group labels are shown, so admin roles read apart from the rest
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.common.adminRoles'))).toBeOnTheScreen();
+            });
+            expect(screen.getByText(TestHelper.translateLocal('workspace.common.otherRoles'))).toBeOnTheScreen();
+
+            // And both newly promoted roles are badged while admins learn about them
+            expect(screen.getByText(roleName(CONST.POLICY.ROLE.APPROVE_ONLY))).toBeOnTheScreen();
+            expect(screen.getByText(roleName(CONST.POLICY.ROLE.GUEST))).toBeOnTheScreen();
+            expect(screen.getAllByText(TestHelper.translateLocal('common.new'))).toHaveLength(2);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should hide the admin roles label when no admin role can be assigned', async () => {
+            // Given a People Admin, who may assign no admin role
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+                    employeeList: {[selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN}},
+                });
+            });
+            await selectForRoleChange([userEmail]);
+
+            // When the role screen opens
+            const {unmount} = renderRolePage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the other roles group is labelled, so an empty admin group leaves no stray heading
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.common.otherRoles'))).toBeOnTheScreen();
+            });
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.common.adminRoles'))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
         it('should only offer member and auditor to a People Admin', async () => {
             // Given a People Admin, who may assign no role above auditor
             await act(async () => {
@@ -388,7 +436,7 @@ describe('WorkspaceMembers', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1124,6 +1172,38 @@ describe('WorkspaceMembers', () => {
             });
 
             unmount();
+        });
+    });
+
+    describe('Spreadsheet download', () => {
+        it('should download the approvers of each member with multiple approvers', async () => {
+            // Given multiple approvers, where the members spreadsheet lists every approver of each member's workflow
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+            });
+            const downloadMembersCSVSpy = jest.spyOn(Member, 'downloadMembersCSV').mockImplementation(() => {});
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+
+            // When the admin downloads the CSV from the page's More menu
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.more')));
+            await waitForBatchedUpdatesWithAct();
+            const downloadMenuItem = screen.getByText(TestHelper.translateLocal('spreadsheet.downloadCSV'));
+            fireEvent.press(downloadMenuItem, {nativeEvent: {}, type: 'press', target: downloadMenuItem, currentTarget: downloadMenuItem});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the download asks for the approvers too
+            await waitFor(() => {
+                expect(downloadMembersCSVSpy).toHaveBeenCalledWith(policy.id, true, expect.any(Function), expect.any(Function));
+            });
+
+            downloadMembersCSVSpy.mockRestore();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
         });
     });
 });

@@ -18,9 +18,16 @@ import {
 import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getDistanceRateNameError, getDistanceRateNameErrorMessage, getDistanceRateValueError, getDistanceRateValueErrorMessage} from '@libs/PolicyDistanceRatesUtils';
+import {
+    getDistanceRateNameError,
+    getDistanceRateNameErrorMessage,
+    getDistanceRateValueError,
+    getDistanceRateValueErrorMessage,
+    getTaxClaimableDisplayAmount,
+    validateTaxClaimableValue,
+} from '@libs/PolicyDistanceRatesUtils';
 import {getPerDiemAmountError, getPerDiemAmountErrorMessage, getPerDiemNameError, getPerDiemNameErrorMessage} from '@libs/PolicyPerDiemUtils';
-import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
+import {areRateAmountsEqual, getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
 
@@ -38,7 +45,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {renamePolicyCategory} from './Category';
-import {updatePolicyDistanceRateName, updatePolicyDistanceRateValue} from './DistanceRate';
+import {updateDistanceTaxClaimableValue, updatePolicyDistanceRateName, updatePolicyDistanceRateValue} from './DistanceRate';
 import {updateWorkspaceMembersRole} from './Member';
 import {editPerDiemRateAmount, editPerDiemRateDestination, editPerDiemRateSubrate} from './PerDiem';
 import {renamePolicyTag} from './Tag';
@@ -66,7 +73,14 @@ function renameCategoryInline(
     renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled, reviewWorkspaceSettingsTaskData);
 }
 
-function renameTagInline(translate: LocalizedTranslate, policyData: PolicyData, oldName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): string | undefined {
+function renameTagInline(
+    translate: LocalizedTranslate,
+    policyData: PolicyData,
+    oldName: string,
+    newName: string,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
     const currentDisplayName = getCleanedTagName(oldName);
     const {tags} = getTagList(policyData.tags, 0);
@@ -80,7 +94,7 @@ function renameTagInline(translate: LocalizedTranslate, policyData: PolicyData, 
         return getTagNameErrorMessage(translate, tagError, newName);
     }
 
-    renamePolicyTag(policyData, {oldName, newName: sanitized}, 0, isVendorMatchingBetaEnabled);
+    renamePolicyTag(policyData, {oldName, newName: sanitized}, 0, isVendorMatchingBetaEnabled, reviewWorkspaceSettingsTaskData);
 }
 
 function renameCompanyCardInline(
@@ -152,12 +166,34 @@ function updateDistanceRateValueInline(
         return getDistanceRateValueErrorMessage(translate, rateError);
     }
 
-    const currentRateValue = (parseFloat((rate.rate ?? 0).toString()) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
-    if (Number(newRate).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) === currentRateValue) {
+    const currentRateValue = (rate.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET;
+    if (areRateAmountsEqual(newRate, currentRateValue)) {
         return;
     }
 
     updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(newRate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
+}
+
+function updateDistanceTaxClaimableValueInline(translate: LocalizedTranslate, policyID: string, customUnit: CustomUnit, rate: Rate, newAmount: string): string | undefined {
+    const errors = validateTaxClaimableValue({taxClaimableValue: newAmount}, rate, translate);
+    if (errors.taxClaimableValue) {
+        return errors.taxClaimableValue;
+    }
+
+    const currentAmount = getTaxClaimableDisplayAmount(rate.attributes?.taxClaimablePercentage ?? 0, rate.rate ?? 0);
+    if (areRateAmountsEqual(newAmount, currentAmount)) {
+        return;
+    }
+
+    updateDistanceTaxClaimableValue(policyID, customUnit, [
+        {
+            ...rate,
+            attributes: {
+                ...rate.attributes,
+                taxClaimablePercentage: rate.rate ? (Number(newAmount) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET) / rate.rate : undefined,
+            },
+        },
+    ]);
 }
 
 function updateMemberRoleInline(policy: OnyxEntry<Policy>, memberLogin: string, accountID: number, currentRole: string | undefined, newRole: ValueOf<typeof CONST.POLICY.ROLE>): void {
@@ -322,6 +358,7 @@ export {
     renameExpensifyCardInline,
     renameDistanceRateInline,
     updateDistanceRateValueInline,
+    updateDistanceTaxClaimableValueInline,
     updateMemberRoleInline,
     canUpdateExpensifyCardLimitTypeInline,
     getExpensifyCardLimitInlineEditError,

@@ -132,6 +132,16 @@ describe('WorkspaceWorkflowsApprovalsCreatePage', () => {
         });
     });
 
+    it('names a lone approver without a position', async () => {
+        // Given a new workflow approved only by Bob
+        // When the confirm page renders
+        await renderCreatePageWithMembers(EVERYONE);
+
+        // Then there's no first or final approver to tell apart, so Bob is just the approver
+        expect(screen.getByText(translateLocal('workflowsPage.approver'))).toBeTruthy();
+        expect(screen.queryByText(/^first approver$/i)).toBeNull();
+    });
+
     it('makes a new workflow with everyone in it the default one', async () => {
         // Given a new workflow approved by Bob with everyone in it
         await renderCreatePageWithMembers(EVERYONE);

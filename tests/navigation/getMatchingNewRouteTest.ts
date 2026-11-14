@@ -1,6 +1,29 @@
 import getMatchingNewRoute from '@navigation/helpers/getMatchingNewRoute';
 
 describe('getBestMatchingPath', () => {
+    it.each([
+        ['/insights', '/insights/spend'],
+        ['/insights/', '/insights/spend'],
+        ['/insights?backTo=/home', '/insights/spend?backTo=/home'],
+        ['/insights/?backTo=/home', '/insights/spend?backTo=/home'],
+    ])('redirects %s to the Spend dashboard', (path, expectedPath) => {
+        // Given an Insights link without a dashboard, which would otherwise show Not Found
+        // When resolving the link through the existing redirects
+        const redirectedPath = getMatchingNewRoute(path);
+
+        // Then Spend is selected without losing the link's query parameters
+        expect(redirectedPath).toBe(expectedPath);
+    });
+
+    it.each(['/insights/spend', '/insights/compliance', '/insights/spend/details/topSpenders', '/insights-other'])('does not redirect %s to the default dashboard', (path) => {
+        // Given an explicit dashboard, a detail link, or a different route sharing the Insights prefix
+        // When checking for a default-dashboard redirect
+        const redirectedPath = getMatchingNewRoute(path);
+
+        // Then the original destination remains responsible for handling the link
+        expect(redirectedPath).toBeUndefined();
+    });
+
     it('returns mapped base path when input matches the exact pattern', () => {
         expect(getMatchingNewRoute('/settings/workspaces/')).toBe('/workspaces/');
     });
@@ -112,6 +135,16 @@ describe('getBestMatchingPath', () => {
 
     it('preserves query params when redirecting the old split expense edit path', () => {
         expect(getMatchingNewRoute('/edit/split-expense/overview/123/456/789?backTo=/r/123')).toBe('/create/split-expense/overview/123/456/0/split-expense/edit/123/789?backTo=/r/123');
+    });
+
+    it('does not rewrite the split expense edit route opened from the Date tab of the Search split overview', () => {
+        // Given a split edit URL built on top of the Search split overview while the Date tab is active
+        const splitEditPath = '/search/split-expense-overview-search/date/split-expense/edit/123/456';
+
+        // When it is matched against the legacy routes
+        // Then it comes back unchanged, so the legacy `/*/*/date/*/*/*` pattern can't turn it into a broken expense-date route
+        expect(getMatchingNewRoute(splitEditPath)).toBe(splitEditPath);
+        expect(getMatchingNewRoute(`${splitEditPath}?backTo=/search`)).toBe(`${splitEditPath}?backTo=/search`);
     });
 
     it('redirects old card reconciliation account path with two wildcards', () => {
@@ -534,6 +567,11 @@ describe('getBestMatchingPath', () => {
     it('does not rewrite Expensify Card numeric fundID work-email paths', () => {
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/work-email')).toBe('/workspaces/p123/expensify-card/789/work-email');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/verify-work-email')).toBe('/workspaces/p123/expensify-card/789/verify-work-email');
+    });
+
+    it('does not rewrite pages opened on top of the work-email page', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/feed123/work-email/contact-methods')).toBe('/workspaces/p123/company-cards/feed123/work-email/contact-methods');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/work-email/contact-methods')).toBe('/workspaces/p123/expensify-card/789/work-email/contact-methods');
     });
 
     it('does not rewrite the already-migrated Expensify Card details paths', () => {

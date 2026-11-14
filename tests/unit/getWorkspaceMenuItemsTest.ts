@@ -8,6 +8,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
+import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 
 const currentUserLogin = 'member@example.com';
 const mockIcon: IconAsset = () => null;
@@ -48,6 +49,19 @@ function buildPolicy(role: Policy['role']): Policy {
 }
 
 describe('getWorkspaceMenuItems', () => {
+    it.each([false, true])('shows the distance VAT red dot unless dismissed: %s', (isDismissed) => {
+        // Given a workspace with an invalid fuel-band tax mapping
+        const policy = createUKFuelRateTaxPolicy();
+        const attributes = policy.customUnits?.distance.attributes;
+        if (!attributes) {
+            throw new Error('Expected distance attributes');
+        }
+        attributes.isUKFuelRateTaxErrorDismissed = isDismissed;
+        // When its workspace menu is built
+        const items = getWorkspaceMenuItems({policy, policyID: policy.id, currentUserLogin, icons, convertToDisplayString: () => ''});
+        // Then the distance menu leads to the warning only while it is not dismissed
+        expect(items.find((item) => item.translationKey === 'workspace.common.distanceRates')?.brickRoadIndicator).toBe(isDismissed ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
     it('does not build routes until a menu item is selected', () => {
         const getRouteSpy = jest.spyOn(ROUTES.WORKSPACE_OVERVIEW, 'getRoute');
 
@@ -135,6 +149,25 @@ describe('getWorkspaceMenuItems', () => {
         });
 
         expect(items.find((item) => item.translationKey === 'workspace.common.members')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('badges the Members row with "New roles" only while the new roles are promoted', () => {
+        // Given an admin on a Control workspace
+        const policy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+        const buildItems = (shouldShowNewRolesBadge: boolean) =>
+            getWorkspaceMenuItems({policy, policyID: policy.id, currentUserLogin, icons, shouldShowNewRolesBadge, convertToDisplayString: () => ''});
+
+        // When the promotion is shown
+        const promotedMembersItem = buildItems(true).find((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
+        // Then Members carries the green badge, so admins learn the roles exist where they assign them
+        expect(promotedMembersItem?.badgeTranslationKey).toBe('workspace.common.newRoles');
+        expect(promotedMembersItem?.isBadgeSuccess).toBe(true);
+
+        // When the promotion is over or dismissed
+        const membersItem = buildItems(false).find((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
+        // Then Members has no badge at all
+        expect(membersItem?.badgeTranslationKey).toBeUndefined();
+        expect(membersItem?.isBadgeSuccess).toBe(false);
     });
 
     it('shows an error indicator when general Workspace settings have errors', () => {

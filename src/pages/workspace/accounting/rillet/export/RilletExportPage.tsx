@@ -15,7 +15,7 @@ import {clearRilletErrorField, updateRilletExportToMultipleAccounts} from '@libs
 import {areCardsCustomExportInErrorFields, findMatchingCards, getCardsCustomExportPendingAction, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -39,6 +39,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const rilletData = policy?.connections?.rillet?.data;
     const exporter = rilletConfig?.export?.exporter ?? policyOwner;
     const exportReimbursable = rilletConfig?.export?.reimbursable ?? CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL;
+    const reimbursementAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.reimbursementAccountCode);
     const exportDate = rilletConfig?.export?.exportDate ?? CONST.RILLET_EXPORT_DATE.LAST_EXPENSE;
     const exportNonReimbursable = rilletConfig?.export?.nonReimbursable ?? CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE;
     const defaultCompanyCardVendor = rilletData?.vendors?.find((vendor) => vendor.id === rilletConfig?.export?.defaultVendorID);
@@ -72,6 +73,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
             </View>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORTER], rilletConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.PREFERRED_EXPORTER}
                     name={translate('workspace.accounting.preferredExporter')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_PREFERRED_EXPORTER.getRoute(policyID)) : undefined)}
                     value={exporter}
@@ -82,7 +84,9 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.REIMBURSABLE], rilletConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.EXPORT_REIMBURSABLE}
                     name={translate('workspace.rillet.exportReimbursable.label')}
+                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_REIMBURSABLE.getRoute(policyID)) : undefined)}
                     value={translate(`workspace.rillet.exportReimbursable.values.${exportReimbursable}.label`)}
                 >
                     {areSettingsInErrorFields([CONST.RILLET_CONFIG.REIMBURSABLE], rilletConfig?.errorFields) && (
@@ -90,10 +94,26 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                     )}
                 </MenuItemField>
             </OfflineWithFeedback>
+            {exportReimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.REIMBURSEMENT && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}>
+                    <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.REIMBURSEMENT_ACCOUNT}
+                        name={translate('workspace.rillet.reimbursementAccount.label')}
+                        onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_REIMBURSEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
+                        value={reimbursementAccount ? `${reimbursementAccount?.code} ${reimbursementAccount?.name}` : undefined}
+                    >
+                        {(areSettingsInErrorFields([CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE], rilletConfig?.errorFields) ||
+                            shouldShowReimbursableExportDestinationAccountError(policy, [CONST.POLICY.CONNECTIONS.NAME.RILLET])) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
+                </OfflineWithFeedback>
+            )}
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORT_DATE], rilletConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.EXPORT_DATE}
                     name={translate('workspace.rillet.exportDate.label')}
-                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE.getRoute(policyID)) : undefined)}
+                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_GL_IMPACT_DATE.getRoute(policyID)) : undefined)}
                     value={translate(`workspace.rillet.exportDate.values.${exportDate}.label`)}
                 >
                     {areSettingsInErrorFields([CONST.RILLET_CONFIG.EXPORT_DATE], rilletConfig?.errorFields) && (
@@ -114,6 +134,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.DEFAULT_VENDORID], rilletConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.DEFAULT_COMPANY_CARD_VENDOR}
                     name={translate('workspace.rillet.defaultCompanyCardVendor.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR.getRoute(policyID)) : undefined)}
                     value={defaultCompanyCardVendor?.name}
@@ -125,6 +146,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.COMPANY_CARD_ACCOUNT}
                     name={translate('workspace.rillet.companyCardAccount.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
                     value={companyCardAccount ? `${companyCardAccount?.code} ${companyCardAccount?.name}` : undefined}
@@ -139,6 +161,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.rillet.exportToMultipleAccounts')}
                         switchAccessibilityLabel={translate('workspace.rillet.exportToMultipleAccounts')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.EXPORT_TO_MULTIPLE_ACCOUNTS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={exportToMultipleAccounts}
@@ -153,6 +176,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction(cardProgramsOfflineFeedbackKeys, rilletConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.CARD_PROGRAM_ACCOUNT}
                                 name={translate('workspace.rillet.cardProgramAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={translate('workspace.rillet.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
@@ -164,6 +188,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.CARD_ACCOUNT}
                                 name={translate('workspace.rillet.cardAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}

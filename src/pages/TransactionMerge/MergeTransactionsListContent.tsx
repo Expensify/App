@@ -217,7 +217,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     );
 
     const subTitleContent = (
-        <View style={[styles.renderHTML, styles.textNormal]}>
+        <View style={[styles.renderHTML, styles.textNormal, styles.textAlignCenter, styles.alignItemsCenter]}>
             <RenderHTML html={translate('transactionMerge.listPage.noEligibleExpenseFoundSubtitle')} />
         </View>
     );
@@ -228,7 +228,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, undefined, [
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, translate, getCurrencyDecimals, reports, true, undefined, [
             targetTransactionPolicy,
             sourceTransactionPolicy,
         ]);
