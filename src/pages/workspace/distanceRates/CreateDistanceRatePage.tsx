@@ -280,17 +280,21 @@ function CreateDistanceRatePage({
                                     )}
                                 </View>
                                 {!canPickEuroCountry && (
-                                    <RenderHTML
-                                        html={translate(
-                                            isEuroWorkspace ? 'workspace.distanceRates.addRatePage.setInDistanceRateSettings' : 'workspace.distanceRates.addRatePage.basedOnDefaultCurrency',
-                                        )}
-                                        onLinkPress={isEuroWorkspace ? navigateToDistanceRateSettings : navigateToWorkspaceOverview}
-                                    />
+                                    <View style={[styles.renderHTML, styles.flexRow]}>
+                                        <RenderHTML
+                                            html={translate(
+                                                isEuroWorkspace
+                                                    ? 'workspace.distanceRates.addRatePage.setInDistanceRateSettings'
+                                                    : 'workspace.distanceRates.addRatePage.basedOnDefaultCurrency',
+                                            )}
+                                            onLinkPress={isEuroWorkspace ? navigateToDistanceRateSettings : navigateToWorkspaceOverview}
+                                        />
+                                    </View>
                                 )}
-                                <View style={[styles.sectionDividerLine, styles.mv5]} />
+                                <View style={[styles.sectionDividerLine, styles.mv6]} />
                                 <Text
                                     variant="labelStrong"
-                                    style={styles.mb4}
+                                    style={styles.mb5}
                                 >
                                     {translate('workspace.distanceRates.addRatePage.whatKindOfRate')}
                                 </Text>
@@ -324,10 +328,10 @@ function CreateDistanceRatePage({
                             <>
                                 {!isDistanceRateUpgrade && (
                                     <>
-                                        <View style={[styles.sectionDividerLine, styles.mv5]} />
+                                        <View style={[styles.sectionDividerLine, styles.mv6]} />
                                         <Text
                                             variant="labelStrong"
-                                            style={styles.mb4}
+                                            style={styles.mb5}
                                         >
                                             {translate('common.details')}
                                         </Text>
@@ -363,10 +367,10 @@ function CreateDistanceRatePage({
                                 </View>
                                 {!isDistanceRateUpgrade && (
                                     <>
-                                        <View style={[styles.sectionDividerLine, styles.mv5]} />
+                                        <View style={[styles.sectionDividerLine, styles.mv6]} />
                                         <Text
                                             variant="labelStrong"
-                                            style={styles.mb4}
+                                            style={styles.mb5}
                                         >
                                             {translate('workspace.distanceRates.rate')}
                                         </Text>
@@ -385,7 +389,7 @@ function CreateDistanceRatePage({
                         )}
                         {isGovernmentKind && !isGovernmentRateTaken && (
                             <>
-                                <View style={[styles.sectionDividerLine, styles.mv5]} />
+                                <View style={[styles.sectionDividerLine, styles.mv6]} />
                                 <Text
                                     variant="labelStrong"
                                     style={styles.mb2}
