@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 
@@ -60,7 +60,7 @@ function WorkspaceTaxesSettingsForeignCurrency({
                 testID="WorkspaceTaxesSettingsForeignCurrency"
                 style={styles.defaultModalContainer}
             >
-                <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.taxes.foreignDefault')} />
 
                 <View style={[styles.mb4, styles.flex1]}>
                     <TaxPicker

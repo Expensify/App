@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 
@@ -72,10 +72,7 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
                 shouldEnableMaxHeight
                 testID="PolicyDistanceRateTaxRateEditPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.taxes.taxRate')}
-                    shouldShowBackButton
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.taxes.taxRate')} />
                 <TaxPicker
                     selectedTaxRate={selectedTaxRate}
                     policyID={policyID}

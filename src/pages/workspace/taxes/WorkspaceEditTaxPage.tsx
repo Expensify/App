@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -101,7 +101,7 @@ function WorkspaceEditTaxPage({
                 style={styles.mb5}
             >
                 <View style={[styles.h100, styles.flex1]}>
-                    <HeaderWithBackButton title={currentTaxRate?.name} />
+                    <HeaderWithBackButtonAndTitle title={currentTaxRate?.name} />
                     <OfflineWithFeedback
                         errors={getLatestErrorField(currentTaxRate, 'isDisabled')}
                         pendingAction={currentTaxRate?.pendingFields?.isDisabled}

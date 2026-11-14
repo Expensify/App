@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import KeypadAmountEditor from '@components/KeypadAmountEditor';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -59,7 +59,7 @@ function WorkspaceCreateTaxValuePage({
             testID="WorkspaceCreateTaxValuePage"
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.taxes.value')}
                 onBackButtonPress={goBack}
             />
