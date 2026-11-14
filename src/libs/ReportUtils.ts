@@ -13436,9 +13436,13 @@ function canJoinChat(
         return false;
     }
 
-    // For restricted visibility rooms, the user must be a non-guest workspace member to join
+    // For restricted visibility rooms, the user must be a workspace member with room access to join
     const policyRole = getPolicyRole(policy, currentUserEmail ?? deprecatedCurrentUserEmail);
-    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && (!policyRole || policyRole === CONST.POLICY.ROLE.GUEST)) {
+    if (
+        isUserCreatedPolicyRoom(report) &&
+        report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED &&
+        (!policyRole || policyRole === CONST.POLICY.ROLE.GUEST || policyRole === CONST.POLICY.ROLE.APPROVE_ONLY)
+    ) {
         return false;
     }
 
