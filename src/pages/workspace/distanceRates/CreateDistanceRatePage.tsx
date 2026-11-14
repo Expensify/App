@@ -166,7 +166,14 @@ function CreateDistanceRatePage({
         // Only Control can auto-update government rates, so the toggle sends every other workspace to the upgrade flow too
         if (!isControlPolicy(policy)) {
             Navigation.navigate(
-                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.alias, ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)),
+                ROUTES.WORKSPACE_UPGRADE.getRoute(
+                    policyID,
+                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.alias,
+                    ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID),
+                    undefined,
+                    undefined,
+                    isEuroWorkspace ? governmentRateCountry : undefined,
+                ),
             );
             return;
         }
