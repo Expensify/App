@@ -29,6 +29,7 @@ import type {ApprovalWorkflowRulesDiff} from './RuleUtils';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getConnectedHRProvider, getHRAdvancedModeFinalApprover, getHRFinalApprover, isAnyHRConnected, isHRAdvancedMode, isAnyHRReadOnlyWorkflowMode} from './merge/HRUtils';
 import {getConnectedATSProvider, isAnyRecruitingReadOnlyWorkflowMode} from './merge/RecruitingUtils';
+import {doesNetSuiteSetApprovers} from './NetSuiteUtils';
 import {rand64} from './NumberUtils';
 import {
     canMemberWrite,
@@ -76,11 +77,17 @@ function getApprovalWorkflowSource(policy: OnyxEntry<Policy>, policyID: string |
             settingsRoute: ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.RECRUITING),
         };
     }
+    if (doesNetSuiteSetApprovers(policy)) {
+        return {
+            providerName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite,
+            settingsRoute: ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID),
+        };
+    }
     return undefined;
 }
 
 function isApprovalWorkflowLockedByIntegration(policy: OnyxEntry<Policy>): boolean {
-    return isAnyHRReadOnlyWorkflowMode(policy) || isAnyRecruitingReadOnlyWorkflowMode(policy);
+    return isAnyHRReadOnlyWorkflowMode(policy) || isAnyRecruitingReadOnlyWorkflowMode(policy) || doesNetSuiteSetApprovers(policy);
 }
 
 type GetApproversParams = {
