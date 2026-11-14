@@ -3,12 +3,12 @@
  */
 import type {AvatarIcon} from '@components/Avatar/types';
 import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';

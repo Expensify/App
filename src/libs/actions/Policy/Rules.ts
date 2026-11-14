@@ -26,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
-import type {AgentRule, CodingRule, CodingRuleFilter} from '@src/types/onyx/Policy';
+import type {AgentRule, CodingRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleBody} from '@src/types/onyx/Rule';
@@ -58,13 +58,19 @@ function getRules() {
         return;
     }
 
-    type RulesFetchKey = typeof ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_RULES;
+    type RulesFetchKey = typeof ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_RULES | typeof ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED;
 
     const optimisticData: Array<OnyxUpdate<RulesFetchKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
             value: true,
+        },
+        {
+            // This attempt has not failed yet, so an earlier failure stops standing for it.
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED,
+            value: false,
         },
     ];
     const successData: Array<OnyxUpdate<RulesFetchKey>> = [
@@ -86,10 +92,18 @@ function getRules() {
             value: false,
         },
         {
-            // A failed attempt still counts as one. Left false, the prefetch hook sees a fetch as needed again the
-            // moment the in-flight flag clears, so a server error retries for as long as the screen stays mounted.
+            // A failure means the collection never arrived, so a screen opened later asks for it again rather than
+            // resolving a category's tax against rules that never arrived. The prefetch hook asks at most once
+            // per mount, which is what keeps a server error from retrying on every render.
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
+            value: false,
+        },
+        {
+            // Tells the attempt that failed apart from one still to send, so a screen waiting on the collection
+            // stops waiting. Without it, a collection that never arrived reads the same either way.
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED,
             value: true,
         },
     ];
@@ -97,12 +111,14 @@ function getRules() {
     API.read(READ_COMMANDS.GET_RULES, {}, {optimisticData, successData, failureData});
 
     // A read that throws, which is what a 5xx, a 429 or a socket error does, applies neither its success nor its
-    // failure data, and `API.read` reports nothing back to the caller. Without a bound the in-flight flag would
-    // outlive its request and block every later fetch for the session. Clearing a flag that is already false once
-    // the response has landed costs nothing, so the timer runs either way.
+    // failure data, and `API.read` reports nothing back to the caller. The timer stands in for the failure data
+    // that never ran, so a screen waiting on the collection stops waiting instead of waiting for the session. The
+    // fetched flag is left alone, so this is as retryable as any other failure. Writing a flag that already holds
+    // this value once the response has landed costs nothing, so the timer runs either way.
     clearTimeout(staleRulesFetchTimeoutID);
     staleRulesFetchTimeoutID = setTimeout(() => {
         Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
+        Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED, true);
     }, RULES_FETCH_TIMEOUT_MS);
 }
 
@@ -116,6 +132,7 @@ function getRules() {
 function resetRulesFetchState() {
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
     Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, false);
+    Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED, false);
 }
 
 /**
@@ -186,9 +203,13 @@ function setRule(policyID: string, ruleBody: RuleBody | undefined, priority: num
     const targetRuleID = ruleID ?? rand64();
     const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${targetRuleID}` as const;
     const created = existingRule?.created ?? new Date().toISOString();
+    // A rule migrated from the old policy rules carries a higher priority than anything this editor creates, and
+    // priority is what decides which of two matching rules the engine applies last. Saving the editor's priority
+    // over it would change which tax an expense ends up with on an edit that never touched the tax.
+    const resolvedPriority = existingRule?.priority ?? priority;
 
     // Shared between the optimistic rule and the request so the rule shown while offline matches what the server saves.
-    const ruleScope = {scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, priority};
+    const ruleScope = {scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, priority: resolvedPriority};
 
     const optimisticRule: Rule = {
         ...ruleBody,
@@ -269,7 +290,15 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
     }
 }
 
-function getTransactionsMatchingCodingRule(policyID: string, filters: CodingRuleFilter) {
+/**
+ * Asks which of a policy's expenses a rule would apply to.
+ *
+ * The previous answer is cleared first. The collection is keyed by transaction, so without the clear a preview
+ * that matches fewer expenses than the last one keeps showing the ones it no longer matches.
+ */
+function getTransactionsMatchingRule(policyID: string, filters: string) {
+    Onyx.setCollection(ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION, {});
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -292,7 +321,7 @@ function getTransactionsMatchingCodingRule(policyID: string, filters: CodingRule
         },
     ];
 
-    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {policyID, filters: JSON.stringify(filters)}, {optimisticData, successData, failureData});
+    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_RULE, {scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, filters}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -712,7 +741,7 @@ export {
     setRule,
     importMerchantRulesSpreadsheet,
     deleteRule,
-    getTransactionsMatchingCodingRule,
+    getTransactionsMatchingRule,
     addPolicyAgentRule,
     generateRule,
     setNewRulePromptEmptyError,

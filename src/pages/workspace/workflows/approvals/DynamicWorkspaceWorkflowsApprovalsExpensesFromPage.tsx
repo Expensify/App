@@ -175,7 +175,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 // Fall back when getMemberAccountIDsForWorkspace can't resolve an accountID — for
                 // example a freshly invited user whose personal details haven't fully synced yet
                 // (the helper requires personalDetail.login). Without a real accountID,
-                // ReportActionAvatars renders the FallbackAvatar instead of the default avatar
+                // the avatar renders the FallbackAvatar instead of the default avatar
                 // assigned to that account.
                 if (!accountID) {
                     const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];

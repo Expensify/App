@@ -17,7 +17,12 @@ import INSIGHTS_CONTROL_ANCHOR_ALIGNMENT from './insightsControls';
 /** Stands in for no comparison, which the API has no mode of its own for. */
 const COMPARE_NONE = 'none';
 
-function InsightsCompareControl({value, onChange}: InsightsControlProps<SearchCompareMode | undefined>) {
+type InsightsCompareControlProps = InsightsControlProps<SearchCompareMode | undefined> & {
+    /** Compare mode the dashboard starts from, which Reset returns to */
+    defaultValue: SearchCompareMode | undefined;
+};
+
+function InsightsCompareControl({value, defaultValue, onChange}: InsightsCompareControlProps) {
     const {translate} = useLocalize();
     const label = translate('insightsPage.compare.label');
 
@@ -33,7 +38,7 @@ function InsightsCompareControl({value, onChange}: InsightsControlProps<SearchCo
             label={label}
             items={items}
             value={selectedItem}
-            defaultValue={COMPARE_NONE}
+            defaultValue={defaultValue ?? COMPARE_NONE}
             closeOverlay={closeOverlay}
             onChange={(item) => onChange(!item || item.value === COMPARE_NONE ? undefined : item.value)}
             applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.COMPARE}

@@ -1,7 +1,8 @@
-/** A Spend table heading that opens its column's menu when pressed: sorting, and hiding and editing the columns. */
+/** A Spend table heading that opens its column's menu when pressed: sorting, hiding and editing the columns, and resetting their sizes. */
 import Icon from '@components/Icon';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useColumnResizeController} from '@components/Table/columnResize/ColumnResizeContext';
 import RESIZE_HANDLE_COLUMN_OVERLAP from '@components/Table/columnResize/resizeHandleColumnOverlap';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -136,7 +137,8 @@ function SearchColumnMenu({hidableColumns, hideColumn}: SearchColumnMenuProps) {
     const {columnName, sorting} = useSortableColumn();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Checkmark', 'Columns', 'EyeDisabled']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Checkmark', 'Columns', 'EyeDisabled', 'RotateLeft']);
+    const resetColumnWidths = useColumnResizeController()?.resetColumnWidths;
 
     // `success` colors the checkmark of the active order, and would color the arrow beside it too. The arrow keeps its usual colors.
     const getSortIconFill = (isHovered: boolean) => StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isHovered}), isMenuIcon: true, isPane: true});
@@ -188,6 +190,17 @@ function SearchColumnMenu({hidableColumns, hideColumn}: SearchColumnMenuProps) {
                     onSelect={() => Navigation.navigate(ROUTES.SEARCH_COLUMNS)}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_EDIT_COLUMNS}
                 />
+                {!!resetColumnWidths && (
+                    <>
+                        <PopoverMenu.Separator />
+                        <PopoverMenu.Item
+                            text={translate('search.columnMenu.resetColumnSizes')}
+                            icon={icons.RotateLeft}
+                            onSelect={resetColumnWidths}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_RESET_COLUMN_SIZES}
+                        />
+                    </>
+                )}
             </PopoverMenu.Content>
         </PopoverMenu.Root>
     );

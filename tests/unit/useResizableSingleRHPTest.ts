@@ -17,14 +17,10 @@ jest.mock('@components/WideRHPContextProvider', () => ({useWideRHPState: () => m
 let mockIsSmallScreenWidth = false;
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isSmallScreenWidth: mockIsSmallScreenWidth}));
 
-let mockIsResizableRHPEnabled = true;
-jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => mockIsResizableRHPEnabled}));
-
 describe('useResizableSingleRHP', () => {
     beforeEach(() => {
         mockWideRHPState = LONE_SINGLE_RHP;
         mockIsSmallScreenWidth = false;
-        mockIsResizableRHPEnabled = true;
     });
 
     it('lets a lone single RHP be resized as a floating card', () => {
@@ -72,17 +68,6 @@ describe('useResizableSingleRHP', () => {
         const {result} = renderHook(() => useResizableSingleRHP());
 
         // Then there is no edge to drag
-        expect(result.current).toEqual({isResizable: false, isFloating: false});
-    });
-
-    it('does not resize without the beta', () => {
-        // Given a wide layout for a user outside the beta
-        mockIsResizableRHPEnabled = false;
-
-        // When the hook reads the layout
-        const {result} = renderHook(() => useResizableSingleRHP());
-
-        // Then resizing stays hidden from them
         expect(result.current).toEqual({isResizable: false, isFloating: false});
     });
 });

@@ -5,7 +5,7 @@ import type {ImageOnLoadEvent} from '@components/Image/types';
 import type {AnchorPosition} from '@components/TransactionItemRow/types';
 
 import useDebouncedState from '@hooks/useDebouncedState';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -52,7 +52,9 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem, a
     const [imageAspectRatio, setImageAspectRatio] = useState<string | number | undefined>(undefined);
     const [distanceEReceiptAspectRatio, setDistanceEReceiptAspectRatio] = useState<string | number | undefined>(undefined);
     const [shouldShow, debounceShouldShow, setShouldShow] = useDebouncedState(false, CONST.TIMING.SHOW_HOVER_PREVIEW_DELAY);
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    // Not shouldUseNarrowLayout, so rows in a narrow RHP get the preview too.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const hasMeasured = useRef(false);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const [isLoading, setIsLoading] = useState(true);
@@ -101,7 +103,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem, a
         setShouldShow(hovered);
     }, [hovered, setShouldShow]);
 
-    if (shouldUseNarrowLayout || !debounceShouldShow || !shouldShow || (!source && !isEReceipt && !isDistanceEReceipt && !isPerDiemEReceipt)) {
+    if (isSmallScreenWidth || !debounceShouldShow || !shouldShow || (!source && !isEReceipt && !isDistanceEReceipt && !isPerDiemEReceipt)) {
         return null;
     }
 

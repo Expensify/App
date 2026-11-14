@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import type {InsightsTimeGroupBy} from '@pages/Insights/insightsGroupByUtils';
 import {getFittingGroupBy} from '@pages/Insights/insightsGroupByUtils';
 
@@ -33,10 +33,13 @@ type InsightsGroupByDropdownProps = {
     /** Per-period time buckets that fit the date range */
     options: InsightsTimeGroupBy[];
 
+    /** Grouping the dashboard starts from, which Reset returns to */
+    defaultGroupBy: GroupByValue;
+
     onChange: (update: Partial<InsightsFilters>) => void;
 };
 
-function InsightsGroupByDropdown({groupBy, options, onChange}: InsightsGroupByDropdownProps) {
+function InsightsGroupByDropdown({groupBy, options, defaultGroupBy, onChange}: InsightsGroupByDropdownProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -53,6 +56,7 @@ function InsightsGroupByDropdown({groupBy, options, onChange}: InsightsGroupByDr
             options={options}
             runningTotalText={runningTotalText}
             selectedValue={selectedValue}
+            defaultGroupBy={defaultGroupBy}
             label={label}
             closeOverlay={closeOverlay}
             onChange={onChange}
@@ -79,12 +83,13 @@ type InsightsGroupByPopupProps = {
     options: InsightsTimeGroupBy[];
     runningTotalText: string;
     selectedValue: GroupByValue;
+    defaultGroupBy: GroupByValue;
     label: string;
     closeOverlay: () => void;
     onChange: (update: Partial<InsightsFilters>) => void;
 };
 
-function InsightsGroupByPopup({options, runningTotalText, selectedValue, label, closeOverlay, onChange}: InsightsGroupByPopupProps) {
+function InsightsGroupByPopup({options, runningTotalText, selectedValue, defaultGroupBy, label, closeOverlay, onChange}: InsightsGroupByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selected, setSelected] = useState<GroupByValue>(selectedValue);
@@ -117,7 +122,7 @@ function InsightsGroupByPopup({options, runningTotalText, selectedValue, label, 
     };
 
     const resetChanges = () => {
-        onChange({groupBy: DEFAULT_INSIGHTS_FILTERS.groupBy});
+        onChange({groupBy: defaultGroupBy});
         closeOverlay();
     };
 
