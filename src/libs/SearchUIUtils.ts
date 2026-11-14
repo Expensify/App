@@ -7845,7 +7845,7 @@ function getColumnsToShow({
 /**
  * Maps numeric state value to settlement status
  * State mapping confirmed by backend team (@JS00001):
- * - 5, 6, 7: Failed
+ * - 5, 6, 7, 14: Failed
  * - 8: Cleared (succeeded and complete)
  * - 9: Cleared (settled, pending batch processing)
  * - All others: Pending (processing)
@@ -7856,6 +7856,7 @@ const settlementStatusMap = new Map<number, ValueOf<typeof CONST.SEARCH.SETTLEME
     [7, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
     [8, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
     [9, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
+    [14, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
 ]);
 
 function getSettlementStatus(state: number | undefined): ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS> | undefined {
