@@ -20,6 +20,7 @@ export default function useDeleteSavedSearch() {
     const {currentSearchKey} = useSearchQueryContext();
     const {showConfirmModal} = useConfirmModal();
     const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
 
     const handleDeleteSavedSearch = (savedSearchID: string) => {
         showConfirmModal({
@@ -32,7 +33,7 @@ export default function useDeleteSavedSearch() {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            deleteSavedSearch(savedSearchID);
+            deleteSavedSearch(savedSearchID, savedSearches?.[savedSearchID]?.query);
 
             if (savedSearchID === searchKeyToSavedSearchID(currentSearchKey)) {
                 const query = lastExpensesSearchQuery ?? buildCannedSearchQuery();

@@ -7,6 +7,8 @@ import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {getCurrency, getMerchant} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
+import {trackSearchSnapshotAccess} from '@userActions/SearchSnapshotCache';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -415,6 +417,12 @@ function getSearchOnyxUpdate({
 
     if (optimisticData.length === 0) {
         return;
+    }
+
+    // Snapshots created here (e.g. a group's member snapshot) have no access record yet, so they'd never be evicted
+    const createdHashes = [...writtenHashes].filter((hash) => !allSnapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]);
+    if (createdHashes.length > 0) {
+        trackSearchSnapshotAccess(createdHashes);
     }
 
     return {

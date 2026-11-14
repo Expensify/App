@@ -63,7 +63,7 @@ function SearchFiltersSaveButton() {
                 return;
             }
 
-            saveSearch({id: activeSavedSearchID, queryJSON: currentSearchQueryJSON, newName: activeSavedSearch?.name});
+            saveSearch({id: activeSavedSearchID, queryJSON: currentSearchQueryJSON, newName: activeSavedSearch?.name, previousQuery: activeSavedSearch?.query});
         } finally {
             isDecisionPending.current = false;
         }
