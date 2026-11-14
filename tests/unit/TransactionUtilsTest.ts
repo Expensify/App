@@ -710,6 +710,7 @@ describe('TransactionUtils', () => {
 
             // When the merchant is edited and marked pending while offline
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {merchant: 'Zero Scan edited'},
@@ -736,6 +737,7 @@ describe('TransactionUtils', () => {
 
             // When the merchant is edited and marked pending while offline
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {merchant: 'Failed Scan edited'},
@@ -853,6 +855,7 @@ describe('TransactionUtils', () => {
             });
 
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 policy: undefined,
@@ -900,6 +903,7 @@ describe('TransactionUtils', () => {
 
             // When: changing the rate while waypoints are still pending
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -948,6 +952,7 @@ describe('TransactionUtils', () => {
 
             // When: changing the rate while waypoints are still pending
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -1011,6 +1016,7 @@ describe('TransactionUtils', () => {
 
             // When: changing the rate before the new route arrives
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -1074,6 +1080,7 @@ describe('TransactionUtils', () => {
                 });
 
                 const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    translate: translateLocal,
                     transaction,
                     isFromExpenseReport: false,
                     policy: fakePolicy,
@@ -1143,6 +1150,7 @@ describe('TransactionUtils', () => {
             });
 
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -1221,6 +1229,7 @@ describe('TransactionUtils', () => {
             });
 
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -1292,6 +1301,7 @@ describe('TransactionUtils', () => {
 
             const updateRate = (transactionToUpdate: Transaction, policy: Policy | undefined, policies?: OnyxCollection<Policy>) =>
                 TransactionUtils.getUpdatedTransaction({
+                    translate: translateLocal,
                     transaction: transactionToUpdate,
                     isFromExpenseReport: false,
                     policy,
@@ -1372,6 +1382,7 @@ describe('TransactionUtils', () => {
                 });
 
                 const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    translate: translateLocal,
                     transaction,
                     isFromExpenseReport: false,
                     policy: undefined,
@@ -1414,6 +1425,7 @@ describe('TransactionUtils', () => {
 
                 // 32186.88 m ≈ 20 mi; at the EUR P2P rate of 30¢ the amount is 600.
                 const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    translate: translateLocal,
                     transaction,
                     isFromExpenseReport: false,
                     policy: undefined,
@@ -1480,6 +1492,7 @@ describe('TransactionUtils', () => {
             });
 
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -1535,6 +1548,7 @@ describe('TransactionUtils', () => {
 
             // When its waypoints are edited to a 20 mile trip, the preview having been cleared with the routes
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -1590,6 +1604,7 @@ describe('TransactionUtils', () => {
             });
 
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -1614,6 +1629,7 @@ describe('TransactionUtils', () => {
             const newAmount = 500;
 
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {amount: newAmount},
@@ -1630,6 +1646,7 @@ describe('TransactionUtils', () => {
             const newAmount = 500;
 
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {amount: newAmount},
@@ -1645,6 +1662,7 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
@@ -1662,6 +1680,7 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({taxValue: '10%'});
 
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {taxValue: '5%'},
@@ -1681,6 +1700,7 @@ describe('TransactionUtils', () => {
 
             // When the category is edited, which an existing expense does without passing through the confirmation page
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {category: 'Advertising'},
@@ -1705,6 +1725,7 @@ describe('TransactionUtils', () => {
 
             // When the category is cleared
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate: translateLocal,
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {category: ''},

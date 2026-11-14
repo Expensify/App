@@ -10,7 +10,6 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {CommuterExclusionData} from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-import {translateLocal} from '@libs/Localize';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
@@ -128,7 +127,7 @@ function getRecalculatedDistanceMerchant(
  * Given the edit made to the expense, return an updated transaction object.
  */
 function getUpdatedTransaction({
-    translate = translateLocal,
+    translate,
     transaction,
     transactionChanges,
     isFromExpenseReport,
@@ -141,7 +140,7 @@ function getUpdatedTransaction({
     getCurrencyDecimals,
     rules,
 }: {
-    translate?: LocaleContextProps['translate'];
+    translate: LocaleContextProps['translate'];
     transaction: Transaction;
     transactionChanges: TransactionChanges;
     isFromExpenseReport: boolean;

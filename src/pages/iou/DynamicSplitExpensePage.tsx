@@ -398,6 +398,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         }
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate,
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             getCurrencySymbol,
