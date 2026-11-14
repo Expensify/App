@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {applySavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import importTransactionsFromCSV, {getExistingCardImportSettings, hasTagExceedingMaxLength} from '@libs/actions/ImportTransactions';
-import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
+import {findDuplicateColumnLabel, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -95,11 +95,10 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         if (missingRequiredColumns) {
             errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
         } else {
-            const duplicate = findDuplicate(columns);
-            const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
+            const duplicate = findDuplicateColumnLabel(columns, columnRoles);
 
-            if (duplicateColumn) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
+            if (duplicate) {
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else if (hasTagExceedingMaxLength(spreadsheet)) {
                 errors.tagTooLong = translate('spreadsheet.fieldValueTooLong', translate('common.tag'), CONST.API_TRANSACTION_TAG_MAX_LENGTH);
             } else {
