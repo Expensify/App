@@ -759,6 +759,7 @@ const WRITE_COMMANDS = {
     SET_PERSONAL_CARD_REIMBURSABLE: 'SetPersonalCardReimbursable',
     SET_CARD_EXPORT_ACCOUNT: 'SetCardExportAccount',
     SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS: 'SetPersonalDetailsAndShipExpensifyCards',
+    SET_PERSONAL_DETAILS_AND_ACTIVATE_EXPENSIFY_CARD: 'SetPersonalDetailsAndActivateExpensifyCard',
     SET_INVOICING_TRANSFER_BANK_ACCOUNT: 'SetInvoicingTransferBankAccount',
     SELF_TOUR_VIEWED: 'SelfTourViewed',
     UPDATE_INVOICE_COMPANY_NAME: 'UpdateInvoiceCompanyName',
@@ -1617,6 +1618,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.PAY_TRAVEL_BILLING_SPEND]: Parameters.PayTravelBillingSpendParams;
     [WRITE_COMMANDS.RETRY_TRAVEL_CARDS_PROVISIONING]: Parameters.RetryTravelCardsProvisioningParams;
     [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS]: Parameters.SetPersonalDetailsAndShipExpensifyCardsParams;
+    [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_ACTIVATE_EXPENSIFY_CARD]: Parameters.SetPersonalDetailsAndActivateExpensifyCardParams;
     [WRITE_COMMANDS.SELF_TOUR_VIEWED]: null;
 
     // Xero API
@@ -1811,6 +1813,7 @@ const READ_COMMANDS = {
     OPEN_SAVE_THE_WORLD_PAGE: 'OpenSaveTheWorldPage',
     OPEN_DRAFT_DISTANCE_EXPENSE: 'OpenDraftDistanceExpense',
     START_ISSUE_NEW_CARD_FLOW: 'StartIssueNewCardFlow',
+    OPEN_ISSUE_NEW_CARD_SHIPPING_ADDRESS_STEP: 'OpenIssueNewCardShippingAddressStep',
     OPEN_CARD_DETAILS_PAGE: 'OpenCardDetailsPage',
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
     GET_WISE_KYC_REVIEW_EMBEDDED_LINK: 'GetWiseKYCReviewEmbeddedLink',
@@ -1944,6 +1947,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE]: null;
     [READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE]: null;
     [READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW]: Parameters.StartIssueNewCardFlowParams;
+    [READ_COMMANDS.OPEN_ISSUE_NEW_CARD_SHIPPING_ADDRESS_STEP]: Parameters.OpenIssueNewCardShippingAddressStepParams;
     [READ_COMMANDS.OPEN_CARD_DETAILS_PAGE]: Parameters.OpenCardDetailsPageParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
     [READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK]: Parameters.GetWiseKYCReviewEmbeddedLinkParams;

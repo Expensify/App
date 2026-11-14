@@ -1,0 +1,223 @@
+import AddressFields from '@components/AddressFields';
+import DatePicker from '@components/DatePicker';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FormHelpMessage from '@components/FormHelpMessage';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearCardListErrors, setPersonalDetailsAndActivateExpensifyCard} from '@libs/actions/Card';
+import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
+import {requestValidateCodeAction} from '@libs/actions/User';
+import type {ActivatePhysicalCardPersonalDetails as PersonalDetailsToSave} from '@libs/API/parameters/SetPersonalDetailsAndActivateExpensifyCardParams';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {appendCountryCode} from '@libs/LoginUtils';
+import {getStreetLines} from '@libs/PersonalDetailsUtils';
+import {
+    getAddressFieldErrors,
+    getFieldRequiredErrors,
+    getLegalNameErrors,
+    isValidPastDate,
+    isValidPhoneNumber,
+    meetsMaximumAgeRequirement,
+    meetsMinimumAgeRequirement,
+} from '@libs/ValidationUtils';
+
+import {getNormalizedSubPageValues} from '@pages/MissingPersonalDetails/utils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+import type {Card} from '@src/types/onyx';
+
+import {subYears} from 'date-fns';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+type ActivatePhysicalCardPersonalDetailsProps = {
+    /** The card being activated */
+    card: Card;
+
+    /** Last four digits the cardholder entered for the card */
+    lastFourDigits: string;
+
+    /** Goes back to entering the last four digits */
+    onBackButtonPress: () => void;
+};
+
+const REQUIRED_FIELDS = [
+    INPUT_IDS.LEGAL_FIRST_NAME,
+    INPUT_IDS.LEGAL_LAST_NAME,
+    INPUT_IDS.DATE_OF_BIRTH,
+    INPUT_IDS.PHONE_NUMBER,
+    INPUT_IDS.ADDRESS_LINE_1,
+    INPUT_IDS.CITY,
+    INPUT_IDS.STATE,
+    INPUT_IDS.COUNTRY,
+    INPUT_IDS.ZIP_POST_CODE,
+];
+
+function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButtonPress}: ActivatePhysicalCardPersonalDetailsProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const primaryLogin = usePrimaryContactMethod();
+    const [personalDetailsToSave, setPersonalDetailsToSave] = useState<PersonalDetailsToSave>();
+
+    const personalDetailsValues = getNormalizedSubPageValues(privatePersonalDetails);
+    const shippingAddress = card.nameValuePairs?.shippingAddress;
+
+    // The name and address the admin shipped the card to are prefilled until the cardholder has their own
+    const legalFirstName = personalDetailsValues[INPUT_IDS.LEGAL_FIRST_NAME] || shippingAddress?.legalFirstName;
+    const legalLastName = personalDetailsValues[INPUT_IDS.LEGAL_LAST_NAME] || shippingAddress?.legalLastName;
+    const hasHomeAddress = !!personalDetailsValues[INPUT_IDS.ADDRESS_LINE_1];
+    const [shippingStreet1, shippingStreet2] = getStreetLines(shippingAddress?.addressStreet);
+    const street1 = hasHomeAddress ? personalDetailsValues[INPUT_IDS.ADDRESS_LINE_1] : shippingStreet1;
+    const street2 = hasHomeAddress ? personalDetailsValues[INPUT_IDS.ADDRESS_LINE_2] : shippingStreet2;
+    const city = hasHomeAddress ? personalDetailsValues[INPUT_IDS.CITY] : shippingAddress?.addressCity;
+    const state = hasHomeAddress ? personalDetailsValues[INPUT_IDS.STATE] : shippingAddress?.addressState;
+    const zip = hasHomeAddress ? personalDetailsValues[INPUT_IDS.ZIP_POST_CODE] : shippingAddress?.addressZip;
+    const country = hasHomeAddress ? personalDetailsValues[INPUT_IDS.COUNTRY] : shippingAddress?.addressCountry;
+
+    const cardError = getLatestErrorMessage(card);
+    const [{minDate, maxDate}] = useState(() => ({
+        minDate: subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE),
+        maxDate: subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT),
+    }));
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
+        const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
+        if (values.dob) {
+            if (!isValidPastDate(values.dob) || !meetsMaximumAgeRequirement(values.dob)) {
+                errors.dob = translate('bankAccount.error.dob');
+            } else if (!meetsMinimumAgeRequirement(values.dob)) {
+                errors.dob = translate('bankAccount.error.age');
+            }
+        }
+        if (values.phoneNumber && !isValidPhoneNumber(appendCountryCode(values.phoneNumber, countryCode))) {
+            errors.phoneNumber = translate('common.error.phoneNumber');
+        }
+        return {...errors, ...getLegalNameErrors(values, translate), ...getAddressFieldErrors(values, translate)};
+    };
+
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
+        setPersonalDetailsToSave(buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode));
+    };
+
+    if (personalDetailsToSave) {
+        return (
+            <ValidateCodeActionContent
+                title={translate('cardPage.validateCardTitle')}
+                descriptionPrimary={translate('contacts.enterSecurityCode', primaryLogin ?? '')}
+                sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.EXPENSIFY_CARD.ACTIVATE_CARD_VALIDATE_CODE_REASON})}
+                validateCodeReasonCode={CONST.EXPENSIFY_CARD.ACTIVATE_CARD_VALIDATE_CODE_REASON}
+                validateCodeActionErrorField={CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD}
+                handleSubmitForm={(validateCode) => setPersonalDetailsAndActivateExpensifyCard(lastFourDigits, card.cardID, personalDetailsToSave, validateCode)}
+                validateError={card.errors ?? undefined}
+                clearError={() => clearCardListErrors(card.cardID)}
+                onClose={() => setPersonalDetailsToSave(undefined)}
+                isLoading={card.isLoading}
+            />
+        );
+    }
+
+    return (
+        <ScreenWrapper
+            testID="ActivatePhysicalCardPersonalDetails"
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButtonAndTitle
+                title={translate('privatePersonalDetails.personalDetails')}
+                onBackButtonPress={onBackButtonPress}
+            />
+            <FormProvider
+                formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
+                submitButtonText={translate('activateCardPage.activatePhysicalCard')}
+                validate={validate}
+                onSubmit={submit}
+                style={[styles.flexGrow1, styles.mh5]}
+                submitFlexEnabled={false}
+                isLoading={card.isLoading}
+                shouldHideFixErrorsAlert
+            >
+                {({inputValues}) => (
+                    <>
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('activateCardPage.fillInAllDetails')}</Text>
+                        <Text style={[styles.textLabelSupporting, styles.mb3]}>{translate('privatePersonalDetails.basicDetails')}</Text>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                            label={translate('personalInfoStep.legalFirstName')}
+                            aria-label={translate('personalInfoStep.legalFirstName')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={legalFirstName}
+                            autoComplete="given-name"
+                        />
+                        <View style={styles.formSpaceVertical} />
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                            label={translate('personalInfoStep.legalLastName')}
+                            aria-label={translate('personalInfoStep.legalLastName')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={legalLastName}
+                            autoComplete="family-name"
+                        />
+                        <View style={styles.formSpaceVertical} />
+                        <InputWrapper
+                            InputComponent={DatePicker}
+                            inputID={INPUT_IDS.DATE_OF_BIRTH}
+                            label={translate('common.dob')}
+                            placeholder={translate('common.dateFormat')}
+                            defaultValue={personalDetailsValues[INPUT_IDS.DATE_OF_BIRTH]}
+                            minDate={minDate}
+                            maxDate={maxDate}
+                            autoComplete="birthdate-full"
+                        />
+                        <View style={styles.formSpaceVertical} />
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.PHONE_NUMBER}
+                            label={translate('common.phoneNumber')}
+                            aria-label={translate('common.phoneNumber')}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputMode={CONST.INPUT_MODE.TEL}
+                            defaultValue={personalDetailsValues[INPUT_IDS.PHONE_NUMBER]}
+                            autoComplete="tel"
+                        />
+                        <Text style={[styles.textLabelSupporting, styles.mt6, styles.mb3]}>{translate('privatePersonalDetails.address')}</Text>
+                        <AddressFields
+                            street1={street1}
+                            street2={street2}
+                            city={city}
+                            state={state}
+                            zip={zip}
+                            defaultCountry={country}
+                            country={inputValues.country ?? country}
+                        />
+                        {!!cardError && (
+                            <FormHelpMessage
+                                isError
+                                message={cardError}
+                                style={styles.mt3}
+                            />
+                        )}
+                    </>
+                )}
+            </FormProvider>
+        </ScreenWrapper>
+    );
+}
+
+export default ActivatePhysicalCardPersonalDetails;

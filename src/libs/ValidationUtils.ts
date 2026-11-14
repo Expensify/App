@@ -6,9 +6,12 @@ import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {HomeAddressForm} from '@src/types/form/HomeAddressForm';
+import type ADDRESS_INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Report, TaxRates} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
@@ -263,6 +266,60 @@ function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): bool
     }
 
     return COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(normalizedZipCode);
+}
+
+/** Values of the address inputs rendered by AddressFields */
+type AddressFieldValues = Partial<Pick<HomeAddressForm, ValueOf<typeof ADDRESS_INPUT_IDS>>>;
+
+/** Errors for the address inputs rendered by AddressFields */
+type AddressFieldErrors = Partial<Record<keyof AddressFieldValues, string>>;
+
+/** Legal name inputs an Expensify Card is shipped or activated with */
+type LegalNameValues = Partial<Record<'legalFirstName' | 'legalLastName', string>>;
+
+/** Character, length and reserved word errors for the legal name an Expensify Card is shipped or activated with */
+function getLegalNameErrors(values: LegalNameValues, translate: LocalizedTranslate): LegalNameValues {
+    const errors: LegalNameValues = {};
+    for (const legalNameInputID of ['legalFirstName', 'legalLastName'] as const) {
+        const legalName = values[legalNameInputID];
+        if (!legalName) {
+            continue;
+        }
+        if (!isValidDisplayName(legalName)) {
+            errors[legalNameInputID] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
+        } else if (legalName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+            errors[legalNameInputID] = translate('common.error.characterLimitExceedCounter', legalName.length, CONST.LEGAL_NAME.MAX_LENGTH);
+        } else if (doesContainReservedWord(legalName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            errors[legalNameInputID] = translate('personalDetails.error.containsReservedWord');
+        }
+    }
+    return errors;
+}
+
+/** Length and zip format errors for the inputs rendered by AddressFields */
+function getAddressFieldErrors(values: AddressFieldValues, translate: LocalizedTranslate): AddressFieldErrors {
+    const errors: AddressFieldErrors = {};
+    for (const addressInputID of ['addressLine1', 'addressLine2', 'city'] as const) {
+        const addressPart = values[addressInputID] ?? '';
+        if (addressPart.length > CONST.FORM_CHARACTER_LIMIT) {
+            errors[addressInputID] = translate('common.error.characterLimitExceedCounter', addressPart.length, CONST.FORM_CHARACTER_LIMIT);
+        }
+    }
+    for (const streetInputID of ['addressLine1', 'addressLine2'] as const) {
+        const street = values[streetInputID] ?? '';
+        // Cards can ship to a PO box, so only a street with invalid characters is rejected
+        if (street && !errors[streetInputID] && getInvalidAddressErrorTranslationPath(street) === 'bankAccount.error.addressStreet') {
+            errors[streetInputID] = translate('bankAccount.error.addressStreet');
+        }
+    }
+    const state = values.state ?? '';
+    if (values.country !== CONST.COUNTRY.US && state.length > CONST.STATE_CHARACTER_LIMIT) {
+        errors.state = translate('common.error.characterLimitExceedCounter', state.length, CONST.STATE_CHARACTER_LIMIT);
+    }
+    if (values.zipPostCode && !isValidZipCodeForCountry(values.zipPostCode, values.country)) {
+        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(values.country)?.samples);
+    }
+    return errors;
 }
 
 function isValidPaymentZipCode(zipCode: string): boolean {
@@ -925,6 +982,8 @@ export {
     isValidZipCode,
     getCountryZipRegexDetails,
     isValidZipCodeForCountry,
+    getAddressFieldErrors,
+    getLegalNameErrors,
     isValidPaymentZipCode,
     isRequiredFulfilled,
     getDisplayNameErrors,

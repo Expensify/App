@@ -1658,6 +1658,8 @@ const SENTRY_LABEL = {
     },
     WORKSPACE_EXPENSIFY_CARD: {
         BULK_ACTIONS_DROPDOWN: 'WorkspaceExpensifyCard-BulkActionsDropdown',
+        ISSUE_CARD_SHIPPING_ADDRESS: 'WorkspaceExpensifyCard-IssueCardShippingAddress',
+        ISSUE_CARD_PHONE_NUMBER: 'WorkspaceExpensifyCard-IssueCardPhoneNumber',
     },
     WORKSPACE: {
         CONFIRMATION_FORM_AVATAR: 'WorkspaceConfirmationForm-Avatar',
