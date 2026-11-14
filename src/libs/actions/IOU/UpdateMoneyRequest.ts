@@ -1823,8 +1823,7 @@ function updateMoneyRequestAmountAndCurrency({
 }
 
 type GetUpdateMoneyRequestParamsType = {
-    /** Optional until the existing-split update caller is migrated in the final PR for issue 64943. */
-    translate?: LocaleContextProps['translate'];
+    translate: LocaleContextProps['translate'];
     transactionID: string | undefined;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;

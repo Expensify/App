@@ -205,6 +205,7 @@ function SearchEditMultiplePage() {
 
         const applyChanges = () => {
             updateMultipleMoneyRequests({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionIDs,
                 changes,

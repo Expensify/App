@@ -85,6 +85,7 @@ import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 
 /** The splits to save and everything they are built from. The split-expenses flow takes only this and decides how the write runs itself. */
 type UpdateSplitTransactionsData = {
+    translate: LocaleContextProps['translate'];
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
     /** Draft reports, so chats that only exist in REPORT_DRAFT (e.g. a not-yet-created workspace chat) still resolve */
@@ -311,6 +312,7 @@ function getExpenseReportIDsEmptiedBySplitUpdate(
 }
 
 function updateSplitTransactions({
+    translate,
     allTransactionsList,
     allReportsList,
     reportDrafts,
@@ -1137,6 +1139,7 @@ function updateSplitTransactions({
                 const transactionIOUReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 const newTransactionReportID = isSelfDMSplit ? CONST.REPORT.UNREPORTED_REPORT_ID : (workspaceExpenseReportID ?? splitExpense?.reportID);
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transactionID: existingTransactionID,
                     transactionThreadReport,

@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
@@ -150,6 +152,7 @@ function removeUnchangedBulkEditFields(
 }
 
 type UpdateMultipleMoneyRequestsParams = {
+    translate: LocaleContextProps['translate'];
     transactionIDs: string[];
     changes: TransactionChanges;
     /** Per-level tag edits from the bulk-edit draft, keyed by tag list index. */
@@ -200,6 +203,7 @@ function writeBulkEditMoneyRequestAttendees(
 }
 
 function updateMultipleMoneyRequests({
+    translate,
     transactionIDs,
     changes,
     bulkEditTagChanges,
@@ -522,6 +526,7 @@ function updateMultipleMoneyRequests({
 
         // Build updated transaction
         const updatedTransaction = getUpdatedTransaction({
+            translate,
             transaction,
             transactionChanges,
             isFromExpenseReport,

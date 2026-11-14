@@ -40,7 +40,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
@@ -1276,6 +1276,7 @@ describe('actions/Transaction', () => {
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    translate: translateLocal,
                     isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,
@@ -1466,6 +1467,7 @@ describe('actions/Transaction', () => {
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    translate: translateLocal,
                     isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,
@@ -1670,6 +1672,7 @@ describe('actions/Transaction', () => {
 
                 // it should use splitExpensesTotal in its calculation
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    translate: translateLocal,
                     isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,
@@ -1921,6 +1924,7 @@ describe('actions/Transaction', () => {
 
                 // When splitting the held expense
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    translate: translateLocal,
                     isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,
