@@ -13,6 +13,8 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {isNativeTabItemName} from './nativeTabItemUtils';
+
 type NavigationTab = ValueOf<typeof NAVIGATION_TABS>;
 
 /** Tabs the JS tab buttons keep from anonymous users, who get the sign-in modal instead. */
@@ -49,10 +51,14 @@ type NativeTabSelectionParams = {
 /**
  * Whether the native bar switches to the tab itself, or leaves the switch to the tab's press handler. The native switch
  * is kept whenever the tab already shows what its JS tab button opens, because a prevented selection makes the iOS bar
- * slide back to the current tab before JS moves it to the new one.
+ * slide back to the current tab before JS moves it to the new one. Expenses and Reports open Search like the Spend tab
+ * does. More opens a menu instead of a tab, so it is never selected by a tap.
  */
 function isNativeTabSelectionEnabled(routeName: string, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored}: NativeTabSelectionParams) {
-    const tab = ROUTE_TO_NAVIGATION_TAB[routeName];
+    if (routeName === SCREENS.NATIVE_TAB_ITEM.MORE) {
+        return false;
+    }
+    const tab = isNativeTabItemName(routeName) ? NAVIGATION_TABS.SEARCH : ROUTE_TO_NAVIGATION_TAB[routeName];
     if (isAnonymousUser && ANONYMOUS_GATED_TABS.has(tab)) {
         return false;
     }

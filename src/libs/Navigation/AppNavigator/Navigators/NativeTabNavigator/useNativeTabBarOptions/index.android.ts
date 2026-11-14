@@ -1,7 +1,8 @@
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
+import {getNativeTabGlyphName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
+import type {NativeTabRouteName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
 import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 
@@ -39,10 +40,10 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: 
         tabBarStyle: {display: shouldShowNativeTabBar ? 'flex' : 'none', backgroundColor: theme.appBG},
     };
 
-    const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => ({
+    const getTabOptions = (name: NativeTabRouteName): NativeBottomTabNavigationOptions => ({
         tabBarLabel: tabLabels[name],
         tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
-            name,
+            name: getNativeTabGlyphName(name),
             color: isSelected ? theme.iconMenu : theme.icon,
             dotColor: dotColors[name],
         })),

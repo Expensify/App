@@ -201,6 +201,12 @@ const SENTRY_LABEL = {
         FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
         FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
         SUPPORTAL_SWITCHER_BUTTON: 'NavigationTabBar-SupportalSwitcherButton',
+        MORE_MENU: {
+            ACCOUNTING: 'NavigationTabBar-MoreMenu-Accounting',
+            SAVED: 'NavigationTabBar-MoreMenu-Saved',
+            INSIGHTS: 'NavigationTabBar-MoreMenu-Insights',
+            WORKSPACES: 'NavigationTabBar-MoreMenu-Workspaces',
+        },
     },
     FAB_MENU: {
         CREATE_EXPENSE: 'FABMenu-CreateExpense',

@@ -19,6 +19,12 @@ const SCREENS = {
     ...PROTECTED_SCREENS,
     INSIGHTS: 'Insights',
     INSIGHTS_DETAILS: 'Insights_Details',
+    /** Items of the native tab bar of flat navigation that stand in for routes drawn inside them, and are never focused themselves */
+    NATIVE_TAB_ITEM: {
+        EXPENSES: 'NativeTabItem_Expenses',
+        REPORTS: 'NativeTabItem_Reports',
+        MORE: 'NativeTabItem_More',
+    },
     REPORT: 'Report',
     DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
     DYNAMIC_CARD_AUTHENTICATION: 'Dynamic_Card_Authentication',
