@@ -4,6 +4,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildCopiedExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
+import {getReportFieldsWithoutFailedAdds} from '@libs/ReportUtils';
 import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
 
 import CONST from '@src/CONST';
@@ -337,7 +338,7 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
             return (shouldCopyReportFields && !isInvoiceField) || (shouldCopyInvoiceFields && isInvoiceField);
         };
         const retainedTargetFields = Object.entries(targetPolicy.fieldList ?? {}).filter(([, field]) => !shouldCopyField(field));
-        const copiedSourceFields = Object.entries(sourcePolicy.fieldList ?? {}).filter(([, field]) => shouldCopyField(field));
+        const copiedSourceFields = Object.entries(getReportFieldsWithoutFailedAdds(sourcePolicy.fieldList)).filter(([, field]) => shouldCopyField(field));
         const mergedFields = [...retainedTargetFields, ...copiedSourceFields];
         patch.fieldList = Object.fromEntries(mergedFields);
     }

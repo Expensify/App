@@ -63,6 +63,57 @@ describe('actions/ReportField', () => {
     });
 
     describe('createReportField', () => {
+        it.each(['New Field', 'Failed Field'])('does not count failed adds when assigning the order of %s', async (name) => {
+            // Given valid, failed, and offline fields, including a possible retry with the same name
+            const field = {
+                name: 'Valid Field',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: '',
+                values: [],
+                disabledOptions: [],
+                fieldID: generateFieldID('Valid Field'),
+                orderWeight: 1,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+            };
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                fieldList: {
+                    [ReportUtils.getReportFieldKey(field.fieldID)]: field,
+                    [ReportUtils.getReportFieldKey(generateFieldID('Failed Field'))]: {
+                        ...field,
+                        name: 'Failed Field',
+                        fieldID: generateFieldID('Failed Field'),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        errors: {[DateUtils.getMicroseconds()]: 'Creation failed'},
+                    },
+                    [ReportUtils.getReportFieldKey(generateFieldID('Offline Field'))]: {
+                        ...field,
+                        name: 'Offline Field',
+                        fieldID: generateFieldID('Offline Field'),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When creating or retrying a field while the request is pending
+            mockFetch.pause();
+            ReportField.createReportField({policy: fakePolicy, name, type: CONST.REPORT_FIELD_TYPES.TEXT, initialValue: '', listValues: [], disabledListValues: [], policyReportIDs: []});
+            await waitForBatchedUpdates();
+
+            // Then only the valid and offline fields contribute to the new position
+            const policy = await connectToFetchPolicy(fakePolicy.id);
+            expect(policy?.fieldList?.[ReportUtils.getReportFieldKey(generateFieldID(name))]?.orderWeight).toBe(3);
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD).at(0)?.[1]?.body;
+            const reportFields = body instanceof FormData ? body.get('reportFields') : null;
+            expect(reportFields).toContain('"orderWeight":3');
+        });
+
         afterEach(() => {
             // Make sure paused fetches don’t leak between tests
             mockFetch?.resume?.();
@@ -347,6 +398,35 @@ describe('actions/ReportField', () => {
     });
 
     describe('clearReportFieldErrors', () => {
+        it.each([undefined, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD])('keeps an error-free field with pending action %s when clearing errors', async (pendingAction) => {
+            // Given an existing field or an offline add that has not failed
+            const reportField: OnyxValueWithOfflineFeedback<PolicyReportField> = {
+                name: 'Offline Field',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: '',
+                values: [],
+                disabledOptions: [],
+                fieldID: generateFieldID('Offline Field'),
+                orderWeight: 1,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+                ...(pendingAction ? {pendingAction} : {}),
+            };
+            const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+            const fakePolicy = {...createRandomPolicy(0), fieldList: {[fieldKey]: reportField}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When a caller clears errors before creation has completed
+            ReportField.clearReportFieldErrors(fakePolicy, reportField.fieldID);
+            await waitForBatchedUpdates();
+
+            // Then the field and its pending action remain intact
+            const policy = await connectToFetchPolicy(fakePolicy.id);
+            expect(policy?.fieldList?.[fieldKey]).toEqual(reportField);
+        });
+
         it('clears the errors of an existing report field without removing it', async () => {
             // Given an existing report field whose initial value update was rejected by the server
             const reportFieldName = 'Test Field';
@@ -552,8 +632,10 @@ describe('actions/ReportField', () => {
             };
             const reportFieldToDeleteKey = ReportUtils.getReportFieldKey(reportFieldToDelete.fieldID);
             const failedReportFieldKey = ReportUtils.getReportFieldKey(failedReportField.fieldID);
+            const titleError = 'Invalid report title';
             const fakePolicy: PolicyType = {
                 ...createRandomPolicy(0),
+                errorFields: {fieldList: {[DateUtils.getMicroseconds()]: 'Earlier delete failed', [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleError}},
                 fieldList: {
                     [reportFieldToDeleteKey]: reportFieldToDelete,
                     [failedReportFieldKey]: failedReportField,
@@ -576,6 +658,7 @@ describe('actions/ReportField', () => {
             expect(policy?.fieldList?.[failedReportFieldKey]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(policy?.fieldList?.[failedReportFieldKey]?.errors).toEqual(failedReportField.errors);
             expect(ReportUtils.isFailedReportFieldAdd(policy?.fieldList?.[failedReportFieldKey])).toBe(true);
+            expect(policy?.errorFields?.fieldList).toEqual({[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleError});
         });
     });
 

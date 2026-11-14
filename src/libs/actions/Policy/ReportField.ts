@@ -222,7 +222,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         values: listValues,
         disabledOptions: disabledListValues,
         fieldID,
-        orderWeight: Object.keys(previousFieldList).length + 1,
+        orderWeight: Object.keys(ReportUtils.getReportFieldsWithoutFailedAdds(previousFieldList)).length + 1,
         deletable: false,
         keys: [],
         externalIDs: [],
@@ -330,8 +330,12 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         return acc;
     }, {});
 
-    // Only the deleted fields' errors are cleared, so other fields keep theirs (for example, a field that failed to be created)
-    const successErrorFields = {fieldList: successReportFields};
+    // Delete failures are timestamp-keyed messages; preserve report-title and other structured errors.
+    const deleteErrorsToClear = Object.fromEntries(
+        Object.entries(policy.errorFields?.fieldList ?? {})
+            .filter(([key, error]) => key !== CONST.POLICY.FIELDS.FIELD_LIST_TITLE && typeof error === 'string')
+            .map(([key]) => [key, null]),
+    );
 
     const failureReportFields = resolvedReportFieldKeys.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
         acc[reportFieldKey] = {pendingAction: null};
@@ -354,7 +358,7 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 value: {
                     fieldList: successReportFields,
-                    errorFields: successErrorFields,
+                    errorFields: {fieldList: deleteErrorsToClear},
                 },
             },
         ],
@@ -635,7 +639,7 @@ function clearReportFieldErrors(policy: OnyxEntry<Policy>, reportFieldID: string
     const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
     const reportField = policy.fieldList?.[fieldKey];
 
-    if (reportField?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+    if (ReportUtils.isFailedReportFieldAdd(reportField)) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
             fieldList: {
                 [fieldKey]: null,

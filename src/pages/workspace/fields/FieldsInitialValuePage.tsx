@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportFieldKey, getReportFieldsWithoutFailedAdds, hasEnabledListValue} from '@libs/ReportUtils';
+import {getReportFieldKey, getReportFieldsWithoutFailedAdds, hasEnabledListValue, isFailedReportFieldAdd} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {getReportFieldInitialValue, getReportFieldsForTarget, getUnsupportedReportFieldFormulaParts, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 
@@ -96,7 +96,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
         return errors;
     };
 
-    if (!reportField || !isReportFieldTargetValid(reportField, expectedTarget)) {
+    if (!reportField || isFailedReportFieldAdd(reportField) || !isReportFieldTargetValid(reportField, expectedTarget)) {
         return <NotFoundPage />;
     }
 

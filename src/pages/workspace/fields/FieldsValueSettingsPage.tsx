@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteReportFieldsListValue, removeReportFieldListValue, setReportFieldsListValueEnabled, updateReportFieldListValueEnabled} from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import {getReportFieldKey} from '@libs/ReportUtils';
+import {getReportFieldKey, isFailedReportFieldAdd} from '@libs/ReportUtils';
 import {isReportFieldImportedFromIntegration, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -70,7 +70,7 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
     const isImportedReportField = isReportFieldImportedFromIntegration(reportField, policy);
     const oldValueName = usePrevious(currentValueName);
     const expectedTarget = isInvoicePage ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
-    const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));
+    const isReportFieldInvalid = !!reportFieldID && (!reportField || isFailedReportFieldAdd(reportField) || !isReportFieldTargetValid(reportField, expectedTarget));
     const shouldUseInvoiceRoutes = isInvoicePage;
 
     if (isReportFieldInvalid || (!currentValueName && !oldValueName)) {
