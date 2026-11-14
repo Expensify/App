@@ -1838,6 +1838,7 @@ const SENTRY_LABEL = {
             OWNER_CHANGE_ERROR_CONFIRM: 'WorkspaceMembers-OwnerChangeErrorConfirm',
             BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
             MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
+            LEAVE_WORKSPACE: 'WorkspaceMembers-LeaveWorkspace',
             LIST_ROW: 'WorkspaceMembers-ListRow',
             ROLE_SAVE_BUTTON: 'WorkspaceMembers-RoleSaveButton',
             CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
