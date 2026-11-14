@@ -1619,6 +1619,49 @@ describe('libs/NextStepUtils', () => {
                     autoReportingOffset: 15,
                     autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
                 },
+                expectedETA: 'on the 15th and the last day of each month',
+            },
+            {
+                name: 'twice a month with omitted offsets',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                },
+                expectedETA: 'on the 15th and the last day of each month',
+            },
+            {
+                name: 'twice a month with reversed default days',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+                    autoReportingOffsetSecondSemiMonthly: 15,
+                },
+                expectedETA: 'on the 15th and the last day of each month',
+            },
+            {
+                name: 'twice a month with reversed custom days',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 20,
+                    autoReportingOffsetSecondSemiMonthly: 10,
+                },
+                expectedETA: 'on the 10th and 20th of each month',
+            },
+            {
+                name: 'twice a month explicitly on the 1st and 16th',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 1,
+                    autoReportingOffsetSecondSemiMonthly: 16,
+                },
+                expectedETA: 'on the 1st and 16th of each month',
+            },
+            {
+                name: 'twice a month without schedule metadata',
+                eta: {etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY},
                 expectedETA: 'on the 1st and 16th of each month',
             },
             {
@@ -1652,7 +1695,7 @@ describe('libs/NextStepUtils', () => {
             // When the message is built
             const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
 
-            // Then custom schedules show their own day, and default schedules keep the legacy text
+            // Then schedule metadata determines the displayed days, while older payloads retain their fallback
             expect(message).toBe(`<next-step>${expectedETA}</next-step>`);
         });
 
