@@ -225,6 +225,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.CREATE_LIST_VALUES}
                                     name={translate('workspace.reportFields.listValues')}
                                     value={listValues}
                                     numberOfLinesValue={5}

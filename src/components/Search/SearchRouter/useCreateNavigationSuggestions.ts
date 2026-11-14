@@ -49,6 +49,8 @@ import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
 import {isNavigationIntentOnlyQuery, matchesNavigationQuery, stripNavigationIntentPrefix} from './SearchRouterHelpers';
 
+const NO_CREATE_NAVIGATION_SUGGESTIONS: NavigationSuggestionSourceItem[] = [];
+
 /** Input used to build a Create action navigation suggestion. */
 type CreateNavigationItem = {
     visible: boolean;
@@ -96,7 +98,7 @@ function useCreateNavigationMatchTerms() {
     const {translate} = useLocalize();
 
     return {
-        createExpense: [translate('iou.createExpense'), translate('iou.addExpense'), translate('homePage.gettingStartedSection.createExpense')],
+        createExpense: [translate('iou.createExpense'), translate('iou.addExpense'), translate('iou.createAnExpense'), translate('homePage.gettingStartedSection.addFirstReceipt')],
         createReport: [translate('report.newReport.createReport')],
         trackDistance: [translate('iou.trackDistance')],
         chat: [translate('sidebarScreen.fabNewChat'), `${translate('common.new')} ${translate('common.chat')}`],
@@ -106,7 +108,7 @@ function useCreateNavigationMatchTerms() {
     };
 }
 
-function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceItem[] {
+function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): NavigationSuggestionSourceItem[] {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'Suitcase', 'NewWorkspace']);
@@ -172,6 +174,10 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
         shouldHandleNavigationBack: false,
         shouldSkipEmptyReportConfirmation: !shouldPrepareCreateReport,
     });
+
+    if (!shouldBuildItems) {
+        return NO_CREATE_NAVIGATION_SUGGESTIONS;
+    }
 
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
     const isTravelVisible = !!activePolicy?.isTravelEnabled;

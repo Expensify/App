@@ -27,6 +27,7 @@ import startCase from 'lodash/startCase';
 
 import type en from './en';
 import type {CompanyCardBalanceParams} from './params';
+import type {ReportNextStepMessageParams} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -58,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Cancelar',
         dismiss: 'Fechar',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionar a coluna ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        resizePanel: 'Redimensionar o painel',
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Continuar',
         unshare: 'Deixar de compartilhar',
         yes: 'Sim',
@@ -122,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Pagar',
             fix: 'Corrigir',
             task: 'Tarefa',
+            add: 'Adicionar',
         },
         success: 'Concluído',
         group: 'Grupo',
@@ -184,6 +187,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Data de nascimento',
         currentYear: 'Ano atual',
         currentMonth: 'Mês atual',
+        todayDateLabel: (date: string) => `${date}, hoje`,
         ssnLast4: 'Últimos 4 dígitos do SSN',
         ssnFull9: '9 dígitos completos do SSN',
         addressLine: (lineNumber: number) => `Linha de endereço ${lineNumber}`,
@@ -565,11 +569,13 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Nenhum resultado. Tente ajustar seus filtros ou termo de pesquisa',
         unableToDisplayChart: 'Não foi possível exibir o gráfico',
         webGLNotSupported: 'Seu navegador não é compatível com WebGL. Ative-o ou mude de navegador.',
+        webAssemblyNotSupported: 'O WebAssembly não está disponível no seu navegador. Tente outro navegador para ver os gráficos.',
         chartFailedToLoad: 'Não foi possível carregar o gráfico. Atualize a página e tente novamente.',
         apiKey: 'Chave de API',
         exportsTo: 'Exportações para',
         shareReport: 'Compartilhar relatório',
         reportShared: 'Relatório compartilhado',
+        amount: 'Valor',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -1068,6 +1074,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'Não podemos enviar notificações por e-mail para você', subtitle: 'Conta'},
             upgradeNetSuiteConnection: {title: 'Atualize sua conexão com o NetSuite'},
+            verifyWiseBankAccount: {
+                title: 'Verificar conta bancária',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conta bancária terminada em ${bankAccountLastFour}`,
+            },
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1169,8 +1179,6 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeSpendCategoriesSubText: 'Organize e classifique despesas',
             customizeExpenseCategories: 'Personalize suas categorias de despesas',
             customizeExpenseCategoriesSubText: 'Adicione as categorias da sua empresa para codificar suas despesas',
-            createExpense: 'Criar uma despesa',
-            createExpenseSubText: 'Escaneie, arraste e solte ou insira manualmente uma despesa usando o botão +',
             linkPersonalCard: 'Vincular cartão pessoal',
             linkPersonalCardSubText: 'Importar despesas automaticamente',
             configureApprovals: 'Configurar fluxo de aprovação',
@@ -1189,6 +1197,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Definir aprovações de relatórios',
             setupTravel: 'Configurar viagem',
             setupTravelSubText: 'Configurar regras específicas de viagem',
+            addFirstReceipt: 'Adicione seu primeiro recibo',
+            addFirstReceiptSubText: 'Escaneie ou insira manualmente um recibo',
         },
         yourSpend: {
             title: 'Seus gastos',
@@ -1238,8 +1248,27 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformidade',
         runningTotal: 'Total acumulado',
+        upsellState: {
+            title: 'Faça upgrade para o plano Control para ter mais insights',
+            subtitle: 'Acompanhe tendências de conformidade com a política de despesas e sinalize reincidentes.',
+            button: 'Fazer upgrade para Control',
+        },
         explain: 'Explicar',
         explainChartPrompt: (chartTitle: string) => `Explique os dados em ${chartTitle}.`,
+        violationsOverTime: 'Violações ao longo do tempo',
+        topViolations: 'Principais violações',
+        violationsBySubmitter: 'Violações por quem enviou',
+        violationsByApprover: 'Violações pelo aprovador',
+        viewDetails: 'Ver detalhes',
+        viewAll: 'Ver tudo',
+        topExpenses: 'Maiores despesas',
+        noExpensesInRange: 'Nenhuma despesa nesse intervalo',
+        efficiency: 'Eficiência',
+        workflowEfficiency: 'Eficiência de fluxo de trabalho',
+        averageProcessingTime: 'Tempo médio de processamento',
+        longestToSubmit: 'Mais demorados para enviar',
+        slowestToApprove: 'Mais lento para aprovar',
+        mostTimeToPay: 'Maior prazo para pagar',
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -1398,6 +1427,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'ou arraste e solte um aqui',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Página ${page} de ${pageCount}`,
+        translate: 'Traduzir',
+        viewOriginal: 'Ver original',
+        translationDisclaimer: 'A IA pode cometer erros. Confira o original novamente.',
+        translationError: {
+            unreadable: 'Não conseguimos ler este recibo com clareza suficiente para traduzi-lo.',
+            alreadyInLanguage: 'Este recibo já está no seu idioma.',
+            generic: 'Não foi possível traduzir este recibo. Tente novamente.',
+        },
     },
     quickAction: {
         scanReceipt: 'Digitalizar recibo',
@@ -1472,6 +1509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeThisExpense: 'Remover esta despesa',
         removeExpenseConfirmation: 'Tem certeza de que deseja remover este recibo? Esta ação não poderá ser desfeita.',
         addExpense: 'Adicionar despesa',
+        createAnExpense: 'Criar uma despesa',
         chooseRecipient: 'Escolher destinatário',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Criar despesa de ${amount}`,
         confirmDetails: 'Confirmar detalhes',
@@ -1806,6 +1844,23 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'O relatório contém despesas em espera. Aprovar apenas despesas em conformidade, ou aprovar o relatório inteiro?',
         confirmApprovalAllHoldAmount: 'Todas as despesas estão em espera. Aprovar mesmo assim?',
         confirmPay: 'Confirmar valor do pagamento',
+        wisePaymentSummary: {
+            confirmPayment: 'Confirmar pagamento',
+            reportTotal: 'Total do relatório',
+            unheldAmountBeingPaid: 'Valor não retido a pagar',
+            debitAmount: 'Valor debitado',
+            employeeWillReceive: 'O funcionário receberá',
+            totalFees: 'Taxas totais',
+            fxRate: 'Taxa de câmbio',
+            paymentDetails: 'Detalhes do pagamento',
+            debitedAmount: 'Valor debitado',
+            employeeReceived: 'O funcionário recebeu',
+            payAll: 'Pagar tudo',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 relatório',
+                other: `${count} relatórios`,
+            }),
+        },
         confirmPayAmount: 'Pague o que não está retido ou pague o relatório inteiro.',
         confirmPayAllHoldAmount: () => ({
             one: 'Esta despesa está em espera. Deseja pagar mesmo assim?',
@@ -2005,6 +2060,12 @@ const translations: TranslationDeepObject<typeof en> = {
         tagDisabledAlert: {title: 'Tag desativada', prompt: 'Ative as tags no workspace para editar os detalhes da despesa ou excluir a tag desta despesa.', confirmText: 'Excluir tag'},
         undeletedExpense: 'restaurou esta despesa',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `taxas de distância atualizadas para o novo workspace - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} relatório`,
+                other: (count: number) => `${formattedCount ?? count} relatórios`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2077,207 +2138,159 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     nextStep: {
         message: {
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Aguardando <strong>você</strong> adicionar despesas.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Aguardando <strong>${actor}</strong> adicionar despesas.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Aguardando um administrador adicionar despesas.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Aguardando <strong>você</strong> adicionar despesas.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Aguardando <strong>você</strong> enviar despesas.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Aguardando <strong>${actor}</strong> enviar as despesas.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Aguardando um administrador enviar as despesas.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Aguardando <strong>${actor}</strong> adicionar despesas.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Aguardando <strong>você</strong> marcar como concluído.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Aguardando <strong>${actor}</strong> marcar como concluído.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Aguardando um administrador marcar como concluído.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Aguardando um administrador adicionar despesas.`;
                 }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Nenhuma ação adicional é necessária!`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Altere o espaço de trabalho do relatório para realizar outras ações.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-                requiredDepositCurrency?: string,
-            ) => {
-                const account = requiredDepositCurrency ? `conta bancária em ${requiredDepositCurrency}` : 'conta bancária';
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando <strong>você</strong> adicionar uma ${account}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Aguardando <strong>${actor}</strong> adicionar uma ${account}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Aguardando um administrador adicionar uma ${account}.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Aguardando que <strong>você</strong> envie as despesas.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Aguardando <strong>${actor}</strong> enviar as despesas.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Aguardando um administrador enviar as despesas.`;
+                }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Aguardando <strong>você</strong> marcar isto como concluído.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Aguardando <strong>${actor}</strong> marcar isso como concluído.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Aguardando um administrador marcar isto como concluído.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (params: ReportNextStepMessageParams) => `Nenhuma ação adicional necessária!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (params: ReportNextStepMessageParams) => `Altere o workspace do relatório para continuar as ações.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (params: ReportNextStepMessageParams) =>
+                `Você só pode aprovar neste workspace. Mova este relatório para outro para enviá-lo.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType, requiredDepositCurrency}: ReportNextStepMessageParams) => {
+                const account = requiredDepositCurrency ? `Conta bancária em ${requiredDepositCurrency}` : 'conta bancária';
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Aguardando <strong>você</strong> adicionar uma ${account}.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Aguardando <strong>${actor}</strong> adicionar uma ${account}.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Aguardando um administrador adicionar uma ${account}.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `no dia ${eta} de cada mês` : ` ${eta}`;
                 }
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Aguardando as <strong>suas</strong> despesas serem enviadas automaticamente${formattedETA}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Aguardando as despesas de <strong>${actor}</strong> serem enviadas automaticamente${formattedETA}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Aguardando as despesas de um administrador serem enviadas automaticamente${formattedETA}.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Aguardando suas despesas serem enviadas automaticamente${formattedETA}.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Aguardando <strong>você</strong> corrigir os problemas.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Aguardando <strong>${actor}</strong> corrigir os problemas.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Aguardando um administrador corrigir os problemas.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Aguardando as despesas de <strong>${actor}</strong> serem enviadas automaticamente${formattedETA}.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-                isBill = false,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return isBill ? `Aguardando <strong>você</strong> aprovar a conta.` : `Aguardando <strong>você</strong> aprovar as despesas.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return isBill ? `Aguardando <strong>${actor}</strong> aprovar a conta.` : `Aguardando <strong>${actor}</strong> aprovar as despesas.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return isBill ? `Aguardando um administrador aprovar a conta.` : `Aguardando um administrador aprovar as despesas.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Aguardando as despesas de um administrador serem enviadas automaticamente${formattedETA}.`;
                 }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Aguardando <strong>você</strong> exportar este relatório.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Aguardando <strong>${actor}</strong> exportar este relatório.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Aguardando um administrador exportar este relatório.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Aguardando que <strong>você</strong> corrija os problemas.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-                isBill = false,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return isBill ? `Aguardando <strong>você</strong> pagar esta conta.` : `Aguardando <strong>você</strong> pagar as despesas.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return isBill ? `Aguardando <strong>${actor}</strong> pagar esta conta.` : `Aguardando <strong>${actor}</strong> pagar as despesas.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return isBill ? `Aguardando um administrador pagar esta conta.` : `Aguardando um administrador pagar as despesas.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Aguardando <strong>${actor}</strong> corrigir os problemas.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Aguardando um administrador corrigir os problemas.`;
+                }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType, isBill}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return isBill ? `Aguardando <strong>você</strong> aprovar a fatura.` : `Aguardando <strong>você</strong> aprovar as despesas.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return isBill ? `Aguardando <strong>${actor}</strong> aprovar a conta.` : `Aguardando <strong>${actor}</strong> aprovar as despesas.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return isBill ? `Aguardando um administrador aprovar a conta.` : `Aguardando um administrador aprovar as despesas.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Aguardando <strong>você</strong> exportar este relatório.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Aguardando <strong>${actor}</strong> exportar este relatório.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Aguardando um administrador exportar este relatório.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType, isBill}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return isBill ? `Esperando que <strong>você</strong> pague esta conta.` : `Aguardando <strong>você</strong> pagar as despesas.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return isBill ? `Aguardando <strong>${actor}</strong> pagar esta fatura.` : `Aguardando o pagamento das despesas por <strong>${actor}</strong>.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return isBill ? `Aguardando um administrador pagar esta conta.` : `Aguardando um administrador pagar as despesas.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `até ${eta}` : ` ${eta}`;
                 }
                 return `Aguardando o pagamento ser concluído${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` até ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `até ${eta}` : ` ${eta}`;
                 }
-                return `Aguardando a conclusão do processamento do pagamento cancelado${formattedETA}.`;
+                return `Aguardando o processamento do pagamento cancelado ser concluído${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) =>
-                `Opa! Parece que você está enviando para <strong>você mesmo</strong>. Aprovar seus próprios relatórios é <strong>proibido</strong> pelo seu espaço de trabalho. Envie este relatório para outra pessoa ou entre em contato com seu administrador para alterar a pessoa para quem você envia.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Este relatório foi recusado. Aguardando que <strong>você</strong> corrija os problemas e o envie novamente manualmente.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Este relatório foi rejeitado. Aguardando <strong>${actor}</strong> corrigir os problemas e reenviar manualmente.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Este relatório foi rejeitado. Aguardando um administrador corrigir os problemas e reenviar manualmente.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
+                `Ops! Parece que você está enviando para <strong>você mesmo</strong>. Aprovar os próprios relatórios é <strong>proibido</strong> pelo seu workspace. Envie este relatório para outra pessoa ou entre em contato com o seu administrador para alterar a pessoa para quem você envia.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Este relatório foi rejeitado. Aguardando que <strong>você</strong> corrija os problemas e o envie novamente manualmente.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Este relatório foi rejeitado. Aguardando <strong>${actor}</strong> corrigir os problemas e reenviar manualmente.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Este relatório foi recusado. Aguardando um administrador corrigir os problemas e reenviar manualmente.`;
+                }
+                return '';
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.STRICT_POLICY_RULE_VIOLATIONS]: (params: ReportNextStepMessageParams) =>
+                `Aguardando você corrigir os problemas. Seus administradores restringiram o envio de despesas com violações.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR]: (params: ReportNextStepMessageParams) =>
+                `<alert-text>Este relatório não pode ser enviado. Revise os comentários para resolver.</alert-text>`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR]: (params: ReportNextStepMessageParams) =>
+                `<alert-text>Este relatório não pode ser aprovado. Revise os comentários para resolver.</alert-text>`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE]: (params: ReportNextStepMessageParams) =>
+                `Aguardando você voltar a ficar online para determinar os próximos passos.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'em breve',
@@ -2309,6 +2322,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'no último sábado do mês',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'no último domingo do mês',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Este relatório será exportado após a aprovação final.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'As despesas reembolsáveis serão exportadas quando este relatório for pago.',
         },
     },
     profilePage: {
@@ -3129,7 +3146,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Concordo com os <a href="${CONST.WISE.TERMS_URL}">termos e condições</a> e a <a href="${CONST.WISE.PRIVACY_URL}">política de privacidade</a> da Wise.`,
                 wiseTermsAccessibilityLabel: 'Concordo com os termos e condições e a política de privacidade da Wise.',
                 error: 'Aceite todos os termos para continuar.',
-                alreadySubmitted: 'Esta empresa já foi enviada à Wise para análise.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Mais informações necessárias',
@@ -3154,6 +3170,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'As contas bancárias da empresa e do funcionário usam moedas diferentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Pague pessoas no mundo todo', subtitle: 'Ative reembolsos globais na sua conta em USD.'},
+        wiseMoreInfoNeeded: 'Mais informações necessárias para ativar reembolsos globais',
         globalReimbursementsEnabled: 'Reembolsos globais ativados',
     },
     addCardToDigitalWallet: {
@@ -3307,11 +3324,14 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
         makeOrTrackPaymentsTitle: 'Pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',
-        collectEmployeeBankDetails: 'Coletar dados bancários dos funcionários',
-        collectEmployeeBankDetailsDescription: 'Colete os dados bancários dos funcionários para poder reembolsá-los fora do Expensify.',
+        collectEmployeeBankDetails: 'Coletar dados bancários',
+        collectEmployeeBankDetailsDescription: 'Colete os dados bancários dos membros do workspace para que você possa reembolsá-los fora do Expensify.',
+        disablePaymentsTitle: 'Desativar pagamentos?',
+        disablePaymentsPrompt: 'Isso vai remover todas as suas configurações de pagamento.',
         businessBankAccountCountries: 'Países de contas bancárias empresariais',
         businessBankAccountCountriesDescription:
             'Funcionários nesses países fornecem dados para transferência local. Todos os demais fornecem dados para transferência internacional via wire.',
+        businessBankAccountCountriesError: 'Não foi possível atualizar seus países de reembolso. Tente novamente.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Um fluxo de aprovação personalizado está ativado neste workspace. Para revisar ou alterar esse fluxo de trabalho, entre em contato com o(a) seu(sua) <account-manager-link>Gerente de Conta</account-manager-link> ou com o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -3353,8 +3373,8 @@ ${amount} para ${merchant} - ${date}`,
         approverInMultipleWorkflows: 'Este membro já pertence a outro fluxo de aprovação. Qualquer atualização aqui será refletida lá também.',
         approverNotWorkspaceMember: 'Esse aprovador não é mais membro do workspace. Escolha um novo aprovador ou exclua este fluxo de trabalho.',
         defaultWorkflowApproverNotWorkspaceMember: 'Esse aprovador não é mais membro do workspace. Escolha um novo aprovador.',
-        overLimitApproverNotWorkspaceMember: 'O aprovador adicional para relatórios acima do limite não é mais membro do workspace. Escolha um novo aprovador adicional.',
-        overLimitApproverInWorkflow: 'O aprovador adicional para relatórios acima do limite já é um aprovador neste fluxo de trabalho. Escolha um aprovador adicional diferente.',
+        overLimitAmountBelowPreviousApprover: 'Insira um total do relatório pelo menos igual ao do aprovador anterior.',
+        overLimitAmountAboveNextApprover: 'Insira um total do relatório que não ultrapasse o do próximo aprovador.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> já aprova relatórios para <strong>${name2}</strong>. Escolha um aprovador diferente para evitar um fluxo de aprovação circular.`,
         emptyContent: {
@@ -3368,6 +3388,7 @@ ${amount} para ${merchant} - ${date}`,
             `As aprovações são gerenciadas pela sua integração com o ${provider}. Para atualizar seu fluxo de aprovação, vá até as configurações de conexão do ${provider}.`,
         goToProviderSettings: ({provider}: {provider: string}) => `Ir para as configurações do ${provider}`,
         approverFromProvider: ({provider}: {provider: string}) => `de ${provider}`,
+        ifReportIsOver: ({amount}: {amount: string}) => `Se o relatório ultrapassar ${amount}`,
         finalApprover: 'Aprovador final',
         manager: 'Gerente',
         submitFrequency: 'Frequência de envio',
@@ -3434,7 +3455,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     workflowsCreateApprovalsPage: {
         title: 'Confirmar',
-        header: 'Adicione mais aprovadores e confirme.',
+        header: 'Adicione mais aprovadores ou confirme',
         additionalApprover: 'Aprovador adicional',
         submitButton: 'Adicionar fluxo de trabalho',
     },
@@ -3442,6 +3463,9 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Editar fluxo de aprovação',
         deleteTitle: 'Excluir fluxo de aprovação',
         deletePrompt: 'Tem certeza de que deseja excluir este fluxo de aprovação? Todos os membros passarão a seguir o fluxo padrão.',
+        hiddenRoutesTitle: 'Alguns relatórios serão encaminhados de outra forma',
+        hiddenRoutesPrompt:
+            'Este fluxo de trabalho foi configurado com aprovadores que enviam alguns relatórios para outros aprovadores, dependendo do total do relatório. Ao salvar, só ficam os aprovadores mostrados aqui, então todos os relatórios passarão por eles.',
     },
     workflowsExpensesFromPage: {
         title: 'Despesas de',
@@ -3456,25 +3480,19 @@ ${amount} para ${merchant} - ${date}`,
     workflowsApproverPage: {
         genericErrorMessage: 'O aprovador não pôde ser alterado. Tente novamente ou entre em contato com o suporte.',
         title: 'Definir aprovador',
+        setFirstApprover: 'Definir primeiro aprovador',
+        addApprover: 'Adicionar aprovador',
         description: 'Essa pessoa vai aprovar as despesas.',
     },
     workflowsApprovalLimitPage: {
-        title: 'Aprovador',
-        header: '(Opcional) Deseja adicionar um limite de aprovação?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Adicionar outro aprovador quando <strong>${approverName}</strong> for aprovador e o relatório exceder o valor abaixo:`
-                : 'Adicionar outro aprovador quando um relatório exceder o valor abaixo:',
-        reportAmountLabel: 'Valor do relatório',
-        additionalApproverLabel: 'Aprovador adicional',
-        skip: 'Pular',
+        whenShouldApprove: ({approverName}: {approverName: string}) => `Quando ${approverName} deve aprovar?`,
+        always: 'Sempre',
+        overSetAmount: 'Somente para relatórios acima de um valor definido',
+        reportTotal: 'Total do relatório',
+        approvesOverAmount: ({approverName, amount}: {approverName: string; amount: string}) => `${approverName} só aprova relatórios acima de ${amount}.`,
+        removeApprover: 'Remover aprovador',
         next: 'Próximo',
-        removeLimit: 'Remover limite',
         enterAmountError: 'Insira um valor válido',
-        enterApproverError: 'É obrigatório definir um aprovador ao configurar um limite de relatório',
-        enterBothError: 'Insira um valor de relatório e um aprovador adicional',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
-            `Relatórios acima de ${approvalLimit} são encaminhados para ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
@@ -4373,7 +4391,7 @@ ${amount} para ${merchant} - ${date}`,
         bankAccountPurposeTitle: 'O que você quer fazer com sua conta bancária?',
         getReimbursed: 'Ser reembolsado',
         getReimbursedDescription: 'Pelo empregador ou outros',
-        makePayments: 'Fazer pagamentos',
+        makePayments: 'Faça pagamentos empresariais',
         makePaymentsDescription: 'Pague despesas ou emita Cartões Expensify',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Para conectar uma conta bancária, <a href="${contactMethodRoute}">adicione um e-mail como seu login principal</a> e tente novamente. Você pode adicionar seu número de telefone como login secundário.`,
@@ -4473,6 +4491,8 @@ ${amount} para ${merchant} - ${date}`,
         updateSuccessTitle: 'Conta bancária atualizada!',
         updateSuccessHeader: 'Conta bancária atualizada',
         updateSuccessMessage: 'Parabéns, sua conta bancária está configurada e pronta para receber reembolsos.',
+        bankDetails: 'Dados bancários',
+        accountHolderDetails: 'Dados do titular da conta',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Insira a senha do Expensify',
@@ -4480,6 +4500,8 @@ ${amount} para ${merchant} - ${date}`,
         chooseAccountLabel: 'Conta',
         successTitle: 'Conta bancária pessoal adicionada!',
         successMessage: 'Parabéns, sua conta bancária está configurada e pronta para receber reembolsos.',
+        bankAccountAddedTitle: 'Conta bancária adicionada!',
+        bankAccountAddedMessage: 'Parabéns, sua conta bancária pessoal está configurada e pronta para receber reembolsos.',
     },
     attachmentView: {
         unknownFilename: 'Nome de arquivo desconhecido',
@@ -5209,6 +5231,17 @@ ${amount} para ${merchant} - ${date}`,
             message:
                 'Você é membro de um workspace com viagens ativadas, mas ele não é o seu workspace padrão. Para fazer reservas, ative viagens no seu workspace padrão ou altere o seu workspace padrão para um que tenha viagens ativadas.',
         },
+        approval: {
+            status: {outstanding: 'Pendente', approved: 'Aprovado', rejected: 'Rejeitado', canceled: 'Cancelado'},
+            deadline: {
+                softApproval: (time: string) => `Será aprovado automaticamente em ${time}. Cancelamento gratuito até lá.`,
+                hardApproval: (time: string) => `Cancela automaticamente em ${time} se não for aprovado.`,
+            },
+        },
+        bookingCount: ({count}: {count: number}) => ({
+            one: `${count} reserva`,
+            other: `${count} reservas`,
+        }),
     },
     workspace: {
         common: {
@@ -5400,6 +5433,12 @@ ${amount} para ${merchant} - ${date}`,
             readOnlyActionPrompt: 'Sua função no workspace pode ver essas configurações, mas não pode editá-las.',
             noAccessActionPrompt: 'Sua função no espaço de trabalho não tem acesso a essas configurações. Peça a um administrador se você precisar disso.',
             connections: 'Conexões',
+            newRoles: 'Novos cargos',
+            adminRoles: 'Funções de administrador',
+            otherRoles: 'Outros cargos',
+            roleSelectorDescription: `Atribua uma função para gerenciar as permissões de área de trabalho de um membro. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Compare funções de área de trabalho</a>.`,
+            roleSelectorFeedback: 'Não está vendo a função que você precisa?',
+            roleSelectorFeedbackLink: 'Conte para a gente',
         },
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
@@ -6205,7 +6244,11 @@ ${amount} para ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Adicione uma subsidiária no NetSuite e sincronize a conexão novamente',
             tokenInput: {
                 title: 'Configuração do NetSuite',
-                connectWithTokenAuthentication: 'Conectar com autenticação baseada em token (SOAP) em vez disso',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Ou conecte-se com',
+                    link: 'autenticação baseada em token',
+                    afterLink: '(SOAP) em vez disso.',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Instale o pacote do Expensify',
@@ -6753,7 +6796,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     mastercard: 'Temos integrações globais com a Mastercard, embora a elegibilidade varie de acordo com o banco e o programa do cartão.\n\nPara começar, simplesmente:',
                     vcf: `1. Acesse [este artigo de ajuda](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) para obter instruções detalhadas sobre como configurar seus Visa Commercial Cards.
 
-2. [Entre em contato com o seu banco](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
+2. Entre em contato com o seu banco para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
 
 3. *Assim que o feed estiver habilitado e você tiver os detalhes, continue para a próxima tela.*`,
                     gl1025: `1. Acesse [este artigo de ajuda](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) para descobrir se a American Express pode ativar um feed comercial para o seu programa.
@@ -6763,7 +6806,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
 3. *Quando tiver as informações do feed, continue para a próxima tela.*`,
                     cdf: `1. Acesse [este artigo de ajuda](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) para obter instruções detalhadas sobre como configurar seus cartões Mastercard Commercial.
 
-2. [Entre em contato com o seu banco](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
+2. Entre em contato com o seu banco para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
 
 3. *Assim que o feed estiver habilitado e você tiver os detalhes, continue para a próxima tela.*`,
                     stripe: `1. Acesse o painel do Stripe e vá para [Configurações](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -7042,6 +7085,15 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Não é possível excluir ou desativar todas as categorias',
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
+                bulkTitle: 'Não é possível desativar estas categorias',
+                description: ({count}: {count: number}) => ({
+                    one: '1 membro ficaria sem categorias para escolher. Atualize a visibilidade das categorias dele e tente novamente:',
+                    other: `${count} membros ficariam sem categorias para escolher. Atualize a visibilidade das categorias para eles e tente novamente:`,
+                }),
+                andMore: ({count}: {count: number}) => `e mais ${count}`,
+            },
         },
         moreFeatures: {
             subtitle: 'Use as chaves abaixo para ativar mais recursos conforme você cresce. Cada recurso aparecerá no menu de navegação para personalização adicional.',
@@ -7220,11 +7272,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 unassignCard: 'Remover cartão',
                 unassignCards: 'Remover cartões',
                 unassign: 'Desatribuir',
-                unassignCardDescription: 'Desvincular este cartão excluirá todas as transações não enviadas.',
-                unassignCardsDescription: 'Remover a atribuição excluirá todas as transações não enviadas dos cartões selecionados.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Desvincular este cartão excluirá permanentemente todas as suas <a href="${transactionsUrl}">transações não enviadas</a>, incluindo transações não informadas e as que estão em relatórios em rascunho. Essa ação não pode ser desfeita.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Remover a atribuição excluirá permanentemente todas as <a href="${transactionsUrl}">transações não enviadas</a> dos cartões selecionados, incluindo transações não informadas e as que estão em relatórios em rascunho. Essa ação não pode ser desfeita.`,
                 removeCard: 'Remover cartão',
                 remove: 'Remover',
-                removeCardDescription: 'Remover este cartão excluirá todas as transações não enviadas.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Remover este cartão excluirá permanentemente todas as suas <a href="${transactionsUrl}">transações não enviadas</a>, incluindo transações não informadas e as que estão em relatórios em rascunho. Essa ação não pode ser desfeita.`,
                 assignCard: 'Atribuir cartão',
                 cardFeedName: 'Nome do feed do cartão',
                 cardFeedNameDescription: 'Dê um nome exclusivo ao feed do cartão para diferenciá-lo dos outros.',
@@ -7569,10 +7624,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             reimbursementAccount: 'conta de reembolso',
             welcomeNote: 'Comece a usar meu novo espaço de trabalho',
             delayedSubmission: 'envio atrasado',
-            merchantRules: 'Regras do comerciante',
+            merchantRules: 'Padrões de despesa',
             merchantRulesCount: () => ({
-                one: '1 regra do comerciante',
-                other: (count: number) => `${count} regras do comerciante`,
+                one: '1 despesa padrão',
+                other: (count: number) => `${count} configurações padrão de despesa`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Você está prestes to criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do workspace original.`,
@@ -7757,9 +7812,20 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             },
             officeLocation: 'Local do escritório',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Visibilidade da categoria',
+            allCategories: 'Todas as categorias',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 categoria',
+                other: `${count} categorias`,
+            }),
+            categoryVisibilityRequiredModal: {title: 'Membros devem ter pelo menos uma categoria', description: 'Selecione pelo menos uma categoria que este membro possa usar.'},
             changeOfficeLocation: 'Alterar local do escritório',
             changeWorkArrangement: 'Alterar regime de trabalho',
             changeRole: 'Alterar função',
+            newRolesBanner: {
+                title: 'Novos cargos disponíveis',
+                subtitle: '<label-text>Dê aos membros apenas o acesso de que precisam com os novos papéis <strong>Apenas aprovar</strong> e <strong>Convidado</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -7873,6 +7939,13 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 comingSoon: 'Em breve',
                 joinWaitlist: 'Entrar na lista de espera',
                 onWaitlist: 'Você está na lista de espera',
+                waitlistDescription: 'O Concierge vai enviar uma mensagem para avisar quando essa integração estiver pronta e como conectá-la.',
+            },
+            integrationWaitlist: {
+                comingSoon: 'Em breve',
+                joinWaitlist: 'Entrar na lista de espera',
+                onWaitlist: 'Você está na lista de espera',
+                onTheList: 'Você está na lista!',
                 waitlistDescription: 'O Concierge vai enviar uma mensagem para avisar quando essa integração estiver pronta e como conectá-la.',
             },
             setup: 'Conectar',
@@ -8286,6 +8359,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             statusExpired: 'Expirado',
             statusInactive: 'Inativo',
             unit: 'Unidade',
+            ukFuelRateTaxError: 'Adicione uma alíquota de 20% para acompanhar os impostos sobre as tarifas de combustível recomendadas do Reino Unido.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Adicione uma alíquota de 20% no ${integrationName} para acompanhar os impostos sobre as tarifas de combustível recomendadas do Reino Unido.`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>Os impostos precisam estar ativados no workspace para usar este recurso. Vá até <a href="#">Mais recursos</a> para fazer essa alteração.</muted-text>',
             deleteDistanceRate: 'Excluir taxa de distância',
@@ -8538,6 +8614,12 @@ ${reportName}`,
                 description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Campfire. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração Campfire para maior visibilidade financeira.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nossa integração com a Campfire está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Digits. Alinhe dimensões de categorização de despesas à sua configuração Digits para maior visibilidade financeira.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Nossa integração com a Digits está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
@@ -8895,6 +8977,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     `O pagamento automático está disponível apenas no plano Control. [Faça upgrade](${upgradeLink}) para desbloquear este recurso.`,
                 autoPayReportsUnderTitle: 'Relatórios com pagamento automático em',
                 autoPayReportsUnderDescription: 'Relatórios de despesas totalmente compatíveis abaixo deste valor serão pagos automaticamente.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Pagamentos internacionais usam a taxa de câmbio média de mercado no momento do pagamento. Uma tarifa variável de 1% se aplica a todos os pagamentos internacionais, exceto para as seguintes moedas: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nTaxas de câmbio e tarifas exatas não podem ser visualizadas antes do pagamento quando um relatório é pago automaticamente. Um detalhamento completo (incluindo a taxa de câmbio exata, as tarifas e o valor final) fica disponível no relatório imediatamente após o pagamento.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Adicione ${featureName} para desbloquear este recurso.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,
@@ -8943,8 +9027,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 matchType: 'Tipo de correspondência',
                 matchTypeContains: 'Contém',
                 matchTypeExact: 'Corresponde exatamente',
-                duplicateRuleTitle: 'Já existe uma regra semelhante para este comerciante',
-                duplicateRulePrompt: (merchantName: string) => `Sua regra existente para "${merchantName}" terá prioridade sobre esta. Salvar mesmo assim?`,
+                duplicateRuleTitle: 'Já existe uma regra semelhante',
+                duplicateRulePrompt: (conditionName: string) => `Sua regra existente para "${conditionName}" terá prioridade sobre esta. Deseja salvar mesmo assim?`,
                 saveAnyway: 'Salvar mesmo assim',
                 applyToExistingUnsubmittedExpenses: 'Aplicar às despesas existentes não enviadas',
                 findRule: 'Encontrar regra de comerciante',
@@ -8954,17 +9038,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 thenApplyFollowingDefaults: 'Em seguida, aplica os seguintes padrões:',
                 vendorUnavailable: 'Fornecedor indisponível',
                 confirmErrorCategory: 'Selecione uma categoria',
-                confirmErrorCategoryTax: 'Selecione uma alíquota de imposto',
-                confirmErrorCondition: 'Insira um estabelecimento',
-                confirmErrorConditionAndDefault: 'Insira um comerciante e aplique pelo menos um padrão',
-                turnOnTaxesFirstTitle: 'Ative os impostos primeiro',
-                turnOnTaxesFirstPrompt: 'As regras de categoria definem uma alíquota de imposto padrão. Ative os impostos nas configurações do seu workspace para usá-los.',
-                categoryRulesApplyGoingForwardTitle: 'As regras de categoria se aplicam daqui em diante',
-                categoryRulesApplyGoingForwardPrompt: 'Uma taxa de imposto padrão se aplica às novas despesas desta categoria. As despesas que já existem não serão alteradas.',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
-                    'A alíquota de imposto selecionada agora é o padrão do seu workspace, então esta regra não é mais válida. Escolha uma alíquota de imposto diferente.',
-                addTaxRateFirstTitle: 'Adicione uma alíquota de imposto primeiro',
-                addTaxRateFirstPrompt: 'As regras de categoria definem uma taxa de imposto padrão. Adicione uma taxa diferente da padrão do seu espaço de trabalho para usá-las.',
+                confirmErrorCondition: 'Adicione pelo menos uma condição',
+                confirmErrorConditionAndDefault: 'Adicione pelo menos uma condição e aplique pelo menos um padrão',
                 createRuleFromExpenseAction: 'Criar regra',
                 createRuleFromExpensePrompt: 'para aplicar suas alterações a todas as despesas que correspondem aos seus critérios.',
             },
@@ -9150,6 +9225,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Permitido ${shownCount > 1 ? 'moedas' : 'moeda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
                 defaultRulesCannotBeDeleted: 'Regras padrão não podem ser excluídas',
+                tags: 'Tags',
+                multipleConditions: 'Múltiplas condições',
             },
             agentRules: {
                 title: 'Regras do agente',
@@ -9190,6 +9267,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 describeRuleForConcierge: 'Descreva sua regra e o Concierge vai criá-la',
                 gotIt: 'Entendi',
                 createRule: 'Criar regra',
+                saveAnyway: 'Salvar mesmo assim',
+                checkingRule: 'Verificando sua regra...',
                 fallbackBanner:
                     'Esta não é uma regra padrão, então criamos uma regra de agente. As regras de agente são executadas quando uma despesa ou um relatório é criado ou atualizado.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9296,9 +9375,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 findRule: 'Encontrar regra',
                 rename: 'Renomear',
                 update: 'Atualizar',
-                merchantIs: (merchant: string) => `O comerciante é "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `O tipo de estabelecimento é "${merchantType}"`,
                 categoryIs: (category: string) => `A categoria é "${category}"`,
+                tagIs: (tag: string) => `A tag é "${tag}"`,
+                merchantContains: (merchant: string) => `Comerciante contém "${merchant}"`,
+                merchantExactlyMatches: (merchant: string) => `O estabelecimento corresponde exatamente a "${merchant}"`,
             },
             merchantTypeRule: {merchantType: 'Tipo de comerciante', saveRule: 'Salvar regra', confirmErrorCategory: 'Selecione uma categoria.'},
             requireFieldsTable: {
@@ -9364,14 +9445,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             },
             agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
             categoriesDisabledEmptyState: {title: 'Categorias não estão ativadas', subtitle: 'Ative categorias para ter mais controle sobre seus gastos.'},
-            expenseDefaultType: {
-                title: 'Aplicar padrões de despesa',
-                subtitle: 'Com o que esta regra deve corresponder?',
-                merchant: 'Comerciante',
-                merchantDescription: 'Atualizar campos em despesas de um comerciante específico',
-                category: 'Categoria',
-                categoryDescription: 'Definir uma taxa de imposto padrão para uma categoria específica',
-            },
             taxesDisabledEmptyState: {title: 'Impostos não estão ativados', subtitle: 'Ative impostos para documentar e recuperar impostos elegíveis.', cta: 'Ativar impostos'},
         },
         planTypePage: {
@@ -9647,6 +9720,17 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 },
             },
         },
+        digits: {
+            entity: 'Entidade',
+            updateCurrencyTitle: 'Atualizar a moeda do espaço de trabalho?',
+            updateCurrencyPrompt: 'No momento, o Digits só está disponível para empresas sediadas nos EUA que operam em USD.',
+            importDescription: 'Escolha quais configurações do Digits importar.',
+            accountTypesDescription: 'Suas contas do Digits serão importadas como categorias.',
+            enableNewAccountsTitle: 'Ativar contas recém-importadas',
+            enableNewAccountsDescription: 'Novas contas Digits ficarão disponíveis como categorias.',
+            dimensionsImport: 'Todas as dimensões Digits são importadas como tags.',
+            departments: 'Departamentos',
+        },
         zohoBooks: {
             organization: 'Organização Zoho Books',
             organizationSelectDescription: 'Escolha a organização no Zoho Books da qual você deseja importar dados.',
@@ -9675,10 +9759,66 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 description: 'Escolha um fornecedor padrão do Zoho Books para despesas que não sejam correspondidas automaticamente.',
             },
             companyCardAccount: {label: 'Conta de cartão corporativo', description: 'Escolha para onde exportar as transações do cartão corporativo.'},
+            exportToMultipleAccounts: 'Configurar exportação para várias contas',
+            cardProgramAccount: {
+                label: 'Conta do programa de cartão',
+                description: 'Substituir a conta do workspace para estes programas de cartão.',
+                descriptionLevel2: 'Substituir a conta do workspace para este programa de cartão.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todos os programas usam a conta padrão';
+                    }
+                    return {
+                        one: `${count} programa com conta personalizada`,
+                        other: `${count} programas com contas personalizadas`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Conta por cartão',
+                description: 'Substitua a conta do programa para cartões individuais.',
+                descriptionLevel2: 'Substituir a conta do programa para estes cartões.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todos os cartões usam contas do programa';
+                    }
+                    return {
+                        one: `${count} cartão com conta personalizada`,
+                        other: `${count} cartões com contas personalizadas`,
+                    };
+                },
+            },
             noVendorsFound: 'Nenhum fornecedor encontrado',
             noVendorsFoundDescription: 'Adicione fornecedores no Zoho Books e sincronize a conexão novamente',
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Adicione contas no Zoho Books e sincronize a conexão novamente',
+            autoSyncDescription: 'Sincronize Zoho Books e Expensify automaticamente, todos os dias. Relatórios são sincronizados em tempo real.',
+            accountingMethods: {
+                label: 'Método de exportação',
+                description: 'Escolha quando exportar as despesas.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Regime de competência',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas reembolsáveis serão exportadas quando forem aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas reembolsáveis serão exportadas quando forem pagas',
+                },
+            },
+            syncReimbursedReports: 'Sincronizar relatórios reembolsados',
+            syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento de conta será gerado nesta conta.',
+            billPaymentAccount: {
+                label: 'Conta para pagamento de contas',
+                description: 'Escolha a conta de compensação que o Zoho Books credita quando o Expensify marca uma conta como paga.',
+            },
+            syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
+            settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e vamos criar o pagamento no Zoho Books.'},
+            syncTravelBillingSettlements: 'Sincronizar liquidações de faturamento consolidado de viagens',
+            travelBillingSettlementAccount: {
+                label: 'Conta de liquidação de cobrança de viagens consolidada',
+                description: 'Escolha sua conta de liquidação e vamos criar o pagamento no Zoho Books.',
+            },
+            travelBillingPayableAccount: {label: 'Conta a pagar de faturamento consolidado de viagens'},
         },
         businessCentral: {
             businessCentralSetup: 'Configuração do Dynamics 365 Business Central',
@@ -9831,7 +9971,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         scheduleACall: 'Agendar ligação',
         questionMarkButtonTooltip: 'Obtenha ajuda da nossa equipe',
         exploreHelpDocs: 'Explorar artigos de ajuda',
-        registerForWebinar: 'Registrar-se no webinar',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Ajuda na configuração',
     },
     emojiPicker: {
@@ -9965,6 +10105,25 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `alterou a categoria "${categoryName}" Itens detalhados de recibos para ${newValue} (antes ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `renomeou a categoria "${oldName}" para "${newName}"`,
+        setCategoryVisibility: (members: string, categories: string) => `configurou ${members} para ver apenas ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `alterou ${members} para verem apenas ${categories}`,
+        clearedCategoryVisibility: (members: string) => `alterou ${members} para ver todas as categorias`,
+        quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
+        oneCategory: (categoryName: string) => `a categoria ${categoryName}`,
+        someCategories: (categoryList: string) => `as categorias ${categoryList}`,
+        everyone: 'todos',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 categoria',
+            other: `${count} categorias`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 membro',
+            other: `${count} membros`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Categorias: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Membros: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', já que a única categoria deles foi excluída. Atualize a visibilidade da categoria deles, se necessário.',
+        categoryVisibilityReasonDisabled: ', já que a única categoria deles foi desativada. Atualize a visibilidade da categoria, se necessário.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `removeu a dica de descrição "${oldValue}" da categoria "${categoryName}"`;
@@ -10688,6 +10847,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         columns: 'Colunas',
         editColumns: 'Editar colunas',
         resetColumns: 'Redefinir colunas',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Opções da coluna ${columnName}`,
+            sortAscending: 'Classificar em ordem crescente',
+            sortDescending: 'Classificar em ordem decrescente',
+            hideColumn: 'Ocultar coluna',
+            resetColumnSizes: 'Redefinir largura das colunas',
+        },
         groupColumns: 'Agrupar colunas',
         expenseColumns: 'Colunas de despesas',
         saveView: 'Salvar visualização',
@@ -10770,7 +10936,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             completed: 'Concluído',
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Menor ou igual a ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maior que ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Maior ou igual a ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Entre ${greaterThan} e ${lessThan}`;
@@ -10826,6 +10994,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Ano',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprovador',
+                [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violação',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pago por',
+                [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Estágio do fluxo de trabalho',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10860,6 +11031,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         display: {
             label: 'Exibir',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Exibir (${count})` : 'Exibir'),
             sortBy: 'Ordenar por',
             sortOrder: 'Ordem de classificação',
             groupBy: 'Agrupar por',
@@ -10927,6 +11099,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Anos',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprovadores',
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violações',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pagadores',
+            [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Etapas do fluxo de trabalho',
+        },
+        workflowStages: {
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Criado → Enviado',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Enviado → Aprovado',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Aprovado → Pago',
         },
         moneyRequestReport: {emptyStateTitle: 'Ainda não há despesas', accessPlaceHolder: 'Abrir para ver detalhes'},
         errors: {
@@ -10940,11 +11120,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 upcoming: 'Próxima',
                 done: 'Concluída',
                 canceled: 'Cancelada',
+                outstanding: 'Pendente',
+                rejected: 'Rejeitado',
             },
         },
         tabs: {
             expenseReports: 'Relatórios de despesas',
             reports: 'Relatórios',
+            myReports: 'Meus relatórios',
             expenses: 'Despesas',
             submit: 'Rascunhos',
             approve: 'Precisa de aprovação',
@@ -11526,6 +11709,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         autoReportedRejectedExpense: 'Esta despesa foi rejeitada.',
         billableExpense: 'Faturável não é mais válido',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Recibo obrigatório${formattedLimit ? `acima de ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Categoria não permitida',
         categoryOutOfPolicy: 'Categoria não é mais válida',
         conversionSurcharge: (surcharge: number) => `Aplicado sobretaxa de conversão de ${surcharge}%`,
         customUnitOutOfPolicy: 'Tarifa inválida para este espaço de trabalho',
@@ -11710,6 +11894,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             autoReportedRejectedExpense: 'Despesa rejeitada',
             billableExpense: 'Faturável não é mais válido',
             cashExpenseWithNoReceipt: 'Recibo obrigatório',
+            categoryNotAllowed: 'Categoria não permitida',
             categoryOutOfPolicy: 'Categoria não é mais válida',
             companyCardRequired: 'Cartão corporativo obrigatório',
             conversionSurcharge: 'Taxa de conversão aplicada',
@@ -12686,6 +12871,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         deletingTitle: 'Excluindo relatórios...',
         deletingExpensesTitle: 'Excluindo despesas...',
         runningBody: 'Espere alguns minutos ou deixe o Concierge avisar você quando terminar.',
+        changingWorkspaceTitle: 'Movendo relatórios...',
         sendFromConcierge: 'Me avise quando terminar',
         conciergeTitle: 'Pode apostar!',
         conciergeBody: 'O Concierge vai te enviar uma mensagem quando terminar.',
@@ -12721,6 +12907,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Despesas excluídas em ${doneCount} de ${count} relatório`,
             other: `Despesas excluídas em ${doneCount} de ${count} relatórios`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Espaço de trabalho alterado em ${doneCount} de ${count} relatório`,
+            other: `Espaço de trabalho alterado em ${doneCount} de ${count} relatórios`,
         }),
         noReportsTitle: 'Nenhum relatório correspondente',
         noReportsBody: 'Nenhum dos relatórios que você selecionou precisava dessa ação.',
@@ -12758,6 +12948,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: 'As despesas de 1 relatório não puderam ser excluídas.',
             other: `As despesas de ${count} relatórios não puderam ser excluídas.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 relatório não pôde ser movido.',
+            other: `${count} relatórios não puderam ser movidos.`,
         }),
     },
     earlyRenewal: {
@@ -12810,6 +13004,8 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             other: (count: number) => `${count}d atrás`,
         }),
         offlineMessage: 'Você está offline. O histórico de relatórios pode estar desatualizado.',
+        toMarkAsDone: 'marcar como concluída',
+        receivedPayment: 'pagamento recebido',
     },
 };
 export default translations;

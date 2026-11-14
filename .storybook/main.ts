@@ -15,6 +15,8 @@ const main: StorybookConfig = {
         ${process.env.ENV === 'staging' ? '<meta name="robots" content="noindex">' : ''}
     `,
     framework: {
+        // Lets knip see that @storybook/react is used: storybook-react-rsbuild is pinned to it. Remove together with the pin.
+        /** @type {import('@storybook/react')} */
         name: 'storybook-react-rsbuild',
         options: {},
     },

@@ -59,19 +59,44 @@ describe('useUpdateTransactionCategory', () => {
         await waitForBatchedUpdates();
     });
 
-    it('writes a split being edited to its own draft', () => {
-        // Given a split expense being edited, whose source of truth is the split draft
+    it('seeds the split draft from the saved transaction when the split draft does not exist yet', () => {
+        // Given a split expense being edited that has no split draft yet, so the saved transaction is the base
         const {result} = renderUpdater({isEditing: true, isEditingSplit: true});
 
         // When a category is picked
         result.current.updateCategory(CATEGORY);
 
-        // Then only the split draft is written, and the caller is told this is not a money request draft write
+        // Then the split draft is seeded from the transaction, and the caller is told this is not a money request draft write
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
-        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, undefined, {category: CATEGORY}, expect.any(Function), expect.any(Function), policy);
+        // The rules collection goes along, since a split draft has to resolve the category's tax rate itself
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(
+            TRANSACTION_ID,
+            transaction,
+            {category: CATEGORY},
+            expect.any(Function),
+            expect.any(Function),
+            policy,
+            undefined,
+            undefined,
+            {},
+        );
         expect(updateMoneyRequestCategory).not.toHaveBeenCalled();
         expect(setMoneyRequestCategory).not.toHaveBeenCalled();
         expect(result.current.isDraftUpdate).toBe(false);
+    });
+
+    it('uses an existing split draft as the base when there is one', async () => {
+        // Given a split expense being edited that already has a split draft
+        const splitDraft = createMock<OnyxTypes.Transaction>({transactionID: TRANSACTION_ID, category: 'Existing'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${TRANSACTION_ID}`, splitDraft);
+        await waitForBatchedUpdates();
+        const {result} = renderUpdater({isEditing: true, isEditingSplit: true});
+
+        // When a category is picked
+        result.current.updateCategory(CATEGORY);
+
+        // Then the existing split draft is the base, so its other fields are preserved
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, splitDraft, {category: CATEGORY}, expect.any(Function), expect.any(Function), policy, undefined, undefined, {});
     });
 
     it('writes a saved expense through the money request update', () => {
@@ -124,7 +149,7 @@ describe('useUpdateTransactionCategory', () => {
         // Then it lands on the money request draft, and says so: the category step reads this to decide whether
         // it may carry forward into confirmation.
         expect(setMoneyRequestCategory).toHaveBeenCalledTimes(1);
-        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, CATEGORY, policy, expect.any(Function));
+        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, CATEGORY, policy);
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
         expect(updateMoneyRequestCategory).not.toHaveBeenCalled();
         expect(result.current.isDraftUpdate).toBe(true);
@@ -165,6 +190,6 @@ describe('useUpdateTransactionCategory', () => {
         result.current.updateCategory('');
 
         // Then the empty value is written through rather than dropped
-        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, '', policy, expect.any(Function));
+        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, '', policy);
     });
 });

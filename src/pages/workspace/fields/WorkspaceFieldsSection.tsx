@@ -27,14 +27,17 @@ import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/u
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearReportFieldErrors, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 import type {Policy, PolicyConnectionName} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -79,6 +82,9 @@ type WorkspaceFieldsSectionProps = {
     policyFeature: PolicyFeature;
     syncErrorConnectionNames?: readonly PolicyConnectionName[];
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
+    switchSentryLabel: SentryLabel;
+    rowSentryLabel: SentryLabel;
+    addFieldSentryLabel: SentryLabel;
 };
 
 function keyExtractor(item: FieldListItem) {
@@ -107,6 +113,9 @@ function WorkspaceFieldsSection({
     policyFeature,
     syncErrorConnectionNames,
     titleAccessibilityRole,
+    switchSentryLabel,
+    rowSentryLabel,
+    addFieldSentryLabel,
 }: WorkspaceFieldsSectionProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -114,6 +123,7 @@ function WorkspaceFieldsSection({
     const {cardPadding, cardPaddingHorizontal, cardEdgeToEdge} = useLayoutSpacing();
     const {showConfirmModal} = useConfirmModal();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((connectionName) => connectionName === connectionSyncProgress?.connectionName);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, syncErrorConnectionNames);
@@ -167,16 +177,22 @@ function WorkspaceFieldsSection({
             errorRowTextStyles={styles.mv2}
             onClose={() => clearReportFieldErrors(policy, item.fieldID)}
         >
-            <MenuItem
+            <MenuItem.Root
+                sentryLabel={rowSentryLabel}
                 style={cardPaddingHorizontal}
-                onPress={() => navigateToFieldSettings(item)}
-                description={item.text}
-                disabled={item.isDisabled}
-                shouldShowRightIcon={!item.isDisabled && !item.isFailedAdd && canWrite}
-                interactive={!item.isDisabled && !item.isFailedAdd && canWrite}
-                rightLabel={item.rightLabel}
-                descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
-            />
+                onPress={!item.isDisabled && !item.isFailedAdd && canWrite ? callIfAuthenticated(() => navigateToFieldSettings(item), session) : undefined}
+                isDisabled={item.isDisabled}
+            >
+                <MenuItem.Row>
+                    <MenuItem.Content>
+                        <MenuItem.Title>{item.text}</MenuItem.Title>
+                    </MenuItem.Content>
+                    <MenuItem.Trailing>
+                        <MenuItem.RightLabel>{item.rightLabel}</MenuItem.RightLabel>
+                        {!item.isDisabled && !item.isFailedAdd && canWrite && <MenuItem.Chevron />}
+                    </MenuItem.Trailing>
+                </MenuItem.Row>
+            </MenuItem.Root>
         </OfflineWithFeedback>
     );
 
@@ -223,6 +239,7 @@ function WorkspaceFieldsSection({
                 pendingAction={pendingAction}
                 title={translate(titleKey)}
                 switchAccessibilityLabel={switchAccessibilityLabel}
+                switchSentryLabel={switchSentryLabel}
                 subtitle={headerText}
                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                 titleAccessibilityRole={titleAccessibilityRole}
@@ -270,6 +287,7 @@ function WorkspaceFieldsSection({
                             </View>
                             {canWrite && (
                                 <MenuItemSectionRoot
+                                    sentryLabel={addFieldSentryLabel}
                                     onPress={() => {
                                         setInitialCreateReportFieldsForm();
                                         Navigation.navigate(createRoute);

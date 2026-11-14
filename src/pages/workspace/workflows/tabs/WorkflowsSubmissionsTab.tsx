@@ -15,7 +15,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSubmissionScheduleDescription, getSubmissionScheduleSummary} from '@libs/SubmissionScheduleUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,11 +62,12 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
             title={translate('workflowsPage.submissionFrequency')}
             subtitle={translate('workflowsPage.submissionFrequencyDescription')}
             switchAccessibilityLabel={translate('workflowsPage.submissionFrequencyDescription')}
+            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.SUBMISSION_FREQUENCY_SWITCH}
             onToggle={onToggle}
             subMenuItems={
                 <View style={[styles.mt3, styles.mbn3]}>
                     <MenuItemSectionRoot
-                        onPress={canWriteWorkflows ? callFunctionIfActionIsAllowed(onPressAutoReportingFrequency, false, session) : undefined}
+                        onPress={canWriteWorkflows ? callIfAuthenticated(onPressAutoReportingFrequency, session) : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_FREQUENCY}
                     >
                         <MenuItemField.Row

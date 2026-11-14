@@ -1,9 +1,9 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
-import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
@@ -23,6 +23,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
+import usePayWithWiseQuote from './usePayWithWiseQuote';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
@@ -59,6 +60,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const {isBetaEnabled} = usePermissions();
+    const {payWithWiseQuote} = usePayWithWiseQuote();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -71,12 +73,18 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
 
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
+            return;
+        }
+        if (isAccountLocked) {
+            showLockedAccountModal();
             return;
         }
 
@@ -109,9 +117,10 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                allTransactionViolations: transactionViolations,
             });
         } else if (currentChatReport && paymentType) {
-            payMoneyRequest({
+            payWithWiseQuote({
                 bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,

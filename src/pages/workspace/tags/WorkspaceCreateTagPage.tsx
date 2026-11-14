@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,6 +51,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const policyHasCustomCategories = hasCustomCategories(policyCategories);
 
@@ -101,6 +103,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             currentUserAccountID: currentUserPersonalDetails.accountID,
             policyHasCustomCategories,
             pendingRequiresTagRestore: policyData.policy?.pendingRequiresTagRestore === true,
+            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
         });
         Keyboard.dismiss();
         Navigation.goBack(isDynamicFlow ? backPath : undefined);

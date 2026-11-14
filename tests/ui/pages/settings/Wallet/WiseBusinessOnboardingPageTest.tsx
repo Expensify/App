@@ -14,12 +14,13 @@ import WiseBusinessOnboardingPage from '@pages/settings/Wallet/EnableGlobalReimb
 
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {saveDraftAnswers} from '@userActions/DynamicForm';
+import {openReimbursementAccountPageForWiseIntro} from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {WiseBusinessOnboardingForm} from '@src/types/form';
-import type {BankAccount, PrivatePersonalDetails} from '@src/types/onyx';
+import type {BankAccount, DismissedProductTraining, PrivatePersonalDetails} from '@src/types/onyx';
 
 import type ReactNative from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -62,7 +63,11 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
 });
 jest.mock('@userActions/DynamicForm', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/DynamicForm'), saveDraftAnswers: jest.fn()}));
 jest.mock('@userActions/BankAccounts', () => ({hideBankAccountErrors: jest.fn(), openReimbursementAccountPage: jest.fn()}));
-jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/1'));
+const INTRO_PATH = 'settings/wallet/global-reimbursements/1';
+
+// The real hook reads the root state, which a deep link fills only after the page renders
+let mockBackPath = INTRO_PATH;
+jest.mock('@hooks/useDynamicBackPath', () => () => mockBackPath);
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
 const ELIGIBLE_BANK_ACCOUNT: BankAccount = {
@@ -95,6 +100,18 @@ function readDraft() {
     return new Promise<OnyxEntry<WiseBusinessOnboardingForm>>((resolve) => {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT,
+            callback: (value) => {
+                connection.unsubscribe();
+                resolve(value);
+            },
+        });
+    });
+}
+
+function readDismissedProductTraining() {
+    return new Promise<OnyxEntry<DismissedProductTraining>>((resolve) => {
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
             callback: (value) => {
                 connection.unsubscribe();
                 resolve(value);
@@ -160,6 +177,7 @@ describe('WiseBusinessOnboardingPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockBackPath = INTRO_PATH;
         jest.mocked(saveDraftAnswers).mockImplementation(saveDraftAnswersToOnyx);
         setHasRadio(true);
         await Onyx.clear();
@@ -212,7 +230,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await renderPage({shouldLeaveReadRunning: true});
 
         // Then the page reads this bank account and keeps the loader, since the read-only rows come from the answer
-        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID});
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
         expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
         expect(saveDraftAnswers).not.toHaveBeenCalled();
 
@@ -232,6 +250,71 @@ describe('WiseBusinessOnboardingPage', () => {
         );
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
         expect(openReimbursementAccountPage).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens on the details the intro page read, without reading them again', async () => {
+        // Given the intro page's read for this bank account, already answered
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+
+        // When the visit opens without a page
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT});
+
+        // Then the flow shows with those details and no second read
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({companyName: 'Boulder Development Inc.'}));
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('waits for the read the intro page started while it is still running', async () => {
+        // Given the intro page's read for this bank account, not answered yet
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+        await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true});
+
+        // When the visit opens without a page
+        await renderPage();
+
+        // Then the loader stays without a second read
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+
+        // When the read answers
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {...REIMBURSEMENT_ACCOUNT, isLoading: false}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flow shows with its details
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({companyName: 'Boulder Development Inc.'}));
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it.each([
+        ['left nothing on the device', undefined],
+        ['left another bank account on the device', {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: BANK_ACCOUNT_ID + 1}}],
+    ])('reads the details itself when the read the intro page started has ended and %s', async (_label, reimbursementAccount) => {
+        // Given the intro page's read for this bank account, ended without this bank account's details, as when it fails
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+
+        // When the visit opens without a page
+        await renderPage({reimbursementAccount, shouldLeaveReadRunning: true});
+
+        // Then the page reads this bank account and waits, since the form would open without the business details
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('reads the details itself when the intro page read another bank account', async () => {
+        // Given the intro page's read for another bank account, with details for this one left on the device
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID + 1);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+
+        // When the visit opens without a page
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, shouldLeaveReadRunning: true});
+
+        // Then the page reads this bank account and waits, since the details on the device may be old
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
     });
 
     it('does not read again when Next or Back mounts the page on one of its pages', async () => {
@@ -275,7 +358,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the page reads this bank account's details, as an online visit does
-        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID});
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
         expect(screen.queryByText('common.thisFeatureRequiresInternet')).not.toBeOnTheScreen();
     });
 
@@ -392,6 +475,49 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });
 
+    it('retires the Wallet and workspace banners once the form shows, not while the loader waits for the read', async () => {
+        // Given a visit whose read of the bank account details has not returned
+        await renderPage({shouldLeaveReadRunning: true});
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+
+        // Then neither banner is dismissed yet, since a write queued ahead of the read would hold the loader
+        expect(await readDismissedProductTraining()).toBeUndefined();
+
+        // When the read returns and the form shows
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true}));
+        await waitForBatchedUpdatesWithAct();
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {...REIMBURSEMENT_ACCOUNT, isLoading: false}));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+
+        // Then both banners are dismissed, since onboarding has started
+        const dismissed = await readDismissedProductTraining();
+        expect(dismissed?.[CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER]).toMatchObject({dismissedMethod: 'click'});
+        expect(dismissed?.[CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER]).toMatchObject({dismissedMethod: 'click'});
+    });
+
+    it('does not retire the banners again when Next or Back mounts the page on one of its pages', async () => {
+        // Given the details read earlier in the visit
+        // When the page mounts on the business page, as Next does
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: 'business'});
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+
+        // Then no dismiss is written, since the visit already did when its form opened
+        expect(await readDismissedProductTraining()).toBeUndefined();
+    });
+
+    it('does not retire the banners for a bank account that cannot use global reimbursements', async () => {
+        // Given a business account in euros, which Wise reimbursements do not cover
+        const euroBankAccount: BankAccount = {...ELIGIBLE_BANK_ACCOUNT, bankCurrency: CONST.CURRENCY.EUR};
+
+        // When the page opens for it
+        await renderPage({bankAccount: euroBankAccount});
+
+        // Then onboarding has not started, so both banners stay
+        expect(screen.getByTestId(NOT_FOUND_TEST_ID)).toBeOnTheScreen();
+        expect(await readDismissedProductTraining()).toBeUndefined();
+    });
+
     it('shows not found for a bank account that cannot use global reimbursements', async () => {
         // Given a business account in euros, which Wise reimbursements do not cover
         const euroBankAccount: BankAccount = {...ELIGIBLE_BANK_ACCOUNT, bankCurrency: CONST.CURRENCY.EUR};
@@ -402,6 +528,48 @@ describe('WiseBusinessOnboardingPage', () => {
         // Then the user sees not found instead of the form
         expect(screen.getByTestId(NOT_FOUND_TEST_ID)).toBeOnTheScreen();
         expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('opens the status page instead of the form once the business is submitted', async () => {
+        // Given a bank account whose business is already submitted to Wise
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const submittedBankAccount: BankAccount = {
+            ...ELIGIBLE_BANK_ACCOUNT,
+            accountData: {...ELIGIBLE_BANK_ACCOUNT.accountData, additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}}},
+        };
+
+        // When one of the form's pages opens for it
+        await renderPage({bankAccount: submittedBankAccount, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+
+        // Then the status page replaces it, since there is nothing left to submit, and the form never shows nor reads or prefills its answers
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(saveDraftAnswers).not.toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+        expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('waits for the intro path before opening the status page from a deep link', async () => {
+        // Given a submitted business and a deep link that renders the page before the root state holds it, so the back path is empty
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        mockBackPath = '';
+        const submittedBankAccount: BankAccount = {
+            ...ELIGIBLE_BANK_ACCOUNT,
+            accountData: {...ELIGIBLE_BANK_ACCOUNT.accountData, additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}},
+        };
+        await renderPage({bankAccount: submittedBankAccount});
+
+        // Then it does not navigate yet, since a status route built on an empty path does not exist
+        expect(navigateSpy).not.toHaveBeenCalled();
+
+        // When the root state catches up and the back path becomes the intro, which the page sees on its next render
+        mockBackPath = INTRO_PATH;
+        await act(() => Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: {title: 'Checking'}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the status page replaces the form over the intro
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
     });
 
     it('puts the saved file keys in the draft once a page save returns them', async () => {

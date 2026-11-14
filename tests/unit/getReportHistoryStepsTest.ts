@@ -43,6 +43,7 @@ const SNAPSHOT: ReportUpcomingStep[] = [
 type ReportState = {
     isOpenReport?: boolean;
     isDEWPolicy?: boolean;
+    shouldDisplayMarkAsDone?: boolean;
     reportMetadata?: ReportMetadata;
 };
 
@@ -50,7 +51,7 @@ function getUpcoming(
     reportActions: ReportAction[],
     upcomingSteps: ReportUpcomingStep[],
     nextStep: ReportNextStep | undefined,
-    {isOpenReport = false, isDEWPolicy = false, reportMetadata}: ReportState = {},
+    {isOpenReport = false, isDEWPolicy = false, shouldDisplayMarkAsDone = false, reportMetadata}: ReportState = {},
 ) {
     return getReportHistorySteps({
         translate: translateLocal,
@@ -64,7 +65,7 @@ function getUpcoming(
         nextStep,
         isOpenReport,
         isDEWPolicy,
-        shouldDisplayMarkAsDone: false,
+        shouldDisplayMarkAsDone,
         reportMetadata,
     })
         .filter((step) => step.isUpcoming)
@@ -270,6 +271,25 @@ describe('getReportHistorySteps', () => {
         expect(upcoming).toEqual([[translateLocal('reportHistoryPage.toSubmit'), OWNER_ACCOUNT_ID]]);
     });
 
+    it.each([
+        [true, false, 'reportHistoryPage.toMarkAsDone'],
+        [true, true, 'reportHistoryPage.toSubmit'],
+        [false, false, 'reportHistoryPage.toSubmit'],
+    ] as const)('labels the upcoming submit step with Mark as done %s and DEW %s as %s', (shouldDisplayMarkAsDone, isDEWPolicy, expectedLabel) => {
+        // Given an open report waiting on its owner, in a workflow that may submit to the owner themselves
+        const nextStep = buildNextStep(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE, OWNER_ACCOUNT_ID);
+
+        // When the steps are built
+        const upcoming = getUpcoming([], [{action: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT, actorAccountID: OWNER_ACCOUNT_ID}], nextStep, {
+            isOpenReport: true,
+            isDEWPolicy,
+            shouldDisplayMarkAsDone,
+        });
+
+        // Then the step uses the same wording as the report's Mark as done button
+        expect(upcoming).toEqual([[translateLocal(expectedLabel), OWNER_ACCOUNT_ID]]);
+    });
+
     it('treats fixing issues on an open report as the submit step', () => {
         // Given an open report whose violations must be fixed before it can be submitted again, and a snapshot that starts at the approval
         const nextStep = buildNextStep(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES, OWNER_ACCOUNT_ID);
@@ -399,5 +419,30 @@ describe('getReportHistorySteps', () => {
 
         // Then the history credits Concierge, like the report conversation does
         expect(steps).toEqual([[translateLocal('reportHistoryPage.submitted'), CONST.ACCOUNT_ID.CONCIERGE]]);
+    });
+
+    it.each([
+        [true, 'reportHistoryPage.receivedPayment'],
+        [false, 'reportHistoryPage.paid'],
+    ] as const)('labels a pay action with isSubmitterMarkedPaymentReceived %s as %s', (isSubmitterMarkedPaymentReceived, translationKey) => {
+        // Given a pay action from the submitter confirming they received payment, or from the payer marking the report paid
+        const payAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.IOU, OWNER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                html: 'paid',
+                text: 'paid',
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                isSubmitterMarkedPaymentReceived,
+            },
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([payAction]);
+
+        // Then the history uses the same wording as the report conversation
+        expect(steps).toEqual([[translateLocal(translationKey), OWNER_ACCOUNT_ID]]);
     });
 });

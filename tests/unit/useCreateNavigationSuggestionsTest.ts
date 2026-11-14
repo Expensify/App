@@ -69,11 +69,12 @@ const mockIcons = {
     NewWorkspace: mockIcon,
 };
 const mockTranslations = new Map([
-    ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
+    ['homePage.gettingStartedSection.addFirstReceipt', 'Add your first receipt'],
     ['homePage.gettingStartedSection.createWorkspace', 'Create a workspace'],
     ['common.chat', 'Chat'],
     ['common.new', 'New'],
     ['iou.addExpense', 'Add expense'],
+    ['iou.createAnExpense', 'Create an expense'],
     ['iou.createExpense', 'Create expense'],
     ['iou.trackDistance', 'Track distance'],
     ['onboarding.workspace.createWorkspace', 'Create workspace'],
@@ -262,12 +263,23 @@ describe('useCreateNavigationSuggestions', () => {
         expect(result.current).toBe(firstItems);
     });
 
+    it('builds no Create items and skips the policy scans when they are not needed', () => {
+        // Given the Search Router has a query that can't match any navigation suggestion
+        // When it asks for the Create suggestions without building them
+        const {result} = renderHook(() => useCreateNavigationSuggestions('', false));
+
+        // Then no items are returned and the policies are not scanned
+        expect(result.current).toEqual([]);
+        expect(mockCanSendInvoice).not.toHaveBeenCalled();
+        expect(mockShouldShowPolicy).not.toHaveBeenCalled();
+    });
+
     it('uses localized aliases for Create action matching', () => {
         mockCanSendInvoice.mockReturnValue(true);
         mockShouldShowPolicy.mockReturnValue(false);
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
-        expect(result.current.find((item) => item.keyForList === 'create_expense')?.matchTerms).toEqual(['Create expense', 'Add expense', 'Create an expense']);
+        expect(result.current.find((item) => item.keyForList === 'create_expense')?.matchTerms).toEqual(['Create expense', 'Add expense', 'Create an expense', 'Add your first receipt']);
         expect(result.current.find((item) => item.keyForList === 'create_chat')).toMatchObject({
             text: 'Start chat',
             matchTerms: ['Start chat', 'New Chat'],

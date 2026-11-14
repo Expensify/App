@@ -37,8 +37,8 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Rule} from '@src/types/onyx';
 
+import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -160,6 +160,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 <View style={[styles.mb3]}>
                     <View style={[styles.mhn5, styles.mb3]}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.IMPORTED_MEMBERS_ROLE}
                             name={translate('common.role')}
                             onPress={canAssignElevatedRoles ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path)) : undefined}
                             value={translate(`workspace.common.roleName`, role)}
@@ -169,6 +170,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             </View>
             <FixedFooter style={[styles.flex1, styles.justifyContentEnd]}>
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.IMPORTED_MEMBERS_SUBMIT}
                     onPress={importMembers}
                     isLoading={isImporting}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
