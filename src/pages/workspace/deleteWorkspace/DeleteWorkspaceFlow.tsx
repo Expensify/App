@@ -116,8 +116,11 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const hasTravelCards = Object.values(travelCardsList ?? {}).some(isCard);
     const isBlockedByExpensifyCards = hasExpensifyCardsEnabledOnWorkspace && hasExpensifyCards;
     const isBlockedByTravelBilling = hasTravelBillingEnabledOnWorkspace && hasTravelCards;
-    // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards, block the delete up front instead of queuing one that will fail on reconnect.
-    const hasDeleteWorkspaceExpensifyCardsError = isBlockedByExpensifyCards && !!isOffline;
+    const isDeleteBlocked = isBlockedByExpensifyCards || isBlockedByTravelBilling;
+    // Only used while one of the blockers applies, and Expensify Cards take priority when both do.
+    const deleteWorkspaceBlockedErrorKey = isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelBillingError';
+    // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards or Consolidated Travel Billing, block the delete up front instead of queuing one that will fail on reconnect.
+    const hasDeleteWorkspaceBlockedError = isDeleteBlocked && !!isOffline;
 
     const policyLatestErrorMessage = getLatestErrorMessage(policy);
     const isPendingDelete = isPendingDeletePolicy(policy);
@@ -146,8 +149,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
                     <RenderHTML
-                        // This modal is only shown when one of the two blockers applies, and Expensify Cards take priority when both do.
-                        html={translate(isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelBillingError')}
+                        html={translate(deleteWorkspaceBlockedErrorKey)}
                         onConciergeLinkPress={() => {
                             closeModal();
                             dismissDeleteWorkspaceFlow();
@@ -205,7 +207,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-            ...(hasDeleteWorkspaceExpensifyCardsError ? {} : {isConfirmLoading: isPendingDelete}),
+            ...(hasDeleteWorkspaceBlockedError ? {} : {isConfirmLoading: isPendingDelete}),
         }).then((result) => {
             if (!policyName || result.action !== ModalActions.CONFIRM) {
                 onDismiss();
@@ -227,12 +229,12 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
                 lastUsedPaymentMethods: lastPaymentMethod,
                 localeCompare,
                 personalPolicyID,
-                hasDeleteWorkspaceExpensifyCardsError,
+                deleteWorkspaceBlockedErrorKey: hasDeleteWorkspaceBlockedError ? deleteWorkspaceBlockedErrorKey : undefined,
                 currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 accountIDToLogin: accountIDToLogin ?? {},
             });
 
-            if (hasDeleteWorkspaceExpensifyCardsError) {
+            if (hasDeleteWorkspaceBlockedError) {
                 showDeleteWorkspaceErrorModal();
             } else if (isOffline) {
                 closeModal();
@@ -289,7 +291,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         }
 
         closeVisibleModal(() => {
-            if (isBlockedByExpensifyCards || isBlockedByTravelBilling) {
+            if (isDeleteBlocked) {
                 showDeleteWorkspaceErrorModal();
                 return;
             }
@@ -301,8 +303,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         isPendingDelete,
         prevIsPendingDelete,
         policyLatestErrorMessage,
-        isBlockedByExpensifyCards,
-        isBlockedByTravelBilling,
+        isDeleteBlocked,
         closeModal,
         onDeleteComplete,
         onDismiss,

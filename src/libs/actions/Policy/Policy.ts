@@ -128,6 +128,7 @@ import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcom
 
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicySelector} from '@src/selectors/Policy';
 import type {
@@ -431,7 +432,8 @@ type DeleteWorkspaceActionParams = {
     reimbursementAccountError: Errors | undefined;
     lastUsedPaymentMethods?: LastPaymentMethod;
     localeCompare: LocaleContextProps['localeCompare'];
-    hasDeleteWorkspaceExpensifyCardsError?: boolean;
+    /** Translation key of the blocker error to surface when the delete is already known to be rejected while offline */
+    deleteWorkspaceBlockedErrorKey?: TranslationPaths;
     currentUserAccountID: number;
     accountIDToLogin: Record<number, string>;
 };
@@ -455,22 +457,22 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         lastUsedPaymentMethods,
         localeCompare,
         personalPolicyID,
-        hasDeleteWorkspaceExpensifyCardsError,
+        deleteWorkspaceBlockedErrorKey,
         currentUserAccountID,
         accountIDToLogin,
     } = params;
 
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const filteredPolicies = Object.values(policies ?? {}).filter((p): p is Policy => p?.id !== policyID);
-    const workspaceAccountID = policy?.policyAccountID;
-
-    // Offline pre-flight guard: we already know locally the workspace has active Expensify Cards, so surface the error instead of queuing a delete that the backend will reject on reconnect.
-    if (hasDeleteWorkspaceExpensifyCardsError) {
+    // Offline pre-flight guard: we already know locally the workspace has active Expensify Cards or Consolidated Travel Billing, so surface the error instead of queuing a delete that the backend will reject on reconnect.
+    if (deleteWorkspaceBlockedErrorKey) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.deleteOpenExpensifyCardsError'),
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey(deleteWorkspaceBlockedErrorKey),
         });
         return;
     }
+
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const filteredPolicies = Object.values(policies ?? {}).filter((p): p is Policy => p?.id !== policyID);
+    const workspaceAccountID = policy?.policyAccountID;
 
     const optimisticData: Array<
         OnyxUpdate<
