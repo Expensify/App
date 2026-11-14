@@ -129,6 +129,25 @@ describe('focusFirstShownControl', () => {
         expect(document.activeElement).toBe(value);
     });
 
+    it('focuses the text of a filter ahead of the rows listed above it', () => {
+        // Given an amount filter whose "Equal to" row comes before the amount input
+        const container = document.createElement('div');
+        const equalToRow = document.createElement('div');
+        equalToRow.tabIndex = 0;
+        equalToRow.setAttribute('role', CONST.ROLE.OPTION);
+        const amountInput = document.createElement('input');
+        container.append(equalToRow, amountInput);
+        document.body.appendChild(container);
+        setShown(equalToRow, true);
+        setShown(amountInput, true);
+
+        // When the focus is moved into the content
+        focusFirstShownControl(container);
+
+        // Then the amount can be typed at once
+        expect(document.activeElement).toBe(amountInput);
+    });
+
     it('falls back to the first control when the content has no search or rows', () => {
         // Given content made only of buttons, such as the date presets
         const container = document.createElement('div');

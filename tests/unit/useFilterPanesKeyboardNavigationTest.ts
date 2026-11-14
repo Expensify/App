@@ -39,18 +39,23 @@ function pressKey(target: HTMLElement, key: string, init: KeyboardEventInit = {}
     return event;
 }
 
-function renderNavigation(panes: ReturnType<typeof createPanes>, onSelectRow = jest.fn()) {
-    renderHook(() =>
-        useFilterPanesKeyboardNavigation({
-            listContainerRef: {current: panes.listContainer},
-            contentContainerRef: {current: panes.contentContainer},
-            rows: ROWS,
-            selectedRow: 'type',
-            getRowLabel: (row) => row,
-            onSelectRow,
-        }),
+function renderNavigation(panes: ReturnType<typeof createPanes>, onSelectRow = jest.fn(), isRowSelectionPending = false) {
+    const listContainerRef = {current: panes.listContainer};
+    const contentContainerRef = {current: panes.contentContainer};
+    const {rerender} = renderHook(
+        ({isPending}: {isPending: boolean}) =>
+            useFilterPanesKeyboardNavigation({
+                listContainerRef,
+                contentContainerRef,
+                rows: ROWS,
+                selectedRow: 'type',
+                getRowLabel: (row) => row,
+                onSelectRow,
+                isRowSelectionPending: isPending,
+            }),
+        {initialProps: {isPending: isRowSelectionPending}},
     );
-    return onSelectRow;
+    return {onSelectRow, setRowSelectionPending: (isPending: boolean) => rerender({isPending})};
 }
 
 beforeAll(() => {
@@ -66,7 +71,7 @@ describe('useFilterPanesKeyboardNavigation', () => {
     it('moves the selection down the rows while the focus stays in the filter search', () => {
         // Given the focus in the filter search
         const panes = createPanes();
-        const onSelectRow = renderNavigation(panes);
+        const {onSelectRow} = renderNavigation(panes);
         panes.searchInput.focus();
 
         // When the down arrow is pressed
@@ -98,10 +103,54 @@ describe('useFilterPanesKeyboardNavigation', () => {
         expect(escape.defaultPrevented).toBe(true);
     });
 
+    it('keeps the release of that Escape from the popover, which closes on release', () => {
+        // Given the popover listening for Escape releases on the document, and the focus in the content
+        const panes = createPanes();
+        renderNavigation(panes);
+        const closePopover = jest.fn();
+        document.addEventListener('keyup', closePopover, true);
+        panes.contentInput.focus();
+
+        // When Escape is pressed and released in the content
+        pressKey(panes.contentInput, CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey);
+        panes.searchInput.dispatchEvent(new KeyboardEvent('keyup', {key: CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey, bubbles: true}));
+
+        // Then the popover stays open
+        expect(closePopover).not.toHaveBeenCalled();
+
+        // When Escape is pressed and released again in the filter search
+        pressKey(panes.searchInput, CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey);
+        panes.searchInput.dispatchEvent(new KeyboardEvent('keyup', {key: CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey, bubbles: true}));
+
+        // Then that release reaches the popover, so it closes
+        expect(closePopover).toHaveBeenCalledTimes(1);
+        document.removeEventListener('keyup', closePopover, true);
+    });
+
+    it('waits for the search to pick its row before moving the focus into the content on Enter', () => {
+        // Given text typed into the filter search that has yet to pick its row
+        const panes = createPanes();
+        const {setRowSelectionPending} = renderNavigation(panes, jest.fn(), true);
+        panes.searchInput.focus();
+
+        // When Enter is pressed
+        const enter = pressKey(panes.searchInput, CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey);
+
+        // Then the focus stays in the search, as the content shown is about to be replaced
+        expect(enter.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(panes.searchInput);
+
+        // When the search picks its row
+        setRowSelectionPending(false);
+
+        // Then the focus moves into the content of that row
+        expect(document.activeElement).toBe(panes.contentInput);
+    });
+
     it('leaves the keys to an input method while it composes text', () => {
         // Given text being composed in the filter search
         const panes = createPanes();
-        const onSelectRow = renderNavigation(panes);
+        const {onSelectRow} = renderNavigation(panes);
         panes.searchInput.focus();
 
         // When the arrow keys pick a candidate and Enter confirms it

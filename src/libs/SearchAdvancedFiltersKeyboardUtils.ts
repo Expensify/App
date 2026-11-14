@@ -23,16 +23,19 @@ function isCaretAtEdge(target: EventTarget | null, edge: 'start' | 'end'): boole
     return edge === 'start' ? target.selectionStart === 0 : target.selectionEnd === target.value.length;
 }
 
-/** Rows and the text a filter is picked with, which come after the "Is" and "Is not" buttons of a negatable filter. */
-const FILTER_VALUE_SELECTOR = 'input, textarea, [role="textbox"], [role="option"], [role="checkbox"], [role="radio"]';
+/** The text a filter is typed into. It can sit below the rows that pick how it applies, like "Equal to" above an amount. */
+const FILTER_TEXT_SELECTOR = 'input, textarea, [role="textbox"]';
+
+/** Rows a filter is picked from, which come after the "Is" and "Is not" buttons of a negatable filter. */
+const FILTER_ROW_SELECTOR = '[role="option"], [role="checkbox"], [role="radio"]';
 
 /**
- * Focuses the search or first row of the shown content, or else its first control. Hidden filter contents stay in the
+ * Focuses the text or first row of the shown content, or else its first control. Hidden filter contents stay in the
  * DOM, so only a laid out element counts.
  */
 function focusFirstShownControl(container: HTMLElement): boolean {
     const findFirstShown = (selector: string) => Array.from(container.querySelectorAll<HTMLElement>(selector)).find((element) => element.getClientRects().length > 0);
-    const firstControl = findFirstShown(FILTER_VALUE_SELECTOR) ?? findFirstShown(FOCUSABLE_SELECTOR);
+    const firstControl = findFirstShown(FILTER_TEXT_SELECTOR) ?? findFirstShown(FILTER_ROW_SELECTOR) ?? findFirstShown(FOCUSABLE_SELECTOR);
     if (!firstControl) {
         return false;
     }

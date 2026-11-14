@@ -306,6 +306,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
         selectedRow: isDescribeMode ? DESCRIBE_SEARCH_ROW : activeFilter,
         getRowLabel,
         onSelectRow: (row) => (row === DESCRIBE_SEARCH_ROW ? setIsDescribeMode(true) : focusFilter(row)),
+        isRowSelectionPending: !!filterSearchValue.trim() && filterSearchValue !== debouncedFilterSearchValue,
     });
 
     return (

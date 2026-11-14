@@ -25,14 +25,37 @@ type UseFilterPanesKeyboardNavigationParams<Row> = {
 
     /** Shows the content of a row. */
     onSelectRow: (row: Row) => void;
+
+    /** Whether the search text has yet to pick its row, so the content shown still belongs to the previous one. */
+    isRowSelectionPending: boolean;
 };
+
+/**
+ * The open popover closes when Escape is released, so the release of an Escape that only left the content is kept from
+ * it. The window hears the release before the popover's listener on the document.
+ */
+function swallowEscapeRelease(event: KeyboardEvent) {
+    if (event.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
+        event.stopImmediatePropagation();
+    }
+    window.removeEventListener('keyup', swallowEscapeRelease, true);
+}
 
 /**
  * Lets the keyboard move between a list of filters and the content of the selected one. Up and down move through the
  * rows, right or Enter moves into the content, and left or Escape goes back to the filter search. Web only.
  */
-function useFilterPanesKeyboardNavigation<Row>({listContainerRef, contentContainerRef, rows, selectedRow, getRowLabel, onSelectRow}: UseFilterPanesKeyboardNavigationParams<Row>) {
+function useFilterPanesKeyboardNavigation<Row>({
+    listContainerRef,
+    contentContainerRef,
+    rows,
+    selectedRow,
+    getRowLabel,
+    onSelectRow,
+    isRowSelectionPending,
+}: UseFilterPanesKeyboardNavigationParams<Row>) {
     const focusToKeepRef = useRef<HTMLElement | null>(null);
+    const shouldFocusContentRef = useRef(false);
 
     const findRowElement = (listContainer: HTMLElement, row: Row) => {
         const rowLabel = getRowLabel(row);
@@ -73,6 +96,15 @@ function useFilterPanesKeyboardNavigation<Row>({listContainerRef, contentContain
         elementToKeepFocused.focus({preventScroll: true});
     });
 
+    useEffect(() => {
+        const contentContainer = contentContainerRef.current;
+        if (isRowSelectionPending || !shouldFocusContentRef.current || !(contentContainer instanceof HTMLElement)) {
+            return;
+        }
+        shouldFocusContentRef.current = false;
+        focusFirstShownControl(contentContainer);
+    }, [isRowSelectionPending, contentContainerRef]);
+
     // The keyboard library listens on the document in the capture phase, and the content lists take the arrow keys
     // through it. Listening on the window comes first, so the pane holding the focus decides where an arrow key goes.
     const handleKeyDown = useEffectEvent((event: KeyboardEvent) => {
@@ -99,12 +131,15 @@ function useFilterPanesKeyboardNavigation<Row>({listContainerRef, contentContain
                     moveRowSelection(event, listContainer);
                     break;
                 case CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey:
-                    if (!isCaretAtEdge(event.target, 'end')) {
+                case CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey:
+                    if (event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey && !isCaretAtEdge(event.target, 'end')) {
                         return;
                     }
-                    focusFirstShownControl(contentContainer);
-                    break;
-                case CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey:
+                    // The content shown before the search picks its row is about to be hidden, and the focus would go with it.
+                    if (isRowSelectionPending) {
+                        shouldFocusContentRef.current = true;
+                        break;
+                    }
                     focusFirstShownControl(contentContainer);
                     break;
                 default:
@@ -117,6 +152,10 @@ function useFilterPanesKeyboardNavigation<Row>({listContainerRef, contentContain
                 return;
             }
             listContainer.querySelector('input')?.focus();
+            if (event.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
+                // Adding the same listener again does nothing, so a release that never came cannot stack them.
+                window.addEventListener('keyup', swallowEscapeRelease, true);
+            }
         } else {
             return;
         }
