@@ -1,4 +1,4 @@
-import {search} from '@libs/actions/Search';
+import {isFirstPageSearchInFlight, search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -83,6 +83,30 @@ describe('search shouldSaveRecentSearch flag', () => {
 
         // Then the payload declares the flag as false, because the backend saves the query when the flag is missing
         expect(getLastRequestJsonQuery()).toEqual(expect.objectContaining({shouldSaveRecentSearch: false}));
+    });
+
+    it('reports a running first page as covering a page request unless the page needs totals it lacks', async () => {
+        // Given an unflagged first-page refetch without totals that is still waiting for its response
+        const queryJSON = getQueryJSON('type:expense merchant:costco');
+        let resolveRequest: () => void = () => {};
+        mockedMakeRequestWithSideEffects.mockImplementationOnce(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveRequest = resolve;
+                }),
+        );
+        const request = search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await Promise.resolve();
+
+        // When the page asks whether it can rely on that request
+        // Then it can without totals, but not when it needs totals, because those would be dropped
+        expect(isFirstPageSearchInFlight(queryJSON, false, false)).toBe(true);
+        expect(isFirstPageSearchInFlight(queryJSON, true, false)).toBe(false);
+
+        // And once the request finishes nothing is in flight any more
+        resolveRequest();
+        await request;
+        expect(isFirstPageSearchInFlight(queryJSON, false, false)).toBe(false);
     });
 
     it('preserves the flag on a totals request queued behind an in-flight search', async () => {

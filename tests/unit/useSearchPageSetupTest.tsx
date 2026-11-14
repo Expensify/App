@@ -51,6 +51,7 @@ jest.mock('@libs/actions/Search', () => ({
     openSearch: (...args: [unknown, number | undefined]) => mockOpenSearch(...args),
     markPageRequestedSearch: (...args: unknown[]) => mockMarkPageRequestedSearch(...args),
     clearPageRequestedSearch: () => mockClearPageRequestedSearch(),
+    isFirstPageSearchInFlight: () => false,
 }));
 
 jest.mock('@libs/actions/ReportNavigation', () => ({
