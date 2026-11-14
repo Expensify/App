@@ -1253,6 +1253,8 @@ const SENTRY_LABEL = {
     CREATE_DISTANCE_RATE: {
         COUNTRY_FIELD: 'CreateDistanceRate-CountryField',
         COUNTRY_BACK_BUTTON: 'CreateDistanceRate-CountryBackButton',
+        KIND_GOVERNMENT_TAB: 'CreateDistanceRate-KindTab-Government',
+        KIND_CUSTOM_TAB: 'CreateDistanceRate-KindTab-Custom',
     },
     REPORT_PICKER_MODAL: {
         BACK_BUTTON: 'ReportPickerModal-BackButton',

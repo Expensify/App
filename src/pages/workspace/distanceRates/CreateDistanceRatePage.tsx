@@ -225,8 +225,18 @@ function CreateDistanceRatePage({
     };
 
     const kindTabs: Array<TabSelectorBaseItem<DistanceRateKind>> = [
-        {key: CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT, title: translate('workspace.distanceRates.addRatePage.government'), icon: icons.Bank},
-        {key: CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM, title: translate('workspace.distanceRates.addRatePage.custom'), icon: icons.Pencil},
+        {
+            key: CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT,
+            title: translate('workspace.distanceRates.addRatePage.government'),
+            icon: icons.Bank,
+            sentryLabel: CONST.SENTRY_LABEL.CREATE_DISTANCE_RATE.KIND_GOVERNMENT_TAB,
+        },
+        {
+            key: CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM,
+            title: translate('workspace.distanceRates.addRatePage.custom'),
+            icon: icons.Pencil,
+            sentryLabel: CONST.SENTRY_LABEL.CREATE_DISTANCE_RATE.KIND_CUSTOM_TAB,
+        },
     ];
     const authority = governmentRateCountry ? translate(`workspace.distanceRates.addRatePage.governmentRateAuthorities.${governmentRateCountry}`) : '';
     const kindHint = isGovernmentRateTaken
