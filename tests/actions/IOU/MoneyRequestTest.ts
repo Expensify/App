@@ -773,6 +773,11 @@ describe('MoneyRequest', () => {
             waypoints: {},
             currentUserLogin: 'test@test.com',
             currentUserAccountID: 1,
+            currentUserPersonalDetails: {
+                accountID: 1,
+                login: 'test@test.com',
+                email: 'test@test.com',
+            },
             backToReport: undefined,
             shouldSkipConfirmation: false,
             defaultExpensePolicy: undefined,

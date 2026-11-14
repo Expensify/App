@@ -22,6 +22,7 @@ import type {Route} from '@src/ROUTES';
 import type {IntroSelected, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -65,6 +66,9 @@ type UseDistanceNavigationParams = {
 
     /** Current user's account ID — passed through to the navigation util. */
     currentUserAccountID: number;
+
+    /** Current user's personal details — passed through to the navigation util. */
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 
     /** Current user's localCurrencyCode — passed through to the navigation util for draft-workspace creation. */
     currentUserLocalCurrency: string | undefined;
@@ -122,6 +126,7 @@ function useDistanceNavigation({
     waypoints,
     currentUserLogin,
     currentUserAccountID,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     backTo,
     backToReport,
@@ -196,6 +201,7 @@ function useDistanceNavigation({
             waypoints,
             currentUserLogin,
             currentUserAccountID,
+            currentUserPersonalDetails,
             currentUserLocalCurrency,
             backTo,
             backToReport,
