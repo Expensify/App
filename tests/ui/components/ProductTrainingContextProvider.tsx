@@ -1,10 +1,11 @@
-import {render, renderHook} from '@testing-library/react-native';
+import {cleanup, render, renderHook} from '@testing-library/react-native';
 
 import {ProductTrainingContextProvider, useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import {setModalVisibility, willAlertModalBecomeVisible} from '@libs/actions/Modal';
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 
@@ -48,8 +49,9 @@ type ProductTrainingRef = ReturnType<typeof useProductTrainingContext>;
 
 // A simple component that calls useProductTrainingContext and sets its result into the ref.
 // Used in cases where using renderHook is not possible, for example, when we need to share the same instance of the context.
-function ProductTraining({tooltipName, shouldShow, ref}: {tooltipName: ProductTrainingTooltipName; shouldShow?: boolean; ref?: Ref<ProductTrainingRef>}) {
+function ProductTraining({tooltipName, shouldShow, ref, onRender}: {tooltipName: ProductTrainingTooltipName; shouldShow?: boolean; ref?: Ref<ProductTrainingRef>; onRender?: jest.Mock}) {
     const result = useProductTrainingContext(tooltipName, shouldShow);
+    onRender?.(result.shouldShowProductTrainingTooltip);
 
     useImperativeHandle(ref, () => result);
 
@@ -78,7 +80,8 @@ describe('ProductTrainingContextProvider', () => {
     });
 
     afterEach(async () => {
-        // Clean up test environment after each test
+        // Unmount before clearing Onyx, so the clear does not update providers that are still mounted outside act
+        cleanup();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -204,6 +207,7 @@ describe('ProductTrainingContextProvider', () => {
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
             // When the user dismiss the tooltip
             result.current.hideProductTrainingTooltip();
+            await waitForBatchedUpdatesWithAct();
             rerender({});
             // Then tooltip should not show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
@@ -318,6 +322,181 @@ describe('ProductTrainingContextProvider', () => {
 
             // Then lower priority tooltip should become visible
             expect(result.current.lower.shouldShowProductTrainingTooltip).toBe(true);
+        });
+    });
+
+    describe('Consumer renders', () => {
+        const {ACCOUNT_SWITCHER, GPS_TOOLTIP, MILEAGE_RATE_AUTO_UPDATED, SCAN_TEST_DRIVE_CONFIRMATION} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+
+        it('does not render consumers when a right-docked screen opens and closes while no tooltip is visible', async () => {
+            // Given a consumer whose tooltip was dismissed, like most tooltips mounted under the Search Router for a returning user
+            Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {[ACCOUNT_SWITCHER]: {timestamp: DateUtils.getDBTime()}});
+            const onRender = jest.fn();
+            render(
+                wrapper({
+                    children: (
+                        <ProductTraining
+                            tooltipName={ACCOUNT_SWITCHER}
+                            onRender={onRender}
+                        />
+                    ),
+                }),
+            );
+            await waitForBatchedUpdatesWithAct();
+            onRender.mockClear();
+
+            // When a right-docked screen such as the Search Router is focused and then blurred, which writes the modal visibility on every open and close
+            setModalVisibility(true, CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
+            await waitForBatchedUpdatesWithAct();
+            setModalVisibility(false);
+            willAlertModalBecomeVisible(false);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the consumer does not render, because the tooltip allowed to show did not change
+            expect(onRender).not.toHaveBeenCalled();
+        });
+
+        it('does not render the visible tooltip when another consumer stops asking to show its tooltip', async () => {
+            // Given a visible tooltip and a consumer with a dismissed tooltip next to it, like the account button next to the LHN rows
+            Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {[GPS_TOOLTIP]: {timestamp: DateUtils.getDBTime()}});
+            const ref = createRef<ProductTrainingRef>();
+            const onRender = jest.fn();
+            const visibleConsumer = (
+                <ProductTraining
+                    ref={ref}
+                    tooltipName={ACCOUNT_SWITCHER}
+                    onRender={onRender}
+                />
+            );
+            const renderWithOtherConsumer = (shouldShow: boolean) =>
+                wrapper({
+                    children: (
+                        <>
+                            {visibleConsumer}
+                            <ProductTraining
+                                tooltipName={GPS_TOOLTIP}
+                                shouldShow={shouldShow}
+                            />
+                        </>
+                    ),
+                });
+            const {rerender} = render(renderWithOtherConsumer(true));
+            await waitForBatchedUpdatesWithAct();
+            onRender.mockClear();
+
+            // When the other consumer stops asking, as the LHN rows do when their screen loses focus
+            rerender(renderWithOtherConsumer(false));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the visible tooltip's consumer does not render and its tooltip stays visible
+            expect(onRender).not.toHaveBeenCalled();
+            expect(ref.current?.shouldShowProductTrainingTooltip).toBe(true);
+        });
+
+        it('hands the slot to a tooltip shown inside a modal in the same render the modal hides a higher-priority one', async () => {
+            // Given a higher-priority tooltip that hides under modals and a lower-priority one that is shown inside a modal
+            const onAccountSwitcherRender = jest.fn();
+            const onScanRender = jest.fn();
+            render(
+                wrapper({
+                    children: (
+                        <>
+                            <ProductTraining
+                                tooltipName={ACCOUNT_SWITCHER}
+                                onRender={onAccountSwitcherRender}
+                            />
+                            <ProductTraining
+                                tooltipName={SCAN_TEST_DRIVE_CONFIRMATION}
+                                onRender={onScanRender}
+                            />
+                        </>
+                    ),
+                }),
+            );
+            await waitForBatchedUpdatesWithAct();
+            expect(onAccountSwitcherRender).toHaveBeenLastCalledWith(true);
+            onAccountSwitcherRender.mockClear();
+            onScanRender.mockClear();
+
+            // When a modal opens
+            setModalVisibility(true);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then each consumer renders once and the in-modal tooltip shows right away, so there is no frame where neither tooltip shows
+            expect(onAccountSwitcherRender.mock.calls).toEqual([[false]]);
+            expect(onScanRender.mock.calls).toEqual([[true]]);
+
+            // When the modal closes
+            setModalVisibility(false);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the higher-priority tooltip shows again
+            expect(onAccountSwitcherRender).toHaveBeenLastCalledWith(true);
+            expect(onScanRender).toHaveBeenLastCalledWith(false);
+        });
+
+        it('keeps a tooltip visible while another consumer sharing its name unmounts', async () => {
+            // Given two consumers of the same tooltip, like the rows of a list that each ask for one tooltip name
+            const ref = createRef<ProductTrainingRef>();
+            const renderConsumers = (shouldMountSecond: boolean) =>
+                wrapper({
+                    children: (
+                        <>
+                            <ProductTraining
+                                ref={ref}
+                                tooltipName={ACCOUNT_SWITCHER}
+                            />
+                            {shouldMountSecond && <ProductTraining tooltipName={ACCOUNT_SWITCHER} />}
+                        </>
+                    ),
+                });
+            const {rerender} = render(renderConsumers(true));
+            await waitForBatchedUpdatesWithAct();
+
+            // When one of them unmounts, as a virtualized row does when it scrolls out of view
+            rerender(renderConsumers(false));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the tooltip stays visible for the consumer that is still mounted
+            expect(ref.current?.shouldShowProductTrainingTooltip).toBe(true);
+        });
+
+        it('hides tooltips under an alert modal and the mileage rate tooltip only under a popover', async () => {
+            // Given a tooltip that hides under modals and the mileage rate tooltip that is shown on a modal screen
+            const accountSwitcherRef = createRef<ProductTrainingRef>();
+            const mileageRef = createRef<ProductTrainingRef>();
+            render(
+                wrapper({
+                    children: (
+                        <>
+                            <ProductTraining
+                                ref={accountSwitcherRef}
+                                tooltipName={ACCOUNT_SWITCHER}
+                            />
+                            <ProductTraining
+                                ref={mileageRef}
+                                tooltipName={MILEAGE_RATE_AUTO_UPDATED}
+                            />
+                        </>
+                    ),
+                }),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When an alert modal is about to become visible
+            willAlertModalBecomeVisible(true);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the regular tooltip hides and the mileage rate tooltip stays, because only popovers cover the mileage rate field
+            expect(accountSwitcherRef.current?.shouldShowProductTrainingTooltip).toBe(false);
+            expect(mileageRef.current?.shouldShowProductTrainingTooltip).toBe(true);
+
+            // When a popover such as the inline date picker is about to become visible
+            willAlertModalBecomeVisible(true, true);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the mileage rate tooltip hides too
+            expect(mileageRef.current?.shouldShowProductTrainingTooltip).toBe(false);
         });
     });
 });

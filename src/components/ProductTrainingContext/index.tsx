@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {isModalActiveSelector, isPopoverModalSelector} from '@selectors/Modal';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import React, {createContext, useContext, useEffect, useState} from 'react';
@@ -31,7 +32,8 @@ import type {ProductTrainingTooltipName} from './TOOLTIPS';
 import TOOLTIPS from './TOOLTIPS';
 
 type ProductTrainingContextType = {
-    shouldRenderTooltip: (tooltipName: ProductTrainingTooltipName) => boolean;
+    /** The one tooltip allowed to render right now, or null when no registered tooltip may show */
+    visibleTooltipName: ProductTrainingTooltipName | null;
     registerTooltip: (tooltipName: ProductTrainingTooltipName) => void;
     unregisterTooltip: (tooltipName: ProductTrainingTooltipName) => void;
 };
@@ -44,10 +46,27 @@ type ProductTrainingContextConfig = {
 };
 
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
-    shouldRenderTooltip: () => false,
+    visibleTooltipName: null,
     registerTooltip: () => {},
     unregisterTooltip: () => {},
 });
+
+/**
+ * Picks the highest-priority registered tooltip that passes the eligibility check, or null. Ties go to the one registered first.
+ */
+function getVisibleTooltipName(activeTooltips: Map<ProductTrainingTooltipName, number>, isEligible: (tooltipName: ProductTrainingTooltipName) => boolean): ProductTrainingTooltipName | null {
+    let visibleTooltipName: ProductTrainingTooltipName | null = null;
+    let highestPriority = -Infinity;
+    for (const tooltipName of activeTooltips.keys()) {
+        const priority = TOOLTIPS[tooltipName]?.priority ?? 0;
+        if (priority <= highestPriority || !isEligible(tooltipName)) {
+            continue;
+        }
+        visibleTooltipName = tooltipName;
+        highestPriority = priority;
+    }
+    return visibleTooltipName;
+}
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -71,38 +90,32 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
+    const [isModalVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
+    const [isPopoverModal = false] = useOnyx(ONYXKEYS.MODAL, {selector: isPopoverModalSelector});
 
-    const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());
+    const [activeTooltips, setActiveTooltips] = useState<Map<ProductTrainingTooltipName, number>>(new Map());
+
+    // Registration counts the consumers mounted with shouldShow per tooltip name, because several consumers can share a name.
+    // Both callbacks must use nothing but the setter: consumers list them as effect dependencies, so a new identity would
+    // unregister and re-register every tooltip on each provider render.
+    const registerTooltip = (tooltipName: ProductTrainingTooltipName) => {
+        setActiveTooltips((prev) => new Map(prev).set(tooltipName, (prev.get(tooltipName) ?? 0) + 1));
+    };
 
     const unregisterTooltip = (tooltipName: ProductTrainingTooltipName) => {
         setActiveTooltips((prev) => {
-            const next = new Set(prev);
-            next.delete(tooltipName);
+            const count = prev.get(tooltipName);
+            if (!count) {
+                return prev;
+            }
+            const next = new Map(prev);
+            if (count === 1) {
+                next.delete(tooltipName);
+            } else {
+                next.set(tooltipName, count - 1);
+            }
             return next;
         });
-    };
-
-    const determineVisibleTooltip = () => {
-        if (activeTooltips.size === 0) {
-            return null;
-        }
-
-        const sortedTooltips = Array.from(activeTooltips)
-            .map((name) => ({
-                name,
-                priority: TOOLTIPS[name]?.priority ?? 0,
-            }))
-            .sort((a, b) => b.priority - a.priority);
-
-        const highestPriorityTooltip = sortedTooltips.at(0);
-
-        if (!highestPriorityTooltip) {
-            return null;
-        }
-
-        return highestPriorityTooltip.name;
     };
 
     const isUserInPaidPolicy = !(!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) && hasAnyPaidPolicy(allPolicies);
@@ -133,7 +146,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
         // Mileage rate tooltip is exempt from the general "hide when modal visible" rule so it can show on the confirmation surface.
         // Hide it when a popover or bottom sheet opens (e.g. inline date picker) since those set modal.isPopover.
-        if (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED && isModalVisible && modal?.isPopover) {
+        if (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED && isModalVisible && isPopoverModal) {
             return false;
         }
 
@@ -157,36 +170,11 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         });
     };
 
-    const registerTooltip = (tooltipName: ProductTrainingTooltipName) => {
-        const shouldRegister = shouldTooltipBeVisible(tooltipName);
-        if (!shouldRegister) {
-            return;
-        }
-        setActiveTooltips((prev) => new Set([...prev, tooltipName]));
-    };
-
-    const shouldRenderTooltip = (tooltipName: ProductTrainingTooltipName) => {
-        // Supportal agents and copilots should not see product-training tooltips on behalf of another account.
-        if (shouldSuppressPromotionalUI) {
-            return false;
-        }
-        // First check base conditions
-        const shouldShow = shouldTooltipBeVisible(tooltipName);
-        if (!shouldShow) {
-            return false;
-        }
-        const visibleTooltip = determineVisibleTooltip();
-
-        // If this is the highest priority visible tooltip, show it
-        if (tooltipName === visibleTooltip) {
-            return true;
-        }
-
-        return false;
-    };
+    // Supportal agents and copilots should not see product-training tooltips on behalf of another account.
+    const visibleTooltipName = shouldSuppressPromotionalUI ? null : getVisibleTooltipName(activeTooltips, shouldTooltipBeVisible);
 
     const contextValue = {
-        shouldRenderTooltip,
+        visibleTooltipName,
         registerTooltip,
         unregisterTooltip,
     };
@@ -206,7 +194,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         throw new Error('useProductTourContext must be used within a ProductTourProvider');
     }
 
-    const {shouldRenderTooltip, registerTooltip, unregisterTooltip} = context;
+    const {visibleTooltipName, registerTooltip, unregisterTooltip} = context;
 
     useEffect(() => {
         if (!shouldShow) {
@@ -218,7 +206,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         };
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
-    const shouldShowProductTrainingTooltip = shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
+    const shouldShowProductTrainingTooltip = shouldShow && tooltipName === visibleTooltipName && !shouldHideToolTip;
 
     const hideTooltip = (isDismissedUsingCloseButton = false) => {
         if (!shouldShowProductTrainingTooltip) {
@@ -226,7 +214,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         }
         const tooltip = TOOLTIPS[tooltipName];
         tooltip.onHideTooltip(isDismissedUsingCloseButton);
-        unregisterTooltip(tooltipName);
     };
 
     const renderProductTrainingTooltip = () => {
