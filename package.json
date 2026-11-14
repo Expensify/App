@@ -446,6 +446,9 @@
     },
     "expo-modules-core": {
       "react-native-worklets": "0.13.0"
+    },
+    "react-native-google-places-autocomplete": {
+      "qs": "^6.16.1"
     }
   },
   "expo": {
