@@ -1250,6 +1250,10 @@ const SENTRY_LABEL = {
     TAX_PICKER_MODAL: {
         BACK_BUTTON: 'TaxPickerModal-BackButton',
     },
+    CREATE_DISTANCE_RATE: {
+        COUNTRY_FIELD: 'CreateDistanceRate-CountryField',
+        COUNTRY_BACK_BUTTON: 'CreateDistanceRate-CountryBackButton',
+    },
     REPORT_PICKER_MODAL: {
         BACK_BUTTON: 'ReportPickerModal-BackButton',
     },

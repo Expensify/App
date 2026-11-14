@@ -15,7 +15,6 @@ import TabSelectorContextProvider from '@components/TabSelector/TabSelectorConte
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import ValuePicker from '@components/ValuePicker';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -69,6 +68,8 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+import EuroCountryDropdown from './EuroCountryDropdown';
 
 type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
 
@@ -137,13 +138,13 @@ function CreateDistanceRatePage({
     }, []);
 
     // The custom form is cleared and the kind goes back to the new country's default
-    const selectEuroCountry = (selectedCountry: unknown) => {
-        if (typeof selectedCountry !== 'string' || !isEuroDistanceRateCountry(selectedCountry)) {
+    const selectEuroCountry = (selectedCountry: string) => {
+        if (!isEuroDistanceRateCountry(selectedCountry)) {
             return;
         }
         setPickedEuroCountry(selectedCountry);
         setPickedKind(undefined);
-        formRef.current?.resetForm({[INPUT_IDS.COUNTRY]: selectedCountry});
+        formRef.current?.resetForm({});
     };
 
     const navigateToWorkspaceOverview = () => {
@@ -263,23 +264,23 @@ function CreateDistanceRatePage({
                     >
                         {!isDistanceRateUpgrade && (
                             <>
-                                <View style={styles.mhn5}>
-                                    {canPickEuroCountry ? (
-                                        <InputWrapper
-                                            InputComponent={ValuePicker}
-                                            inputID={INPUT_IDS.COUNTRY}
+                                {canPickEuroCountry ? (
+                                    <View style={styles.mhn4}>
+                                        <EuroCountryDropdown
                                             label={translate('workspace.distanceRates.addRatePage.whichCountry')}
-                                            value={country}
-                                            items={getEuroDistanceRateCountryOptions(translate, localeCompare)}
-                                            onValueChange={selectEuroCountry}
+                                            selectedCountry={country ?? ''}
+                                            countries={getEuroDistanceRateCountryOptions(translate, localeCompare)}
+                                            onSelectCountry={selectEuroCountry}
                                         />
-                                    ) : (
+                                    </View>
+                                ) : (
+                                    <View style={styles.mhn5}>
                                         <MenuItemField
                                             name={translate('common.country')}
                                             value={country ? translate(`allCountries.${country}`) : translate('workspace.distanceRates.addRatePage.otherCountry')}
                                         />
-                                    )}
-                                </View>
+                                    </View>
+                                )}
                                 {!canPickEuroCountry && (
                                     <View style={[styles.renderHTML, styles.flexRow]}>
                                         <RenderHTML
