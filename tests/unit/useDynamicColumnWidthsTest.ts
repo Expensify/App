@@ -115,6 +115,27 @@ describe('useDynamicColumnWidths', () => {
         expect(widthsFrom(result.current.gridTemplateColumns)).toEqual([300, 180, 180]);
     });
 
+    it('sizes a column to a shorter text followed by a badge when that row renders widest', () => {
+        // Given a column whose 300px text has no badge, and whose 250px text is followed by an 80px badge on its row only
+        const badgedData: Row[] = [
+            {keyForList: 'plain', value: 'cell'},
+            {keyForList: 'badged', value: 'short'},
+        ];
+        measuredWidthByText['first-short'] = 250;
+        const columnsWithBadge = columnsWithSizingOn('first', {
+            shouldFitContent: true,
+            getContentToMeasure: (item: Row) => [{text: `first-${item.value}`, trailingWidth: item.value === 'short' ? 80 : undefined}],
+        });
+
+        // When the column is sized from its content
+        const {result} = renderHook(() =>
+            useDynamicColumnWidths<Row, string>({columns: columnsWithBadge, data: badgedData, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false, ...RESIZING_OFF}),
+        );
+
+        // Then the badged row decides the width, and the badge is not added to the row without one
+        expect(widthsFrom(result.current.gridTemplateColumns).at(0)).toBe(330);
+    });
+
     it('lets a column set a minimum of its own, over both the derived floor and its content', () => {
         // Given a column that declares the width it needs, narrower than its content and wider than the floor
         const columnsWithMinWidth = columnsWithSizingOn('first', {minWidth: 250});

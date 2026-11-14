@@ -144,6 +144,7 @@ function AgentsPage() {
                 selectedKeys={selectedAgentKeys}
                 onRowSelectionChange={setSelectedAgents}
                 shouldShowOwnerColumn
+                columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.AGENTS}
                 emptyStateButtons={emptyStateButtons}
             />
         </ScreenWrapper>

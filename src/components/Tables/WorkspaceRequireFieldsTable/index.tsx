@@ -8,6 +8,8 @@ import type {RequireFieldsTableItem} from '@libs/RequireFieldsRulesUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import WorkspaceRequireFieldsTableRow from './WorkspaceRequireFieldsTableRow';
@@ -48,6 +50,7 @@ function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys,
             ruleColumnLabel={translate('workspace.rules.requireFieldsTable.tableColumnRule')}
             renderRow={renderRow}
             typeColumnWidth={variables.tableRequireFieldsTypeColumnWidth}
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_REQUIRE_FIELDS}
         />
     );
 }

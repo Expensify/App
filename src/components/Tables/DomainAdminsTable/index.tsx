@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -67,11 +68,23 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
     const tableRef = useRef<TableHandle<DomainAdminsTableRowData, DomainAdminsTableColumnKey>>(null);
     useDomainHighlightOnReturn(domainAccountID, 'admins', tableRef);
 
-    const domainAdminsTableColumns: Array<TableColumn<DomainAdminsTableColumnKey>> = [
+    const domainAdminsTableColumns: Array<TableColumn<DomainAdminsTableColumnKey, DomainAdminsTableRowData>> = [
         {
             key: 'admin',
             label: translate('domain.admins.title'),
             sortable: true,
+            dynamicSizing: {
+                // The cell stacks the admin's name above their email, so whichever of the two renders wider decides the
+                // column's width. Group headers span the row with their own label, so they don't size this column.
+                getContentToMeasure: (item) =>
+                    item.rowType === CONST.DOMAIN.ADMINS.ROW_TYPE.GROUP_HEADER
+                        ? []
+                        : [
+                              {text: item.name, fontSize: fontScale.text},
+                              {text: item.email, fontSize: fontScale.label},
+                          ],
+                extraWidth: variables.tableMemberCellAvatarWidth,
+            },
         },
         {
             key: 'actions',
@@ -155,6 +168,8 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.DOMAIN_ADMINS}
             ref={tableRef}
             data={tableData}
             columns={domainAdminsTableColumns}

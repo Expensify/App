@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -106,8 +107,16 @@ function WorkspaceRoomsTable({
         tableRef.current?.highlightItems([highlightedRow.keyForList]);
     }, [highlightedReportID, rooms]);
 
-    const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
-        {key: 'name', label: translate('common.name'), sortable: true},
+    const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey, WorkspaceRoomRowData>> = [
+        {
+            key: 'name',
+            label: translate('common.name'),
+            sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.name, fontSize: fontScale.text}],
+                extraWidth: variables.tableMemberCellAvatarWidth,
+            },
+        },
         {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth, sortable: true},
         {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
     ];
@@ -156,6 +165,8 @@ function WorkspaceRoomsTable({
     return (
         <Table
             ref={tableRef}
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_ROOMS}
             data={rooms}
             columns={columns}
             renderItem={renderItem}

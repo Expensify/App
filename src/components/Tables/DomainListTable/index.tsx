@@ -1,5 +1,6 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
+import {getBadgeColumnDragMinWidth, getBadgeWidth} from '@components/Table/badgeCellWidths';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -53,11 +55,27 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const domainTableColumns: Array<TableColumn<DomainTableColumnKey>> = [
+    const verifiedBadgeWidth = getBadgeWidth(styles, translate('common.verified'));
+    const unverifiedBadgeWidth = getBadgeWidth(styles, translate('domain.notVerified'));
+    // Admins see a verification badge after the domain.
+    const hasVerificationBadge = domains.some((domain) => domain.isAdmin);
+    const domainIconExtraWidth = styles.domainIcon.width + styles.gap3.gap;
+
+    const domainTableColumns: Array<TableColumn<DomainTableColumnKey, DomainRowData>> = [
         {
             sortable: true,
             key: 'domains',
             label: translate('common.domains'),
+            dynamicSizing: {
+                getContentToMeasure: (item) => {
+                    if (!item.isAdmin) {
+                        return [{text: item.title, fontSize: fontScale.text}];
+                    }
+                    return [{text: item.title, fontSize: fontScale.text, trailingWidth: item.isValidated ? verifiedBadgeWidth : unverifiedBadgeWidth}];
+                },
+                extraWidth: domainIconExtraWidth,
+                dragMinWidth: getBadgeColumnDragMinWidth(hasVerificationBadge ? [verifiedBadgeWidth, unverifiedBadgeWidth] : [], domainIconExtraWidth),
+            },
         },
         {
             sortable: false,
@@ -101,6 +119,8 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.DOMAIN_LIST}
             data={domains}
             columns={domainTableColumns}
             renderItem={renderTableItem}

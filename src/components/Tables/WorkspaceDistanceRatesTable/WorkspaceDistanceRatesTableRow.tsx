@@ -23,9 +23,6 @@ import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Rate, Unit} from '@src/types/onyx/Policy';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
-
-import {format, parseISO} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -62,13 +59,6 @@ type WorkspaceDistanceRatesTableRowProps = {
     statusLabels: Record<string, string>;
     unit?: Unit;
 };
-
-function formatDate(dateString: string | null | undefined, dateFnsLocale: DateFnsLocale | undefined): string {
-    if (!dateString) {
-        return '';
-    }
-    return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale});
-}
 
 function getRateStatusColors(status: string, theme: ReturnType<typeof useTheme>, isSelected?: boolean) {
     switch (status) {
@@ -264,7 +254,7 @@ function WorkspaceDistanceRatesTableRow({
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
-                                text={formatDate(rate.startDate, dateFnsLocale)}
+                                text={DistanceRequestUtils.formatRateDate(rate.startDate, dateFnsLocale)}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
@@ -278,7 +268,7 @@ function WorkspaceDistanceRatesTableRow({
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
-                                text={formatDate(rate.endDate, dateFnsLocale)}
+                                text={DistanceRequestUtils.formatRateDate(rate.endDate, dateFnsLocale)}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>

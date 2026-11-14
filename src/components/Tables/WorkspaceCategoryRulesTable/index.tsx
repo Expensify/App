@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -39,6 +40,9 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     emptyState: TableEmptyStateProps;
     renderRow: (props: TableRenderRowProps<TItem>) => React.ReactElement;
     typeColumnWidth?: number;
+
+    /** Key the dragged column widths are saved under. Each rules tab passes its own, so their widths stay separate. */
+    columnResizingID: string;
 };
 
 /**
@@ -59,13 +63,14 @@ function WorkspaceCategoryRulesTableImpl({
     emptyState,
     renderRow,
     typeColumnWidth = variables.tableTypeColumnWidth,
+    columnResizingID,
 }: WorkspaceCategoryRulesTableProps<CategoryRulesTableItem>) {
     const {localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const columns: Array<TableColumn<CategoryRulesTableColumnKey>> = [
+    const columns: Array<TableColumn<CategoryRulesTableColumnKey, CategoryRulesTableItem>> = [
         {
             key: 'type',
             label: typeColumnLabel,
@@ -73,8 +78,22 @@ function WorkspaceCategoryRulesTableImpl({
             width: typeColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
-        {key: 'condition', label: conditionColumnLabel, sortable: true},
-        {key: 'rule', label: ruleColumnLabel, sortable: true},
+        {
+            key: 'condition',
+            label: conditionColumnLabel,
+            sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.conditionText, fontSize: fontScale.text}],
+            },
+        },
+        {
+            key: 'rule',
+            label: ruleColumnLabel,
+            sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.ruleDescription, fontSize: fontScale.text}],
+            },
+        },
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
     ];
 
@@ -108,6 +127,8 @@ function WorkspaceCategoryRulesTableImpl({
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={columnResizingID}
             data={rulesData}
             columns={columns}
             selectionEnabled={selectionEnabled}

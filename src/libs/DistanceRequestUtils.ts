@@ -989,21 +989,27 @@ function prepareTextForDisplay(text: string): string {
     return text.replaceAll(/[^0-9., ]/g, '').replace(/^0+(?=\d)/, '');
 }
 
-function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string {
-    const dateFormat = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT;
+/** Formats a rate's start or end date the way rate labels and the distance rates table show it. */
+function formatRateDate(dateString: string | null | undefined, dateFnsLocale: DateFnsLocale | undefined): string {
+    if (!dateString) {
+        return '';
+    }
+    return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale});
+}
 
+function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string {
     try {
         if (rate.startDate && rate.endDate) {
             return translate('iou.rateValidDateRange', {
-                startDate: format(parseISO(rate.startDate), dateFormat, {locale: dateFnsLocale}),
-                endDate: format(parseISO(rate.endDate), dateFormat, {locale: dateFnsLocale}),
+                startDate: formatRateDate(rate.startDate, dateFnsLocale),
+                endDate: formatRateDate(rate.endDate, dateFnsLocale),
             });
         }
         if (rate.startDate) {
-            return translate('iou.rateValidFrom', {startDate: format(parseISO(rate.startDate), dateFormat, {locale: dateFnsLocale})});
+            return translate('iou.rateValidFrom', {startDate: formatRateDate(rate.startDate, dateFnsLocale)});
         }
         if (rate.endDate) {
-            return translate('iou.rateValidUntil', {endDate: format(parseISO(rate.endDate), dateFormat, {locale: dateFnsLocale})});
+            return translate('iou.rateValidUntil', {endDate: formatRateDate(rate.endDate, dateFnsLocale)});
         }
     } catch {
         return '';
@@ -1112,6 +1118,7 @@ export default {
     getBestEligibleRate,
     getRateForPolicyChange,
     getRateDateLabel,
+    formatRateDate,
     getRateDisplayName,
     getRateNameWithDateSuffix,
     compareRatesByDisplayName,

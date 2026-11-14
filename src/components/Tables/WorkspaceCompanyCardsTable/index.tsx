@@ -257,7 +257,6 @@ function WorkspaceCompanyCardsTable({
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => (item.customCardName ? [{text: item.customCardName, fontSize: fontScale.text}] : []),
-                // Padding and border sit inside the track. Once a long name sets the column width, that chrome has to be measured or the name clips.
                 extraWidth: variables.editableCellChromeWidth,
             },
         },

@@ -8,8 +8,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -56,7 +58,7 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const columns: Array<TableColumn<PerDiemTableColumnKey>> = [
+    const columns: Array<TableColumn<PerDiemTableColumnKey, PerDiemTableRowData>> = [
         {
             key: 'destination',
             label: translate('common.destination'),
@@ -64,6 +66,10 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             styling: {
                 // editableCellHeader matches the padded destination cell so the label and value share an edge.
                 containerStyles: [styles.editableCellHeader],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.destination, fontSize: fontScale.text}],
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {
@@ -73,6 +79,11 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             styling: {
                 containerStyles: [styles.editableCellHeader],
             },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.subRateName, fontSize: fontScale.text}],
+                // The cell has the same padding and border as the destination cell.
+                extraWidth: variables.editableCellChromeWidth,
+            },
         },
         {
             key: 'amount',
@@ -81,6 +92,11 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             styling: {
                 // Keep the amount right-aligned, inset by the same chrome as the padded amount cell.
                 containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.formattedAmount, fontSize: fontScale.text}],
+                shouldFitContent: true,
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
@@ -143,6 +159,8 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_PER_DIEM}
             data={perDiemData}
             columns={columns}
             selectionEnabled={selectionEnabled}
