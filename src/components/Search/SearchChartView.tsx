@@ -22,7 +22,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
-import type {ChartView, GroupedItem, SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartView, GroupedItem, SearchChartCountDimension, SearchChartMetric, SearchDateFilterKeys, SearchGroupBy, SearchQueryJSON} from './types';
 
 import {buildChartSeries, isChartAverage} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
@@ -90,6 +90,9 @@ type SearchChartViewProps = {
 
     /** Style of the view around the chart, which the details below it don't share */
     chartContainerStyle?: StyleProp<ViewStyle>;
+
+    /** The date `queryJSON` narrows the period by, which time buckets cover and drill into. Defaults to the expense date. */
+    dateFilterKey?: SearchDateFilterKeys;
 };
 
 /**
@@ -114,6 +117,7 @@ function SearchChartView({
     shouldShowRunningTotal = false,
     renderDetails,
     chartContainerStyle,
+    dateFilterKey,
 }: SearchChartViewProps) {
     const theme = useTheme();
     const {preferredLocale, translate, dateFnsLocale, numberFormat} = useLocalize();
@@ -124,7 +128,7 @@ function SearchChartView({
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
+    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON, dateFilterKey) : {};
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
 
     // A count names what it counts, since nothing else in a tooltip or a donut's centre says the number is expenses rather than money.
@@ -183,7 +187,7 @@ function SearchChartView({
             return;
         }
 
-        const query = buildChartDrillDownQuery(queryJSON, getFilterQuery(item));
+        const query = buildChartDrillDownQuery(queryJSON, getFilterQuery(item, dateFilterKey));
 
         if (!query) {
             return;

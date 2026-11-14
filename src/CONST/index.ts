@@ -10610,6 +10610,10 @@ const CONST = {
                 AMOUNT: 'amount',
             },
         },
+        VIOLATION_STAGE: {
+            SUBMITTED: 'submitted',
+            APPROVED: 'approved',
+        },
     },
 
     SECTION_LIST_ITEM_TYPE: {

@@ -1,3 +1,4 @@
+import type {InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 
 import type {InsightsSearchKey} from './InsightsDashboard';
@@ -19,6 +20,9 @@ type SidePanel = {
 /** Insights dashboard and filters the user was looking at when they asked Concierge about it */
 type InsightsScope = Pick<InsightsFilters, 'policyIDs' | 'date' | 'groupCurrency'> & {
     searchKey: InsightsSearchKey;
+
+    /** Violation stage the explained chart counts, sent only for a Compliance chart with a violation stage control */
+    violationStage?: InsightsViolationStage;
 };
 
 /**

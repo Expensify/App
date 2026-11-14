@@ -26,7 +26,8 @@ import {getDateFilterRange} from '@libs/SearchQueryUtils';
 import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
-import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
+import InsightsViolationStageDropdown from '@pages/Insights/controls/InsightsViolationStageDropdown';
+import type {InsightsChartSpec, InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
@@ -86,6 +87,12 @@ type InsightsChartWidgetProps = {
 
     /** Shows a group-by control in the chart's header when set. Stores the time bucket or Running total the control picks. */
     onGroupByChange?: (update: Partial<InsightsFilters>) => void;
+
+    /** Violation stage picked on a chart that offers one, the submitters while none is picked */
+    violationStage?: InsightsViolationStage;
+
+    /** Shows the violation stage control in the header of a chart that offers one */
+    onViolationStageChange?: (stage: InsightsViolationStage) => void;
 };
 
 function InsightsChartWidget({
@@ -103,6 +110,8 @@ function InsightsChartWidget({
     supportsDrillIn = true,
     onRetry,
     onGroupByChange,
+    violationStage = CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED,
+    onViolationStageChange,
 }: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -131,7 +140,7 @@ function InsightsChartWidget({
         const content = buildInsightsChartCSV({
             data,
             groupBy,
-            dateFilterStart: getDateFilterRange(queryJSON).start,
+            dateFilterStart: getDateFilterRange(queryJSON, chart.dateFilterKey).start,
             currency: filters.groupCurrency,
             getCurrencyDecimals,
             translate,
@@ -164,11 +173,19 @@ function InsightsChartWidget({
             />
         ) : null;
 
+    const violationStageControl =
+        chart.hasViolationStageControl && onViolationStageChange ? (
+            <InsightsViolationStageDropdown
+                value={violationStage}
+                onChange={onViolationStageChange}
+            />
+        ) : null;
+
     const explainButton =
         isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <InsightsExplainButton
                 explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
-                insightsScope={insightsScope}
+                insightsScope={chart.hasViolationStageControl ? {...insightsScope, violationStage} : insightsScope}
             />
         ) : null;
 
@@ -209,8 +226,9 @@ function InsightsChartWidget({
         <WidgetContainer
             title={translate(chart.titleKey)}
             titleRightContent={
-                !!groupByControl || !!explainButton || !!headerMenu ? (
+                !!violationStageControl || !!groupByControl || !!explainButton || !!headerMenu ? (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
+                        {violationStageControl}
                         {groupByControl}
                         {explainButton}
                         {headerMenu}
@@ -240,6 +258,7 @@ function InsightsChartWidget({
                             comparison={comparison}
                             shouldShowRunningTotal={shouldShowRunningTotal}
                             chartContainerStyle={cardPaddingHorizontal}
+                            dateFilterKey={chart.dateFilterKey}
                             shouldShowSinglePointAsBar
                             shouldShowGroupLabels={isTimeGrouped}
                             onGroupPress={openDetails}

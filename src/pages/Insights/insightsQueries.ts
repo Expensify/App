@@ -7,10 +7,10 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
 
-import type {InsightsChartSpec, InsightsDateFilterKey} from './dashboardSpecs';
+import type {InsightsChartSpec, InsightsDateFilterKey, InsightsViolationStages} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
-import INSIGHTS_DASHBOARD_SPECS, {VIOLATION_HAS_VALUES} from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {applyViolationStage, getViolationStage, VIOLATION_HAS_VALUES} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans */
@@ -143,8 +143,13 @@ type InsightsQuery = {
     supportingCharts: InsightsChartQuery[];
 };
 
-/** Builds one request for the dashboard's headline chart and the given supporting charts, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
-function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, supportingChartSpecs: InsightsChartSpec[]): InsightsQuery | undefined {
+/** Builds one request for the headline and supporting charts, applying each chart's picked violation stage and returns the chart queries to read their snapshots back with. */
+function buildInsightsJsonQuery(
+    dashboard: InsightsDashboardID,
+    filters: InsightsFilters,
+    supportingChartSpecs: InsightsChartSpec[],
+    violationStages: InsightsViolationStages = {},
+): InsightsQuery | undefined {
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
     const inputQuery = buildInsightsQueryString(filters);
     const queryJSON = buildDashboardQuery(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
@@ -153,13 +158,24 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     }
 
     const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
-    const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({
-        chart,
-        queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
-        previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
-    });
+    const buildChartQuery = (declaredChart: InsightsChartSpec): InsightsChartQuery => {
+        const chart = applyViolationStage(declaredChart, violationStages[declaredChart.graphKey]);
+        return {
+            chart,
+            queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
+            previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
+        };
+    };
     const headlineChart = buildChartQuery(spec.headlineChart);
     const supportingCharts = supportingChartSpecs.map(buildChartQuery);
+    // GetInsights counts violations from both stages unless told otherwise, so every chart with a stage control names its stage, the submitters' by default
+    const requestedViolationStages: InsightsViolationStages = Object.fromEntries(
+        [spec.headlineChart, ...supportingChartSpecs].flatMap((chart) => {
+            const stage = getViolationStage(chart, violationStages);
+            return stage ? [[chart.graphKey, stage]] : [];
+        }),
+    );
+    const hasViolationStages = Object.keys(requestedViolationStages).length > 0;
     const graphEntries = [headlineChart, ...supportingCharts]
         .map((chartQuery) => buildSnapshotHashEntry(chartQuery, dashboard, filters))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);
@@ -175,6 +191,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
             searchKey: spec.searchKey,
             insightsHashes,
             numberOfPeriods: COMPARE_AVERAGE_PERIOD_COUNT,
+            ...(hasViolationStages && {violationStages: requestedViolationStages}),
         }),
         hash: queryJSON.hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((hash): hash is number => hash !== undefined)),

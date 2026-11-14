@@ -1382,6 +1382,11 @@ const translations = {
         slowestToApprove: 'Slowest to approve',
         mostTimeToPay: 'Most time to pay',
         runningTotal: 'Running total',
+        violationStage: {
+            label: 'Violations of',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Submitters',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvers',
+        },
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
