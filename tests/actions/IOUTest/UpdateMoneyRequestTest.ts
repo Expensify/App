@@ -192,6 +192,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating a money request category
             updateMoneyRequestCategory({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -263,6 +264,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When setting a category that is in the policy
             updateMoneyRequestCategory({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
                 transactionThreadReport,
@@ -634,6 +636,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the transaction attendees
             updateMoneyRequestAttendees({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: transaction.transactionID,
@@ -682,6 +685,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             updateMoneyRequestAttendees({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: transaction.transactionID,
@@ -750,6 +754,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the expense tag
             updateMoneyRequestTag({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: '1',
@@ -816,6 +821,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When unsetting the tag
             updateMoneyRequestTag({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -862,6 +868,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When editing the tag
             updateMoneyRequestTag({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
                 transactionThreadReport,
@@ -938,6 +945,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When editing the tax rate
             updateMoneyRequestTaxRate({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
                 transactionThreadReport,
@@ -1077,6 +1085,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating billable to true
             updateMoneyRequestBillable({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -1117,6 +1126,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updateMoneyRequestBillable is called with an undefined transactionID
             updateMoneyRequestBillable({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: undefined,
@@ -1147,6 +1157,60 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
     });
 
     describe('updateMoneyRequestDistance', () => {
+        it('uses the caller translator for a reported expense while its edited route is pending', async () => {
+            // Given a reported distance expense and a translator distinct from the global locale
+            const translate = jest.fn(() => 'Caller pending label');
+            const transactionID = 'distanceTranslation';
+            const parentReport = createMock<Report>({reportID: 'expenseReport', type: CONST.REPORT.TYPE.EXPENSE});
+            const transactionThreadReport = createMock<Report>({reportID: 'distanceThread', parentReportID: parentReport.reportID});
+            const transaction: Transaction = {
+                ...createRandomTransaction(0),
+                transactionID,
+                reportID: parentReport.reportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE}, waypoints: {}},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`, transactionThreadReport);
+            mockFetch.pause();
+
+            // When waypoints change without a resolved route, the reported-expense path builds an optimistic edit
+            updateMoneyRequestDistance({
+                translate,
+                transaction,
+                transactionThreadReport,
+                parentReport,
+                iouReportOwnerLogin: undefined,
+                waypoints: {waypoint0: {address: 'New destination'}},
+                recentWaypoints: [],
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                transactionBackup: transaction,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
+                violations: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+                isVendorMatchingBetaEnabled: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic merchant uses the caller's translator, not the global English label
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(translate).toHaveBeenCalledWith('iou.fieldPending');
+            expect(updatedTransaction?.modifiedMerchant).toBe('Caller pending label');
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('should update transaction with distance and waypoints', async () => {
             // Given a distance request transaction with valid waypoints and existing data
             const transactionID = 'transaction_123';
@@ -1752,6 +1816,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating reimbursable to the new value
             updateMoneyRequestReimbursable({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -1793,6 +1858,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updateMoneyRequestReimbursable is called with an undefined transactionID
             updateMoneyRequestReimbursable({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: undefined,

@@ -333,6 +333,7 @@ function updateMoneyRequestDate({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            translate,
             isVendorMatchingBetaEnabled,
             transactionID,
             transaction,
@@ -365,6 +366,7 @@ function updateMoneyRequestDate({
 
 /** Updates the billable field of an expense */
 function updateMoneyRequestBillable({
+    translate,
     transactionID,
     transaction,
     transactionThreadReport,
@@ -393,6 +395,7 @@ function updateMoneyRequestBillable({
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
     value: boolean;
+    translate: LocaleContextProps['translate'];
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -414,6 +417,7 @@ function updateMoneyRequestBillable({
         billable: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        translate,
         isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport,
@@ -447,6 +451,7 @@ function updateMoneyRequestBillable({
 }
 
 function updateMoneyRequestReimbursable({
+    translate,
     transactionID,
     transaction,
     transactionThreadReport,
@@ -476,6 +481,7 @@ function updateMoneyRequestReimbursable({
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
     value: boolean;
+    translate: LocaleContextProps['translate'];
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -498,6 +504,7 @@ function updateMoneyRequestReimbursable({
         reimbursable: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        translate,
         isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport,
@@ -602,6 +609,7 @@ function updateMoneyRequestMerchant({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            translate,
             isVendorMatchingBetaEnabled,
             transactionID,
             transaction,
@@ -632,6 +640,7 @@ function updateMoneyRequestMerchant({
 
 /** Updates the attendees list of an expense */
 function updateMoneyRequestAttendees({
+    translate,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -653,6 +662,7 @@ function updateMoneyRequestAttendees({
     rules,
     isVendorMatchingBetaEnabled,
 }: {
+    translate: LocaleContextProps['translate'];
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -678,6 +688,7 @@ function updateMoneyRequestAttendees({
         attendees,
     };
     const data = getUpdateMoneyRequestParams({
+        translate,
         isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport,
@@ -889,6 +900,7 @@ function updateMoneyRequestVendor({
 }
 
 type UpdateMoneyRequestTagParams = {
+    translate: LocaleContextProps['translate'];
     transactionID: string;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -918,6 +930,7 @@ type UpdateMoneyRequestTagParams = {
 
 /** Updates the tag of an expense */
 function updateMoneyRequestTag({
+    translate,
     transactionID,
     transaction,
     transactionThreadReport,
@@ -947,6 +960,7 @@ function updateMoneyRequestTag({
         tag,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        translate,
         isVendorMatchingBetaEnabled,
         transactionID,
         transaction,
@@ -995,6 +1009,7 @@ function updateMoneyRequestTag({
 
 /** Updates the created tax amount of an expense */
 function updateMoneyRequestTaxAmount({
+    translate,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -1014,6 +1029,7 @@ function updateMoneyRequestTaxAmount({
     rules,
     isVendorMatchingBetaEnabled,
 }: {
+    translate: LocaleContextProps['translate'];
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1037,6 +1053,7 @@ function updateMoneyRequestTaxAmount({
         taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        translate,
         isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport,
@@ -1060,6 +1077,7 @@ function updateMoneyRequestTaxAmount({
 }
 
 type UpdateMoneyRequestTaxRateParams = {
+    translate: LocaleContextProps['translate'];
     transactionID: string | undefined;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1086,6 +1104,7 @@ type UpdateMoneyRequestTaxRateParams = {
 
 /** Updates the created tax rate of an expense */
 function updateMoneyRequestTaxRate({
+    translate,
     transactionID,
     transaction,
     transactionThreadReport,
@@ -1115,6 +1134,7 @@ function updateMoneyRequestTaxRate({
         taxValue,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        translate,
         isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport,
@@ -1243,6 +1263,7 @@ function updateMoneyRequestDistance({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            translate,
             isVendorMatchingBetaEnabled,
             transactionID: transaction?.transactionID,
             transactionThreadReport,
@@ -1332,6 +1353,7 @@ function updateMoneyRequestDistance({
 
 /** Updates the category of an expense */
 function updateMoneyRequestCategory({
+    translate,
     transactionID,
     transaction,
     transactionThreadReport,
@@ -1355,6 +1377,7 @@ function updateMoneyRequestCategory({
     rules,
     isVendorMatchingBetaEnabled,
 }: {
+    translate: LocaleContextProps['translate'];
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
@@ -1383,6 +1406,7 @@ function updateMoneyRequestCategory({
     };
 
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        translate,
         isVendorMatchingBetaEnabled,
         transactionID,
         transaction,
@@ -1490,6 +1514,7 @@ function updateMoneyRequestDescription({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            translate,
             isVendorMatchingBetaEnabled,
             transactionID,
             transaction,
@@ -1639,6 +1664,7 @@ function updateMoneyRequestDistanceRate({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            translate,
             isVendorMatchingBetaEnabled,
             transactionID: transaction?.transactionID,
             transactionThreadReport,
@@ -1765,6 +1791,7 @@ function updateMoneyRequestAmountAndCurrency({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            translate,
             isVendorMatchingBetaEnabled,
             transactionID,
             transaction,
@@ -1796,6 +1823,8 @@ function updateMoneyRequestAmountAndCurrency({
 }
 
 type GetUpdateMoneyRequestParamsType = {
+    /** Optional until the existing-split update caller is migrated in the final PR for issue 64943. */
+    translate?: LocaleContextProps['translate'];
     transactionID: string | undefined;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1851,6 +1880,7 @@ type UpdateMoneyRequestDataKeys =
  */
 function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): UpdateMoneyRequestData<UpdateMoneyRequestDataKeys> {
     const {
+        translate,
         transactionID,
         transaction: transactionParam,
         transactionThreadReport,
@@ -1967,6 +1997,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         : transactionChanges;
     const updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction
         ? getUpdatedTransaction({
+              translate,
               transaction,
               transactionChanges: transactionChangesForOptimisticMerge,
               isFromExpenseReport,

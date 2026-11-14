@@ -749,7 +749,7 @@ describe('TransactionInlineEdit', () => {
         ])('forwards the caller transaction when editing %s', (_field, edit, getDelegate, expectedChange) => {
             edit();
 
-            expect(getDelegate()).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, transaction: snapshotTransaction, ...expectedChange}));
+            expect(getDelegate()).toHaveBeenCalledWith(expect.objectContaining({translate, transactionID: TRANSACTION_ID, transaction: snapshotTransaction, ...expectedChange}));
         });
 
         it('clears the merchant instead of discarding the edit', () => {
