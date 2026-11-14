@@ -147,6 +147,38 @@ describe('useFilterPanesKeyboardNavigation', () => {
         expect(document.activeElement).toBe(panes.contentInput);
     });
 
+    it.each([
+        ['moves the focus to the next row when nothing else took the arrow key', false, true],
+        ['leaves the arrow key to a selection list that took it', true, false],
+    ])('%s', (_case, isTakenByList, isFocusMoved) => {
+        // Given content rows outside the panes' own handling, like the date presets, with the focus on the first
+        const panes = createPanes();
+        renderNavigation(panes);
+        const [firstRow, nextRow] = ['This week', 'This month'].map((label) => {
+            const row = document.createElement('div');
+            row.tabIndex = 0;
+            row.setAttribute('role', CONST.ROLE.OPTION);
+            row.setAttribute('aria-label', label);
+            markShown(row);
+            panes.contentContainer.appendChild(row);
+            return row;
+        });
+        if (!firstRow || !nextRow) {
+            throw new Error('Rows were not created');
+        }
+        firstRow.focus();
+        if (isTakenByList) {
+            firstRow.addEventListener('keydown', (event) => event.preventDefault());
+        }
+
+        // When the down arrow is pressed
+        const event = pressKey(firstRow, CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+
+        // Then only an arrow key nobody took moves the focus, and it no longer scrolls the content
+        expect(document.activeElement).toBe(isFocusMoved ? nextRow : firstRow);
+        expect(event.defaultPrevented).toBe(true);
+    });
+
     it('leaves the keys to an input method while it composes text', () => {
         // Given text being composed in the filter search
         const panes = createPanes();

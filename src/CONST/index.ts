@@ -396,6 +396,9 @@ const CONST = {
     ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
     ADVANCED_FILTERS_POPOVER_WIDTH: 582,
     ADVANCED_FILTERS_CONTENT_WIDTH: 331,
+
+    // The "Is" and "Is not" buttons of a filter carry this data attribute, so moving into the filter skips past them
+    ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT: 'advanced-filters-negation-toggle',
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle

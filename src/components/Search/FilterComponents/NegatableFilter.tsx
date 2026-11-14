@@ -38,7 +38,10 @@ function NegatableFilter({baseFilterKey, isNegated, children, style, onNegationC
         <View style={[styles.gap3, style]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
                 <Text style={[styles.textLabelSupporting]}>{translate('search.filters.filterType.label')}</Text>
-                <View style={[styles.border, styles.negatableFilterButtons]}>
+                <View
+                    style={[styles.border, styles.negatableFilterButtons]}
+                    dataSet={{[CONST.ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT]: true}}
+                >
                     <Button
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.NEGATABLE_FILTER_POSITIVE}
                         style={[styles.flex1]}

@@ -1,5 +1,5 @@
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import {focusFirstShownControl, getAdjacentRow, isCaretAtEdge} from '@libs/SearchAdvancedFiltersKeyboardUtils';
+import {focusAdjacentShownRow, focusFirstShownControl, getAdjacentRow, isCaretAtEdge} from '@libs/SearchAdvancedFiltersKeyboardUtils';
 
 import CONST from '@src/CONST';
 
@@ -164,10 +164,31 @@ function useFilterPanesKeyboardNavigation<Row>({
         event.stopPropagation();
     });
 
+    // Rows outside a selection list, like the date presets, have nothing moving between them. A selection list marks the
+    // arrow keys it takes as handled, so only the ones left over move the focus here, after every other listener.
+    const handleUnhandledArrowKey = useEffectEvent((event: KeyboardEvent) => {
+        const contentContainer = contentContainerRef.current;
+        const isArrowDown = event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey;
+        if (event.defaultPrevented || (!isArrowDown && event.key !== CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey) || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+            return;
+        }
+        if (!(contentContainer instanceof HTMLElement) || !(event.target instanceof HTMLElement) || !contentContainer.contains(event.target)) {
+            return;
+        }
+        if (focusAdjacentShownRow(contentContainer, event.target, isArrowDown ? 1 : -1)) {
+            event.preventDefault();
+        }
+    });
+
     useEffect(() => {
         const onKeyDown = (event: KeyboardEvent) => handleKeyDown(event);
+        const onUnhandledKeyDown = (event: KeyboardEvent) => handleUnhandledArrowKey(event);
         window.addEventListener('keydown', onKeyDown, true);
-        return () => window.removeEventListener('keydown', onKeyDown, true);
+        window.addEventListener('keydown', onUnhandledKeyDown);
+        return () => {
+            window.removeEventListener('keydown', onKeyDown, true);
+            window.removeEventListener('keydown', onUnhandledKeyDown);
+        };
     }, []);
 }
 

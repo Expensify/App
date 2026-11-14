@@ -1,3 +1,5 @@
+import CONST from '@src/CONST';
+
 import FOCUSABLE_SELECTOR from './focusableSelector';
 
 /** Returns the row an arrow key moves to, wrapping around the ends. With no current row, down starts at the top and up at the bottom. */
@@ -26,16 +28,20 @@ function isCaretAtEdge(target: EventTarget | null, edge: 'start' | 'end'): boole
 /** The text a filter is typed into. It can sit below the rows that pick how it applies, like "Equal to" above an amount. */
 const FILTER_TEXT_SELECTOR = 'input, textarea, [role="textbox"]';
 
-/** Rows a filter is picked from, which come after the "Is" and "Is not" buttons of a negatable filter. */
-const FILTER_ROW_SELECTOR = '[role="option"], [role="checkbox"], [role="radio"]';
+/** Rows outside a selection list, like the date presets. A row can hold a checkbox that only a pointer reaches, so a row has to be a tab stop. */
+const FILTER_ROW_SELECTOR = '[role="option"][tabindex="0"], [role="checkbox"][tabindex="0"], [role="radio"][tabindex="0"]';
+
+const findShown = (container: HTMLElement, selector: string) => Array.from(container.querySelectorAll<HTMLElement>(selector)).filter((element) => element.getClientRects().length > 0);
+
+const isOutsideNegationToggle = (element: HTMLElement) => !element.closest(`[data-${CONST.ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT}]`);
 
 /**
- * Focuses the text or first row of the shown content, or else its first control. Hidden filter contents stay in the
- * DOM, so only a laid out element counts.
+ * Focuses the text of the shown content, or else its first control past the "Is" and "Is not" buttons. Hidden filter
+ * contents stay in the DOM, so only a laid out element counts.
  */
 function focusFirstShownControl(container: HTMLElement): boolean {
-    const findFirstShown = (selector: string) => Array.from(container.querySelectorAll<HTMLElement>(selector)).find((element) => element.getClientRects().length > 0);
-    const firstControl = findFirstShown(FILTER_TEXT_SELECTOR) ?? findFirstShown(FILTER_ROW_SELECTOR) ?? findFirstShown(FOCUSABLE_SELECTOR);
+    const shownControls = findShown(container, FOCUSABLE_SELECTOR);
+    const firstControl = findShown(container, FILTER_TEXT_SELECTOR).at(0) ?? shownControls.find(isOutsideNegationToggle) ?? shownControls.at(0);
     if (!firstControl) {
         return false;
     }
@@ -43,4 +49,20 @@ function focusFirstShownControl(container: HTMLElement): boolean {
     return true;
 }
 
-export {getAdjacentRow, isCaretAtEdge, focusFirstShownControl};
+/** Focuses the shown row next to the given one, among the rows of its kind, and stops at the ends. */
+function focusAdjacentShownRow(container: HTMLElement, row: HTMLElement, step: 1 | -1): boolean {
+    if (!row.matches(FILTER_ROW_SELECTOR)) {
+        return false;
+    }
+    const rowsOfKind = findShown(container, FILTER_ROW_SELECTOR).filter((element) => element.getAttribute('role') === row.getAttribute('role'));
+    const adjacentIndex = rowsOfKind.indexOf(row) + step;
+    // A negative index would count from the end, so the first row stays put on the up arrow.
+    const adjacentRow = adjacentIndex >= 0 ? rowsOfKind.at(adjacentIndex) : undefined;
+    if (!adjacentRow) {
+        return false;
+    }
+    adjacentRow.focus();
+    return true;
+}
+
+export {getAdjacentRow, isCaretAtEdge, focusFirstShownControl, focusAdjacentShownRow};
