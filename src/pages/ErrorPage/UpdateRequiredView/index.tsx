@@ -76,6 +76,7 @@ function UpdateRequiredView() {
                     </View>
                 </View>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.UPDATE_REQUIRED.REFRESH_PAGE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={refreshPage}

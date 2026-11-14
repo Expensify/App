@@ -1,5 +1,6 @@
 import Icon from '@components/Icon';
 import getTabIconFill from '@components/Navigation/NavigationTabBar/getTabIconFill';
+import {getCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
@@ -17,6 +18,7 @@ import type {ColorValue} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 type FlatNavItemProps = {
     /** Translated row label */
@@ -32,6 +34,9 @@ type FlatNavItemProps = {
 
     isSelected: boolean;
 
+    /** Whether the row keeps only its icon, so the bar can narrow to an icon rail */
+    isCollapsed?: boolean;
+
     /** Draws the row taller than the destination rows, as the Account row is */
     isTall?: boolean;
 
@@ -44,10 +49,30 @@ type FlatNavItemProps = {
     sentryLabel: SentryLabel;
 
     onPress: () => void;
+
+    /** Called when the pointer moves onto the row */
+    onHoverIn?: () => void;
+
+    /** Called when the pointer leaves the row */
+    onHoverOut?: () => void;
 };
 
 /** Full-width row of the flat navigation bar: an icon or avatar, then the destination's label. */
-function FlatNavItem({label, icon, renderLeftElement, rightElement, isSelected, isTall = false, statusIndicatorColor, accessibilityLabel, sentryLabel, onPress}: FlatNavItemProps) {
+function FlatNavItem({
+    label,
+    icon,
+    renderLeftElement,
+    rightElement,
+    isSelected,
+    isCollapsed = false,
+    isTall = false,
+    statusIndicatorColor,
+    accessibilityLabel,
+    sentryLabel,
+    onPress,
+    onHoverIn,
+    onHoverOut,
+}: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -59,6 +84,9 @@ function FlatNavItem({label, icon, renderLeftElement, rightElement, isSelected, 
         return isHovered ? styles.highlightBG : undefined;
     };
 
+    // The label stays mounted and fades, rather than disappearing the moment the bar starts narrowing.
+    const collapseFadeStyle = getCollapseFadeStyle(isCollapsed);
+
     return (
         <PressableWithFeedback
             onPress={onPress}
@@ -66,6 +94,8 @@ function FlatNavItem({label, icon, renderLeftElement, rightElement, isSelected, 
             accessibilityLabel={accessibilityLabel ?? label}
             accessibilityState={{selected: isSelected}}
             sentryLabel={sentryLabel}
+            onHoverIn={onHoverIn}
+            onHoverOut={onHoverOut}
             style={({hovered}) => [styles.flatNavigationBarItem, isTall && styles.flatNavigationBarAccountItem, getRowBackgroundStyle(hovered)]}
         >
             {({hovered}) => {
@@ -94,14 +124,15 @@ function FlatNavItem({label, icon, renderLeftElement, rightElement, isSelected, 
                             </View>
                         )}
                         {renderLeftElement?.({backgroundColor: rowBackgroundColor})}
-                        <Text
-                            variant={isSelected ? 'textStrong' : 'text'}
-                            color={isSelected || hovered ? theme.text : theme.textSupporting}
-                            numberOfLines={1}
-                            style={styles.flex1}
-                        >
-                            {label}
-                        </Text>
+                        <Animated.View style={[styles.flex1, collapseFadeStyle]}>
+                            <Text
+                                variant={isSelected ? 'textStrong' : 'text'}
+                                color={isSelected || hovered ? theme.text : theme.textSupporting}
+                                numberOfLines={1}
+                            >
+                                {label}
+                            </Text>
+                        </Animated.View>
                         {rightElement}
                     </>
                 );

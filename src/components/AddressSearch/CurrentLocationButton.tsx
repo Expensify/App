@@ -11,6 +11,8 @@ import getButtonState from '@libs/getButtonState';
 
 import colors from '@styles/theme/colors';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import type {CurrentLocationButtonProps} from './types';
@@ -23,6 +25,7 @@ function CurrentLocationButton({onPress, isDisabled = false}: CurrentLocationBut
 
     return (
         <PressableWithFeedback
+            sentryLabel={CONST.SENTRY_LABEL.ADDRESS_SEARCH.CURRENT_LOCATION_BUTTON}
             style={[styles.flexRow, styles.pv4, styles.ph3, isDisabled && styles.buttonOpacityDisabled]}
             hoverStyle={StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: true}), true)}
             onPress={() => onPress?.()}

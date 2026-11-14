@@ -250,7 +250,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     // The accounting export actions (export to integration / mark as exported) the user is allowed to perform on the report
     const secondaryExportActions: string[] = moneyRequestReport
-        ? getReportAccountingExportActions(accountID, currentUserLogin ?? '', moneyRequestReport, bankAccountList, policy ?? undefined)
+        ? getReportAccountingExportActions(accountID, currentUserLogin ?? '', moneyRequestReport, bankAccountList, policy ?? undefined, reportActions)
         : [];
 
     // Assemble the export submenu from its pre-sorted groups (accounting actions, custom templates, default templates), with a divider between each non-empty group

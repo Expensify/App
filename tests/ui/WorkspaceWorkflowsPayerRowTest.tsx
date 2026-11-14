@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
@@ -10,6 +10,7 @@ import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginPr
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import * as PolicyActions from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -120,6 +121,51 @@ describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
         jest.restoreAllMocks();
     });
 
+    it('shows per-country pending styles only offline and hides pending deletions immediately online', async () => {
+        // Given saved, added and deleted countries remain pending in the same workspace.
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.COLLECT_DEPOSIT_ACCOUNTS]);
+            await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                    isCollectDepositAccountsEnabled: true,
+                    reimbursement: {
+                        countries: {
+                            AF: {},
+                            AX: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                            AL: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                        },
+                    },
+                }),
+            );
+        });
+        const {result} = renderHook(() => useThemeStyles());
+
+        // When the payments tab renders offline, only changed countries get pending styles.
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then saved countries stay normal, removals are struck through and additions are muted.
+        expect(screen.getByText('Afghanistan')).not.toHaveStyle(result.current.colorMuted);
+        expect(screen.getByText(TestHelper.translateLocal('allCountries.AX'))).toHaveStyle(result.current.colorMuted);
+        expect(screen.getByText(TestHelper.translateLocal('allCountries.AX'))).toHaveStyle(result.current.offlineFeedbackDeleted);
+        expect(screen.getByText('Albania')).toHaveStyle(result.current.colorMuted);
+
+        // When connectivity returns without clearing any pending actions, offline styling disappears immediately.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then pending deletions are hidden and both saved and added countries have normal styling.
+        expect(screen.queryByText(TestHelper.translateLocal('allCountries.AX'))).toBeNull();
+        expect(screen.getByText('Afghanistan')).not.toHaveStyle(result.current.colorMuted);
+        expect(screen.getByText('Albania')).not.toHaveStyle(result.current.colorMuted);
+    });
+
     it.each(['bank account list', 'policy bank account', 'reimbursement countries'])('warns before disabling payments with %s', async (source) => {
         // Given payment settings from each supported source, including an account not yet present in policy.achAccount
         await TestHelper.signInWithTestUser();
@@ -142,7 +188,7 @@ describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
                                   reimburser: 'test@user.com',
                               }
                             : undefined,
-                    reimbursement: {countries: source === 'reimbursement countries' ? {US: []} : {}},
+                    reimbursement: {countries: source === 'reimbursement countries' ? {US: {}} : {}},
                 }),
             );
             if (source === 'bank account list') {
