@@ -509,7 +509,6 @@ function getImportedApprovers({spreadsheetData, mappedColumns, containsHeader, c
 
 export {
     findColumnName,
-    findDuplicate,
     findDuplicateColumnLabel,
     generateColumnNames,
     getApproverColumnRole,
