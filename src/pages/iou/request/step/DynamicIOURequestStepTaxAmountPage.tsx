@@ -136,6 +136,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 return;
             }
             updateMoneyRequestTaxAmount({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID,
                 transactionThreadReport: report,

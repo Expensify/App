@@ -87,6 +87,7 @@ function DynamicIOURequestStepAttendees({
         if (!deepEqual(previousAttendees, attendees)) {
             if (isEditing) {
                 updateMoneyRequestAttendees({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transactionID,
                     transactionThreadReport: report,

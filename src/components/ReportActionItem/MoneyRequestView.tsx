@@ -740,6 +740,7 @@ function MoneyRequestView({
             return;
         }
         updateMoneyRequestBillable({
+            translate,
             isVendorMatchingBetaEnabled,
             transactionID: transaction.transactionID,
             transaction,
@@ -769,6 +770,7 @@ function MoneyRequestView({
             return;
         }
         updateMoneyRequestReimbursable({
+            translate,
             isVendorMatchingBetaEnabled,
             transactionID: transaction.transactionID,
             transaction,
@@ -921,6 +923,7 @@ function MoneyRequestView({
             }
 
             updateMoneyRequestTaxRate({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID,
                 transaction,
@@ -963,6 +966,7 @@ function MoneyRequestView({
             }
 
             updateMoneyRequestCategory({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID,
                 transaction,
@@ -1006,6 +1010,7 @@ function MoneyRequestView({
             // Clear only the pressed level so the other levels of a multi-level tag are kept.
             const updatedTag = insertTagIntoTransactionTagsString(transactionTag ?? '', '', tagListIndex, policy?.hasMultipleTagLists ?? false);
             updateMoneyRequestTag({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID,
                 transaction,

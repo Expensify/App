@@ -20,6 +20,7 @@ import useAllTransactionViolations from './useAllTransactionViolations';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
@@ -58,6 +59,7 @@ type UseUpdateTransactionTaxRateResult = {
  */
 function useUpdateTransactionTaxRate({transactionID, transaction, report, policy, isEditing, isEditingSplit}: UseUpdateTransactionTaxRateParams): UseUpdateTransactionTaxRateResult {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
@@ -78,6 +80,7 @@ function useUpdateTransactionTaxRate({transactionID, transaction, report, policy
 
     const updateTaxRate = (taxes: TaxRatesOption, shouldClearTax?: boolean) => {
         const updateTaxRateParams = {
+            translate,
             isVendorMatchingBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING),
             transactionID,
             transactionThreadReport: report,
