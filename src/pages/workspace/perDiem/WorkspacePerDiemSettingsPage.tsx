@@ -1,6 +1,6 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import CustomUnitDefaultCategorySelector from '@components/CustomUnitDefaultCategorySelector';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -65,7 +65,7 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
                 style={[styles.defaultModalContainer]}
                 testID="WorkspacePerDiemSettingsPage"
             >
-                <HeaderWithBackButton title={translate('workspace.common.settings')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.common.settings')} />
                 <FullPageBlockingView
                     style={customUnit ? styles.flexGrow1 : []}
                     addBottomSafeAreaPadding

@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ReportFieldListValueRowData} from '@components/Tables/WorkspaceReportFieldListValuesTable';
@@ -318,7 +318,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     customText={translate('workspace.common.selected', {count: selectedKeys.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
                     isDisabled={!selectedKeys.length}
                 />
             );
@@ -328,7 +328,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
             return (
                 <Button
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.LIST_VALUES_ADD_VALUE}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(getAddValueRoute(isInvoicePage, policyID, reportFieldID))}
                 >
@@ -362,7 +362,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                 testID={testID}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.reportFields.listValues')}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
@@ -374,7 +374,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     }}
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
+                </HeaderWithBackButtonAndTitle>
                 {isInvoicePage && tableHeaderComponent}
                 <WorkspaceReportFieldListValuesTable
                     listValues={listValueRows}

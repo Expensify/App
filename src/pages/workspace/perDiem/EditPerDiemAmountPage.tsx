@@ -2,7 +2,7 @@ import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -84,7 +84,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
                 testID="EditPerDiemAmountPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.perDiem.amount')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID))}
                 />

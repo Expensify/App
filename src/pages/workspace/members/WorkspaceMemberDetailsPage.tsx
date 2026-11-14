@@ -2,7 +2,7 @@ import AutoUpdateTime from '@components/AutoUpdateTime';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -467,7 +467,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="WorkspaceMemberDetailsPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={displayName}
                     subtitle={policy?.name}
                 />
