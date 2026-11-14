@@ -128,7 +128,7 @@ To change the starting arrangement later, open **Exclude commutes > Default work
    - **Tax reclaimable** (if enabled)
 5. Select **Save**.
 
-On the web, you can also edit a rate's **Name** or **Rate** directly from the table. Hover over the value and click the pencil icon that appears to edit it inline.
+On web with a wide screen, you can also edit a rate's **Name**, **Rate**, or **Tax reclaimable on** amount (if enabled) directly from the table. Hover over the value and select the **Edit** icon to edit it inline.
 
 ---
 
