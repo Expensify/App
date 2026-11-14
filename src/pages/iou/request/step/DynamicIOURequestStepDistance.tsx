@@ -577,6 +577,7 @@ function DynamicIOURequestStepDistance({
             }
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
@@ -707,6 +708,7 @@ function DynamicIOURequestStepDistance({
         const isRouteSelectionOnlyChange = shouldUpdateSelectedRoute && !isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged;
         const hasRouteChanged = haveWaypointsChanged && !deepEqual(transactionBackup?.routes, transaction?.routes);
         updateMoneyRequestDistance({
+            translate,
             isVendorMatchingBetaEnabled,
             transaction,
             transactionThreadReport: report,

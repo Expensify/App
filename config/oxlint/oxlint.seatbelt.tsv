@@ -1029,7 +1029,7 @@
 "../../src/libs/TransactionUtils/duplicates.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/libs/TransactionUtils/duplicates.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/TransactionUtils/duplicates.ts"	"import/no-cycle"	2
-"../../src/libs/TransactionUtils/getUpdatedTransaction.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
+"../../src/libs/TransactionUtils/getUpdatedTransaction.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/TransactionUtils/getUpdatedTransaction.ts"	"import/no-cycle"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3

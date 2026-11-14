@@ -223,6 +223,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            translate,
             transactions: duplicateTransactions,
             transactionViolations: duplicateTransactionViolations,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
