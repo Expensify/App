@@ -10,6 +10,9 @@ import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 
 import WorkspaceWorkflowsApprovalsEditPage from '@pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage';
 
+import {removeApprovalWorkflow, updateApprovalWorkflow, updateApprovalWorkflowRules} from '@userActions/Workflow';
+import type * as WorkflowActions from '@userActions/Workflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -30,6 +33,29 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const POLICY_ID = 'workflow-approvals-edit-test-policy';
 const ALICE_EMAIL = 'alice@example.com';
 const ALICE_ACCOUNT_ID = 1;
+const BOB_EMAIL = 'bob@example.com';
+const BOB_ACCOUNT_ID = 2;
+const CAROL_EMAIL = 'carol@example.com';
+const CAROL_ACCOUNT_ID = 3;
+
+jest.mock('@userActions/Workflow', () => {
+    const actual = jest.requireActual<typeof WorkflowActions>('@userActions/Workflow');
+    // These stay wired to the real implementations so tests can assert on the Onyx writes as well as the calls.
+    return {
+        ...actual,
+        updateApprovalWorkflow: jest.fn(actual.updateApprovalWorkflow),
+        updateApprovalWorkflowRules: jest.fn(actual.updateApprovalWorkflowRules),
+        removeApprovalWorkflow: jest.fn(actual.removeApprovalWorkflow),
+    };
+});
+
+// Matches ModalActions.CONFIRM (components/Modal/Global/ModalContext.tsx), inlined since a jest.mock factory
+// can't reference an out-of-scope import.
+const mockShowConfirmModal = jest.fn<Promise<{action: string}>, [{title: string}]>(() => Promise.resolve({action: 'CONFIRM'}));
+jest.mock('@hooks/useConfirmModal', () => ({
+    __esModule: true,
+    default: () => ({showConfirmModal: mockShowConfirmModal}),
+}));
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -56,6 +82,18 @@ function buildPolicy(): Policy {
             submitsTo: ALICE_EMAIL,
             forwardsTo: undefined,
         },
+        // A second, non-default workflow (Bob submits to Carol rather than Alice, the policy's default approver),
+        // so the delete test below can exercise a workflow the "isDefault" guard would otherwise hide the Delete
+        // button for.
+        [BOB_EMAIL]: {
+            email: BOB_EMAIL,
+            submitsTo: CAROL_EMAIL,
+            forwardsTo: undefined,
+        },
+        [CAROL_EMAIL]: {
+            email: CAROL_EMAIL,
+            forwardsTo: undefined,
+        },
     };
     return {
         id: POLICY_ID,
@@ -77,6 +115,8 @@ function buildPolicy(): Policy {
 function buildPersonalDetailsList(): PersonalDetailsList {
     return {
         [ALICE_ACCOUNT_ID]: buildPersonalDetails(ALICE_EMAIL, ALICE_ACCOUNT_ID, 'alice'),
+        [BOB_ACCOUNT_ID]: buildPersonalDetails(BOB_EMAIL, BOB_ACCOUNT_ID, 'bob'),
+        [CAROL_ACCOUNT_ID]: buildPersonalDetails(CAROL_EMAIL, CAROL_ACCOUNT_ID, 'carol'),
     };
 }
 
@@ -86,6 +126,15 @@ const mockRoute = {
     params: {
         policyID: POLICY_ID,
         firstApproverEmail: ALICE_EMAIL,
+    },
+};
+
+const bobsWorkflowRoute = {
+    key: 'test-route-bob',
+    name: 'Workspace_Approvals_Edit',
+    params: {
+        policyID: POLICY_ID,
+        firstApproverEmail: CAROL_EMAIL,
     },
 };
 
@@ -132,6 +181,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
 
     afterEach(async () => {
         jest.restoreAllMocks();
+        jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -169,7 +219,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
                 key: ONYXKEYS.APPROVAL_WORKFLOW,
                 callback: (state) => {
                     resolve(state?.members ?? []);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });
@@ -186,7 +236,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
                 key: ONYXKEYS.APPROVAL_WORKFLOW,
                 callback: (state) => {
                     resolve(state?.availableMembers ?? []);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });
@@ -229,13 +279,19 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        jest.mocked(Navigation.dismissModal).mockImplementationOnce((options) => options?.afterTransition?.());
 
         renderEditPage({...mockRoute, params: {policyID: POLICY_ID, firstApproverEmail: bobEmail}});
         await waitForBatchedUpdatesWithAct();
 
         // When the admin saves the workflow
         fireEvent.press(screen.getByText(translateLocal('common.save')));
+        await waitForBatchedUpdatesWithAct();
+
+        // The editor defers the write to the close animation, so run that callback to get the write to happen.
+        const [, options] = jest.mocked(Navigation.goBack).mock.calls.at(-1) ?? [];
+        await act(async () => {
+            options?.afterTransition?.();
+        });
 
         // Then Bob becomes the default approver, so Bob's workflow is the only one left and it is the default one
         await waitFor(async () => expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`))?.approver).toBe(bobEmail));
@@ -244,6 +300,143 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
         expect(approvalWorkflows).toHaveLength(1);
         expect(approvalWorkflows.at(0)?.isDefault).toBe(true);
         expect(approvalWorkflows.at(0)?.approvers.map((approver) => approver.email)).toEqual([bobEmail]);
+    });
+
+    describe('Save', () => {
+        it('pops only the editor and applies the update after the transition', async () => {
+            renderEditPage();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText(translateLocal('common.save')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Pops just this screen (via the mocked Navigation.goBack) rather than tearing down the whole RHP stack
+            // with dismissModal, and defers the write to an afterTransition callback instead of writing immediately.
+            expect(Navigation.goBack).toHaveBeenCalled();
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
+
+            const [, options] = jest.mocked(Navigation.goBack).mock.calls.at(-1) ?? [];
+            expect(options?.afterTransition).toBeInstanceOf(Function);
+            expect(updateApprovalWorkflow).not.toHaveBeenCalled();
+
+            options?.afterTransition?.();
+
+            expect(updateApprovalWorkflow).toHaveBeenCalledTimes(1);
+            expect(updateApprovalWorkflowRules).not.toHaveBeenCalled();
+        });
+
+        it('writes through the rules-based path instead when MULTIPLE_APPROVERS is enabled', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+            });
+
+            renderEditPage();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText(translateLocal('common.save')));
+            await waitForBatchedUpdatesWithAct();
+
+            const [, options] = jest.mocked(Navigation.goBack).mock.calls.at(-1) ?? [];
+            options?.afterTransition?.();
+
+            expect(updateApprovalWorkflowRules).toHaveBeenCalledTimes(1);
+            expect(updateApprovalWorkflow).not.toHaveBeenCalled();
+        });
+
+        it('keeps writing to employeeList under MULTIPLE_APPROVERS while a policy without rules has an over-limit approver', async () => {
+            // Given the beta is on, and the policy has no rules while Alice sends reports over her limit to Carol
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[ALICE_EMAIL]: {approvalLimit: 10000, overLimitForwardsTo: CAROL_EMAIL}}});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderEditPage();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin saves Alice's workflow
+            fireEvent.press(screen.getByText(translateLocal('common.save')));
+            await waitForBatchedUpdatesWithAct();
+            const [, options] = jest.mocked(Navigation.goBack).mock.calls.at(-1) ?? [];
+            options?.afterTransition?.();
+
+            // Then the save goes to employeeList rather than writing rules, which would change where reports over Alice's limit go
+            expect(updateApprovalWorkflow).toHaveBeenCalledTimes(1);
+            expect(updateApprovalWorkflowRules).not.toHaveBeenCalled();
+        });
+
+        describe('of a workflow the employee settings route some reports another way', () => {
+            beforeEach(async () => {
+                // Carol sends Bob's reports to Alice, but the ones over 500.00 to Bob, who approves them, so Alice never gets them. Alice's
+                // own reports are already routed by rules, so saving Bob's workflow writes rules too.
+                await act(async () => {
+                    await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}aliceSubmitRule`, {
+                        scope: CONST.RULES.SCOPE.POLICY,
+                        scopeID: POLICY_ID,
+                        triggers: Object.fromEntries([['1', CONST.RULES.TRIGGERS.REPORT_SUBMIT]]),
+                        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [ALICE_EMAIL]},
+                        actions: Object.fromEntries([['1', {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: ALICE_EMAIL}]]),
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                        employeeList: {[CAROL_EMAIL]: {email: CAROL_EMAIL, forwardsTo: ALICE_EMAIL, approvalLimit: 50000, overLimitForwardsTo: BOB_EMAIL}},
+                    });
+                });
+            });
+
+            it('warns that saving it as rules changes where those reports go, and saves once the admin confirms', async () => {
+                // Given the workflow is open for editing
+                renderEditPage(bobsWorkflowRoute);
+                await waitForBatchedUpdatesWithAct();
+
+                // When the admin saves it and confirms
+                fireEvent.press(screen.getByText(translateLocal('common.save')));
+                await waitForBatchedUpdatesWithAct();
+
+                // Then they were warned, and the workflow is saved as rules
+                expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: translateLocal('workflowsEditApprovalsPage.hiddenRoutesTitle')}));
+                const [, options] = jest.mocked(Navigation.goBack).mock.calls.at(-1) ?? [];
+                options?.afterTransition?.();
+                expect(updateApprovalWorkflowRules).toHaveBeenCalledTimes(1);
+            });
+
+            it('keeps the workflow as it is when the admin cancels the warning', async () => {
+                // Given the workflow is open for editing, and the admin will cancel the warning
+                mockShowConfirmModal.mockImplementationOnce(() => Promise.resolve({action: 'CLOSE'}));
+                renderEditPage(bobsWorkflowRoute);
+                await waitForBatchedUpdatesWithAct();
+
+                // When the admin saves it
+                fireEvent.press(screen.getByText(translateLocal('common.save')));
+                await waitForBatchedUpdatesWithAct();
+
+                // Then nothing is saved and the editor stays open
+                expect(Navigation.goBack).not.toHaveBeenCalled();
+                expect(updateApprovalWorkflowRules).not.toHaveBeenCalled();
+            });
+        });
+    });
+
+    describe('Delete', () => {
+        it('pops only the editor and removes the workflow after the transition', async () => {
+            // Bob's workflow (submits to Carol) is not the policy's default, so the Delete button renders for it.
+            renderEditPage(bobsWorkflowRoute);
+            await waitForBatchedUpdatesWithAct();
+
+            // MenuItem's onPressAction only forwards to onPress when it is handed a truthy event, so fireEvent.press
+            // has to supply one rather than being called bare the way the Save button above can be.
+            fireEvent.press(screen.getByText(translateLocal('common.delete')), {nativeEvent: {}});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(Navigation.goBack).toHaveBeenCalled();
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
+            expect(removeApprovalWorkflow).not.toHaveBeenCalled();
+
+            const [, options] = jest.mocked(Navigation.goBack).mock.calls.at(-1) ?? [];
+            options?.afterTransition?.();
+
+            expect(removeApprovalWorkflow).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('approver no longer on the workspace', () => {
@@ -264,10 +457,10 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
             expect(await screen.findByText(translateLocal('workflowsPage.approverNotWorkspaceMember'))).toBeOnTheScreen();
 
             // And saving is blocked until the admin picks a new approver or deletes the workflow
-            jest.mocked(Navigation.dismissModal).mockClear();
+            jest.mocked(Navigation.goBack).mockClear();
             fireEvent.press(screen.getByText(translateLocal('common.save')));
             await waitForBatchedUpdatesWithAct();
-            expect(Navigation.dismissModal).not.toHaveBeenCalled();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
         });
     });
 

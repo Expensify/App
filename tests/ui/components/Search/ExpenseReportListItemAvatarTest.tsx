@@ -240,7 +240,7 @@ async function retrieveAvatarData(item: ExpenseReportListItemType) {
     await waitForBatchedUpdatesWithAct();
 
     const images = screen.queryAllByTestId('MockedAvatarData');
-    const fragments = screen.queryAllByTestId('ReportActionAvatars-', {exact: false}).map((fragment) => {
+    const fragments = screen.queryAllByTestId(/^Avatar-/).map((fragment) => {
         const testID: unknown = fragment.props.testID;
         if (typeof testID !== 'string') {
             throw new Error('Rendered report action avatar fragment is missing its test ID');
@@ -290,10 +290,10 @@ describe('ExpenseReportListItemAvatar', () => {
             const {images, fragments} = await retrieveAvatarData(item);
 
             expect(item.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
-            expect(fragments.every((f) => f.startsWith('ReportActionAvatars-Subscript'))).toBe(true);
+            expect(fragments.every((f) => f.startsWith('Avatar-Subscript'))).toBe(true);
 
-            const mainAvatar = images.find((img) => img.parent === 'ReportActionAvatars-Subscript-MainAvatar');
-            const secondaryAvatar = images.find((img) => img.parent === 'ReportActionAvatars-Subscript-SecondaryAvatar');
+            const mainAvatar = images.find((img) => img.parent === 'Avatar-Subscript-MainAvatar');
+            const secondaryAvatar = images.find((img) => img.parent === 'Avatar-Subscript-SecondaryAvatar');
 
             expect(mainAvatar?.uri).toBe(USER_AVATAR);
             expect(secondaryAvatar?.uri).toBe(DEFAULT_WORKSPACE_AVATAR.name);
@@ -304,10 +304,10 @@ describe('ExpenseReportListItemAvatar', () => {
             const {images, fragments} = await retrieveAvatarData(item);
 
             expect(item.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
-            expect(fragments.every((f) => f.startsWith('ReportActionAvatars-Subscript'))).toBe(true);
+            expect(fragments.every((f) => f.startsWith('Avatar-Subscript'))).toBe(true);
 
-            const mainAvatar = images.find((img) => img.parent === 'ReportActionAvatars-Subscript-MainAvatar');
-            const secondaryAvatar = images.find((img) => img.parent === 'ReportActionAvatars-Subscript-SecondaryAvatar');
+            const mainAvatar = images.find((img) => img.parent === 'Avatar-Subscript-MainAvatar');
+            const secondaryAvatar = images.find((img) => img.parent === 'Avatar-Subscript-SecondaryAvatar');
 
             expect(mainAvatar?.uri).toBe(DEFAULT_WORKSPACE_AVATAR.name);
             expect(secondaryAvatar?.uri).toBe(USER_AVATAR);
@@ -320,10 +320,10 @@ describe('ExpenseReportListItemAvatar', () => {
             const {images, fragments} = await retrieveAvatarData(item);
 
             expect(item.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL);
-            expect(fragments.some((f) => f.startsWith('ReportActionAvatars-MultipleAvatars'))).toBe(true);
+            expect(fragments.some((f) => f.startsWith('Avatar-MultipleAvatars'))).toBe(true);
 
-            const mainAvatar = images.find((img) => img.parent === 'ReportActionAvatars-MultipleAvatars-MainAvatar');
-            const secondaryAvatar = images.find((img) => img.parent === 'ReportActionAvatars-MultipleAvatars-SecondaryAvatar');
+            const mainAvatar = images.find((img) => img.parent === 'Avatar-MultipleAvatars-MainAvatar');
+            const secondaryAvatar = images.find((img) => img.parent === 'Avatar-MultipleAvatars-SecondaryAvatar');
 
             expect(mainAvatar?.uri).toBe(SECOND_USER_AVATAR);
             expect(secondaryAvatar?.uri).toBe(USER_AVATAR);
@@ -358,7 +358,7 @@ describe('ExpenseReportListItemAvatar', () => {
         });
 
         it('returns nothing when primaryAvatar is undefined but secondaryAvatar is provided', async () => {
-            const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
+            const avatarIcons = getIcons({report: expenseReport, formatPhoneNumber, translate: translateLocal, personalDetails, policy});
             const {images} = await retrieveAvatarData(
                 createMock<ExpenseReportListItemType>({
                     keyForList: expenseReport.reportID,
@@ -373,7 +373,7 @@ describe('ExpenseReportListItemAvatar', () => {
         });
 
         it('renders single avatar when avatarType is SINGLE even if secondaryAvatar is provided', async () => {
-            const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
+            const avatarIcons = getIcons({report: expenseReport, formatPhoneNumber, translate: translateLocal, personalDetails, policy});
             const {images, fragments} = await retrieveAvatarData(
                 createMock<ExpenseReportListItemType>({
                     keyForList: expenseReport.reportID,
@@ -384,7 +384,7 @@ describe('ExpenseReportListItemAvatar', () => {
                 }),
             );
 
-            const subscriptFragments = fragments.filter((f) => f.startsWith('ReportActionAvatars-Subscript'));
+            const subscriptFragments = fragments.filter((f) => f.startsWith('Avatar-Subscript'));
             expect(subscriptFragments).toHaveLength(0);
 
             const singleAvatar = images.find((img) => img.parent === 'SingleAvatar');

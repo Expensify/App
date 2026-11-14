@@ -41,7 +41,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useIsFocused} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ValidateCodeFormProps from './types';
@@ -170,21 +170,21 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     /**
      * Clear local sign in states
      */
-    const clearLocalSignInData = useCallback(() => {
+    const clearLocalSignInData = () => {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
         setIsUsingRecoveryCode(false);
         setRecoveryCode('');
-    }, [setIsUsingRecoveryCode]);
+    };
 
     /**
      * Clears local and Onyx sign in states
      */
-    const clearSignInData = useCallback(() => {
+    const clearSignInData = () => {
         clearLocalSignInData();
         sessionActionsClearSignInData();
-    }, [clearLocalSignInData]);
+    };
 
     useImperativeHandle(ref, () => ({
         clearSignInData,
@@ -247,7 +247,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    const validateAndSubmitForm = useCallback(() => {
+    const validateAndSubmitForm = () => {
         if (account?.isLoading) {
             return;
         }
@@ -300,28 +300,15 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const accountID = credentials?.accountID;
         if (accountID) {
-            signInWithValidateCode(accountID, validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.validateCode, credentials?.authToken);
+            signInWithValidateCode(accountID, validateCode, preferredLocale, session, recoveryCodeOr2faCode, credentials?.validateCode, credentials?.authToken);
         } else {
-            signIn(validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.login, credentials?.validateCode, credentials?.authToken);
+            signIn(validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.login, credentials?.validateCode, credentials?.authToken, session);
         }
-    }, [
-        account?.isLoading,
-        account?.errors,
-        account?.requiresTwoFactorAuth,
-        credentials?.validateCode,
-        credentials?.accountID,
-        credentials?.login,
-        credentials?.authToken,
-        isUsingRecoveryCode,
-        recoveryCode,
-        twoFactorAuthCode,
-        validateCode,
-        preferredLocale,
-    ]);
+    };
 
-    const handleCountdownFinish = useCallback(() => {
+    const handleCountdownFinish = () => {
         setIsCountdownRunning(false);
-    }, []);
+    };
 
     return (
         <SafariFormWrapper>
@@ -339,6 +326,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             hasError={hasError}
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                            sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.RECOVERY_CODE_INPUT}
                         />
                     ) : (
                         <ValidateCodeInput

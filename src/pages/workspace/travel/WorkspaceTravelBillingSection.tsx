@@ -4,7 +4,6 @@ import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessag
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -56,13 +55,14 @@ import {getSearchParamFromPath} from '@libs/Url';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -78,6 +78,7 @@ type WorkspaceTravelBillingSectionProps = {
  * Shows a setup CTA if Travel Billing is not configured, otherwise shows the settings.
  */
 function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSectionProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -136,14 +137,14 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const isPayByInvoice = getIsTravelBillingPayByInvoice(travelSettings);
     const payBalanceCtaText = translate(
         isPayByInvoice
-            ? 'workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.sendInvoiceNowCta'
-            : 'workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta',
+            ? 'workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.sendInvoiceNowCta'
+            : 'workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.currentTravelSpendCta',
     );
     const payBalanceModalTitle = isPayByInvoice
-        ? translate('workspace.moreFeatures.travel.travelInvoicing.sendInvoiceModal.title', formattedSpend)
-        : translate('workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.title', formattedSpend);
+        ? translate('workspace.moreFeatures.travel.travelBilling.sendInvoiceModal.title', formattedSpend)
+        : translate('workspace.moreFeatures.travel.travelBilling.payBalanceModal.title', formattedSpend);
     const payBalanceModalBody = translate(
-        isPayByInvoice ? 'workspace.moreFeatures.travel.travelInvoicing.sendInvoiceModal.body' : 'workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.body',
+        isPayByInvoice ? 'workspace.moreFeatures.travel.travelBilling.sendInvoiceModal.body' : 'workspace.moreFeatures.travel.travelBilling.payBalanceModal.body',
     );
 
     // The spend label and its buttons only fit on one row on large screens; stack them below otherwise
@@ -268,7 +269,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const promptCurrencyChangeAndStartFlow = async () => {
         isCurrencyModalOpen.current = true;
         const result = await showConfirmModal({
-            title: translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.title'),
+            title: translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.title'),
             prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
             confirmText: translate('workspace.bankAccount.updateToUSD'),
             cancelText: translate('common.cancel'),
@@ -284,9 +285,9 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
 
     const promptDisableAndDeactivate = async () => {
         const result = await showConfirmModal({
-            title: translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.title'),
-            prompt: translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.body'),
-            confirmText: translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.confirm'),
+            title: translate('workspace.moreFeatures.travel.travelBilling.disableModal.title'),
+            prompt: translate('workspace.moreFeatures.travel.travelBilling.disableModal.body'),
+            confirmText: translate('workspace.moreFeatures.travel.travelBilling.disableModal.confirm'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
@@ -322,9 +323,9 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             if (hasOutstandingBalance) {
                 // Show blocker modal with error message. It is acknowledgement-only, so the result is ignored.
                 showConfirmModal({
-                    title: translate('workspace.moreFeatures.travel.travelInvoicing.outstandingBalanceModal.title'),
-                    prompt: translate('workspace.moreFeatures.travel.travelInvoicing.outstandingBalanceModal.body'),
-                    confirmText: translate('workspace.moreFeatures.travel.travelInvoicing.outstandingBalanceModal.confirm'),
+                    title: translate('workspace.moreFeatures.travel.travelBilling.outstandingBalanceModal.title'),
+                    prompt: translate('workspace.moreFeatures.travel.travelBilling.outstandingBalanceModal.body'),
+                    confirmText: translate('workspace.moreFeatures.travel.travelBilling.outstandingBalanceModal.confirm'),
                     shouldShowCancelButton: false,
                 });
                 return;
@@ -386,46 +387,48 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             {hasTravelProvisioningErrors && (
                 <View style={styles.mt4}>
                     <FormHelpMessageRowWithRetryButton
-                        message={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.provisioningError')}
+                        message={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.provisioningError')}
                         size={CONST.BUTTON_SIZE.SMALL}
                         onRetry={() => retryTravelCardsProvisioning(policyID, travelBillingFundID, travelProvisioningErrors ?? {})}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         shouldAlignButtonToMessage
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.RETRY_CARDS_PROVISIONING}
                     />
                 </View>
             )}
             <View style={[styles.dFlex, styles.mt6, shouldStackButtons ? [styles.flexColumn, styles.gap3, styles.mb2] : [styles.flexRow, styles.gap4, styles.alignItemsCenter]]}>
                 <View style={styles.flex1}>
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendLabel')}
-                        title={formattedSpend}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, (hasPendingSettlement || hasPendingInvoice) && styles.pb1]}
-                        titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
-                        descriptionTextStyle={styles.textLabelSupportingNormal}
-                        interactive={false}
-                    />
+                    <MenuItemSectionRoot style={(hasPendingSettlement || hasPendingInvoice) && styles.pb1}>
+                        <MenuItem.Row>
+                            <MenuItemField.Content name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.currentTravelSpendLabel')}>
+                                <MenuItem.FieldValue style={[styles.textNormalThemeText, styles.headerAnonymousFooter]}>{formattedSpend}</MenuItem.FieldValue>
+                            </MenuItemField.Content>
+                        </MenuItem.Row>
+                    </MenuItemSectionRoot>
                     {hasPendingSettlement && (
                         <Text style={[styles.textLabelSupporting, styles.pb3]}>
                             {isPayByInvoice
-                                ? translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendInvoiceQueued')
-                                : translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendPaymentQueued', formattedQueuedAmount)}
+                                ? translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.currentTravelSpendInvoiceQueued')
+                                : translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.currentTravelSpendPaymentQueued', formattedQueuedAmount)}
                         </Text>
                     )}
                     {hasPendingInvoice && (
                         <Text style={[styles.textLabelSupporting, styles.pb3]}>
-                            {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendInvoicePending', formattedPendingInvoiceAmount)}
+                            {translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.currentTravelSpendInvoicePending', formattedPendingInvoiceAmount)}
                         </Text>
                     )}
                 </View>
                 <View style={[styles.dFlex, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_VIEW_ON_SPEND}
                         onPress={handleViewOnSpend}
                         style={shouldStackButtons ? styles.flex1 : undefined}
                     >
-                        <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.viewOnSpend')}</Button.Text>
+                        <Button.Text>{translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.viewOnSpend')}</Button.Text>
                     </Button>
                     {shouldShowPayButton && canWriteMoreFeatures && (
                         <ButtonDisabledWhenOffline
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_PAY_BALANCE}
                             onPress={handlePayBalance}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={shouldStackButtons ? styles.flex1 : undefined}
@@ -437,7 +440,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             </View>
             <MenuItemSectionRoot>
                 <MenuItemField.Row
-                    name={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelLimitLabel')}
+                    name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.currentTravelLimitLabel')}
                     value={formattedLimit}
                 />
             </MenuItemSectionRoot>
@@ -449,11 +452,12 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
-                    onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID))) : undefined}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_SETTLEMENT_ACCOUNT}
+                    onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)), session) : undefined}
                 >
                     <MenuItem.Row>
                         <MenuItem.Content>
-                            <MenuItem.FieldName>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementAccountLabel')}</MenuItem.FieldName>
+                            <MenuItem.FieldName>{translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.settlementAccountLabel')}</MenuItem.FieldName>
                             {!!settlementAccountNumber && <MenuItem.FieldValue>{settlementAccountNumber}</MenuItem.FieldValue>}
                         </MenuItem.Content>
                         {(hasSettlementAccountError || canWriteMoreFeatures) && (
@@ -473,10 +477,11 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
-                    onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))) : undefined}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_SETTLEMENT_FREQUENCY}
+                    onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID)), session) : undefined}
                 >
                     <MenuItemField.Row
-                        name={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
+                        name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.settlementFrequencyLabel')}
                         value={localizedFrequency}
                     >
                         {hasSettlementFrequencyError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
@@ -492,10 +497,11 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
-                    onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID))) : undefined}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_MONTHLY_LIMIT}
+                    onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID)), session) : undefined}
                 >
                     <MenuItemField.Row
-                        name={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
+                        name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitLabel')}
                         value={formattedMonthlyLimit}
                     >
                         {hasMonthlyLimitError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
@@ -509,10 +515,11 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     return (
         <Section isCentralPane>
             <ToggleSettingOptionRow
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.title')}
+                title={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.title')}
                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle]}
                 subtitle={getTravelBillingSubtitle()}
-                switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subtitle')}
+                switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subtitle')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.TRAVEL_BILLING_SWITCH}
                 onToggle={handleToggle}
                 isActive={isTravelBillingEnabled}
                 disabled={!canWriteMoreFeatures || isOnWaitlist}

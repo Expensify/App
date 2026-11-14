@@ -22,6 +22,7 @@ import useTimeSensitiveNetSuiteMigration from './hooks/useTimeSensitiveNetSuiteM
 import useTimeSensitiveOverdueInvoice from './hooks/useTimeSensitiveOverdueInvoice';
 import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
 import useTimeSensitiveSubscriptionExpiring from './hooks/useTimeSensitiveSubscriptionExpiring';
+import useTimeSensitiveWiseMoreInfoNeeded from './hooks/useTimeSensitiveWiseMoreInfoNeeded';
 import ActivateCard from './items/ActivateCard';
 import AddBankAccount from './items/AddBankAccount';
 import AddDepositAccount from './items/AddDepositAccount';
@@ -41,6 +42,7 @@ import RenewSubscription from './items/RenewSubscription';
 import ReviewCardFraud from './items/ReviewCardFraud';
 import UnlockBankAccount from './items/UnlockBankAccount';
 import UpgradeNetSuiteConnection from './items/UpgradeNetSuiteConnection';
+import VerifyWiseBankAccount from './items/VerifyWiseBankAccount';
 
 type BrokenPersonalCardConnection = {
     /** The card ID associated with this connection */
@@ -88,6 +90,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     const brokenPolicyConnections = adminPoliciesData?.brokenConnections ?? CONST.EMPTY_ARRAY;
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
     const {pendingSignerInfo} = useTimeSensitiveSignerInfo();
+    const {wiseMoreInfoNeededBankAccounts} = useTimeSensitiveWiseMoreInfoNeeded();
     const {netSuiteMigrationPolicies} = useTimeSensitiveNetSuiteMigration();
 
     // Get card feed errors for company card connections (Release 4)
@@ -123,10 +126,11 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // 12. Add payment card (trial ended, no payment card)
     // 13. Add bank account for a queued reimbursement, or a deposit account for a workspace collecting details
     // 14. Enter signer info for global bank accounts
-    // 15. Expensify card shipping
-    // 16. Expensify card activation
-    // 17. Virtual Expensify card needs personal details
-    // 18. Digital wallet addition needs confirming
+    // 15. Send Wise the info it asked for to enable global reimbursements
+    // 16. Expensify card shipping
+    // 17. Expensify card activation
+    // 18. Virtual Expensify card needs personal details
+    // 19. Digital wallet addition needs confirming
     const items: React.ReactNode[] = [];
 
     // Priority 1: Failed billing for existing customers
@@ -256,7 +260,17 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 15: Expensify card shipping
+    // Priority 15: Send Wise the info it asked for to enable global reimbursements
+    for (const bankAccount of wiseMoreInfoNeededBankAccounts) {
+        items.push(
+            <VerifyWiseBankAccount
+                key={`verify-wise-bank-account-${bankAccount.bankAccountID}`}
+                bankAccountID={bankAccount.bankAccountID}
+                bankAccountLastFour={bankAccount.bankAccountLastFour}
+            />,
+        );
+    }
+    // Priority 16: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -267,7 +281,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 16: Expensify card activation
+    // Priority 17: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(
@@ -278,7 +292,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 17: Virtual Expensify card needs personal details before reveal
+    // Priority 18: Virtual Expensify card needs personal details before reveal
     if (shouldShowAddVirtualCardPersonalDetails) {
         for (const card of virtualCardsNeedingPersonalDetails) {
             items.push(
@@ -289,7 +303,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 18: Confirm a digital wallet addition
+    // Priority 19: Confirm a digital wallet addition
     if (shouldShowConfirmDigitalWalletAddition) {
         for (const card of cardsPendingDigitalWalletApproval) {
             items.push(

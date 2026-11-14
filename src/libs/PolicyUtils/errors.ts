@@ -2,20 +2,63 @@
  * Policy error flags, the brick-road indicator, and settings error and pending-action helpers.
  * Extracted from PolicyUtils/index.ts to keep that file smaller.
  */
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {isQBORefreshTokenExpiringSoon} from '@libs/AccountingUtils';
 import {hasSynchronizationErrorMessage} from '@libs/actions/connections';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {isFuelBandGovernmentRate} from '@libs/GovernmentRateUtils';
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
-import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {getAccountingConnectionNames} from './connections';
+import {getAccountingConnectionNames, getCurrentConnectionName} from './connections';
+import {getDistanceRateCustomUnit} from './customUnits';
 import {isPolicyAdmin} from './permissions';
+import {isPolicyTaxImported, isSelectableTaxCode, isTaxTrackingEnabled} from './tax';
+
+/** Returns enabled UK fuel bands whose VAT mapping needs an admin's attention. */
+function getUKFuelRatesWithInvalidTax(policy: OnyxEntry<Policy>) {
+    const customUnit = getDistanceRateCustomUnit(policy);
+    if (!isPolicyAdmin(policy) || !policy?.areDistanceRatesEnabled || !isTaxTrackingEnabled(true, policy, true) || !customUnit || customUnit.attributes?.isUKFuelRateTaxErrorDismissed) {
+        return [];
+    }
+    return Object.values(customUnit.rates ?? {}).filter(
+        (rate) =>
+            rate.enabled &&
+            rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            !!rate.attributes?.governmentRate?.sourceRateID &&
+            isFuelBandGovernmentRate(rate.attributes.governmentRate.sourceRateID) &&
+            !isSelectableTaxCode(policy, rate.attributes?.taxRateExternalID),
+    );
+}
+
+/** Whether the workspace has a UK advisory fuel rate without a valid VAT mapping. */
+function shouldShowUKFuelRateTaxError(policy: OnyxEntry<Policy>): boolean {
+    return getUKFuelRatesWithInvalidTax(policy).length > 0;
+}
+
+/** Omitting rateID includes any affected rate; dismissal failures stay visible even when no warning applies. */
+function getUKFuelRateTaxErrors(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate'], rateID?: string): Errors {
+    const invalidRates = getUKFuelRatesWithInvalidTax(policy);
+    const hasFuelRateTaxError = rateID === undefined ? invalidRates.length > 0 : invalidRates.some((rate) => rate.customUnitRateID === rateID);
+    const connectionName = isPolicyTaxImported(policy) ? getCurrentConnectionName(policy) : undefined;
+    const fuelRateTaxError = hasFuelRateTaxError
+        ? {
+              ukFuelRateTax: connectionName
+                  ? translate('workspace.distanceRates.ukFuelRateTaxErrorWithIntegration', {integrationName: connectionName})
+                  : translate('workspace.distanceRates.ukFuelRateTaxError'),
+          }
+        : undefined;
+
+    return {...fuelRateTaxError, ...getLatestErrorField(getDistanceRateCustomUnit(policy) ?? {}, 'isUKFuelRateTaxErrorDismissed')};
+}
 
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
@@ -79,9 +122,32 @@ function shouldShowCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return isPolicyAdmin(policy) && Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
-function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
-    const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    return isPolicyAdmin(policy) && !!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount;
+function shouldShowReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>, connectionNames?: readonly ConnectionName[]): boolean {
+    if (!isPolicyAdmin(policy)) {
+        return false;
+    }
+    const connectionsToCheck = connectionNames ?? getAccountingConnectionNames();
+    for (const connection of connectionsToCheck) {
+        switch (connection) {
+            case CONST.POLICY.CONNECTIONS.NAME.QBO: {
+                const qboConfig = policy?.connections?.[connection]?.config;
+                if (!!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount) {
+                    return true;
+                }
+                break;
+            }
+            case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
+                const rilletConfig = policy?.connections?.[connection]?.config;
+                if (rilletConfig?.export?.reimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.REIMBURSEMENT && !rilletConfig.export.reimbursementAccountCode) {
+                    return true;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    return false;
 }
 
 /**
@@ -91,9 +157,10 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
     if (
         shouldShowEmployeeListError(policy) ||
         shouldShowCustomUnitsError(policy) ||
+        shouldShowUKFuelRateTaxError(policy) ||
         shouldShowPolicyErrorFields(policy) ||
         shouldShowSyncError(policy, isConnectionInProgress, getAccountingConnectionNames()) ||
-        shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
+        shouldShowReimbursableExportDestinationAccountError(policy) ||
         shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy))
     ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -133,6 +200,9 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
 }
 
 export {
+    getUKFuelRatesWithInvalidTax,
+    shouldShowUKFuelRateTaxError,
+    getUKFuelRateTaxErrors,
     shouldShowEmployeeListError,
     shouldShowTaxRateError,
     hasPolicyCategoriesError,
@@ -140,7 +210,7 @@ export {
     shouldShowSyncError,
     shouldShowPolicyError,
     shouldShowCustomUnitsError,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     getPolicyBrickRoadIndicatorStatus,
     isMergeHRCompleteSetupNeededSelector,
     isQBORefreshTokenExpiringSoonSelector,

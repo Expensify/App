@@ -23,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ImportFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>;
@@ -56,24 +56,18 @@ function NetSuiteImportMappingPage({
 
     const importValue = importMappings?.[importField] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
-    const listFooterContent = useMemo(
-        () => (
-            <View style={[styles.ph5, styles.mt3, styles.mb4]}>
-                <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent`, importField)}</Text>
-            </View>
-        ),
-        [importField, importValue, styles.mb4, styles.mt3, styles.ph5, translate],
+    const listFooterContent = (
+        <View style={[styles.ph5, styles.mt3, styles.mb4]}>
+            <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent`, importField)}</Text>
+        </View>
     );
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.ph5, styles.pb5]}>
-                <View style={[styles.flexRow]}>
-                    <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</comment>`} />
-                </View>
+    const listHeaderComponent = (
+        <View style={[styles.ph5, styles.pb5]}>
+            <View style={[styles.flexRow]}>
+                <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</comment>`} />
             </View>
-        ),
-        [styles.ph5, styles.pb5, styles.flexRow, translate, importField],
+        </View>
     );
 
     const inputOptions = [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT, CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
@@ -88,16 +82,13 @@ function NetSuiteImportMappingPage({
 
     const titleKey = `workspace.netsuite.import.importFields.${importField}.title` as TranslationPaths;
 
-    const updateImportMapping = useCallback(
-        ({value}: ImportListItem) => {
-            if (value !== importValue) {
-                updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
-            }
+    const updateImportMapping = ({value}: ImportListItem) => {
+        if (value !== importValue) {
+            updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
+        }
 
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID));
-        },
-        [importField, importValue, policyID],
-    );
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

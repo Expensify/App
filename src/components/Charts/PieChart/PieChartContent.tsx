@@ -1,10 +1,12 @@
-import ActivityIndicator from '@components/ActivityIndicator';
+import {useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import {CHART_GESTURE_TOUCH_ACTION, TOOLTIP_BAR_GAP, useChartLabelFormats, useTouchPinnedTooltip} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
 import {findSliceAtPosition, getPrimaryValue, processDataIntoSlices} from '@components/Charts/utils';
+import {hasRoomForSideLegend} from '@components/Charts/utils/chartHeights';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -29,6 +31,9 @@ type PieChartProps = ChartProps & {
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     valueUnitPosition?: UnitPosition;
 
+    /** Number of decimals the center total shows under 1m and in its tooltip */
+    valueDecimals?: number;
+
     /** Whether to draw the slice legend below the donut */
     shouldShowLegend?: boolean;
 
@@ -45,7 +50,21 @@ type PieChartCanvasProps = Omit<PieChartProps, 'isLoading'> & {
     chartWidth: number;
 };
 
-function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true, shouldUseResponsiveLegend = false, chartWidth}: PieChartCanvasProps) {
+function PieChartCanvas({
+    data,
+    series,
+    valueUnit,
+    valueUnitPosition,
+    valueDecimals,
+    formatValue: formatValueOverride,
+    countDimension,
+    onSlicePress,
+    onTooltipPress,
+    tooltipFooter,
+    shouldShowLegend = true,
+    shouldUseResponsiveLegend = false,
+    chartWidth,
+}: PieChartCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -65,7 +84,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
     const canvasHeight = CHART_CONTENT_MIN_HEIGHT;
 
     // Side by side when the legend keeps at least its minimum width next to a square donut. Otherwise stacked.
-    const isLegendSideBySide = shouldUseResponsiveLegend && shouldShowLegend && chartWidth - canvasHeight - VictoryTheme.pie.legendGap >= VictoryTheme.pie.legendMinWidth;
+    const isLegendSideBySide = shouldUseResponsiveLegend && shouldShowLegend && hasRoomForSideLegend(chartWidth);
     const donutWidth = isLegendSideBySide ? canvasHeight : chartWidth;
 
     const radius = Math.min(donutWidth, canvasHeight) / 2;
@@ -78,7 +97,8 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
     const [{key: primarySeriesKey}] = series;
     const processedSlices = processDataIntoSlices(data, primarySeriesKey, pieGeometry);
 
-    const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
+    const {formatValue, formatExactValue, formatTotalValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition, formatValue: formatValueOverride});
+    const total = data.reduce((sum, point) => sum + getPrimaryValue(point, primarySeriesKey), 0);
 
     /** Data index of the slice at the given point, or -1 when the point is outside the slices */
     const findDataIndexAt = (x: number, y: number) => {
@@ -130,7 +150,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 
     const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
 
-    const {setIsTouchPinned, onTooltipDismiss, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
+    const {isTouchPinned, setIsTouchPinned, dismissTooltip, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
         matchedIndex.set(-1);
         setIsHoveringOverPie(false);
     });
@@ -206,6 +226,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 
     // One legend entry: a color dot plus the slice name, wired to drive the tooltip on hover.
     // The responsive variant gives each slice its own row with the dot aligned to the first line. The default variant is an inline item for the wrapping row below the donut.
+    // `getPieChartLoadingHeight` reserves the wrapping row as one line of legend text, so keep it in sync with the label style.
     const renderLegendEntry = (slice: PieSlice, isResponsiveRow: boolean) => {
         const dot = <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(slice.color)]} />;
         return (
@@ -216,7 +237,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
                 onMouseLeave={clearSliceHighlight}
             >
                 {isResponsiveRow ? <View style={styles.pieChartLegendDotColumn}>{dot}</View> : dot}
-                <Text style={[styles.textNormal, StyleUtils.getColorStyle(theme.icon), isResponsiveRow ? styles.flex1 : styles.ml2]}>{slice.label}</Text>
+                <Text style={[styles.pieChartLegendLabel, StyleUtils.getColorStyle(theme.icon), isResponsiveRow ? styles.flexShrink1 : styles.ml2]}>{slice.label}</Text>
             </View>
         );
     };
@@ -227,7 +248,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
             touchAction="pan-y"
         >
             <Animated.View
-                style={[styles.chartContent, shouldUseResponsiveLegend && StyleUtils.getWidthStyle(donutWidth), isHoveringOverPie && styles.cursorPointer]}
+                style={[styles.chartContent, shouldUseResponsiveLegend && StyleUtils.getWidthStyle(donutWidth), isHoveringOverPie && !!onSlicePress && styles.cursorPointer]}
                 onTouchStart={onChartTouchStart}
             >
                 {processedSlices.length > 0 && (
@@ -254,17 +275,21 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 
                 {processedSlices.length > 0 && (
                     <View
-                        pointerEvents="none"
+                        pointerEvents="box-none"
                         style={styles.pieChartCenterLabel}
                     >
-                        <Text style={[styles.textLabelSupporting, styles.textAlignCenter]}>{translate('common.total')}</Text>
-                        <Text
-                            numberOfLines={1}
-                            adjustsFontSizeToFit
-                            style={[styles.textHeadlineH1, styles.textAlignCenter]}
-                        >
-                            {formatValue(data.reduce((sum, point) => sum + getPrimaryValue(point, primarySeriesKey), 0))}
-                        </Text>
+                        <Tooltip text={formatExactValue(total, valueDecimals)}>
+                            <View>
+                                <Text style={[styles.textLabelSupporting, styles.textAlignCenter]}>{translate('common.total')}</Text>
+                                <Text
+                                    numberOfLines={1}
+                                    adjustsFontSizeToFit
+                                    style={[styles.textHeadlineH1, styles.textAlignCenter]}
+                                >
+                                    {formatTotalValue(total, valueDecimals)}
+                                </Text>
+                            </View>
+                        </Tooltip>
                     </View>
                 )}
 
@@ -275,15 +300,19 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
                     data={data}
                     series={series}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     chartWidth={donutWidth}
                     initialTooltipPosition={tooltipPosition}
                     onChartMoved={onChartMoved}
-                    onDismiss={onTooltipDismiss}
+                    onDismiss={dismissTooltip}
+                    onPress={isTouchPinned ? onTooltipPress : undefined}
+                    footer={isTouchPinned ? tooltipFooter : undefined}
                 />
             </Animated.View>
         </GestureDetector>
     );
 
+    // `getPieChartLoadingHeight` rebuilds the height of both layouts below from the same theme values, so update it with any change to their structure or spacing.
     if (shouldUseResponsiveLegend) {
         return (
             <View style={isLegendSideBySide ? styles.pieChartResponsiveRow : styles.pieChartResponsiveColumn}>
@@ -304,18 +333,10 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 }
 
 function PieChartContent({isLoading = false, chartWidth, ...canvasProps}: PieChartContentProps) {
-    const styles = useThemeStyles();
-
-    if (!isLoading && canvasProps.data.length === 0) {
-        return null;
-    }
+    useReportChartLoading(isLoading);
 
     if (isLoading || chartWidth === null) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
+        return null;
     }
 
     return (

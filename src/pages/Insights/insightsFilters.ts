@@ -1,6 +1,10 @@
 import type {SearchCompareMode, SearchDatePreset} from '@components/Search/types';
 
 import CONST from '@src/CONST';
+import type {InsightsDashboardID} from '@src/types/onyx';
+
+// Running total's grouping value. Kept out of CONST.SEARCH.GROUP_BY so no Search surface can type or suggest it, but Insights still serializes it into its saved query and reads it back.
+const INSIGHTS_RUNNING_TOTAL_GROUP_BY = 'runningTotal';
 
 type InsightsFilters = {
     /** Period reported on: one of the presets, a single day, or a range closed at both ends. */
@@ -9,13 +13,14 @@ type InsightsFilters = {
     /** Workspaces to report on, or every workspace the user can see when empty. */
     policyIDs: string[];
 
-    /** Time bucket the headline chart aggregates into. */
+    /** Time bucket the headline chart aggregates into. `INSIGHTS_RUNNING_TOTAL_GROUP_BY` is a display grouping, not a bucket. `getQueryGroupBy` swaps it for a real day/month bucket before any query, so it never reaches the backend. */
     groupBy:
         | typeof CONST.SEARCH.GROUP_BY.DAY
         | typeof CONST.SEARCH.GROUP_BY.WEEK
         | typeof CONST.SEARCH.GROUP_BY.MONTH
         | typeof CONST.SEARCH.GROUP_BY.QUARTER
-        | typeof CONST.SEARCH.GROUP_BY.YEAR;
+        | typeof CONST.SEARCH.GROUP_BY.YEAR
+        | typeof INSIGHTS_RUNNING_TOTAL_GROUP_BY;
 
     /** Currency every amount is converted to, so graphs can sum across workspaces. */
     groupCurrency: string;
@@ -24,14 +29,28 @@ type InsightsFilters = {
     compare?: SearchCompareMode;
 };
 
-const DEFAULT_INSIGHTS_FILTERS: Omit<InsightsFilters, 'groupCurrency'> = {
-    date: {preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE},
-    policyIDs: [],
-    groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+const DEFAULT_INSIGHTS_FILTERS: Record<InsightsDashboardID, Omit<InsightsFilters, 'groupCurrency'>> = {
+    [CONST.INSIGHTS.DASHBOARD.SPEND]: {
+        date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
+        policyIDs: [],
+        groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+        compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+    },
+    [CONST.INSIGHTS.DASHBOARD.EFFICIENCY]: {
+        date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+        policyIDs: [],
+        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+    },
+    [CONST.INSIGHTS.DASHBOARD.COMPLIANCE]: {
+        date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
+        policyIDs: [],
+        groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+        compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+    },
 };
 
 const INSIGHTS_GROUP_BY_OPTIONS = [CONST.SEARCH.GROUP_BY.DAY, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.QUARTER, CONST.SEARCH.GROUP_BY.YEAR] as const;
 
 export type {InsightsFilters};
-export {INSIGHTS_GROUP_BY_OPTIONS};
+export {INSIGHTS_GROUP_BY_OPTIONS, INSIGHTS_RUNNING_TOTAL_GROUP_BY};
 export default DEFAULT_INSIGHTS_FILTERS;

@@ -17,9 +17,11 @@ import {View} from 'react-native';
 import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
+import FSClassView from './FSClassView';
 import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';
 import TextWithMiddleEllipsis from './TextWithMiddleEllipsis';
+import Tooltip from './Tooltip';
 
 type UploadFileProps = {
     /** Text displayed on button when no file is uploaded */
@@ -129,6 +131,7 @@ function UploadFile({
             >
                 {({openPicker}) => (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.UPLOAD_BUTTON}
                         accessibilityLabel={accessibilityLabel ?? buttonText}
                         onPress={() => {
                             openPicker({
@@ -141,9 +144,11 @@ function UploadFile({
                 )}
             </AttachmentPicker>
             {uploadedFiles.map((file) => (
-                <View
+                <FSClassView
                     style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3, styles.mw100]}
                     key={file.name}
+                    // Uploaded files are ID and company documents, and their names often hold the person's name
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 >
                     <Icon
                         src={icons.Paperclip}
@@ -155,20 +160,22 @@ function UploadFile({
                         style={[styles.ml2, styles.mr2, styles.w100, styles.flexShrink1]}
                         textStyle={styles.textBold}
                     />
-                    <PressableWithFeedback
-                        onPress={() => onRemove(file?.name ?? '')}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={`${translate('common.remove')}, ${file.name ?? ''}`}
-                        sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
-                        shouldUseAutoHitSlop={shouldExtendRemoveTouchArea}
-                    >
-                        <Icon
-                            src={icons.Close}
-                            fill={theme.icon}
-                            size={CONST.ICON_SIZE.MEDIUM}
-                        />
-                    </PressableWithFeedback>
-                </View>
+                    <Tooltip text={translate('common.remove')}>
+                        <PressableWithFeedback
+                            onPress={() => onRemove(file?.name ?? '')}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={`${translate('common.remove')}, ${file.name ?? ''}`}
+                            sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
+                            shouldUseAutoHitSlop={shouldExtendRemoveTouchArea}
+                        >
+                            <Icon
+                                src={icons.Close}
+                                fill={theme.icon}
+                                size={CONST.ICON_SIZE.MEDIUM}
+                            />
+                        </PressableWithFeedback>
+                    </Tooltip>
+                </FSClassView>
             ))}
             {errorText !== '' && (
                 <DotIndicatorMessage

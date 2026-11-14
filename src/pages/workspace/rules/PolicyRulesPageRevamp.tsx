@@ -42,7 +42,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {RulesTab, TableSelectionTab} from './tabs/useRulesTableBulkActions';
@@ -139,14 +139,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, requestedTab);
     }, [requestedTab]);
 
-    const clearAllTableSelection = useCallback(() => {
+    const clearAllTableSelection = () => {
         setSelectedRuleKeysByTab((prev) => (Object.keys(prev).length > 0 ? {} : prev));
         turnOffMobileSelectionMode();
-    }, []);
+    };
 
     useCleanupSelectedOptions(clearAllTableSelection);
 
-    const clearTableSelection = useCallback(() => {
+    const clearTableSelection = () => {
         if (!isTableSelectionTab(activeTab)) {
             return;
         }
@@ -159,9 +159,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return {...prev, [activeTab]: []};
         });
         turnOffMobileSelectionMode();
-    }, [activeTab]);
+    };
 
-    const updateTabSelectionKeys = useCallback((tab: TableSelectionTab, selectedRowKeys: string[]) => {
+    const updateTabSelectionKeys = (tab: TableSelectionTab, selectedRowKeys: string[]) => {
         setSelectedRuleKeysByTab((prev) => {
             const nextKeys = updateSelectionKeysIfChanged(prev[tab] ?? [], selectedRowKeys);
             if (prev[tab] === nextKeys) {
@@ -170,12 +170,12 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
             return {...prev, [tab]: nextKeys};
         });
-    }, []);
+    };
 
-    const handleSpendRuleSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.CARD_RESTRICTIONS, selectedRowKeys), [updateTabSelectionKeys]);
-    const handleExpenseDefaultSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.EXPENSE_DEFAULTS, selectedRowKeys), [updateTabSelectionKeys]);
-    const handleRequireFieldsRuleSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.REQUIRE_FIELDS, selectedRowKeys), [updateTabSelectionKeys]);
-    const handleFlagForReviewRuleSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.FLAG_FOR_REVIEW, selectedRowKeys), [updateTabSelectionKeys]);
+    const handleSpendRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.CARD_RESTRICTIONS, selectedRowKeys);
+    const handleExpenseDefaultSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.EXPENSE_DEFAULTS, selectedRowKeys);
+    const handleRequireFieldsRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.REQUIRE_FIELDS, selectedRowKeys);
+    const handleFlagForReviewRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.FLAG_FOR_REVIEW, selectedRowKeys);
 
     const {selectedRuleKeys, getFilteredSelectedKeys, deleteSelectedForActiveTab} = useRulesTableBulkActions({
         policyID,
@@ -211,6 +211,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     count: selectedRuleKeys.length,
                 }),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.BULK_ACTIONS_DELETE,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
@@ -234,31 +235,37 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const tabs: TabSelectorBaseItem[] = [
         {
             key: RULES_TAB.GENERAL,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.GENERAL,
             title: translate('workspace.rules.tabs.general'),
             icon: icons.Feed,
         },
         {
             key: RULES_TAB.CARD_RESTRICTIONS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.CARD_RESTRICTIONS,
             title: translate('workspace.rules.tabs.cardRestrictions'),
             icon: icons.CreditCardExclamation,
         },
         {
             key: RULES_TAB.EXPENSE_DEFAULTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.EXPENSE_DEFAULTS,
             title: translate('workspace.rules.tabs.expenseDefaults'),
             icon: icons.DocumentMagicWand,
         },
         {
             key: RULES_TAB.REQUIRE_FIELDS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.REQUIRE_FIELDS,
             title: translate('workspace.rules.tabs.requireFields'),
             icon: icons.Task,
         },
         {
             key: RULES_TAB.FLAG_FOR_REVIEW,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.FLAG_FOR_REVIEW,
             title: translate('workspace.rules.tabs.flagForReview'),
             icon: icons.Flag,
         },
         {
             key: RULES_TAB.AGENTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.AGENTS,
             title: translate('workspace.rules.tabs.agents'),
             icon: icons.Bot,
         },
@@ -338,6 +345,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleNewRule}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_BUTTON}
                 >
                     <Button.Icon src={icons.Plus} />
                     <Button.Text>{translate('workspace.rules.merchantRules.addRuleTitle')}</Button.Text>
@@ -350,6 +358,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     options={moreOptions}
                     isSplitButton={false}
                     wrapperStyle={styles.flexGrow0}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.IMPORT_MERCHANT_RULES}
                 />
             </View>
         );

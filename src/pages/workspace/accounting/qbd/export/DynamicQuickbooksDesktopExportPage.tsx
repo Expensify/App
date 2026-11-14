@@ -8,7 +8,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -24,7 +24,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
@@ -36,30 +36,25 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
     const errorFields = qbdConfig?.errorFields;
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path);
 
-    const shouldShowVendorMenuItems = useMemo(
-        () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
-        [qbdConfig?.export?.nonReimbursable],
-    );
+    const shouldShowVendorMenuItems = qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
     const {payableAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const travelPayableAccount = payableAccounts?.find((account) => account.id === qbdConfig?.export?.travelInvoicingPayableAccountID);
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
-    const shouldGoBackToSpecificRoute = useMemo(
-        () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK || shouldShowVendorMenuItems,
-        [qbdConfig?.export?.nonReimbursable, shouldShowVendorMenuItems],
-    );
+    const shouldGoBackToSpecificRoute = qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK || shouldShowVendorMenuItems;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         return goBackFromExportConnection(shouldGoBackToSpecificRoute, dynamicBackPath);
-    }, [dynamicBackPath, shouldGoBackToSpecificRoute]);
+    };
 
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.EXPORT_ROW.PREFERRED_EXPORTER,
             onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.path)),
             // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string
             title: qbdConfig?.export?.exporter || policyOwner,
@@ -67,12 +62,14 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
         },
         {
             description: translate('workspace.qbd.date'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.EXPORT_ROW.DATE,
             onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT.path)),
             title: qbdConfig?.export?.exportDate ? translate(`workspace.qbd.exportDate.values.${qbdConfig?.export.exportDate}.label`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE],
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.EXPORT_ROW.OUT_OF_POCKET,
             onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.path)),
             title: qbdConfig?.export.reimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export.reimbursable}`) : undefined,
             subscribedSettings: [
@@ -83,6 +80,7 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
         },
         {
             description: translate('workspace.accounting.exportCompanyCard'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.EXPORT_ROW.COMPANY_CARD,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.path)),
             brickRoadIndicator: qbdConfig?.errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: qbdConfig?.export?.nonReimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export?.nonReimbursable}`) : undefined,
@@ -96,7 +94,8 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
         ...(isTravelBillingEnabled
             ? [
                   {
-                      description: translate('workspace.common.travelInvoicing'),
+                      description: translate('workspace.common.travelBilling'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.EXPORT_ROW.TRAVEL_BILLING,
                       onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_CONFIGURATION.path)),
                       title: travelPayableAccount?.name,
                       subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
@@ -105,6 +104,7 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
             : []),
         {
             description: translate('workspace.qbd.exportExpensifyCard'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.EXPORT_ROW.EXPENSIFY_CARD,
             title: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`),
         },
     ];
@@ -128,6 +128,7 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
                     pendingAction={settingsPendingAction(menuItem?.subscribedSettings, qbdConfig?.pendingFields)}
                 >
                     <MenuItemField
+                        sentryLabel={menuItem.sentryLabel}
                         name={menuItem.description}
                         onPress={menuItem?.onPress}
                         value={menuItem.title}

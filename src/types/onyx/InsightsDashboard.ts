@@ -23,6 +23,55 @@ type InsightsGraph = {
 
     /** Hash of the snapshot holding the data for the "Average" compare mode */
     averageSnapshotHash?: number;
+
+    /** Average group total over the selected period, in the same units as the snapshot's totals, which the "Average" compare mode draws on amount charts */
+    averageAmount?: number;
+
+    /** Average number of expenses per group over the selected period, which the "Average" compare mode draws on count charts */
+    averageCount?: number;
+};
+
+/** Kind of signal an AI insight was detected from */
+type AIInsightSignal = ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.SIGNAL>;
+
+/** A chip's value, either a whole-number percentage or an amount */
+type AIInsightChipValue =
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.PERCENT;
+          value: number;
+      }
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.AMOUNT;
+
+          /** Amount in cents */
+          value: number;
+          currency: string;
+      };
+
+/** Chip showing how much an item changed */
+type AIInsightChangeChip = AIInsightChipValue & {
+    type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.CHANGE;
+    direction: ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION>;
+};
+
+/** Chip showing a share or amount for signals that have no direction */
+type AIInsightNeutralChip = AIInsightChipValue & {
+    type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL;
+};
+
+/** An AI insight's statistic: a change, or a share or amount with no direction */
+type AIInsightChip = AIInsightChangeChip | AIInsightNeutralChip;
+
+/** AI-written insight about the dashboard's data */
+type AIInsight = {
+    id: string;
+    signal: AIInsightSignal;
+    title: string;
+    chip: AIInsightChip;
+    summary: string;
+
+    /** Message sent to Concierge when the user asks it to explain the card */
+    explainPrompt: string;
 };
 
 /** What the backend returns for one dashboard and set of filters */
@@ -33,6 +82,9 @@ type InsightsDashboard = {
     /** Whether the account has any expenses at all, regardless of the query, so an empty account can be told apart from filters that matched nothing */
     hasResults?: boolean;
 
+    /** Cards drawn above the headline chart. Missing until they're written, and empty when there are none. */
+    aiInsights?: AIInsight[];
+
     /** Query the stored graphs answer */
     inputQuery?: string;
 
@@ -42,5 +94,5 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
+export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
 export default InsightsDashboard;

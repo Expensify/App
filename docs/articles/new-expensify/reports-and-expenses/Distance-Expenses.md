@@ -1,13 +1,15 @@
 ---
 title: Distance Expenses
-description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reuse route, reuse prior route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, stop GPS trip, stop without moving, resume GPS trip, discard GPS trip, zero distance trip, same start and stop location, no edit icon, can't create expense, change distance rate, edit distance rate, move distance expense, move expense to another workspace, rate not valid for this workspace, distance rate violation]
+description: Learn how to create a distance expense and understand reimbursement rates, home-and-office commute exclusions, and work arrangements in New Expensify.
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reuse route, reuse prior route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, stop GPS trip, stop without moving, resume GPS trip, discard GPS trip, zero distance trip, same start and stop location, no edit icon, can't create expense, change distance rate, edit distance rate, move distance expense, move expense to another workspace, rate not valid for this workspace, distance rate violation, frequent trips, recent routes, fix stop location, change stop address, auto-update government rate, require GPS or map entry, manual entry disabled, odometer disabled]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
 # Distance Expenses
 
 Expensify offers four ways to create a Distance expense: **GPS tracking** on mobile, **map-based routes** using start and end locations, **manual entry** by typing in the distance, or **odometer readings** using start and end values from your vehicle. This guide explains each method and how the reimbursement rate is determined.
+
+**Note:** If your workspace admin has enabled a commute exclusion on the workspace, only the **Map** and **GPS** methods are available. See [how the Exclude commutes setting affects distance expenses](#how-the-exclude-commutes-setting-affects-distance-expenses) below.
 
 ---
 
@@ -92,6 +94,35 @@ Once a Distance expense is created, it can be submitted on a report. To learn ho
 
 ---
 
+## How to reuse a route from a frequent trip
+
+If you drive the same trips often, you can jump straight to a previous route instead of entering every stop again. **Reuse route** shows the routes from map-based Distance expenses you created in the last 90 days.
+
+1. Select the **➕ Create** button and select **Track distance**.
+2. Select **Map** from the top row.
+3. Select **Reuse route**.
+4. (Optional) Use the **Find a route** field to search by any stop on the route.
+5. Choose a route. Each route shows a map preview, its **Start** and **End** addresses, and when you last used it.
+6. On the confirmation screen, review the distance, amount, and date, then select **Create expense**.
+
+The stops and distance from the route you choose fill in automatically. **Reuse route** appears only when you have at least one map-based Distance expense to reuse, and only when creating a new expense.
+
+---
+
+## How to fix a stop location without starting over
+
+You can change a single stop on a map-based route without re-entering the rest of the trip. This works while creating a Distance expense and when editing an existing one.
+
+1. On the **Map** tab, select the stop you want to fix. To fix a stop on an existing Distance expense, open the expense and select the **Distance** field first.
+2. In the **Address** field, enter the correct location and choose a suggested address, or use your current location.
+3. Select **Save**. To delete the stop instead, select **Remove**.
+
+The other stops stay as they were, and the distance and amount are recalculated for the updated route.
+
+On a GPS trip, you can fix where the trip ended after you select **Stop**. Select the pencil **Edit** icon next to the distance counter to open **Edit stop**, drag the slider back to the correct end point along your recorded route, then select **Save**.
+
+---
+
 ## How to edit an existing Distance expense
 
 You can update the distance on a manual or map-based Distance expense before it is approved. When you open the expense and select the **Distance** field, you can choose between two editing methods:
@@ -117,11 +148,11 @@ When you switch the route on an already-created expense, the distance, amount, a
 
 If you are creating expenses on a Workspace: 
 
-- Workspace Admins set and manage the reimbursement rates for the workspace's distance unit (miles or kilometers).
+- Workspace admins set and manage the reimbursement rates for the workspace's distance unit (miles or kilometers).
 - When creating a Distance expense, the available reimbursement rates will show for selection.
 - When a Workspace has multiple rates with effective dates, Expensify automatically applies the rate whose date range matches the expense date, so you don't need to pick the right one manually.
 
-[Learn how to manage distance rates as a Workspace Admin](/articles/new-expensify/reports-and-expenses/Managing-Distance-Rates)
+[Learn how to manage distance rates as a workspace admin](/articles/new-expensify/workspaces/Set-distance-rates)
 
 ### Distance expenses created outside of a Workspace
 
@@ -135,11 +166,60 @@ If you're creating a distance expense outside of a Workspace (e.g., in a DM chat
 
 ---
 
+## How the Exclude commutes setting affects distance expenses
+
+If your workspace has **Exclude commutes** enabled, a portion of each distance expense may be excluded from reimbursement based on the workspace’s distance settings.
+
+When **Exclude commutes** is set to **Remove fixed distance**:
+- You can create distance expenses using **Map** or **GPS**. **Manual** and **Odometer** entry are unavailable.
+- A fixed distance, set by your workspace admin, is subtracted from each distance expense created on the workspace.
+- The fixed distance is subtracted separately from each distance expense, even if you create multiple expenses on the same day.
+- On each distance expense, you'll see a message confirming the portion that was removed, such as "removed 3.6 commute miles".
+
+When **Exclude commutes** is set to **Exclude usual commute**, your home address, the workspace's company address, and your work arrangement determine the exclusion:
+
+- **Office-based:** Direct home-to-office and office-to-home trips have no reimbursable distance. For home-to-client or client-to-home trips, your usual one-way commute is subtracted from the actual route distance.
+- **Remote or mobile:** You have no regular workplace, so home-and-office commute exclusions do not apply.
+
+For example, if an office-based member drives 20 miles from home to a client and their usual one-way commute is 8 miles, the reimbursable distance is 12 miles. If the usual commute is longer than the trip, the reimbursable distance is zero, never negative. The distance rate is applied after the exclusion.
+
+Review the excluded distance and reimbursement amount on the confirmation screen. After creation, the receipt and a system message explain the exclusion. Changes to your home address or work arrangement do not automatically recalculate existing expenses.
+
+## How to add a home address for distance expenses
+
+If your workspace uses **Exclude usual commute** and you are office-based, add your home address to help calculate distance expenses.
+
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile**.
+3. Under **Private**, select **Home address**.
+4. Enter your home address, then select **Save**.
+
+Your home address is kept private and is not displayed on your profile. 
+
+## How distance rates stay current automatically
+
+On Control workspaces, workspace admins can enable **Auto-update government rate** so the workspace's mileage rate stays current. When a supported government publishes a new rate, such as the IRS standard mileage rate, Expensify adds it to the workspace with the date it takes effect. Your Distance expenses then use the rate that matches the expense date, with no manual updates needed.
+
+[Learn how to automatically update distance rates when government rates change](/articles/new-expensify/workspaces/Set-distance-rates#how-to-automatically-update-distance-rates-when-government-rates-change)
+
+---
+
 # FAQ
 
 ## Can I reuse recent locations?
 
 Yes! When selecting the **Start** and **Stop** addresses, recently used locations will appear for quick selection.
+
+## Why can't I select Manual or Odometer when creating a Distance expense?
+
+A workspace admin has turned off manual and odometer entry on the workspace, so only **Map** and **GPS** appear. This happens when either of these settings is on:
+
+- **Require GPS or map entry**
+- **Exclude commutes**, because commute exclusions are calculated from the trip's route
+
+Distance expenses you track in Your space aren't affected.
+
+[Learn how to require GPS or map entry for distance expenses](/articles/new-expensify/workspaces/Set-distance-rates#how-to-require-gps-or-map-entry-for-distance-expenses)
 
 ## How do I create a round-trip expense?
 
@@ -162,9 +242,9 @@ Yes! You can edit the expense before it is approved. When editing a map-based Di
 
 ## Can I update the Distance expense unit or rate?
 
-The distance unit is set by a Workspace Admin on the Workspace and can’t be changed at the expense level.
+The distance unit is set by a workspace admin on the Workspace and can’t be changed at the expense level.
 
-The rate can be changed on an individual expense. Open the Distance expense, select the **Rate** field, and choose another rate from the Workspace. The distance, amount, and currency are recalculated to match the rate you select.
+The rate can be changed on an individual expense. Open the Distance expense, select the **Rate** field, choose another rate from the Workspace, and select **Save**. The distance, amount, and currency are recalculated to match the rate you select.
 
 If a Workspace has rates with effective dates and you manually select a rate that doesn't match the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission — selecting the rate that matches the expense date clears the violation.
 
@@ -177,6 +257,24 @@ What happens depends on whether you move individual expenses or a whole report.
 **If you move a whole report to another Workspace:** the expenses keep their original unit and rate. If a rate isn’t valid in the new Workspace, the expense shows a “Rate not valid for this workspace” violation.
 
 Selecting a valid rate on the expense clears the violation and updates the expense. Open the expense and select the **Rate** field to choose a rate from the new Workspace.
+
+## Why can't I enter distance manually or with my odometer?
+
+When your workspace admin has enabled a commute exclusion, only **Map** and **GPS** distance methods are available. Manual and odometer entry are hidden because they don't provide the route detail needed to calculate the excluded commute distance.
+
+## Does the commute exclusion combine my trips for the day?
+
+No. The fixed-distance exclusion is applied to each claim individually. Expensify does not add up multiple claims in the same day, identify your first or last trip, or carry unused excluded distance from one claim to another.
+
+## Can my workspace admin see my home address for commute exclusions?
+
+No. Your home address remains private account data. Admins can see how much distance was excluded from an expense, but not your saved home address through the commute exclusion setting.
+
+## How does my work arrangement affect distance reimbursement?
+
+With **Exclude usual commute**, **Office-based** means you have an ordinary home-to-office commute that is excluded from eligible trips. **Remote or mobile** means you have no regular workplace, so those home-and-office exclusions do not apply. Ask your workspace admin to update your work arrangement if it is incorrect.
+
+Work arrangement does not change a **Remove fixed distance** exclusion: that method subtracts the workspace's configured distance from every eligible claim.
 
 ## Do I need to keep the mobile app open during GPS tracking?
 
@@ -223,4 +321,3 @@ Yes. Enter your start reading before the trip, then select **Save for later**. A
 ## Can I have multiple incomplete odometer expenses at the same time?
 
 Only one in-progress odometer expense can be saved to your device at a time.
-

@@ -33,8 +33,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@libs/Navigation/AppNavigator', () => () => null);
 jest.mock('@libs/NavigationFocusReturn', () => ({setupNavigationFocusReturn: jest.fn(), teardownNavigationFocusReturn: jest.fn()}));
 jest.mock('@src/libs/telemetry/useStartSpansOnRender', () => jest.fn());
-jest.mock('@hooks/useThemePreference', () => () => 'dark');
-jest.mock('@hooks/useTheme', () => () => ({appBG: '#000000'}));
+jest.mock('@hooks/useTheme', () => () => ({appBG: '#000000', colorScheme: 'dark'}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: true}));
 
 const DISTANCE_EDIT_ROUTE = ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, '1', '2');
@@ -89,5 +88,28 @@ describe('NavigationRoot initial state', () => {
 
         // Then React Navigation picks the initial state, so a signed-out user can't land on a protected page
         expect(mockCapturedInitialState).toBeUndefined();
+    });
+
+    it('sends a copilot who opens an onboarding link to Home', async () => {
+        // Given a copilot acting for an account that has not finished onboarding
+        await Onyx.set(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'copilot@test.com'}});
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await waitForBatchedUpdates();
+
+        // When the app starts from an onboarding link
+        render(
+            <NavigationRoot
+                authenticated
+                lastVisitedPath={ROUTES.HOME}
+                initialUrl={`${CONST.NEW_EXPENSIFY_URL}${ROUTES.ONBOARDING_PURPOSE.route}`}
+                onReady={() => {}}
+            />,
+        );
+
+        // Then the app opens Home, because the initial state never passes through OnboardingGuard
+        if (!mockCapturedInitialState) {
+            throw new Error('NavigationRoot did not set an initial state');
+        }
+        expect(getPathFromState(mockCapturedInitialState)).toBe(getPathFromState(getAdaptedStateFromPath(ROUTES.HOME)));
     });
 });

@@ -42,7 +42,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
@@ -70,13 +70,9 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
      * Save the draft of the private note. This debounced so that we're not ceaselessly saving your edit. Saving the draft
      * allows one to navigate somewhere else and come back to the private note and still have it in edit mode.
      */
-    const debouncedSavePrivateNote = useMemo(
-        () =>
-            lodashDebounce((text: string) => {
-                savePrivateNotesDraft(report.reportID, text);
-            }, 1000),
-        [report.reportID],
-    );
+    const debouncedSavePrivateNote = lodashDebounce((text: string) => {
+        savePrivateNotesDraft(report.reportID, text);
+    }, 1000);
 
     // To focus on the input field when the page loads
     const privateNotesInput = useRef<AnimatedTextInputRef | null>(null);
@@ -119,7 +115,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         }
     };
 
-    const validate = useCallback((): Errors => {
+    const validate = (): Errors => {
         const errors: Errors = {};
         const privateNoteLength = privateNote.trim().length;
         if (privateNoteLength > CONST.MAX_COMMENT_LENGTH) {
@@ -127,7 +123,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         }
 
         return errors;
-    }, [privateNote, translate]);
+    };
 
     return (
         <ScreenWrapper

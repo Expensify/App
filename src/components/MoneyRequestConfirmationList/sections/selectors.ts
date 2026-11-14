@@ -1,24 +1,23 @@
-import {canSendInvoice} from '@libs/PolicyUtils';
 import {
     getCategory,
-    getCreated,
     getCurrency,
+    getFormattedCreated,
     getMerchant,
+    getTag,
     getTagForDisplay,
     hasReceipt,
     isAmountMissing,
     isCreatedMissing,
     isFailedScanAmountPlaceholder,
     isMerchantMissing,
-    isScanRequest,
+    isScanning,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
 
 /** Onyx selectors used by the confirmation field leaves. */
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 type Transaction = OnyxTypes.Transaction;
 
@@ -40,7 +39,7 @@ const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => 
         return undefined;
     }
     return {
-        iouCreated: getCreated(t),
+        iouCreated: getFormattedCreated(t),
         isMissing: isCreatedMissing(t),
         hasReceipt: hasReceipt(t),
         isCreatedSet: t.isCreatedSet ?? false,
@@ -107,9 +106,12 @@ const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction
     return getTagForDisplay({tag: t.tag}, tagIndex);
 };
 
+// The whole tag string, every list's tag joined, which the tag list needs to filter and write one list's slot
+const transactionTagSelector = (t: OnyxEntry<Transaction>) => (t ? getTag(t) : undefined);
+
 // --- CategoryField ---
 
-type CategoryState = {category: string; willAutoFill: boolean; isAutoFillFromReceipt: boolean};
+type CategoryState = {category: string; willAutoFill: boolean};
 
 const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undefined => {
     if (!t) {
@@ -118,10 +120,6 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undef
     return {
         category: getCategory(t),
         willAutoFill: willFieldBeAutomaticallyFilled(t, 'category'),
-        // On a scan the category is read off the receipt, so `Automatic` describes the value the row ends up
-        // holding. On a manual expense it is a promise about a field that is still empty, since categorization
-        // only runs once the expense is created.
-        isAutoFillFromReceipt: isScanRequest(t),
     };
 };
 
@@ -180,6 +178,7 @@ type AmountSlice = {
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
     isFailedScanAmountPlaceholder: boolean;
+    isScanning: boolean;
     taxCode: Transaction['taxCode'];
     // The Scan confirmation's amount / merchant / date are all-or-nothing, so the amount field reads the other two.
     isMerchantSet: boolean;
@@ -201,6 +200,7 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
         isFailedScanAmountPlaceholder: isFailedScanAmountPlaceholder(t),
+        isScanning: isScanning(t),
         taxCode: t.taxCode,
         isMerchantSet: t.isMerchantSet ?? false,
         isCreatedSet: t.isCreatedSet ?? false,
@@ -236,7 +236,7 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 // --- ConfirmationFieldList: useFooterDerivedFlags ---
 
-type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard' | 'reimbursable'>;
+type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'reportID' | 'managedCard' | 'reimbursable' | 'bank' | 'comment'>;
 
 const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<DerivedFlagsSlice> => {
     if (!t) {
@@ -245,10 +245,12 @@ const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Derived
     const slice: DerivedFlagsSlice = {
         modifiedCurrency: t.modifiedCurrency,
         currency: t.currency,
-        iouRequestType: t.iouRequestType,
         reportID: t.reportID,
         managedCard: t.managedCard,
         reimbursable: t.reimbursable,
+        bank: t.bank,
+        // Only the card feed's reimbursable setting is needed, so the slice doesn't change while the description is edited
+        comment: {forceReimbursable: t.comment?.forceReimbursable},
     };
     return slice;
 };
@@ -366,40 +368,26 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     };
 };
 
-// --- InvoiceSenderField ---
-
-type InvoiceSenderWorkspace = {id: string | undefined; name: string | undefined; avatarURL: string | undefined} | undefined;
-
-const invoiceSenderWorkspaceSelector = (p: OnyxEntry<OnyxTypes.Policy>): InvoiceSenderWorkspace => {
-    if (!p) {
-        return undefined;
-    }
-    return {id: p.id, name: p.name, avatarURL: p.avatarURL};
-};
-
-const createCanUpdateSenderWorkspaceSelector =
-    (selectedParticipants: Participant[], currentUserLogin: string | undefined, isFromGlobalCreate: boolean) =>
-    (policies: OnyxCollection<OnyxTypes.Policy>): boolean => {
-        const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
-        return canSendInvoice(policies ?? null, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
-    };
+function shouldReportFieldBeEditable(outstandingReports: Array<OnyxEntry<OnyxTypes.Report>>, currentReportID: string | undefined, isUnreportedOrNew: boolean): boolean {
+    return isUnreportedOrNew ? outstandingReports.length >= 1 : outstandingReports.some((report) => report?.reportID !== currentReportID);
+}
 
 export {
     amountSliceSelector,
     attendeeSliceSelector,
     categoryStateSelector,
-    createCanUpdateSenderWorkspaceSelector,
     createTagDisplaySelector,
+    transactionTagSelector,
     dateStateSelector,
     derivedFlagsSliceSelector,
     descriptionStateSelector,
     distanceMapSliceSelector,
     invoiceSenderSliceSelector,
-    invoiceSenderWorkspaceSelector,
     merchantStateSelector,
     perDiemSliceSelector,
     receiptSliceSelector,
     reportFieldTransactionStateSelector,
+    shouldReportFieldBeEditable,
     tagSliceSelector,
     taxSliceSelector,
     timeStateSelector,

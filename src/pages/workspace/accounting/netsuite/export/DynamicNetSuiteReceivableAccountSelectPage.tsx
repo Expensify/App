@@ -22,7 +22,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 function DynamicNetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -32,39 +32,30 @@ function DynamicNetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnecti
     const policyID = policy?.id;
     const config = policy?.connections?.netsuite?.options.config;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT.path);
-    const netsuiteReceivableAccountOptions = useMemo<SelectorType[]>(
-        () => getNetSuiteReceivableAccountOptions(policy ?? undefined, config?.receivableAccount),
-        [config?.receivableAccount, policy],
-    );
+    const netsuiteReceivableAccountOptions: SelectorType[] = getNetSuiteReceivableAccountOptions(policy ?? undefined, config?.receivableAccount);
 
-    const initiallyFocusedOptionKey = useMemo(() => netsuiteReceivableAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteReceivableAccountOptions]);
+    const initiallyFocusedOptionKey = netsuiteReceivableAccountOptions?.find((mode) => mode.isSelected)?.keyForList;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const updateReceivableAccount = useCallback(
-        ({value}: SelectorType) => {
-            if (config?.receivableAccount !== value && policyID) {
-                updateNetSuiteReceivableAccount(policyID, value, config?.receivableAccount);
-            }
-            goBack();
-        },
-        [policyID, config?.receivableAccount, goBack],
-    );
+    const updateReceivableAccount = ({value}: SelectorType) => {
+        if (config?.receivableAccount !== value && policyID) {
+            updateNetSuiteReceivableAccount(policyID, value, config?.receivableAccount);
+        }
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noAccountsFound')}
-                subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.netsuite.noAccountsFound')}
+            subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

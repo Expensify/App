@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {getApprovalDropdownOptions} from '@components/ExpenseHeaderApprovalButton';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
 import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
@@ -16,6 +17,7 @@ import {
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isExported as isExportedUtils,
+    shouldBlockSubmitDueToDeletedWorkspace,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
@@ -34,6 +36,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
+import {getArchiveReason} from '@selectors/Report';
 import React, {useEffect, useRef} from 'react';
 
 import type {ActionHandledType} from './useHoldMenuSubmit';
@@ -53,6 +56,7 @@ import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useStrictPolicyRules from './useStrictPolicyRules';
 import useThemeStyles from './useThemeStyles';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
@@ -138,8 +142,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {currentSearchResults} = useSearchResultsContext();
     const {selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
@@ -162,7 +169,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 1;
 
-    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
+    const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, getArchiveReason(chatReportActions));
+
+    const shouldBlockSubmit =
+        isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy || isBlockSubmitDueToDeletedWorkspace;
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
@@ -193,10 +203,15 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             showDelegateNoAccessModal();
             return;
         }
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
         if (!skipAnimation && !isSubmitPolicy(policy)) {
             startApprovedAnimation();
         }
         approveMoneyRequest({
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             currentUserAccountIDParam: accountID,
@@ -219,6 +234,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             delegateAccountID,
             isTrackIntentUser,
             rules,
+            allTransactionViolations,
+            isChatReportArchived,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
@@ -333,6 +350,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 shouldCalculateTotals,
                 isOffline,
                 isLoading: !!currentSearchResults?.search?.isLoading,
+                shouldReturnTripRooms,
             });
             if (skipAnimation) {
                 clearSelectedTransactions(true);
@@ -399,6 +417,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                                 allTransactionViolationsRef.current,
                                 getCurrencyDecimals,
                                 rules,
+                                isChatReportArchived,
                             );
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -417,6 +436,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     allTransactionViolationsRef.current,
                     getCurrencyDecimals,
                     rules,
+                    isChatReportArchived,
                 );
             },
         },

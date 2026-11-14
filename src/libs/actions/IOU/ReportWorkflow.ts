@@ -62,7 +62,6 @@ import Onyx from 'react-native-onyx';
 
 import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
 
-import {getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import mergeAdditionalPayOnyxData from './mergeAdditionalPayOnyxData';
 
@@ -86,6 +85,9 @@ type ApproveMoneyRequestFunctionParams = {
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
+    isChatReportArchived: boolean;
 };
 
 type SubmitReportFunctionParams = {
@@ -156,6 +158,9 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
         getCurrencyDecimals,
+        allTransactionViolations,
+        personalDetailsByLogins,
+        isChatReportArchived,
     } = params;
     if (!expenseReport) {
         return;
@@ -194,7 +199,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
 
-    const nextApproverAccountID = getNextApproverAccountID(expenseReport, rules);
+    const nextApproverAccountID = getNextApproverAccountID(expenseReport, rules, undefined, undefined, personalDetailsByLogins);
     const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = !nextApproverAccountID ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
     const managerID = !nextApproverAccountID ? expenseReport.managerID : nextApproverAccountID;
@@ -211,8 +216,9 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               isASAPSubmitBetaEnabled,
               predictedNextStatus,
               isTrackIntentUser,
+              personalDetailsByLogins,
           });
-    const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
+    const chatReport = getReportOrDraftReport({reportID: expenseReport.chatReportID});
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -270,7 +276,8 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         value: updatedExpenseReport,
     });
 
-    if (chatReport) {
+    // An approver without parent access never receives the server reset of hasOutstandingChildRequest, so skip the optimistic update. undefined means access is unknown, so the update still runs.
+    if (chatReport && expenseReport.hasParentAccess !== false) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
@@ -280,12 +287,9 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                     updatedExpenseReport,
                     currentUserEmailParam,
                     currentUserAccountIDParam,
-                    // TODO: https://github.com/Expensify/App/issues/66512
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    getAllTransactionViolations(),
+                    allTransactionViolations,
                     undefined,
-                    // TODO: Thread the chat report's archived state from the UI. Until then treat the chat as not archived. See https://github.com/Expensify/App/issues/66422
-                    false,
+                    isChatReportArchived,
                 ),
             },
         });
@@ -346,15 +350,17 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
-    > = [
-        {
+    > = [];
+
+    if (expenseReport.hasParentAccess !== false) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
                 hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
             },
-        },
-    ];
+        });
+    }
 
     if (!isDEWPolicy) {
         failureData.push({
@@ -435,7 +441,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     let optimisticHoldReportExpenseActionIDs;
     let optimisticReportActionCopyIDs;
     let optimisticCreatedReportForUnapprovedTransactionsActionID;
-    if (!full && !!chatReport && !!expenseReport) {
+    if (!full && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport,
@@ -450,9 +456,19 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             rules,
         });
 
-        optimisticData.push(...holdReportOnyxData.optimisticData);
-        successData.push(...holdReportOnyxData.successData);
-        failureData.push(...holdReportOnyxData.failureData);
+        // A vacation delegate can approve before the policy chat is ever loaded, so chatReport is missing.
+        // Hold skips parent-chat updates in that case; fall back to the id on the expense report so the filter still matches when the chat is loaded.
+        const parentChatReportID = chatReport?.reportID ?? expenseReport.chatReportID;
+        const parentChatKeys = new Set<string>(
+            parentChatReportID ? [`${ONYXKEYS.COLLECTION.REPORT}${parentChatReportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`] : [],
+        );
+        const shouldSkipParentChatUpdates = expenseReport.hasParentAccess === false;
+        const filterParentChatUpdates = <TUpdate extends {key: string}>(updates: TUpdate[]) =>
+            shouldSkipParentChatUpdates ? updates.filter((update) => !parentChatKeys.has(update.key)) : updates;
+
+        optimisticData.push(...filterParentChatUpdates(holdReportOnyxData.optimisticData));
+        successData.push(...filterParentChatUpdates(holdReportOnyxData.successData));
+        failureData.push(...filterParentChatUpdates(holdReportOnyxData.failureData));
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
         optimisticCreatedReportForUnapprovedTransactionsActionID = holdReportOnyxData.optimisticCreatedReportForUnapprovedTransactionsActionID;
@@ -469,17 +485,13 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             expenseReport,
             ownerLogin,
             expenseReportPolicy,
-            // TODO: https://github.com/Expensify/App/issues/66512
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            getAllTransactionViolations()?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
+            allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`],
         ),
     );
     if (duplicatedTransactions.length) {
         const filteredTransactions = !full ? duplicatedTransactions.filter((transaction) => !isOnHold(transaction)) : duplicatedTransactions;
         for (const transaction of filteredTransactions) {
-            // TODO: https://github.com/Expensify/App/issues/66512
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const transactionViolations = getAllTransactionViolations()?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
             const newTransactionViolations = transactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -543,6 +555,7 @@ function reopenReport(
     const predictedNextState = CONST.REPORT.STATE_NUM.OPEN;
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
 
+    // An open report has no next approver, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
@@ -554,6 +567,7 @@ function reopenReport(
         isASAPSubmitBetaEnabled,
         isReopen: true,
         isTrackIntentUser,
+        personalDetailsByLogins: undefined,
     });
     const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -707,6 +721,7 @@ function retractReport(
     const predictedNextState = CONST.REPORT.STATE_NUM.OPEN;
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
 
+    // An open report has no next approver, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
@@ -717,6 +732,7 @@ function retractReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
+        personalDetailsByLogins: undefined,
     });
     const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -867,6 +883,7 @@ function unapproveExpenseReport(
         getCurrencyDecimals,
     );
 
+    // Unapproving looks up the next approver by accountID, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -879,6 +896,7 @@ function unapproveExpenseReport(
         shouldFixViolations: false,
         isUnapprove: true,
         isTrackIntentUser,
+        personalDetailsByLogins: undefined,
     });
 
     const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
@@ -1027,7 +1045,7 @@ function submitReport({
 
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
-    const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
+    const parentReport = getReportOrDraftReport({reportID: expenseReport.parentReportID});
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList, personalDetailsByLogins) : undefined;
     const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
@@ -1065,6 +1083,7 @@ function submitReport({
     // For DEW policies, only add optimistic submit action when offline
     const shouldAddOptimisticSubmitAction = !isDEWPolicy || getIsOffline();
 
+    // Submitting looks up the next approver by accountID (isUnapprove), so personalDetailsByLogins isn't needed.
     const optimisticNextStep = isDEWPolicy
         ? null
         : buildOptimisticNextStep({
@@ -1079,6 +1098,7 @@ function submitReport({
               isUnapprove: true,
               bypassNextApproverID: optimisticNextStepApproverID,
               isTrackIntentUser,
+              personalDetailsByLogins: undefined,
           });
     const optimisticData: Array<
         OnyxUpdate<
@@ -1109,6 +1129,8 @@ function submitReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                // Clear errors from a previous failed submit
+                errors: null,
                 ...(shouldAddOptimisticSubmitAction
                     ? {
                           lastMessageText: getReportActionText(optimisticSubmittedReportAction),
@@ -1136,6 +1158,8 @@ function submitReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                // Clear errors from a previous failed submit
+                errors: null,
                 // For DEW policies, don't optimistically update stateNum, statusNum, or nextStep
                 ...(isDEWPolicy
                     ? {}
@@ -1314,7 +1338,7 @@ function submitReport({
 
     // Submit via PDF: on a Submit workspace where the submitter submits to themselves, the backend generates the
     // report PDF and writes its filename into nvp_expensify_report_PDFFilename_{reportID}. Prime that NVP the same way
-    // exportReportToPDF does so the ReportPDFDownloadModal shows progress and auto-downloads once the filename arrives.
+    // exportReportToPDF does so the report PDF download modal shows progress and auto-downloads once the filename arrives.
     if (shouldExportToPDF) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -1385,6 +1409,7 @@ function assignReportToMe(
     // Taking the report over bypasses the remaining approvers, so the current user becomes the final approver.
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber, false, undefined, true);
 
+    // The current user is passed as bypassNextApproverID, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: accountID},
         predictedNextStatus: report.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -1398,6 +1423,7 @@ function assignReportToMe(
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: accountID,
         isTrackIntentUser,
+        personalDetailsByLogins: undefined,
     });
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
@@ -1520,6 +1546,7 @@ function addReportApprover({
 }: AddReportApproverOptions) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, formatPhoneNumber, isReassignment, report.managerID);
 
+    // The new approver is passed as bypassNextApproverID, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: newApproverAccountID},
         predictedNextStatus: report.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -1533,6 +1560,7 @@ function addReportApprover({
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: newApproverAccountID,
         isTrackIntentUser,
+        personalDetailsByLogins: undefined,
     });
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         optimisticData: [

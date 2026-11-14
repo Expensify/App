@@ -174,7 +174,7 @@ function expectFigures(result: Awaited<ReturnType<typeof renderDrafts>>['result'
 describe('SearchResultsProvider live to-do report count', () => {
     beforeAll(() => {
         // As in the app, Onyx.update copies pending markers into the snapshots that hold the updated keys.
-        Onyx.init({keys: ONYXKEYS, snapshotMergeKeys: ['pendingAction', 'pendingFields']});
+        Onyx.init({keys: ONYXKEYS, snapshotMergeKeys: ['pendingAction', 'pendingFields', 'receipt']});
     });
 
     beforeEach(async () => {

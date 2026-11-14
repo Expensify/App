@@ -15,8 +15,9 @@ import {subscribeToNewActionEvent} from '@userActions/Report/reportActionSubscri
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useEffect, useEffectEvent, useRef} from 'react';
@@ -63,6 +64,9 @@ type UseMoneyRequestReportScrollParams = {
 
     /** Completes a previously skipped mark-as-read (from `useMarkAsRead`) */
     completeSkippedMarkAsRead: () => void;
+
+    /** The report policy's cached full policy snapshot, sent when refetching the report so the server can leave out the collections the client already has */
+    fullPolicySnapshot?: {policyID: string; lastModified: number};
 };
 
 type UseMoneyRequestReportScrollResult = {
@@ -114,9 +118,10 @@ function useMoneyRequestReportScroll({
     onScrolledOverThresholdChange,
     markNewestActionAsRead,
     completeSkippedMarkAsRead,
+    fullPolicySnapshot,
 }: UseMoneyRequestReportScrollParams): UseMoneyRequestReportScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useActionListContext();
+    const {scrollOffsetRef, syncScrollSharedValues} = useActionListContext();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -171,6 +176,12 @@ function useMoneyRequestReportScroll({
             listLayoutHeightRef.current = layoutMeasurement.height;
             listScrollYRef.current = contentOffset.y;
             syncBottomOffset();
+            syncScrollSharedValues({
+                offset: -contentOffset.y,
+                distanceToOldestEnd: contentOffset.y,
+                distanceToNewestEnd: scrollingVerticalBottomOffset.current,
+                viewportHeight: layoutMeasurement.height,
+            });
 
             // The jump fired by "Latest messages" settles over several frames as deferred items hydrate, so the
             // report is marked as read only once the scroll really lands here.
@@ -303,6 +314,7 @@ function useMoneyRequestReportScroll({
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                fullPolicySnapshot,
             });
             scrollToBottom();
             return;

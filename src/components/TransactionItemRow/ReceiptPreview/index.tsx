@@ -5,7 +5,7 @@ import type {ImageOnLoadEvent} from '@components/Image/types';
 import type {AnchorPosition} from '@components/TransactionItemRow/types';
 
 import useDebouncedState from '@hooks/useDebouncedState';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -20,7 +20,7 @@ import type {ReceiptSource} from '@src/types/onyx/Transaction';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
@@ -52,7 +52,9 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem, a
     const [imageAspectRatio, setImageAspectRatio] = useState<string | number | undefined>(undefined);
     const [distanceEReceiptAspectRatio, setDistanceEReceiptAspectRatio] = useState<string | number | undefined>(undefined);
     const [shouldShow, debounceShouldShow, setShouldShow] = useDebouncedState(false, CONST.TIMING.SHOW_HOVER_PREVIEW_DELAY);
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    // Not shouldUseNarrowLayout, so rows in a narrow RHP get the preview too.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const hasMeasured = useRef(false);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const [isLoading, setIsLoading] = useState(true);
@@ -79,25 +81,19 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem, a
         setEReceiptScaleFactor(width / variables.eReceiptBGHWidth);
     };
 
-    const updateImageAspectRatio = useCallback(
-        (width: number, height: number) => {
-            if (!source) {
-                return;
-            }
+    const updateImageAspectRatio = (width: number, height: number) => {
+        if (!source) {
+            return;
+        }
 
-            setImageAspectRatio(height ? width / height : 'auto');
-        },
-        [source],
-    );
+        setImageAspectRatio(height ? width / height : 'auto');
+    };
 
-    const handleLoad = useCallback(
-        (e: ImageOnLoadEvent) => {
-            const {width, height} = e.nativeEvent;
-            updateImageAspectRatio(width, height);
-            setIsLoading(false);
-        },
-        [updateImageAspectRatio],
-    );
+    const handleLoad = (e: ImageOnLoadEvent) => {
+        const {width, height} = e.nativeEvent;
+        updateImageAspectRatio(width, height);
+        setIsLoading(false);
+    };
 
     const handleError = () => {
         setIsLoading(false);
@@ -107,7 +103,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem, a
         setShouldShow(hovered);
     }, [hovered, setShouldShow]);
 
-    if (shouldUseNarrowLayout || !debounceShouldShow || !shouldShow || (!source && !isEReceipt && !isDistanceEReceipt && !isPerDiemEReceipt)) {
+    if (isSmallScreenWidth || !debounceShouldShow || !shouldShow || (!source && !isEReceipt && !isDistanceEReceipt && !isPerDiemEReceipt)) {
         return null;
     }
 

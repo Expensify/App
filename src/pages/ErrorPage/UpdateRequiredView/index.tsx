@@ -21,7 +21,7 @@ import updateApp from '@userActions/AppUpdate/updateApp';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 function UpdateRequiredView() {
@@ -34,6 +34,15 @@ function UpdateRequiredView() {
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['UpgradeRocket']);
     const {isProduction} = useEnvironment();
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const refreshPage = () => {
+        if (isRefreshing) {
+            return;
+        }
+        setIsRefreshing(true);
+        updateApp(isProduction);
+    };
 
     return (
         <View style={[styles.appBG, styles.h100, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
@@ -67,9 +76,11 @@ function UpdateRequiredView() {
                     </View>
                 </View>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.UPDATE_REQUIRED.REFRESH_PAGE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={() => updateApp(isProduction)}
+                    onPress={refreshPage}
+                    isLoading={isRefreshing}
                     style={styles.updateRequiredViewTextContainer}
                 >
                     <Button.Text>{translate('updateRequiredView.refreshPage')}</Button.Text>

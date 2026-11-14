@@ -2,6 +2,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {ContinueActionParams} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -12,7 +13,7 @@ import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BillingGraceEndPeriod, Policy, Report, Rule} from '@src/types/onyx';
+import type {AccountData, BillingGraceEndPeriod, Policy, Report, Rule, TransactionViolations} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -58,6 +59,9 @@ type SelectPaymentTypeParams = {
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    allTransactionViolations: OnyxCollection<TransactionViolations>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
+    isChatReportArchived: boolean;
 };
 
 type BusinessBankAccountOption = {
@@ -172,9 +176,10 @@ function matchesCurrency(method: PaymentMethod, currency?: string): boolean {
 /**
  * Returns all valid business bank accounts for the pay menu.
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
+ * The workspace's default bank account is listed first when it is eligible. All other accounts keep their order.
  */
-function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string): BusinessBankAccountOption[] {
-    return formattedPaymentMethods
+function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string, defaultBankAccountID?: number): BusinessBankAccountOption[] {
+    const options = formattedPaymentMethods
         .filter((method) => {
             if (!isAccountData(method?.accountData)) {
                 return false;
@@ -197,6 +202,13 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
             iconSize: formattedPaymentMethod?.iconSize,
             methodID: formattedPaymentMethod?.methodID,
         }));
+
+    const defaultOption = defaultBankAccountID === undefined ? undefined : options.find((option) => option.methodID === defaultBankAccountID);
+    if (!defaultOption) {
+        return options;
+    }
+
+    return [defaultOption, ...options.filter((option) => option !== defaultOption)];
 }
 
 function calculateWalletTransferBalanceFee(currentBalance: number, methodType: string): number {
@@ -234,6 +246,9 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         isTrackIntentUser,
         ownerLogin,
         getCurrencyDecimals,
+        allTransactionViolations,
+        personalDetailsByLogins,
+        isChatReportArchived,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -271,6 +286,9 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 delegateAccountID,
                 isTrackIntentUser,
                 getCurrencyDecimals,
+                allTransactionViolations,
+                personalDetailsByLogins,
+                isChatReportArchived,
             });
         }
         return;

@@ -14,7 +14,7 @@ import type {TodoCounts} from '@hooks/useTodoCounts';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
-import {getItemBadgeText, getLastSearchQuery, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getLastSearchQuery, getSearchTypeMenuItemSentryLabel, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -69,6 +69,7 @@ function Section({section, reportCounts, onItemPress}: SectionParams) {
                             badgeText={getItemBadgeText(item.key, reportCounts)}
                             focused={focused}
                             onPress={() => onItemPress(item.key, item.searchQuery)}
+                            sentryLabel={getSearchTypeMenuItemSentryLabel(item.key)}
                         />
                     );
                 })}

@@ -337,47 +337,21 @@ describe('handleActionButtonPress', () => {
     const snapshotReport = mockSnapshotForItem.data[reportKey];
     const snapshotPolicy = mockSnapshotForItem.data[policyKey];
 
-    test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
-        const goToItem = jest.fn(() => {});
+    test('Should navigate to the report when the report has one transaction on hold and action is approve', () => {
+        // Given a report with a held transaction, whose approve action is handled by ApproveActionCell instead
+        const approveMoneyRequestMock = jest.spyOn(ReportWorkflow, 'approveMoneyRequest').mockImplementation(jest.fn());
+        const goToItem = jest.fn();
+
+        // When the action button is pressed
         handleActionButtonPress({
+            isWiseReimbursementsBetaEnabled: false,
             isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem,
-            snapshotReport,
-            snapshotPolicy,
-            submitterLogin: undefined,
-            lastPaymentMethod: mockLastPaymentMethod,
-            personalPolicyID: undefined,
-            ownerBillingGracePeriodEnd: undefined,
-            amountOwed: undefined,
-            userBillingGracePeriodEnds: undefined,
-            onHoldMenuOpen: jest.fn(),
-            policy: snapshotPolicy,
-            chatReportActions: undefined,
-            currentUserAccountID: 1206,
-            delegateAccountID: undefined,
-            isTrackIntentUser: false,
-            allViolations: undefined,
-            rules: undefined,
-            bankAccountList: undefined,
-            confirmSubmitReportViolations: jest.fn(),
-            personalDetailsByLogins: {},
-        });
-        expect(goToItem).not.toHaveBeenCalled();
-    });
-
-    test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
-        const onHoldMenuOpen = jest.fn();
-        handleActionButtonPress({
-            isASAPSubmitBetaEnabled: false,
-            conciergeChat: undefined,
-            getCurrencyDecimals: getCurrencyDecimalsLocal,
-            hash: searchHash,
-            item: mockReportItemWithHold,
-            goToItem: jest.fn(),
+            policyID: snapshotReport.policyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin: undefined,
@@ -386,7 +360,6 @@ describe('handleActionButtonPress', () => {
             userBillingGracePeriodEnds: undefined,
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
-            onHoldMenuOpen,
             policy: snapshotPolicy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
@@ -399,18 +372,23 @@ describe('handleActionButtonPress', () => {
             personalDetailsByLogins: {},
         });
 
-        expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+        // Then the report opens instead of approving held expenses without a prompt
+        expect(goToItem).toHaveBeenCalled();
+        expect(approveMoneyRequestMock).not.toHaveBeenCalled();
+        approveMoneyRequestMock.mockRestore();
     });
 
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            isWiseReimbursementsBetaEnabled: false,
             isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem,
+            policyID: snapshotReport.policyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin: undefined,
@@ -445,10 +423,12 @@ describe('handleActionButtonPress', () => {
 
         // When: the approve action button is pressed
         handleActionButtonPress({
+            isWiseReimbursementsBetaEnabled: false,
             isASAPSubmitBetaEnabled: false,
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem: jest.fn(),
+            policyID: snapshotReport.policyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin: undefined,
@@ -472,11 +452,55 @@ describe('handleActionButtonPress', () => {
         });
 
         // Then: hasViolations is evaluated against the passed collection, proving the deprecated global getter is no longer used,
-        // and the resulting value is forwarded to approveMoneyRequest.
+        // and the resulting value is forwarded to approveMoneyRequest along with the same collection, so it doesn't read violations from Onyx itself.
         expect(hasViolationsMock).toHaveBeenCalledWith(updatedMockReportItem.reportID, allViolations, 1206, '');
-        expect(approveMoneyRequestMock).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
+        expect(approveMoneyRequestMock).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true, allTransactionViolations: allViolations}));
 
         hasViolationsMock.mockRestore();
+        approveMoneyRequestMock.mockRestore();
+    });
+
+    test('Should show the locked account modal and not approve when the account is locked', () => {
+        // Given a report item that would otherwise be approved, and a locked account
+        const approveMoneyRequestMock = jest.spyOn(ReportWorkflow, 'approveMoneyRequest').mockImplementation(jest.fn());
+        const onAccountLocked = jest.fn();
+
+        // When the approve action button is pressed
+        handleActionButtonPress({
+            isWiseReimbursementsBetaEnabled: false,
+            isASAPSubmitBetaEnabled: false,
+            hash: searchHash,
+            item: updatedMockReportItem,
+            goToItem: jest.fn(),
+            snapshotReport,
+            snapshotPolicy,
+            submitterLogin: undefined,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
+            policy: snapshotPolicy,
+            chatReportActions: undefined,
+            currentUserAccountID: 1206,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            allViolations: undefined,
+            rules: undefined,
+            personalDetailsByLogins: {},
+            conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            bankAccountList: undefined,
+            confirmSubmitReportViolations: jest.fn(),
+            isAccountLocked: true,
+            onAccountLocked,
+            policyID: snapshotReport.policyID,
+        });
+
+        // Then the locked account modal is shown instead of sending an approval the server will reject with a generic error
+        expect(onAccountLocked).toHaveBeenCalledTimes(1);
+        expect(approveMoneyRequestMock).not.toHaveBeenCalled();
+
         approveMoneyRequestMock.mockRestore();
     });
 });
@@ -694,7 +718,10 @@ describe('handleBulkPayItemSelected', () => {
         });
 
         expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
-        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT});
+        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, {
+            bankAccountID,
+            paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+        });
     });
 
     it('should trigger the KYC flow when the selected business bank account is not open', async () => {
@@ -715,7 +742,11 @@ describe('handleBulkPayItemSelected', () => {
                 [bankAccountID]: {
                     bankCurrency: CONST.CURRENCY.USD,
                     bankCountry: CONST.COUNTRY.US,
-                    accountData: {bankAccountID, type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED},
+                    accountData: {
+                        bankAccountID,
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.LOCKED,
+                    },
                 },
             },
             item: {

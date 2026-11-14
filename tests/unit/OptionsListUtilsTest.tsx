@@ -1397,6 +1397,99 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         });
 
+        describe('excludeWorkspacesWithoutCreateExpensePermission', () => {
+            const approveOnlyPolicyID = 'APPROVE_ONLY_POLICY_1';
+            const approveOnlyChatReportID = '901';
+
+            const buildPolicyWithRole = (role: Policy['role']): Policy => ({
+                id: approveOnlyPolicyID,
+                name: 'Approve Only Workspace',
+                role,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: 'reedrichards@expensify.com',
+                outputCurrency: 'USD',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [CURRENT_USER_EMAIL]: {
+                        email: CURRENT_USER_EMAIL,
+                        role,
+                    },
+                },
+            });
+
+            const workspaceChatReports: OnyxCollection<Report> = {
+                [approveOnlyChatReportID]: {
+                    reportID: approveOnlyChatReportID,
+                    reportName: 'Approve Only Workspace',
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    policyID: approveOnlyPolicyID,
+                    policyName: 'Approve Only Workspace',
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        },
+                    },
+                },
+            };
+
+            // Mirrors the config ParticipantSearchResults passes for create/submit flows
+            const getOptionsForPolicy = (policy: Policy) => {
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${approveOnlyPolicyID}`]: policy,
+                };
+                const optionList = createFilteredOptionList(
+                    PERSONAL_DETAILS,
+                    workspaceChatReports,
+                    createMockReportAttributesDerived(workspaceChatReports, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
+                    EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                    policies,
+                    {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
+                    undefined,
+                );
+
+                return getValidOptions(
+                    optionList,
+                    policies,
+                    {},
+                    loginList,
+                    CURRENT_USER_ACCOUNT_ID,
+                    CURRENT_USER_EMAIL,
+                    undefined,
+                    {
+                        getReportByID: getReportByIDFromOnyx,
+                        dateFnsLocale: undefined,
+                        convertToDisplayString,
+                        includeRecentReports: true,
+                        includeP2P: true,
+                        includeOwnedWorkspaceChats: true,
+                        excludeWorkspacesWithoutCreateExpensePermission: true,
+                        shouldSeparateWorkspaceChat: true,
+                        action: CONST.IOU.ACTION.CREATE,
+                        personalDetails: PERSONAL_DETAILS,
+                    },
+                    {translate: translateLocal, formatPhoneNumber},
+                    undefined,
+                );
+            };
+
+            it('should exclude the workspace chat when the member role is approveOnly', () => {
+                const {options: results} = getOptionsForPolicy(buildPolicyWithRole(CONST.POLICY.ROLE.APPROVE_ONLY));
+
+                expect(results.workspaceChats).toEqual([]);
+                expect(results.recentReports.find((report) => report.reportID === approveOnlyChatReportID)).toBeUndefined();
+            });
+
+            it('should include the workspace chat when the member role can create expenses', () => {
+                const {options: results} = getOptionsForPolicy(buildPolicyWithRole(CONST.POLICY.ROLE.USER));
+
+                expect(results.workspaceChats).toEqual(expect.arrayContaining([expect.objectContaining({reportID: approveOnlyChatReportID})]));
+            });
+        });
+
         it.each([
             {
                 description: 'Vietnamese diacritics',
@@ -7022,7 +7115,6 @@ describe('OptionsListUtils', () => {
                 ],
             };
 
-            // Reports must exist before the report actions merge so the one-transaction thread caches resolve the thread ID
             await setReport(expenseReport);
             await setReport(transactionThreadReport);
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
@@ -7040,7 +7132,8 @@ describe('OptionsListUtils', () => {
                 isMoneyRequestReport: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            // When the alternate text is built with the one-transaction thread IDs from the sorted report actions derived value
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({transactionThreadIDs: {[EXPENSE_REPORT_ID]: TRANSACTION_THREAD_REPORT_ID}}));
 
             // Then the actor prefix comes from the transaction thread comment, not from the parent report's IOU action
             expect(result).toBe('Spider-Man: thread comment');
@@ -8285,6 +8378,50 @@ describe('OptionsListUtils', () => {
             // The display name should be derived from the login (formatted phone), not be empty.
             expect(result.text).toBeTruthy();
             expect(result.text).not.toBe('');
+        });
+
+        it('resolves a stale optimistic accountID to the canonical account by login', () => {
+            // Given a draft participant whose optimistic accountID was dropped from personal details after the server
+            // assigned the real account, while its login still maps to that real account
+            const participant: Participant = {
+                accountID: 9999997,
+                login: 'tonystark@expensify.com',
+            };
+
+            // When the participant option is built
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
+
+            // Then it points at the canonical account so the existing chat with them can be found
+            expect(result.accountID).toBe(2);
+            expect(result.keyForList).toBe('2');
+            expect(result.login).toBe('tonystark@expensify.com');
+        });
+
+        it('resolves a stale optimistic accountID for a phone login stored without the SMS domain', async () => {
+            // Given the canonical account for a phone number, whose login carries the SMS domain
+            const canonicalAccountID = 8800001;
+            const canonicalLogin = '+12025550199@expensify.sms';
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [canonicalAccountID]: {accountID: canonicalAccountID, login: canonicalLogin, displayName: canonicalLogin},
+            });
+            await waitForBatchedUpdates();
+
+            // And a draft participant that still holds the dropped optimistic accountID and the phone number as it was
+            // typed into the participant search, without the SMS domain
+            const participant: Participant = {
+                accountID: 9999996,
+                login: '+12025550199',
+            };
+
+            // When the participant option is built
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
+
+            // Then it points at the canonical account so the existing chat with them can be found
+            expect(result.accountID).toBe(canonicalAccountID);
+            expect(result.login).toBe(canonicalLogin);
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[canonicalAccountID]: null});
+            await waitForBatchedUpdates();
         });
 
         it('uses participant.login when no accountID is provided', () => {

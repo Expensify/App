@@ -38,7 +38,7 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
     return (
         <ConnectionLayout
             displayName="DynamicXeroTravelBillingConfigurationPage"
-            headerTitle="workspace.common.travelInvoicing"
+            headerTitle="workspace.common.travelBilling"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -54,7 +54,7 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
             <FormHelpMessage
                 isError={false}
                 shouldShowRedDotIndicator={false}
-                message={translate('workspace.xero.travelInvoicingDescription')}
+                message={translate('workspace.xero.travelBillingDescription')}
                 style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
             />
             <OfflineWithFeedback
@@ -62,7 +62,8 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
                 errorRowStyles={[styles.ph5]}
             >
                 <MenuItemField
-                    name={translate('workspace.common.travelInvoicingPayableAccount')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.TRAVEL_BILLING_PAYABLE_ACCOUNT}
+                    name={translate('workspace.common.travelBillingPayableAccount')}
                     onPress={() => {
                         if (!policyID) {
                             return;
@@ -77,6 +78,8 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
             <TravelBillingContinuousReconciliationSection
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH.XERO}
+                reconciliationAccountSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_RECONCILIATION_ACCOUNT.XERO}
                 isAutoSyncEnabled={!!config?.autoSync?.enabled}
                 isPayableAccountSet={!!config?.export?.travelInvoicingPayableAccountID}
             />

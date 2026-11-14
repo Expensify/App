@@ -41,7 +41,7 @@ function SupportTicketResolvedFooter({reportID, isOffline, shouldShowReopenButto
                     return;
                 }
 
-                Growl.error(translate('supportTicket.noSupportRepAvailable'));
+                Growl.error({bodyText: translate('supportTicket.noSupportRepAvailable')});
                 Navigation.goBack(undefined, {afterTransition: () => openConciergeAnywhere({forceConcierge: true})});
             })
             .catch((error: unknown) => Log.hmmm('[SupportTicketResolvedFooter] Failed to reopen support ticket', {reportID, error}))
@@ -54,6 +54,7 @@ function SupportTicketResolvedFooter({reportID, isOffline, shouldShowReopenButto
             content={
                 <>
                     <Checkbox
+                        sentryLabel={CONST.SENTRY_LABEL.SUPPORT_TICKET.RESOLVED_CHECKBOX}
                         isChecked
                         onPress={() => undefined}
                         accessibilityLabel={translate('supportTicket.resolved')}
@@ -68,6 +69,7 @@ function SupportTicketResolvedFooter({reportID, isOffline, shouldShowReopenButto
         >
             {shouldShowReopenButton && (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SUPPORT_TICKET.REOPEN_BUTTON}
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     isDisabled={isOffline}

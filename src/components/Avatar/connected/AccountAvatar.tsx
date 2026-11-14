@@ -29,7 +29,7 @@ type AccountAvatarProps = {
 
 /**
  * Renders a single account's avatar, resolving the icon from the personal-details context (zero Onyx subscriptions).
- * Use whenever exactly one account is rendered. Reach for `AccountAvatars` when several accounts share one slot,
+ * Use whenever exactly one account is rendered. Reach for `MultiAccountAvatar` when several accounts share one slot,
  * or pass `Avatar/UserAvatar` a `source` instead when the avatar is already resolved.
  */
 function AccountAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, fallbackDisplayName, containerStyle, accountEmail}: AccountAvatarProps) {

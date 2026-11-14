@@ -46,6 +46,39 @@ describe('actions/User', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
+    describe('updateTheme', () => {
+        it('only stores the theme locally for a passed anonymous session even when the stored session is signed in', async () => {
+            // Given a signed-in session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'user@example.com'});
+            await waitForBatchedUpdates();
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write');
+
+            // When the theme is updated for an anonymous session passed by the caller
+            UserActions.updateTheme(CONST.THEME.DARK_CONTRAST, false, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+
+            // Then the passed session decides: the preference is saved locally and not sent to the server
+            expect(apiWriteSpy).not.toHaveBeenCalled();
+            expect(await getOnyxValue(ONYXKEYS.PREFERRED_THEME)).toBe(CONST.THEME.DARK_CONTRAST);
+            apiWriteSpy.mockRestore();
+        });
+
+        it('sends the theme to the server for a passed signed-in session even when the stored session is anonymous', async () => {
+            // Given an anonymous session with an accountID stored in Onyx, as during an anonymous-to-signed-in transition
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write');
+
+            // When the theme is updated for a signed-in session passed by the caller
+            UserActions.updateTheme(CONST.THEME.DARK_CONTRAST, false, {accountID: 1, email: 'user@example.com'});
+            await waitForBatchedUpdates();
+
+            // Then the passed session decides: the preference is saved on the server for the signed-in user
+            expect(apiWriteSpy).toHaveBeenCalledTimes(1);
+            apiWriteSpy.mockRestore();
+        });
+    });
+
     describe('joinExactOnlineWaitlist', () => {
         afterEach(() => {
             jest.restoreAllMocks();
@@ -92,6 +125,66 @@ describe('actions/User', () => {
         });
     });
 
+    describe('joinAccountingIntegrationWaitlist', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('tracks the signup for the workspace without rewriting the waitlist', () => {
+            // Given the user joins the Sage Accounting waitlist for a workspace
+            const errorTimestamp = 1;
+            jest.spyOn(DateUtils, 'getMicroseconds').mockReturnValue(errorTimestamp);
+
+            // When the request is sent
+            UserActions.joinAccountingIntegrationWaitlist('policy', CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
+
+            // Then only this workspace's signup changes, since the server sends back the whole waitlist and a saved copy could overwrite newer ones
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.JOIN_ACCOUNTING_INTEGRATION_WAITLIST,
+                {policyID: 'policy', connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING},
+                {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+                            value: {policy: {[CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null}}},
+                        },
+                    ],
+                    successData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+                            value: {policy: {[CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING]: null}},
+                        },
+                    ],
+                    failureData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+                            value: {policy: {[CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING]: {pendingAction: null, errors: {[errorTimestamp]: anyString}}}},
+                        },
+                    ],
+                },
+            );
+        });
+
+        it('removes only the failed signup when its error is dismissed', async () => {
+            // Given a failed Sage Accounting signup next to a pending one for the same workspace
+            const errorTimestamp = 1;
+            const pendingSignup = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+            await Onyx.set(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {
+                policy: {[CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING]: {errors: {[errorTimestamp]: 'Signup failed'}}, [CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE]: pendingSignup},
+            });
+
+            // When the user dismisses the error
+            UserActions.clearAccountingIntegrationWaitlistError('policy', CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
+            await waitForBatchedUpdates();
+
+            // Then the failed signup is gone so Join waitlist is offered again, and the other signup stays
+            expect(await getOnyxValue(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS)).toEqual({policy: {[CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE]: pendingSignup}});
+        });
+    });
+
     describe('clearContactMethod', () => {
         it('should return early when contactMethods array is empty', async () => {
             // Given an empty array
@@ -106,7 +199,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LOGINS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -138,7 +231,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LOGINS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -182,7 +275,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LOGINS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -221,7 +314,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LOGINS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -384,7 +477,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.PENDING_CONTACT_ACTION,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -801,7 +894,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LOGINS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -819,7 +912,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.ACCOUNT,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -832,7 +925,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.PENDING_CONTACT_ACTION,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });

@@ -13,14 +13,14 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {deleteExpensifyCardRule} from '@libs/actions/Card';
-import {deletePolicyCategoryTaxes, openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {deleteRule} from '@libs/actions/Policy/Rules';
-import {getCategoryNameFromTaxRuleKey, isCategoryTaxRuleKey} from '@libs/CategoryTaxRulesUtils';
 import {deleteFlagForReviewRule, getFlagForReviewTableData} from '@libs/FlagForReviewRulesUtils';
 import {getExpenseDefaultsTableData, isMerchantTypeRuleKey} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,7 +34,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 const DEFAULT_SPEND_RULE_ID = 'default-rule';
 const RULES_TAB = CONST.TAB.RULES;
@@ -66,6 +66,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const policyData = usePolicyData(policyID);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {convertToDisplayString} = useCurrencyListActions();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -158,10 +159,9 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         policy,
         policyID,
         rules,
-        // Unlike the tables below, the raw value: a category pending deletion is exactly what marks its rule deleting.
-        policyCategories: policyCategoriesOnyx,
         policyTags: policyTagsOnyx,
         translate,
+        convertToDisplayString,
         isOffline,
         onNavigate: Navigation.navigate,
     });
@@ -208,7 +208,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
 
     const selectedRuleKeys = isTableSelectionTab(activeTab) ? getFilteredSelectedKeys(activeTab) : [];
 
-    const deleteSelectedForActiveTab = useCallback(() => {
+    const deleteSelectedForActiveTab = () => {
         if (!isTableSelectionTab(activeTab)) {
             return;
         }
@@ -235,16 +235,22 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         }
 
         if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
+            // Drained to {} after the first write so this bulk delete's optimistic task tick fires exactly once.
+            let remainingTaskData = getReviewWorkspaceSettingsTaskCompletion();
             for (const ruleKey of filteredSelectedRequireFieldsRuleKeys) {
-                deleteRequireFieldsRule(policyData, ruleKey, isVendorMatchingBetaEnabled);
+                deleteRequireFieldsRule(policyData, ruleKey, isVendorMatchingBetaEnabled, remainingTaskData);
+                remainingTaskData = {};
             }
             clearTableSelection();
             return;
         }
 
         if (activeTab === RULES_TAB.FLAG_FOR_REVIEW) {
+            // Drained to {} after the first write so this bulk delete's optimistic task tick fires exactly once.
+            let remainingTaskData = getReviewWorkspaceSettingsTaskCompletion();
             for (const categoryName of filteredSelectedFlagForReviewRuleKeys) {
-                deleteFlagForReviewRule(policyID, categoryName, policyData.categories);
+                deleteFlagForReviewRule(policyID, categoryName, policyData.categories, remainingTaskData);
+                remainingTaskData = {};
             }
             clearTableSelection();
             return;
@@ -254,42 +260,16 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
             return;
         }
 
-        // Category tax defaults live in `expenseRules`, a plain array, so they delete together in one pass that threads
-        // the array through rather than one independent write each.
-        const selectedCategoryNames: string[] = [];
-
         for (const ruleID of filteredSelectedExpenseDefaultKeys) {
             if (isMerchantTypeRuleKey(ruleID)) {
-                continue;
-            }
-
-            if (isCategoryTaxRuleKey(ruleID)) {
-                selectedCategoryNames.push(getCategoryNameFromTaxRuleKey(ruleID));
                 continue;
             }
 
             deleteRule(ruleID, rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]);
         }
 
-        if (selectedCategoryNames.length > 0) {
-            deletePolicyCategoryTaxes(policy, selectedCategoryNames);
-        }
         clearTableSelection();
-    }, [
-        isVendorMatchingBetaEnabled,
-        activeTab,
-        clearTableSelection,
-        defaultFundID,
-        expensifyCardSettings?.cardRules,
-        filteredSelectedExpenseDefaultKeys,
-        filteredSelectedFlagForReviewRuleKeys,
-        filteredSelectedRequireFieldsRuleKeys,
-        rules,
-        filteredSelectedSpendRuleKeys,
-        policy,
-        policyData,
-        policyID,
-    ]);
+    };
 
     return {
         selectedRuleKeys,

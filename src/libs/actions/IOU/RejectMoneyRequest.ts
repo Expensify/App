@@ -125,6 +125,7 @@ type PrepareRejectMoneyRequestDataParams = {
     options?: RejectMoneyRequestOptions;
     shouldUseBulkAction?: boolean;
     reportTransactionsCollection: Record<string, OnyxTypes.Transaction>;
+    isChatReportArchived: boolean;
 };
 
 function prepareRejectMoneyRequestData({
@@ -141,6 +142,7 @@ function prepareRejectMoneyRequestData({
     options,
     shouldUseBulkAction,
     reportTransactionsCollection,
+    isChatReportArchived,
 }: PrepareRejectMoneyRequestDataParams): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -811,8 +813,7 @@ function prepareRejectMoneyRequestData({
             currentUserAccountIDParam,
             allTransactionViolations,
             undefined,
-            // TODO: Thread the chat report's archived state from the UI. Until then treat the chat as not archived. See https://github.com/Expensify/App/issues/66422
-            false,
+            isChatReportArchived,
         );
 
         if (policyExpenseChat.hasOutstandingChildRequest !== shouldHaveOutstandingChildRequest) {
@@ -972,7 +973,13 @@ function rejectMoneyRequest(params: Omit<PrepareRejectMoneyRequestDataParams, 's
     return urlToNavigateBack;
 }
 
-function markRejectViolationAsResolved(transactionID: string, isOffline: boolean, transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>, reportID?: string) {
+function markRejectViolationAsResolved(
+    transactionID: string,
+    isOffline: boolean,
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    reportID: string | undefined,
+    parentReportActions: OnyxEntry<OnyxTypes.ReportActions> | OnyxTypes.ReportAction[],
+) {
     if (!reportID) {
         return;
     }
@@ -1036,7 +1043,7 @@ function markRejectViolationAsResolved(transactionID: string, isOffline: boolean
         failureData,
     });
 
-    const currentReportID = getDisplayedReportID(reportID, isOffline);
+    const currentReportID = getDisplayedReportID(reportID, isOffline, parentReportActions);
     notifyNewAction(currentReportID, undefined, true);
 }
 
@@ -1075,6 +1082,7 @@ function rejectExpenseReport(
     const optimisticStateNum = isRejectToSubmitter ? CONST.REPORT.STATE_NUM.OPEN : CONST.REPORT.STATE_NUM.SUBMITTED;
     const optimisticStatusNum = isRejectToSubmitter ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.SUBMITTED;
 
+    // Rejecting either reopens the report or sends it to targetAccountID, so the next approver is never looked up and personalDetailsByLogins isn't needed.
     const optimisticNextStep = isRejectToSubmitter
         ? buildOptimisticNextStep({
               report,
@@ -1082,6 +1090,7 @@ function rejectExpenseReport(
               isRejectedReport: true,
               isTrackIntentUser,
               rules,
+              personalDetailsByLogins: undefined,
           })
         : buildOptimisticNextStep({
               report,
@@ -1089,6 +1098,7 @@ function rejectExpenseReport(
               bypassNextApproverID: targetAccountID,
               isTrackIntentUser,
               rules,
+              personalDetailsByLogins: undefined,
           });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [

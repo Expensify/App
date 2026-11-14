@@ -11,7 +11,7 @@ function showInlineEditError(message: string | undefined) {
         return;
     }
 
-    Growl.error(message, {position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
+    Growl.error({bodyText: message, position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
 }
 
 export default showInlineEditError;
