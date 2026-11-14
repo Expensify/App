@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -32,7 +32,7 @@ function DynamicDomainPermissionInfoPage({route}: DomainPermissionInfoPageProps)
             shouldEnableMaxHeight
             testID="DynamicDomainPermissionInfoPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('travel.domainPermissionInfo.title')}
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />
