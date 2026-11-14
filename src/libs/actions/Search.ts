@@ -287,6 +287,8 @@ type HandleActionButtonPressParams = {
     onAllHeldExpensesBlock?: () => void;
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
     confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
+    /** Confirms report violations before the APPROVE action proceeds; approval is skipped if omitted. */
+    confirmApproveReportViolations?: (onProceed: () => void) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     currentUserAccountID: number;
     currentUserLogin?: string;
@@ -337,6 +339,7 @@ function handleActionButtonPress({
     onUndelete,
     onAllHeldExpensesBlock,
     confirmSubmitReportViolations,
+    confirmApproveReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
     currentUserLogin,
@@ -426,28 +429,30 @@ function handleActionButtonPress({
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
-            getApproveActionCallback({
-                hash,
-                item,
-                snapshotReport,
-                snapshotPolicy,
-                policy,
-                currentSearchKey,
-                currentUserAccountID,
-                currentUserLogin,
-                isASAPSubmitBetaEnabled,
-                userBillingGracePeriodEnds,
-                ownerBillingGracePeriodEnd,
-                amountOwed,
-                delegateEmail,
-                delegateAccountID,
-                isTrackIntentUser,
-                ownerLogin: submitterLogin,
-                allViolations,
-                rules,
-                getCurrencyDecimals,
-                personalDetailsByLogins,
-            });
+            confirmApproveReportViolations?.(() =>
+                getApproveActionCallback({
+                    hash,
+                    item,
+                    snapshotReport,
+                    snapshotPolicy,
+                    policy,
+                    currentSearchKey,
+                    currentUserAccountID,
+                    currentUserLogin,
+                    isASAPSubmitBetaEnabled,
+                    userBillingGracePeriodEnds,
+                    ownerBillingGracePeriodEnd,
+                    amountOwed,
+                    delegateEmail,
+                    delegateAccountID,
+                    isTrackIntentUser,
+                    ownerLogin: submitterLogin,
+                    allViolations,
+                    rules,
+                    getCurrencyDecimals,
+                    personalDetailsByLogins,
+                }),
+            );
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {

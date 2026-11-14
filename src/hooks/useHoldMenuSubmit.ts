@@ -18,6 +18,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 
+import useConfirmApproveReportViolations from './useConfirmApproveReportViolations';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -77,6 +78,12 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const {showLockedAccountModal} = useLockedAccountActions();
 
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({
+        report: moneyRequestReport,
+        policy,
+        transactions: moneyRequestReportTransactions,
+        violationsCollection: transactionViolations,
+    });
 
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
@@ -98,27 +105,29 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
         const currentChatReport = getReportOrDraftReport({reportID: chatReport?.reportID}) ?? chatReport;
 
         if (isApprove) {
-            approveMoneyRequest({
-                personalDetailsByLogins: getPersonalDetailsByLogin(),
-                getCurrencyDecimals,
-                expenseReport: currentMoneyRequestReport,
-                rules,
-                currentUserAccountIDParam: currentUserDetails.accountID,
-                currentUserEmailParam: currentUserDetails.email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                ownerLogin,
-                full,
-                onApproved: animationCallback,
-                expenseReportPolicy: policy,
-                delegateEmail,
-                delegateAccountID,
-                isTrackIntentUser,
-                allTransactionViolations: transactionViolations,
-            });
+            confirmApproveReportViolations(() => {
+                approveMoneyRequest({
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
+                    getCurrencyDecimals,
+                    expenseReport: currentMoneyRequestReport,
+                    rules,
+                    currentUserAccountIDParam: currentUserDetails.accountID,
+                    currentUserEmailParam: currentUserDetails.email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    userBillingGracePeriodEnds,
+                    amountOwed,
+                    ownerBillingGracePeriodEnd,
+                    ownerLogin,
+                    full,
+                    onApproved: animationCallback,
+                    expenseReportPolicy: policy,
+                    delegateEmail,
+                    delegateAccountID,
+                    isTrackIntentUser,
+                    allTransactionViolations: transactionViolations,
+                });
+            }, full);
         } else if (currentChatReport && paymentType) {
             payWithWiseQuote({
                 bankAccountList,

@@ -108,6 +108,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Zapisz zmiany',
         submit: 'Wyślij',
         submitAnyway: 'Wyślij mimo to',
+        approveAnyway: 'Zatwierdź mimo to',
         markAsDone: 'Oznacz jako wykonane',
         markAsDoneAnyway: 'Oznacz jako wykonane mimo to',
         submitted: 'Przesłano',
@@ -1578,6 +1579,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Oczekujące dopasowanie',
         pendingMatchWithCreditCardDescription: 'Oczekuje na dopasowanie paragonu do transakcji kartą. Oznacz jako gotówkę, aby anulować.',
         markAsCash: 'Oznacz jako gotówkę',
+        confirmApproveReportViolations: {
+            title: 'Zatwierdzić mimo to?',
+            description: 'Ten raport zawiera naruszenia zasad. Na pewno chcesz go zatwierdzić bez wprowadzania zmian?',
+        },
         confirmSubmitReportViolations: {
             title: 'Wysłać raport?',
             description: 'Ten raport zawiera naruszenia zasad. Czy na pewno chcesz go wysłać bez wprowadzania zmian?',

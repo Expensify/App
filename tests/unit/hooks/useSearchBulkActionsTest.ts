@@ -1,5 +1,6 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
@@ -156,9 +157,14 @@ jest.mock('@components/LockedAccountModalProvider', () => ({
     useLockedAccountActions: () => ({showLockedAccountModal: mockShowLockedAccountModal}),
 }));
 
+const mockShowConfirmModal = jest.fn();
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
-    default: () => ({showConfirmModal: jest.fn()}),
+    default: () => ({showConfirmModal: mockShowConfirmModal}),
+}));
+jest.mock('@libs/showConfirmModalAfterMoreMenuDismiss', () => ({
+    __esModule: true,
+    default: (showConfirmModal: (options: unknown) => Promise<unknown>, options: unknown) => showConfirmModal(options),
 }));
 
 let mockEnabledBetas: string[] = [];
@@ -1155,6 +1161,7 @@ describe('useSearchBulkActions - Approve under Select all', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockShowConfirmModal.mockReset().mockResolvedValue({action: ModalActions.CLOSE});
         mockIsOffline = false;
         mockAreAllMatchingItemsSelected = true;
         await Onyx.clear();
@@ -1193,6 +1200,42 @@ describe('useSearchBulkActions - Approve under Select all', () => {
         expect(queueBulkApproveReports).toHaveBeenCalledWith(expect.any(String));
         expect(approveMoneyRequest).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it.each([
+        {action: ModalActions.CLOSE, cleared: false},
+        {action: ModalActions.CONFIRM, cleared: false},
+        {action: ModalActions.CLOSE, cleared: true},
+    ])('handles snapshot-only warnings before bulk approval ($action, live cleared: $cleared)', async ({action, cleared}) => {
+        // Given an approvable report whose transaction and violation exist only in Search data
+        const transaction = createMock<Transaction>({transactionID: 'tx1', reportID: 'report1', merchant: 'Merchant', amount: 100, currency: 'USD'});
+        const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}tx1` as const;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canApprove: true})];
+        mockCurrentSearchResults = {
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: transaction,
+                [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {reportID: 'report1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'},
+                [violationKey]: [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.WARNING}],
+            },
+        };
+        if (cleared) {
+            await Onyx.set(violationKey, []);
+        }
+        mockShowConfirmModal.mockResolvedValue({action});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(true));
+
+        // When Select all approval is requested
+        await act(async () => {
+            await result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)?.onSelected?.();
+        });
+
+        // Then only confirmed or already-cleared warnings allow approval and selection cleanup
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(cleared ? 0 : 1);
+        const shouldApprove = cleared || action === ModalActions.CONFIRM;
+        expect(queueBulkApproveReports).toHaveBeenCalledTimes(shouldApprove ? 1 : 0);
+        expect(mockClearSelectedTransactions).toHaveBeenCalledTimes(shouldApprove ? 1 : 0);
     });
 
     it('leaves out reports the user deselected from the bulk approval', async () => {

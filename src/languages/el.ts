@@ -108,6 +108,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Αποθήκευση αλλαγών',
         submit: 'Υποβολή',
         submitAnyway: 'Υποβολή ούτως ή άλλως',
+        approveAnyway: 'Έγκριση ούτως ή άλλως',
         markAsDone: 'Σήμανση ως ολοκληρωμένο',
         markAsDoneAnyway: 'Σήμανση ως ολοκληρωμένο ούτως ή άλλως',
         submitted: 'Υποβλήθηκε',
@@ -1587,6 +1588,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Εκκρεμής αντιστοίχιση',
         pendingMatchWithCreditCardDescription: 'Η απόδειξη εκκρεμεί για αντιστοίχιση με συναλλαγή κάρτας. Επισημάνετε την ως μετρητά για ακύρωση.',
         markAsCash: 'Σήμανση ως μετρητά',
+        confirmApproveReportViolations: {
+            title: 'Έγκριση ούτως ή άλλως;',
+            description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε βέβαιοι ότι θέλετε να την εγκρίνετε χωρίς να κάνετε αλλαγές;',
+        },
         confirmSubmitReportViolations: {
             title: 'Υποβολή αναφοράς;',
             description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να την υποβάλετε χωρίς αλλαγές;',

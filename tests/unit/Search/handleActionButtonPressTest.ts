@@ -369,6 +369,7 @@ describe('handleActionButtonPress', () => {
             rules: undefined,
             bankAccountList: undefined,
             confirmSubmitReportViolations: jest.fn(),
+            confirmApproveReportViolations: (onProceed) => onProceed(),
             personalDetailsByLogins: {},
         });
 
@@ -406,6 +407,7 @@ describe('handleActionButtonPress', () => {
             rules: undefined,
             bankAccountList: undefined,
             confirmSubmitReportViolations: jest.fn(),
+            confirmApproveReportViolations: (onProceed) => onProceed(),
             personalDetailsByLogins: {},
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
@@ -449,6 +451,7 @@ describe('handleActionButtonPress', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             bankAccountList: undefined,
             confirmSubmitReportViolations: jest.fn(),
+            confirmApproveReportViolations: (onProceed) => onProceed(),
         });
 
         // Then: hasViolations is evaluated against the passed collection, proving the deprecated global getter is no longer used,

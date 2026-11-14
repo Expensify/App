@@ -164,6 +164,7 @@ const translations = {
         saveChanges: 'Save changes',
         submit: 'Submit',
         submitAnyway: 'Submit anyway',
+        approveAnyway: 'Approve anyway',
         markAsDone: 'Mark as done',
         markAsDoneAnyway: 'Mark as done anyway',
         // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
@@ -1682,6 +1683,10 @@ const translations = {
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
+        confirmApproveReportViolations: {
+            title: 'Approve anyway?',
+            description: 'This report has policy violations. Are you sure you want to approve it without making changes?',
+        },
         confirmSubmitReportViolations: {
             title: 'Submit report?',
             description: 'This report has policy violations. Are you sure you want to submit it without making changes?',

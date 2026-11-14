@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Änderungen speichern',
         submit: 'Senden',
         submitAnyway: 'Trotzdem senden',
+        approveAnyway: 'Trotzdem genehmigen',
         markAsDone: 'Als erledigt markieren',
         markAsDoneAnyway: 'Trotzdem als erledigt markieren',
         submitted: 'Übermittelt',
@@ -1541,6 +1542,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Ausstehende Zuordnung',
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartenumsatz. Als Barzahlung markieren, um abzubrechen.',
         markAsCash: 'Als Bar markieren',
+        confirmApproveReportViolations: {
+            title: 'Trotzdem genehmigen?',
+            description: 'Dieser Bericht enthält Richtlinienverstöße. Sind Sie sicher, dass Sie ihn ohne Änderungen genehmigen möchten?',
+        },
         confirmSubmitReportViolations: {
             title: 'Bericht einreichen?',
             description: 'Dieser Bericht enthält Richtlinienverstöße. Möchten Sie ihn wirklich ohne Änderungen einreichen?',

@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Enregistrer les modifications',
         submit: 'Soumettre',
         submitAnyway: 'Soumettre quand même',
+        approveAnyway: 'Approuver quand même',
         markAsDone: 'Marquer comme terminé',
         markAsDoneAnyway: 'Marquer comme terminé quand même',
         submitted: 'Soumis',
@@ -1549,6 +1550,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondance en attente',
         pendingMatchWithCreditCardDescription: 'Reçu en attente de rapprochement avec une transaction par carte. Marquez comme paiement en espèces pour annuler.',
         markAsCash: 'Marquer comme espèces',
+        confirmApproveReportViolations: {
+            title: 'Approuver quand même ?',
+            description: 'Cette note de frais comporte des violations de politique. Voulez-vous vraiment l’approuver sans y apporter de modifications ?',
+        },
         confirmSubmitReportViolations: {
             title: 'Soumettre le rapport ?',
             description: 'Ce rapport contient des violations de politique. Voulez-vous vraiment le soumettre sans apporter de modifications ?',

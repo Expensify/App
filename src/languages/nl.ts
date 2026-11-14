@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Wijzigingen opslaan',
         submit: 'Verzenden',
         submitAnyway: 'Toch verzenden',
+        approveAnyway: 'Toch goedkeuren',
         markAsDone: 'Markeren als voltooid',
         markAsDoneAnyway: 'Toch markeren als voltooid',
         submitted: 'Ingediend',
@@ -1538,6 +1539,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Overeenkomst in behandeling',
         pendingMatchWithCreditCardDescription: 'Bon wordt nog gekoppeld aan kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Markeren als contant',
+        confirmApproveReportViolations: {
+            title: 'Toch goedkeuren?',
+            description: 'Dit rapport bevat beleidsinbreuken. Weet je zeker dat je het wilt goedkeuren zonder wijzigingen aan te brengen?',
+        },
         confirmSubmitReportViolations: {
             title: 'Rapport verzenden?',
             description: 'Dit rapport heeft beleidsschendingen. Weet u zeker dat u het wilt verzenden zonder wijzigingen aan te brengen?',
