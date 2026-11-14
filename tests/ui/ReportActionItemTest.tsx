@@ -3381,6 +3381,62 @@ describe('ReportActionItem', () => {
     });
 
     describe('Actionable alerts, previews, and remaining action types', () => {
+        it.each([CONST.REPORT.TYPE.CHAT, CONST.REPORT.TYPE.SUPPORT_TICKET])('shows the appropriate mention invite options for %s', async (type) => {
+            // Given a workspace admin mentioning someone outside their workspace
+            const policyID = 'mention-invite-policy';
+            const report = createMock<Report>({
+                reportID: '123',
+                policyID,
+                type,
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID, email: actorEmail});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, role: CONST.POLICY.ROLE.ADMIN});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER, {inviteeAccountIDs: [999], inviteeEmails: ['stranger@test.com']});
+
+            // When the mention invite prompt appears
+            renderItemWithAction(action, false, report);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then tickets offer only chat invitations and dismissal
+            expect(screen.getByText(translateLocal('actionableMentionWhisperOptions.inviteToChat'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('actionableMentionWhisperOptions.nothing'))).toBeOnTheScreen();
+            expect(!!screen.queryByText(translateLocal('actionableMentionWhisperOptions.inviteToSubmitExpense'))).toBe(type !== CONST.REPORT.TYPE.SUPPORT_TICKET);
+        });
+
+        it('hides an unanswered mention invitation when the support ticket is resolved', async () => {
+            // Given a customer who has not answered a mention invitation on an open ticket
+            const report = createMock<Report>({
+                reportID: '123',
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID, email: actorEmail});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER, {inviteeAccountIDs: [999], inviteeEmails: ['stranger@test.com']});
+            renderItemWithAction(action, false, report);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(translateLocal('actionableMentionWhisperOptions.inviteToChat'))).toBeOnTheScreen();
+
+            // When the rep resolves the ticket before the customer accepts the invitation
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
+            });
+
+            // Then the customer can dismiss the prompt but cannot invite anyone
+            expect(screen.queryByText(translateLocal('actionableMentionWhisperOptions.inviteToChat'))).not.toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('actionableMentionWhisperOptions.nothing'))).toBeOnTheScreen();
+        });
+
         it('CHANGE_POLICY renders changed workspace message', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY, {fromPolicy: 'pA', toPolicy: 'pB'});
             renderItemWithAction(action);

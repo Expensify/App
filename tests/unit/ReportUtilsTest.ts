@@ -86,6 +86,7 @@ import {
     canMergeReports,
     canModifyHoldStatus,
     canRejectReportAction,
+    canRemoveSupportTicketParticipant,
     canRequestMoney,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
@@ -6819,6 +6820,49 @@ describe('ReportUtils', () => {
             expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, approverAccountID)).toBe(true);
             expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, currentUserAccountID)).toBe(false);
             expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, undefined)).toBe(false);
+        });
+    });
+
+    describe('canLeaveChat on support tickets', () => {
+        const customerAccountID = 100;
+        const repAccountID = 200;
+        const inviteeAccountID = 300;
+        const supportTicket: Report = {
+            ...createRandomReport(80209, undefined),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: customerAccountID,
+            managerID: repAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            participants: buildParticipantsFromAccountIDs([customerAccountID, repAccountID, inviteeAccountID]),
+        };
+
+        it('only lets invited participants leave', () => {
+            // Given an open ticket where the customer and assigned rep must stay
+            // When each participant opens the ticket details
+            // Then only the invitee can leave
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, false)).toBe(true);
+            expect(canLeaveChat(supportTicket, undefined, customerAccountID, false)).toBe(false);
+            expect(canLeaveChat(supportTicket, undefined, repAccountID, false)).toBe(false);
+            expect(canLeaveChat(supportTicket, undefined, undefined, false)).toBe(false);
+        });
+
+        it('lets invitees leave resolved tickets', () => {
+            // Given a resolved ticket that invitees no longer need in their inbox
+            const closedTicket: Report = {...supportTicket, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+            // When each participant opens the ticket details
+            // Then only the invitee can leave
+            expect(canLeaveChat(closedTicket, undefined, inviteeAccountID, false)).toBe(true);
+            expect(canLeaveChat(closedTicket, undefined, customerAccountID, false)).toBe(false);
+            expect(canLeaveChat(closedTicket, undefined, repAccountID, false)).toBe(false);
+        });
+
+        it('blocks leaving archived tickets', () => {
+            // Given an archived ticket
+            // When an invitee opens the ticket details
+            // Then leaving remains unavailable
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, false, true)).toBe(false);
         });
     });
 
@@ -16125,6 +16169,42 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canRemoveSupportTicketParticipant', () => {
+        const customerAccountID = 80001;
+        const repAccountID = 80002;
+        const inviteeAccountID = 80003;
+        const supportTicket: Report = {
+            ...createRandomReport(80208, undefined),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: customerAccountID,
+            managerID: repAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        it('only lets the assigned rep remove invitees', () => {
+            // Given an open ticket where the customer and assigned rep must remain participants
+            // When removal is checked for the rep, customer, and invitee
+            // Then only the rep can remove an invitee, and neither protected participant can be removed
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, inviteeAccountID)).toBe(true);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, customerAccountID, inviteeAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, inviteeAccountID, customerAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, customerAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, repAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, undefined, inviteeAccountID)).toBe(false);
+        });
+
+        it('blocks removal on closed or archived tickets', () => {
+            // Given a resolved ticket whose participants should remain available after reopening
+            const closedTicket: Report = {...supportTicket, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+            // When the assigned rep views a closed or archived ticket
+            // Then removal is unavailable even though they are still assigned to it
+            expect(canRemoveSupportTicketParticipant(closedTicket, false, repAccountID, inviteeAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, true, repAccountID, inviteeAccountID)).toBe(false);
+        });
+    });
+
     describe('canInviteMembersToReport', () => {
         const submitterAccountID = 80001;
         const otherAccountID = 80002;
@@ -16143,6 +16223,45 @@ describe('ReportUtils', () => {
 
             // Then a plain participant can invite, and no policy is needed to decide that
             expect(canInviteMembersToReport(groupChat, undefined, false, otherAccountID)).toBe(true);
+        });
+
+        it('only lets the customer and assigned rep invite on an open support ticket', () => {
+            // Given a ticket with a customer, assigned rep, and invited participant
+            const supportTicket: Report = {
+                ...createRandomReport(80206, undefined),
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: submitterAccountID,
+                managerID: otherAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                participants: buildParticipantsFromAccountIDs([submitterAccountID, otherAccountID, 80003]),
+            };
+
+            // When invite permissions are checked for each role
+            // Then only the customer and assigned rep can invite, regardless of workspace role
+            expect(canInviteMembersToReport(supportTicket, undefined, false, submitterAccountID)).toBe(true);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToReport(supportTicket, adminPolicy, false, 80003)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, 80004)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, undefined)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, true, submitterAccountID)).toBe(false);
+        });
+
+        it('blocks the customer and assigned rep from inviting on a closed support ticket', () => {
+            // Given a ticket that has been resolved
+            const supportTicket: Report = {
+                ...createRandomReport(80207, undefined),
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: submitterAccountID,
+                managerID: otherAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+
+            // When either authorized inviter opens its Members page
+            // Then inviting is unavailable while the ticket is closed
+            expect(canInviteMembersToReport(supportTicket, undefined, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, otherAccountID)).toBe(false);
         });
 
         it('lets the submitter invite on an open expense report', () => {

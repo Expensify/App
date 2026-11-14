@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useConciergeAskState from '@hooks/useConciergeAskState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
 
 import CONST from '@src/CONST';
@@ -23,6 +24,9 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // Mock useResponsiveLayout so each test can pin an exact layout combination.
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
+
+jest.mock('@pages/inbox/report/ReportActionCompose/ReportActionCompose', () => jest.fn(() => null));
+jest.mock('@components/MerchantRuleSuggestionBanner', () => jest.fn(() => null));
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
@@ -126,6 +130,36 @@ describe('ReportFooter', () => {
 
         // Then the composer is labeled, so the user knows a new message starts a new question
         expect(screen.getByText('Ask a new question')).toBeOnTheScreen();
+    });
+
+    it('hides the composer after a support ticket is resolved and restores it after reopening', async () => {
+        // Given an open ticket viewed by someone other than the customer
+        mockLayout({isSmallScreenWidth: false, isInNarrowPaneModal: false});
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                reportID: REPORT_ID,
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: 1,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+        });
+        renderReportFooter();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.UNSAFE_queryByType(ReportActionCompose)).not.toBeNull();
+
+        // When the rep resolves the ticket, replies are no longer allowed
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
+        });
+
+        // Then the composer disappears until the customer reopens the ticket
+        expect(screen.UNSAFE_queryByType(ReportActionCompose)).toBeNull();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+        });
+        expect(screen.UNSAFE_queryByType(ReportActionCompose)).not.toBeNull();
     });
 
     describe.each([

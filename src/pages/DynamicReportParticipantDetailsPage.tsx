@@ -16,14 +16,15 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {removeFromGroupChat} from '@libs/actions/Report';
+import {removeFromRoom} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isGroupChatAdmin} from '@libs/ReportUtils';
+import {canRemoveSupportTicketParticipant, isGroupChat, isGroupChatAdmin, isSupportTicket} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
@@ -60,12 +61,15 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
     const details = personalDetail ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
-    const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
+    const isCurrentUserAdmin = isGroupChat(report) && isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
+    const isReportArchived = useReportIsArchived(report.reportID);
+    const canRemoveMember = isCurrentUserAdmin || canRemoveSupportTicketParticipant(report, isReportArchived, currentUserPersonalDetails?.accountID, accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
+    const removeMemberTitle = translate(isSupportTicket(report) ? 'workspace.people.removeRoomMemberButtonTitle' : 'workspace.people.removeGroupMemberButtonTitle');
     const askForConfirmationToRemove = () => {
         showConfirmModal({
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-            title: translate('workspace.people.removeGroupMemberButtonTitle'),
+            title: removeMemberTitle,
             prompt: translate('workspace.people.removeMemberPrompt', displayName),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
@@ -74,7 +78,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                 return;
             }
 
-            removeFromGroupChat(report, [accountID]);
+            removeFromRoom(report, [accountID]);
             Navigation.goBack(backPath);
         });
     };
@@ -114,7 +118,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                             {displayName}
                         </Text>
                     )}
-                    {isCurrentUserAdmin && (
+                    {canRemoveMember && (
                         <Button
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.PARTICIPANT_DETAILS_REMOVE_BUTTON}
                             onPress={askForConfirmationToRemove}
@@ -125,7 +129,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                                 src={icons.RemoveMembers}
                                 style={StyleUtils.getTransformScaleStyle(0.8)}
                             />
-                            <Button.Text>{translate('workspace.people.removeGroupMemberButtonTitle')}</Button.Text>
+                            <Button.Text>{removeMemberTitle}</Button.Text>
                         </Button>
                     )}
                 </View>
