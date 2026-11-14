@@ -528,6 +528,12 @@ To react to this event, include phrases like:
 - When a company card feed has been broken for a month and still has not been reconnected
 - When an admin is reminded to clean up a long-broken company card connection
 
+**A company card connection will soon need renewed bank consent; a notice was posted in the workspace #admins room so an admin can reconnect the feed before imports stop.**
+
+To react to this event, include phrases like:
+- When a company card feed needs renewed bank consent before it expires
+- When an admin is warned that card transactions may stop importing without reconnecting the feed
+
 **A personal card connected via Plaid failed to import transactions; a notice was posted in the cardholder's Concierge DM so they can reconnect the card.**
 
 To react to this event, include phrases like:
@@ -956,4 +962,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 132 events AI Agents can react to.*
+*This reference covers all 133 events AI Agents can react to.*
