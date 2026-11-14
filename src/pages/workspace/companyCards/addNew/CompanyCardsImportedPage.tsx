@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -246,7 +246,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('spreadsheet.importSpreadsheet')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.getRoute(policyID))}
                 />

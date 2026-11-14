@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -186,7 +186,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={title ?? headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
