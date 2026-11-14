@@ -4,6 +4,8 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isWaitlistIntegration} from '@libs/IntegrationWaitlistUtils';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -13,7 +15,7 @@ import type {ConnectionListing} from './types';
 
 import AccountingIntegrationWaitlistCard from './AccountingIntegrationWaitlistCard';
 import ConnectionCard from './ConnectionCard';
-import ExactOnlineWaitlistCard from './ExactOnlineWaitlistCard';
+import IntegrationWaitlistCard from './IntegrationWaitlistCard';
 
 // Invisible fillers take the empty slots of the last row so its cards keep their column width
 const FILLER_COUNT = 2;
@@ -33,10 +35,11 @@ function ConnectionsGrid({listings, policyID}: ConnectionsGridProps) {
     return (
         <View style={styles.connectionsGrid}>
             {listings.map((listing) => {
-                if (listing.key === CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE) {
+                if (isWaitlistIntegration(listing.key)) {
                     return (
-                        <ExactOnlineWaitlistCard
+                        <IntegrationWaitlistCard
                             key={listing.key}
+                            integration={listing.key}
                             policyID={policyID}
                         />
                     );

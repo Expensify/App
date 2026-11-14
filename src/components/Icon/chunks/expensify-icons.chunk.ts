@@ -158,6 +158,7 @@ import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg
 import MCPSquare from '@assets/images/integrationicons/mcp-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import OdooSquare from '@assets/images/integrationicons/odoo-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
@@ -514,6 +515,7 @@ const Expensicons = {
     RilletSquare,
     DualEntrySquare,
     ExactOnlineSquare,
+    OdooSquare,
     Rotate,
     RotateLeft,
     Scan,

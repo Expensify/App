@@ -7825,16 +7825,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Expensify Classic で設定されている接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
-            exactOnline: {
-                comingSoon: '近日公開予定',
-                joinWaitlist: 'ウェイトリストに参加',
-                onWaitlist: '順番待ちリストに登録されています',
-                waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
-            },
             integrationWaitlist: {
                 comingSoon: '近日公開予定',
                 joinWaitlist: 'ウェイトリストに参加',
                 onWaitlist: '順番待ちリストに登録されています',
+                onWaitlistButton: 'ウェイトリスト登録済み',
                 onTheList: 'リストに登録されています！',
                 waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
             },

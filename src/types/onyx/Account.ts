@@ -137,7 +137,7 @@ type Account = {
     errorFields?: OnyxCommon.ErrorFields;
 
     /** Pending account changes while requests are queued. */
-    pendingFields?: OnyxCommon.PendingFields<'exactOnlineWaitlist'>;
+    pendingFields?: OnyxCommon.PendingFields<'exactOnlineWaitlist' | 'odooWaitlist'>;
 
     /** Authentication success message */
     success?: string;

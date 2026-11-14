@@ -221,6 +221,9 @@ const ONYXKEYS = {
     /** UTC signup timestamp for the account's Exact Online waitlist membership */
     NVP_EXACT_ONLINE_WAITLIST: 'nvp_expensify_exactOnlineWaitlist',
 
+    /** UTC signup timestamp for the account's Odoo waitlist membership */
+    NVP_ODOO_WAITLIST: 'nvp_expensify_odooWaitlist',
+
     /** Accounting integrations the user is waiting for, one entry per integration and workspace */
     NVP_ACCOUNTING_INTEGRATION_WAITLIST: 'nvp_accountingIntegrationWaitlist',
 
@@ -1889,6 +1892,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST]: string;
+    [ONYXKEYS.NVP_ODOO_WAITLIST]: string;
     [ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST]: OnyxTypes.AccountingIntegrationWaitlist;
     [ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS]: OnyxTypes.AccountingIntegrationWaitlistRequests;
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];

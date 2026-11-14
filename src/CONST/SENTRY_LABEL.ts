@@ -2050,7 +2050,10 @@ const SENTRY_LABEL = {
             SUBMISSION_FREQUENCY_SWITCH: 'WorkspaceWorkflows-SubmissionFrequencySwitch',
         },
         ACCOUNTING: {
-            EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
+            JOIN_WAITLIST: {
+                EXACT_ONLINE: 'WorkspaceAccounting-JoinWaitlist-ExactOnline',
+                ODOO: 'WorkspaceAccounting-JoinWaitlist-Odoo',
+            },
             JOIN_WAITLIST_BUTTON: 'WorkspaceAccounting-JoinWaitlist',
             CARD_RECONCILIATION_ACCOUNT: 'WorkspaceAccounting-CardReconciliationAccount',
             CLAIM_OFFER: 'WorkspaceAccounting-ClaimOffer',

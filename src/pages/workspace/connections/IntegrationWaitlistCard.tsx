@@ -1,19 +1,22 @@
-/** Exact Online's coming-soon card keeps account signup separate from live connector setup. */
+/** A coming-soon integration's card keeps account signup separate from live connector setup. */
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import ExactOnlineWaitlistRow from '@pages/workspace/accounting/ExactOnlineWaitlistRow';
+import type {WaitlistIntegration} from '@libs/IntegrationWaitlistUtils';
+
+import IntegrationWaitlistRow from '@pages/workspace/accounting/IntegrationWaitlistRow';
 
 import React from 'react';
 import {View} from 'react-native';
 
-type ExactOnlineWaitlistCardProps = {
+type IntegrationWaitlistCardProps = {
+    integration: WaitlistIntegration;
     policyID?: string;
 };
 
-function ExactOnlineWaitlistCard({policyID}: ExactOnlineWaitlistCardProps) {
+function IntegrationWaitlistCard({integration, policyID}: IntegrationWaitlistCardProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -29,7 +32,8 @@ function ExactOnlineWaitlistCard({policyID}: ExactOnlineWaitlistCardProps) {
                 shouldUseNarrowLayout || isMediumScreenWidth ? [styles.flexBasisAuto, styles.w100, StyleUtils.getMinimumWidth(0)] : styles.connectionCard,
             ]}
         >
-            <ExactOnlineWaitlistRow
+            <IntegrationWaitlistRow
+                integration={integration}
                 policy={policy}
                 style={[styles.pv4, styles.ph4]}
                 isBadgeCondensed
@@ -38,4 +42,4 @@ function ExactOnlineWaitlistCard({policyID}: ExactOnlineWaitlistCardProps) {
     );
 }
 
-export default ExactOnlineWaitlistCard;
+export default IntegrationWaitlistCard;

@@ -7920,16 +7920,11 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Er is een fout opgetreden met een verbinding die is ingesteld in Expensify Classic. [Ga naar Expensify Classic om dit probleem op te lossen.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ga naar Expensify Classic om je instellingen te beheren.',
-            exactOnline: {
-                comingSoon: 'Binnenkort beschikbaar',
-                joinWaitlist: 'Aanmelden voor wachtlijst',
-                onWaitlist: 'Je staat op de wachtlijst',
-                waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Binnenkort beschikbaar',
                 joinWaitlist: 'Aanmelden voor wachtlijst',
                 onWaitlist: 'Je staat op de wachtlijst',
+                onWaitlistButton: 'Op de wachtlijst',
                 onTheList: 'Je staat op de lijst!',
                 waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
             },

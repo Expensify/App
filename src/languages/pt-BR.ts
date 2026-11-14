@@ -7935,16 +7935,11 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Há um erro em uma conexão configurada no Expensify Classic. [Acesse o Expensify Classic para corrigir esse problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vá para o Expensify Classic para gerenciar suas configurações.',
-            exactOnline: {
-                comingSoon: 'Em breve',
-                joinWaitlist: 'Entrar na lista de espera',
-                onWaitlist: 'Você está na lista de espera',
-                waitlistDescription: 'O Concierge vai enviar uma mensagem para avisar quando essa integração estiver pronta e como conectá-la.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Em breve',
                 joinWaitlist: 'Entrar na lista de espera',
                 onWaitlist: 'Você está na lista de espera',
+                onWaitlistButton: 'Na lista de espera',
                 onTheList: 'Você está na lista!',
                 waitlistDescription: 'O Concierge vai enviar uma mensagem para avisar quando essa integração estiver pronta e como conectá-la.',
             },
