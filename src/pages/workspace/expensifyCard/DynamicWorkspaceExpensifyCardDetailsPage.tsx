@@ -401,6 +401,11 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         />
                     </OfflineWithFeedback>
                     <MenuItemField
+                        name={translate('workspace.card.issueNewCard.cardholderEmail')}
+                        value={cardholder?.login}
+                        numberOfLinesValue={0}
+                    />
+                    <MenuItemField
                         name={translate(isVirtual ? 'cardPage.virtualCardNumber' : 'cardPage.physicalCardNumber')}
                         value={maskCard(card?.lastFourPAN)}
                     />
