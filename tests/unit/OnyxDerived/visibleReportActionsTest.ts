@@ -3,7 +3,7 @@ import visibleReportActionsConfig from '@libs/actions/OnyxDerived/configs/visibl
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {Policy, Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -13,7 +13,7 @@ describe('visibleReportActions', () => {
         const reportActionsKeyA = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}A`;
         // Only report A has report actions now; report B exists only in the previous derived value (currentValue).
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKeyA]: {}};
-        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {} as OnyxCollection<Report>, {} as OnyxCollection<ReportNameValuePairs>];
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {} as OnyxCollection<Report>, {} as OnyxCollection<ReportNameValuePairs>, {}];
         const currentValue: VisibleReportActionsDerivedValue = {A: {}, B: {}};
         const sourceValues: Parameters<typeof visibleReportActionsConfig.compute>[1]['sourceValues'] = {[ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[reportActionsKeyA]: {}}};
 
@@ -58,6 +58,7 @@ describe('visibleReportActions', () => {
             undefined,
             {[reportKey]: {reportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET}, [unrelatedReportKey]: {reportID: unrelatedReportID, type: CONST.REPORT.TYPE.CHAT}},
             {[reportNameValuePairsKey]: {reopenedAsReportID: 'replacementReportID'}},
+            {},
         ];
         const currentValue: VisibleReportActionsDerivedValue = {
             [reportID]: {[surveyActionID]: true},
@@ -99,7 +100,7 @@ describe('visibleReportActions', () => {
             },
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${unrelatedReportID}`]: {},
         };
-        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {[reportKey]: ticketReport}, {}];
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {[reportKey]: ticketReport}, {}, {}];
         const currentValue: VisibleReportActionsDerivedValue = {
             [reportID]: {[closedActionID]: false},
             [unrelatedReportID]: {},
@@ -115,5 +116,80 @@ describe('visibleReportActions', () => {
         // Then the closed action shows, and the unrelated report keeps its previous value because it was not recomputed
         expect(result[reportID]?.[closedActionID]).toBe(true);
         expect(result[unrelatedReportID]).toBe(currentValue[unrelatedReportID]);
+    });
+
+    it('recomputes room creation whisper visibility when the workspace policy role changes', () => {
+        // Given a report with an actionable report mention whisper that was visible while the user was a regular member
+        const reportID = 'policyReportID';
+        const policyID = 'policy1';
+        const whisperActionID = 'whisperActionID';
+        const deletedWhisperActionID = 'deletedWhisperActionID';
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+        const unrelatedReportID = 'unrelatedReportID';
+
+        const allReportActions: OnyxCollection<ReportActions> = {
+            [reportActionsKey]: {
+                [whisperActionID]: {
+                    reportActionID: whisperActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                    created: '2026-11-11 12:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Create room?', text: 'Create room?'}],
+                },
+                [deletedWhisperActionID]: {
+                    reportActionID: deletedWhisperActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                    created: '2026-11-11 12:01:00.000',
+                    message: [],
+                },
+            },
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${unrelatedReportID}`]: {},
+        };
+
+        const approveOnlyPolicy: Policy = {
+            id: policyID,
+            name: 'Control Policy',
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            owner: 'owner@test.com',
+            outputCurrency: CONST.CURRENCY.USD,
+        };
+        const memberPolicy: Policy = {
+            ...approveOnlyPolicy,
+            role: CONST.POLICY.ROLE.USER,
+        };
+
+        const currentValue: VisibleReportActionsDerivedValue = {
+            [reportID]: {[whisperActionID]: true, [deletedWhisperActionID]: false},
+            [unrelatedReportID]: {},
+        };
+
+        // When the policy role changes to approve-only and triggers an incremental recompute
+        const demotedResult = visibleReportActionsConfig.compute(
+            [allReportActions, {accountID: 1, email: 'member@test.com'}, {[reportKey]: {reportID, policyID}}, {}, {[policyKey]: approveOnlyPolicy}],
+            {
+                currentValue,
+                sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: approveOnlyPolicy}},
+                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            },
+        );
+
+        // Then the whisper is hidden for the report on that policy, and unrelated reports are not recomputed
+        expect(demotedResult[reportID]?.[whisperActionID]).toBe(false);
+        expect(demotedResult[unrelatedReportID]).toBe(currentValue[unrelatedReportID]);
+
+        // When the policy role is promoted back to member, the live whisper shows while the deleted whisper stays hidden
+        const promotedResult = visibleReportActionsConfig.compute(
+            [allReportActions, {accountID: 1, email: 'member@test.com'}, {[reportKey]: {reportID, policyID}}, {}, {[policyKey]: memberPolicy}],
+            {
+                currentValue: demotedResult,
+                sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: memberPolicy}},
+                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            },
+        );
+
+        expect(promotedResult[reportID]?.[whisperActionID]).toBe(true);
+        expect(promotedResult[reportID]?.[deletedWhisperActionID]).toBe(false);
     });
 });

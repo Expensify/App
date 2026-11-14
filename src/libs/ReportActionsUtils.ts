@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import usePrevious from '@hooks/usePrevious';
 
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias
-import {doesReportContainRequestsFromMultipleUsers, getDisplayNameForParticipant, getReportOrDraftReport} from '@libs/ReportUtils';
+import {canCreateRoomInReport, doesReportContainRequestsFromMultipleUsers, getDisplayNameForParticipant, getReportOrDraftReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -1729,6 +1729,9 @@ function shouldReportActionBeVisible(
     reportID?: string,
     isSupportTicketReport = false,
     reportActions?: OnyxEntry<ReportActions>,
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
+    currentUserEmail?: string,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1790,6 +1793,10 @@ function shouldReportActionBeVisible(
             isActionableCardFraudAlert(reportAction)) &&
         !canUserPerformWriteAction
     ) {
+        return false;
+    }
+
+    if (isActionableWhisperRequiringRoomCreationPermission(reportAction, reportID, report, policy, currentUserEmail)) {
         return false;
     }
 
@@ -1881,7 +1888,7 @@ function isReportActionVisible(
         if (!staticVisibility) {
             return false;
         }
-        if (!canUserPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) {
+        if ((!canUserPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) || isActionableWhisperRequiringRoomCreationPermission(reportAction, reportID)) {
             return false;
         }
         return true;
@@ -3477,6 +3484,19 @@ function isActionableWhisperRequiringWritePermission(reportAction: OnyxEntry<Rep
         isActionableMentionWhisper(reportAction) ||
         isActionableCardFraudAlert(reportAction)
     );
+}
+
+/**
+ * Checks if a report action's visibility depends on whether the current user can create rooms in the report.
+ */
+function isActionableWhisperRequiringRoomCreationPermission(
+    reportAction: OnyxEntry<ReportAction>,
+    reportID: string | undefined,
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
+    currentUserEmail?: string,
+): boolean {
+    return isActionableReportMentionWhisper(reportAction) && !canCreateRoomInReport(reportAction.reportID ?? reportID, report, policy, currentUserEmail);
 }
 
 function getExportIntegrationLastMessageText(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, integrationName?: string): string {
