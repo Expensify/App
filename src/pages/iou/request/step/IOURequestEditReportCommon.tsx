@@ -73,6 +73,8 @@ type IOURequestEditReportCommonProps = {
     selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
     removeFromReport?: () => void;
     isEditing?: boolean;
+    /** Uses creation eligibility instead of the admin/manager exceptions for moving saved expenses. Defaults to false. */
+    isCreatingExpense?: boolean;
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
@@ -120,6 +122,7 @@ function IOURequestEditReportCommon({
     transactionPolicyID,
     removeFromReport,
     isEditing = false,
+    isCreatingExpense = false,
     isUnreported,
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
     createReport,
@@ -236,6 +239,9 @@ function IOURequestEditReportCommon({
                       }
                       if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
                           return false;
+                      }
+                      if (isCreatingExpense) {
+                          return canAddTransaction(report, rules);
                       }
                       if (canAddTransaction(report, rules, undefined, true)) {
                           return true;

@@ -11,7 +11,15 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getReportName} from '@libs/ReportNameUtils';
-import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {
+    canAddTransaction,
+    generateReportID,
+    getNewestOutstandingReportForUser,
+    getOutstandingReportsForUser,
+    isMoneyRequestReport,
+    isReportOutstanding,
+    sortOutstandingReportsBySelected,
+} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -69,6 +77,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportIDFromMain}`);
 
     const isUnreported = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isCreatingExpense = action === CONST.IOU.ACTION.CREATE;
 
     /**
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
@@ -81,7 +90,11 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         (report1, report2) => sortOutstandingReportsBySelected(report1, report2, undefined, localeCompare),
     );
 
-    const outstandingReportID = isPolicyExpenseChat ? (iouReportIDFromMain ?? availableOutstandingReports.at(0)?.reportID) : reportID;
+    // Match the builder's automatic destination before checking eligibility, rather than falling back to a report it would not use.
+    const defaultOutstandingReport = isCreatingExpense
+        ? getNewestOutstandingReportForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {})
+        : availableOutstandingReports.at(0);
+    const outstandingReportID = isPolicyExpenseChat ? (iouReportIDFromMain ?? defaultOutstandingReport?.reportID) : reportID;
 
     const [selectedReportID, selectedReport] = (() => {
         const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
@@ -100,6 +113,9 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         } else {
             reportToUse = availableOutstandingReports.find((r) => r?.reportID === reportIDToUse);
         }
+        if (isCreatingExpense && reportToUse && !canAddTransaction(reportToUse, rules)) {
+            return [generateReportID(), undefined] as const;
+        }
         return [reportIDToUse, reportToUse ?? undefined] as const;
     })();
 
@@ -114,9 +130,10 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     })();
 
     const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false, ownerPersonalDetail?.login);
+    const eligibleOutstandingReports = isCreatingExpense ? outstandingReports.filter((report) => canAddTransaction(report, rules)) : outstandingReports;
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = shouldReportFieldBeEditable(outstandingReports, selectedReportID, isUnreported) && !isMoneyRequestReport(reportID);
+    const shouldReportBeEditable = shouldReportFieldBeEditable(eligibleOutstandingReports, selectedReportID, isUnreported) && !isMoneyRequestReport(reportID);
     // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
     // the destination step when the workspace changes), so those keep the full page.
     const shouldOpenInDropdown = !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;
