@@ -1704,6 +1704,7 @@ function updateSplitTransactions({
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 iouReport: currentActionIOUReport,
                 chatReport: currentActionChatReport,
+                isArchivedIOUReport: isArchivedReport(allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${currentActionIOUReport?.reportID}`]),
                 // shouldDeleteTransactionThread is false, so the transaction-thread report actions are never read here.
                 transactionThreadReportActionsParam: undefined,
             });
@@ -1960,6 +1961,7 @@ function updateSplitTransactions({
                     transactionThread: allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouActionToCleanUp.childReportID}`],
                     iouReport: iouActionIOUReport,
                     chatReport: iouActionChatReport,
+                    isArchivedIOUReport: isArchivedReport(allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouActionIOUReport?.reportID}`]),
                     transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActionToCleanUp.childReportID}`],
                 });
 

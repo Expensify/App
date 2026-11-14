@@ -272,6 +272,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
                 },
+                allReportNameValuePairsList: {},
                 allReportsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
                 },
@@ -387,6 +388,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action789: iouAction1},
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: passedInChildReportActions,
                 },
+                allReportNameValuePairsList: {},
                 allReportsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
                 },
@@ -463,6 +465,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                 },
+                allReportNameValuePairsList: {},
                 allReportsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: passedExpenseReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`]: passedThreadReport,
@@ -538,6 +541,7 @@ describe('actions/Duplicate', () => {
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: []},
+                allReportNameValuePairsList: {},
                 allReportsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
                 },
@@ -583,6 +587,7 @@ describe('actions/Duplicate', () => {
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 allTransactionViolations: {},
+                allReportNameValuePairsList: {},
                 allReportsList: {},
                 allReportActionsList: undefined,
             });
@@ -633,6 +638,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: [],
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: [],
                 },
+                allReportNameValuePairsList: {},
                 allReportsList: {},
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
             });
@@ -863,6 +869,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
                 },
                 allReportsList,
+                allReportNameValuePairsList: {},
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {[iouAction1ID]: iouAction1, [iouAction2ID]: iouAction2}},
             });
             await waitForBatchedUpdates();
@@ -969,6 +976,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                 },
+                allReportNameValuePairsList: {},
                 allReportsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
                 },
@@ -1060,6 +1068,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
                 },
+                allReportNameValuePairsList: {},
                 allReportsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${keptReportID}`]: keptReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${crossReportID}`]: crossReport,
