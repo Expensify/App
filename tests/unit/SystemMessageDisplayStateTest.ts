@@ -197,6 +197,86 @@ describe('system message presentation', () => {
         const systemAction = (reportActionID: string, overrides: Partial<ReportAction> = {}) => makeAction(reportActionID, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, overrides);
         const chatAction = (reportActionID: string) => makeAction(reportActionID, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
 
+        describe('without Array.prototype.toReversed', () => {
+            let originalDescriptor: PropertyDescriptor | undefined;
+
+            beforeEach(() => {
+                originalDescriptor = Object.getOwnPropertyDescriptor(Array.prototype, 'toReversed');
+                Reflect.deleteProperty(Array.prototype, 'toReversed');
+            });
+
+            afterEach(() => {
+                if (originalDescriptor) {
+                    // eslint-disable-next-line no-extend-native -- Restore the exact native descriptor so the compatibility test cannot affect other tests.
+                    Object.defineProperty(Array.prototype, 'toReversed', originalDescriptor);
+                } else {
+                    Reflect.deleteProperty(Array.prototype, 'toReversed');
+                }
+            });
+
+            it.each([false, true].flatMap((newestFirst) => ['collapsed', 'expanded', 'linked', 'chat'].map((scenario) => ({newestFirst, scenario}))))(
+                'preserves $scenario presentation and input references (newest first: $newestFirst)',
+                ({newestFirst, scenario}) => {
+                    // Given frozen input in either list direction on a browser without the newer array method
+                    const chronologicalActions =
+                        scenario === 'chat'
+                            ? [chatAction('1'), chatAction('2'), chatAction('3'), chatAction('4')]
+                            : [systemAction('1'), systemAction('2'), systemAction('3'), chatAction('4')];
+                    const actions = newestFirst ? [...chronologicalActions].reverse() : [...chronologicalActions];
+                    const originalActions = [...actions];
+                    Object.freeze(actions);
+
+                    // When grouping or expanding the updates without native toReversed support
+                    expect(Array.prototype.toReversed).toBeUndefined();
+                    const state = getSystemMessageDisplayState(actions, new Set(scenario === 'expanded' ? ['2'] : []), scenario === 'linked' ? ['2'] : []);
+
+                    // Then preserve the anchors, chronological run members, display indices and caller-owned references
+                    const anchorID = newestFirst ? '3' : '1';
+                    const collapsedIDs = newestFirst ? ['4', '3'] : ['1', '4'];
+                    const expectedIDs = scenario === 'collapsed' ? collapsedIDs : originalActions.map((action) => action.reportActionID);
+                    expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(expectedIDs);
+                    expect(state.reportActionIDToDisplayIndex.size).toBe(actions.length);
+                    expect(state.runsByAnchorReportActionID.size).toBe(scenario === 'chat' ? 0 : 1);
+                    if (scenario !== 'chat') {
+                        expect(state.runsByAnchorReportActionID.get(anchorID)).toEqual({
+                            reportActionIDs: ['1', '2', '3'],
+                            earliestReportAction: chronologicalActions.at(0),
+                            isExpanded: scenario !== 'collapsed',
+                        });
+                        expect(state.runsByAnchorReportActionID.get(anchorID)?.earliestReportAction).toBe(chronologicalActions.at(0));
+                    }
+                    const anchorDisplayIndex = newestFirst ? 1 : 0;
+                    for (const [index, action] of actions.entries()) {
+                        expect(action).toBe(originalActions.at(index));
+                        const displayIndex = scenario === 'collapsed' && action.reportActionID !== '4' ? anchorDisplayIndex : expectedIDs.indexOf(action.reportActionID);
+                        expect(state.reportActionIDToDisplayIndex.get(action.reportActionID)).toBe(displayIndex);
+                        expect(state.displayReportActions.at(displayIndex)).toBe(
+                            scenario === 'collapsed' && action.reportActionID !== '4' ? chronologicalActions.at(newestFirst ? 2 : 0) : action,
+                        );
+                    }
+                },
+            );
+
+            it.each([{actions: []}, {actions: [systemAction('1')]}])('preserves an empty or single-action report: %s', ({actions}) => {
+                // Given too few actions to form a group, with mutation prohibited
+                const originalActions = [...actions];
+                Object.freeze(actions);
+
+                // When presenting the report without the newer array method
+                const state = getSystemMessageDisplayState(actions, new Set());
+
+                // Then keep every original action and its display index without creating a group
+                expect(state.displayReportActions).toEqual(originalActions);
+                expect(state.runsByAnchorReportActionID.size).toBe(0);
+                expect(state.reportActionIDToDisplayIndex.size).toBe(actions.length);
+                for (const [index, action] of actions.entries()) {
+                    expect(action).toBe(originalActions.at(index));
+                    expect(state.displayReportActions.at(index)).toBe(action);
+                    expect(state.reportActionIDToDisplayIndex.get(action.reportActionID)).toBe(index);
+                }
+            });
+        });
+
         it.each([{actions: []}, {actions: [systemAction('1')]}])('does not collapse fewer than two updates: %s', ({actions}) => {
             // Given an empty list or one update
             // When constructing its presentation
@@ -263,7 +343,7 @@ describe('system message presentation', () => {
         )('preserves interactive rows as run boundaries (newest first: $newestFirst): $boundary', ({boundary, newestFirst}) => {
             // Given two eligible runs separated by interactive content
             const chronologicalActions = [systemAction('1'), systemAction('2'), boundary, systemAction('4'), systemAction('5')];
-            const actions = newestFirst ? chronologicalActions.toReversed() : chronologicalActions;
+            const actions = newestFirst ? [...chronologicalActions].reverse() : chronologicalActions;
             // When constructing the display list in either report layout direction
             const state = getSystemMessageDisplayState(actions, new Set());
             // Then the interactive row stays visible between summaries with correct canonical-to-display mappings
@@ -278,7 +358,7 @@ describe('system message presentation', () => {
         it.each([false, true])('restores every member and display index when expanded (newest first: %s)', (newestFirst) => {
             // Given one run in either list direction
             const chronologicalActions = [systemAction('1'), systemAction('2'), systemAction('3')];
-            const actions = newestFirst ? chronologicalActions.toReversed() : chronologicalActions;
+            const actions = newestFirst ? [...chronologicalActions].reverse() : chronologicalActions;
             // When a hidden member is expanded
             const state = getSystemMessageDisplayState(actions, new Set(['2']));
             // Then every original row returns in list order with its displayed index
@@ -305,7 +385,7 @@ describe('system message presentation', () => {
                 systemAction('3', {created: '2026-07-31 16:00:00.000'}),
                 systemAction('4', {created: '2026-07-31 17:00:00.000'}),
             ];
-            const state = getSystemMessageDisplayState(newestFirst ? actions.toReversed() : actions, new Set());
+            const state = getSystemMessageDisplayState(newestFirst ? [...actions].reverse() : actions, new Set());
             expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(newestFirst ? ['4', '2'] : ['1', '3']);
             expect([...state.runsByAnchorReportActionID.values()].map((run) => run.reportActionIDs)).toEqual([
                 ['1', '2'],

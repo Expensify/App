@@ -726,7 +726,7 @@ function getSystemMessageDisplayState(
     const firstAction = reportActions.at(0);
     const lastAction = reportActions.at(-1);
     const isNewestFirst = !!firstAction && !!lastAction && isNewerReportAction(firstAction, lastAction);
-    const chronologicalActions = isNewestFirst ? reportActions.toReversed() : reportActions;
+    const chronologicalActions = isNewestFirst ? [...reportActions].reverse() : reportActions;
 
     const appendAction = (reportAction: ReportAction) => {
         reportActionIDToDisplayIndex.set(reportAction.reportActionID, displayReportActions.length);

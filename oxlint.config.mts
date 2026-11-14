@@ -1174,6 +1174,13 @@ export default defineConfig({
         {
             files: ['src/**/*.{ts,tsx}'],
             rules: {
+                'no-restricted-properties': [
+                    'error',
+                    {object: 'Image', property: 'getSize', message: 'Usage of Image.getSize is restricted. Please use the `react-native-image-size`.'},
+                    {object: 'HybridAppModule', property: 'isHybridApp', message: 'Use CONFIG.IS_HYBRID_APP instead.'},
+                    {object: 'HybridAppModule', property: 'closeReactNativeApp', message: 'Use `closeReactNativeApp` from `@userActions/HybridApp` instead.'},
+                    {property: 'toReversed', message: 'Array.prototype.toReversed is not supported in all app runtimes. Use [...array].reverse() instead.'},
+                ],
                 // The lint pipeline keeps this diagnostic only when React Compiler memoizes the file.
                 'rulesdir/no-manual-memoization': 'error',
                 'rulesdir/no-object-keys-includes': 'error',
