@@ -208,7 +208,7 @@
     "react-native-onyx": "3.0.143",
     "react-native-pager-view": "9.0.4",
     "react-native-pdf": "7.0.2",
-    "react-native-permissions": "^5.4.0",
+    "react-native-permissions": "^5.6.3",
     "react-native-picker-select": "github:Expensify/react-native-picker-select#69d750a89aaba48392fb8b6f92a3d79f53b99c41",
     "react-native-plaid-link-sdk": "12.5.3",
     "react-native-qrcode-svg": "6.3.21",
