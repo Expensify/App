@@ -103,13 +103,14 @@ function CreateDistanceRatePage({
     const hasGovernmentRate = !!policy?.shouldAutoUpdateGovernmentDistanceRates;
     const isEuroWorkspace = isSharedGovernmentRateCurrency(currency);
 
-    // An EUR workspace with a government rate keeps the country chosen in Distance rates > Settings
-    const canPickEuroCountry = isEuroWorkspace && !hasGovernmentRate;
+    const [pickedKind, setPickedKind] = useState<DistanceRateKind>();
+
+    // The workspace's government rate is always for the country chosen in Distance rates > Settings, so that country is shown when it's selected
+    const canPickEuroCountry = isEuroWorkspace && !(hasGovernmentRate && pickedKind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT);
     const [pickedEuroCountry, setPickedEuroCountry] = useState<Country>();
     const euroCountry = (canPickEuroCountry ? pickedEuroCountry : undefined) ?? getDefaultEuroDistanceRateCountry(policy, countryByIp);
     const country = isEuroWorkspace ? euroCountry : getDistanceRateCountryForCurrency(currency, currencyList);
     const governmentRateCountry = !isDistanceRateUpgrade && isGovernmentRateCountry(country) ? country : undefined;
-    const [pickedKind, setPickedKind] = useState<DistanceRateKind>();
     const defaultKind = hasGovernmentRate ? CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM : CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT;
     const kind = governmentRateCountry ? (pickedKind ?? defaultKind) : CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM;
     const isGovernmentKind = kind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT;
