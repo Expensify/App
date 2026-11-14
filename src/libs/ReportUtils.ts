@@ -12517,6 +12517,18 @@ function canEditRoomVisibility(policy: OnyxEntry<Policy>, isReportArchived: bool
 }
 
 /**
+ * Whether the current user can create policy rooms on the workspace of the given report.
+ */
+function canCreateRoomInReport(reportID: string | undefined): boolean {
+    const report = getReportOrDraftReport({reportID});
+    const policy = report?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+    if (!policy) {
+        return true;
+    }
+    return canMemberWritePolicyUtils(policy, deprecatedCurrentUserEmail ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS);
+}
+
+/**
  * Returns the onyx data needed for the task assignee chat
  */
 function getTaskAssigneeChatOnyxData({
@@ -15954,6 +15966,7 @@ export {
     canEditReportAction,
     canEditReportDescription,
     canEditRoomVisibility,
+    canCreateRoomInReport,
     canEditWriteCapability,
     canFlagReportAction,
     canJoinChat,

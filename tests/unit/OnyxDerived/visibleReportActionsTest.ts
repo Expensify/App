@@ -13,7 +13,7 @@ describe('visibleReportActions', () => {
         const reportActionsKeyA = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}A`;
         // Only report A has report actions now; report B exists only in the previous derived value (currentValue).
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKeyA]: {}};
-        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {} as OnyxCollection<Report>, {} as OnyxCollection<ReportNameValuePairs>];
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {} as OnyxCollection<Report>, {} as OnyxCollection<ReportNameValuePairs>, {}];
         const currentValue: VisibleReportActionsDerivedValue = {A: {}, B: {}};
         const sourceValues: Parameters<typeof visibleReportActionsConfig.compute>[1]['sourceValues'] = {[ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[reportActionsKeyA]: {}}};
 
@@ -58,6 +58,7 @@ describe('visibleReportActions', () => {
             undefined,
             {[reportKey]: {reportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET}, [unrelatedReportKey]: {reportID: unrelatedReportID, type: CONST.REPORT.TYPE.CHAT}},
             {[reportNameValuePairsKey]: {reopenedAsReportID: 'replacementReportID'}},
+            {},
         ];
         const currentValue: VisibleReportActionsDerivedValue = {
             [reportID]: {[surveyActionID]: true},
@@ -99,7 +100,7 @@ describe('visibleReportActions', () => {
             },
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${unrelatedReportID}`]: {},
         };
-        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {[reportKey]: ticketReport}, {}];
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {[reportKey]: ticketReport}, {}, {}];
         const currentValue: VisibleReportActionsDerivedValue = {
             [reportID]: {[closedActionID]: false},
             [unrelatedReportID]: {},

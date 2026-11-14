@@ -3440,6 +3440,74 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
             expect(actual).toBe(true);
         });
+
+        it('should return false for an actionable report mention whisper when the user cannot create rooms on the policy', async () => {
+            // Given a workspace chat on a policy where the current user has the approve-only role
+            const reportID = '9001';
+            const policyID = 'policy_approve_only';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                ...LHNTestUtils.getFakeReport(),
+                reportID,
+                policyID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                id: policyID,
+                name: 'Approve Only Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+            });
+
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                reportActionID: '1',
+                reportID,
+                created: '2025-09-29',
+                message: [{html: 'create room?', type: 'COMMENT', text: 'create room?'}],
+                originalMessage: {},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
+
+            // When checking visibility of the room creation whisper
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+
+            // Then it is hidden because approve-only members cannot create policy rooms
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for an actionable report mention whisper when the user can create rooms on the policy', async () => {
+            // Given a workspace chat on a policy where the current user has the member role
+            const reportID = '9002';
+            const policyID = 'policy_member';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                ...LHNTestUtils.getFakeReport(),
+                reportID,
+                policyID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                id: policyID,
+                name: 'Member Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.USER,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+            });
+
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                reportActionID: '1',
+                reportID,
+                created: '2025-09-29',
+                message: [{html: 'create room?', type: 'COMMENT', text: 'create room?'}],
+                originalMessage: {},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
+
+            // When checking visibility of the room creation whisper
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+
+            // Then it is visible because regular members can create policy rooms
+            expect(actual).toBe(true);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
