@@ -1,4 +1,4 @@
-import {LEFT_AXIS_LABEL_OFFSET_MAX} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
+import {AXIS_TICK_COUNT_MAX, LEFT_AXIS_LABEL_OFFSET_MAX} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {CartesianChartProps, PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getFontGlyphWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getFontGlyphWidth';
 import {
@@ -43,7 +43,8 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const orientation = parseAttributeAsString(tnode.attributes.orientation);
     const rawTickValues = parseAttributeAsNumberArray(tnode.attributes.tickvalues);
     const tickValues = Array.isArray(rawTickValues) ? rawTickValues : undefined;
-    const tickCount = parseAttributeAsNumber(tnode.attributes.tickcount) ?? tickValues?.length ?? 0;
+    const rawTickCount = parseAttributeAsNumber(tnode.attributes.tickcount);
+    const tickCount = rawTickCount !== undefined ? Math.min(rawTickCount, AXIS_TICK_COUNT_MAX) : (tickValues?.length ?? 0);
     const rawTickFormat = parseAttributeAsStringArray(tnode.attributes.tickformat);
     const tickFormat = Array.isArray(rawTickFormat) ? rawTickFormat : undefined;
     const formatLabel = (label: string | number) => tickFormat?.[tickValues?.indexOf(Number(label)) ?? -1] ?? String(label);
