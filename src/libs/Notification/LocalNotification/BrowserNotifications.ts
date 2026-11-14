@@ -144,6 +144,7 @@ export default {
      * Create a report comment notification
      *
      * @param usesIcon true if notification uses right circular icon
+     * @param reportIDToName names for the rooms the comment mentions by reportID, so they aren't shown as #Hidden
      */
     pushReportCommentNotification(
         report: Report,
@@ -152,6 +153,7 @@ export default {
         derivedReportName: string | undefined,
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
         usesIcon = false,
+        reportIDToName?: Record<string, string>,
     ) {
         let title;
         let body;
@@ -166,9 +168,9 @@ export default {
         // for system actions (e.g. MARKEDREIMBURSED) that have no COMMENT-type message fragment.
         let plainTextMessage = '';
         if (Array.isArray(message)) {
-            plainTextMessage = getTextFromHtml(message?.find((f) => f?.type === 'COMMENT')?.html);
+            plainTextMessage = getTextFromHtml(message?.find((f) => f?.type === 'COMMENT')?.html, undefined, reportIDToName);
         } else {
-            plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
+            plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html, undefined, reportIDToName) : '';
         }
         if (!plainTextMessage) {
             if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {

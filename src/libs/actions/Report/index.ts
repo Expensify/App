@@ -2,7 +2,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-import {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
+import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
@@ -5699,7 +5699,11 @@ function showReportActionNotification(
             derivedMovedFromReportName,
         });
     } else {
-        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber);
+        // Read the same COMMENT part that the notification body is built from
+        const messageParts = Array.isArray(reportAction.message) ? reportAction.message : [reportAction.message];
+        const commentHtml = messageParts.find((part) => part?.type === CONST.REPORT.MESSAGE.TYPE.COMMENT)?.html;
+        const reportIDToName = buildReportIDToNameMap(allReports, getMentionedReportIDs(commentHtml));
+        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber, reportIDToName);
     }
 
     notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID, 'realtime');

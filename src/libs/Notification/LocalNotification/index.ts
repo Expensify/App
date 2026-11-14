@@ -37,8 +37,9 @@ function showCommentNotification(
     onClick: LocalNotificationClickHandler,
     derivedReportName: string | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    reportIDToName?: Record<string, string>,
 ) {
-    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber, true);
+    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber, true, reportIDToName);
 }
 
 function showModifiedExpenseNotification({
