@@ -1,7 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -89,10 +89,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
             testID="DomainResetDomainPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <HeaderWithBackButton
-                title={translate('domain.admins.resetDomain')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('domain.admins.resetDomain')} />
 
             <FormProvider
                 formID={ONYXKEYS.FORMS.RESET_DOMAIN_FORM}
