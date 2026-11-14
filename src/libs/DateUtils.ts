@@ -84,6 +84,21 @@ function toUTCWallClockDate(date: Date): Date {
 }
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so every formatter in this file comes from
+ * this cache. It compares options by value, so functions that ask for the same options share one formatter.
+ */
+const memoizedCreateDateTimeFormatter = memoize((localeCode: string, options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(localeCode, options));
+
+/**
+ * Returns a cached `Intl.DateTimeFormat` for the language. Formatters that use `timeZone: 'UTC'` need dates passed through
+ * `toUTCWallClockDate` to show them in the device's current timezone.
+ */
+function getDateTimeFormatter(dateFnsLocale: DateFnsLocale | undefined, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateDateTimeFormatter(dateFnsLocale?.code ?? 'en-US', options);
+}
+
+/**
  * Get the day of the week that the week starts on
  */
 function getWeekStartsOn(): WeekDay {
@@ -272,15 +287,6 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
 }
 
 /**
- * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language. They
- * format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
- */
-const memoizedCreateLongDateWithWeekdayFormatter = memoize(
-    (localeCode: string, shouldIncludeYear: boolean) =>
-        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'long', day: 'numeric', timeZone: 'UTC'}),
-);
-
-/**
  * Formats a full date with a weekday, with or without the year, for the two public helpers below.
  */
 function formatLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
@@ -288,8 +294,9 @@ function formatLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateF
     if (!isValid(date)) {
         return '';
     }
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    return memoizedCreateLongDateWithWeekdayFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).format(toUTCWallClockDate(date));
+    return getDateTimeFormatter(dateFnsLocale, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'long', day: 'numeric', timeZone: 'UTC'}).format(
+        toUTCWallClockDate(date),
+    );
 }
 
 /**
@@ -557,24 +564,13 @@ function extractTime12Hour(dateTimeString: string, isFullFormat = false): string
 }
 
 /**
- * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
- * whether the year is shown.
- * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
- */
-const memoizedCreateNumericDateFormatter = memoize(
-    (localeCode: string, shouldIncludeYear: boolean) =>
-        new Intl.DateTimeFormat(localeCode, {year: shouldIncludeYear ? 'numeric' : undefined, month: '2-digit', day: '2-digit', timeZone: 'UTC'}),
-);
-
-/**
  * Formats a date's local calendar fields as a short numeric date, e.g. 06/20 or 06/20/2026.
  *
  * The custom status used the machine formats `MM-dd` and `yyyy-MM-dd` for display, which no language writes that way.
  * `Intl` gives each language its own order and separators, such as `20.06.2026` in German.
  */
 function formatToNumericDate(date: Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    return memoizedCreateNumericDateFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).format(toUTCWallClockDate(date));
+    return getDateTimeFormatter(dateFnsLocale, {year: shouldIncludeYear ? 'numeric' : undefined, month: '2-digit', day: '2-digit', timeZone: 'UTC'}).format(toUTCWallClockDate(date));
 }
 
 /**
@@ -918,36 +914,27 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
  * Returns a formatted date range from date 1 to date 2.
  * Dates are formatted as follows:
  * 1. When both dates refer to the same day: Mar 17
- * 2. When both dates refer to the same month: Mar 17-20
+ * 2. When both dates refer to the same month: Mar 17 – 20
  * 3. When both dates refer to the same year: Feb 28 to Mar 1
  * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
+ *
+ * Hand-written `MMM d` patterns fixed the US order, so German put the month before the day in a range. `Intl`
+ * orders each date, and joins a same-month range, the way each language does.
  */
 function getFormattedDateRange(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date1: Date, date2: Date): string {
+    const formatter = getDateTimeFormatter(dateFnsLocale, {year: isSameYear(date1, date2) ? undefined : 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC'});
     if (isSameDay(date1, date2)) {
         // Dates are from the same day
-        return format(date1, 'MMM d', {locale: dateFnsLocale});
+        return formatter.format(toUTCWallClockDate(date1));
     }
     if (isSameMonth(date1, date2)) {
-        // Dates in the same month and year, differ by days
-        return `${format(date1, 'MMM d', {locale: dateFnsLocale})}-${format(date2, 'd', {locale: dateFnsLocale})}`;
+        // Dates in the same month and year, differ by days. Hermes lacks `formatRange`, so native apps get it from
+        // polyfillDateTimeFormatRange.
+        return formatter.formatRange(toUTCWallClockDate(date1), toUTCWallClockDate(date2));
     }
-    if (isSameYear(date1, date2)) {
-        // Dates are in the same year, differ by months
-        return `${format(date1, 'MMM d', {locale: dateFnsLocale})} ${translate('common.to').toLowerCase()} ${format(date2, 'MMM d', {locale: dateFnsLocale})}`;
-    }
-    // Dates differ by years, months, days
-    return `${format(date1, 'MMM d, yyyy', {locale: dateFnsLocale})} ${translate('common.to').toLowerCase()} ${format(date2, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+    // Dates differ by months, or by years
+    return `${formatter.format(toUTCWallClockDate(date1))} ${translate('common.to').toLowerCase()} ${formatter.format(toUTCWallClockDate(date2))}`;
 }
-
-/**
- * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
- * whether the year is shown.
- * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
- */
-const memoizedCreateWeekdayDateFormatter = memoize(
-    (localeCode: string, shouldIncludeYear: boolean) =>
-        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
-);
 
 /**
  * Formats a date as a weekday with an abbreviated month and day, e.g. Sunday, Mar 17, or Sunday, Mar 17, 2023.
@@ -956,8 +943,9 @@ const memoizedCreateWeekdayDateFormatter = memoize(
  * and Japanese kept the comma after the weekday. `Intl` orders the date the way each language does.
  */
 function formatToWeekdayDate(date: Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    return memoizedCreateWeekdayDateFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).format(toUTCWallClockDate(date));
+    return getDateTimeFormatter(dateFnsLocale, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}).format(
+        toUTCWallClockDate(date),
+    );
 }
 
 /**
@@ -1113,13 +1101,6 @@ function doesDateBelongToAPastYear(date: string): boolean {
 }
 
 /**
- * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
- * timezone. A formatter with no timezone would keep the device's timezone from when it was created, so local dates are
- * formatted in UTC after `toUTCWallClockDate` instead.
- */
-const memoizedCreateMonthDayFormatter = memoize((localeCode: string, timeZone: string) => new Intl.DateTimeFormat(localeCode, {month: 'short', day: 'numeric', timeZone}));
-
-/**
  * Formats a date as an abbreviated month and day, e.g. `Jun 20`.
  *
  * date-fns has no localized token for a month and day without a year, and a hand-written `MMM d` fixes the US order,
@@ -1131,12 +1112,10 @@ function formatToMonthDay(date: Date, dateFnsLocale: DateFnsLocale | undefined, 
     if (!isValid(date)) {
         return '';
     }
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    const localeCode = dateFnsLocale?.code ?? 'en-US';
     if (timeZone) {
-        return memoizedCreateMonthDayFormatter(localeCode, timeZone).format(date);
+        return getDateTimeFormatter(dateFnsLocale, {month: 'short', day: 'numeric', timeZone}).format(date);
     }
-    return memoizedCreateMonthDayFormatter(localeCode, 'UTC').format(toUTCWallClockDate(date));
+    return getDateTimeFormatter(dateFnsLocale, {month: 'short', day: 'numeric', timeZone: 'UTC'}).format(toUTCWallClockDate(date));
 }
 
 /**
@@ -1215,26 +1194,14 @@ function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
 }
 
 /**
- * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language.
- * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
- */
-const memoizedCreateNumericDateWithYearFormatter = memoize((localeCode: string) => new Intl.DateTimeFormat(localeCode, {year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC'}));
-
-/**
  * Formats a date as a short numeric date with the year, in the language's own order and separators, e.g. 06/20/2026 in
  * English and 20.06.2026 in German.
  *
  * date-fns' `P` gives the same result in most languages, but writes a two-digit year in Greek and Chinese.
  */
 function formatToNumericDateWithYear(date: Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    return memoizedCreateNumericDateWithYearFormatter(dateFnsLocale?.code ?? 'en-US').format(toUTCWallClockDate(date));
+    return formatToNumericDate(date, dateFnsLocale, true);
 }
-
-/**
- * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language.
- */
-const memoizedCreateSplitDateFormatter = memoize((localeCode: string) => new Intl.DateTimeFormat(localeCode, {year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC'}));
 
 /**
  * Returns a formatted date range with the number of days in the range.
@@ -1259,17 +1226,10 @@ function getFormattedSplitDateRange(
         return '';
     }
     const daysCount = differenceInDays(end, start) + 1;
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    const formatter = memoizedCreateSplitDateFormatter(dateFnsLocale?.code ?? 'en-US');
+    const formatter = getDateTimeFormatter(dateFnsLocale, {year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC'});
 
     return translateParam('iou.splitDateRange', formatter.format(start), formatter.format(end), daysCount);
 }
-
-/**
- * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language.
- * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
- */
-const memoizedCreateLongDateFormatter = memoize((localeCode: string) => new Intl.DateTimeFormat(localeCode, {year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'}));
 
 /**
  * Formats a date's local calendar fields as a long date.
@@ -1284,8 +1244,7 @@ function formatToLongDate(date: Date, dateFnsLocale: DateFnsLocale | undefined):
     if (!isValid(date)) {
         return '';
     }
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    return memoizedCreateLongDateFormatter(dateFnsLocale?.code ?? 'en-US').format(toUTCWallClockDate(date));
+    return getDateTimeFormatter(dateFnsLocale, {year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'}).format(toUTCWallClockDate(date));
 }
 
 /**
@@ -1302,15 +1261,6 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
         return formatInTimeZone(date, timezoneNewToBackwardMap[timeZone as SelectedTimezone], formatStr, options);
     }
 };
-
-/**
- * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language,
- * timezone and whether the weekday is shown.
- */
-const memoizedCreateLongDateInTimeZoneFormatter = memoize(
-    (localeCode: string, timeZone: string, shouldIncludeWeekday: boolean) =>
-        new Intl.DateTimeFormat(localeCode, {weekday: shouldIncludeWeekday ? 'long' : undefined, year: 'numeric', month: 'long', day: 'numeric', timeZone}),
-);
 
 /**
  * Formats a date as a long date in the given timezone.
@@ -1332,8 +1282,9 @@ function formatToLongDateInTimeZone(date: string | Date, timeZone: SelectedTimez
     if (!isValid(parsedDate)) {
         return '';
     }
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    return memoizedCreateLongDateInTimeZoneFormatter(dateFnsLocale?.code ?? 'en-US', supportedTimeZone, shouldIncludeWeekday).format(parsedDate);
+    return getDateTimeFormatter(dateFnsLocale, {weekday: shouldIncludeWeekday ? 'long' : undefined, year: 'numeric', month: 'long', day: 'numeric', timeZone: supportedTimeZone}).format(
+        parsedDate,
+    );
 }
 
 /**
@@ -1347,8 +1298,7 @@ function formatToLongDateInUTC(datetime: string, dateFnsLocale: DateFnsLocale | 
     if (!isValid(date)) {
         return '';
     }
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    return memoizedCreateLongDateInTimeZoneFormatter(dateFnsLocale?.code ?? 'en-US', 'UTC', false).format(date);
+    return getDateTimeFormatter(dateFnsLocale, {year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'}).format(date);
 }
 
 /**
@@ -1480,23 +1430,15 @@ function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLoc
 }
 
 /**
- * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
- * whether the year is shown.
- * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
- */
-const memoizedCreateSearchDateRangeFormatter = memoize(
-    (localeCode: string, shouldIncludeYear: boolean) =>
-        new Intl.DateTimeFormat(localeCode, {year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
-);
-
-/**
  * Formats a Search date range with `Intl`'s range format, so each language orders the dates and joins them its own way,
  * and parts the two dates share (such as the month or year) are written once.
  */
 function formatSearchDateRange(start: Date, end: Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
     // Hermes lacks `formatRange`, so native apps get it from polyfillDateTimeFormatRange.
-    return memoizedCreateSearchDateRangeFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).formatRange(toUTCWallClockDate(start), toUTCWallClockDate(end));
+    return getDateTimeFormatter(dateFnsLocale, {year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}).formatRange(
+        toUTCWallClockDate(start),
+        toUTCWallClockDate(end),
+    );
 }
 
 /**
