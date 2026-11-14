@@ -159,7 +159,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                 <Image
                     key={reloadKey}
-                    source={{uri: url}}
+                    source={typeof url === 'string' ? {uri: url} : url}
                     isAuthTokenRequired={isAuthTokenRequired}
                     style={[styles.h100, styles.w100]}
                     resizeMode={RESIZE_MODES.contain}

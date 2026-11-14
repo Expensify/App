@@ -258,7 +258,7 @@ function AttachmentView({
     // will appear with a source that is a blob
     const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
     const isFilePDF = file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'));
-    if (!hasPDFFailedToLoad && !isUploading && (isSourcePDF || isFilePDF)) {
+    if (!hasPDFFailedToLoad && !isUploading && typeof source === 'string' && (isSourcePDF || isFilePDF)) {
         // Every mounted PDF viewer is a full PDF.js document parse (its own worker + parsed document), so in a
         // carousel the memory cost scales with the number of PDF attachments — enough to OOM the WebContent
         // process on iOS Safari and reload the tab when several PDFs are added at once. Only mount the viewer
@@ -274,7 +274,7 @@ function AttachmentView({
                 />
             );
         }
-        const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string, encryptedAuthToken) : (source as string);
+        const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source, encryptedAuthToken) : source;
 
         const onPDFLoadComplete = (path: string) => {
             const id = transaction?.transactionID ?? reportActionID;
@@ -323,7 +323,8 @@ function AttachmentView({
 
     const isImage = isFileImage || (!file?.name && isLocalSourceImage);
 
-    if (isImage) {
+    // ImageView renders URLs and static image assets; other image sources cannot be shown there.
+    if (isImage && (typeof source === 'string' || typeof source === 'number')) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
             return (
                 <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -352,7 +353,7 @@ function AttachmentView({
             );
         }
 
-        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (cachedSource ?? (source as string));
+        let imageSource = imageError && typeof fallbackSource === 'string' && fallbackSource ? fallbackSource : (cachedSource ?? source);
 
         if (isHighResolution) {
             if (!isUploaded) {

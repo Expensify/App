@@ -11,7 +11,7 @@ import React from 'react';
 import type {AttachmentViewProps} from '..';
 
 type AttachmentViewImageProps = Pick<AttachmentViewProps, 'attachmentID' | 'isAuthTokenRequired' | 'file' | 'onPress'> & {
-    url: string;
+    url: string | number;
 
     loadComplete: boolean;
 
