@@ -690,6 +690,20 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
     });
 
+    it('readNewestAction stamps the given read time instead of now', async () => {
+        // Given a report that was read long ago
+        const REPORT_ID = '1';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, lastReadTime: '2026-01-01 09:00:00.000'});
+
+        // When it is marked read with the time the user saw it, which is earlier than now
+        Report.readNewestAction(REPORT_ID, true, false, '2026-01-01 10:00:00.000');
+        await waitForBatchedUpdates();
+
+        // Then the report keeps that time, so actions that arrived after it stay unread
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        expect(report?.lastReadTime).toBe('2026-01-01 10:00:00.000');
+    });
+
     it('should update pins in Onyx when togglePinned is called', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';

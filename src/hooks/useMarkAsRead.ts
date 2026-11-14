@@ -27,6 +27,7 @@ import useIsAnonymousUser from './useIsAnonymousUser';
 import useIsHiddenWideTabPreMount from './useIsHiddenWideTabPreMount';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';
 import useIsReportOutOfSight from './useIsReportOutOfSight';
+import useMarkReadAfterReveal from './useMarkReadAfterReveal';
 import {useDerivedIsEmptyReport} from './useReportAttributes';
 import useReportIsArchived from './useReportIsArchived';
 
@@ -127,6 +128,7 @@ function useMarkAsRead({
     // user is looking, so hold every readNewestAction until the tab is focused or the pre-mount is revealed.
     const isHiddenFromUser = useIsReportOutOfSight();
     const isHiddenPreMount = useIsHiddenWideTabPreMount();
+    const {markRead, cancelPendingRead} = useMarkReadAfterReveal(reportID, report?.lastReadTime);
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     useEffect(() => {
@@ -236,7 +238,7 @@ function useMarkAsRead({
             return;
         }
 
-        readNewestAction(reportID, isReportActionsLoaded);
+        markRead(isReportActionsLoaded);
 
         // `hasNewerActions` and `isScrolledToEnd` are read but intentionally left out of the deps: this effect is the
         // one-shot initial mark-as-read, and re-running it whenever the user scrolls or pagination state changes would
@@ -272,7 +274,7 @@ function useMarkAsRead({
         const shouldReadOnReportChange = ((isVisible && Visibility.hasFocus()) || isFromNotification) && !hasNewerActions && isScrolledToEnd;
 
         if (shouldReadOnReportChange) {
-            readNewestAction(reportID, isReportActionsLoaded);
+            markRead(isReportActionsLoaded);
             if (isFromNotification) {
                 Navigation.setParams({referrer: undefined});
             }
@@ -331,6 +333,7 @@ function useMarkAsRead({
             return;
         }
 
+        cancelPendingRead();
         readNewestAction(reportID, true);
         userActiveSince.current = DateUtils.getDBTime();
     });
@@ -342,6 +345,7 @@ function useMarkAsRead({
 
     const markNewestActionAsRead = () => {
         readActionSkippedRef.current = false;
+        cancelPendingRead();
         readNewestAction(reportID, true);
     };
 
