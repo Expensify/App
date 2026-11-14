@@ -56,6 +56,9 @@ const SENTRY_LABEL = {
     DATE_PICKER: {
         CLEAR_BUTTON: 'DatePicker-ClearButton',
     },
+    DATE_SEGMENTS_INPUT: {
+        EMPTY_SPACE: 'DateSegmentsInput-EmptySpace',
+    },
     COUNTRY_PICKER: {
         OPEN: 'CountryPicker-Open',
     },

@@ -106,6 +106,7 @@ const baseParams = {
     isReadOnly: false,
     shouldShowDate: true,
     isTaxAmountEmpty: false,
+    hasDateValidationError: false,
 } satisfies UseConfirmationValidationParams;
 
 function createValidationParamsForParticipant(
@@ -309,6 +310,46 @@ describe('useConfirmationValidation', () => {
     it('returns errorKey: null on successful non-PAY validation', () => {
         const {result} = renderHook(() => useConfirmationValidation(baseParams));
         expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
+    describe('date validation error', () => {
+        it('returns dateInvalid when the field reports an entry it could not read', () => {
+            // Given a date field holding digits that do not add up to a date, which it therefore never handed over
+            // When confirmation is validated
+            // Then it is blocked, since confirming would save the date from before the edit and discard what was typed
+            const {result} = renderHook(() => useConfirmationValidation({...baseParams, hasDateValidationError: true}));
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.dateInvalid'});
+        });
+
+        it('ignores the error while the date is not shown', () => {
+            // Given a flow with no date field on screen
+            // When confirmation is validated
+            // Then a stale error from a field the user cannot see does not block them
+            const {result} = renderHook(() => useConfirmationValidation({...baseParams, hasDateValidationError: true, shouldShowDate: false}));
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('ignores the error while the date is read only', () => {
+            // Given a date the user is not allowed to edit
+            // When confirmation is validated
+            // Then nothing blocks them, since they have no way to correct what is being reported
+            const {result} = renderHook(() => useConfirmationValidation({...baseParams, hasDateValidationError: true, isReadOnly: true}));
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('reports a missing date ahead of an unreadable one', () => {
+            // Given a date that was cleared outright while the field also reports an unreadable entry
+            // When confirmation is validated
+            // Then the required error wins, since the more specific thing to tell the user is that nothing is there
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    hasDateValidationError: true,
+                    transaction: createManualTransaction([P2P_PARTICIPANT], {created: '', modifiedCreated: ''}),
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
     });
 
     it('returns fieldRequired for manual expense when amount is not set with a policy expense chat participant', () => {

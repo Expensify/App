@@ -48,6 +48,14 @@ declare module 'react-native' {
         };
     }
 
+    /** On web this event is raised from a key down, so it carries the modifiers the browser reports with the key */
+    interface TextInputKeyPressEventData {
+        metaKey?: boolean;
+        ctrlKey?: boolean;
+        shiftKey?: boolean;
+        altKey?: boolean;
+    }
+
     interface PressableStateCallbackType extends WebPressableStateCallbackType {
         readonly isScreenReaderActive: boolean;
         readonly isDisabled: boolean;

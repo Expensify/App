@@ -87,6 +87,10 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
 
     const textInputRef = useRef<BaseTextInputRef | null>(null);
 
+    // A typed date reports every date the user passes through on the way to the one they mean, and each of those would
+    // be a save of its own on the report. The last one is kept here until the field is left or a day is picked.
+    const pendingDateRef = useRef<string | undefined>(undefined);
+
     // The saved value changes while this input is mounted whenever the field is updated elsewhere, for example from
     // another device or by an optimistic update, so the draft follows it.
     if (value !== previousValue) {
@@ -136,6 +140,30 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
         onSaveValue(selectedValue);
     };
 
+    const savePendingDate = () => {
+        const dateToSave = pendingDateRef.current;
+        pendingDateRef.current = undefined;
+
+        if (dateToSave === undefined) {
+            return;
+        }
+
+        saveSelectedOption(dateToSave);
+    };
+
+    /**
+     * A field left holding digits that do not add up to a date has nothing to save. The last date reported on the way
+     * there was one the user typed past, so saving it would store a date they never finished asking for.
+     */
+    const saveDateOnFieldBlur = (hasUnusableEntry: boolean) => {
+        if (hasUnusableEntry) {
+            pendingDateRef.current = undefined;
+            return;
+        }
+
+        savePendingDate();
+    };
+
     // The input's right corners are squared off so the delete button can sit flush against it, and the input's own
     // right border becomes the divider between the two.
     const textInputContainerStyles = onDelete ? styles.noRightBorderRadius : undefined;
@@ -176,7 +204,19 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 errorText={errorText}
                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                onInputChange={(selectedDate) => saveSelectedOption(selectedDate)}
+                onInputChange={(selectedDate) => {
+                    pendingDateRef.current = selectedDate;
+                }}
+                onFieldBlur={saveDateOnFieldBlur}
+                onPickerVisibilityChange={(isPickerVisible) => {
+                    // Picking a day is the user saying they are done, so it does not wait for the field to be left.
+                    // The calendar hands the day over a frame after it closes, so the save waits for it to arrive.
+                    // On a touch screen there are no segments to leave, which makes this the only chance to save.
+                    if (isPickerVisible) {
+                        return;
+                    }
+                    requestAnimationFrame(savePendingDate);
+                }}
                 // The grid puts its own gap between the fields, so the default vertical margin would push a date
                 // input below the plain text inputs sharing its row.
                 wrapperStyle={styles.mv0}

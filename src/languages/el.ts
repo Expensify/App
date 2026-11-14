@@ -39,6 +39,11 @@ const translations: TranslationDeepObject<typeof en> = {
         invoiceSubmitted: ({receiver}) => `έστειλε αυτό το τιμολόγιο στον ${receiver}`,
     },
     common: {
+        dateSegments: {
+            year: 'Έτος',
+            month: 'Μήνας',
+            day: 'Ημέρα',
+        },
         durationDays: ({count}: {count: number}) => ({
             one: `1 ημέρα`,
             other: `${count} ημέρες`,

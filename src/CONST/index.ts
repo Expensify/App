@@ -1761,6 +1761,11 @@ const CONST = {
             shortcutKey: 'Backspace',
             modifiers: [],
         },
+        DELETE: {
+            descriptionKey: null,
+            shortcutKey: 'Delete',
+            modifiers: [],
+        },
         SPACE: {
             descriptionKey: null,
             shortcutKey: 'Space',

@@ -52,16 +52,27 @@ function DatePickerModal({
     anchorPosition,
     anchorAlignment = DEFAULT_ANCHOR_ORIGIN,
     onSelected,
+    onMonthOrYearSelected,
     shouldCloseWhenBrowserNavigationChanged = false,
     shouldPositionFromTop = false,
     forwardedFSClass,
     shouldEnableMonthYearBackdropInNarrowPane = false,
+    anchorRef: anchorRefProp,
+    withoutOverlay = false,
+    shouldAllowWithoutOverlayInNarrowPane = false,
+    shouldCloseOnWheel = true,
+    viewDate,
+    viewDateVersion,
+    onMonthOrYearPickerClose,
     shouldMeasureContentHeight = false,
     windowMargin,
     shouldSwitchPositionIfOverflow = true,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value);
-    const anchorRef = useRef<ComponentRef<typeof View>>(null);
+    const fallbackAnchorRef = useRef<ComponentRef<typeof View>>(null);
+    // PopoverProvider treats a click inside the anchor as "not outside", so the caller's own anchor has to be used
+    // or clicking the date input while the calendar is open would dismiss it.
+    const anchorRef = anchorRefProp ?? fallbackAnchorRef;
     const styles = useThemeStyles();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
@@ -77,12 +88,27 @@ function DatePickerModal({
         }
     }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
-    const handleDateSelection = (date: Date) => {
-        const newValue = format(date, CONST.DATE.FNS_FORMAT_STRING);
-        onSelected?.(newValue);
+    const applySelection = (newValue: string) => {
         onTouched?.();
         onInputChange?.(newValue);
         setSelectedDate(newValue);
+    };
+
+    const handleDateSelection = (date: Date) => {
+        const newValue = format(date, CONST.DATE.FNS_FORMAT_STRING);
+        onSelected?.(newValue);
+        applySelection(newValue);
+    };
+
+    const applyMonthOrYearSelection = (newValue: string) => {
+        onMonthOrYearSelected?.(newValue);
+
+        // An empty field has no day to mark as selected, so the pick only moves the calendar
+        if (!value) {
+            return;
+        }
+
+        applySelection(newValue);
     };
 
     // Pass the CalendarPicker's existing bottom padding (pb4) as the base style so the safe-area padding is
@@ -110,6 +136,9 @@ function DatePickerModal({
             forwardedFSClass={forwardedFSClass}
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
+            withoutOverlay={withoutOverlay}
+            shouldAllowWithoutOverlayInNarrowPane={shouldAllowWithoutOverlayInNarrowPane}
+            shouldCloseOnWheel={shouldCloseOnWheel}
         >
             <CalendarPicker
                 minDate={minDate}
@@ -118,8 +147,12 @@ function DatePickerModal({
                 value={DateUtils.parseCalendarDate(selectedDate)}
                 defaultMonth={DateUtils.parseCalendarDate(defaultValue)}
                 onSelected={handleDateSelection}
+                onMonthOrYearSelected={onMonthOrYearSelected ? applyMonthOrYearSelection : undefined}
                 containerStyle={bottomSafeAreaPaddingStyle}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
+                viewDate={viewDate}
+                viewDateVersion={viewDateVersion}
+                onMonthOrYearPickerClose={onMonthOrYearPickerClose}
             />
         </PopoverWithMeasuredContent>
     );

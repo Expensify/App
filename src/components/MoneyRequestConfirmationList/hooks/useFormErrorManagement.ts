@@ -86,6 +86,9 @@ type UseFormErrorManagementParams = {
 
     /** Whether the confirmation is read-only (a read-only date is populated server-side, so it can't be missing) */
     isReadOnly: boolean;
+
+    /** Whether the date field is holding something that is not a date, so its error can be cleared once it is not */
+    hasDateValidationError: boolean;
 };
 
 type UseFormErrorManagementResult = {
@@ -155,6 +158,7 @@ function useFormErrorManagement({
     isDistanceRequest,
     shouldShowDate,
     isReadOnly,
+    hasDateValidationError,
 }: UseFormErrorManagementParams): UseFormErrorManagementResult {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -235,6 +239,14 @@ function useFormErrorManagement({
         setFormError('');
     }, [isAmountRequiredMissing, isDateRequiredMissing, isMerchantRequiredMissing, partiallyManuallyFilledScanID, setFormError]);
 
+    // The field reports its own entry, so the error it raised on submit goes as soon as the entry reads as a date again
+    useEffect(() => {
+        if (formErrorRef.current !== 'common.error.dateInvalid' || hasDateValidationError) {
+            return;
+        }
+        setFormError('');
+    }, [hasDateValidationError, setFormError]);
+
     useEffect(() => {
         const currentFormError = formErrorRef.current;
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -266,7 +278,10 @@ function useFormErrorManagement({
     // rendered. Distance requests disable that input, and the read-only menu row it falls back to doesn't show the error,
     // so the distance-amount error stays in the footer. Otherwise an invalid distance expense would fail silently.
     const isSuppressedInline = (error: TranslationPaths | ''): boolean =>
-        error === 'common.error.fieldRequired' || error === 'iou.error.invalidMerchant' || (!isDistanceRequest && error === 'common.error.invalidAmount');
+        error === 'common.error.fieldRequired' ||
+        error === 'common.error.dateInvalid' ||
+        error === 'iou.error.invalidMerchant' ||
+        (!isDistanceRequest && error === 'common.error.invalidAmount');
 
     const computeErrorMessage = (): string | undefined => {
         if (routeError) {
