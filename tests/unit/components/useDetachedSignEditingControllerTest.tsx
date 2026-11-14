@@ -167,6 +167,39 @@ describe('useDetachedSignEditingController', () => {
         expect(result.current.value).toBe('-12');
     });
 
+    it.each([{}, {key: undefined}, {key: null}, {key: 123}, {key: {}}, {key: ''}, {key: 'Unidentified'}])('preserves the sign for an unrecognized key event %p', (nativeEvent) => {
+        // Given a negative value with the caret where backspace would remove its sign
+        const {result, onInputChange} = renderController({value: '-12'});
+        act(() => result.current.handleSelectionChange(0, 0));
+        const event: AmountEditingKeyPressEvent = {nativeEvent: {}};
+        Object.assign(event.nativeEvent, nativeEvent);
+
+        // When an event arrives without a recognized key
+        act(() => result.current.handleKeyPress(event));
+
+        // Then neither the sign nor the caret changes because no backspace was identified
+        expect(result.current.value).toBe('-12');
+        expect(result.current.selection).toEqual({start: 0, end: 0});
+        expect(onInputChange).not.toHaveBeenCalled();
+    });
+
+    it.each([{}, {key: undefined}, {key: null}, {key: 123}, {key: {}}])('clears a previous forward-delete keypress for an unrecognized key event %p', (nativeEvent) => {
+        // Given repeated digits whose deletion direction depends on the last keypress
+        const {result} = renderController({value: '-111'});
+        act(() => result.current.handleSelectionChange(2, 2));
+        act(() => result.current.handleKeyPress(buildKeyPressEvent('Delete')));
+        const event: AmountEditingKeyPressEvent = {nativeEvent: {}};
+        Object.assign(event.nativeEvent, nativeEvent);
+
+        // When an unrecognized key precedes a native edit that removes the digit before the caret
+        act(() => result.current.handleKeyPress(event));
+        act(() => result.current.setNumber('11'));
+
+        // Then the base controller has cleared the old forward-delete flag so the caret moves back
+        expect(result.current.value).toBe('-11');
+        expect(result.current.selection).toEqual({start: 1, end: 1});
+    });
+
     it('toggles the sign and removes it through deleteBackward with the caret at the start', () => {
         // Given a positive value
         const {result} = renderController({value: '5'});

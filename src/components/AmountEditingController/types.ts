@@ -6,7 +6,7 @@ type AmountEditingRef = {
 
 type AmountEditingKeyPressEvent = {
     nativeEvent: {
-        key: string;
+        key?: string;
         ctrlKey?: boolean;
     };
 };

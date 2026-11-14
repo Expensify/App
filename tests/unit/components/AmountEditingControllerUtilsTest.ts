@@ -80,6 +80,18 @@ describe('AmountEditingController utils', () => {
             jest.clearAllMocks();
         });
 
+        it.each([{}, {key: undefined}, {key: null}, {key: 123}, {key: {}}, {key: ''}, {key: 'Unidentified'}])('ignores an unrecognized key event %p', (nativeEvent) => {
+            // Given an event that cannot identify a forward-delete shortcut
+            const event: AmountEditingKeyPressEvent = {nativeEvent: {}};
+            Object.assign(event.nativeEvent, nativeEvent);
+
+            // When the event is checked for forward deletion
+            const isForwardDelete = isForwardDeleteKeyPress(event);
+
+            // Then it is treated as an ordinary keypress without throwing
+            expect(isForwardDelete).toBe(false);
+        });
+
         it('detects the dedicated forward-delete key', () => {
             expect(isForwardDeleteKeyPress(buildKeyPressEvent('Delete'))).toBe(true);
         });
