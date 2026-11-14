@@ -190,11 +190,14 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
 
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
             // When updating a money request category
             updateMoneyRequestCategory({
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport: undefined,
                 iouReportOwnerLogin: undefined,
@@ -261,10 +264,13 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {Car: {name: 'Car', enabled: true}});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
 
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
             // When setting a category that is in the policy
             updateMoneyRequestCategory({
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport: undefined,
                 rules: undefined,
@@ -633,6 +639,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: transaction.transactionID,
+                transaction,
                 reportPolicyTags: undefined,
                 transactionThreadReport: createRandomReport(2, 'policyExpenseChat'),
                 parentReport: undefined,
@@ -681,6 +688,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: transaction.transactionID,
+                transaction,
                 reportPolicyTags: undefined,
                 transactionThreadReport: createRandomReport(2, 'policyExpenseChat'),
                 parentReport: undefined,
@@ -749,6 +757,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: '1',
+                transaction: undefined,
                 transactionThreadReport,
                 parentReport: iouReport,
                 iouReportOwnerLogin: undefined,
@@ -810,11 +819,14 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
 
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
             // When unsetting the tag
             updateMoneyRequestTag({
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport: undefined,
                 iouReportOwnerLogin: undefined,
@@ -854,12 +866,13 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         it('should keep a violation the client cannot recompute when the tag is edited', async () => {
             // Given an expense on a group policy carrying a violation only the backend can produce
             const transactionID = '1';
-            const {policy, transactionThreadReport} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
+            const {policy, transactionThreadReport, transaction} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
 
             // When editing the tag
             updateMoneyRequestTag({
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport: undefined,
                 rules: undefined,
@@ -929,12 +942,13 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         it('should keep a violation the client cannot recompute when the tax rate is edited', async () => {
             // Given an expense on a group policy carrying a violation only the backend can produce
             const transactionID = '1';
-            const {policy, transactionThreadReport} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
+            const {policy, transactionThreadReport, transaction} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
 
             // When editing the tax rate
             updateMoneyRequestTaxRate({
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport: undefined,
                 rules: undefined,
@@ -1074,6 +1088,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
+                transaction: fakeTransaction,
                 reportPolicyTags: undefined,
                 transactionThreadReport,
                 parentReport,
@@ -1114,6 +1129,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: undefined,
+                transaction: undefined,
                 reportPolicyTags: undefined,
                 transactionThreadReport: {reportID: '1'},
                 parentReport: undefined,
@@ -1743,6 +1759,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
+                transaction: fakeTransaction,
                 reportPolicyTags: undefined,
                 transactionThreadReport,
                 parentReport,
@@ -1784,6 +1801,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: undefined,
+                transaction: undefined,
                 reportPolicyTags: undefined,
                 transactionThreadReport: {reportID: '1'},
                 parentReport: undefined,
