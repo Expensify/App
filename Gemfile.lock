@@ -186,6 +186,7 @@ GEM
       google-apis-firebaseappdistribution_v1alpha (~> 0.2.0)
     fastlane-sirp (1.1.0)
     ffi (1.17.2)
+    ffi (1.17.2-aarch64-linux-gnu)
     ffi (1.17.2-arm64-darwin)
     ffi (1.17.2-x86_64-darwin)
     ffi (1.17.2-x86_64-linux-gnu)
@@ -349,6 +350,7 @@ GEM
       xcpretty (~> 0.2, >= 0.0.7)
 
 PLATFORMS
+  aarch64-linux
   arm64-darwin-21
   ruby
   universal-darwin-20

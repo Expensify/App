@@ -19,7 +19,7 @@ jobs:
   check:
     name: Check Contributor+ checklist heading
     if: github.actor != 'os-botify[bot]'
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1

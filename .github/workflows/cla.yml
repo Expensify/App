@@ -10,7 +10,7 @@ on:
 jobs:
   validate:
     if: ${{ github.event_name == 'pull_request_target' }}
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     outputs:
       IS_AUTHORIZED: ${{ steps.gate.outputs.IS_AUTHORIZED }}
     steps:
