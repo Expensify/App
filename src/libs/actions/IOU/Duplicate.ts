@@ -13,7 +13,7 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {canCreateExpensesOnPolicy, getReimbursementChoice, isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, getPerDiemRateCustomUnitRate, getReimbursementChoice, isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -76,6 +76,9 @@ import {submitPerDiemExpense} from './PerDiem';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
+
+// Captures the date and the time of day from a per diem date saved by Expensify Classic, like 2026-07-31T05:30:00.000+02:00
+const CLASSIC_PER_DIEM_DATE_REGEX = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}).*$/;
 
 function getIOUActionForTransactions(
     transactionIDList: Array<string | undefined>,
@@ -776,12 +779,38 @@ function createExpenseByType({
             return createDistanceRequest(distanceParams);
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
+            const sourceCustomUnit = transaction.comment?.customUnit ?? {};
+            const sourceDates = sourceCustomUnit.attributes?.dates;
+            const policySubRates = sourceCustomUnit.customUnitRateID ? (getPerDiemRateCustomUnitRate(params.policyParams?.policy, sourceCustomUnit.customUnitRateID)?.subRates ?? []) : [];
+
+            // Expensify Classic saves per diem dates with a time zone offset, like 2026-07-31T05:30:00.000+02:00, and saves sub-rates
+            // without their price and with the quantity as a string ("12"). CreatePerDiemRequest rejects those dates and string
+            // quantities, so the copy keeps the time the user entered (2026-07-31 05:30:00) and sends the quantity as a number.
+            // A sub-rate without a price takes it from the workspace. One with a price keeps it, because duplicateReport sets
+            // the report total from the source expenses' amounts.
+            const customUnit = {
+                ...sourceCustomUnit,
+                attributes: sourceDates
+                    ? {
+                          ...sourceCustomUnit.attributes,
+                          dates: {
+                              start: sourceDates.start.replace(CLASSIC_PER_DIEM_DATE_REGEX, '$1 $2'),
+                              end: sourceDates.end.replace(CLASSIC_PER_DIEM_DATE_REGEX, '$1 $2'),
+                          },
+                      }
+                    : sourceCustomUnit.attributes,
+                subRates: sourceCustomUnit.subRates?.map((subRate) => ({
+                    ...subRate,
+                    quantity: Number(subRate.quantity),
+                    rate: subRate.rate ?? policySubRates.find((policySubRate) => policySubRate.id === subRate.id)?.rate,
+                })),
+            };
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: transactionDetails?.comment ?? '',
-                    customUnit: transaction.comment?.customUnit ?? {},
+                    customUnit,
                 },
                 hasViolations: false,
                 customUnitPolicyID,
