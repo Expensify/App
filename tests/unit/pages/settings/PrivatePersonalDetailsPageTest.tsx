@@ -84,10 +84,13 @@ describe('PrivatePersonalDetailsPage state validation', () => {
         act(() => getInputProps(INPUT_IDS.COUNTRY)?.onValueChange?.('GB', INPUT_IDS.COUNTRY));
         act(() => getInputProps(INPUT_IDS.STATE)?.onValueChange?.(state, INPUT_IDS.STATE));
 
-        // When the user selects US
+        // When Country validates before its handler normalizes the state
+        const validate = jest.mocked(FormProvider).mock.lastCall?.[0].validate;
+        const errors = validate?.({country: 'US', state}, jest.fn());
         act(() => getInputProps(INPUT_IDS.COUNTRY)?.onValueChange?.('US', INPUT_IDS.COUNTRY));
 
-        // Then the visible selection and submission draft agree on the valid code
+        // Then the early validation cannot leave an error on the normalized selection
+        expect(errors).not.toHaveProperty(INPUT_IDS.STATE);
         expect(getInputProps(INPUT_IDS.STATE)?.value).toBe('CA');
         expect(setDraftValues).toHaveBeenLastCalledWith(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, {[INPUT_IDS.STATE]: 'CA'});
     });
@@ -104,7 +107,7 @@ describe('PrivatePersonalDetailsPage state validation', () => {
         expect(setDraftValues).toHaveBeenLastCalledWith(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, {[INPUT_IDS.STATE]: ''});
     });
 
-    it.each(['', 'London', 'California', 'toString'])('rejects the invalid US state "%s" before submission', (state) => {
+    it.each(['', 'London', 'toString'])('rejects the invalid US state "%s" before submission', (state) => {
         // Given a form whose state may contain an invalid persisted or draft value
         render(<PrivatePersonalDetailsPage />);
         const validate = jest.mocked(FormProvider).mock.lastCall?.[0].validate;
@@ -118,6 +121,7 @@ describe('PrivatePersonalDetailsPage state validation', () => {
 
     it.each([
         ['US', 'CA'],
+        ['US', 'California'],
         ['GB', 'London'],
     ])('accepts state %s / %s', (country, state) => {
         // Given a valid state for the selected country
@@ -129,5 +133,24 @@ describe('PrivatePersonalDetailsPage state validation', () => {
 
         // Then US codes and non-US free text remain supported
         expect(errors).not.toHaveProperty(INPUT_IDS.STATE);
+    });
+
+    it.each([
+        ['US', 'California', 'CA'],
+        ['US', 'CA', 'CA'],
+        ['GB', 'California', 'California'],
+        ['GB', 'London', 'London'],
+    ])('submits %s / %s as %s', (country, state, expectedState) => {
+        // Given state input that validation accepts for the selected country
+        render(<PrivatePersonalDetailsPage />);
+        const values = {country, state};
+        const onSubmit = jest.mocked(FormProvider).mock.lastCall?.[0].onSubmit;
+
+        // When the form opens verification
+        act(() => onSubmit?.(values));
+
+        // Then verification receives a US code without changing non-US input or mutating the form
+        expect(setDraftValues).toHaveBeenLastCalledWith(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, {...values, state: expectedState});
+        expect(values.state).toBe(state);
     });
 });

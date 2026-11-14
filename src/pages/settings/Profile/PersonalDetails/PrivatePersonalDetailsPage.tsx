@@ -143,7 +143,8 @@ function PrivatePersonalDetailsPage() {
 
         const stateValue = values[INPUT_IDS.STATE] ?? '';
         const effectiveCountry = values[INPUT_IDS.COUNTRY] ?? '';
-        if (!stateValue.trim() || (effectiveCountry === CONST.COUNTRY.US && !Object.hasOwn(COMMON_CONST.STATES, stateValue))) {
+        // Country changes validate before the change handler converts a full state name to its code.
+        if (!stateValue.trim() || (effectiveCountry === CONST.COUNTRY.US && !Object.hasOwn(COMMON_CONST.STATES, resolveStateCode(stateValue)))) {
             errors[INPUT_IDS.STATE] = translate('common.error.fieldRequired');
         }
 
@@ -204,13 +205,14 @@ function PrivatePersonalDetailsPage() {
     };
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
-        if (!hasChanges(values)) {
+        const normalizedValues = values[INPUT_IDS.COUNTRY] === CONST.COUNTRY.US ? {...values, [INPUT_IDS.STATE]: resolveStateCode(values[INPUT_IDS.STATE] ?? '')} : values;
+        if (!hasChanges(normalizedValues)) {
             Navigation.goBack();
             return;
         }
         // UI-prefilled values (geolocation country, normalized state) only live in component state until the user touches
         // a field, so write the full form values to the draft before navigating so the confirm step submits them.
-        setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
+        setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, normalizedValues);
         skipClearDraftOnUnmountRef.current = true;
         Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE);
     };
