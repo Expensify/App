@@ -73,6 +73,7 @@ describe('useUpdateTransactionCategory', () => {
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
         // The rules collection goes along, since a split draft has to resolve the category's tax rate itself
         expect(setDraftSplitTransaction).toHaveBeenCalledWith(
+            mockTranslate,
             TRANSACTION_ID,
             transaction,
             {category: CATEGORY},
@@ -99,7 +100,18 @@ describe('useUpdateTransactionCategory', () => {
         result.current.updateCategory(CATEGORY);
 
         // Then the existing split draft is the base, so its other fields are preserved
-        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, splitDraft, {category: CATEGORY}, expect.any(Function), expect.any(Function), policy, undefined, undefined, {});
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(
+            mockTranslate,
+            TRANSACTION_ID,
+            splitDraft,
+            {category: CATEGORY},
+            expect.any(Function),
+            expect.any(Function),
+            policy,
+            undefined,
+            undefined,
+            {},
+        );
     });
 
     it('writes a saved expense through the money request update', () => {

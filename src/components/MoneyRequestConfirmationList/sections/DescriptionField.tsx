@@ -92,7 +92,7 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
         // Trimming is deferred to submission time, not during keystrokes, to avoid
         // silently stripping trailing spaces as the user types.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, baseTransaction, {comment: newDescription}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transactionID, baseTransaction, {comment: newDescription}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 

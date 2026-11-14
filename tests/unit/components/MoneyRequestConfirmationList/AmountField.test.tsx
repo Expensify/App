@@ -271,7 +271,14 @@ describe('AmountField split-bill error clearing', () => {
         fireEvent.press(screen.getByText('Enter one'));
 
         // Then the split draft is seeded from the saved transaction instead of being cleared with a null merge
-        expect(setDraftSplitTransaction).toHaveBeenCalledWith('1', transaction, expect.objectContaining({amount: 100, currency: 'USD'}), expect.any(Function), expect.any(Function));
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(
+            expect.any(Function),
+            '1',
+            transaction,
+            expect.objectContaining({amount: 100, currency: 'USD'}),
+            expect.any(Function),
+            expect.any(Function),
+        );
     });
 });
 
