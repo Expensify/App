@@ -2,6 +2,8 @@ import {act, render} from '@testing-library/react-native';
 
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContext';
+import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import InlineCategoryPicker from '@components/TransactionItemRow/DataCells/InlineCategoryPicker';
 
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -10,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
 
-import React from 'react';
+import React, {use, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
@@ -23,6 +25,7 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 jest.mock('@components/CategoryPicker/CategoryPickerModal', () => jest.fn(() => null));
 
 const POLICY_ID = '1';
+const GL_CODE_KEY = 'GL Code';
 const policy: Policy = {
     id: POLICY_ID,
     name: 'Workspace',
@@ -33,7 +36,26 @@ const policy: Policy = {
     areCategoriesEnabled: true,
 };
 
-const renderPicker = (onSave = jest.fn(), policyID: string | undefined = POLICY_ID) => {
+const SEARCH_HASH = 42;
+const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}` as const;
+
+const renderPicker = (onSave = jest.fn(), policyID: string | undefined = POLICY_ID, isOnSearch = false) => {
+    function Wrapper({children}: React.PropsWithChildren) {
+        const queryContext = use(SearchQueryContext);
+        const resultsContext = use(SearchResultsContext);
+        const queryValue = useMemo(() => ({...queryContext, currentSearchHash: SEARCH_HASH}), [queryContext]);
+        const resultsValue = useMemo(() => ({...resultsContext, shouldUseLiveData: false}), [resultsContext]);
+        return (
+            <OnyxListItemProvider>
+                <SearchScopeProvider isOnSearch={isOnSearch}>
+                    <SearchQueryContext.Provider value={queryValue}>
+                        <SearchResultsContext.Provider value={resultsValue}>{children}</SearchResultsContext.Provider>
+                    </SearchQueryContext.Provider>
+                </SearchScopeProvider>
+            </OnyxListItemProvider>
+        );
+    }
+
     render(
         <InlineCategoryPicker
             policyID={policyID}
@@ -43,7 +65,7 @@ const renderPicker = (onSave = jest.fn(), policyID: string | undefined = POLICY_
             onSave={onSave}
             anchorPosition={{horizontal: 0, vertical: 0}}
         />,
-        {wrapper: OnyxListItemProvider},
+        {wrapper: Wrapper},
     );
     return onSave;
 };
@@ -68,12 +90,13 @@ describe('InlineCategoryPicker', () => {
         await Onyx.set(ONYXKEYS.SESSION, {accountID: 1, email: 'admin@example.com'});
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SEARCH_HASH}`, {data: {}});
         await waitForBatchedUpdates();
     });
 
-    it('creates and saves a category with the updated category collection', async () => {
-        // Given an eligible admin using the inline category picker
-        const onSave = renderPicker();
+    it.each([false, true])('creates and saves using live categories, including a workspace absent from Search (isOnSearch: %p)', async (isOnSearch) => {
+        // Given an eligible live workspace omitted from the Search snapshot for an unreported expense
+        const onSave = renderPicker(jest.fn(), POLICY_ID, isOnSearch);
         await waitForBatchedUpdatesWithAct();
 
         // When an unmatched search creates a category
@@ -84,16 +107,19 @@ describe('InlineCategoryPicker', () => {
 
         // Then the inline save receives the new category immediately, without waiting for the expense row to render
         expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, 1);
-        expect(onSave).toHaveBeenCalledWith('Training', expect.objectContaining({Training: expect.objectContaining({name: 'Training', enabled: true})}));
+        expect(onSave).toHaveBeenCalledWith(
+            'Training',
+            expect.objectContaining({Food: expect.objectContaining({enabled: true}), Training: expect.objectContaining({name: 'Training', enabled: true})}),
+        );
         const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`);
         expect(categories?.Training?.enabled).toBe(true);
     });
 
-    it('re-enables and saves an already-selected disabled category', async () => {
-        // Given an expense still holding a category that was disabled on the workspace
-        const categories: PolicyCategories = {Training: {name: 'Training', enabled: false, externalID: 'training-id'}};
+    it.each([false, true])('re-enables a live disabled category without duplicating it (isOnSearch: %p)', async (isOnSearch) => {
+        // Given a disabled live category absent from the Search snapshot, still selected on the expense
+        const categories: PolicyCategories = {Training: {name: 'Training', enabled: false, externalID: 'training-id', [GL_CODE_KEY]: '123'}};
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, categories);
-        const onSave = renderPicker();
+        const onSave = renderPicker(jest.fn(), POLICY_ID, isOnSearch);
         await waitForBatchedUpdatesWithAct();
 
         // When the admin creates the same name from the empty search results
@@ -103,7 +129,7 @@ describe('InlineCategoryPicker', () => {
         // Then creation re-enables rather than duplicates it, and does not skip saving just because the name is unchanged
         expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, 1);
         expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, 0);
-        expect(onSave).toHaveBeenCalledWith('Training', expect.objectContaining({Training: expect.objectContaining({enabled: true, externalID: 'training-id'})}));
+        expect(onSave).toHaveBeenCalledWith('Training', expect.objectContaining({Training: expect.objectContaining({enabled: true, externalID: 'training-id', [GL_CODE_KEY]: '123'})}));
     });
 
     it.each([{role: CONST.POLICY.ROLE.USER}, {areCategoriesEnabled: false}, {archivedDate: '2026-01-01'}, {connections: createMock<Policy['connections']>({quickbooksOnline: {}})}])(
@@ -133,13 +159,25 @@ describe('InlineCategoryPicker', () => {
         expect(getPickerProps().onCreateCategory).toBeDefined();
     });
 
-    it('does not create categories on a draft workspace', async () => {
-        // Given only a draft workspace, whose default categories must not be overwritten
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${CONST.POLICY.ID_FAKE}`, {...policy, id: CONST.POLICY.ID_FAKE});
+    it('does not offer creation based on stale Search permissions', async () => {
+        // Given a snapshot allowing creation but a live workspace where the user is only a member
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SEARCH_HASH}`, {data: {[POLICY_KEY]: policy}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.USER});
 
-        // When the picker opens without a real workspace ID
-        renderPicker(jest.fn(), '');
+        // When the inline picker opens in Search
+        renderPicker(jest.fn(), POLICY_ID, true);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then current permissions prohibit creation
+        expect(getPickerProps().onCreateCategory).toBeUndefined();
+    });
+
+    it.each(['', POLICY_ID])('does not create categories without a live workspace (policyID: %p)', async (policyID) => {
+        // Given no live workspace matching the expense destination
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
+
+        // When the picker opens with an empty or missing workspace
+        renderPicker(jest.fn(), policyID);
         await waitForBatchedUpdatesWithAct();
 
         // Then it cannot offer the create row
