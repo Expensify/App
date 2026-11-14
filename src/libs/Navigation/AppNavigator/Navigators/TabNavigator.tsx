@@ -132,6 +132,7 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.INSIGHTS}
                 component={InsightsPageScreen}
+                initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
             />
             <Tab.Screen
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
