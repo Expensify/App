@@ -3758,6 +3758,37 @@ describe('ReportUtils', () => {
                     expect(reportName).toBe('The Capital One connection is broken. To restore card imports, log into your bank.');
                 });
 
+                test('should handle concierge company card consent expiring action', () => {
+                    // Given a thread whose parent action warns that a card feed's consent expires in two weeks
+                    const companyCardConsentExpiringAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
+                        originalMessage: {
+                            feedName: 'American Express Business',
+                            policyID: '1',
+                            warningDaysBeforeExpiry: 14,
+                        },
+                    };
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: companyCardConsentExpiringAction.reportActionID,
+                    };
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {
+                            [companyCardConsentExpiringAction.reportActionID]: companyCardConsentExpiringAction,
+                        },
+                    };
+
+                    // When the thread name is derived from the parent action
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    // Then it uses the localized plain-text warning
+                    expect(reportName).toBe(
+                        "Your American Express Business card connection will need renewed consent in two weeks. Transactions are still syncing now, but may stop importing if the connection isn't renewed. Reconnect the card connection before consent expires.",
+                    );
+                });
+
                 test('should handle automatically paid with Expensify action', () => {
                     const expensifyPayAction: ReportAction = {
                         ...baseParentReportAction,

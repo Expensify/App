@@ -11681,6 +11681,26 @@ const translations = {
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `The ${feedName} connection has been broken for 30 days. <a href='${workspaceCompanyCardRoute}'>Log into your bank</a> to fix it or <a href='${workspaceCompanyCardSettingsRoute}'>remove the connection</a> if it's no longer in use. You won't lose any submitted expenses if you remove it.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                }) => {
+                    let warningTime = 'soon';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'in two weeks';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'in one week';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Reconnect the card connection before consent expires</a>.`
+                        : 'Reconnect the card connection before consent expires.';
+                    return `Your <strong>${feedName}</strong> card connection will need renewed consent ${warningTime}. Transactions are still syncing now, but may stop importing if the connection isn't renewed. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {

@@ -11287,6 +11287,26 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `De ${feedName}-verbinding is al 30 dagen verbroken. <a href='${workspaceCompanyCardRoute}'>Log in bij je bank</a> om dit op te lossen of <a href='${workspaceCompanyCardSettingsRoute}'>verwijder de verbinding</a> als deze niet meer wordt gebruikt. Je verliest geen ingediende uitgaven als je de verbinding verwijdert.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                }) => {
+                    let warningTime = 'binnenkort';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'over twee weken';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'over een week';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Verbind de kaart opnieuw voordat de toestemming verloopt</a>.`
+                        : 'Verbind de kaart opnieuw voordat de toestemming verloopt.';
+                    return `Voor je <strong>${feedName}</strong>-kaartverbinding is ${warningTime} opnieuw toestemming nodig. Transacties worden nog gesynchroniseerd, maar worden mogelijk niet meer geïmporteerd als de toestemming niet wordt vernieuwd. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `de Plaid-verbinding met je zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind je bankrekening ${maskedAccountNumber} opnieuw</a> zodat je je Expensify Kaarten kunt blijven gebruiken.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {

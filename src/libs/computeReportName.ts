@@ -43,6 +43,7 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getCompanyCardConnectionBrokenMessage,
     getConciergeAutoSelectDistanceRateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -661,6 +662,10 @@ function computeReportNameBasedOnReportAction({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
         return Parser.htmlToText(getCompanyCardConnectionBroken30DaysMessage(translate, parentReportAction));
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING)) {
+        return Parser.htmlToText(getCompanyCardConsentExpiringMessage(translate, parentReportAction));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {

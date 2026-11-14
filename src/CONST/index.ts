@@ -2232,6 +2232,7 @@ const CONST = {
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
                 COMPANY_CARD_CONNECTION_BROKEN_30_DAYS: 'COMPANYCARDCONNECTIONBROKEN30DAYS',
+                COMPANY_CARD_CONSENT_EXPIRING: 'COMPANYCARDCONSENTEXPIRING',
                 COMMUTER_EXCLUSION: 'COMMUTEREXCLUSION',
                 PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
@@ -6211,6 +6212,10 @@ const CONST = {
         },
     },
     COMPANY_CARDS: {
+        CONSENT_EXPIRY_WARNING_DAYS: {
+            TWO_WEEKS: 14,
+            ONE_WEEK: 7,
+        },
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
 
         // Ignored scrape result codes that still need the user to act, so they belong in the card's status

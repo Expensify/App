@@ -11254,6 +11254,26 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `La conexión ${feedName} se ha interrumpido durante 30 días. <a href='${workspaceCompanyCardRoute}'>Inicia sesión en tu banco</a> para solucionarlo o <a href='${workspaceCompanyCardSettingsRoute}'>elimina la conexión</a> si ya no se utiliza. No perderás ningún gasto enviado si la eliminas.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                }) => {
+                    let warningTime = 'pronto';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'en dos semanas';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'en una semana';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Vuelve a conectar la tarjeta antes de que caduque el consentimiento</a>.`
+                        : 'Vuelve a conectar la tarjeta antes de que caduque el consentimiento.';
+                    return `La conexión de tu tarjeta <strong>${feedName}</strong> necesitará renovar el consentimiento ${warningTime}. Las transacciones se siguen sincronizando, pero podrían dejar de importarse si no renuevas el consentimiento. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {

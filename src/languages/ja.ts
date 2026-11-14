@@ -11127,6 +11127,26 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `${feedName} との接続が 30 日間切断されています。修正するには<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>するか、もう使用していない場合は<a href='${workspaceCompanyCardSettingsRoute}'>接続を削除</a>してください。削除しても、送信済みの経費が失われることはありません。`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                }) => {
+                    let warningTime = 'まもなく';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = '2週間後';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = '1週間後';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>同意の有効期限が切れる前にカード接続を再接続してください</a>。`
+                        : '同意の有効期限が切れる前にカード接続を再接続してください。';
+                    return `<strong>${feedName}</strong>カード接続は${warningTime}に同意の更新が必要になります。取引は現在も同期されていますが、同意を更新しない場合はインポートが停止する可能性があります。${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {

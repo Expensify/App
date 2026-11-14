@@ -58,11 +58,14 @@ describe('localize', () => {
 
     afterEach(() => Onyx.clear());
 
+    // Polish fixtures intentionally contain words outside the English spelling dictionary.
+    // cspell:disable
     it.each([
         [1, 'pokaż 1 aktualizację'],
         [2, 'pokaż 2 aktualizacje'],
         [12, 'pokaż 12 aktualizacji'],
         [22, 'pokaż 22 aktualizacje'],
+        // cspell:enable
     ])('uses Polish plural categories for %s collapsed updates', async (count, expected) => {
         // Given the Polish locale loaded through the real localization store
         await IntlStore.load(CONST.LOCALES.PL);
@@ -70,6 +73,44 @@ describe('localize', () => {
         const message = Localize.translate(CONST.LOCALES.PL, 'report.collapsedSystemMessages', {count});
         // Then few and many forms are selected without a handwritten modulo expression
         expect(message).toBe(expected);
+    });
+
+    // Localized fixtures intentionally contain words outside the English spelling dictionary.
+    // cspell:disable
+    describe.each([
+        [CONST.LOCALES.EN, 'in two weeks', 'in one week', 'soon'],
+        [CONST.LOCALES.DE, 'in zwei Wochen', 'in einer Woche', 'bald'],
+        [CONST.LOCALES.EL, 'σε δύο εβδομάδες', 'σε μία εβδομάδα', 'σύντομα'],
+        [CONST.LOCALES.ES, 'en dos semanas', 'en una semana', 'pronto'],
+        [CONST.LOCALES.FR, 'dans deux semaines', 'dans une semaine', 'bientôt'],
+        [CONST.LOCALES.IT, 'tra due settimane', 'tra una settimana', 'presto'],
+        [CONST.LOCALES.JA, '2週間後', '1週間後', 'まもなく'],
+        [CONST.LOCALES.NL, 'over twee weken', 'over een week', 'binnenkort'],
+        [CONST.LOCALES.PL, 'za dwa tygodnie', 'za tydzień', 'wkrótce'],
+        [CONST.LOCALES.PT_BR, 'em duas semanas', 'em uma semana', 'em breve'],
+        [CONST.LOCALES.ZH_HANS, '两周后', '一周后', '即将'],
+    ] as const)('company card consent warning in %s', (locale, twoWeeks, oneWeek, soon) => {
+        // cspell:enable
+        it.each([
+            [14, twoWeeks],
+            [7, oneWeek],
+            [1, soon],
+        ])('preserves the localized warning for %s days', async (warningDaysBeforeExpiry, expectedTime) => {
+            // Given a loaded locale and a server-provided warning interval
+            await IntlStore.load(locale);
+
+            // When the consent warning is translated
+            const message = Localize.translate(locale, 'report.actions.type.companyCardConsentExpiring', {
+                feedName: 'American Express Business',
+                warningDaysBeforeExpiry,
+                workspaceCompanyCardRoute: '',
+            });
+
+            // Then the existing localized interval and unlinked fallback are preserved
+            expect(message).toContain(expectedTime);
+            expect(message).toContain('<strong>American Express Business</strong>');
+            expect(message).not.toContain('<a ');
+        });
     });
 
     describe('formatList', () => {

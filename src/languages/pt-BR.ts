@@ -11293,6 +11293,26 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `A conexão ${feedName} foi interrompida há 30 dias. <a href='${workspaceCompanyCardRoute}'>Acesse seu banco</a> para corrigi-la ou <a href='${workspaceCompanyCardSettingsRoute}'>remova a conexão</a> se ela não estiver mais em uso. Você não perderá nenhuma despesa enviada se removê-la.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                }) => {
+                    let warningTime = 'em breve';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'em duas semanas';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'em uma semana';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Reconecte o cartão antes que o consentimento expire</a>.`
+                        : 'Reconecte o cartão antes que o consentimento expire.';
+                    return `A conexão do seu cartão <strong>${feedName}</strong> precisará renovar o consentimento ${warningTime}. As transações ainda estão sendo sincronizadas, mas podem deixar de ser importadas se o consentimento não for renovado. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `a conexão Plaid com a sua conta bancária empresarial foi interrompida. Por favor, <a href='${walletRoute}'>reconecte sua conta bancária ${maskedAccountNumber}</a> para continuar usando seus Cartões Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {

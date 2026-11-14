@@ -11365,6 +11365,26 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `Die ${feedName}-Verbindung besteht seit 30 Tagen nicht mehr. <a href='${workspaceCompanyCardRoute}'>Melden Sie sich bei Ihrer Bank an</a>, um sie zu beheben, oder <a href='${workspaceCompanyCardSettingsRoute}'>entfernen Sie die Verbindung</a>, wenn sie nicht mehr verwendet wird. Bereits eingereichte Ausgaben gehen beim Entfernen nicht verloren.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                }) => {
+                    let warningTime = 'bald';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'in zwei Wochen';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'in einer Woche';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Stellen Sie die Kartenverbindung wieder her, bevor die Zustimmung abläuft</a>.`
+                        : 'Stellen Sie die Kartenverbindung wieder her, bevor die Zustimmung abläuft.';
+                    return `Für Ihre <strong>${feedName}</strong>-Kartenverbindung ist ${warningTime} eine erneute Zustimmung erforderlich. Transaktionen werden derzeit noch synchronisiert, könnten aber nicht mehr importiert werden, wenn die Zustimmung nicht erneuert wird. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Die Plaid-Verbindung zu Ihrem Geschäftskonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify Karten weiterhin verwenden können.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {

@@ -50,6 +50,7 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getCompanyCardConnectionBrokenMessage,
     getConciergeAutoSelectDistanceRateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -1483,6 +1484,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getCompanyCardConnectionBrokenMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
                     setClipboardMessage(getCompanyCardConnectionBroken30DaysMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING)) {
+                    setClipboardMessage(getCompanyCardConsentExpiringMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {
                     setClipboardMessage(getCardConnectionBrokenMessage(undefined, getOriginalMessage(reportAction)?.cardName, translate, false));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS)) {
