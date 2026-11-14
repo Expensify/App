@@ -100,7 +100,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
         }
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, baseTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transactionID, baseTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 

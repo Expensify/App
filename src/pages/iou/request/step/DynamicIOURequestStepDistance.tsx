@@ -538,6 +538,7 @@ function DynamicIOURequestStepDistance({
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value in transaction with CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID
             if (isEditingSplit && originalSplitTransactionDraft) {
                 setDraftSplitTransaction(
+                    translate,
                     CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                     originalSplitTransactionDraft,
                     {
@@ -671,6 +672,7 @@ function DynamicIOURequestStepDistance({
         if (isEditingSplit && transaction) {
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
             setDraftSplitTransaction(
+                translate,
                 CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                 splitDraftTransaction ?? optimisticTransaction,
                 {distance: distanceAsFloat},

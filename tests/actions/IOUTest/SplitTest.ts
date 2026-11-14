@@ -13298,6 +13298,21 @@ describe('setDraftSplitTransaction', () => {
 
     const buildSplitDraft = (): Transaction => ({...createRandomTransaction(1), taxCode: 'id_TAX_EXEMPT', taxAmount: 0, amount: 100});
 
+    it('uses the caller translator for pending route edits in a split draft', async () => {
+        // Given a draft and a translator whose output differs from the global locale
+        const translate = jest.fn(() => 'Split pending label');
+        const draftTransaction = {...buildSplitDraft(), comment: {waypoints: {}}};
+
+        // When an edited waypoint has no resolved route
+        setDraftSplitTransaction(translate, splitTransactionID, draftTransaction, {waypoints: {waypoint0: {address: 'New destination'}}}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+
+        // Then the stored draft uses the caller's pending label
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(translate).toHaveBeenCalledWith('iou.fieldPending');
+        expect(updatedTransaction?.modifiedMerchant).toBe('Split pending label');
+    });
+
     it('writes the tax the category rule asks for', async () => {
         // Given a split draft on a policy whose expense default puts a tax rate on the category
         const policy = buildSplitPolicy();
@@ -13306,7 +13321,7 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When that category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(translateLocal, splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
         await waitForBatchedUpdates();
 
         // Then the rule's rate is on the draft, because a split is sent with whatever tax it holds
@@ -13323,7 +13338,18 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When the other category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(
+            translateLocal,
+            splitTransactionID,
+            draftTransaction,
+            {category: 'Benefits'},
+            getCurrencyDecimalsLocal,
+            getCurrencySymbolLocal,
+            policy,
+            undefined,
+            undefined,
+            rules,
+        );
         await waitForBatchedUpdates();
 
         // Then the workspace default replaces it, so the split does not keep the rate the previous category asked for
@@ -13340,7 +13366,18 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When another category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(
+            translateLocal,
+            splitTransactionID,
+            draftTransaction,
+            {category: 'Benefits'},
+            getCurrencyDecimalsLocal,
+            getCurrencySymbolLocal,
+            policy,
+            undefined,
+            undefined,
+            rules,
+        );
         await waitForBatchedUpdates();
 
         // Then the rate is kept, because a category change says nothing about a rule the category does not own
@@ -13356,7 +13393,7 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When a category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, {});
+        setDraftSplitTransaction(translateLocal, splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, {});
         await waitForBatchedUpdates();
 
         // Then the tax it already carried is kept, since no rule asked for a different one
@@ -13373,7 +13410,18 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When a field other than the category is written
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {comment: 'Updated'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(
+            translateLocal,
+            splitTransactionID,
+            draftTransaction,
+            {comment: 'Updated'},
+            getCurrencyDecimalsLocal,
+            getCurrencySymbolLocal,
+            policy,
+            undefined,
+            undefined,
+            rules,
+        );
         await waitForBatchedUpdates();
 
         // Then the rate is left as it was, because no category change can have brought a different rule into play
@@ -13389,7 +13437,7 @@ describe('setDraftSplitTransaction', () => {
         await waitForBatchedUpdates();
 
         // When a caller passes no transaction to start from
-        setDraftSplitTransaction(transactionID, undefined, {category: 'Advertising'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        setDraftSplitTransaction(translateLocal, transactionID, undefined, {category: 'Advertising'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
 
         await waitForBatchedUpdates();
 

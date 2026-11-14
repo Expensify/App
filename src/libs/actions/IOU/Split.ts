@@ -1349,6 +1349,7 @@ function resetSplitShares(
  * its own, and passing `undefined` merges `null`, which clears the draft.
  */
 function setDraftSplitTransaction(
+    translate: LocaleContextProps['translate'],
     transactionID: string | undefined,
     splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
     transactionChanges: TransactionChanges,
@@ -1365,6 +1366,7 @@ function setDraftSplitTransaction(
 
     const updatedTransaction = splitTransactionDraft
         ? getUpdatedTransaction({
+              translate,
               transaction: splitTransactionDraft,
               transactionChanges,
               isFromExpenseReport: false,

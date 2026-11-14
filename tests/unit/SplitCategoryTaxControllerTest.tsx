@@ -7,6 +7,9 @@ import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 
 import React from 'react';
 
+const mockTranslate = jest.fn(() => 'Translated split');
+jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate}));
+
 jest.mock('@libs/actions/IOU/Split', () => ({
     setDraftSplitTransaction: jest.fn(),
 }));
@@ -75,6 +78,7 @@ describe('SplitCategoryTaxController', () => {
 
         // Then the category is written again, which puts it back through the resolution the pick used
         expect(mockSetDraftSplitTransaction).toHaveBeenCalledWith(
+            mockTranslate,
             'txn1',
             {...transaction, category: 'Car'},
             {category: 'Car'},
@@ -136,6 +140,7 @@ describe('SplitCategoryTaxController', () => {
         // Then the clear is written again, because the workspace default it falls back to is read from the rules,
         // so the pick itself left the previous category's tax in place
         expect(mockSetDraftSplitTransaction).toHaveBeenCalledWith(
+            mockTranslate,
             'txn1',
             {...transaction, category: ''},
             {category: ''},

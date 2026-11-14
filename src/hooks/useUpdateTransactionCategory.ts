@@ -102,6 +102,7 @@ function useUpdateTransactionCategory({
     const updateCategory = (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => {
         if (isSplitUpdate) {
             setDraftSplitTransaction(
+                translate,
                 transaction.transactionID,
                 splitDraftTransaction ?? transaction,
                 {category},

@@ -680,6 +680,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
 
     if (isSplitBill) {
         setDraftSplitTransaction(
+            translate,
             transactionID,
             splitDraftTransaction ?? transaction,
             {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount},

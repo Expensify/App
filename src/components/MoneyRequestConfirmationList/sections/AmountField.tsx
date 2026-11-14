@@ -240,6 +240,7 @@ function AmountField({
             }, {});
 
             setDraftSplitTransaction(
+                translate,
                 transactionID,
                 baseTransaction,
                 {
