@@ -8,6 +8,7 @@ import {openReport} from '@libs/actions/Report';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 
+import DynamicReportDetailsPage from '@pages/DynamicReportDetailsPage';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 
@@ -35,6 +36,10 @@ jest.mock('@components/FullscreenLoadingIndicator', () => {
 jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     const {View} = jest.requireActual<Record<string, React.FC<Record<string, unknown>>>>('react-native');
     return () => <View testID="notFound" />;
+});
+jest.mock('@pages/DynamicReportDetailsPage/ReportDetailsContent', () => {
+    const {Text: NativeText} = jest.requireActual<Record<string, React.FC<{testID: string; children: string}>>>('react-native');
+    return ({reportID: contentReportID}: {reportID: string}) => <NativeText testID="content">{contentReportID}</NativeText>;
 });
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
@@ -86,6 +91,17 @@ function renderWithGuard() {
     );
 }
 
+function renderWithPage(params: Partial<ScreenProps['route']['params']> | undefined) {
+    render(
+        <OnyxListItemProvider>
+            <DynamicReportDetailsPage
+                navigation={createMock<ScreenProps['navigation']>({})}
+                route={createMock<ScreenProps['route']>(params === undefined ? {} : {params})}
+            />
+        </OnyxListItemProvider>,
+    );
+}
+
 async function seedFinishedLoading() {
     await act(async () => {
         await Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
@@ -125,6 +141,7 @@ describe('withReportOrNotFound and ReportOrNotFoundGuard', () => {
     describe.each([
         ['withReportOrNotFound', renderWithHOC],
         ['ReportOrNotFoundGuard', renderWithGuard],
+        ['DynamicReportDetailsPage', () => renderWithPage({reportID})],
     ])('%s', (_, renderSubject) => {
         it('should render the loading indicator while the report is missing and report data is still loading', async () => {
             // Given no report in Onyx and no finished OpenReport call
@@ -239,6 +256,40 @@ describe('withReportOrNotFound and ReportOrNotFoundGuard', () => {
             // Then no request is made
             expect(mockOpenReport).not.toHaveBeenCalled();
         });
+    });
+
+    describe.each([
+        ['omitted', undefined],
+        ['empty', {}],
+    ] as const)('DynamicReportDetailsPage with %s route params', (_, params) => {
+        it.each([undefined, true, false])('should preserve guard behavior when global loading is %s', async (isLoadingReportData) => {
+            // Given a details route without a report ID and the current global loading state
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, isLoadingReportData ?? null);
+            });
+
+            // When the actual page mounts, parameter extraction must not throw before the guard renders
+            renderWithPage(params);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the guard fallback renders, without trying to fetch an absent report ID
+            expect(screen.getByTestId(isLoadingReportData === false ? 'notFound' : 'loading')).toBeTruthy();
+            expect(screen.queryByTestId('content')).toBeNull();
+            expect(mockOpenReport).not.toHaveBeenCalled();
+        });
+    });
+
+    it('should pass the route report ID to details content', async () => {
+        // Given an accessible report that has finished loading
+        await seedFinishedLoading();
+        await seedReport();
+
+        // When the actual details page mounts with that report ID
+        renderWithPage({reportID});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the content receives the original ID rather than rendering without report context
+        expect(screen.getByTestId('content')).toHaveTextContent(reportID);
     });
 
     it('should forward the report read from Onyx rather than the one passed by the caller', async () => {
