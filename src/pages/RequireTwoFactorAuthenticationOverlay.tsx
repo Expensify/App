@@ -58,11 +58,17 @@ function RequireTwoFactorAuthenticationOverlay() {
     const testToolsTapResponder = useTestToolsTapResponder();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    // OfflineIndicator is a fixed-height row. Safe-area padding has to live on the container around it,
-    // or the home-indicator inset consumes that height and the "You appear to be offline" label clips.
+    // The label is a fixed-height row. Safe-area padding has to live on the container around it, or the home-indicator inset consumes that height and clips the label.
+    // It is pinned to the overlay instead of following the content in the column, because web clips a sibling that spills past the overlay.
     const offlineBannerSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: false,
+    });
+    // The pinned row no longer takes space in the column. Without a matching gap, a short window centers the buttons under the label.
+    const offlineContentPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: isOffline,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        additionalPaddingBottom: isOffline ? CONST.OFFLINE_INDICATOR_HEIGHT : 0,
     });
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const {signOut, leaveDelegateAccount, isActingAsDelegate, isTrackingGPS} = useSignOut();
@@ -129,7 +135,7 @@ function RequireTwoFactorAuthenticationOverlay() {
                     testID="RequireTwoFactorAuthenticationOverlay"
                     {...testToolsTapResponder}
                 >
-                    <View style={[styles.flex1, styles.appBG]}>
+                    <View style={[styles.flex1, styles.appBG, offlineContentPaddingStyle]}>
                         <View style={styles.twoFARequiredContainer}>
                             <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
                                 <Icon
@@ -173,7 +179,7 @@ function RequireTwoFactorAuthenticationOverlay() {
                     </View>
                     {isOffline && (
                         <View
-                            style={[styles.appBG, offlineBannerSafeAreaStyle]}
+                            style={[styles.stickToBottom, styles.zIndex1, styles.appBG, offlineBannerSafeAreaStyle]}
                             testID="RequireTwoFactorOfflineBanner"
                         >
                             <OfflineIndicator style={styles.pl5} />
