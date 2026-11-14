@@ -1139,6 +1139,7 @@ function updateSplitTransactions({
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     isVendorMatchingBetaEnabled,
                     transactionID: existingTransactionID,
+                    transaction: splitTransaction,
                     transactionThreadReport,
                     iouReport: transactionIOUReport,
                     iouReportOwnerLogin: getLoginByAccountID(transactionIOUReport?.ownerAccountID, personalDetails),

@@ -110,6 +110,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction: undefined,
             transactionThreadReport,
             iouReport,
             delegateAccountID: undefined,
@@ -151,6 +152,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction: undefined,
             transactionThreadReport,
             iouReport,
             delegateAccountID: undefined,
@@ -196,6 +198,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction: undefined,
             transactionThreadReport,
             iouReport,
             delegateAccountID: undefined,
@@ -243,6 +246,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction: undefined,
             transactionThreadReport,
             iouReport,
             delegateAccountID: undefined,
@@ -280,6 +284,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction: undefined,
             transactionThreadReport,
             iouReport,
             delegateAccountID: undefined,
@@ -302,6 +307,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction: undefined,
             transactionThreadReport,
             iouReport,
             delegateAccountID: undefined,
@@ -364,12 +370,13 @@ describe('getUpdateMoneyRequestParams — distance rate change with pending wayp
         } as Transaction;
     }
 
-    function getParamsForRateChange() {
+    function getParamsForRateChange(transaction: Transaction) {
         return getUpdateMoneyRequestParams({
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction,
             transactionThreadReport,
             iouReport,
             delegateAccountID: undefined,
@@ -389,24 +396,22 @@ describe('getUpdateMoneyRequestParams — distance rate change with pending wayp
 
     it('should build an optimistic MODIFIED_EXPENSE when the route distance is already known locally', async () => {
         // Given a distance expense whose waypoints are pending on the server but whose route distance is known locally
-        await Onyx.merge(
-            `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`,
-            buildDistanceTransaction({
-                comment: {
-                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                    customUnit: {
-                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                        customUnitRateID: 'rate1',
-                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                        quantity: 10,
-                    },
+        const transaction = buildDistanceTransaction({
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitRateID: 'rate1',
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 10,
                 },
-            }),
-        );
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
         await waitForBatchedUpdates();
 
         // When changing the distance rate
-        const {params} = getParamsForRateChange();
+        const {params} = getParamsForRateChange(transaction);
 
         // Then the report action is created optimistically instead of being deferred to the server
         expect(params.reportActionID).toBeDefined();
@@ -414,11 +419,12 @@ describe('getUpdateMoneyRequestParams — distance rate change with pending wayp
 
     it('should NOT build an optimistic MODIFIED_EXPENSE when no route distance is known locally', async () => {
         // Given a distance expense with pending waypoints and no locally known distance (no quantity, no routes)
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, buildDistanceTransaction({}));
+        const transaction = buildDistanceTransaction({});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
         await waitForBatchedUpdates();
 
         // When changing the distance rate
-        const {params} = getParamsForRateChange();
+        const {params} = getParamsForRateChange(transaction);
 
         // Then the report action is left to the server, which owns the MapBox route response
         expect(params.reportActionID).toBeUndefined();
@@ -427,38 +433,36 @@ describe('getUpdateMoneyRequestParams — distance rate change with pending wayp
     it('should NOT build an optimistic MODIFIED_EXPENSE when the pending waypoint edit zeroed the amount, leaving a stale distance', async () => {
         // Given a distance expense whose waypoints were just edited: the amount was zeroed while the server
         // recomputes the route, so the leftover quantity/routes from the pre-edit route are stale
-        await Onyx.merge(
-            `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`,
-            buildDistanceTransaction({
-                amount: 0,
-                modifiedAmount: 0,
-                comment: {
-                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                    customUnit: {
-                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                        customUnitRateID: 'rate1',
-                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                        quantity: 10,
+        const transaction = buildDistanceTransaction({
+            amount: 0,
+            modifiedAmount: 0,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitRateID: 'rate1',
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 10,
+                },
+            },
+            routes: {
+                route0: {
+                    distance: 16093,
+                    geometry: {
+                        coordinates: [
+                            [0, 0],
+                            [1, 1],
+                        ],
+                        type: 'LineString',
                     },
                 },
-                routes: {
-                    route0: {
-                        distance: 16093,
-                        geometry: {
-                            coordinates: [
-                                [0, 0],
-                                [1, 1],
-                            ],
-                            type: 'LineString',
-                        },
-                    },
-                },
-            }),
-        );
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
         await waitForBatchedUpdates();
 
         // When changing the distance rate
-        const {params} = getParamsForRateChange();
+        const {params} = getParamsForRateChange(transaction);
 
         // Then the stale distance is not used to build an optimistic report action
         expect(params.reportActionID).toBeUndefined();
@@ -485,12 +489,13 @@ describe('getUpdateMoneyRequestParams — receipt page count', () => {
         } as Transaction;
     }
 
-    function getOptimisticPageCountForDistanceChange() {
+    function getOptimisticPageCountForDistanceChange(transaction: Transaction) {
         const {onyxData} = getUpdateMoneyRequestParams({
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction,
             transactionThreadReport,
             iouReport,
             delegateAccountID: undefined,
@@ -516,31 +521,34 @@ describe('getUpdateMoneyRequestParams — receipt page count', () => {
 
     it('clears the page count when the map receipt is about to be regenerated', async () => {
         // Given a map distance expense whose receipt is a 3-page PDF
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, buildTransactionWithMultiPagePDF(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, WAYPOINTS));
+        const transaction = buildTransactionWithMultiPagePDF(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, WAYPOINTS);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
         await waitForBatchedUpdates();
 
         // When the distance changes
         // Then the stale count is cleared so the badge cannot outlive the receipt it described
-        expect(getOptimisticPageCountForDistanceChange()).toBeNull();
+        expect(getOptimisticPageCountForDistanceChange(transaction)).toBeNull();
     });
 
     it('clears the page count for a manual distance expense that carries waypoints', async () => {
         // Given a manual distance expense that still has waypoints, so its receipt is a generated map
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, buildTransactionWithMultiPagePDF(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, WAYPOINTS));
+        const transaction = buildTransactionWithMultiPagePDF(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, WAYPOINTS);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
         await waitForBatchedUpdates();
 
         // When the distance changes
-        expect(getOptimisticPageCountForDistanceChange()).toBeNull();
+        expect(getOptimisticPageCountForDistanceChange(transaction)).toBeNull();
     });
 
     it('keeps the page count for an odometer expense, whose receipt is uploaded', async () => {
         // Given an odometer distance expense whose 3-page PDF was uploaded by the user
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, buildTransactionWithMultiPagePDF(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER));
+        const transaction = buildTransactionWithMultiPagePDF(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
         await waitForBatchedUpdates();
 
         // When the distance changes
         // Then the count survives, because nothing regenerates that receipt
-        expect(getOptimisticPageCountForDistanceChange()).toBe(3);
+        expect(getOptimisticPageCountForDistanceChange(transaction)).toBe(3);
     });
 });
 
@@ -564,12 +572,23 @@ describe('getUpdateMoneyRequestParams — next step of a submitted report', () =
         };
     }
 
+    const submittedTransaction: Transaction = {
+        transactionID: TRANSACTION_ID,
+        reportID: IOU_REPORT_ID,
+        amount: -1000,
+        currency: CONST.CURRENCY.USD,
+        created: '2024-01-01',
+        merchant: 'Merchant',
+        reimbursable: true,
+    };
+
     function hasOptimisticNextStep(report: Report, policy: Policy, transactionChanges: Parameters<typeof getUpdateMoneyRequestParams>[0]['transactionChanges']): boolean {
         const {onyxData} = getUpdateMoneyRequestParams({
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction: submittedTransaction,
             transactionThreadReport,
             iouReport: report,
             delegateAccountID: undefined,
@@ -590,15 +609,7 @@ describe('getUpdateMoneyRequestParams — next step of a submitted report', () =
     }
 
     beforeEach(async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {
-            transactionID: TRANSACTION_ID,
-            reportID: IOU_REPORT_ID,
-            amount: -1000,
-            currency: CONST.CURRENCY.USD,
-            created: '2024-01-01',
-            merchant: 'Merchant',
-            reimbursable: true,
-        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, submittedTransaction);
         await waitForBatchedUpdates();
     });
 
