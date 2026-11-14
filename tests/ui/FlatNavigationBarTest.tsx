@@ -1,4 +1,4 @@
-import {cleanup, fireEvent, render, screen, within} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
@@ -11,13 +11,17 @@ import {signOutAndRedirectToSignIn} from '@libs/actions/Session';
 import {getIsSearchTabHovered, setIsSearchTabHovered} from '@libs/Navigation/helpers/searchTabPreloadStore';
 import Navigation from '@libs/Navigation/Navigation';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -40,13 +44,62 @@ jest.mock('@components/Navigation/NavigationTabBar/useInsightsTabNavigation', ()
 jest.mock('@hooks/useRestoreWorkspacesTabOnNavigate', () => () => mockNavigateToWorkspaces);
 jest.mock('@hooks/useInboxTabIndicatorStatus', () => () => mockInboxIndicator);
 jest.mock('@hooks/useWorkspacesTabIndicatorStatus', () => () => mockWorkspacesIndicator);
-jest.mock('@components/Navigation/FlatNavigationBar/FlatNavCreateButton', () => () => null);
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useIsFocused: () => true,
+    useFocusEffect: jest.fn(),
+}));
+type MockCreateButtonProps = {
+    isCompact?: boolean;
+    isCreateMenuActive?: boolean;
+    isCreateMenuVisible?: boolean;
+    showCreateMenu?: () => void;
+    hideCreateMenu?: () => void;
+    onCreateMenuHidden?: () => void;
+};
+let mockCreateButtonProps: MockCreateButtonProps | undefined;
+jest.mock('@components/Navigation/FlatNavigationBar/FlatNavCreateButton', () => (props: MockCreateButtonProps) => {
+    mockCreateButtonProps = props;
+    return null;
+});
+let mockIsElementHovered = false;
+let mockIsFocusMovingInside = false;
+let mockHasKeyboardFocusInside = false;
+jest.mock('@libs/isHTMLElement', () => ({
+    __esModule: true,
+    default: (val: unknown): val is HTMLElement => {
+        if ((!mockIsElementHovered && !mockIsFocusMovingInside && !mockHasKeyboardFocusInside) || typeof val !== 'object' || val === null) {
+            return false;
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- attach DOM methods to the test instance for mock hover and focus verification
+        const target = val as {matches?: (selector: string) => boolean; contains?: (other: unknown) => boolean; querySelector?: (selector: string) => unknown};
+        target.matches = (selector: string) => mockIsElementHovered && selector === ':hover';
+        target.contains = () => mockIsFocusMovingInside;
+        target.querySelector = (selector: string) => (mockHasKeyboardFocusInside && selector === ':focus-visible' ? {} : null);
+        return true;
+    },
+}));
 jest.mock('@pages/inbox/sidebar/SupportalSwitcherButton', () => () => null);
 jest.mock('@components/Avatar/AccountNavigationAvatar', () => () => null);
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {navigate: jest.fn()},
 }));
+let mockOuterHoverOut: (() => void) | undefined;
+let mockInnerHoverIn: (() => void) | undefined;
+jest.mock(
+    '@components/Hoverable',
+    () =>
+        ({children, onHoverIn, onHoverOut}: {children: React.ReactNode | ((isHovered: boolean) => React.ReactNode); onHoverIn?: () => void; onHoverOut?: () => void}) => {
+            if (onHoverOut) {
+                mockOuterHoverOut = onHoverOut;
+            }
+            if (onHoverIn) {
+                mockInnerHoverIn = onHoverIn;
+            }
+            return typeof children === 'function' ? children(false) : children;
+        },
+);
 jest.mock('@libs/actions/Session', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Session'),
     signOutAndRedirectToSignIn: jest.fn(),
@@ -63,6 +116,14 @@ function renderBar(selectedTab: ValueOf<typeof NAVIGATION_TABS>) {
     );
 }
 
+function getSavedSidebarState() {
+    return Onyx.get(ONYXKEYS.NVP_SEARCH_SIDEBAR);
+}
+
+function isStyleProp(value: unknown): value is StyleProp<ViewStyle> {
+    return value === undefined || value === null || typeof value === 'object';
+}
+
 function getRow(name: string | RegExp) {
     return screen.getByRole(CONST.ROLE.TAB, {name});
 }
@@ -74,6 +135,12 @@ describe('FlatNavigationBar', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockCreateButtonProps = undefined;
+        mockIsElementHovered = false;
+        mockIsFocusMovingInside = false;
+        mockHasKeyboardFocusInside = false;
+        mockOuterHoverOut = undefined;
+        mockInnerHoverIn = undefined;
         mockInboxIndicator = NO_INDICATOR;
         mockWorkspacesIndicator = NO_INDICATOR;
         setIsSearchTabHovered(false);
@@ -253,6 +320,360 @@ describe('FlatNavigationBar', () => {
 
         // Then it opens the Account tab, which no longer has a slot among the rows above
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS);
+    });
+
+    describe('collapsing', () => {
+        function getBarWidth() {
+            const style: unknown = screen.getByTestId('FlatNavigationBar').props.style;
+            return isStyleProp(style) ? StyleSheet.flatten(style)?.width : undefined;
+        }
+
+        it('collapses into a rail when the toggle is pressed and saves the state', async () => {
+            // Given the expanded bar
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When the toggle next to the logo is pressed
+            fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Collapse'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar narrows to the rail, the flag is saved for the next load, and the toggle now offers to expand
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(await getSavedSidebarState()).toEqual({isCollapsed: true});
+            expect(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Expand'})).toBeOnTheScreen();
+        });
+
+        it('renders collapsed on load when the saved state says so', async () => {
+            // Given a collapsed state saved by an earlier session
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+
+            // When the bar mounts
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it is already the rail, so a reload does not flash the wide bar first
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+        });
+
+        it('keeps every row reachable by its name while collapsed', async () => {
+            // Given a collapsed bar with the Inbox flagged for review
+            mockInboxIndicator = REVIEW_REQUIRED;
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the rows are read and one is pressed
+            fireEvent.press(getRow('Spend'));
+
+            // Then the labels are still the rows' accessible names, since only their drawing fades, and a press still navigates
+            expect(getRow(`Inbox. ${REVIEW_REQUIRED_SUFFIX}`)).toBeOnTheScreen();
+            expect(getRow('Workspaces')).toBeOnTheScreen();
+            expect(mockNavigateToSearch).toHaveBeenCalledTimes(1);
+            expect(screen.getAllByTestId('FlatNavItemStatusIndicator')).toHaveLength(1);
+        });
+
+        it('disables logo pointer events and accessibility while collapsed', async () => {
+            // Given a collapsed bar
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+
+            // When the bar mounts
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the logo container turns off pointer events and the logo button is disabled and hidden from accessibility
+            expect(screen.getByTestId('FlatNavLogoContainer').props.pointerEvents).toBe('none');
+
+            const logoButton = screen.getByTestId('ExpensifyLogoButton', {includeHiddenElements: true});
+            expect(logoButton.props['aria-hidden']).toBe(true);
+            expect(logoButton.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+        });
+
+        it('keeps the bar peeking when hovering out while the create menu is open', async () => {
+            // Given a collapsed bar
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the pointer enters the items, which starts a peek
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // And the Create menu opens
+            act(() => {
+                mockCreateButtonProps?.showCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // And the pointer leaves the bar (e.g. moving onto the popover)
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking so the menu does not collapse out from under the pointer
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When the menu closes and its modal is gone from the screen
+            act(() => {
+                mockCreateButtonProps?.hideCreateMenu?.();
+            });
+            act(() => {
+                mockCreateButtonProps?.onCreateMenuHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the peek ends and the bar collapses back to a rail
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+        });
+
+        it('keeps the bar peeking after the create menu closes if the pointer is still hovering the bar', async () => {
+            // Given a collapsed bar currently peeking with the Create menu open
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockCreateButtonProps?.showCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the menu closes with the pointer still hovering over the bar
+            mockIsElementHovered = true;
+            act(() => {
+                mockCreateButtonProps?.hideCreateMenu?.();
+            });
+            act(() => {
+                mockCreateButtonProps?.onCreateMenuHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking because the cursor is still hovering over it
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When the pointer leaves the bar
+            mockIsElementHovered = false;
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the peek ends and the bar collapses back to a rail
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+        });
+
+        it('keeps the bar peeking after the create menu closes if an item has keyboard focus', async () => {
+            // Given a collapsed bar currently peeking with the Create menu open and no hover over the bar
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockCreateButtonProps?.showCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the menu closes while an item inside the bar retains keyboard focus
+            mockIsElementHovered = false;
+            mockHasKeyboardFocusInside = true;
+            act(() => {
+                mockCreateButtonProps?.hideCreateMenu?.();
+            });
+            act(() => {
+                mockCreateButtonProps?.onCreateMenuHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking so the keyboard user still sees labels
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('keeps the bar peeking while the closing create menu is still on screen', async () => {
+            // Given a collapsed bar currently peeking with the Create menu open and the pointer away from the bar
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockCreateButtonProps?.showCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the menu starts closing, but its modal has not finished hiding yet
+            act(() => {
+                mockCreateButtonProps?.hideCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, because the modal's overlay still covers the bar and hides whether the pointer is on it
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('keeps the bar peeking if the create menu reopens before the previous close finished', async () => {
+            // Given a collapsed bar currently peeking with the Create menu open
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockCreateButtonProps?.showCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the menu closes, reopens, and only then reports the earlier close as finished
+            act(() => {
+                mockCreateButtonProps?.hideCreateMenu?.();
+            });
+            act(() => {
+                mockCreateButtonProps?.showCreateMenu?.();
+            });
+            act(() => {
+                mockCreateButtonProps?.onCreateMenuHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking under the open menu even though the pointer is not over it
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('peeks the bar when items receive keyboard focus and collapses on blur', async () => {
+            // Given a collapsed bar
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+
+            // When navigation items gain focus via keyboard navigation
+            mockHasKeyboardFocusInside = true;
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar peeks open to reveal labels for keyboard users
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When focus leaves the navigation items
+            mockHasKeyboardFocusInside = false;
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'blur', {
+                nativeEvent: {},
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar collapses back to a skinny rail
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+        });
+
+        it('keeps the peek open when focus moves between items inside the bar', async () => {
+            // Given a collapsed bar peeking because an item has keyboard focus
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            mockHasKeyboardFocusInside = true;
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // When focus moves to another item inside the bar, e.g. tabbing from Home to Inbox
+            mockIsFocusMovingInside = true;
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'blur', {
+                currentTarget: {},
+                nativeEvent: {relatedTarget: {}},
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, so its labels do not flicker on every Tab press
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('keeps the peek open when the pointer leaves while an item has keyboard focus', async () => {
+            // Given a collapsed bar peeking because an item has keyboard focus
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            mockHasKeyboardFocusInside = true;
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // When the pointer passes over the bar and leaves it
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, so the keyboard user still sees the label of the focused item
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('collapses when the pointer leaves after an item was focused by a mouse click', async () => {
+            // Given a collapsed bar peeking under the pointer, with an item focused by a mouse click
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // When the pointer leaves the bar
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar collapses, because mouse focus must not hold it open
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+        });
+
+        it('stays collapsed when the closing create menu hands focus back to its button without the keyboard', async () => {
+            // Given a collapsed bar that peeked under the pointer while the Create menu was open
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockCreateButtonProps?.showCreateMenu?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the menu is dismissed with a click outside, which ends the peek once its modal is gone
+            act(() => {
+                mockCreateButtonProps?.hideCreateMenu?.();
+            });
+            act(() => {
+                mockCreateButtonProps?.onCreateMenuHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+
+            // And the modal then restores focus to the Create button, which is not keyboard focus
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays collapsed, because only keyboard focus may start a peek
+            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+        });
     });
 
     it('sends an anonymous user to sign in instead of Account', async () => {

@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 
@@ -50,7 +51,17 @@ type AccountSwitcherButtonProps = {
     isScreenFocused: boolean;
 };
 
-const filterMenuItem = (item: PopoverMenuItem, searchInput: string) => tokenizedSearch([item], searchInput, (option) => [option.text, option.description ?? '']).length > 0;
+type AccountSwitcherMenuItem = PopoverMenuItem & {
+    /** The account's unformatted login with the SMS domain stripped, so search still matches typed digits or the bare login even though `description` is reformatted for readability via formatPhoneNumber. */
+    rawLogin: string;
+};
+
+const filterMenuItem = (item: AccountSwitcherMenuItem, searchInput: string) =>
+    tokenizedSearch([item], searchInput, (option) => [option.text, option.description ?? '', option.rawLogin]).length > 0;
+
+// PopoverMenu spreads every field it doesn't explicitly destructure onto the rendered MenuItem, so rawLogin (search-only,
+// never rendered) has to be stripped before an item is handed to it, or it leaks through as an unrecognized prop.
+const stripRawLogin = ({rawLogin: _rawLogin, ...item}: AccountSwitcherMenuItem): PopoverMenuItem => item;
 
 /** The "Switch" button and its delegator menu. Renders nothing for accounts that have no other account to switch to. */
 function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
@@ -158,13 +169,14 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
 
     const createBaseMenuItem = (
         personalDetails: PersonalDetails | undefined,
-        errors?: Errors,
-        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
-    ): PopoverMenuItem => {
+        errors: Errors | undefined,
+        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> & WithRequiredSentryLabel,
+    ): AccountSwitcherMenuItem => {
         const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
             text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
-            description: Str.removeSMSDomain(personalDetails?.login ?? ''),
+            description: formatPhoneNumber(personalDetails?.login ?? ''),
+            rawLogin: Str.removeSMSDomain(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
@@ -178,8 +190,8 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         };
     };
 
-    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
-    const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
+    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true, sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.CURRENT_ACCOUNT});
+    const delegatorMenuItems: AccountSwitcherMenuItem[] = sortAlphabetically(
         delegators
             .filter(({email}) => email !== currentUserPersonalDetails.login)
             .map(({email, role}) => {
@@ -188,6 +200,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                 const personalDetails = personalDetailsByLogin[email];
                 return createBaseMenuItem(personalDetails, error, {
                     badgeText: translate('delegate.role', role),
+                    sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.SWITCH_TO_DELEGATOR,
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);
@@ -212,13 +225,14 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         if (isActingAsDelegate) {
             // Avoid duplicating the current user in the list when switching accounts
             if (delegate === currentUserPersonalDetails.login) {
-                return [currentUserMenuItem];
+                return [currentUserMenuItem].map(stripRawLogin);
             }
 
             const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
 
             return [
                 createBaseMenuItem(personalDetailsByLogin[delegate], error, {
+                    sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.SWITCH_BACK,
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);
@@ -234,10 +248,10 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                     },
                 }),
                 currentUserMenuItem,
-            ];
+            ].map(stripRawLogin);
         }
 
-        return shouldShowSearchInput ? filteredMenuItems : allMenuItems;
+        return (shouldShowSearchInput ? filteredMenuItems : allMenuItems).map(stripRawLogin);
     };
 
     const hideDelegatorMenu = () => {

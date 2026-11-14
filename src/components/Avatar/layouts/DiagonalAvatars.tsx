@@ -62,7 +62,7 @@ function DiagonalAvatars({size, icons, isInReportAction, backdropColor, isHovere
                             icon={primaryAvatar}
                             size={avatarSize}
                             imageStyles={styles[singleAvatarStyleKey]}
-                            testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
+                            testID="Avatar-MultipleAvatars-MainAvatar"
                         />
                     </AvatarPressSlot>
                 </AvatarTooltip>
@@ -78,7 +78,7 @@ function DiagonalAvatars({size, icons, isInReportAction, backdropColor, isHovere
                                 icon={secondaryAvatar}
                                 size={avatarSize}
                                 imageStyles={styles[singleAvatarStyleKey]}
-                                testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
+                                testID="Avatar-MultipleAvatars-SecondaryAvatar"
                             />
                         </AvatarPressSlot>
                     </AvatarTooltip>
@@ -86,7 +86,7 @@ function DiagonalAvatars({size, icons, isInReportAction, backdropColor, isHovere
                     <AvatarNamesTooltip avatars={icons.slice(1)}>
                         <View
                             style={[styles[singleAvatarStyleKey], styles.alignItemsCenter, styles.justifyContentCenter]}
-                            testID="ReportActionAvatars-MultipleAvatars-LimitReached"
+                            testID="Avatar-MultipleAvatars-LimitReached"
                         >
                             <Text
                                 style={[styles.userSelectNone, size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}

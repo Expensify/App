@@ -6,14 +6,18 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import TabNavigatorBar from '@libs/Navigation/AppNavigator/Navigators/TabNavigatorBar';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import type {ComponentType} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -64,6 +68,10 @@ const tabBarState = createMock<BottomTabBarProps['state']>({
     index: 0,
     routes: [{key: 'home', name: SCREENS.HOME, params: undefined}],
 });
+
+function isStyleProp(value: unknown): value is StyleProp<ViewStyle> {
+    return value === undefined || value === null || typeof value === 'object';
+}
 
 function mockLayout(shouldUseNarrowLayout: boolean) {
     jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout}));
@@ -183,5 +191,42 @@ describe('TabNavigatorBar with the flatNav beta', () => {
 
         // Then the icon bar shows, because an override is the way to compare both navigations on the same account
         expectIconBar();
+    });
+
+    describe('container width', () => {
+        // The bar mocks render nothing of their own, so the container's style is found on the nearest ancestor that sets a width.
+        function getContainerWidth(testID: string) {
+            for (let node = screen.getByTestId(testID).parent; node; node = node.parent) {
+                const style: unknown = node.props.style;
+                const width = isStyleProp(style) ? StyleSheet.flatten(style)?.width : undefined;
+                if (width !== undefined) {
+                    return width;
+                }
+            }
+            return undefined;
+        }
+
+        it('follows the collapsed rail so the central pane moves with the bar', async () => {
+            // Given a user on the flatNav beta with the bar collapsed
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.FLAT_NAV]);
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+
+            // When the tab navigator draws its bar
+            await renderBar();
+
+            // Then the container reserves only the rail plus the sidebar next to it, which is what offsets the content
+            expect(getContainerWidth('FlatNavigationBar')).toBe(variables.flatNavigationBarCollapsedWidth + variables.sideBarWithLHBWidth);
+        });
+
+        it('keeps the icon bar width when the saved state is collapsed but the beta is off', async () => {
+            // Given the Spend sidebar collapsed on a user outside the beta
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+
+            // When the tab navigator draws its bar
+            await renderBar();
+
+            // Then the icon bar keeps its own width, so the flag changes nothing outside the beta
+            expect(getContainerWidth('NavigationTabBar')).toBe(variables.navigationTabBarSize + variables.sideBarWithLHBWidth);
+        });
     });
 });

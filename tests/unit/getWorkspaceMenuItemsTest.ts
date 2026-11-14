@@ -8,6 +8,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
+import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 
 const currentUserLogin = 'member@example.com';
 const mockIcon: IconAsset = () => null;
@@ -48,6 +49,19 @@ function buildPolicy(role: Policy['role']): Policy {
 }
 
 describe('getWorkspaceMenuItems', () => {
+    it.each([false, true])('shows the distance VAT red dot unless dismissed: %s', (isDismissed) => {
+        // Given a workspace with an invalid fuel-band tax mapping
+        const policy = createUKFuelRateTaxPolicy();
+        const attributes = policy.customUnits?.distance.attributes;
+        if (!attributes) {
+            throw new Error('Expected distance attributes');
+        }
+        attributes.isUKFuelRateTaxErrorDismissed = isDismissed;
+        // When its workspace menu is built
+        const items = getWorkspaceMenuItems({policy, policyID: policy.id, currentUserLogin, icons, convertToDisplayString: () => ''});
+        // Then the distance menu leads to the warning only while it is not dismissed
+        expect(items.find((item) => item.translationKey === 'workspace.common.distanceRates')?.brickRoadIndicator).toBe(isDismissed ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
     it('does not build routes until a menu item is selected', () => {
         const getRouteSpy = jest.spyOn(ROUTES.WORKSPACE_OVERVIEW, 'getRoute');
 

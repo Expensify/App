@@ -1,4 +1,4 @@
-import {canApproveBooking, getBookingDeadlineDate, getBookingStatusBadge, getEarliestOutstandingBooking, getTripDeadlineText} from '@libs/TravelApprovalUtils';
+import {canApproveAnyBooking, canApproveBooking, getBookingDeadlineDate, getBookingStatusBadge, getEarliestOutstandingBooking, getTripDeadlineText} from '@libs/TravelApprovalUtils';
 
 import type {ThemeColors} from '@styles/theme/types';
 
@@ -100,6 +100,31 @@ describe('TravelApprovalUtils', () => {
             // Then they can't act, since there's nothing to decide on
             expect(canApproveBooking(tripData, HOTEL_PNR_ID, APPROVER_ACCOUNT_ID, NOW)).toBe(false);
             expect(canApproveBooking(undefined, HOTEL_PNR_ID, APPROVER_ACCOUNT_ID, NOW)).toBe(false);
+        });
+    });
+
+    describe('canApproveAnyBooking', () => {
+        it('is true when any booking in the trip waits on the user', () => {
+            // Given a trip with an approved hotel and an outstanding flight the user approves
+            const tripData = buildTripData({
+                [HOTEL_PNR_ID]: buildBooking({status: CONST.TRAVEL.BOOKING_APPROVAL.STATUS.APPROVED}),
+                [FLIGHT_PNR_ID]: buildBooking(),
+            });
+
+            // When we check whether the user has something to decide in the trip
+            // Then they do for the approver, which is when the trip preview asks them to review, and not for anyone else
+            expect(canApproveAnyBooking(tripData, APPROVER_ACCOUNT_ID, NOW)).toBe(true);
+            expect(canApproveAnyBooking(tripData, OTHER_ACCOUNT_ID, NOW)).toBe(false);
+        });
+
+        it('is false once nothing in the trip is left to decide', () => {
+            // Given a trip whose only outstanding booking is past its deadline, and a trip without approval data
+            const passedTrip = buildTripData({[HOTEL_PNR_ID]: buildBooking({deadline: {iso8601: '2026-12-10T09:00:00', zoneId: 'Europe/Oslo'}})});
+
+            // When we check whether the approver has something to decide
+            // Then they don't, so the preview keeps View
+            expect(canApproveAnyBooking(passedTrip, APPROVER_ACCOUNT_ID, NOW)).toBe(false);
+            expect(canApproveAnyBooking(undefined, APPROVER_ACCOUNT_ID, NOW)).toBe(false);
         });
     });
 

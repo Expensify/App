@@ -4,7 +4,12 @@ import {formatChangePercentage} from '@components/Charts/utils/formatTooltipComp
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
-import type {TransactionApproverGroupListItemType, TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {
+    TransactionApproverGroupListItemType,
+    TransactionCardGroupListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionPaidByGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
 import Text from '@components/Text';
 
@@ -37,16 +42,26 @@ type InsightsDataTableProps = {
 
     isLoading?: boolean;
 
+    /** Defaults to `SKELETON_ROW_COUNT` */
+    skeletonRowCount?: number;
+
     /** Called with the group whose row is pressed */
     onRowPress?: (item: GroupedItem) => void;
 };
 
 /** Narrows a group to the member-based variants, the ones carrying the person's avatar and account ID. */
-function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionCardGroupListItemType {
-    return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
+function isMemberGroup(
+    item: GroupedItem,
+): item is TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionPaidByGroupListItemType | TransactionCardGroupListItemType {
+    return (
+        item.groupedBy === CONST.SEARCH.GROUP_BY.FROM ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.CARD
+    );
 }
 
-function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsDataTableProps) {
+function InsightsDataTable({rows, formatValue, isLoading, skeletonRowCount = SKELETON_ROW_COUNT, onRowPress}: InsightsDataTableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -59,7 +74,7 @@ function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsD
     const formatGroupValue = (item: GroupedItem, value: number) => (formatValue ? formatValue(value) : convertToDisplayString(item.total ?? 0, item.currency));
 
     if (isLoading) {
-        return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
+        return <InsightsDataTableSkeleton fixedNumItems={skeletonRowCount} />;
     }
 
     if (rows.length === 0) {

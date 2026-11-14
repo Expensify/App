@@ -192,8 +192,18 @@ class ShareViewController: UIViewController {
     
     private func handleImageData(_ image: UIImage, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Handling image data")
-        let filename = "shared_image.png"
-        processAndSave(data: image.pngData(), filename: filename, folder: folder, completion: completion)
+        // Nest the image in a per-share directory so the file:// URI differs on every share. A constant URI
+        // makes the URI-keyed image cache keep serving the first decoded image (https://github.com/Expensify/App/issues/95075).
+        // The filename stays constant because JS derives the user-visible receipt/attachment name from the last path component.
+        let uniqueFolder = folder.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        do {
+            try FileManager.default.createDirectory(at: uniqueFolder, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            os_log("Failed to create folder: %@, error: %@", uniqueFolder.path, error.localizedDescription)
+            completion(.CouldNotLoad)
+            return
+        }
+        processAndSave(data: image.pngData(), filename: "shared_image.png", folder: uniqueFolder, completion: completion)
     }
     
     private func processAndSave(data: Data?, filename: String, folder: URL, completion: @escaping (FileSaveError?) -> Void) {

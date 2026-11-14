@@ -1,8 +1,9 @@
+import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
@@ -11,6 +12,7 @@ import UserPills from '@components/UserPills';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,9 +21,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import {getApprovalLimitDescription, getNonMemberApproverError} from '@libs/WorkflowUtils';
+import {getApproverTitles, getNonMemberApproverError} from '@libs/WorkflowUtils';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
@@ -32,6 +37,7 @@ import type {ComponentRef, ForwardedRef} from 'react';
 import type {ScrollView as ScrollViewRN} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
@@ -53,11 +59,22 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const approverDescription = (index: number) =>
-        approverCount > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
+    const approverDescriptions = getApproverTitles({
+        approvers: approvalWorkflow.approvers,
+        getTitle: (position, count, approver, isLast) => {
+            if (approverCount <= 1) {
+                return translate('workflowsPage.approver');
+            }
+            return position > 0 && isLast ? translate('workflowsPage.finalApprover') : `${toLocaleOrdinalWithWords(position + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
+        },
+        currency,
+        translate,
+        convertToDisplayString,
+    });
 
     const getApprovalPendingAction = (index: number) => {
         // The approver's own `pendingAction` takes precedence — it's set when an approver was
@@ -125,7 +142,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     };
 
     const editApprover = (approverIndex: number) => {
-        if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+        // Every report reaches the first approver, so there's nothing to set for them besides who they are
+        if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE || approverIndex === 0) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
@@ -176,22 +194,38 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsCreateApprovalsPage.header')}</Text>
                 )}
 
-                <MenuItemWithTopDescription
-                    title={approvalWorkflow.isDefault ? members : undefined}
+                <MenuItemSectionRoot
                     accessibilityLabel={members}
-                    titleStyle={styles.textNormalThemeText}
-                    numberOfLinesTitle={4}
-                    description={translate('workflowsExpensesFromPage.title')}
-                    descriptionTextStyle={!!members && styles.textLabelSupportingNormal}
-                    onPress={handleExpensesFromPress}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    titleComponent={!approvalWorkflow.isDefault ? <UserPills users={memberPills} /> : undefined}
-                    errorText={approvalWorkflow?.errors?.members ? translate(approvalWorkflow.errors.members) : undefined}
-                    brickRoadIndicator={approvalWorkflow?.errors?.members ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    shouldShowRightIcon={!approvalWorkflow.isDefault}
-                    interactive={!approvalWorkflow.isDefault}
+                    onPress={!approvalWorkflow.isDefault ? callIfAuthenticated(handleExpensesFromPress, session) : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS}
-                />
+                >
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={translate('workflowsExpensesFromPage.title')}>
+                            {approvalWorkflow.isDefault ? (
+                                <MenuItem.FieldValue numberOfLines={4}>{members}</MenuItem.FieldValue>
+                            ) : (
+                                <MenuItem.FieldValue
+                                    accessibilityLabel={members}
+                                    numberOfLines={0}
+                                >
+                                    <UserPills users={memberPills} />
+                                </MenuItem.FieldValue>
+                            )}
+                        </MenuItemField.Content>
+                        {(!!approvalWorkflow?.errors?.members || !approvalWorkflow.isDefault) && (
+                            <MenuItem.Trailing>
+                                {!!approvalWorkflow?.errors?.members && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {!approvalWorkflow.isDefault && <MenuItem.Chevron />}
+                            </MenuItem.Trailing>
+                        )}
+                    </MenuItem.Row>
+                    {!!approvalWorkflow?.errors?.members && (
+                        <MenuItem.HelpText
+                            isError
+                            message={translate(approvalWorkflow.errors.members)}
+                        />
+                    )}
+                </MenuItemSectionRoot>
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
@@ -199,14 +233,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     // reaches all of them. With rules each workflow routes through its own rules and the edit stays in this one.
                     const isApproverInMultipleWorkflows =
                         !shouldUseApprovalWorkflowRules && !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
-                    const limitDescription = getApprovalLimitDescription({
-                        approver,
-                        currency,
-                        translate,
-                        formatPhoneNumber,
-                        convertToDisplayString,
-                    });
-                    const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
+                    const hintText = isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined;
 
                     return (
                         <OfflineWithFeedback
@@ -214,32 +241,58 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             key={`approver-${approver?.email}-${approverIndex}`}
                             pendingAction={getApprovalPendingAction(approverIndex)}
                         >
-                            <MenuItemWithTopDescription
+                            <MenuItemSectionRoot
                                 accessibilityLabel={formatPhoneNumber(approver?.displayName ?? '')}
-                                titleStyle={styles.textNormalThemeText}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                description={approverDescription(approverIndex)}
-                                descriptionTextStyle={!!approver?.displayName && styles.textLabelSupportingNormal}
-                                titleComponent={
-                                    approver ? (
-                                        <View style={styles.pr3}>
-                                            <UserPill
-                                                avatar={approver.avatar}
-                                                displayName={approver.displayName}
-                                                email={approver.email}
-                                                style={styles.userPillStandalone}
-                                            />
-                                        </View>
-                                    ) : undefined
-                                }
-                                onPress={() => editApprover(approverIndex)}
-                                shouldShowRightIcon
-                                hintText={hintText}
-                                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                errorText={errorText}
-                                shouldRenderErrorAsHTML
+                                onPress={callIfAuthenticated(() => editApprover(approverIndex), session)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
-                            />
+                                style={errorText || hintText ? styles.pb0 : undefined}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItemField.Content name={approverDescriptions.at(approverIndex) ?? ''}>
+                                        {!!approver && (
+                                            <MenuItem.FieldValue accessibilityLabel={formatPhoneNumber(approver.displayName)}>
+                                                <View style={styles.pr3}>
+                                                    <UserPill
+                                                        avatar={approver.avatar}
+                                                        displayName={approver.displayName}
+                                                        email={approver.email}
+                                                        style={styles.userPillStandalone}
+                                                    />
+                                                </View>
+                                            </MenuItem.FieldValue>
+                                        )}
+                                    </MenuItemField.Content>
+                                    <MenuItem.Trailing>
+                                        {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItemSectionRoot>
+                            {(!!errorText || !!hintText) && (
+                                <View style={styles.pb3}>
+                                    {!!errorText && (
+                                        // Cancel the standalone HTML leaf's insets so feedback stays aligned with this section's rows.
+                                        <View style={[styles.mhn5, styles.mbn5, styles.mt1]}>
+                                            <MenuItem.HelpTextHTML isError>{errorText}</MenuItem.HelpTextHTML>
+                                        </View>
+                                    )}
+                                    {!!hintText && (
+                                        <PressableWithoutFeedback
+                                            onPress={callIfAuthenticated(() => editApprover(approverIndex), session)}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
+                                            accessible={false}
+                                            tabIndex={-1}
+                                        >
+                                            <FormHelpMessage
+                                                isError={false}
+                                                shouldShowRedDotIndicator={false}
+                                                message={hintText}
+                                                style={styles.menuItemError}
+                                            />
+                                        </PressableWithoutFeedback>
+                                    )}
+                                </View>
+                            )}
                         </OfflineWithFeedback>
                     );
                 })}

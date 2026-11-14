@@ -1,13 +1,14 @@
 {
   "name": "new.expensify",
-  "version": "9.5.36-0",
+  "version": "9.5.39-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "server/victory-chart-renderer"
+    "server/victory-chart-renderer",
+    "web/cloudflare-worker"
   ],
   "scripts": {
     "i-standalone": "STANDALONE_NEW_DOT=true npm i",
@@ -96,8 +97,9 @@
     "@expensify/nitro-utils": "file:./modules/ExpensifyNitroUtils",
     "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
-    "@expensify/react-native-live-markdown": "0.1.371",
+    "@expensify/react-native-live-markdown": "0.1.372",
     "@expensify/react-native-wallet": "0.1.41",
+    "@formatjs/intl-datetimeformat": "6.12.6",
     "@formatjs/intl-listformat": "^7.5.7",
     "@formatjs/intl-locale": "^4.0.0",
     "@formatjs/intl-numberformat": "^8.10.3",
@@ -203,7 +205,7 @@
     "react-native-nitro-image": "0.15.2",
     "react-native-nitro-modules": "0.37.1",
     "react-native-nitro-sqlite": "10.2.0",
-    "react-native-onyx": "3.0.122",
+    "react-native-onyx": "3.0.143",
     "react-native-pager-view": "9.0.4",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
@@ -237,7 +239,6 @@
     "@actions/core": "3.0.1",
     "@actions/github": "9.1.1",
     "@appduct/react-native": "^0.16.0",
-    "@appduct/web": "^0.16.0",
     "@babel/core": "^7.25.2",
     "@babel/parser": "^7.22.16",
     "@babel/plugin-proposal-class-properties": "^7.12.1",
