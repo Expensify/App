@@ -11320,10 +11320,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     feedName,
                     warningDaysBeforeExpiry,
                     workspaceCompanyCardRoute,
+                    mentionedAccountID,
                 }: {
                     feedName: string;
                     warningDaysBeforeExpiry: number;
                     workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'presto';
                     if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
@@ -11334,7 +11336,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     const reconnectMessage = workspaceCompanyCardRoute
                         ? `<a href='${workspaceCompanyCardRoute}'>Riconnetti la carta prima della scadenza del consenso</a>.`
                         : 'Riconnetti la carta prima della scadenza del consenso.';
-                    return `La connessione della tua carta <strong>${feedName}</strong> dovrà rinnovare il consenso ${warningTime}. Le transazioni vengono ancora sincronizzate, ma potrebbero smettere di essere importate se il consenso non viene rinnovato. ${reconnectMessage}`;
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, la connessione della tua carta ` : 'La connessione della tua carta ';
+                    return `${intro}<strong>${feedName}</strong> dovrà rinnovare il consenso ${warningTime}. Le transazioni vengono ancora sincronizzate, ma potrebbero smettere di essere importate se il consenso non viene rinnovato. ${reconnectMessage}`;
                 },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al conto bancario della tua azienda non funziona. Per favore, <a href='${walletRoute}'>ricollega il conto bancario ${maskedAccountNumber}</a> così puoi continuare a usare le tue Carte Expensify.`,

@@ -11683,10 +11683,12 @@ const translations = {
                     feedName,
                     warningDaysBeforeExpiry,
                     workspaceCompanyCardRoute,
+                    mentionedAccountID,
                 }: {
                     feedName: string;
                     warningDaysBeforeExpiry: number;
                     workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'soon';
                     if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
@@ -11697,7 +11699,8 @@ const translations = {
                     const reconnectMessage = workspaceCompanyCardRoute
                         ? `<a href='${workspaceCompanyCardRoute}'>Reconnect the card connection before consent expires</a>.`
                         : 'Reconnect the card connection before consent expires.';
-                    return `Your <strong>${feedName}</strong> card connection will need renewed consent ${warningTime}. Transactions are still syncing now, but may stop importing if the connection isn't renewed. ${reconnectMessage}`;
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, your ` : 'Your ';
+                    return `${intro}<strong>${feedName}</strong> card connection will need renewed consent ${warningTime}. Transactions are still syncing now, but may stop importing if the connection isn't renewed. ${reconnectMessage}`;
                 },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,

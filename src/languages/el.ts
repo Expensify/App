@@ -11572,10 +11572,12 @@ ${reportName}`,
                     feedName,
                     warningDaysBeforeExpiry,
                     workspaceCompanyCardRoute,
+                    mentionedAccountID,
                 }: {
                     feedName: string;
                     warningDaysBeforeExpiry: number;
                     workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'σύντομα';
                     if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
@@ -11586,7 +11588,8 @@ ${reportName}`,
                     const reconnectMessage = workspaceCompanyCardRoute
                         ? `<a href='${workspaceCompanyCardRoute}'>Επανασυνδέστε την κάρτα πριν λήξει η συγκατάθεση</a>.`
                         : 'Επανασυνδέστε την κάρτα πριν λήξει η συγκατάθεση.';
-                    return `Η σύνδεση της κάρτας <strong>${feedName}</strong> θα χρειαστεί ανανέωση συγκατάθεσης ${warningTime}. Οι συναλλαγές εξακολουθούν να συγχρονίζονται, αλλά μπορεί να σταματήσουν να εισάγονται αν δεν ανανεωθεί η συγκατάθεση. ${reconnectMessage}`;
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, η σύνδεση της κάρτας ` : 'Η σύνδεση της κάρτας ';
+                    return `${intro}<strong>${feedName}</strong> θα χρειαστεί ανανέωση συγκατάθεσης ${warningTime}. Οι συναλλαγές εξακολουθούν να συγχρονίζονται, αλλά μπορεί να σταματήσουν να εισάγονται αν δεν ανανεωθεί η συγκατάθεση. ${reconnectMessage}`;
                 },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `η σύνδεση Plaid με τον επαγγελματικό σας τραπεζικό λογαριασμό έχει διακοπεί. Παρακαλούμε <a href='${walletRoute}'>συνδέστε ξανά τον τραπεζικό σας λογαριασμό ${maskedAccountNumber}</a> ώστε να μπορείτε να συνεχίσετε να χρησιμοποιείτε τις Κάρτες Expensify.`,

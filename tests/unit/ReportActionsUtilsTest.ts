@@ -8294,6 +8294,29 @@ describe('ReportActionsUtils', () => {
             // Then the admin's custom name is shown
             expect(result).toContain('<strong>Travel cards</strong>');
         });
+
+        it('mentions the admin who can renew consent', () => {
+            // Given a warning addressed to the admin who can renew consent
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 7, mentionedAccountIDs: [12]});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the warning starts by mentioning that admin so the room knows who should act
+            expect(result.startsWith('<mention-user accountID="12"/>, your <strong>Travel cards</strong>')).toBe(true);
+        });
+
+        it('addresses the room when no admin is mentioned', () => {
+            // Given a warning with no admin to mention
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 7});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the warning starts without a mention
+            expect(result.startsWith('Your <strong>Travel cards</strong>')).toBe(true);
+            expect(result).not.toContain('<mention-user');
+        });
     });
 
     describe('getIntegrationSyncFailedMessage', () => {

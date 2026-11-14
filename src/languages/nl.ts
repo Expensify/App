@@ -11292,10 +11292,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     feedName,
                     warningDaysBeforeExpiry,
                     workspaceCompanyCardRoute,
+                    mentionedAccountID,
                 }: {
                     feedName: string;
                     warningDaysBeforeExpiry: number;
                     workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'binnenkort';
                     if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
@@ -11306,7 +11308,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     const reconnectMessage = workspaceCompanyCardRoute
                         ? `<a href='${workspaceCompanyCardRoute}'>Verbind de kaart opnieuw voordat de toestemming verloopt</a>.`
                         : 'Verbind de kaart opnieuw voordat de toestemming verloopt.';
-                    return `Voor je <strong>${feedName}</strong>-kaartverbinding is ${warningTime} opnieuw toestemming nodig. Transacties worden nog gesynchroniseerd, maar worden mogelijk niet meer geïmporteerd als de toestemming niet wordt vernieuwd. ${reconnectMessage}`;
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, voor je ` : 'Voor je ';
+                    return `${intro}<strong>${feedName}</strong>-kaartverbinding is ${warningTime} opnieuw toestemming nodig. Transacties worden nog gesynchroniseerd, maar worden mogelijk niet meer geïmporteerd als de toestemming niet wordt vernieuwd. ${reconnectMessage}`;
                 },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `de Plaid-verbinding met je zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind je bankrekening ${maskedAccountNumber} opnieuw</a> zodat je je Expensify Kaarten kunt blijven gebruiken.`,

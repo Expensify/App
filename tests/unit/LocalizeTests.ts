@@ -111,6 +111,23 @@ describe('localize', () => {
             expect(message).toContain('<strong>American Express Business</strong>');
             expect(message).not.toContain('<a ');
         });
+
+        it('mentions the admin who can renew consent', async () => {
+            // Given a loaded locale and a warning addressed to the admin who can renew consent
+            await IntlStore.load(locale);
+
+            // When the consent warning is translated
+            const message = Localize.translate(locale, 'report.actions.type.companyCardConsentExpiring', {
+                feedName: 'American Express Business',
+                warningDaysBeforeExpiry: 14,
+                workspaceCompanyCardRoute: '',
+                mentionedAccountID: 12,
+            });
+
+            // Then every language starts the warning with that admin's mention
+            expect(message.startsWith('<mention-user accountID="12"/>')).toBe(true);
+            expect(message).toContain('<strong>American Express Business</strong>');
+        });
     });
 
     describe('formatList', () => {

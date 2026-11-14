@@ -11260,10 +11260,12 @@ ${reportName}`,
                     feedName,
                     warningDaysBeforeExpiry,
                     workspaceCompanyCardRoute,
+                    mentionedAccountID,
                 }: {
                     feedName: string;
                     warningDaysBeforeExpiry: number;
                     workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'pronto';
                     if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
@@ -11274,7 +11276,8 @@ ${reportName}`,
                     const reconnectMessage = workspaceCompanyCardRoute
                         ? `<a href='${workspaceCompanyCardRoute}'>Vuelve a conectar la tarjeta antes de que caduque el consentimiento</a>.`
                         : 'Vuelve a conectar la tarjeta antes de que caduque el consentimiento.';
-                    return `La conexión de tu tarjeta <strong>${feedName}</strong> necesitará renovar el consentimiento ${warningTime}. Las transacciones se siguen sincronizando, pero podrían dejar de importarse si no renuevas el consentimiento. ${reconnectMessage}`;
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, la conexión de tu tarjeta ` : 'La conexión de tu tarjeta ';
+                    return `${intro}<strong>${feedName}</strong> necesitará renovar el consentimiento ${warningTime}. Las transacciones se siguen sincronizando, pero podrían dejar de importarse si no renuevas el consentimiento. ${reconnectMessage}`;
                 },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,

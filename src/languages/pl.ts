@@ -11326,10 +11326,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     feedName,
                     warningDaysBeforeExpiry,
                     workspaceCompanyCardRoute,
+                    mentionedAccountID,
                 }: {
                     feedName: string;
                     warningDaysBeforeExpiry: number;
                     workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'wkrótce';
                     if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
@@ -11340,7 +11342,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     const reconnectMessage = workspaceCompanyCardRoute
                         ? `<a href='${workspaceCompanyCardRoute}'>Połącz kartę ponownie, zanim zgoda wygaśnie</a>.`
                         : 'Połącz kartę ponownie, zanim zgoda wygaśnie.';
-                    return `Połączenie karty <strong>${feedName}</strong> będzie wymagało odnowienia zgody ${warningTime}. Transakcje są nadal synchronizowane, ale mogą przestać być importowane, jeśli zgoda nie zostanie odnowiona. ${reconnectMessage}`;
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, połączenie karty ` : 'Połączenie karty ';
+                    return `${intro}<strong>${feedName}</strong> będzie wymagało odnowienia zgody ${warningTime}. Transakcje są nadal synchronizowane, ale mogą przestać być importowane, jeśli zgoda nie zostanie odnowiona. ${reconnectMessage}`;
                 },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `połączenie Plaid z twoim firmowym kontem bankowym jest przerwane. Proszę, <a href='${walletRoute}'>połącz ponownie swoje konto bankowe ${maskedAccountNumber}</a>, aby móc dalej używać Kart Expensify.`,

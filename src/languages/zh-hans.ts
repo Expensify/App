@@ -10836,10 +10836,12 @@ ${reportName}`,
                     feedName,
                     warningDaysBeforeExpiry,
                     workspaceCompanyCardRoute,
+                    mentionedAccountID,
                 }: {
                     feedName: string;
                     warningDaysBeforeExpiry: number;
                     workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
                 }) => {
                     let warningTime = '即将';
                     if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
@@ -10848,7 +10850,8 @@ ${reportName}`,
                         warningTime = '一周后';
                     }
                     const reconnectMessage = workspaceCompanyCardRoute ? `<a href='${workspaceCompanyCardRoute}'>请在同意到期前重新连接卡片</a>。` : '请在同意到期前重新连接卡片。';
-                    return `您的<strong>${feedName}</strong>卡片连接将在${warningTime}需要重新同意。交易目前仍在同步，但如果不续订同意，交易可能会停止导入。${reconnectMessage}`;
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>，您的` : '您的';
+                    return `${intro}<strong>${feedName}</strong>卡片连接将在${warningTime}需要重新同意。交易目前仍在同步，但如果不续订同意，交易可能会停止导入。${reconnectMessage}`;
                 },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,

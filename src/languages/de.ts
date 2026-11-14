@@ -11372,10 +11372,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     feedName,
                     warningDaysBeforeExpiry,
                     workspaceCompanyCardRoute,
+                    mentionedAccountID,
                 }: {
                     feedName: string;
                     warningDaysBeforeExpiry: number;
                     workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'bald';
                     if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
@@ -11386,7 +11388,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     const reconnectMessage = workspaceCompanyCardRoute
                         ? `<a href='${workspaceCompanyCardRoute}'>Stellen Sie die Kartenverbindung wieder her, bevor die Zustimmung abläuft</a>.`
                         : 'Stellen Sie die Kartenverbindung wieder her, bevor die Zustimmung abläuft.';
-                    return `Für Ihre <strong>${feedName}</strong>-Kartenverbindung ist ${warningTime} eine erneute Zustimmung erforderlich. Transaktionen werden derzeit noch synchronisiert, könnten aber nicht mehr importiert werden, wenn die Zustimmung nicht erneuert wird. ${reconnectMessage}`;
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, für Ihre ` : 'Für Ihre ';
+                    return `${intro}<strong>${feedName}</strong>-Kartenverbindung ist ${warningTime} eine erneute Zustimmung erforderlich. Transaktionen werden derzeit noch synchronisiert, könnten aber nicht mehr importiert werden, wenn die Zustimmung nicht erneuert wird. ${reconnectMessage}`;
                 },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Die Plaid-Verbindung zu Ihrem Geschäftskonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify Karten weiterhin verwenden können.`,

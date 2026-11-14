@@ -1575,6 +1575,9 @@ type OriginalMessageCompanyCardConsentExpiring = {
     /** The feed's custom name, or its internal name when the feed has no custom name */
     feedName?: string;
 
+    /** The admin who can renew consent, mentioned at the start of the warning */
+    mentionedAccountIDs?: number[];
+
     /** Unix timestamp for the consent period that created this warning */
     consentGrantedAt?: number;
 

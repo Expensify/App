@@ -11406,10 +11406,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     feedName,
                     warningDaysBeforeExpiry,
                     workspaceCompanyCardRoute,
+                    mentionedAccountID,
                 }: {
                     feedName: string;
                     warningDaysBeforeExpiry: number;
                     workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'bientôt';
                     if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
@@ -11420,7 +11422,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     const reconnectMessage = workspaceCompanyCardRoute
                         ? `<a href='${workspaceCompanyCardRoute}'>Reconnectez la carte avant l'expiration du consentement</a>.`
                         : "Reconnectez la carte avant l'expiration du consentement.";
-                    return `La connexion de votre carte <strong>${feedName}</strong> devra renouveler son consentement ${warningTime}. Les transactions sont encore synchronisées, mais elles pourraient ne plus être importées si le consentement n'est pas renouvelé. ${reconnectMessage}`;
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, la connexion de votre carte ` : 'La connexion de votre carte ';
+                    return `${intro}<strong>${feedName}</strong> devra renouveler son consentement ${warningTime}. Les transactions sont encore synchronisées, mais elles pourraient ne plus être importées si le consentement n'est pas renouvelé. ${reconnectMessage}`;
                 },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est rompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> afin de pouvoir continuer à utiliser vos Cartes Expensify.`,

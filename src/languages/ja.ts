@@ -11130,10 +11130,12 @@ ${reportName}`,
                     feedName,
                     warningDaysBeforeExpiry,
                     workspaceCompanyCardRoute,
+                    mentionedAccountID,
                 }: {
                     feedName: string;
                     warningDaysBeforeExpiry: number;
                     workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'まもなく';
                     if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
@@ -11144,7 +11146,8 @@ ${reportName}`,
                     const reconnectMessage = workspaceCompanyCardRoute
                         ? `<a href='${workspaceCompanyCardRoute}'>同意の有効期限が切れる前にカード接続を再接続してください</a>。`
                         : '同意の有効期限が切れる前にカード接続を再接続してください。';
-                    return `<strong>${feedName}</strong>カード接続は${warningTime}に同意の更新が必要になります。取引は現在も同期されていますが、同意を更新しない場合はインポートが停止する可能性があります。${reconnectMessage}`;
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/> さん、` : '';
+                    return `${intro}<strong>${feedName}</strong>カード接続は${warningTime}に同意の更新が必要になります。取引は現在も同期されていますが、同意を更新しない場合はインポートが停止する可能性があります。${reconnectMessage}`;
                 },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
