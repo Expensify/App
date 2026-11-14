@@ -4,6 +4,7 @@ import type {ListItem, ListItemPressableProps} from '@components/SelectionList/L
 import {ListItemContext, ListItemHoverContext} from '@components/SelectionList/ListItemContext';
 import getListItemAccessibilityProps from '@components/SelectionList/utils/getListItemAccessibilityProps';
 import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
+import isRoleHandlingOwnEnter from '@components/SelectionList/utils/isRoleHandlingOwnEnter';
 
 import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useHover from '@hooks/useHover';
@@ -138,7 +139,8 @@ function ListItemPressable<TItem extends ListItem>({
                         e?.stopPropagation(); // Preventing the click action
                         return;
                     }
-                    if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                    // The list's Enter shortcut stands aside while a row with such a role is focused, so the row presses itself.
+                    if (shouldPreventEnterKeySubmit && !isRoleHandlingOwnEnter(role) && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                         return;
                     }
                     onSelectRow(item, undefined, e);
