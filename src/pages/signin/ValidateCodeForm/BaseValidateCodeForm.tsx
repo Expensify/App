@@ -300,7 +300,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const accountID = credentials?.accountID;
         if (accountID) {
-            signInWithValidateCode(accountID, validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.validateCode, credentials?.authToken, session);
+            signInWithValidateCode(accountID, validateCode, preferredLocale, session, recoveryCodeOr2faCode, credentials?.validateCode, credentials?.authToken);
         } else {
             signIn(validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.login, credentials?.validateCode, credentials?.authToken, session);
         }
@@ -326,6 +326,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             hasError={hasError}
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                            sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.RECOVERY_CODE_INPUT}
                         />
                     ) : (
                         <ValidateCodeInput

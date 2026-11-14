@@ -2,6 +2,7 @@ import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/Con
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData, {INLINE_FIELD_ERROR_KEYS} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
+import SplitCategoryTaxController from '@components/MoneyRequestConfirmationList/SplitCategoryTaxController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import ScanFooter from '@components/MoneyRequestConfirmationListFooter/variants/ScanFooter';
@@ -21,7 +22,7 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
 
     const isInLandscapeMode = useIsInLandscapeMode();
 
-    const data = useConfirmationListData(props);
+    const data = useConfirmationListData({...props, isScanRequest: true});
     const {transactionID} = data.layoutProps;
 
     // Multi-scan switches between expenses on the same list, so remember which ones have their fields revealed
@@ -56,7 +57,6 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
     return (
         <ConfirmationListLayout
             {...data.layoutProps}
-            fieldFlags={{isScanRequest: true}}
             isCompactMode={isCompactMode}
             listFooterContent={
                 <ScanFooter
@@ -68,6 +68,7 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
         >
             <TaxController {...data.taxControllerProps} />
             <SplitBillController {...data.splitBillControllerProps} />
+            <SplitCategoryTaxController {...data.splitCategoryTaxControllerProps} />
             <FieldAutoSelector {...data.fieldAutoSelectProps} />
         </ConfirmationListLayout>
     );

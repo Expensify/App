@@ -16,7 +16,7 @@ jest.mock('@libs/CloudflareAccess/Config', () => jest.requireActual<typeof Confi
 // The OAuthClient tests exercise the request/response contract, not discovery. Endpoints are injected
 jest.mock('@libs/CloudflareAccess/AuthServerMetadata', () => ({
     __esModule: true,
-    getAuthServerEndpoints: jest.fn(),
+    default: jest.fn(),
 }));
 
 const mockDefaultQAAuth = {
@@ -45,7 +45,7 @@ const {clearPendingAuthFlows, consumePendingAuthFlow, savePendingAuthFlow, sweep
     typeof PendingAuthFlowStorageModule
 >('@libs/CloudflareAccess/PendingAuthFlowStorage');
 const {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} = require<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient');
-const {getAuthServerEndpoints} = require<typeof AuthServerMetadataModule>('@libs/CloudflareAccess/AuthServerMetadata');
+const {default: getAuthServerEndpoints} = require<typeof AuthServerMetadataModule>('@libs/CloudflareAccess/AuthServerMetadata');
 const {generatePKCEPair, generateState} = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');
 const getWebCrypto = require<{default: {getRandomValues: jest.Mock; sha256: jest.Mock}}>('@libs/CloudflareAccess/getWebCrypto').default;
 
@@ -386,7 +386,7 @@ describe('authServerMetadata', () => {
     /** Fresh module per test. The metadata cache is module state, and the file-level mock must be bypassed */
     function requireFreshDiscovery() {
         jest.resetModules();
-        return jest.requireActual<typeof AuthServerMetadataModule>('@libs/CloudflareAccess/AuthServerMetadata').getAuthServerEndpoints;
+        return jest.requireActual<typeof AuthServerMetadataModule>('@libs/CloudflareAccess/AuthServerMetadata').default;
     }
 
     it('fetches the well-known document from the QA origin, with a timeout signal, and validates it', async () => {

@@ -253,6 +253,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                 </ScrollView>
                 <FixedFooter style={styles.ph5}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MERGE_EXPENSE.CONFIRM_BUTTON}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={mergeExpenses}
                         size={CONST.BUTTON_SIZE.LARGE}

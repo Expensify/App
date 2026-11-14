@@ -94,7 +94,19 @@ function WorkspaceDistanceRatesTable({
                 containerStyles: [styles.editableCellHeader],
             },
         },
-        ...(shouldShowTaxReclaimableColumn ? ([{key: 'taxReclaimableOn', label: translate('workspace.taxes.taxReclaimableOn'), sortable: true}] as const) : []),
+        ...(shouldShowTaxReclaimableColumn
+            ? ([
+                  {
+                      key: 'taxReclaimableOn',
+                      label: translate('workspace.taxes.taxReclaimableOn'),
+                      sortable: true,
+                      styling: {
+                          // editableCellHeader aligns the label with the padded tax cell.
+                          containerStyles: styles.editableCellHeader,
+                      },
+                  },
+              ] as const)
+            : []),
         ...(hasAnyDateBound
             ? ([
                   {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},
@@ -155,6 +167,7 @@ function WorkspaceDistanceRatesTable({
               {
                   icon: icons.Plus,
                   buttonText: translate('workspace.distanceRates.addRate'),
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.EMPTY_STATE_ADD_RATE,
 
                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   buttonAction: () => {

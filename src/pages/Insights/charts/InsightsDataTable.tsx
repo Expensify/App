@@ -1,11 +1,15 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
-import type {ChartDataPoint, ChartValueFormatter} from '@components/Charts/types';
+import type {ChartValueFormatter} from '@components/Charts/types';
 import {formatChangePercentage} from '@components/Charts/utils/formatTooltipComparison';
-import formatValueWithNote from '@components/Charts/utils/formatValueWithNote';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
-import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {
+    TransactionApproverGroupListItemType,
+    TransactionCardGroupListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionPaidByGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
 import Text from '@components/Text';
 
@@ -38,16 +42,26 @@ type InsightsDataTableProps = {
 
     isLoading?: boolean;
 
+    /** Defaults to `SKELETON_ROW_COUNT` */
+    skeletonRowCount?: number;
+
     /** Called with the group whose row is pressed */
     onRowPress?: (item: GroupedItem) => void;
 };
 
 /** Narrows a group to the member-based variants, the ones carrying the person's avatar and account ID. */
-function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListItemType | TransactionCardGroupListItemType {
-    return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
+function isMemberGroup(
+    item: GroupedItem,
+): item is TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionPaidByGroupListItemType | TransactionCardGroupListItemType {
+    return (
+        item.groupedBy === CONST.SEARCH.GROUP_BY.FROM ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.CARD
+    );
 }
 
-function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsDataTableProps) {
+function InsightsDataTable({rows, formatValue, isLoading, skeletonRowCount = SKELETON_ROW_COUNT, onRowPress}: InsightsDataTableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -56,12 +70,11 @@ function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsD
     const {convertToDisplayString} = useCurrencyListActions();
     const {cardPaddingHorizontal} = useLayoutSpacing();
 
-    /** Writes a group's value the way the chart labelled it, followed by the money behind it when the value isn't money */
-    const formatGroupValue = (point: ChartDataPoint, item: GroupedItem, value: number) =>
-        formatValue ? formatValueWithNote(formatValue(value), point.seriesTotals?.[CHART_SERIES_KEY.PRIMARY]) : convertToDisplayString(item.total ?? 0, item.currency);
+    // A count table lists the counts alone, leaving the money behind each one to the chart's tooltip, as an amount table leaves the counts.
+    const formatGroupValue = (item: GroupedItem, value: number) => (formatValue ? formatValue(value) : convertToDisplayString(item.total ?? 0, item.currency));
 
     if (isLoading) {
-        return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
+        return <InsightsDataTableSkeleton fixedNumItems={skeletonRowCount} />;
     }
 
     if (rows.length === 0) {
@@ -100,7 +113,7 @@ function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsD
                             <Text style={[styles.flex1, styles.mnw0, styles.breakWord]}>{point.label}</Text>
                         </View>
                         <View style={[styles.flexShrink0, styles.alignItemsEnd]}>
-                            <Text style={styles.textAlignRight}>{formatGroupValue(point, item, primaryValue ?? 0)}</Text>
+                            <Text style={styles.textAlignRight}>{formatGroupValue(item, primaryValue ?? 0)}</Text>
                             {!!changePercentage && isNewSpend && (
                                 <Text
                                     style={[styles.textLabel, StyleUtils.getColorStyle(theme.icon)]}

@@ -51,6 +51,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'BusinessCentralSquare',
         'ZohoBooksSquare',
     ]);
@@ -60,14 +61,10 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     }
 
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
-    const canUseZohoBooksIntegration = isBetaEnabled(CONST.BETAS.ZOHO_BOOKS) || !!policy?.connections?.zohoBooks;
     const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
-        }
-        if (name === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
-            return canUseZohoBooksIntegration;
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
             return canUseDigitsIntegration;
@@ -139,7 +136,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         const key = isIntuitEnterpriseSuite ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE : name;
         const isConnected = name === connectedIntegration && !!isIntuitEnterpriseSuite === isConnectedToIntuitEnterpriseSuite;
 
-        return {
+        const listing: ConnectionListing = {
             key,
             category: CONST.TAB.CONNECTIONS.ACCOUNTING,
             title: integrationData.title,
@@ -152,6 +149,10 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                     : undefined,
             onConnect: () => connect(name, isIntuitEnterpriseSuite),
             onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID)),
+            // A connect flow that fails after leaving the app (e.g. Zoho Books OAuth) reports back through the policy.
+            // Once another accounting integration is connected the old failure no longer matters, so it's hidden.
+            // Intuit Enterprise Suite is a QBO alias, so only the QBO card shows a QBO error.
+            connectError: connectedIntegration || isIntuitEnterpriseSuite ? undefined : policy?.connectErrors?.[name],
             registerConnectButton: (button) => {
                 const anchorRef = popoverAnchorRefs?.current?.[key];
                 if (!anchorRef) {
@@ -160,6 +161,22 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                 anchorRef.current = button;
             },
         };
+        if (name !== CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
+            return listing;
+        }
+
+        // Sage Accounting sits next to Sage Intacct, the other Sage product. Its connector flow arrives in a later
+        // release, so beta users also see the waitlist for now.
+        return [
+            listing,
+            {
+                key: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING,
+                category: CONST.TAB.CONNECTIONS.ACCOUNTING,
+                title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.sageAccounting,
+                // Sage Accounting shares the Sage logo with Sage Intacct
+                icon: accountingIcons.IntacctSquare,
+            },
+        ];
     });
 
     // The connector flow arrives in a later release, so beta users also see the waitlist for now.

@@ -53,4 +53,6 @@ function createNavigationMock() {
     };
 }
 
-export {BACK_TO, buildAchData, createNavigationMock, OTHER_POLICY_ID, PENDING_ACCOUNT, POLICY_ID};
+/** @public Read only through `jest.requireActual` in tests, which knip cannot see. Remove this tag together with the last such call. */
+export {createNavigationMock};
+export {BACK_TO, buildAchData, OTHER_POLICY_ID, PENDING_ACCOUNT, POLICY_ID};

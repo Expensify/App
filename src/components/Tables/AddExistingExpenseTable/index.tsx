@@ -116,7 +116,6 @@ function AddExistingExpenseTable({
         <AddExistingExpenseTableRow
             item={item}
             rowIndex={index}
-            shouldUseNarrowTableLayout
         />
     );
 

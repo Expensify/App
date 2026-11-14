@@ -1,7 +1,6 @@
 import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
-    getCategoryDefaultTaxRate,
     getCategoryDescriptionHint,
     getCategoryGLCode,
     getCategoryNameError,
@@ -9,6 +8,7 @@ import {
     getDecodedLeafCategoryName,
     getMemberVisibleCategoryNames,
     getMembersWithoutVisibleCategories,
+    getVisibleCategories,
     hasAnyCategoryGLCode,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
@@ -19,7 +19,6 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
-import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -627,33 +626,6 @@ describe('getCategoryNameError', () => {
     });
 });
 
-describe('getCategoryDefaultTaxRate', () => {
-    const buildCategoryTaxRule = (categoryName: string, taxID: string): ExpenseRule => ({
-        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        tax: {field_id_TAX: {externalID: taxID}},
-    });
-
-    it("returns the category's own rate", () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_A');
-    });
-
-    it('falls back to the workspace rate when the category has no rule', () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Meals', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
-    });
-
-    it('ignores a rule that carries the name on some other condition', () => {
-        // Matching on the value alone would read a rule that a save or delete never targets, handing the expense a
-        // rate the admin never set for this category.
-        const tagNamedAfterTheCategory: ExpenseRule = {
-            applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.TAG, value: 'Travel'}],
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
-        };
-        expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
-    });
-});
-
 describe('getMemberVisibleCategoryNames', () => {
     const policyCategories: PolicyCategories = {
         Travel: {name: 'Travel', enabled: true, visibleTo: null},
@@ -729,5 +701,32 @@ describe('getMembersWithoutVisibleCategories', () => {
 
         // Then no one is blocked, so the check needs no beta
         expect(members).toEqual([]);
+    });
+});
+
+describe('getVisibleCategories', () => {
+    const policyCategories: PolicyCategories = {
+        Travel: {name: 'Travel', enabled: true, visibleTo: null},
+        Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+        Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
+        Office: {name: 'Office', enabled: false, visibleTo: buildVisibleTo(2)},
+    };
+
+    it("keeps only the categories the expense's owner can use", () => {
+        // Given an owner who is on Meals' list but not on Software's or Office's
+        // When the picker's categories are filtered for them
+        const visibleCategories = getVisibleCategories(policyCategories, 1);
+
+        // Then the category open to everyone and the one listing them are kept, keyed as before
+        expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals']);
+    });
+
+    it('keeps disabled categories the owner can use, since the picker filters those out itself', () => {
+        // Given an owner who is on the list of a disabled category
+        // When the picker's categories are filtered for them
+        const visibleCategories = getVisibleCategories(policyCategories, 2);
+
+        // Then the disabled one is still there, so filtering doesn't change how disabled categories are handled
+        expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals', 'Software', 'Office']);
     });
 });

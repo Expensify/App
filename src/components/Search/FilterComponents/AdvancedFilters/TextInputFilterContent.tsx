@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode} from 'react';
 import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
@@ -22,7 +23,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type TextInputFilterContentProps = {
+type TextInputFilterContentProps = WithRequiredSentryLabel & {
     baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | ReportFieldTextKey>;
     value: string | undefined;
     isNegated: boolean;
@@ -31,7 +32,6 @@ type TextInputFilterContentProps = {
     style?: StyleProp<ViewStyle>;
     buttonText?: string;
     buttonStyles?: StyleProp<ViewStyle>;
-    sentryLabel?: string;
 
     /** Renders extra controls under the input, inside the scrollable area. Receives the current negation state, so the content can change when the user negates the filter. */
     renderBelowInput?: (isNegated: boolean) => ReactNode;

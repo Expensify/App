@@ -15,19 +15,19 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shouldHidePayAction} from '@libs/ReportActionsUtils';
-import {isArchivedReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {isArchivedReport} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
 import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 import AskConciergeWelcome from '@pages/inbox/report/AskConciergeWelcome';
+import CollapsedReportHeaderSpacer from '@pages/inbox/report/CollapsibleReportHeader/CollapsedReportHeaderSpacer';
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
-import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import {useReportActionsListActions, useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import ReportActionsListHeader from '@pages/inbox/report/ReportActionsListHeader';
 import ReportActionsListPaddingView from '@pages/inbox/report/ReportActionsListPaddingView';
@@ -40,12 +40,12 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 
 import type {ReportActionsListProps} from './types';
 
 import filterHiddenSupportTicketSurveys from './filterHiddenSupportTicketSurveys';
+import ReportActionsListFloatingMessageCounter from './ReportActionsListFloatingMessageCounter';
 import useReportActionsListData from './useReportActionsListData';
 import useReportActionsListRenderItem from './useReportActionsListRenderItem';
 import useReportActionsListScroll from './useReportActionsListScroll';
@@ -111,9 +111,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         reportNameValuePairs,
     });
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const reportAttributesSelector = (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
         const attrs = value?.reports?.[reportID];
@@ -214,14 +211,13 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
-
-    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
-        policy,
-        report,
-        isTrackIntentUser,
-        rules,
-    });
+    const listFooterComponent =
+        isMobilePhoneWeb || shouldShowOfflineSkeleton ? (
+            <>
+                <CollapsedReportHeaderSpacer />
+                {shouldShowOfflineSkeleton && <ReportActionsSkeletonView shouldAnimate={false} />}
+            </>
+        ) : undefined;
 
     // The guard only mounts this content when the report is loaded, so this is effectively unreachable.
     // It narrows `report` to non-undefined for the render below and stays a safe fallback if the report
@@ -249,14 +245,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 containerStyles={[styles.mh4, styles.mt2]}
                 overlayStyles={styles.merchantRuleCalloutOverlay}
             />
-            <FloatingMessageCounter
+            <ReportActionsListFloatingMessageCounter
+                report={report}
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
                 actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
                 actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
                 onActionBadgePress={scrollToActionBadgeTarget}
-                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
             <ReportActionsListPaddingView
                 report={report}

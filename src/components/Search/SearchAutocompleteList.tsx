@@ -366,6 +366,7 @@ function SearchAutocompleteList({
             policyCollection: policies,
             personalDetails,
             sortedActions,
+            transactionThreadIDs,
             conciergeReportID,
             isTrackIntentUser,
             translate,

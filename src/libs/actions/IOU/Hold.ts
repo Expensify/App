@@ -306,15 +306,17 @@ function putOnHold({
         );
     }
 
-    if (transactionReport) {
+    // Holding only changes the next step of an open report. For other statuses it would rebuild the step the report already has.
+    if (transactionReport && (transactionReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN) {
         const optimisticNextStep = buildOptimisticNextStep({
             report: transactionReport,
-            predictedNextStatus: transactionReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins: undefined,
         });
 
         optimisticData.push({
@@ -567,16 +569,18 @@ function unholdRequest({
         },
     ];
 
-    if (iouReport) {
+    // Unholding only changes the next step of an open report. For other statuses it would rebuild the step the report already has.
+    if (iouReport && (iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN) {
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
             policy,
-            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins: undefined,
         });
 
         optimisticData.push({
@@ -695,22 +699,7 @@ function getDuplicateActionsForPartialReport(
 
     const sourceReportActions = getAllReportActions(sourceReportID);
 
-    // Match the backend's WORKFLOW_ACTIONS list
-    const workflowActionTypes = [
-        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-        CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-        CONST.REPORT.ACTIONS.TYPE.APPROVED,
-        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
-        CONST.REPORT.ACTIONS.TYPE.REJECTED,
-        CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
-        CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-        CONST.REPORT.ACTIONS.TYPE.CLOSED,
-        CONST.REPORT.ACTIONS.TYPE.REOPENED,
-        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-        CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-        CONST.REPORT.ACTIONS.TYPE.REROUTE,
-        CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER,
-    ] as const;
+    const workflowActionTypes = CONST.REPORT.WORKFLOW_ACTIONS;
 
     const copiedActions: Record<string, OnyxTypes.ReportAction> = {};
     const copiedActionsSuccess: OnyxCollection<NullishDeep<OnyxTypes.ReportAction>> = {};
@@ -770,7 +759,7 @@ function getReportFromHoldRequestsOnyxData({
     shouldMoveScanFailedTransactions = false,
     rules,
 }: {
-    chatReport: OnyxTypes.Report;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
     recipient: Participant;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -797,7 +786,11 @@ function getReportFromHoldRequestsOnyxData({
     const newParentReportActionID = NumberUtils.rand64();
 
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
-    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
+    // In the approve-held-expenses flow chatReport can be missing, so fall back to the iouReport:
+    // an expense report still needs an optimistic expense report built from iouReport's chatReportID,
+    // and the chat-report Onyx updates below are skipped entirely when chatReport is undefined.
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport) || isExpenseReport(iouReport);
+    const chatReportID = chatReport?.reportID ?? iouReport?.chatReportID;
     const holdReimbursable = getReimbursableTotal(iouReport) - getUnheldReimbursableTotal(iouReport);
     const holdNonReimbursable = (iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0);
 
@@ -816,8 +809,8 @@ function getReportFromHoldRequestsOnyxData({
 
     const optimisticExpenseReport = isPolicyExpenseChat
         ? buildOptimisticExpenseReport({
-              chatReportID: chatReport.reportID,
-              policyID: chatReport.policyID ?? iouReport?.policyID,
+              chatReportID,
+              policyID: chatReport?.policyID ?? iouReport?.policyID,
               payeeAccountID: recipient.accountID ?? 1,
               total: holdAmount,
               currency: iouReport?.currency ?? '',
@@ -833,7 +826,7 @@ function getReportFromHoldRequestsOnyxData({
               iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
               iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID,
               holdAmount,
-              chatReport.reportID,
+              chatReportID,
               iouReport?.currency ?? '',
               getCurrencyDecimals,
               false,
@@ -842,16 +835,65 @@ function getReportFromHoldRequestsOnyxData({
               createdTimestamp,
           );
 
-    const optimisticExpenseReportPreview = buildOptimisticReportPreview(
-        chatReport,
-        optimisticExpenseReport,
-        getCurrencyDecimals,
-        delegateAccountID,
-        '',
-        firstHoldTransaction,
-        optimisticExpenseReport.reportID,
-        newParentReportActionID,
-    );
+    const optimisticExpenseReportPreview = chatReport
+        ? buildOptimisticReportPreview(
+              chatReport,
+              optimisticExpenseReport,
+              getCurrencyDecimals,
+              delegateAccountID,
+              '',
+              firstHoldTransaction,
+              optimisticExpenseReport.reportID,
+              newParentReportActionID,
+          )
+        : undefined;
+
+    const optimisticChatReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+    const optimisticChatReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successChatReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureChatReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+    const failureChatReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    if (chatReport && optimisticExpenseReportPreview) {
+        optimisticChatReportData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                iouReportID: optimisticExpenseReport.reportID,
+                lastVisibleActionCreated: optimisticExpenseReportPreview.created,
+            },
+        });
+        optimisticChatReportActionData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticExpenseReportPreview.reportActionID]: optimisticExpenseReportPreview,
+            },
+        });
+        successChatReportActionData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticExpenseReportPreview.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        });
+        failureChatReportData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                iouReportID: chatReport.iouReportID,
+                lastVisibleActionCreated: chatReport.lastVisibleActionCreated,
+            },
+        });
+        failureChatReportActionData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticExpenseReportPreview.reportActionID]: null,
+            },
+        });
+    }
 
     let optimisticCreatedReportForUnapprovedAction: OnyxTypes.ReportAction | null = null;
     if (isApprovalFlow) {
@@ -922,14 +964,7 @@ function getReportFromHoldRequestsOnyxData({
     const shouldUpdateOriginalReportTotals = !shouldMoveScanFailedTransactions && holdTransactions.length > 0 && iouReport?.unheldTotal !== undefined;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                iouReportID: optimisticExpenseReport.reportID,
-                lastVisibleActionCreated: optimisticExpenseReportPreview.created,
-            },
-        },
+        ...optimisticChatReportData,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
@@ -946,13 +981,7 @@ function getReportFromHoldRequestsOnyxData({
                     : {}),
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [optimisticExpenseReportPreview.reportActionID]: optimisticExpenseReportPreview,
-            },
-        },
+        ...optimisticChatReportActionData,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
@@ -998,15 +1027,7 @@ function getReportFromHoldRequestsOnyxData({
     }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [optimisticExpenseReportPreview.reportActionID]: {
-                    pendingAction: null,
-                },
-            },
-        },
+        ...successChatReportActionData,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
@@ -1015,26 +1036,13 @@ function getReportFromHoldRequestsOnyxData({
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                iouReportID: chatReport.iouReportID,
-                lastVisibleActionCreated: chatReport.lastVisibleActionCreated,
-            },
-        },
+        ...failureChatReportData,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
             value: null,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [optimisticExpenseReportPreview.reportActionID]: null,
-            },
-        },
+        ...failureChatReportActionData,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
@@ -1112,7 +1120,7 @@ function getReportFromHoldRequestsOnyxData({
 
     return {
         optimisticData,
-        optimisticHoldActionID: optimisticExpenseReportPreview.reportActionID,
+        optimisticHoldActionID: optimisticExpenseReportPreview?.reportActionID ?? newParentReportActionID,
         optimisticCreatedReportForUnapprovedTransactionsActionID: optimisticCreatedReportForUnapprovedAction?.reportActionID,
         failureData,
         successData,

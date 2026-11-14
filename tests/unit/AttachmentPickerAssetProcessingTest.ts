@@ -5,11 +5,18 @@ import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAss
 
 import type {Asset} from 'react-native-image-picker';
 
+import {Platform} from 'react-native';
+
 const mockReadFileHeaderHex = jest.fn<Promise<string>, [string]>();
 const mockRenderAsync = jest.fn();
 const mockSaveAsync = jest.fn();
 const mockRelease = jest.fn();
 const mockImageRelease = jest.fn();
+const mockResize = jest.fn();
+const mockResizedRenderAsync = jest.fn();
+const mockResizedSaveAsync = jest.fn();
+const mockResizeRelease = jest.fn();
+const mockResizedImageRelease = jest.fn();
 
 jest.mock('@libs/fileDownload/FileUtils', () => ({
     ...jest.requireActual<typeof FileUtilsModule>('@libs/fileDownload/FileUtils'),
@@ -42,6 +49,15 @@ jest.mock('expo-image-manipulator', () => ({
             renderAsync: () => mockRenderAsync() as unknown,
             release: () => {
                 mockRelease();
+            },
+            resize: (size: unknown) => {
+                mockResize(size);
+                return {
+                    renderAsync: () => mockResizedRenderAsync() as unknown,
+                    release: () => {
+                        mockResizeRelease();
+                    },
+                };
             },
         }),
     },
@@ -77,6 +93,129 @@ describe('processPickedAssetsSequentially', () => {
                 },
             }),
         );
+        mockResizedSaveAsync.mockResolvedValue({uri: 'file:///photo-capped.jpg', width: 2880, height: 2160});
+        mockResizedRenderAsync.mockImplementation(() =>
+            Promise.resolve({
+                saveAsync: () => mockResizedSaveAsync() as unknown,
+                release: () => {
+                    mockResizedImageRelease();
+                },
+            }),
+        );
+    });
+
+    /** A decoded bitmap of the given size, as `renderAsync` returns it once the file's orientation is applied. */
+    const resolveDecodedImage = (width: number, height: number) =>
+        mockRenderAsync.mockImplementation(() =>
+            Promise.resolve({
+                width,
+                height,
+                saveAsync: () => mockSaveAsync() as unknown,
+                release: () => {
+                    mockImageRelease();
+                },
+            }),
+        );
+
+    describe('shrinking oversized photos to the camera cap', () => {
+        const originalOS = Platform.OS;
+
+        afterEach(() => {
+            Platform.OS = originalOS;
+        });
+
+        it('shrinks a gallery JPEG larger than the cap, one decode at a time', async () => {
+            // Given a 12 MP photo picked from the iOS gallery
+            Platform.OS = 'ios';
+            resolveDecodedImage(4032, 3024);
+            const pickedAsset: Asset = {uri: 'file:///IMG_0001.jpg', fileName: 'IMG_0001.jpg', type: 'image/jpeg', width: 4032, height: 3024, fileSize: 3_500_000};
+
+            // When the selection is processed
+            const result = await processPickedAssetsSequentially([pickedAsset], showGeneralAlert, translate);
+
+            // Then the photo is saved with its long edge at the camera's 2880 px, keeping its name
+            expect(mockResize).toHaveBeenCalledWith({width: 2880, height: 2160});
+            expect(result).toEqual([{uri: 'file:///photo-capped.jpg', fileName: 'IMG_0001.jpg', type: 'image/jpeg', width: 2880, height: 2160}]);
+            // And every native bitmap and context is freed right away
+            expect(mockImageRelease).toHaveBeenCalledTimes(1);
+            expect(mockRelease).toHaveBeenCalledTimes(1);
+            expect(mockResizedImageRelease).toHaveBeenCalledTimes(1);
+            expect(mockResizeRelease).toHaveBeenCalledTimes(1);
+        });
+
+        it('leaves a JPEG within the cap untouched without decoding it', async () => {
+            Platform.OS = 'ios';
+            const pickedAsset: Asset = {uri: 'file:///IMG_0002.jpg', fileName: 'IMG_0002.jpg', type: 'image/jpeg', width: 2160, height: 2880};
+
+            const result = await processPickedAssetsSequentially([pickedAsset], showGeneralAlert, translate);
+
+            expect(mockRenderAsync).not.toHaveBeenCalled();
+            expect(result).toEqual([pickedAsset]);
+        });
+
+        it('does not re-encode an oversized PNG as JPEG', async () => {
+            Platform.OS = 'ios';
+            const pickedAsset: Asset = {uri: 'file:///scan.png', fileName: 'scan.png', type: 'image/png', width: 5000, height: 7000};
+
+            const result = await processPickedAssetsSequentially([pickedAsset], showGeneralAlert, translate);
+
+            expect(mockRenderAsync).not.toHaveBeenCalled();
+            expect(result).toEqual([pickedAsset]);
+        });
+
+        it('leaves gallery JPEGs alone on Android, whose image loader already samples large photos down', async () => {
+            Platform.OS = 'android';
+            const pickedAsset: Asset = {uri: 'file:///IMG_0003.jpg', fileName: 'IMG_0003.jpg', type: 'image/jpeg', width: 8160, height: 6120};
+
+            const result = await processPickedAssetsSequentially([pickedAsset], showGeneralAlert, translate);
+
+            expect(mockRenderAsync).not.toHaveBeenCalled();
+            expect(result).toEqual([pickedAsset]);
+        });
+
+        it('keeps the photo as picked, without an alert, when shrinking it fails', async () => {
+            Platform.OS = 'ios';
+            mockRenderAsync.mockRejectedValue(new Error('decode failed'));
+            const pickedAsset: Asset = {uri: 'file:///IMG_0004.jpg', fileName: 'IMG_0004.jpg', type: 'image/jpeg', width: 5712, height: 4284};
+
+            const result = await processPickedAssetsSequentially([pickedAsset], showGeneralAlert, translate);
+
+            expect(result).toEqual([pickedAsset]);
+            expect(showGeneralAlert).not.toHaveBeenCalled();
+            expect(mockRelease).toHaveBeenCalledTimes(1);
+        });
+
+        it('caps a HEIC while converting it, instead of saving the full-size JPEG', async () => {
+            // Given a 24 MP HEIC, decoded in portrait
+            resolveDecodedImage(4284, 5712);
+
+            const result = await processPickedAssetsSequentially(buildHeicAssets(1), showGeneralAlert, translate);
+
+            // Then only the capped copy is written
+            expect(mockResize).toHaveBeenCalledWith({width: 2160, height: 2880});
+            expect(mockSaveAsync).not.toHaveBeenCalled();
+            expect(result).toEqual([{uri: 'file:///photo-capped.jpg', fileName: 'photo-0.jpg', type: 'image/jpeg', width: 2880, height: 2160}]);
+            expect(mockResizedImageRelease).toHaveBeenCalledTimes(1);
+            expect(mockResizeRelease).toHaveBeenCalledTimes(1);
+            expect(mockImageRelease).toHaveBeenCalledTimes(1);
+            expect(mockRelease).toHaveBeenCalledTimes(1);
+        });
+
+        it('still converts a HEIC at full size when shrinking it fails', async () => {
+            // Given a 24 MP HEIC whose smaller copy fails to render
+            resolveDecodedImage(4284, 5712);
+            mockResizedRenderAsync.mockRejectedValue(new Error('resize failed'));
+
+            const result = await processPickedAssetsSequentially(buildHeicAssets(1), showGeneralAlert, translate);
+
+            // Then the full-size JPEG is saved instead, as before the cap existed, and the photo is not dropped
+            expect(mockSaveAsync).toHaveBeenCalledTimes(1);
+            expect(result).toEqual([{uri: 'file:///photo.jpg', fileName: 'photo-0.jpg', type: 'image/jpeg', width: 100, height: 200}]);
+            expect(showGeneralAlert).not.toHaveBeenCalled();
+            expect(mockResizeRelease).toHaveBeenCalledTimes(1);
+            expect(mockImageRelease).toHaveBeenCalledTimes(1);
+            expect(mockRelease).toHaveBeenCalledTimes(1);
+        });
     });
 
     it('decodes only one image at a time', async () => {
