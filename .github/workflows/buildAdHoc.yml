@@ -115,7 +115,7 @@ jobs:
   deployWebAdHoc:
     name: Deploy the PR Worker Preview and web assets
     needs: [buildWeb]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     env:
       WRANGLER_SEND_METRICS: false
     steps:

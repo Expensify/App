@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   prep:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     outputs:
       APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
       TAG: ${{ steps.getTagName.outputs.TAG }}
@@ -213,7 +213,7 @@ jobs:
   androidUploadGooglePlay:
     name: Upload Android to Google Play
     needs: [prep, androidBuild]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
@@ -267,7 +267,7 @@ jobs:
   androidSubmit:
     name: Submit Android for production rollout
     needs: [prep, androidBuild, androidUploadGooglePlay]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.androidBuild.result != 'failure' && needs.androidUploadGooglePlay.result != 'failure' }}
     steps:
       - name: Checkout
@@ -333,7 +333,7 @@ jobs:
   androidUploadBrowserStack:
     name: Upload Android to BrowserStack
     needs: [prep, androidBuild]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     continue-on-error: true
     steps:
@@ -383,7 +383,7 @@ jobs:
   androidUploadApplause:
     name: Upload Android to Applause
     needs: [prep, androidBuild]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     if: ${{ github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     continue-on-error: true
     steps:
@@ -590,7 +590,7 @@ jobs:
   iosUploadBrowserStack:
     name: Upload iOS to BrowserStack
     needs: [prep, iosBuild]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     continue-on-error: true
     steps:
@@ -640,7 +640,7 @@ jobs:
   iosUploadApplause:
     name: Upload iOS to Applause
     needs: [prep, iosBuild]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     if: ${{ github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     continue-on-error: true
     steps:
@@ -707,7 +707,7 @@ jobs:
     name: Deploy Web to the Cloudflare Worker
     needs: [prep, webBuild, buildStorybook]
     if: ${{ always() && needs.webBuild.result == 'success' }}
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
@@ -810,7 +810,7 @@ jobs:
 
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     if: ${{ failure() }}
     needs:
       [
@@ -839,7 +839,7 @@ jobs:
 
   postSlackMessageOnCancellation:
     name: Post a Slack message when the deploy is cancelled manually
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     if: ${{ cancelled() }}
     needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy]
     steps:
@@ -872,7 +872,7 @@ jobs:
             }
 
   checkDeploymentSuccess:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     outputs:
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
       IS_RELEASE_READY: ${{ steps.checkReleaseReady.outputs.IS_RELEASE_READY }}
@@ -960,7 +960,7 @@ jobs:
 
   autoRetestRequestForCP:
     name: File retest request for cherry-picked deploy-blocker fixes
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     # A later staging deploy can supersede a cherry-pick, even if it was not itself a cherry-pick.
     # always() lets this run when production-only submit jobs are skipped on staging.
     if: ${{ always() && !cancelled() && github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && needs.deployChecklist.result == 'success' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
@@ -1002,7 +1002,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   createRelease:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
     needs: [prep, checkDeploymentSuccess, victoryChartRendererBuild]
     permissions:
@@ -1133,7 +1133,7 @@ jobs:
   androidUploadSentry:
     name: Upload Android build to Sentry for size analysis
     needs: [prep, androidBuild, checkDeploymentSuccess]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     if: >-
       ${{ always()
           && needs.prep.outputs.DEPLOY_ENV == 'production'
@@ -1208,7 +1208,7 @@ jobs:
 
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) && needs.victoryChartRendererBuild.result == 'success' && needs.createRelease.result == 'success' }}
     needs: [prep, androidUploadGooglePlay, androidSubmit, iosUploadTestflight, iosSubmit, webDeploy, checkDeploymentSuccess, victoryChartRendererBuild, createRelease]
     steps:
