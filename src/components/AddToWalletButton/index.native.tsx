@@ -29,7 +29,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     const [isLoading, setIsLoading] = useState(false);
     const styles = useThemeStyles();
     const {executeScenario} = useMultifactorAuthentication();
-    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
+    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable, refreshWalletStatus} = useIsCardInWallet(card);
 
     const handleOnPress = () => {
         if (isUkEuExpensifyCard(card)) {
@@ -42,6 +42,9 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
                 if (status === 'success') {
                     Log.info('Card added to wallet');
                     getPaymentMethods();
+
+                    // Keep the spinner until the new wallet status is known, so the Add button does not flash back in the meantime
+                    refreshWalletStatus().finally(() => setIsLoading(false));
                     if (isIOS) {
                         Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(card.cardID)));
                     }
