@@ -157,6 +157,7 @@ function DynamicIOURequestStepDescription({
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateMoneyRequestDescription({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID,
                 transaction,

@@ -635,6 +635,7 @@ function submitCreateAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): v
 
 function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): void {
     const {
+        translate,
         policy,
         selectedCurrency,
         decimals,
@@ -697,6 +698,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
 
     updateMoneyRequestAmountAndCurrency({
+        translate,
         isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
         transactionID,
         transaction: currentTransaction,

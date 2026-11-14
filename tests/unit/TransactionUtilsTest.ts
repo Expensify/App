@@ -677,6 +677,27 @@ describe('TransactionUtils', () => {
     });
 
     describe('getUpdatedTransaction', () => {
+        it('uses the supplied translator for a pending route instead of the global locale', () => {
+            // Given a translator whose output differs from the global locale
+            const translate = jest.fn(() => 'Injected pending label');
+            const transaction = generateTransaction({comment: {waypoints: {}}});
+
+            // When a waypoint edit has no resolved route yet
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate,
+                transaction,
+                transactionChanges: {waypoints: {waypoint0: {address: 'New destination'}}},
+                isFromExpenseReport: false,
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the optimistic merchant comes from the caller's translator
+            expect(translate).toHaveBeenCalledWith('iou.fieldPending');
+            expect(updatedTransaction.modifiedMerchant).toBe('Injected pending label');
+        });
+
         it('should preserve a confirmed zero Scan amount while another field edit is pending', () => {
             // Given a submitted Scan whose explicit zero survived a cache reset without its draft flag
             const transaction = generateTransaction({
@@ -762,9 +783,11 @@ describe('TransactionUtils', () => {
             });
 
             const newDistance = 20; // change distance to 20 miles
+            const translate = jest.fn(() => 'Injected distance label');
 
             // When: updating the transaction with a new distance
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -776,6 +799,7 @@ describe('TransactionUtils', () => {
 
             // Then: quantity should be updated
             expect(updatedTransaction.comment?.customUnit?.quantity).toBe(newDistance);
+            expect(translate).toHaveBeenCalledWith('common.mile');
 
             // And: amount should be recalculated (20 miles × 1 USD = 20)
             expect(updatedTransaction.modifiedAmount).toBe(20);
