@@ -64,6 +64,8 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         }
 
         const perDiemUnit = getPerDiemCustomUnit(policy);
+        // The custom unit can arrive before its rates, so keep the selection pending
+        // until rates are available to avoid opening Destination without them.
         if (!perDiemUnit?.rates) {
             if (policy?.id) {
                 fetchPerDiemRates(policy.id);
