@@ -25,6 +25,7 @@ jest.mock('@pages/inbox/report/ThreadDivider', () => jest.fn(() => null));
 const mockReportActionItem = jest.requireMock<jest.Mock<null, [React.ComponentProps<typeof ReportActionItem>]>>('@pages/inbox/report/ReportActionItem');
 
 const PARENT_REPORT_ID = '200001';
+const CHILD_THREAD_REPORT_ID = '200002';
 const AGENT_ACCOUNT_ID = 99001;
 const CURRENT_USER_ACCOUNT_ID = 12345;
 
@@ -135,7 +136,7 @@ describe('AncestorReportActionItem feedback prompt', () => {
     it('keeps the original answer prompt when only its child thread is marked for feedback', async () => {
         // Given a feedback marker on the child thread, not the report containing the original answer
         const reportNameValuePairs = {
-            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}200002`]: {conciergeFeedbackForReportActionID: conciergeComment.reportActionID},
+            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${CHILD_THREAD_REPORT_ID}`]: {conciergeFeedbackForReportActionID: conciergeComment.reportActionID},
         };
 
         // When the original answer is shown above that thread after its reaction was removed
