@@ -13475,6 +13475,7 @@ function canLeaveChat(
     parentReportAction?: ReportAction,
 ): boolean {
     if (isSupportTicket(report)) {
+        // The customer and assigned support rep must stay on the ticket. Other invited participants can leave.
         return !isReportArchived && !!currentUserAccountID && report?.ownerAccountID !== currentUserAccountID && report?.managerID !== currentUserAccountID;
     }
 
