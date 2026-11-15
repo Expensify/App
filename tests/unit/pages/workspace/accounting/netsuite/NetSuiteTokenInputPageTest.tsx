@@ -212,18 +212,32 @@ describe('NetSuiteTokenInputPage', () => {
         expect(screen.queryByTestId('token-authentication-link')).toBeNull();
     });
 
-    it('hides the TBA link when reconnecting an OAuth connection after an auth error', () => {
-        // Given an existing OAuth connection that has an auth error, because new TBA tokens would not move it off OAuth
+    it('offers the TBA link when reconnecting an OAuth connection after an auth error', () => {
+        // Given an existing OAuth connection that has an auth error, because new TBA tokens move it back to TBA and keep its settings
         mockedIsAuthenticationError.mockReturnValue(true);
         const policy = buildNetsuitePolicy('', CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2);
 
         // When the credentials page is rendered for reconnection
         renderPage(PAGE_NAME.CREDENTIALS, undefined, policy);
 
-        // Then the OAuth credentials form is shown without the TBA link
+        // Then the OAuth credentials form is shown, and the admin can switch the connection back to TBA
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
-        expect(screen.queryByTestId('token-authentication-link')).toBeNull();
+        expect(screen.getByTestId('token-authentication-link')).toBeOnTheScreen();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
+    });
+
+    it('runs the TBA flow for an OAuth connection when the route asks for it', () => {
+        // Given an existing OAuth connection that has an auth error, and a TBA auth type in the route from the TBA link
+        mockedIsAuthenticationError.mockReturnValue(true);
+        const policy = buildNetsuitePolicy('', CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2);
+
+        // When the credentials page is rendered with the TBA param
+        renderPage(PAGE_NAME.CREDENTIALS, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA, policy);
+
+        // Then the TBA form and TBA step names are shown, so the admin can enter new TBA tokens
+        expect(screen.getByTestId('token-form')).toBeOnTheScreen();
+        expect(screen.queryByTestId('token-authentication-link')).toBeNull();
+        expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
     });
 
     it('preserves the isMigration param when navigating to the next step', () => {

@@ -20,6 +20,7 @@ import Parser from '@libs/Parser';
 
 import NetSuiteTokenAuthenticationLink from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/NetSuiteTokenAuthenticationLink';
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
+import {isNetSuiteRestConnection} from '@pages/workspace/accounting/netsuite/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,7 +65,10 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
             return;
         }
 
-        if (shouldUseUpdateNetSuiteTokens(policy)) {
+        // An OAuth connection is unverified until its first sync succeeds, but it can hold the settings of the TBA connection that it replaced.
+        // A new connection resets those settings. Therefore the form always updates the tokens of an OAuth connection.
+        const netSuiteConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
+        if (isNetSuiteRestConnection(netSuiteConnection?.options?.config, netSuiteConnection) || shouldUseUpdateNetSuiteTokens(policy)) {
             updateNetSuiteTokens(policyID, formValues);
         } else {
             connectPolicyToNetSuite(policyID, formValues);

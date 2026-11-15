@@ -53,9 +53,9 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
 
     const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
     const netSuiteConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
-    // The TBA form keeps the workspace settings only when it repairs a TBA connection that has an authentication error.
-    // It resets a working TBA connection to the default settings. New TBA tokens do not move an OAuth connection off OAuth.
-    const canSwitchToTokenAuthentication = !isNetSuiteRestConnection(netSuiteConnection?.options?.config, netSuiteConnection) && (isEmptyObject(netSuiteConnection) || hasAuthError);
+    // The TBA form keeps the workspace settings when it repairs a TBA connection that has an authentication error.
+    // It also keeps them when it moves an OAuth connection back to TBA. It resets a working TBA connection to the default settings.
+    const canSwitchToTokenAuthentication = isEmptyObject(netSuiteConnection) || hasAuthError || isNetSuiteRestConnection(netSuiteConnection?.options?.config, netSuiteConnection);
     const isTokenAuthenticationSelected = canSwitchToTokenAuthentication && authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA;
     const isOAuthFlow = !isTokenAuthenticationSelected;
 
