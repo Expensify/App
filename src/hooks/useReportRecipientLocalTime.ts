@@ -1,3 +1,5 @@
+import {isTransactionThread} from '@libs/ReportActionsUtils';
+
 import type {Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -5,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {canShowReportRecipientLocalTimeSelector} from '@selectors/Report';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useParentReportAction from './useParentReportAction';
 import {useAllPersonalDetails} from './usePersonalDetails';
 
 type UseReportRecipientLocalTimeParams = {
@@ -17,7 +20,9 @@ function useReportRecipientLocalTime({report}: UseReportRecipientLocalTimeParams
 
     const [canShowRecipientLocalTime = false] = useAllPersonalDetails(canShowReportRecipientLocalTimeSelector(report, currentUserAccountID));
 
-    return canShowRecipientLocalTime;
+    const parentReportAction = useParentReportAction(report);
+
+    return canShowRecipientLocalTime && !isTransactionThread(parentReportAction);
 }
 
 export default useReportRecipientLocalTime;

@@ -38,8 +38,8 @@ On web:
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click the three dots **(⋮)** next to the Xero connection.
+3. Select **Connections**, then select **Configure** next to Xero.
+4. Select **More (⋮)**.
 5. Click **Enter your credentials**.
 6. Log in to Xero using an account with admin access to the connected organization.
 7. Review the access permissions and click **Allow Access**.
@@ -49,8 +49,8 @@ On mobile:
 1. Tap the navigation tabs on the bottom.
 2. Tap **Workspaces**.
 3. Select your Workspace.
-4. Tap **Accounting**.
-5. Tap the three dots **(⋮)** next to the Xero connection.
+4. Select **Connections**, then select **Configure** next to Xero.
+5. Select **More (⋮)**.
 6. Tap **Enter your credentials** and complete the authorization flow.
 
 If the Workspace is not connected to Xero at all, [learn how to connect to Xero](/articles/new-expensify/connections/xero/Connect-to-Xero).
@@ -59,9 +59,9 @@ If the Workspace is not connected to Xero at all, [learn how to connect to Xero]
 
 ## How to run a Xero sync after reconnecting
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
-2. Click the three dots **(⋮)** next to the Xero connection.
-3. Click **Sync now**.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Xero.
+2. Select **More (⋮)**.
+3. Select **Sync now**.
 4. Retry any exports that failed while the error was showing.
 
 ---

@@ -555,6 +555,7 @@ function BasePopoverMenu({
 
         return (
             <MenuItem
+                sentryLabel={CONST.SENTRY_LABEL.POPOVER_MENU.BACK_BUTTON}
                 key={previouslySelectedItem?.text}
                 icon={expensifyIcons.BackArrow}
                 iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}

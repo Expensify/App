@@ -131,7 +131,7 @@ function Banner({
                                     onPress={onClose}
                                     role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={text ? `${translate('common.close')}, ${text}` : translate('common.close')}
-                                    sentryLabel="Banner-Close"
+                                    sentryLabel={CONST.SENTRY_LABEL.BANNER.CLOSE}
                                 >
                                     <Icon
                                         src={expensifyIcons.Close}

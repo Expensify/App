@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -29,7 +29,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 
-type ExportWithDropdownMenuProps = WithSentryLabel & {
+type ExportWithDropdownMenuProps = WithRequiredSentryLabel & {
     report: OnyxEntry<Report>;
 
     reportActions: OnyxEntry<ReportActions>;
@@ -92,6 +92,7 @@ function ExportWithDropdownMenu({
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = [
         {
             value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT_PREVIEW.EXPORT_MENU.EXPORT_TO_INTEGRATION,
             text: translate('workspace.common.exportIntegrationSelected', {
                 connectionName,
                 connectionNameFriendly,
@@ -100,6 +101,7 @@ function ExportWithDropdownMenu({
         },
         {
             value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT_PREVIEW.EXPORT_MENU.MARK_AS_EXPORTED,
             text: translate('workspace.common.markAsEntered'),
             ...optionTemplate,
         },

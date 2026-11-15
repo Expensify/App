@@ -21,10 +21,6 @@ import Log from './Log';
 import {arePolicyRulesEnabled, findVendorByID, getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isModifiedExpenseAction} from './ReportActionTypeGuards';
-// This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
-// The functions imported here are pure utility functions that don't create initialization-time dependencies.
-// ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
-// eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getReportName} from './ReportNameUtils';
 import {getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
@@ -199,6 +195,12 @@ function getMovedFromOrToReportMessage(
     }
 }
 
+/**
+ * The fields a rules modified message can name. A rule can set more than these, the vendor for one, and the backend
+ * sends back whatever it applied, so a field with no label here is left out rather than rendered without one.
+ */
+const RULES_MODIFIED_FIELDS_WITH_LABELS = new Set<string>(['amount', 'category', 'comment', 'description', 'merchant', 'tag', 'tax']);
+
 function getRulesModifiedMessage(
     translate: LocalizedTranslate,
     fields: PolicyRulesModifiedFields | PersonalRulesModifiedFields,
@@ -218,7 +220,7 @@ function getRulesModifiedMessage(
             standaloneFragments.push(translate('iou.rulesModifiedFields.reimbursable', !!modifiedFields[key]));
         } else if (key === 'billable') {
             standaloneFragments.push(translate('iou.rulesModifiedFields.billable', !!modifiedFields[key]));
-        } else {
+        } else if (RULES_MODIFIED_FIELDS_WITH_LABELS.has(key)) {
             listKeys.push(key);
         }
     }

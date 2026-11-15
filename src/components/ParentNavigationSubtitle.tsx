@@ -8,6 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -24,7 +25,7 @@ import SCREENS from '@src/SCREENS';
 import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
-import {getReportHasParentAccess} from '@selectors/Report';
+import {getReportHasParentAccess, getReportType} from '@selectors/Report';
 import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 import React from 'react';
 import {View} from 'react-native';
@@ -101,10 +102,11 @@ function ParentNavigationSubtitle({
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
     const [hasParentAccess] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportHasParentAccess});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+    const [reportType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportType});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(parentReportID)});
-    const isReportArchived = useReportIsArchived(report?.reportID);
-    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
+    const isReportArchived = useReportIsArchived(parentReport?.reportID);
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(parentReport, isReportArchived);
     const hasAccessToParentReport = hasParentAccess !== false;
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         // Find the tab navigator, which wraps all full-screen navigators
@@ -135,12 +137,19 @@ function ParentNavigationSubtitle({
             currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR &&
             currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
+    // Bills have no parent chat, so their subtitle shows only the policy name.
+    const shouldShowPolicyNameOnly = reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL && !reportName && !!workspaceName;
+
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
-    if (!reportName) {
+    if (!reportName && !shouldShowPolicyNameOnly) {
         return;
     }
 
     const onPress = () => {
+        if (!parentReportID) {
+            return;
+        }
+
         const parentAction = getReportAction(parentReportID, parentReportActionID);
         const isVisibleAction = isReportActionVisible(parentAction, parentReportID, canUserPerformWriteAction, visibleReportActionsData);
 
@@ -149,7 +158,7 @@ function ParentNavigationSubtitle({
 
         if (openParentReportInCurrentTab && isReportInRHP) {
             // If the report is displayed in RHP in Reports tab, we want to stay in the current tab after opening the parent report
-            if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && isMoneyRequestReport(report)) {
+            if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && isMoneyRequestReport(parentReport)) {
                 // Dismiss wide RHP and go back to already opened super wide RHP if the parent report is already opened there
                 if (currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && currentReportIndex && currentReportIndex > 0) {
                     const previousRoute = focusedNavigatorState.routes[currentReportIndex - 1];
@@ -232,7 +241,7 @@ function ParentNavigationSubtitle({
             // and the parent isn't already in the stack — otherwise the REPORT_WITH_ID fallback
             // would yank the user to Inbox.
             if (isReportInRHP) {
-                if (!isSmallScreenWidth && isMoneyRequestReport(report)) {
+                if (!isSmallScreenWidth && isMoneyRequestReport(parentReport)) {
                     Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: parentReportID}));
                     return;
                 }
@@ -314,7 +323,9 @@ function ParentNavigationSubtitle({
                     </Text>
                 )}
                 {!!workspaceName && workspaceName !== reportName && (
-                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
+                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>
+                        {shouldShowPolicyNameOnly ? workspaceName : ` ${translate('threads.in')} ${workspaceName}`}
+                    </Text>
                 )}
             </Text>
         </View>

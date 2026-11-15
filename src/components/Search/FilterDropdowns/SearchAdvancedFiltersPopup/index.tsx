@@ -310,7 +310,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
                                         accessible
                                         accessibilityLabel={translate('search.filters.describeSearch.title')}
                                         role={CONST.ROLE.BUTTON}
-                                        sentryLabel="SearchAdvancedFiltersPopup-DescribeSearch"
+                                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_POPUP_DESCRIBE_SEARCH}
                                         onHoverIn={() => setIsDescribeMode(true)}
                                         onFocus={() => setIsDescribeMode(true)}
                                         onPress={() => setIsDescribeMode(true)}
