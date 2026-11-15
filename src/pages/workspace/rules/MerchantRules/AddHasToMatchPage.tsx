@@ -66,9 +66,15 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
         return true;
     };
 
-    const hasItems: HasListItem[] = HAS_OPTIONS.filter(isOptionAvailable).map((value) => ({
+    // A rule written outside this editor can check for a part the picker has no row for, such as a link or a
+    // violation. Listing what the rule already carries is the only way to clear it, for the same reason a part
+    // the workspace has turned off stays listed while a rule checks for it.
+    const supportedValues = new Set<string>(HAS_OPTIONS);
+    const hasValues = [...HAS_OPTIONS, ...selectedHasValues.filter((value) => !supportedValues.has(value))];
+
+    const hasItems: HasListItem[] = hasValues.filter(isOptionAvailable).map((value) => ({
         keyForList: value,
-        text: translate(HAS_VALUE_TRANSLATION_KEYS[value]),
+        text: translate(HAS_VALUE_TRANSLATION_KEYS[value] ?? 'common.other'),
         value,
         isSelected: selectedHasValues.includes(value),
     }));
