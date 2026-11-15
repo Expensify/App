@@ -1,5 +1,6 @@
 import {addGpsPoints, setStartWaypointAddress} from '@libs/actions/GPSDraftDetails';
 import {addressFromGpsPoint, coordinatesToString, getGpsPoints, getTotalGpsTripPointsInLastSegment} from '@libs/GPSDraftDetailsUtils';
+import isIgnorableLocationTaskError from '@libs/isIgnorableLocationTaskError';
 
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 
@@ -12,7 +13,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import NetInfo from '@react-native-community/netinfo';
 import {defineTask} from 'expo-task-manager';
-import {Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 type BackgroundLocationTrackingTaskData = {locations: LocationObject[]};
@@ -36,8 +36,7 @@ defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK
     const {data, error} = body;
 
     if (error) {
-        // Core Location keeps trying after kCLErrorLocationUnknown (code 0), so the next location update can recover.
-        if (Platform.OS === 'ios' && error.code === 0) {
+        if (isIgnorableLocationTaskError(error)) {
             return;
         }
 

@@ -1,4 +1,5 @@
 import {resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
+import isIgnorableLocationTaskError from '@libs/isIgnorableLocationTaskError';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import '@src/setup/backgroundLocationTrackingTask/index.native';
@@ -9,11 +10,15 @@ import type {LocationGeocodedAddress, LocationObject} from 'expo-location';
 
 import {reverseGeocodeAsync} from 'expo-location';
 import {defineTask} from 'expo-task-manager';
-import {Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@libs/isIgnorableLocationTaskError');
+
+const isIgnorableIOSLocationTaskError = jest.requireActual<{default: typeof isIgnorableLocationTaskError}>('@libs/isIgnorableLocationTaskError/index.ios').default;
+const isIgnorableDefaultLocationTaskError = jest.requireActual<{default: typeof isIgnorableLocationTaskError}>('@libs/isIgnorableLocationTaskError/index.ts').default;
 
 // The task registers itself with defineTask when its module loads
 const [, runTask] = jest.mocked(defineTask).mock.calls.at(0) ?? [];
@@ -75,6 +80,7 @@ describe('backgroundLocationTrackingTask', () => {
     });
 
     beforeEach(async () => {
+        jest.mocked(isIgnorableLocationTaskError).mockReset().mockImplementation(isIgnorableIOSLocationTaskError);
         jest.mocked(reverseGeocodeAsync).mockReset().mockResolvedValue([]);
         await Onyx.clear();
     });
@@ -85,7 +91,6 @@ describe('backgroundLocationTrackingTask', () => {
 
     it('ignores temporary iOS location errors and keeps recording the same trip', async () => {
         // Given an active trip on iOS, where locationUnknown is temporary and Core Location keeps trying
-        jest.replaceProperty(Platform, 'OS', 'ios');
         const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
         const fetchDraft = jest.spyOn(Onyx, 'connectWithoutView');
         jest.mocked(reverseGeocodeAsync).mockResolvedValue([geocodedAddress('Mountain View')]);
@@ -110,7 +115,7 @@ describe('backgroundLocationTrackingTask', () => {
         {platform: 'android', code: 0},
     ] as const)('still logs task errors with code $code on $platform', async ({platform, code}) => {
         // Given an error that is not the temporary iOS locationUnknown condition
-        jest.replaceProperty(Platform, 'OS', platform);
+        jest.mocked(isIgnorableLocationTaskError).mockImplementation(platform === 'ios' ? isIgnorableIOSLocationTaskError : isIgnorableDefaultLocationTaskError);
         const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
         const fetchDraft = jest.spyOn(Onyx, 'connectWithoutView');
         const error = {code, message: 'Location failed'};
