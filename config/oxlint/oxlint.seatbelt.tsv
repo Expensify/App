@@ -2438,7 +2438,7 @@
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"no-restricted-syntax"	12
+"../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"no-restricted-syntax"	11
 "../../src/pages/workspace/members/WorkspaceMemberDisplayNamePage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/members/WorkspaceMemberOfficeLocationPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/members/WorkspaceMembersChangeOfficeLocationPage.tsx"	"no-restricted-syntax"	1

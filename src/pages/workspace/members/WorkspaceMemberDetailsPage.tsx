@@ -15,6 +15,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PromotedActions} from '@components/PromotedActionsBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import LeaveWorkspaceFlow from '@components/Tables/WorkspaceListTable/LeaveWorkspaceFlow';
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 
@@ -33,6 +34,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
@@ -57,10 +59,13 @@ import {
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
+    goBackFromInvalidPolicy,
     hasActiveExpensifyCard,
+    isArchivedPolicy,
     isControlPolicy,
     isPolicyAdmin,
     isPolicyApprover,
+    isPolicyOwner,
     PAYER_ROLES,
     shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -101,7 +106,7 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspacePolicyOnyxProps = {
@@ -124,7 +129,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {convertToDisplayString} = useCurrencyListActions();
-    const icons = useMemoizedLazyExpensifyIcons(['CommentBubbles', 'History', 'RemoveMembers', 'Transfer']);
+    const icons = useMemoizedLazyExpensifyIcons(['CommentBubbles', 'Exit', 'History', 'RemoveMembers', 'Transfer']);
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
@@ -148,6 +153,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isSupportalSession = useIsSupportalSession();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID, isLoadingPreferredPolicy} = usePreferredPolicy();
+    const [isLeaveFlowActive, setIsLeaveFlowActive] = useState(false);
 
     const routeAccountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByAccountID(policy, routeAccountID);
@@ -176,6 +183,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
+    const shouldShowLeave = isSelectedMemberCurrentUser && !isPolicyOwner(policy, currentUserAccountID);
+    // A domain can mandate membership in its preferred workspace, so unresolved restrictions must not allow departure.
+    const canLeave = !!policy && !isLoadingPreferredPolicy && !isArchivedPolicy(policy) && (policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const policyOwnerDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
@@ -466,6 +476,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="WorkspaceMemberDetailsPage"
             >
+                {isLeaveFlowActive && (
+                    <LeaveWorkspaceFlow
+                        policyID={policyID}
+                        onDismiss={() => setIsLeaveFlowActive(false)}
+                        onLeave={goBackFromInvalidPolicy}
+                    />
+                )}
                 <HeaderWithBackButton
                     title={displayName}
                     subtitle={policy?.name}
@@ -500,11 +517,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     )
                                 ) : (
                                     <Button
-                                        onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
-                                        isDisabled={!canRemoveSelectedMember}
+                                        onPress={() => {
+                                            if (isAccountLocked) {
+                                                showLockedAccountModal();
+                                                return;
+                                            }
+                                            if (shouldShowLeave) {
+                                                setIsLeaveFlowActive(true);
+                                                return;
+                                            }
+                                            askForConfirmationToRemove();
+                                        }}
+                                        isDisabled={shouldShowLeave ? !canLeave : !canRemoveSelectedMember}
+                                        sentryLabel={shouldShowLeave ? CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_LEAVE_WORKSPACE : CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.REMOVE_MEMBER}
                                     >
-                                        <Button.Icon src={icons.RemoveMembers} />
-                                        <Button.Text>{translate('workspace.people.removeWorkspaceMemberButtonTitle')}</Button.Text>
+                                        <Button.Icon src={shouldShowLeave ? icons.Exit : icons.RemoveMembers} />
+                                        <Button.Text>{translate(shouldShowLeave ? 'common.leave' : 'workspace.people.removeWorkspaceMemberButtonTitle')}</Button.Text>
                                     </Button>
                                 )}
                                 {shouldShowMessageButton && (

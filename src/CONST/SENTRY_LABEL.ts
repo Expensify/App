@@ -1031,6 +1031,8 @@ const SENTRY_LABEL = {
             BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
             MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
             LEAVE_WORKSPACE: 'WorkspaceMembers-LeaveWorkspace',
+            DETAILS_LEAVE_WORKSPACE: 'WorkspaceMemberDetails-LeaveWorkspace',
+            REMOVE_MEMBER: 'WorkspaceMemberDetails-RemoveMember',
             LIST_ROW: 'WorkspaceMembers-ListRow',
             CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
         },
