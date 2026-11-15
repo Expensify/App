@@ -1,6 +1,5 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 
@@ -110,16 +109,11 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
                 onClose={() => clearPolicyRoomNameErrors(report.reportID)}
             >
                 <View style={[styles.flex1]}>
-                    <MenuItemWithTopDescription
+                    <MenuItem.Root
                         sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TITLE}
-                        shouldShowRightIcon={shouldShowEditableTitleField && !isFieldDisabled}
-                        interactive={shouldShowEditableTitleField && !isFieldDisabled}
-                        title={reportName}
-                        titleStyle={styles.newKansasLarge}
-                        shouldCheckActionAllowedOnPress={false}
-                        description={translate('task.title')}
+                        accessibilityLabel={[translate('task.title'), reportName].filter(Boolean).join(', ')}
                         onPress={
-                            shouldShowEditableTitleField && report.policyID
+                            shouldShowEditableTitleField && !isFieldDisabled && report.policyID
                                 ? () => {
                                       if (!report.policyID) {
                                           return;
@@ -129,7 +123,18 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
                                   }
                                 : undefined
                         }
-                    />
+                    >
+                        <MenuItem.Row>
+                            <MenuItemField.Content name={translate('task.title')}>
+                                {!!reportName && <MenuItem.FieldValue style={styles.newKansasLarge}>{reportName}</MenuItem.FieldValue>}
+                            </MenuItemField.Content>
+                            {shouldShowEditableTitleField && !isFieldDisabled && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 </View>
             </OfflineWithFeedback>
             {shouldShowFurtherDetailsContent && (

@@ -13,6 +13,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
+import SidePanelExpandButton from '@components/SidePanel/SidePanelExpandButton';
 import TalkToHumanButton from '@components/TalkToHumanButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
@@ -544,6 +545,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
+                                <SidePanelExpandButton reportID={reportID} />
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>
                                         <PressableWithoutFeedback

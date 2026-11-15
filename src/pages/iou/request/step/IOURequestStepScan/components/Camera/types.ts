@@ -30,5 +30,6 @@ type CameraProps = {
     canUpgradeReceiptQuality?: boolean;
 };
 
-export default CameraProps;
+// Consumers import the named type, so a default export would only be dead code that knip reports.
+// eslint-disable-next-line import/prefer-default-export
 export type {CameraProps};

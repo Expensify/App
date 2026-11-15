@@ -1350,21 +1350,6 @@ const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CO
 const iouRequestTypesSet = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([...iouRequestTypes, CONST.IOU.REPORT_ACTION_TYPE.PAY]);
 
 /**
- * Returns array of links inside a given report action
- */
-function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): string[] {
-    const htmlContent = getReportActionHtml(reportAction);
-
-    const regex = CONST.REGEX_LINK_IN_ANCHOR;
-
-    if (!htmlContent) {
-        return [];
-    }
-
-    return [...htmlContent.matchAll(regex)].map((match) => match[1]);
-}
-
-/**
  * Extracts the first href URL from an HTML anchor string.
  * Handles href values wrapped in either double quotes (") or single quotes (').
  */
@@ -6262,7 +6247,6 @@ function isPolicyCopyReportAction(action: OnyxInputOrEntry<ReportAction>): actio
 
 export {
     doesReportHaveVisibleActions,
-    extractLinksFromMessageHtml,
     formatLastMessageText,
     isReportActionUnread,
     getHtmlWithAttachmentID,
