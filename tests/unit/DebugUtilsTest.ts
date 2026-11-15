@@ -719,6 +719,28 @@ describe('DebugUtils', () => {
     });
 
     describe('validateTransactionDraftProperty', () => {
+        it.each([true, false, null, undefined])('accepts a saved company card restriction of %s', (forceReimbursable) => {
+            // Given the boolean or absent restriction supplied on an imported expense
+            const comment = DebugUtils.onyxDataToString({forceReimbursable});
+
+            // When the transaction comment is validated in Debug mode
+            const validate = () => DebugUtils.validateTransactionDraftProperty('comment', comment);
+
+            // Then Debug mode accepts the same representation as the backend
+            expect(validate).not.toThrow();
+        });
+
+        it('rejects a feed setting string as a transaction restriction', () => {
+            // Given a feed setting, which is not the representation saved on a transaction
+            const comment = DebugUtils.onyxDataToString({forceReimbursable: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES});
+
+            // When the transaction comment is validated in Debug mode
+            const validate = () => DebugUtils.validateTransactionDraftProperty('comment', comment);
+
+            // Then the invalid transaction metadata is rejected
+            expect(validate).toThrow();
+        });
+
         describe.each(getObjectKeys(MOCK_TRANSACTION))('%s', (key) => {
             it(`${DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
                 if (DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key)) {

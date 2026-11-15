@@ -101,6 +101,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                   buttonText: translate('agentsPage.newAgent'),
                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   buttonAction: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute())),
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.AGENTS.EMPTY_STATE_NEW_AGENT,
               },
           ]
         : undefined;
@@ -112,6 +113,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
             icon: icons.Trashcan,
             shouldSkipFocusRestore: true,
             onSelected: askForConfirmationToDelete,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.AGENTS.BULK_ACTIONS_DELETE,
         },
     ];
 

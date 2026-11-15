@@ -27,6 +27,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -118,6 +119,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
     const {showDownloadErrorModal} = useAlertModals();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {backTo, policyID} = route.params;
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
@@ -279,7 +281,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             return;
         }
 
-        setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0, isVendorMatchingBetaEnabled);
+        setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
     };
 
     const shouldShowGLCodeColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && Object.values(policyTagLists?.at(0)?.tags ?? {}).some((tag) => !!tag['GL Code']);
@@ -387,7 +389,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 canEditName: canWriteTags && !isSelectionModeActive,
                 action: () => navigateToTagSettings(tag.name),
                 onToggleEnabled: (enabled: boolean) => handleTagEnabledToggle(enabled, tag),
-                onRenameName: (newName: string) => showInlineEditError(renameTagInline(translate, policyData, tag.name, newName, isVendorMatchingBetaEnabled)),
+                onRenameName: (newName: string) =>
+                    showInlineEditError(renameTagInline(translate, policyData, tag.name, newName, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion())),
                 onClose: () =>
                     clearPolicyTagErrors({
                         policyID,
@@ -471,6 +474,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             // Match the design: the "Custom tag name" label is the small gray description on top, the tag list name is the regular-weight title below.
             text: policyTagLists.at(0)?.name ?? '',
             description: translate('workspace.tags.customTagName'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_MENU_CUSTOM_TAG_NAME,
             shouldShowDescriptionOnTop: true,
             titleStyle: styles.fontWeightNormal,
             onSelected: navigateToCustomTagName,
@@ -490,6 +494,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     if (canWriteTags && !!policy?.glCodes) {
         menuItems.push({
             text: translate('workspace.tags.showTagGLCodes'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_MENU_SHOW_GL_CODES,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             // Selecting the row (click or Enter) toggles it; the Switch is a display-only indicator. Keep the menu open on select.
             shouldCloseModalOnSelect: false,
@@ -517,6 +522,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             text: translate('spreadsheet.importSpreadsheet'),
             onSelected: navigateToImportSpreadsheet,
             value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_MENU_IMPORT_SPREADSHEET,
             // Group the settings rows apart from the spreadsheet actions.
             addSeparatorBefore: true,
         });
@@ -527,6 +533,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             text: translate('workspace.tags.appendCustomTagList'),
             onSelected: navigateToAppendCustomTagList,
             value: CONST.POLICY.SECONDARY_ACTIONS.APPEND_CUSTOM_TAG_LIST,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_MENU_APPEND_CUSTOM_TAG_LIST,
         });
     }
     if (hasVisibleTags) {
@@ -553,6 +560,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 });
             },
             value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_MENU_DOWNLOAD_CSV,
         });
     }
     const secondaryActions = menuItems;
@@ -602,6 +610,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate(selectedTagKeys.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS_DELETE,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
@@ -653,6 +662,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS.DISABLE,
                 shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject),
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
@@ -667,7 +677,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     clearTableSelection();
 
                     // Disable the selected tags
-                    setWorkspaceTagEnabled(policyData, tagsToDisable, 0, isVendorMatchingBetaEnabled);
+                    setWorkspaceTagEnabled(policyData, tagsToDisable, 0, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
                 },
             });
         }
@@ -677,9 +687,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Checkmark,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS.ENABLE,
                 onSelected: () => {
                     clearTableSelection();
-                    setWorkspaceTagEnabled(policyData, tagsToEnable, 0, isVendorMatchingBetaEnabled);
+                    setWorkspaceTagEnabled(policyData, tagsToEnable, 0, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
                 },
             });
         }
@@ -766,10 +777,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                           icon: expensifyIcons.Table,
                           buttonText: translate('common.import'),
                           buttonAction: navigateToImportSpreadsheet,
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.EMPTY_STATE.IMPORT,
                       },
                       {
                           buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                           buttonAction: navigateToCreateTagPage,
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.EMPTY_STATE.ADD_TAG,
                           icon: expensifyIcons.Plus,
                           buttonText: translate('workspace.tags.addTag'),
                       },
