@@ -78,6 +78,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
 import StringUtils from './StringUtils';
+import {getAutoReportingOffsetDisplayName, parseAutoReportingOffset} from './SubmissionScheduleUtils';
 import {getWorkArrangementLabel} from './WorkArrangementUtils';
 import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspaceDisplayUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
@@ -4464,18 +4465,8 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
         (typeof oldValue === 'string' || typeof oldValue === 'number') &&
         (typeof newValue === 'string' || typeof newValue === 'number')
     ) {
-        const getAutoReportingOffsetToDisplay = (autoReportingOffset: string | number) => {
-            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                return translate('workflowsPage.frequencies.lastDayOfMonth');
-            }
-            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                return translate('workflowsPage.frequencies.lastBusinessDayOfMonth');
-            }
-            if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset);
-            }
-            return '';
-        };
+        const getAutoReportingOffsetToDisplay = (autoReportingOffset: string | number) =>
+            getAutoReportingOffsetDisplayName(parseAutoReportingOffset(autoReportingOffset), translate, (day) => toLocaleOrdinal(IntlStore.getCurrentLocale(), day));
         return translate('workspaceActions.updateMonthlyOffset', getAutoReportingOffsetToDisplay(oldValue), getAutoReportingOffsetToDisplay(newValue));
     }
     if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.TIME_ZONE && (typeof oldValue === 'string' || typeof oldValue === 'undefined') && typeof newValue === 'string') {
