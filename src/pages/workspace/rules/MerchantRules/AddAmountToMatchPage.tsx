@@ -3,7 +3,9 @@ import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWith
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterInput';
+import isTextInputRef from '@components/TextInput/BaseTextInput/isTextInputRef';
 
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -34,6 +36,7 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
     const {isEditing, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
@@ -89,7 +92,7 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
                     label={translate('iou.amount')}
                     onAmountChange={setAmount}
                     onCurrencyChange={setCurrency}
-                    autoFocus
+                    ref={(ref) => inputCallbackRef(isTextInputRef(ref) ? ref : null)}
                 />
                 <MenuItemField
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_AMOUNT_MATCH_TYPE}
