@@ -11,6 +11,7 @@ import {revokeDomainAdminAccess} from '@userActions/Domain';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {PressableProps, TextProps} from 'react-native';
@@ -31,12 +32,30 @@ jest.mock('@hooks/usePersonalDetails', () => ({usePersonalDetail: () => [{login:
 jest.mock('@libs/PersonalDetailsUtils', () => ({temporaryGetDisplayNameOrDefault: () => 'Target'}));
 jest.mock('@userActions/Domain', () => ({revokeDomainAdminAccess: jest.fn()}));
 jest.mock('@userActions/Session', () => ({callIfAuthenticated: (handler: () => Promise<void>) => handler}));
-jest.mock('@navigation/Navigation', () => ({__esModule: true, default: {dismissModal: jest.fn(), navigate: jest.fn()}}));
+jest.mock('@navigation/Navigation', () => ({__esModule: true, default: {dismissModal: jest.fn(), navigate: jest.fn(), goBack: jest.fn()}}));
 jest.mock('@pages/domain/BaseDomainMemberDetailsComponent', () => {
-    const {Text} = jest.requireActual<{Text: React.ComponentType<TextProps>}>('react-native');
+    const {Text, Pressable} = jest.requireActual<{Text: React.ComponentType<TextProps>; Pressable: React.ComponentType<PressableProps>}>('react-native');
     return {
         __esModule: true,
-        default: ({shouldBeBlocked, children}: {shouldBeBlocked?: boolean; children: React.ReactNode}) => (shouldBeBlocked ? <Text>Not Found</Text> : children),
+        default: ({
+            shouldBeBlocked,
+            children,
+            fullPageNotFoundViewProps,
+        }: {
+            shouldBeBlocked?: boolean;
+            children: React.ReactNode;
+            fullPageNotFoundViewProps?: {onBackButtonPress?: () => void};
+        }) =>
+            shouldBeBlocked ? (
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={fullPageNotFoundViewProps?.onBackButtonPress}
+                >
+                    <Text>Not Found</Text>
+                </Pressable>
+            ) : (
+                children
+            ),
     };
 });
 jest.mock('@components/MenuItem', () => {
@@ -108,6 +127,8 @@ describe('DomainAdminDetailsPage target membership', () => {
         expect(screen.getByText('Not Found')).toBeTruthy();
         expect(screen.queryByText('domain.admins.revokeAdminAccess')).toBeNull();
         expect(revokeDomainAdminAccess).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByText('Not Found'));
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.DOMAIN_ADMINS.getRoute(DOMAIN_ACCOUNT_ID));
     });
 
     it('blocks a direct link to an account that is no longer an admin', async () => {
@@ -121,6 +142,8 @@ describe('DomainAdminDetailsPage target membership', () => {
         // Then retained personal details do not grant access to admin actions
         expect(await screen.findByText('Not Found')).toBeTruthy();
         expect(screen.queryByText('Reset domain')).toBeNull();
+        fireEvent.press(screen.getByText('Not Found'));
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.DOMAIN_ADMINS.getRoute(DOMAIN_ACCOUNT_ID));
     });
 
     it('closes only its own confirmation when target membership disappears', async () => {

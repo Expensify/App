@@ -88,6 +88,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             domainAccountID={domainAccountID}
             accountID={accountID}
             shouldBeBlocked={!isTargetAdmin}
+            fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}}
         >
             {domainHasOnlyOneAdmin && (
                 <MenuItemAction

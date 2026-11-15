@@ -1,4 +1,5 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -34,6 +35,9 @@ type BaseDomainMemberDetailsComponentProps = {
     /** Additional access restriction, evaluated after domain loading finishes. */
     shouldBeBlocked?: boolean;
 
+    /** If omitted, Not Found retains the wrapper's default navigation to the Domains list. */
+    fullPageNotFoundViewProps?: FullPageNotFoundViewProps;
+
     /** List of additional fields (e.g., force 2FA) */
     children?: React.ReactNode;
 
@@ -41,7 +45,7 @@ type BaseDomainMemberDetailsComponentProps = {
     avatarButton?: React.ReactNode;
 };
 
-function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children, avatarButton, shouldBeBlocked}: BaseDomainMemberDetailsComponentProps) {
+function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children, avatarButton, shouldBeBlocked, fullPageNotFoundViewProps}: BaseDomainMemberDetailsComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
@@ -58,6 +62,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
         <DomainNotFoundPageWrapper
             domainAccountID={domainAccountID}
             shouldBeBlocked={shouldBeBlocked}
+            fullPageNotFoundViewProps={fullPageNotFoundViewProps}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
