@@ -1,6 +1,7 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import WorkspaceExpenseDefaultsTable from '@components/Tables/WorkspaceExpenseDefaultsTable';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -28,20 +29,20 @@ type RulesExpenseDefaultsTabProps = {
 
 function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, headerComponent, bulkActionOptions}: RulesExpenseDefaultsTabProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     const expenseDefaultsTableData = getExpenseDefaultsTableData({
         policy,
         policyID,
         rules,
-        policyCategories,
         policyTags,
         translate,
+        convertToDisplayString,
         isOffline,
         onNavigate: Navigation.navigate,
     });

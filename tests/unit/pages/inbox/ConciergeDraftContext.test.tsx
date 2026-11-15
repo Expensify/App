@@ -519,6 +519,63 @@ describe('ConciergeDraftContext', () => {
         unmount();
     });
 
+    it.each([
+        ['cleared', Pusher.TYPE.CONCIERGE_DRAFT_EVENTS],
+        ['failed', Pusher.TYPE.CONCIERGE_DRAFT_FAILED],
+    ] as const)('ignores a late draft start after a %s event', async (status, eventType) => {
+        // Given a chat that is listening for drafts and has not seen this reply start.
+        const streamSessionID = `interrupted-${status}`;
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const initialHook = renderHook(() => useConciergeDraft(), {wrapper});
+        await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
+
+        // When the ending arrives and the user reopens the chat before the delayed start.
+        const ending = createDraftEvent('', {streamSessionID, sequence: 2, status, bodyMarkdown: undefined});
+        act(() => emitPusherEvent(eventType, eventType === Pusher.TYPE.CONCIERGE_DRAFT_EVENTS ? {events: [ending]} : ending));
+        initialHook.unmount();
+        getMockPusherSubscribe().mockClear();
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
+        act(() => emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, {events: [createDraftEvent('Late draft', {streamSessionID, status: 'started'})]}));
+
+        // Then the draft stays hidden.
+        expect(result.current.draftReportAction).toBeNull();
+        expect(getCachedDraft(REPORT_ID)).toBeNull();
+
+        unmount();
+    });
+
+    it('clears the draft in both views of the same report', async () => {
+        // Given a report with a draft visible in two mounted views.
+        const streamSessionID = 'interrupted-in-two-views';
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const firstView = renderHook(() => useConciergeDraft(), {wrapper});
+        const secondView = renderHook(() => useConciergeDraft(), {wrapper});
+        await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(12));
+        const subscriptions = getMockPusherSubscribe().mock.calls.filter(([, eventType]) => eventType === Pusher.TYPE.CONCIERGE_DRAFT_EVENTS);
+        const emitToBothViews = (event: ConciergeDraftEvent) => {
+            act(() => {
+                for (const [, , callback] of subscriptions) {
+                    callback?.({events: [event]});
+                }
+            });
+        };
+        const start = createDraftEvent('Draft', {streamSessionID, status: 'started'});
+        emitToBothViews(start);
+        expect(firstView.result.current.draftReportAction).toBeTruthy();
+        expect(secondView.result.current.draftReportAction).toBeTruthy();
+
+        // When both subscribers receive the same clear event.
+        const ending = createDraftEvent('', {streamSessionID, sequence: 2, status: 'cleared', bodyMarkdown: undefined});
+        emitToBothViews(ending);
+
+        // Then both views retire the draft.
+        expect(firstView.result.current.draftReportAction).toBeNull();
+        expect(secondView.result.current.draftReportAction).toBeNull();
+        firstView.unmount();
+        secondView.unmount();
+    });
+
     it('ignores delayed lower-sequence chunks after an active body draft receives a content-free completion', async () => {
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});

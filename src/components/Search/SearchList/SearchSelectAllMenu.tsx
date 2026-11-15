@@ -52,8 +52,18 @@ function SearchSelectAllMenu({isSelectAllChecked, isIndeterminate, selectedItems
     };
 
     const selectAllMenuItems: PopoverMenuItem[] = [
-        {icon: expensifyIcons.Checkmark, text: translate('search.exportAll.selectAllOnThisPage'), onSelected: selectAllOnPage},
-        {icon: expensifyIcons.CheckSquare, text: translate('workspace.people.selectAll'), onSelected: selectAllMatching},
+        {
+            icon: expensifyIcons.Checkmark,
+            text: translate('search.exportAll.selectAllOnThisPage'),
+            onSelected: selectAllOnPage,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_MENU.SELECT_ALL_ON_PAGE,
+        },
+        {
+            icon: expensifyIcons.CheckSquare,
+            text: translate('workspace.people.selectAll'),
+            onSelected: selectAllMatching,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_MENU.SELECT_ALL_MATCHING,
+        },
     ];
 
     const showSelectAllMenu = () => {

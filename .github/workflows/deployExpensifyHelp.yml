@@ -42,6 +42,8 @@ jobs:
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: '["web/cloudflare-worker"]'
 
       - name: Create docs routes file
         run: ./.github/scripts/createDocsRoutes.sh

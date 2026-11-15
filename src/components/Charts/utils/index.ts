@@ -608,5 +608,3 @@ export {
     getDomainPaddingForEdgeSpace,
     getAxisLabelStep,
 };
-
-export type {ChartLabelHitTestParams};

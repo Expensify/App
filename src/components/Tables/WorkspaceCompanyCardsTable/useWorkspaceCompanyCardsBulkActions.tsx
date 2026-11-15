@@ -169,6 +169,7 @@ function useWorkspaceCompanyCardsBulkActions({
                 icon: icons.RemoveMembers,
                 text: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
                 value: 'unassign',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_UNASSIGN,
                 shouldSkipFocusRestore: !!bankName,
                 onSelected: confirmBulkUnassign,
             });
@@ -177,6 +178,7 @@ function useWorkspaceCompanyCardsBulkActions({
             icon: icons.MoneySearch,
             text: translate('workspace.common.viewTransactions'),
             value: 'viewTransactions',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_VIEW_TRANSACTIONS,
             onSelected: viewSelectedCardTransactions,
         });
         if (canWriteCompanyCards) {
@@ -184,6 +186,7 @@ function useWorkspaceCompanyCardsBulkActions({
                 icon: icons.CalendarSolid,
                 text: translate('workspace.moreFeatures.companyCards.bulkUpdateTransactionStartDate'),
                 value: 'editTransactionStartDate',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_EDIT_TRANSACTION_START_DATE,
                 onSelected: editSelectedCardTransactionStartDates,
             });
         }
@@ -193,6 +196,7 @@ function useWorkspaceCompanyCardsBulkActions({
         icon: icons.Export,
         text: translate('workspace.expensifyCard.exportAsCSV'),
         value: 'exportCSV',
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_EXPORT_CSV,
         onSelected: exportSelectedCardsToCSV,
     });
 

@@ -1,18 +1,15 @@
 import ColumnsSettingsList from '@components/ColumnsSettingsList';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
-import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import getReportDetailsColumns from '@libs/getReportDetailsColumns';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasVendorFeature, isPolicyTaxEnabled} from '@libs/PolicyUtils';
-import {isIOUReport} from '@libs/ReportUtils';
-import {getColumnsToShow, isReportDetailsCustomColumn} from '@libs/SearchUIUtils';
-import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
+import {hasVendorFeature} from '@libs/PolicyUtils';
+import {isReportDetailsCustomColumn} from '@libs/SearchUIUtils';
 
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 
@@ -59,7 +56,6 @@ function ReportDetailsColumnsPage() {
             return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
         },
     });
-    const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
 
     // The vendor column only exists for workspaces with the vendor feature, so hide it when this report's workspace lacks it.
@@ -81,16 +77,11 @@ function ReportDetailsColumnsPage() {
     } else if (!reportTransactions?.length) {
         effectiveColumns = REPORT_DETAILS_DEFAULT_COLUMNS;
     } else {
-        const visibleColumns = getColumnsToShow({
-            currentAccountID: currentUserDetails?.accountID,
-            data: reportTransactions,
+        const visibleColumns = getReportDetailsColumns({
+            transactions: reportTransactions,
             report,
-            isExpenseReportView: true,
-            isExpenseReportViewFromIOUReport: isIOUReport(report),
-            shouldShowBillableColumn: isBillableEnabledOnPolicy(policy),
-            shouldShowReimbursableColumn: hasNonReimbursableTransactions(reportTransactions),
-            reportCurrency: report?.currency,
-            isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
+            policy,
+            isVendorColumnAvailable,
         });
 
         // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)

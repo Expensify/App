@@ -120,6 +120,7 @@ import {
     hasMissingSmartscanFields,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
+    isCardTransactionReimbursableEditable,
     isFromCreditCardImport as isCardTransactionTransactionUtils,
     isCategoryBeingAnalyzed,
     isCustomUnitRateIDForP2P,
@@ -172,6 +173,7 @@ import {View} from 'react-native';
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
+import MoneyRequestViewAdditionalFields from './MoneyRequestViewAdditionalFields';
 
 type MoneyRequestViewProps = {
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -344,7 +346,7 @@ function MoneyRequestView({
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
-    } = getTransactionDetails(displayTransaction, undefined, undefined, allowNegativeAmount, false) ?? {};
+    } = getTransactionDetails(displayTransaction, undefined, allowNegativeAmount, false) ?? {};
     const transactionAttendees = useAttendees(transaction);
     const isEmptyMerchant = isInvalidMerchantValue(transactionMerchant);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -395,7 +397,7 @@ function MoneyRequestView({
     const baseTransaction = updatedTransaction ?? transaction;
     const {taxCode, taxValue} = baseTransaction ?? {};
 
-    const taxRateTitle = getTaxName(policy, baseTransaction, isExpenseUnreported);
+    const taxRateTitle = getTaxName(translate, policy, baseTransaction, isExpenseUnreported);
     const resolvedTaxCode = taxCode ? resolveCurrentTaxCode(policy, taxCode) : undefined;
     const selectedPolicyTaxValue = resolvedTaxCode ? policy?.taxRates?.taxes?.[resolvedTaxCode]?.value : undefined;
     const hasTaxValueChanged = taxCode && taxValue !== undefined ? selectedPolicyTaxValue !== taxValue : false;
@@ -558,10 +560,11 @@ function MoneyRequestView({
     const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
     const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !policyHasEnabledTags) && !!transactionTag;
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);
+    // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
     const shouldShowReimbursable =
         (isPolicyExpenseChat || (isExpenseUnreported && !!policy)) &&
-        canShowReimbursableToggleForPolicy(policy, updatedTransaction?.reimbursable ?? transactionReimbursable) &&
-        !isManagedCardTransactionTransactionUtils(transaction) &&
+        (isManagedCardTransactionTransactionUtils(transaction) || canShowReimbursableToggleForPolicy(policy, updatedTransaction?.reimbursable ?? transactionReimbursable)) &&
+        isCardTransactionReimbursableEditable(transaction) &&
         !isInvoice;
     const canEditReimbursable =
         isEditable &&
@@ -1846,6 +1849,18 @@ function MoneyRequestView({
                             isTitleSelectable={!!reportCopyValue}
                         />
                     </OfflineWithFeedback>
+                )}
+                {!!parentReport && isExpenseReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction && (
+                    <MoneyRequestViewAdditionalFields
+                        transaction={transaction}
+                        report={parentReport}
+                        reportActions={parentReportActions}
+                        policy={policy}
+                        policyCategories={policyCategories}
+                        policyTags={reportPolicyTags}
+                        visibleAttendeeCount={shouldShowAttendees ? transactionAttendees.length : 0}
+                        isVendorColumnAvailable={hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))}
+                    />
                 )}
                 {shouldShowTripRoomLink && (
                     <>

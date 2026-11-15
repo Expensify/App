@@ -67,6 +67,7 @@ function useVendorBulkActionOptions({policyID, selectedVendorKeys, policyVendors
             icon: icons.Checkmark,
             text: translate(disabledVendors.length === 1 ? 'workspace.vendors.enableVendor' : 'workspace.vendors.enableVendors'),
             value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.VENDORS.BULK_ACTIONS.ENABLE,
             onSelected: () => {
                 onClearSelection();
                 setPolicyVendorsEnabled({
@@ -87,6 +88,7 @@ function useVendorBulkActionOptions({policyID, selectedVendorKeys, policyVendors
             icon: icons.Close,
             text: translate(vendorsToDisable.length === 1 ? 'workspace.vendors.disableVendor' : 'workspace.vendors.disableVendors'),
             value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.VENDORS.BULK_ACTIONS.DISABLE,
             onSelected: () => {
                 onClearSelection();
                 setPolicyVendorsEnabled({

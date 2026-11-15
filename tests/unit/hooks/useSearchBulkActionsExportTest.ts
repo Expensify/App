@@ -3,7 +3,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
-import useSearchBulkActions from '@hooks/useSearchBulkActions';
+import useSearchBulkActions, {getTemplateGroupExportQuery} from '@hooks/useSearchBulkActions';
 
 import {markAsManuallyExported} from '@libs/actions/Report';
 import {
@@ -16,6 +16,7 @@ import {
 } from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
+import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getSelectedGroupFilterEntry} from '@libs/SearchUIUtils';
 import type * as SearchUIUtilsModule from '@libs/SearchUIUtils';
 
@@ -1544,7 +1545,7 @@ describe('useSearchBulkActions - export options', () => {
         const searchResults = makeSearchResults([]);
         Object.assign(searchResults.data, {[`${CONST.SEARCH.GROUP_PREFIX}category`]: {category: 'Travel'}});
         mockCurrentSearchResults = searchResults;
-        jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Travel'});
+        jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Travel'});
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
@@ -1586,7 +1587,7 @@ describe('useSearchBulkActions - export options', () => {
     });
 
     it('keeps only current-view exports for a group selection on a time-based grouping', async () => {
-        // Given a group selected on a search grouped by month, which has no filter a selected group can be turned into
+        // Given a group selected on a search grouped by month, whose groups are scoped only through the `filters` AST, which a template export would drop
         mockSelectedTransactions = {
             [`${CONST.SEARCH.GROUP_PREFIX}2026-10`]: makeSelectedTransaction(),
         };
@@ -1602,6 +1603,257 @@ describe('useSearchBulkActions - export options', () => {
         // Then no template is offered, because the template export could not scope the group and would only show the download error
         await waitFor(() => {
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.currentViewGroupsOnly']);
+        });
+    });
+
+    it('exports the selected group when the search is already filtered to that group', async () => {
+        // Given a search filtered to Food and grouped by category, built from a normalized query like the filter bar does,
+        // so adding the group's filter rebuilds the same string and the query cache returns the same object
+        const queryJSON = buildSearchQueryJSON(buildSearchQueryString(buildSearchQueryJSON('type:expense category:Food groupBy:category')));
+        if (!queryJSON) {
+            throw new Error('Expected the category query to parse');
+        }
+
+        // Given the Food group ticked through its header
+        const FOOD_GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}Food`;
+        mockSelectedTransactions = {[FOOD_GROUP_KEY]: makeSelectedTransaction()};
+        const searchResults = makeSearchResults([]);
+        Object.assign(searchResults.data, {[FOOD_GROUP_KEY]: {category: 'Food'}});
+        mockCurrentSearchResults = searchResults;
+        jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Food'});
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        // When the user exports the current view
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        // Then the Food group is exported instead of showing the download error, because the query is already scoped to it
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+        const {isGroupExport, transactionIDList, query} = getLastCSVExportParameters();
+        expect(isGroupExport).toBe(true);
+        expect(transactionIDList).toEqual([]);
+        expect(JSON.stringify(query)).toContain('Food');
+        expect(mockShowDecisionModal).not.toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle'}));
+    });
+
+    // Regression tests for https://github.com/Expensify/App/issues/104843: a selected date group added no filter to the
+    // Current view export while its row IDs were dropped, so the export fell back to the whole search and included unselected groups.
+    describe('Current view on a time-based grouping', () => {
+        const AUGUST_GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}2026_8`;
+        const SEPTEMBER_GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}2026_9`;
+        const OCTOBER_GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}2026_10`;
+
+        const monthGroupedExpenseQueryJSON: SearchQueryJSON = {
+            ...groupedExpenseQueryJSON,
+            inputQuery: `type:expense groupBy:${CONST.SEARCH.GROUP_BY.MONTH}`,
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        };
+
+        /** The month group rows as they arrive in the search snapshot, which the selected groups' date ranges are derived from. */
+        function mockMonthGroupsInSnapshot() {
+            const searchResults = makeSearchResults([]);
+            Object.assign(searchResults.data, {
+                [AUGUST_GROUP_KEY]: {year: 2026, month: 8},
+                [SEPTEMBER_GROUP_KEY]: {year: 2026, month: 9},
+                [OCTOBER_GROUP_KEY]: {year: 2026, month: 10},
+            });
+            mockCurrentSearchResults = searchResults;
+        }
+
+        function getDateRangeNode(start: string, end: string) {
+            return {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: start},
+                right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: end},
+            };
+        }
+
+        function getOutsideDateRangeNode(start: string, end: string) {
+            return {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+                left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: start},
+                right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: end},
+            };
+        }
+
+        async function runCurrentViewExport() {
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: monthGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+            });
+
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+        }
+
+        beforeEach(() => {
+            // The real filter entry, so the group-to-date-range mapping is exercised rather than stubbed
+            jest.mocked(getSelectedGroupFilterEntry).mockImplementation(jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils').getSelectedGroupFilterEntry);
+        });
+
+        afterEach(() => {
+            jest.mocked(getSelectedGroupFilterEntry).mockReset();
+        });
+
+        it('exports only the selected month instead of every month in the search', async () => {
+            // Given September ticked on a search grouped by month, with August and October left unselected
+            mockMonthGroupsInSnapshot();
+            mockSelectedTransactions = {[SEPTEMBER_GROUP_KEY]: makeSelectedTransaction()};
+
+            // When the user exports the current view
+            await runCurrentViewExport();
+
+            await waitFor(() => {
+                expect(exportSearchItemsToCSV).toHaveBeenCalled();
+            });
+            const {isGroupExport, transactionIDList, query} = getLastCSVExportParameters();
+
+            // Then the group is scoped by September's dates ANDed with the search's own filters, because no row IDs are sent
+            // for it and an unscoped query would export every month
+            expect(isGroupExport).toBe(true);
+            expect(transactionIDList).toEqual([]);
+            expect(query).toHaveProperty('filters', {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: monthGroupedExpenseQueryJSON.filters,
+                right: getDateRangeNode('2026-09-01', '2026-09-30'),
+            });
+        });
+
+        it('exports two months with an unselected month between them, which the query text cannot express', async () => {
+            // Given August and October ticked with September between them left unselected, so no single date range covers the selection
+            mockMonthGroupsInSnapshot();
+            mockSelectedTransactions = {
+                [AUGUST_GROUP_KEY]: makeSelectedTransaction(),
+                [OCTOBER_GROUP_KEY]: makeSelectedTransaction(),
+            };
+
+            // When the user exports the current view
+            await runCurrentViewExport();
+
+            await waitFor(() => {
+                expect(exportSearchItemsToCSV).toHaveBeenCalled();
+            });
+            const {query} = getLastCSVExportParameters();
+
+            // Then the two months are ORed in the filters AST, because the query text can only AND date bounds and the
+            // export backend filters on the AST, so September stays out of the export
+            expect(query).toHaveProperty('filters', {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: monthGroupedExpenseQueryJSON.filters,
+                right: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+                    left: getDateRangeNode('2026-08-01', '2026-08-31'),
+                    right: getDateRangeNode('2026-10-01', '2026-10-31'),
+                },
+            });
+        });
+
+        it('shows the download error instead of exporting every month when the selected month is missing from the snapshot', async () => {
+            // Given September ticked while the snapshot has no row for it, so no date range can be built for the group
+            mockCurrentSearchResults = makeSearchResults([]);
+            mockSelectedTransactions = {[SEPTEMBER_GROUP_KEY]: makeSelectedTransaction()};
+
+            // When the user exports the current view
+            await runCurrentViewExport();
+
+            // Then nothing is exported, because the unscoped query would export every month in the search
+            await waitFor(() => {
+                expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedDescription'}));
+            });
+            expect(exportSearchItemsToCSV).not.toHaveBeenCalled();
+        });
+
+        it('shows the download error instead of dropping a selected month that is missing from the snapshot', async () => {
+            // Given August and September ticked while the snapshot only has a row for August
+            const searchResults = makeSearchResults([]);
+            Object.assign(searchResults.data, {[AUGUST_GROUP_KEY]: {year: 2026, month: 8}});
+            mockCurrentSearchResults = searchResults;
+            mockSelectedTransactions = {
+                [AUGUST_GROUP_KEY]: makeSelectedTransaction(),
+                [SEPTEMBER_GROUP_KEY]: makeSelectedTransaction(),
+            };
+
+            // When the user exports the current view
+            await runCurrentViewExport();
+
+            // Then nothing is exported, because exporting only August would leave September out without telling the user
+            await waitFor(() => {
+                expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedDescription'}));
+            });
+            expect(exportSearchItemsToCSV).not.toHaveBeenCalled();
+        });
+
+        it('leaves a deselected month out when all matching items are selected', async () => {
+            // Given every matching item selected with September deselected afterwards, so September is an excluded group
+            mockMonthGroupsInSnapshot();
+            mockAreAllMatchingItemsSelected = true;
+            mockSelectedTransactions = {
+                [AUGUST_GROUP_KEY]: makeSelectedTransaction(),
+                [OCTOBER_GROUP_KEY]: makeSelectedTransaction(),
+            };
+            mockExcludedTransactions = {[SEPTEMBER_GROUP_KEY]: makeSelectedTransaction()};
+
+            // When the user exports the current view
+            await runCurrentViewExport();
+
+            // Then the queued query keeps only dates outside September, ANDed in the filters AST because flatFilters can't express the OR
+            await waitFor(() => {
+                expect(queueExportSearchItemsToCSV).toHaveBeenCalled();
+            });
+            const query: unknown = JSON.parse(jest.mocked(queueExportSearchItemsToCSV).mock.calls.at(-1)?.at(0)?.jsonQuery ?? '{}');
+            expect(query).toHaveProperty('filters', {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: monthGroupedExpenseQueryJSON.filters,
+                right: getOutsideDateRangeNode('2026-09-01', '2026-09-30'),
+            });
+        });
+
+        it('leaves every deselected month out when all matching items are selected', async () => {
+            // Given every matching item selected with August and October deselected afterwards
+            mockMonthGroupsInSnapshot();
+            mockAreAllMatchingItemsSelected = true;
+            mockSelectedTransactions = {[SEPTEMBER_GROUP_KEY]: makeSelectedTransaction()};
+            mockExcludedTransactions = {
+                [AUGUST_GROUP_KEY]: makeSelectedTransaction(),
+                [OCTOBER_GROUP_KEY]: makeSelectedTransaction(),
+            };
+
+            // When the user exports the current view
+            await runCurrentViewExport();
+
+            // Then each deselected month adds its own exclusion, so an expense has to be outside both to be exported
+            await waitFor(() => {
+                expect(queueExportSearchItemsToCSV).toHaveBeenCalled();
+            });
+            const query: unknown = JSON.parse(jest.mocked(queueExportSearchItemsToCSV).mock.calls.at(-1)?.at(0)?.jsonQuery ?? '{}');
+            expect(query).toHaveProperty('filters', {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: monthGroupedExpenseQueryJSON.filters,
+                    right: getOutsideDateRangeNode('2026-08-01', '2026-08-31'),
+                },
+                right: getOutsideDateRangeNode('2026-10-01', '2026-10-31'),
+            });
+        });
+
+        it('builds no template export query for a selected month, so the template export cannot widen to every month', () => {
+            // Given September ticked on a search grouped by month, with its row in the snapshot so a date range can be built for it
+            mockMonthGroupsInSnapshot();
+            const selectedTransactions = {[SEPTEMBER_GROUP_KEY]: makeSelectedTransaction()};
+
+            // When the template export query is built, bypassing the menu check that hides templates for time-based groupings
+            const templateQuery = getTemplateGroupExportQuery(monthGroupedExpenseQueryJSON, selectedTransactions, mockCurrentSearchResults?.data);
+
+            // Then there is no query, so the export shows the download error, because the template export rebuilds the query
+            // from its text and would drop September's date scope
+            expect(templateQuery).toBeUndefined();
         });
     });
 
@@ -1733,7 +1985,7 @@ describe('useSearchBulkActions - export options', () => {
             // Given the card group row as it arrives in the search snapshot, which the group's filter entry is derived from
             Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
             mockCurrentSearchResults = searchResults;
-            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
 
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
@@ -1773,7 +2025,7 @@ describe('useSearchBulkActions - export options', () => {
             const searchResults = makeSearchResults([]);
             Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
             mockCurrentSearchResults = searchResults;
-            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
 
             // Given a limit on the grouped search, because it caps the number of card groups and would cap the exported expenses once groupBy is gone
             const limitedCardGroupedQueryJSON: SearchQueryJSON = {...cardGroupedExpenseQueryJSON, inputQuery: `${cardGroupedExpenseQueryJSON.inputQuery} limit:1`, limit: 1};
@@ -1884,7 +2136,7 @@ describe('useSearchBulkActions - export options', () => {
             const searchResults = makeSearchResults([]);
             Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
             mockCurrentSearchResults = searchResults;
-            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
 
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
@@ -1909,6 +2161,94 @@ describe('useSearchBulkActions - export options', () => {
 
             // Then the selected card groups reach the backend as a `cardID:` filter on the query rather than as IDs
             expect(JSON.stringify(query)).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+        });
+
+        // Without the flag the backend drops reported rows whose policy record is missing, so a card group exports incompletely.
+        it('attaches isCardGroupedExport:true to the Reconciliation query for a scoped card-group export', async () => {
+            // Given a ticked card group whose row is in the snapshot so a cardID filter can be built for it.
+            mockTemplatesIncludingReconciliation();
+            selectCardGroup();
+            const searchResults = makeSearchResults([]);
+            Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
+            mockCurrentSearchResults = searchResults;
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')).toBeDefined();
+            });
+
+            // When the Reconciliation export runs on that selection.
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')?.onSelected?.();
+
+            await waitFor(() => {
+                expect(queueExportSearchWithTemplate).toHaveBeenCalled();
+            });
+
+            const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
+            const query: unknown = JSON.parse(parameters?.jsonQuery ?? '{}');
+
+            // Then the flag is attached and the query stays ungrouped and card-scoped.
+            expect(query).toHaveProperty('isCardGroupedExport', true);
+            expect(query).not.toHaveProperty('groupBy');
+            expect(JSON.stringify(query)).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+        });
+
+        // Select-all on a card-grouped search must carry the flag too, otherwise the whole-search export loses the same rows.
+        it('attaches isCardGroupedExport:true to the Reconciliation query for a select-all export on a card-grouped search', async () => {
+            // Given every matching item selected on the Reconciliation search.
+            mockTemplatesIncludingReconciliation();
+            selectCardGroup();
+            mockAreAllMatchingItemsSelected = true;
+            mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.RECONCILIATION;
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')).toBeDefined();
+            });
+
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')?.onSelected?.();
+
+            await waitFor(() => {
+                expect(queueExportSearchWithTemplate).toHaveBeenCalled();
+            });
+
+            const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
+            const query: unknown = JSON.parse(parameters?.jsonQuery ?? '{}');
+
+            // Then the flag is attached and groupBy has been removed.
+            expect(query).toHaveProperty('isCardGroupedExport', true);
+            expect(query).not.toHaveProperty('groupBy');
+        });
+
+        // The flag is specific to card-group eligibility and must not leak to other groupings.
+        it('does not attach isCardGroupedExport for a non-card grouped export (e.g. groupBy:category)', async () => {
+            // Given select-all on a category-grouped search.
+            mockTemplatesIncludingReconciliation();
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+            mockAreAllMatchingItemsSelected = true;
+            mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.RECONCILIATION;
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')).toBeDefined();
+            });
+
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')?.onSelected?.();
+
+            await waitFor(() => {
+                expect(queueExportSearchWithTemplate).toHaveBeenCalled();
+            });
+
+            const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
+            const query: unknown = JSON.parse(parameters?.jsonQuery ?? '{}');
+
+            // Then the flag is absent.
+            expect(query).not.toHaveProperty('isCardGroupedExport');
+            expect(query).not.toHaveProperty('groupBy');
         });
     });
 

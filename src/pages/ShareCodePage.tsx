@@ -145,8 +145,15 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                 .join(' & ');
         } else {
             subtitle =
-                getParentNavigationSubtitle(report, policy, invoiceReceiverPolicy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived)
-                    .workspaceName ?? getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
+                getParentNavigationSubtitle({
+                    report,
+                    policy,
+                    invoiceReceiverPolicy,
+                    translate,
+                    formatPhoneNumber,
+                    parentReportName: derivedParentReportName,
+                    isParentReportArchived,
+                }).workspaceName ?? getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
         }
     } else {
         subtitle = currentUserPersonalDetails.login;
@@ -196,7 +203,10 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                 }}
                 shouldShowBackButton
             />
-            <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
+            <ScrollView
+                style={[themeStyles.flex1, themeStyles.pt3]}
+                contentContainerStyle={themeStyles.pb5}
+            >
                 <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph5]}>
                     <QRShareWithDownload
                         ref={qrCodeRef}
