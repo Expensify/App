@@ -3251,6 +3251,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 currentUserLocalCurrency: CONST.CURRENCY.USD,
                 isASAPSubmitBetaEnabled: false,
                 isSelfTourViewed: false,
+                defaultWorkspaceName: 'Test Workspace',
                 conciergeChat: undefined,
                 chatReportActions,
                 delegateAccountID: undefined,
@@ -3271,6 +3272,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Given an archived individual invoice room and an active B2B invoice room that holds an unpaid sibling invoice
             const receiverPolicy: Policy = {
                 ...createRandomPolicy(905),
+                type: CONST.POLICY.TYPE.TEAM,
                 role: CONST.POLICY.ROLE.ADMIN,
             };
             const individualInvoiceChat: Report = {
@@ -3329,6 +3331,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 activePolicy: receiverPolicy,
                 isASAPSubmitBetaEnabled: false,
                 isSelfTourViewed: false,
+                defaultWorkspaceName: 'Test Workspace',
                 conciergeChat: undefined,
                 chatReportActions: b2bChatActions,
                 delegateAccountID: undefined,
