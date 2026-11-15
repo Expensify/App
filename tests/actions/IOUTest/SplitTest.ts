@@ -11827,6 +11827,33 @@ describe('planDistanceRequest and commitDistanceRequest', () => {
         }
     });
 
+    it('waits for the commit to highlight the new expense and flag the "Expense added" message', async () => {
+        // Given a global-create distance request for an expense report that already has one expense, which takes both the highlight and the message branches
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        const existingTransaction = {...createRandomTransaction(1), transactionID: 'existing-txn-plan-effects', reportID: '123'};
+        const distanceRequestInformation = {
+            ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1, isFromGlobalCreate: true}, recentWaypoints),
+            moneyRequestReportTransactions: [existingTransaction],
+            participants: [],
+        };
+
+        // When it is only planned
+        const plan = planDistanceRequest(distanceRequestInformation);
+        await waitForBatchedUpdates();
+
+        // Then neither is written yet, so a caller that plans without committing leaves no trace
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}123`))?.pendingNewTransactionIDs?.[plan.transactionID]).toBeUndefined();
+        expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS))?.[plan.transactionID]).toBeUndefined();
+
+        // When the plan is committed
+        commitDistanceRequest(plan);
+        await waitForBatchedUpdates();
+
+        // Then the new expense is highlighted and flagged for the message
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}123`))?.pendingNewTransactionIDs?.[plan.transactionID]).toBe(true);
+        expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS))?.[plan.transactionID]).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+    });
+
     it('parses the comment into the plan without changing the information it was given', async () => {
         // Given distance request information whose comment has markdown in it
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
@@ -11841,15 +11868,19 @@ describe('planDistanceRequest and commitDistanceRequest', () => {
     });
 
     it('does not trigger notifyNewAction when creating distance request in an expense report', async () => {
+        // Given a distance request for an expense report
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
         jest.mocked(notifyNewAction).mockClear();
 
+        // When it is planned and committed, and the write has started
         planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
             participants: [],
             delegateAccountID: undefined,
         });
+        await waitForBatchedUpdates();
 
+        // Then no new-action notification goes out. It would only fire once the write starts, so checking before that would pass either way.
         expect(notifyNewAction).toHaveBeenCalledTimes(0);
     });
 

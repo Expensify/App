@@ -163,8 +163,10 @@ describe('actions/IOU/createExpenseByType', () => {
     }
 
     function getLastDistanceRequestParams() {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const [distanceParams] = (Split.planDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.planDistanceRequest>[0]];
+        const distanceParams = jest.mocked(Split.planDistanceRequest).mock.calls.at(0)?.at(0);
+        if (!distanceParams) {
+            throw new Error('planDistanceRequest was not called');
+        }
         return distanceParams;
     }
 
