@@ -84,7 +84,8 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     const nestedParentParams = parentRoute.params && 'params' in parentRoute.params ? parentRoute.params.params : undefined;
     const getParentScreenParams = (screen: string) => {
         const paramNames = getParamsFromRoute(screen, !isNarrowLayout);
-        return {...pick(nestedParentParams, paramNames), ...pick(parentRoute.params, paramNames)};
+        // Nested navigation params can target a newer scope than the sibling params retained by a parent merge.
+        return {...pick(parentRoute.params, paramNames), ...pick(nestedParentParams, paramNames)};
     };
 
     // StackRouter creates the initial sidebar even when its params were lost along with the nested state.

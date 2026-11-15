@@ -104,6 +104,32 @@ describe('SplitRouter', () => {
                 );
             });
 
+            it('prefers nested scope over stale sibling scope when restoring initial panes', () => {
+                // Given a merged parent that retains an older scope beside the current nested navigation params
+                const scopedRouter = SplitRouter({
+                    sidebarScreen: sidebar,
+                    defaultCentralScreen: central,
+                    parentRoute: {
+                        key: `${navigator}-merged-parent`,
+                        name: navigator,
+                        params: {policyID: 'old-workspace', domainAccountID: 67890, screen: central, params: scope},
+                    },
+                });
+
+                // When reopening the link initializes panes without saved child state
+                const result = scopedRouter.getInitialState(config);
+
+                // Then neither visible pane switches back to the stale workspace or domain
+                expect(result.routes.map((route) => ({name: route.name, params: route.params}))).toEqual(
+                    isNarrowLayout
+                        ? [{name: sidebar, params: scope}]
+                        : [
+                              {name: sidebar, params: scope},
+                              {name: central, params: scope},
+                          ],
+                );
+            });
+
             it('backfills an existing sidebar with empty params during rehydration', () => {
                 // Given a sidebar that survived without its identifying params
                 const scopedRouter = SplitRouter({
