@@ -7,12 +7,13 @@ import type {MenuItemIconProps} from './base/BaseMenuItemIcon';
 import BaseMenuItemIcon from './base/BaseMenuItemIcon';
 
 /** An icon glyph that takes only its own width */
-function MenuItemIconNarrow({src}: MenuItemIconProps) {
+function MenuItemIconNarrow({src, isLoading}: MenuItemIconProps) {
     const styles = useThemeStyles();
 
     return (
         <BaseMenuItemIcon
             src={src}
+            isLoading={isLoading}
             style={[styles.popoverMenuIcon, styles.wAuto]}
         />
     );
