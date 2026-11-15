@@ -537,7 +537,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         sentryLabel={shouldShowLeave ? CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_LEAVE_WORKSPACE : CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_REMOVE}
                                     >
                                         <Button.Icon src={shouldShowLeave ? icons.Exit : icons.RemoveMembers} />
-                                        <Button.Text>{translate(shouldShowLeave ? 'common.leave' : 'workspace.people.removeWorkspaceMemberButtonTitle')}</Button.Text>
+                                        <Button.Text>{translate(shouldShowLeave ? 'common.leaveWorkspace' : 'workspace.people.removeWorkspaceMemberButtonTitle')}</Button.Text>
                                     </Button>
                                 )}
                                 {shouldShowMessageButton && (

@@ -212,11 +212,11 @@ describe('WorkspaceMemberDetailsPage', () => {
             // Given the signed-in nonowner Editor's own details
             const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
             await waitForBatchedUpdatesWithAct();
-            expect(await screen.findByText(TestHelper.translateLocal('common.leave'))).not.toBeDisabled();
+            expect(await screen.findByText(TestHelper.translateLocal('common.leaveWorkspace'))).not.toBeDisabled();
             expect(screen.queryByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle'))).not.toBeOnTheScreen();
 
             // When the Editor presses Leave
-            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.leave')));
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.leaveWorkspace')));
             await waitForBatchedUpdatesWithAct();
 
             // Then the button uses the shared departure flow, never member removal
@@ -238,7 +238,7 @@ describe('WorkspaceMemberDetailsPage', () => {
             // When self details are opened
             const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
             await waitForBatchedUpdatesWithAct();
-            const leaveButton = screen.getByText(TestHelper.translateLocal('common.leave'));
+            const leaveButton = screen.getByText(TestHelper.translateLocal('common.leaveWorkspace'));
 
             // Then Leave stays visible but disabled and cannot start the flow
             expect(leaveButton).toBeDisabled();
@@ -260,7 +260,7 @@ describe('WorkspaceMemberDetailsPage', () => {
             await waitForBatchedUpdatesWithAct();
 
             // When the admin removes that member
-            expect(screen.queryByText(TestHelper.translateLocal('common.leave'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('common.leaveWorkspace'))).not.toBeOnTheScreen();
             fireEvent.press(await screen.findByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle')));
             await waitForBatchedUpdatesWithAct();
 
