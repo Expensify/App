@@ -1,6 +1,6 @@
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import usePrevious from '@hooks/usePrevious';
-import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
+import {useMentionedReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 
 import Parser from '@libs/Parser';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
@@ -30,8 +30,10 @@ function useDraftMessageVideoAttributeCache({
     isEditInProgressRef,
 }: UseDraftMessageVideoAttributeCacheProps): DraftMessageVideoAttributeCache {
     const prevDraftMessage = usePrevious(draftMessage);
-    const accountIDToName = useAccountIDToNameMap();
-    const reportIDToName = useReportIDToNameMap();
+    // Only the names the edited message mentions are needed, and only while editing
+    const editingReportActionHtml = isEditing ? getReportActionHtml(editingReportAction) : undefined;
+    const accountIDToName = useMentionedAccountIDToNameMap(editingReportActionHtml);
+    const reportIDToName = useMentionedReportIDToNameMap(editingReportActionHtml);
 
     useEffect(() => {
         if (!isEditing) {

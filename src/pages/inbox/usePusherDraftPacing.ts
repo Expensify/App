@@ -1,5 +1,5 @@
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import {getReportChannelName} from '@libs/actions/Report';
 import {ACCELERATED_REMAINING_MS, easeOut, getRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
@@ -12,7 +12,7 @@ import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
 
 import type {Dispatch, SetStateAction} from 'react';
 
@@ -44,7 +44,7 @@ type PusherDraftPaceRefs = {
 };
 
 type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
-    accountIDToNameRef: MutableRef<Record<string, string>>;
+    personalDetailsListRef: MutableRef<PersonalDetailsList | undefined>;
     completedReportActionIDsRef: MutableRef<Set<string>>;
     currentDraftRef: MutableRef<ConciergeDraft | null>;
     isGroupPolicyReport: boolean;
@@ -227,7 +227,7 @@ function publishVisibleEvent(
     status?: ConciergeDraftEvent['status'],
     finalRenderedHTML?: string,
 ) {
-    const {accountIDToNameRef, isGroupPolicyReport, reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
+    const {personalDetailsListRef, isGroupPolicyReport, reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
 
     if (visibleMarkdown) {
         visibleBodyMarkdownRef.current = visibleMarkdown.bodyMarkdown;
@@ -247,7 +247,7 @@ function publishVisibleEvent(
         status: visibleStatus,
     };
     setDraft((currentDraft) => {
-        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport, accountIDToNameRef.current);
+        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport, personalDetailsListRef.current);
         return cacheDraftWithPusherPaceState(runtime, next);
     });
 }
@@ -931,18 +931,18 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
     const finalRenderedHTMLRevealTokensRef = useRef<string[]>([]);
     const finalRenderedHTMLRevealStartedAtRef = useRef(0);
     const finalRenderedHTMLRevealLastStageRef = useRef(0);
-    const accountIDToName = useAccountIDToNameMap();
-    const accountIDToNameRef = useRef(accountIDToName);
+    const [personalDetailsList] = useAllPersonalDetails();
+    const personalDetailsListRef = useRef(personalDetailsList);
     useEffect(() => {
-        accountIDToNameRef.current = accountIDToName;
-    }, [accountIDToName]);
+        personalDetailsListRef.current = personalDetailsList;
+    }, [personalDetailsList]);
     const [pendingLocalReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, {
         selector: (pendingResponse) => pendingResponse?.reportAction.reportActionID,
     });
 
     const clearDraft = () => {
         clearCachedPusherDraft({
-            accountIDToNameRef,
+            personalDetailsListRef,
             completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,
@@ -984,7 +984,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             visibleSourceOffsetRef,
         });
         setDraft((currentDraft) => {
-            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport, accountIDToNameRef.current);
+            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport, personalDetailsListRef.current);
             currentDraftRef.current = next;
             setCachedDraft(reportID, next);
             return next;
@@ -1020,7 +1020,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
         const sequence = Math.max(currentDraft.sequence, latestPusherDraftEvent?.sequence ?? 0, visibleSequenceRef.current) + 1;
         startFinalRenderedHTMLReveal(
             {
-                accountIDToNameRef,
+                personalDetailsListRef,
                 completedReportActionIDsRef,
                 completedPusherDraftEventRef,
                 currentDraftRef,
@@ -1058,7 +1058,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
 
     useEffect(() => {
         const runtime = {
-            accountIDToNameRef,
+            personalDetailsListRef,
             completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,

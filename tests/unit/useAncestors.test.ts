@@ -102,6 +102,110 @@ describe('useAncestors', () => {
         }
     });
 
+    test('does not re-render when a report or action outside the ancestor chain changes', async () => {
+        // Given report 3, whose ancestors are reports 1 and 2, and the rest of the mocked chain
+        await act(async () => {
+            await Onyx.multiSet(createMock<OnyxMultiSetInput>({...mockReports, ...mockReportActions}));
+        });
+        let renderCount = 0;
+        const {result} = renderHook(() => {
+            renderCount++;
+            return useAncestors(mockReports[`${ONYXKEYS.COLLECTION.REPORT}3`]);
+        });
+        await waitForBatchedUpdates();
+        const renderCountBefore = renderCount;
+
+        // When report 5, which is below report 3 and not its ancestor, gets a read time and a new action
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}5`, {lastReadTime: DateUtils.getDBTime()});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}5`, {
+                new: {reportActionID: 'new', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: DateUtils.getDBTime()},
+            });
+        });
+
+        // Then the selectors keep the chain unchanged, so the caller does not re-render
+        expect(renderCount).toBe(renderCountBefore);
+
+        // When an ancestor report changes
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportName: 'Renamed'});
+        });
+
+        // Then the caller re-renders with the new ancestor
+        expect(renderCount).toBeGreaterThan(renderCountBefore);
+        expect(result.current.at(0)?.report.reportName).toBe('Renamed');
+    });
+
+    test('follows the chain through a parent that only exists as a report draft', async () => {
+        // Given a report whose parent is a draft, and the draft's parent is a saved report
+        const rootAction: ReportAction = {reportActionID: 'rootAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: DateUtils.getDBTime()};
+        const draftAction: ReportAction = {reportActionID: 'draftAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: DateUtils.getDBTime()};
+        const rootReport: Report = {reportID: 'root'};
+        const draftReport: Report = {reportID: 'draft', parentReportID: 'root', parentReportActionID: 'rootAction'};
+        const childReport: Report = {reportID: 'child', parentReportID: 'draft', parentReportActionID: 'draftAction'};
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}root`, rootReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}draft`, draftReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}root`, {rootAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}draft`, {draftAction});
+        });
+
+        // When the ancestors of the child report are read
+        const {result} = renderHook(() => useAncestors(childReport));
+        await waitForBatchedUpdates();
+
+        // Then both the draft parent and the saved root are returned, top-most first
+        expect(result.current.map(({report, reportAction}) => [report.reportID, reportAction.reportActionID])).toEqual([
+            ['root', 'rootAction'],
+            ['draft', 'draftAction'],
+        ]);
+    });
+
+    test('stops at a malformed parent cycle without listing the report as its own ancestor', async () => {
+        // Given a report and its parent that point at each other, as corrupt data could
+        const childReport: Report = {reportID: 'cycleChild', parentReportID: 'cycleParent', parentReportActionID: 'parentAction'};
+        const parentReport: Report = {reportID: 'cycleParent', parentReportID: 'cycleChild', parentReportActionID: 'childAction'};
+        const parentAction: ReportAction = {reportActionID: 'parentAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: DateUtils.getDBTime()};
+        const childAction: ReportAction = {reportActionID: 'childAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: DateUtils.getDBTime()};
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}cycleChild`, childReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}cycleParent`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}cycleParent`, {parentAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}cycleChild`, {childAction});
+        });
+
+        // When the ancestors of the child report are read
+        const {result} = renderHook(() => useAncestors(childReport));
+        await waitForBatchedUpdates();
+
+        // Then only the parent is returned, so the walk ends instead of looping back to the child
+        expect(result.current.map(({report}) => report.reportID)).toEqual(['cycleParent']);
+    });
+
+    test('updates the new marker when the action before the ancestor changes', async () => {
+        // Given an unread parent action whose previous action is unread too, so the parent is not the first unread one
+        const parentReport: Report = {reportID: 'markerParent', lastReadTime: '2026-01-01 00:00:01.000'};
+        const childReport: Report = {reportID: 'markerChild', parentReportID: 'markerParent', parentReportActionID: 'parentAction'};
+        const readAction: ReportAction = {reportActionID: 'readAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-01-01 00:00:00.500'};
+        const previousAction: ReportAction = {reportActionID: 'previousAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-01-01 00:00:02.000'};
+        const parentAction: ReportAction = {reportActionID: 'parentAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-01-01 00:00:03.000'};
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}markerParent`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}markerParent`, {readAction, previousAction, parentAction});
+        });
+        const {result} = renderHook(() => useAncestors(childReport));
+        await waitForBatchedUpdates();
+        expect(result.current.at(0)?.shouldDisplayNewMarker).toBe(false);
+
+        // When the previous action is removed, so the parent becomes the first unread action
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}markerParent`, {previousAction: null});
+        });
+
+        // Then the ancestor shows the new marker without waiting for another write to the parent report
+        expect(result.current.at(0)?.shouldDisplayNewMarker).toBe(true);
+    });
+
     test('if no ancestor reports', () => {
         const mockReport = mockReports[`${ONYXKEYS.COLLECTION.REPORT}1`]; // First report, should have no ancestors
         const {
