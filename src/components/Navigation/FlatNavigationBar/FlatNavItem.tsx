@@ -52,7 +52,7 @@ type FlatNavItemProps = {
     onPress: () => void;
 
     /** Route of the destination, so the row can be opened in a new browser tab */
-    linkRoute: Route;
+    linkRoute?: Route;
 
     /** Called when the pointer moves onto the row */
     onHoverIn?: () => void;

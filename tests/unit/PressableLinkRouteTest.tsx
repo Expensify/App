@@ -67,6 +67,15 @@ describe('Pressable with linkRoute', () => {
         expect(onPress).not.toHaveBeenCalled();
     });
 
+    it('renders no href when disabled', () => {
+        // Given a disabled pressable linking to the settings route
+        // When it renders
+        renderLinkPressable(jest.fn(), true);
+
+        // Then there is no href, so the browser context menu cannot open the route in a new tab
+        expect(screen.getByTestId(TEST_ID).props.href).toBeUndefined();
+    });
+
     it('does not follow the href when disabled', () => {
         // Given a disabled pressable linking to the settings route
         const onPress = jest.fn();

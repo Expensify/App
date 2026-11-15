@@ -236,7 +236,7 @@ function GenericPressable({
             onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
             fsClass={forwardedFSClass}
-            href={linkRoute && !fullDisabled ? `/${linkRoute}` : undefined}
+            href={linkRoute && !isDisabled && !fullDisabled ? `/${linkRoute}` : undefined}
             {...rest}
             onHoverOut={(event) => {
                 if (event?.type === 'pointerenter' || event?.type === 'mouseenter') {

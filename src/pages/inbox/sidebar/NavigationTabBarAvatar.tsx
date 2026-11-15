@@ -1,6 +1,7 @@
 import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
 import getTabAccessibilityLabel from '@components/Navigation/NavigationTabBar/getTabAccessibilityLabel';
 import TabBarLabel from '@components/Navigation/NavigationTabBar/TabBarLabel';
+import useSignedInLinkRoute from '@components/Navigation/NavigationTabBar/useSignedInLinkRoute';
 import {PressableWithFeedback} from '@components/Pressable';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
@@ -33,11 +34,12 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     const {status} = useAccountTabIndicatorStatus();
 
     const accountAccessibilityState = {selected: isSelected};
+    const accountLinkRoute = useSignedInLinkRoute(ROUTES.SETTINGS);
 
     return (
         <PressableWithFeedback
             onPress={onPress}
-            linkRoute={ROUTES.SETTINGS}
+            linkRoute={accountLinkRoute}
             accessibilityLabel={getTabAccessibilityLabel(`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}`, !!status, translate)}
             role={CONST.ROLE.TAB}
             wrapperStyle={shouldUseNarrowLayout ? styles.navigationTabBarSlot : styles.flex1}

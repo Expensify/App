@@ -14,6 +14,7 @@ import {DEFAULT_INSIGHTS_TAB_ROUTE} from './getInsightsTabRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 import useInsightsTabNavigation from './useInsightsTabNavigation';
+import useSignedInLinkRoute from './useSignedInLinkRoute';
 
 type InsightsTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -26,12 +27,13 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['PieChart']);
     const isSelected = selectedTab === NAVIGATION_TABS.INSIGHTS;
     const navigateToInsights = useInsightsTabNavigation(isSelected);
+    const insightsLinkRoute = useSignedInLinkRoute(DEFAULT_INSIGHTS_TAB_ROUTE);
 
     if (isWideLayout) {
         return (
             <PressableWithFeedback
                 onPress={navigateToInsights}
-                linkRoute={DEFAULT_INSIGHTS_TAB_ROUTE}
+                linkRoute={insightsLinkRoute}
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.insights')}
                 accessibilityState={{selected: isSelected}}
@@ -53,7 +55,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
     return (
         <PressableWithFeedback
             onPress={navigateToInsights}
-            linkRoute={DEFAULT_INSIGHTS_TAB_ROUTE}
+            linkRoute={insightsLinkRoute}
             role={CONST.ROLE.TAB}
             accessibilityLabel={translate('common.insights')}
             accessibilityState={{selected: isSelected}}
