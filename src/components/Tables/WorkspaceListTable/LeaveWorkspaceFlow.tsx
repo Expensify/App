@@ -30,7 +30,7 @@ type LeaveWorkspaceFlowProps = {
 };
 
 /**
- * Self-contained "leave workspace" flow, mounted only after the user picks Leave in the row menu.
+ * Self-contained "leave workspace" flow, mounted after the user selects Leave workspace from the workspace list, Members, or member details.
  * The full policy entry needed to build the confirmation prompt is subscribed to only for the
  * lifetime of the flow, so the workspaces list rows don't re-render on every policy change.
  */
