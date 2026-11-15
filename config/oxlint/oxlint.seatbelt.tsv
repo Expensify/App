@@ -343,14 +343,11 @@
 "../../src/components/Search/FilterComponents/CardSelector.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/components/Search/FilterComponents/DateFilterBase.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterComponents/DateFilterBase.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/Search/FilterComponents/DatePresetFilterBase.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	2
 "../../src/components/Search/FilterComponents/RangeDatePicker.tsx"	"react-hooks/purity"	2
-"../../src/components/Search/FilterComponents/ReportField/index.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/Search/FilterComponents/ReportField/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/FilterComponents/ReportField/index.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterComponents/SingleSelect.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/FilterComponents/TypeSelector.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Search/FilterDropdowns/AmountPopup.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/Search/FilterDropdowns/BasePopup.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterDropdowns/DateSelectPopup/SelectedDateModifierHeader.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterDropdowns/SortByPopup.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1146,7 +1143,6 @@
 "../../src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveOverdueInvoice.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/home/TimeSensitiveSection/items/FixCompanyCardConnection.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/home/TimeSensitiveSection/items/FixCompanyCardConnection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/home/UpcomingTravelSection/UpcomingTravelItem.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/home/UpcomingTravelSection/useUpcomingTravelReservations.ts"	"react-hooks/purity"	1
 "../../src/pages/home/YourSpendSection/CardRow.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/home/YourSpendSection/useYourSpendData.ts"	"no-restricted-imports"	1
@@ -1832,7 +1828,6 @@
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardsSettingsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardsSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDatePage.tsx"	"rulesdir/no-onyx-loading-status"	2
-"../../src/pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDateSelectionList/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDateSelectionList/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"react-hooks/set-state-in-effect"	1

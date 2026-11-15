@@ -8,6 +8,8 @@ type MenuItemConfig = {
     /** Whether the row responds to interactions */
     isInteractive: boolean;
 
+    isCompact: boolean;
+
     /** Whether the row opts into browser selection of explicitly marked values */
     shouldAllowTextSelection: boolean;
 };
@@ -24,6 +26,7 @@ type MenuItemInteraction = {
 const DEFAULT_CONFIG: MenuItemConfig = {
     isDisabled: false,
     isInteractive: false,
+    isCompact: false,
     shouldAllowTextSelection: false,
 };
 

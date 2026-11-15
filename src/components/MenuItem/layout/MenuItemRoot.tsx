@@ -40,6 +40,9 @@ type MenuItemRootProps = PropsWithChildren &
 
         isDisabled?: boolean;
 
+        /** Uses legacy compact row sizing, independently of compact popover styling. Defaults to false. */
+        isCompact?: boolean;
+
         /**
          * Pre-computed accessibility label. When provided, `Root` uses it instead of deriving the label
          * from the text leaves. Announcements such as "opens in a new tab" are still appended.
@@ -73,6 +76,7 @@ function MenuItemRoot({
     children,
     onPress,
     isDisabled = false,
+    isCompact = false,
     sentryLabel,
     testID,
     accessibilityLabel,
@@ -136,7 +140,7 @@ function MenuItemRoot({
         : undefined;
 
     return (
-        <MenuItemConfigContext.Provider value={{isDisabled, isInteractive, shouldAllowTextSelection: shouldEnableTextSelection}}>
+        <MenuItemConfigContext.Provider value={{isDisabled, isInteractive, isCompact, shouldAllowTextSelection: shouldEnableTextSelection}}>
             <Hoverable>
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
@@ -165,6 +169,8 @@ function MenuItemRoot({
                             [
                                 styles.popoverMenuItem,
                                 !isInteractive && styles.cursorDefault,
+                                isCompact && styles.alignItemsCenter,
+                                isCompact && styles.optionRowCompact,
                                 isCompactPopover && styles.compactPopoverMenuItemBase,
                                 style,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: isHovered, isPressed: pressed, isDisabled, isInteractive}), true),
