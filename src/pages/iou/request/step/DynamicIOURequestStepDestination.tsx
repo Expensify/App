@@ -89,12 +89,12 @@ function DynamicIOURequestStepDestination({
 }: DynamicIOURequestStepDestinationProps) {
     const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT;
     const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [customUnitPolicyID, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => getPolicyByCustomUnitID(transaction, policies)?.id});
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
-    const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
+    const policyID = !reportPolicyID || reportPolicyID === CONST.POLICY.ID_FAKE ? (customUnitPolicyID ?? transaction?.comment?.customUnit?.customUnitPolicyID) : reportPolicyID;
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
@@ -103,6 +103,7 @@ function DynamicIOURequestStepDestination({
     const {top} = useSafeAreaInsets();
     const {contentHeaderHeight} = useContentHeaderHeight();
     const customUnit = getPerDiemCustomUnit(policy);
+    const hasPerDiemRates = !isEmptyObject(customUnit?.rates);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
 
@@ -116,10 +117,11 @@ function DynamicIOURequestStepDestination({
         focus: destinationSelectionListRef.current?.focusTextInput,
     }));
 
-    const shouldShowNotFoundPage = isEmptyObject(policy);
+    const isLoadingPolicy = isLoadingOnyxValue(policyMetadata, allPoliciesMetadata);
+    const shouldShowNotFoundPage = !isLoadingPolicy && isEmptyObject(policy);
 
     const {isOffline} = useNetwork();
-    const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
+    const isLoading = !isOffline && (!customUnit?.rates || isLoadingPolicy);
     const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
 
@@ -155,7 +157,7 @@ function DynamicIOURequestStepDestination({
                 ));
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
-                setCustomUnitID(transactionID, customUnit.customUnitID);
+                setCustomUnitID(transactionID, customUnit.customUnitID, policy?.id);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
             setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy, false, personalPolicy?.outputCurrency);
@@ -192,12 +194,11 @@ function DynamicIOURequestStepDestination({
     };
 
     useEffect(() => {
-        if (!isEmptyObject(customUnit?.rates) || isOffline) {
+        if (hasPerDiemRates || isOffline || !policy?.id) {
             return;
         }
-        fetchPerDiemRates(policy?.id);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOffline]);
+        fetchPerDiemRates(policy.id);
+    }, [hasPerDiemRates, isOffline, policy?.id]);
 
     useEffect(() => {
         // When the rates are not available for the policy, the transaction does not have valid customUnitID and moneyRequestCategory

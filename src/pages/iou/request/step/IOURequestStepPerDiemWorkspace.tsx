@@ -45,9 +45,16 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
-    const {isOffline} = useNetwork();
     const [pendingPolicyID, setPendingPolicyID] = useState<string>();
     const [pendingPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${pendingPolicyID}`);
+    const {isOffline} = useNetwork({
+        onReconnect: () => {
+            if (!pendingPolicyID || getPerDiemCustomUnit(pendingPolicy)) {
+                return;
+            }
+            fetchPerDiemRates(pendingPolicyID);
+        },
+    });
 
     const selectWorkspace = (policy: OnyxEntry<Policy>) => {
         const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
@@ -64,6 +71,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         }
 
         const perDiemUnit = getPerDiemCustomUnit(policy);
+        setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID, policy?.id);
         if (!perDiemUnit && policy?.id) {
             fetchPerDiemRates(policy.id);
         }
@@ -89,7 +97,6 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
                 },
             ]);
         }
-        setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
         setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
 
         Navigation.navigate(

@@ -4,6 +4,7 @@ import {
     getSyncedParticipantAccountIDs,
     initMoneyRequest,
     resetDraftTransactionsCustomUnit,
+    setCustomUnitID,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
@@ -136,6 +137,39 @@ describe('actions/IOU', () => {
 
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    describe('setCustomUnitID', () => {
+        it('retains the selected workspace and dates while the per diem unit is loading', async () => {
+            // Given a per diem draft whose dates have already been selected
+            const transactionID = 'per-diem-draft';
+            const dates = {start: '2026-11-01', end: '2026-11-02'};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                comment: {customUnit: {attributes: {dates}}},
+            });
+
+            // When workspace selection precedes loading its real custom unit
+            setCustomUnitID(transactionID, CONST.CUSTOM_UNITS.FAKE_P2P_ID, 'workspace-1');
+            await waitForBatchedUpdates();
+
+            // Then the draft can resolve the workspace independently of the unit ID
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`))?.comment?.customUnit).toEqual({
+                attributes: {dates},
+                customUnitID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                customUnitPolicyID: 'workspace-1',
+            });
+
+            // When the rates arrive, existing callers can update the unit without losing the workspace
+            setCustomUnitID(transactionID, 'loaded-per-diem-unit');
+            await waitForBatchedUpdates();
+
+            // Then the selected workspace and dates remain available through subsequent steps
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`))?.comment?.customUnit).toEqual({
+                attributes: {dates},
+                customUnitID: 'loaded-per-diem-unit',
+                customUnitPolicyID: 'workspace-1',
+            });
+        });
     });
 
     describe('setMoneyRequestDistanceRate', () => {
