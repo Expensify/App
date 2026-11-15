@@ -81,6 +81,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ReportNameValuePairsArchivedState} from '@selectors/ReportNameValuePairs';
 import type {ColorValue} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -2677,9 +2678,9 @@ function findLastAccessedReport(
     ignoreDomainRooms: boolean,
     guideAccountIDs: GuideAccountIDsDerivedValue | undefined,
     isAnonymousUser: boolean,
-    openOnAdminRoom = false,
-    excludeReportID?: string,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    openOnAdminRoom: boolean | undefined,
+    excludeReportID: string | undefined,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs | ReportNameValuePairsArchivedState>,
     reports?: OnyxCollection<Report>,
 ): LastAccessedReport | undefined {
     const reportsCollection = reports ?? deprecatedAllReports ?? {};
@@ -2779,7 +2780,7 @@ function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report>, isReportAr
  * Whether the provided report is an archived report
  */
 
-function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
+function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs | ReportNameValuePairsArchivedState>): boolean {
     return !!reportNameValuePairs?.private_isArchived;
 }
 

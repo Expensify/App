@@ -45,10 +45,6 @@ function getReportPolicyID(report: OnyxEntry<Report>) {
     return report?.policyID;
 }
 
-function getReportChatReportID(report: OnyxEntry<Report>) {
-    return report?.chatReportID;
-}
-
 function getReportOwnerAccountID(report: OnyxEntry<Report>) {
     return report?.ownerAccountID;
 }
@@ -175,6 +171,13 @@ function reportTypeAndParentIDsSelector(report: OnyxEntry<Report>): Pick<Report,
         return undefined;
     }
     return {type: report.type, chatReportID: report.chatReportID, parentReportID: report.parentReportID};
+}
+
+function reportPolicyAndChatReportIDsSelector(report: OnyxEntry<Report>): Pick<Report, 'policyID' | 'chatReportID'> | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {policyID: report.policyID, chatReportID: report.chatReportID};
 }
 
 const policyIDsWithEmptyReportsSelector =
@@ -463,12 +466,12 @@ export {
     getReportParentReportID,
     getReportHasParentAccess,
     getReportPolicyID,
-    getReportChatReportID,
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
     reportAvatarFieldsSelector,
     reportAvatarKindSelector,
+    reportPolicyAndChatReportIDsSelector,
     reportPolicyFieldsSelector,
     reportTypeAndParentIDsSelector,
     roomAvatarFieldsSelector,

@@ -15,7 +15,6 @@ import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import getHoldMenuAmounts from '@libs/HoldMenuUtils';
@@ -57,14 +56,13 @@ function PayActionButton() {
     const {stopAnimation, startAnimation, onPaymentOptionsShow, onPaymentOptionsHide} = useReportPreviewActions();
     const {showHoldMenu} = useHoldMenuModal();
     const {buttonMaxWidth} = useReportPreviewUIState();
-    const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
+    const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton, isChatReportArchived} = useReportPreviewActionState();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const actionButtonData = useReportPreviewActionButtonData(iouReportID);
     const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
     const chatReportPolicy = usePolicy(chatReport?.policyID);
-    const isChatReportArchived = useReportIsArchived(chatReportID);
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);

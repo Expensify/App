@@ -11,7 +11,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
@@ -22,7 +21,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 import type useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
-import {useReportPreviewActions} from './MoneyRequestReportPreviewContext';
+import {useReportPreviewActions, useReportPreviewActionState} from './MoneyRequestReportPreviewContext';
 
 function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useReportPreviewActionButtonData>, hasViolations: boolean) {
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -34,12 +33,12 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const {startApprovedAnimation} = useReportPreviewActions();
+    const {isChatReportArchived} = useReportPreviewActionState();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail, delegateAccountID} = actionButtonData;
-    const isChatReportArchived = useReportIsArchived(iouReport?.chatReportID);
 
     return (full = true) => {
         if (isDelegateAccessRestricted) {

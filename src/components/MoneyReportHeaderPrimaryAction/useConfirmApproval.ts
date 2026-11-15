@@ -8,7 +8,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -41,6 +40,7 @@ type UseConfirmApprovalOptions = {
 function useConfirmApproval(
     reportID: string | undefined,
     startApprovedAnimation: () => void,
+    isChatReportArchived: boolean,
     {getAdditionalOnyxData, fallbackReport, fallbackPolicy, fallbackTransactions}: UseConfirmApprovalOptions = {},
 ) {
     const {accountID, email} = useCurrentUserPersonalDetails();
@@ -54,7 +54,6 @@ function useConfirmApproval(
 
     const [liveReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const moneyRequestReport = liveReport ?? fallbackReport;
-    const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const [livePolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const policy = livePolicy ?? fallbackPolicy;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);

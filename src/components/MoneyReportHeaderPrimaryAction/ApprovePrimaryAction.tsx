@@ -81,7 +81,7 @@ function ApprovePrimaryAction({reportID, chatReportID, isDisabled}: ApprovePrima
         );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
-    const {onApprove} = useConfirmApproval(reportID, startApprovedAnimation);
+    const {onApprove} = useConfirmApproval(reportID, startApprovedAnimation, isChatReportArchived);
 
     return (
         <ExpenseHeaderApprovalButton

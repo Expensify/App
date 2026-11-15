@@ -30,6 +30,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
+import {reportNameValuePairsArchivedSelector} from '@selectors/ReportNameValuePairs';
 import React from 'react';
 
 type ReportDetailsMenuLeaveItemProps = {
@@ -49,7 +50,7 @@ function ReportDetailsMenuLeaveItemContent({report, policy, currentUserAccountID
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit']);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {selector: pendingChatMembersSelector});
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reportNameValuePairsArchived] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -65,7 +66,7 @@ function ReportDetailsMenuLeaveItemContent({report, policy, currentUserAccountID
     const isRootGroupChat = isRootGroupChatUtil(report, isReportArchived);
 
     const leaveChat = () => {
-        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, isAnonymousUser, false, report.reportID, allReportNameValuePairs)?.reportID;
+        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, isAnonymousUser, false, report.reportID, reportNameValuePairsArchived)?.reportID;
         if (isRootGroupChat) {
             leaveGroupChat(
                 report,

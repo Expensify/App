@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
-import {getReportChatReportID, getReportPolicyID} from '@selectors/Report';
+import {reportPolicyAndChatReportIDsSelector} from '@selectors/Report';
 import React, {useEffect} from 'react';
 
 import RejectReasonFormView from './RejectReasonFormView';
@@ -43,10 +43,9 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     const {transactionID, reportID, backTo} = route.params;
     const {removeTransaction} = useSearchSelectionActions();
-    const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: getReportPolicyID});
-    const [chatReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: getReportChatReportID});
-    const isChatReportArchived = useReportIsArchived(chatReportID);
-    const policy = usePolicy(reportPolicyID);
+    const [reportIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: reportPolicyAndChatReportIDsSelector});
+    const isChatReportArchived = useReportIsArchived(reportIDs?.chatReportID);
+    const policy = usePolicy(reportIDs?.policyID);
     const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();

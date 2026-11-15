@@ -23,6 +23,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
+import {reportNameValuePairsArchivedSelector} from '@selectors/ReportNameValuePairs';
 import React from 'react';
 
 import type {CaseID} from './types';
@@ -47,7 +48,7 @@ function ReportDetailsTaskDeleteActionContent({report, parentReport, parentRepor
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const taskDeleteBackTo = Navigation.getTopmostSearchReportRouteParams()?.backTo;
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const isAnonymousUser = useIsAnonymousUser();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);

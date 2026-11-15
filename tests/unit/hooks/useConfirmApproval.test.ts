@@ -92,7 +92,7 @@ describe('useConfirmApproval', () => {
         mockLiveTransactions([liveUnheldTransaction]);
 
         // When the hook resolves the report's transactions with the snapshot transactions as the fallback
-        const {result} = renderHook(() => useConfirmApproval(REPORT_ID, () => {}, {fallbackReport: snapshotReport, fallbackTransactions: [unheldTransaction, heldTransaction]}));
+        const {result} = renderHook(() => useConfirmApproval(REPORT_ID, () => {}, false, {fallbackReport: snapshotReport, fallbackTransactions: [unheldTransaction, heldTransaction]}));
         await act(waitForBatchedUpdates);
 
         // Then both expenses are kept so the held one is still detected, and the live copy of A replaces the snapshot copy
@@ -105,7 +105,7 @@ describe('useConfirmApproval', () => {
         mockLiveTransactions([unheldTransaction]);
 
         // When the hook resolves the report's transactions without fallback transactions
-        const {result} = renderHook(() => useConfirmApproval(REPORT_ID, () => {}));
+        const {result} = renderHook(() => useConfirmApproval(REPORT_ID, () => {}, false));
         await act(waitForBatchedUpdates);
 
         // Then the live transactions are returned as is and nothing is reported as held
@@ -115,7 +115,7 @@ describe('useConfirmApproval', () => {
 
     it('returns and approves the snapshot report when the report is not in live Onyx yet', async () => {
         // Given a Search row whose report has not been loaded into live Onyx
-        const {result} = renderHook(() => useConfirmApproval(REPORT_ID, () => {}, {fallbackReport: snapshotReport, fallbackTransactions: [heldTransaction]}));
+        const {result} = renderHook(() => useConfirmApproval(REPORT_ID, () => {}, false, {fallbackReport: snapshotReport, fallbackTransactions: [heldTransaction]}));
         await act(waitForBatchedUpdates);
 
         // When the user approves only the unheld expenses
@@ -132,7 +132,7 @@ describe('useConfirmApproval', () => {
         // Given a locked account viewing a report it can approve
         mockIsAccountLocked = true;
         const startApprovedAnimation = jest.fn();
-        const {result} = renderHook(() => useConfirmApproval(REPORT_ID, startApprovedAnimation, {fallbackReport: snapshotReport}));
+        const {result} = renderHook(() => useConfirmApproval(REPORT_ID, startApprovedAnimation, false, {fallbackReport: snapshotReport}));
         await act(waitForBatchedUpdates);
 
         // When the user approves the report

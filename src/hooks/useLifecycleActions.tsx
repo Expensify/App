@@ -407,18 +407,18 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(
+                            markReportPaymentReceived({
                                 chatReport,
-                                moneyRequestReport,
-                                accountID,
-                                email ?? '',
+                                iouReport: moneyRequestReport,
+                                currentUserAccountID: accountID,
+                                currentUserEmail: email ?? '',
                                 chatReportActions,
                                 isTrackIntentUser,
-                                allTransactionViolationsRef.current,
+                                allTransactionViolations: allTransactionViolationsRef.current,
                                 getCurrencyDecimals,
                                 rules,
                                 isChatReportArchived,
-                            );
+                            });
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -426,18 +426,18 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(
+                markReportPaymentReceived({
                     chatReport,
-                    moneyRequestReport,
-                    accountID,
-                    email ?? '',
+                    iouReport: moneyRequestReport,
+                    currentUserAccountID: accountID,
+                    currentUserEmail: email ?? '',
                     chatReportActions,
                     isTrackIntentUser,
-                    allTransactionViolationsRef.current,
+                    allTransactionViolations: allTransactionViolationsRef.current,
                     getCurrencyDecimals,
                     rules,
                     isChatReportArchived,
-                );
+                });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {

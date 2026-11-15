@@ -136,6 +136,19 @@ type PayMoneyRequestFunctionParams = {
     wiseQuoteID?: string;
 };
 
+type MarkReportPaymentReceivedFunctionParams = {
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    isTrackIntentUser: boolean | undefined;
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    isChatReportArchived: boolean;
+};
+
 function getPayMoneyRequestParams({
     initialChatReport,
     iouReport,
@@ -1042,18 +1055,18 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     return payMoneyRequestParams.optimisticHoldReportID;
 }
 
-function markReportPaymentReceived(
-    chatReport: OnyxEntry<OnyxTypes.Report>,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    currentUserAccountID: number,
-    currentUserEmail: string,
-    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
-    isTrackIntentUser: boolean | undefined,
-    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<OnyxTypes.Rule>,
-    isChatReportArchived: boolean,
-) {
+function markReportPaymentReceived({
+    chatReport,
+    iouReport,
+    currentUserAccountID,
+    currentUserEmail,
+    chatReportActions,
+    isTrackIntentUser,
+    allTransactionViolations,
+    getCurrencyDecimals,
+    rules,
+    isChatReportArchived,
+}: MarkReportPaymentReceivedFunctionParams) {
     if (!chatReport || !iouReport) {
         return;
     }

@@ -103,7 +103,7 @@ function useReportPreviewActionDecision({
         rules,
     });
 
-    return {reportPreviewAction, canIOUBePaid: isIOUPayable, onlyShowPayElsewhere, shouldShowPayButton, connectedIntegration};
+    return {reportPreviewAction, canIOUBePaid: isIOUPayable, onlyShowPayElsewhere, shouldShowPayButton, connectedIntegration, isChatReportArchived};
 }
 
 export default useReportPreviewActionDecision;
