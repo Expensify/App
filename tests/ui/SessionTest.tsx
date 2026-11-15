@@ -338,7 +338,7 @@ describe('Deep linking', () => {
         async () => {
             // Given a user already signed in as account 1
             jest.spyOn(Session, 'signInWithShortLivedAuthToken').mockImplementation(() =>
-                Promise.resolve({type: CONST.ERROR_TYPE.SESSION_MISMATCH} as Awaited<ReturnType<typeof originalSignInWithShortLivedAuthToken>>),
+                Promise.resolve({type: CONST.ERROR_TYPE.ACCOUNT_MISMATCH} as Awaited<ReturnType<typeof originalSignInWithShortLivedAuthToken>>),
             );
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_1, TEST_USER_LOGIN_1, undefined, TEST_AUTH_TOKEN_1);
             await waitForBatchedUpdatesWithAct();
