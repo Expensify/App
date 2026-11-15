@@ -243,9 +243,11 @@ describe('actions/IOU/createExpenseByType', () => {
                 participants: [{login: PARTICIPANT_EMAIL, accountID: PARTICIPANT_ACCOUNT_ID}],
             });
 
-            // Then the plan it builds is the one it writes, behind the caller's barrier like the other expense types, and its transaction ID comes back for the growl
+            // Then the plan it builds is the one it writes, behind the caller's barrier like the other expense types, and its transaction ID comes back for the growl.
+            // The barrier goes only to the commit, since the planner sends nothing.
             const plan: unknown = jest.mocked(Split.planDistanceRequest).mock.results.at(0)?.value;
             expect(Split.planDistanceRequest).toHaveBeenCalledTimes(1);
+            expect(getLastDistanceRequestParams()).not.toHaveProperty('writeBarrier');
             expect(Split.commitDistanceRequest).toHaveBeenCalledWith(plan, writeBarrier);
             expect(result?.transactionID).toBe('planned-distance-transaction-id');
             expect(TrackExpense.requestMoney).not.toHaveBeenCalled();

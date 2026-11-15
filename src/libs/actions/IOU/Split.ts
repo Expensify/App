@@ -2443,6 +2443,12 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
     };
 }
 
+/**
+ * Runs what planDistanceRequest leaves out, in this order: the sound, the highlight for a report going from one expense to two, the request, then the Expense added message.
+ *
+ * @param writeBarrier - Readiness barrier the API write waits on, handed down by whoever triggered the navigation.
+ * Without one, the request is sent right away unless Search has a write pending, in which case it waits for Search.
+ */
 function commitDistanceRequest(plan: DistanceRequestPlan, writeBarrier?: WriteReadyBarrier) {
     if (plan.shouldPlaySound) {
         playSound(SOUNDS.DONE);

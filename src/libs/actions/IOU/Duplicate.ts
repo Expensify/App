@@ -733,8 +733,9 @@ function createExpenseByType({
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
             const duplicateRequestType = getDuplicateRequestType(transaction);
+            const {writeBarrier, ...distanceBaseParams} = params;
             const distanceParams: CreateDistanceRequestInformation = {
-                ...params,
+                ...distanceBaseParams,
                 participants,
                 // params.report is always a chat report here (never an IOU/expense report), so planDistanceRequest's
                 // one-to-two transition check short-circuits on isMoneyRequestReport and never reads this list.
@@ -774,7 +775,7 @@ function createExpenseByType({
                 rules,
             };
             const distanceRequestPlan = planDistanceRequest(distanceParams);
-            commitDistanceRequest(distanceRequestPlan, params.writeBarrier);
+            commitDistanceRequest(distanceRequestPlan, writeBarrier);
             return {iouReport: distanceRequestPlan.iouReport, transactionID: distanceRequestPlan.transactionID};
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
