@@ -174,6 +174,7 @@ function getMerchantRulesTableData({
     policyTags,
     translate,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     isOffline,
     onNavigate,
     conditionNames = {},
@@ -184,6 +185,7 @@ function getMerchantRulesTableData({
     policyTags?: OnyxEntry<PolicyTagLists>;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
     conditionNames?: ExpenseDefaultConditionNames;
@@ -219,7 +221,7 @@ function getMerchantRulesTableData({
                 const merchantNames = merchants.map(({value}) => value).join(', ');
                 const categoryNames = categories.map(getDecodedCategoryName).join(', ');
                 const tagNames = tags.map(getCommaSeparatedTagNameWithSanitizedColons).join(', ');
-                const conditionText = getExpenseDefaultConditionText(rule.filters, translate, convertToDisplayString, false, policy, conditionNames);
+                const conditionText = getExpenseDefaultConditionText(rule.filters, translate, convertToDisplayStringWithoutCurrency, false, policy, conditionNames);
 
                 const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
                 const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
@@ -287,7 +289,7 @@ function toSentenceContinuation(phrase: string): string {
 function getOtherConditionText(
     {field, operator, values}: OtherCondition,
     translate: LocaleContextProps['translate'],
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
     policy: OnyxEntry<Policy>,
     conditionNames: ExpenseDefaultConditionNames,
 ): string {
@@ -366,7 +368,7 @@ function getOtherConditionText(
         if (values.length !== 1 || !amount) {
             return '';
         }
-        const formattedAmount = getAmountFilterDisplayValue(amount, (value, currencyCode) => convertToDisplayString(value, currencyCode ?? policy?.outputCurrency));
+        const formattedAmount = getAmountFilterDisplayValue(amount, convertToDisplayStringWithoutCurrency);
         if (operator === SYNTAX_OPERATORS.GREATER_THAN) {
             return translate('workspace.rules.expenseDefaultsTable.amountIs', toSentenceContinuation(translate('search.filters.amount.greaterThan', formattedAmount)));
         }
@@ -403,7 +405,7 @@ function getOtherConditionText(
 function getExpenseDefaultConditionText(
     filters: Rule['filters'],
     translate: LocaleContextProps['translate'],
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
     shouldOmitCategories = false,
     policy?: OnyxEntry<Policy>,
     conditionNames: ExpenseDefaultConditionNames = {},
@@ -432,7 +434,7 @@ function getExpenseDefaultConditionText(
         conditions.push(translate('workspace.rules.expenseDefaultsTable.tagIs', tags.map(getCommaSeparatedTagNameWithSanitizedColons).join(', ')));
     }
     for (const condition of others) {
-        const conditionText = getOtherConditionText(condition, translate, convertToDisplayString, policy, conditionNames);
+        const conditionText = getOtherConditionText(condition, translate, convertToDisplayStringWithoutCurrency, policy, conditionNames);
         if (conditionText) {
             conditions.push(conditionText);
         }
@@ -473,6 +475,7 @@ function getExpenseDefaultsTableData({
     policyTags,
     translate,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     isOffline,
     onNavigate,
     conditionNames,
@@ -484,12 +487,24 @@ function getExpenseDefaultsTableData({
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
     /** Names for the members and cards a rule matches on, which the policy alone cannot resolve. */
     conditionNames?: ExpenseDefaultConditionNames;
 }): ExpenseDefaultTableItem[] {
-    const merchantRules = getMerchantRulesTableData({policy, policyID, rules, policyTags, translate, convertToDisplayString, isOffline, onNavigate, conditionNames});
+    const merchantRules = getMerchantRulesTableData({
+        policy,
+        policyID,
+        rules,
+        policyTags,
+        translate,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
+        isOffline,
+        onNavigate,
+        conditionNames,
+    });
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
     return [...merchantRules, ...merchantTypeRules];

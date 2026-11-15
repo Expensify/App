@@ -12,7 +12,7 @@ import type {Connections} from '@src/types/onyx/Policy';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
-import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /**
@@ -157,6 +157,7 @@ describe('Vendor matching on merchant rules', () => {
                 rules: withVendorRule(policy, vendorID),
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
                 onNavigate: () => {},
             });

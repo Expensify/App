@@ -186,7 +186,7 @@ function ExpenseDefaultRulePageBase({
     const {accountID} = useCurrentUserPersonalDetails();
     const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
     const styles = useThemeStyles();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     // The page is on its way out, so the rule it was editing no longer being there is expected rather than an
@@ -370,7 +370,7 @@ function ExpenseDefaultRulePageBase({
         if (!amountToMatch) {
             return undefined;
         }
-        const formattedAmount = getAmountFilterDisplayValue(amountToMatch, (value, currencyCode) => convertToDisplayString(value, currencyCode ?? policy?.outputCurrency));
+        const formattedAmount = getAmountFilterDisplayValue(amountToMatch, convertToDisplayStringWithoutCurrency);
         if (amountMatchType === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
             return translate('search.filters.amount.greaterThan', formattedAmount);
         }

@@ -24,7 +24,7 @@ type RulesExpenseDefaultsTabProps = {
 
 function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, headerComponent}: RulesExpenseDefaultsTabProps) {
     const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -39,6 +39,7 @@ function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelec
         policyTags,
         translate,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         isOffline,
         onNavigate: Navigation.navigate,
         conditionNames,

@@ -73,6 +73,7 @@ function getCategoryContextualRules({
     categoryName,
     translate,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     isOffline,
     conditionNames,
 }: {
@@ -84,6 +85,7 @@ function getCategoryContextualRules({
     categoryName: string;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     /** Offline keeps optimistically deleted rules listed so the pending delete is visible. */
     isOffline: boolean;
     /** Names for the members and cards a rule matches on, which the policy alone cannot resolve. */
@@ -155,7 +157,7 @@ function getCategoryContextualRules({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.TAX,
             summary,
             // The category is left out, since naming the page the admin is already on reads as noise.
-            conditionSummary: getExpenseDefaultConditionText(rule.filters, translate, convertToDisplayString, true, policy, conditionNames),
+            conditionSummary: getExpenseDefaultConditionText(rule.filters, translate, convertToDisplayStringWithoutCurrency, true, policy, conditionNames),
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute(ruleID),
             pendingAction: rulePendingAction,
             isDisabled: isRulePendingDelete || !isRuleOpenable,

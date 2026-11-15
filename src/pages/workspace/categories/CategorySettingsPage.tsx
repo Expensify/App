@@ -71,7 +71,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Plus', 'Bolt']);
     const {showConfirmModal} = useConfirmModal();
     const {policyMemberAccountIDs, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyID);
@@ -101,6 +101,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
               categoryName: policyCategory.name,
               translate,
               convertToDisplayString,
+              convertToDisplayStringWithoutCurrency,
               isOffline,
               conditionNames,
           });

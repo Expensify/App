@@ -6,7 +6,7 @@ import type {Policy} from '@src/types/onyx';
 import type {RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayStringWithoutCurrency, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
@@ -32,7 +32,7 @@ const SUBMITTER_ACCOUNT_ID = '12345';
 const CARD_ID = '88888';
 const conditionNames = {submitters: {[SUBMITTER_ACCOUNT_ID]: 'Alice Smith'}, cards: {[CARD_ID]: 'Visa ending 1234'}};
 
-const getConditionText = (filters: RuleFilterNode) => getExpenseDefaultConditionText(filters, translateLocal, convertToDisplayString, false, policy, conditionNames);
+const getConditionText = (filters: RuleFilterNode) => getExpenseDefaultConditionText(filters, translateLocal, convertToDisplayStringWithoutCurrency, false, policy, conditionNames);
 
 describe('Expense default condition text', () => {
     beforeEach(() => {
@@ -50,8 +50,9 @@ describe('Expense default condition text', () => {
         ['a non-billable expense', {left: FILTER.BILLABLE, operator: EQUAL_TO, right: 'no'}, 'Billable is "No"'],
         ['a date on a day', {left: FILTER.DATE, operator: EQUAL_TO, right: '2026-01-15'}, 'Date is on 2026-01-15'],
         ['a date after a day', {left: FILTER.DATE, operator: GREATER_THAN, right: '2026-01-15'}, 'Date is after 2026-01-15'],
-        ['an amount over a value', {left: FILTER.AMOUNT, operator: GREATER_THAN, right: '3000'}, 'Amount is greater than $30.00'],
-        ['an amount under a value', {left: FILTER.AMOUNT, operator: LOWER_THAN, right: '3000'}, 'Amount is less than $30.00'],
+        ['an amount over a value', {left: FILTER.AMOUNT, operator: GREATER_THAN, right: '3000'}, 'Amount is greater than 30.00'],
+        ['an amount under a value', {left: FILTER.AMOUNT, operator: LOWER_THAN, right: '3000'}, 'Amount is less than 30.00'],
+        ['an amount against a comparison currency', {left: FILTER.AMOUNT, operator: GREATER_THAN, right: '30.00 USD'}, 'Amount is greater than 30.00 USD'],
         ['a part the expense carries', {left: FILTER.HAS, operator: EQUAL_TO, right: ['receipt']}, 'Has "Receipt"'],
         ['a part the expense lacks', {left: FILTER.HAS, operator: NOT_EQUAL_TO, right: ['receipt']}, `Doesn't have "Receipt"`],
     ])('words a rule matching on %s', (_conditionName, filters, expected) => {
@@ -71,7 +72,7 @@ describe('Expense default condition text', () => {
 
         // When the row's condition text is built
         // Then the amount is spelled out too, rather than the row reading as a plain category rule
-        expect(getConditionText(filters)).toBe('Category is "Meals" and Amount is greater than $30.00');
+        expect(getConditionText(filters)).toBe('Category is "Meals" and Amount is greater than 30.00');
     });
 
     it('leaves out a comparison it has no wording for rather than blanking the row', () => {

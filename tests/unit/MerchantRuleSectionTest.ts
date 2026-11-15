@@ -8,7 +8,7 @@ import type {Policy, Rule} from '@src/types/onyx';
 import type {RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
@@ -44,6 +44,7 @@ describe('Merchant rule section', () => {
             rules: {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: buildRule(filters)},
             translate: translateLocal,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             isOffline: false,
             onNavigate: () => {},
         }).at(0)?.section;
