@@ -65,7 +65,7 @@ function isEmojiImage(image: HTMLImageElement): boolean {
     // Some sources omit data-* fields, so alt text alone must not identify an image as an emoji.
     const source = image.getAttribute('src') ?? '';
     const patterns = CONST.REGEX.EMOJI_IMAGE_SOURCE;
-    const isTeamsEmoji = image.getAttribute('itemtype') === CONST.TEAMS_EMOJI_ITEM_TYPE && !!image.getAttribute('itemid') && patterns.TEAMS.test(source);
+    const isTeamsEmoji = image.getAttribute('itemType') === CONST.TEAMS_EMOJI_ITEM_TYPE && !!image.getAttribute('itemid') && patterns.TEAMS.test(source);
     const discourseName = patterns.DISCOURSE.exec(source)?.[1];
     const isDiscourseEmoji = !!discourseName && image.classList.contains('emoji') && image.alt === `:${discourseName}:` && image.title === image.alt;
 
