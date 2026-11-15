@@ -32,6 +32,7 @@ function renderLinkPressable(onPress: () => void, isDisabled = false) {
 describe('Pressable with linkRoute', () => {
     it('renders the route as an absolute href', () => {
         // Given a pressable linking to the settings route
+        // When it renders
         renderLinkPressable(jest.fn());
 
         // Then the href starts at the site root, so it does not resolve against the current page's path

@@ -5,12 +5,12 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
+import {DEFAULT_INSIGHTS_TAB_ROUTE} from './getInsightsTabRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 import useInsightsTabNavigation from './useInsightsTabNavigation';
@@ -31,7 +31,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
         return (
             <PressableWithFeedback
                 onPress={navigateToInsights}
-                linkRoute={ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)}
+                linkRoute={DEFAULT_INSIGHTS_TAB_ROUTE}
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.insights')}
                 accessibilityState={{selected: isSelected}}
@@ -53,7 +53,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
     return (
         <PressableWithFeedback
             onPress={navigateToInsights}
-            linkRoute={ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)}
+            linkRoute={DEFAULT_INSIGHTS_TAB_ROUTE}
             role={CONST.ROLE.TAB}
             accessibilityLabel={translate('common.insights')}
             accessibilityState={{selected: isSelected}}

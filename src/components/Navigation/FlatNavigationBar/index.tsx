@@ -2,6 +2,7 @@ import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar'
 import EnvironmentBadge from '@components/EnvironmentBadge';
 import Hoverable from '@components/Hoverable';
 import DebugTabView from '@components/Navigation/DebugTabView';
+import {DEFAULT_INSIGHTS_TAB_ROUTE} from '@components/Navigation/NavigationTabBar/getInsightsTabRoute';
 import getTabAccessibilityLabel from '@components/Navigation/NavigationTabBar/getTabAccessibilityLabel';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useAccountTabNavigation from '@components/Navigation/NavigationTabBar/useAccountTabNavigation';
@@ -243,7 +244,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
                                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
                                                 onPress={navigateToInsights}
-                                                linkRoute={ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)}
+                                                linkRoute={DEFAULT_INSIGHTS_TAB_ROUTE}
                                             />
                                             <FlatNavDivider />
                                             <FlatNavItem
