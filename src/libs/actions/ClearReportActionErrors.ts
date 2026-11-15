@@ -173,5 +173,5 @@ function clearAllRelatedReportActionErrors({reportID, reportAction, originalRepo
     }
 }
 
-export type {IgnoreDirection, ReportHierarchyInfo};
+export type {ReportHierarchyInfo};
 export {clearAllRelatedReportActionErrors};

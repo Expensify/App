@@ -65,7 +65,7 @@ jest.mock('@hooks/useReportIsArchived', () => () => mockIsArchived);
 let mockSenderAccountID: number | undefined;
 const mockUseReportPreviewSenderID = jest.fn<number | undefined, [unknown]>(() => mockSenderAccountID);
 
-jest.mock('@components/ReportActionAvatars/useReportPreviewSenderID', () => (params: unknown) => mockUseReportPreviewSenderID(params));
+jest.mock('@hooks/useReportPreviewSenderID', () => (params: unknown) => mockUseReportPreviewSenderID(params));
 
 jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getContainerStyles: mockGetContainerStyles})));
 

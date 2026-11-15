@@ -174,11 +174,7 @@ function ImportSpreadsheet({
                     .then((workbook) => {
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                         // Use raw: true to preserve original string values from CSV (especially dates)
-                        const data = XLSX.utils.sheet_to_json<unknown[]>(worksheet, {
-                            header: 1,
-                            blankrows: false,
-                            raw: true,
-                        });
+                        const data = XLSX.utils.sheet_to_json<unknown[]>(worksheet, {header: 1, blankrows: false, raw: true});
                         const formattedSpreadsheetData = data.map((row) =>
                             row.map((cell) => {
                                 if (cell == null) {

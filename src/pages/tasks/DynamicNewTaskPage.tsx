@@ -1,3 +1,4 @@
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -8,7 +9,6 @@ import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/Me
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import UserPill from '@components/UserPill';
@@ -61,7 +61,7 @@ function TaskFieldAvatar({reportID}: {reportID?: string}) {
     const borderColor = isPressed ? theme.buttonHoveredBG : theme.hoverComponentBG;
 
     return (
-        <ReportActionAvatars
+        <ReportAvatar
             singleAvatarContainerStyle={styles.actionAvatar}
             subscriptAvatarContainerStyle={styles.mr0}
             backdropColor={isInteractive && (isHovered || isPressed) ? borderColor : undefined}

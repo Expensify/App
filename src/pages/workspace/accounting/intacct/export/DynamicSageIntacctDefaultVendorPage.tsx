@@ -7,6 +7,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
@@ -48,24 +49,15 @@ function DynamicSageIntacctDefaultVendorPage() {
     const reimbursableMode =
         route.params.reimbursable ?? (backPath.includes('/reimbursable') ? CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase());
     const isReimbursable = reimbursableMode === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
+    const defaultVendor = isReimbursable ? exportConfig?.reimbursableExpenseReportDefaultVendor : getSageIntacctNonReimbursableActiveDefaultVendor(policy);
+    const nonReimbursableSettingName =
+        exportConfig?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
+            ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR
+            : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR;
+    const settingName: keyof Connections['intacct']['config']['export'] = isReimbursable ? CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR : nonReimbursableSettingName;
     const goBack = () => {
         Navigation.goBack(backPath);
     };
-
-    let defaultVendor;
-    let settingName: keyof Connections['intacct']['config']['export'];
-    if (!isReimbursable) {
-        const {nonReimbursable} = exportConfig ?? {};
-        defaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
-        settingName =
-            nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
-                ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR
-                : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR;
-    } else {
-        const {reimbursableExpenseReportDefaultVendor} = exportConfig ?? {};
-        defaultVendor = reimbursableExpenseReportDefaultVendor;
-        settingName = CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR;
-    }
 
     // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only offer a "None" row on that setting.
     const canClear = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
@@ -79,6 +71,7 @@ function DynamicSageIntacctDefaultVendorPage() {
     };
     const shouldShowClearOption = canClear && (!!defaultVendor || vendorOptions.length > 0);
     const vendorSelectorOptions: SelectorType[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
+    const {filteredData, textInputOptions} = useSelectionListSearch(vendorSelectorOptions, translate('common.noResultsFound'), true);
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
@@ -113,13 +106,16 @@ function DynamicSageIntacctDefaultVendorPage() {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctDefaultVendorPage"
-            data={vendorSelectorOptions ?? []}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             onSelectRow={updateDefaultVendor}
+            shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={goBack}
             title="workspace.sageIntacct.defaultVendor"
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={settingsPendingAction([settingName], config?.pendingFields)}

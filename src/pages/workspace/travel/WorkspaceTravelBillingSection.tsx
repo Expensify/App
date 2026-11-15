@@ -4,7 +4,6 @@ import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessag
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -399,14 +398,13 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             )}
             <View style={[styles.dFlex, styles.mt6, shouldStackButtons ? [styles.flexColumn, styles.gap3, styles.mb2] : [styles.flexRow, styles.gap4, styles.alignItemsCenter]]}>
                 <View style={styles.flex1}>
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.currentTravelSpendLabel')}
-                        title={formattedSpend}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, (hasPendingSettlement || hasPendingInvoice) && styles.pb1]}
-                        titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
-                        descriptionTextStyle={styles.textLabelSupportingNormal}
-                        interactive={false}
-                    />
+                    <MenuItemSectionRoot style={(hasPendingSettlement || hasPendingInvoice) && styles.pb1}>
+                        <MenuItem.Row>
+                            <MenuItemField.Content name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.currentTravelSpendLabel')}>
+                                <MenuItem.FieldValue style={[styles.textNormalThemeText, styles.headerAnonymousFooter]}>{formattedSpend}</MenuItem.FieldValue>
+                            </MenuItemField.Content>
+                        </MenuItem.Row>
+                    </MenuItemSectionRoot>
                     {hasPendingSettlement && (
                         <Text style={[styles.textLabelSupporting, styles.pb3]}>
                             {isPayByInvoice
