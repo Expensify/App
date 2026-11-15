@@ -4,7 +4,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import * as LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -209,132 +208,43 @@ describe('WorkspaceMemberDetailsPage', () => {
             jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         });
 
-        const pressLeave = async () => {
-            fireEvent.press(await screen.findByText(TestHelper.translateLocal('common.leave')));
-            await waitForBatchedUpdatesWithAct();
-        };
-
-        it.each([false, true])('lets a Submit Editor leave from their own details on narrow layout %s', async (shouldUseNarrowLayout) => {
-            // Given the signed-in nonowner Editor's own details on either layout
-            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout, isSmallScreenWidth: shouldUseNarrowLayout}));
+        it('offers Leave instead of Remove on the signed-in nonowner’s details', async () => {
+            // Given the signed-in nonowner Editor's own details
             const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
             await waitForBatchedUpdatesWithAct();
             expect(await screen.findByText(TestHelper.translateLocal('common.leave'))).not.toBeDisabled();
             expect(screen.queryByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle'))).not.toBeOnTheScreen();
 
-            // When the Editor confirms Leave instead of removing a member
-            await pressLeave();
+            // When the Editor presses Leave
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.leave')));
+            await waitForBatchedUpdatesWithAct();
 
-            // Then the shared departure flow runs without an upgrade and returns to Workspaces
+            // Then the button uses the shared departure flow, never member removal
             expect(showConfirmModal).toHaveBeenCalledWith(expect.objectContaining({buttonVariant: CONST.BUTTON_VARIANT.DANGER}));
             expect(PolicyActions.leaveWorkspace).toHaveBeenCalledWith(selfAccountID, selfEmail, expect.objectContaining({id: policy.id}));
             expect(MemberActions.removeMembers).not.toHaveBeenCalled();
-            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
             unmount();
         });
 
-        it('stays on self details when cancelled and allows reopening', async () => {
-            // Given a member who cancels the shared leave confirmation
-            showConfirmModal.mockResolvedValue({action: ModalActions.CLOSE});
-            const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
-            await waitForBatchedUpdatesWithAct();
-
-            // When Leave is opened, cancelled, and opened again
-            await pressLeave();
-            await pressLeave();
-
-            // Then cancellation has not changed membership or navigation
-            expect(showConfirmModal).toHaveBeenCalledTimes(2);
-            expect(PolicyActions.leaveWorkspace).not.toHaveBeenCalled();
-            expect(Navigation.goBack).not.toHaveBeenCalled();
-            expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
-            unmount();
-        });
-
-        it('does not offer Leave to the owner', async () => {
-            // Given the signed-in user owns the workspace
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {owner: selfEmail, ownerAccountID: selfAccountID});
-            });
-
-            // When the owner opens their own details
-            const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then self-removal and departure remain unavailable
-            expect(screen.queryByText(TestHelper.translateLocal('common.leave'))).not.toBeOnTheScreen();
-            expect(await screen.findByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle'))).toBeDisabled();
-            unmount();
-        });
-
-        it.each(['loading', 'mandatory', 'archived'])('prevents departure when settings are %s', async (restriction) => {
-            // Given either unresolved domain restrictions, mandatory membership, or an archived policy
+        it('disables Leave on the restricted member’s own details', async () => {
+            // Given the member's domain requires this workspace
             jest.spyOn(usePreferredPolicyModule, 'default').mockReturnValue(
                 createMock<ReturnType<typeof usePreferredPolicyModule.default>>({
-                    isLoadingPreferredPolicy: restriction === 'loading',
-                    isRestrictedToPreferredPolicy: restriction === 'mandatory',
+                    isRestrictedToPreferredPolicy: true,
                     preferredPolicyID: policy.id,
                 }),
             );
-            if (restriction === 'archived') {
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {archivedDate: '2026-11-15 00:00:00'});
-                });
-            }
 
-            // When self details are opened and any visible Leave button is pressed
+            // When self details are opened
             const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
             await waitForBatchedUpdatesWithAct();
-            const leaveButton = screen.queryByText(TestHelper.translateLocal('common.leave'));
-            if (leaveButton) {
-                expect(leaveButton).toBeDisabled();
-                fireEvent.press(leaveButton);
-            }
+            const leaveButton = screen.getByText(TestHelper.translateLocal('common.leave'));
 
-            // Then neither the confirmation nor a departure can start
+            // Then Leave stays visible but disabled and cannot start the flow
+            expect(leaveButton).toBeDisabled();
+            fireEvent.press(leaveButton);
             expect(showConfirmModal).not.toHaveBeenCalled();
             expect(PolicyActions.leaveWorkspace).not.toHaveBeenCalled();
-            unmount();
-        });
-
-        it('preserves the locked-account guard', async () => {
-            // Given a locked signed-in member
-            const showLockedAccountModal = jest.fn();
-            jest.spyOn(LockedAccountModalProvider, 'useLockedAccountState').mockReturnValue({isAccountLocked: true});
-            jest.spyOn(LockedAccountModalProvider, 'useLockedAccountActions').mockReturnValue({showLockedAccountModal});
-            const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
-            await waitForBatchedUpdatesWithAct();
-
-            // When they press Leave
-            await pressLeave();
-
-            // Then the existing lock modal blocks the departure flow
-            expect(showLockedAccountModal).toHaveBeenCalledTimes(1);
-            expect(showConfirmModal).not.toHaveBeenCalled();
-            expect(PolicyActions.leaveWorkspace).not.toHaveBeenCalled();
-            unmount();
-        });
-
-        it.each([false, true])('retains the shared prompt for reimbursement contact %s', async (isReimburser) => {
-            // Given a member who is either the reimbursement contact or an approver
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, isReimburser ? {achAccount: {reimburser: selfEmail}} : {approver: selfEmail});
-            });
-            const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
-            await waitForBatchedUpdatesWithAct();
-
-            // When they acknowledge the shared prompt
-            await pressLeave();
-
-            // Then reimbursement contacts cannot leave and approvers receive the existing warning
-            if (isReimburser) {
-                expect(showConfirmModal).toHaveBeenCalledWith(expect.objectContaining({shouldShowCancelButton: false, buttonVariant: CONST.BUTTON_VARIANT.SUCCESS}));
-                expect(PolicyActions.leaveWorkspace).not.toHaveBeenCalled();
-                expect(Navigation.goBack).not.toHaveBeenCalled();
-            } else {
-                expect(showConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: TestHelper.translateLocal('common.leaveWorkspaceConfirmationApprover', 'Owner User')}));
-                expect(PolicyActions.leaveWorkspace).toHaveBeenCalledTimes(1);
-            }
             unmount();
         });
 

@@ -58,9 +58,9 @@ import {
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
+    canLeaveWorkspace,
     goBackFromInvalidPolicy,
     hasActiveExpensifyCard,
-    isArchivedPolicy,
     isControlPolicy,
     isPolicyAdmin,
     isPolicyApprover,
@@ -153,7 +153,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isSupportalSession = useIsSupportalSession();
-    const {isRestrictedToPreferredPolicy, preferredPolicyID, isLoadingPreferredPolicy} = usePreferredPolicy();
+    const preferredPolicy = usePreferredPolicy();
     const [isLeaveFlowActive, setIsLeaveFlowActive] = useState(false);
 
     const routeAccountID = Number(route.params.accountID);
@@ -185,8 +185,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const shouldShowLeave = isSelectedMemberCurrentUser && !isPolicyOwner(policy, currentUserAccountID);
-    // A domain can mandate membership in its preferred workspace, so unresolved restrictions must not allow departure.
-    const canLeave = !!policy && !isLoadingPreferredPolicy && !isArchivedPolicy(policy) && (policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy);
+    const canLeave = canLeaveWorkspace(policy, currentUserAccountID, preferredPolicy);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const policyOwnerDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
@@ -432,6 +431,18 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         showRemoveMemberModal();
     };
 
+    const leaveOrRemoveMember = () => {
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+        if (shouldShowLeave) {
+            setIsLeaveFlowActive(true);
+            return;
+        }
+        askForConfirmationToRemove();
+    };
+
     const navigateToCategoryVisibility = () => {
         startSpan(CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY, {
             name: CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY,
@@ -521,17 +532,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     )
                                 ) : (
                                     <Button
-                                        onPress={() => {
-                                            if (isAccountLocked) {
-                                                showLockedAccountModal();
-                                                return;
-                                            }
-                                            if (shouldShowLeave) {
-                                                setIsLeaveFlowActive(true);
-                                                return;
-                                            }
-                                            askForConfirmationToRemove();
-                                        }}
+                                        onPress={leaveOrRemoveMember}
                                         isDisabled={shouldShowLeave ? !canLeave : !canRemoveSelectedMember}
                                         sentryLabel={shouldShowLeave ? CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_LEAVE_WORKSPACE : CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_REMOVE}
                                     >
