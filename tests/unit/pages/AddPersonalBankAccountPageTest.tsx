@@ -187,6 +187,24 @@ describe('AddPersonalBankAccountPage', () => {
         });
     });
 
+    it('keeps header back on the first setup step as a single ordinary back action', async () => {
+        // Given the user is on the first bank setup step
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, MANUAL_BANK_ACCOUNT_DRAFT);
+        });
+        await renderPageOverTab(
+            TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR),
+            SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS,
+        );
+
+        // When they use the page header rather than canceling Plaid
+        fireEvent.press(screen.getByLabelText('Back'));
+
+        // Then the header leaves the destination to the stack's immediate previous screen
+        expect(goBackSpy).toHaveBeenCalledTimes(1);
+        expect(goBackSpy).toHaveBeenCalledWith();
+    });
+
     it('closes the RHP when the flow was started from the Home tab', async () => {
         await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === SCREENS.HOME));
 
