@@ -22,6 +22,8 @@ function AddVirtualCardPersonalDetails({card}: AddVirtualCardPersonalDetailsProp
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.ADD_VIRTUAL_CARD_PERSONAL_DETAILS}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.ADD_VIRTUAL_CARD_PERSONAL_DETAILS}
             icon={ExpensifyCardIcon}
             title={translate('homePage.timeSensitiveSection.addVirtualCardPersonalDetails.title')}
             subtitle={translate('homePage.timeSensitiveSection.addVirtualCardPersonalDetails.subtitle')}

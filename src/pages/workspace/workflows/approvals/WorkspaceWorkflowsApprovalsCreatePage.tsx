@@ -67,7 +67,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        if (!validateApprovalWorkflow(approvalWorkflow, shouldUseApprovalWorkflowRules)) {
+        if (!validateApprovalWorkflow(approvalWorkflow)) {
             return;
         }
 
@@ -116,6 +116,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                             />
                             <FixedFooter addBottomSafeAreaPadding>
                                 <FormAlertWithSubmitButton
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_CREATE_SUBMIT}
                                     isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
                                     onSubmit={createApprovalWorkflow}
                                     onFixTheErrorsLinkPressed={() => {

@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOpenSupportTicket from '@hooks/useOpenSupportTicket';
 
-import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
+import {callIfAuthenticated} from '@libs/actions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +24,7 @@ function TalkToHumanButton() {
 
     return (
         <ButtonDisabledWhenOffline
-            onPress={callFunctionIfActionIsAllowed(openSupportTicketOrConcierge, false, session)}
+            onPress={callIfAuthenticated(openSupportTicketOrConcierge, session)}
             sentryLabel={CONST.SENTRY_LABEL.TALK_TO_HUMAN.BUTTON}
             accessibilityLabel={label}
         >

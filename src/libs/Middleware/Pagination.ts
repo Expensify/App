@@ -148,11 +148,13 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
             ? mergePagesByIDOverlap(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID)
             : mergeAndSortContinuousPages(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
 
-        (response.onyxData as AnyOnyxUpdate[]).push({
-            key: pageKey,
-            onyxMethod: Onyx.METHOD.SET,
-            value: mergedPages,
-        });
+        const paginationUpdates: AnyOnyxUpdate[] = [
+            {
+                key: pageKey,
+                onyxMethod: Onyx.METHOD.SET,
+                value: mergedPages,
+            },
+        ];
 
         // Store cursor IDs scoped to pagination direction so backfill (getOlderActions)
         // doesn't overwrite the forward cursor used by auto-pagination.
@@ -169,7 +171,7 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
                 value.oldestFetchedReportActionID = oldestFetchedID;
             }
             if (Object.keys(value).length > 0) {
-                (response.onyxData as AnyOnyxUpdate[]).push({
+                paginationUpdates.push({
                     key: `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${resourceID}`,
                     onyxMethod: Onyx.METHOD.MERGE,
                     value,
@@ -177,6 +179,16 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
             }
         }
 
+        // Write responses queue all their updates into one flush, where later updates can land long before the items.
+        // OpenReport's linked-message check would then see a finished load without the linked action, so writes keep the page in onyxData.
+        if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE) {
+            (response.onyxData as AnyOnyxUpdate[]).push(...paginationUpdates);
+            return Promise.resolve(response);
+        }
+
+        // A page written in the same batch as its items can land first, and lists then show only the cached items inside its range
+        response.paginationOnyxData = [];
+        (response.paginationOnyxData as AnyOnyxUpdate[]).push(...paginationUpdates);
         return Promise.resolve(response);
     });
 }

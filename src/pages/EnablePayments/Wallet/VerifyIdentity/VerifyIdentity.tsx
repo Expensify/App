@@ -93,6 +93,7 @@ function VerifyIdentity() {
                             </View>
                             <FixedFooter>
                                 <FormAlertWithSubmitButton
+                                    sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.WALLET_VERIFY_IDENTITY_CONTINUE}
                                     isAlertVisible={!!onfidoError}
                                     onSubmit={openOnfidoFlow}
                                     message={onfidoError}

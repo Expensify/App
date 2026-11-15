@@ -2509,6 +2509,7 @@ describe('setMergeTransactionKey', () => {
                     field: 'merchant',
                     fieldValue: transaction.merchant,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    translate: TestHelper.translateLocal,
                     mergeTransaction: await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`),
                     destinationPolicy: excludingWorkspace,
                 }),

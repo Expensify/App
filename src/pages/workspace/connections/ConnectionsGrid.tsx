@@ -11,6 +11,7 @@ import {View} from 'react-native';
 
 import type {ConnectionListing} from './types';
 
+import AccountingIntegrationWaitlistCard from './AccountingIntegrationWaitlistCard';
 import ConnectionCard from './ConnectionCard';
 import ExactOnlineWaitlistCard from './ExactOnlineWaitlistCard';
 
@@ -27,23 +28,44 @@ function ConnectionsGrid({listings, policyID}: ConnectionsGridProps) {
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     // Medium screens can leave less than a card's minimum width once both navigation panes are shown
     const shouldStackCards = shouldUseNarrowLayout || isMediumScreenWidth;
+    const waitlistConnectionNames = CONST.POLICY.CONNECTIONS.WAITLIST_CONNECTION_NAMES;
 
     return (
         <View style={styles.connectionsGrid}>
-            {listings.map((listing) =>
-                listing.key === CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE ? (
-                    <ExactOnlineWaitlistCard
-                        key={listing.key}
-                        policyID={policyID}
-                    />
-                ) : (
+            {listings.map((listing) => {
+                if (listing.key === CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE) {
+                    return (
+                        <ExactOnlineWaitlistCard
+                            key={listing.key}
+                            policyID={policyID}
+                        />
+                    );
+                }
+                const waitlistConnectionName = waitlistConnectionNames.find((name) => name === listing.key);
+                if (waitlistConnectionName) {
+                    // A waitlist signup belongs to a workspace, so there is nothing to join without one
+                    if (!policyID) {
+                        return null;
+                    }
+                    return (
+                        <AccountingIntegrationWaitlistCard
+                            key={listing.key}
+                            connectionName={waitlistConnectionName}
+                            title={listing.title}
+                            icon={listing.icon}
+                            policyID={policyID}
+                            shouldUseFullWidth={shouldStackCards}
+                        />
+                    );
+                }
+                return (
                     <ConnectionCard
                         key={listing.key}
                         listing={listing}
                         shouldUseFullWidth={shouldStackCards}
                     />
-                ),
-            )}
+                );
+            })}
             {!shouldStackCards &&
                 Array.from({length: FILLER_COUNT}, (_, index) => (
                     <View

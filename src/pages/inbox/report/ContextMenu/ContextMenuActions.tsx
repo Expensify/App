@@ -259,7 +259,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ComponentRef, RefObject} from 'react';
@@ -428,7 +428,7 @@ type ContextMenuActionWithContent = {
     renderContent: RenderContent;
 };
 
-type ContextMenuActionWithIcon = WithSentryLabel & {
+type ContextMenuActionWithIcon = WithRequiredSentryLabel & {
     textTranslateKey: TranslationPaths;
     icon: Extract<
         ExpensifyIconName,

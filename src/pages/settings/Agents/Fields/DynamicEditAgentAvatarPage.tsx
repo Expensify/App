@@ -170,6 +170,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                     >
                         {({openPicker}) => (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.UPLOAD_PHOTO}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                 onPress={() => {
                                     openPicker({

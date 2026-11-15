@@ -118,6 +118,78 @@ describe('OnyxUpdatesTest', () => {
         expect(result?.jsonCode).toBe(200);
     });
 
+    describe('pagination data', () => {
+        const reportID = '1';
+        const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+        const pagesKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}` as const;
+        const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}` as const;
+        const reportActionID = '2';
+        const reportActions = {[reportActionID]: {reportActionID, created: '2026-11-11 10:00:00.000'}};
+
+        const paginatedReadResponse = (lastUpdateID: number): OnyxUpdatesFromServer<OnyxKey> => ({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 0,
+            lastUpdateID,
+            request: {
+                command: 'GetNewerActions',
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.READ},
+                finallyData: [{onyxMethod: 'merge', key: loadingKey, value: {isLoadingNewerReportActions: false}}],
+            },
+            response: {
+                jsonCode: 200,
+                onyxData: [{onyxMethod: 'merge', key: actionsKey, value: reportActions}],
+                paginationOnyxData: [{onyxMethod: 'set', key: pagesKey, value: [[reportActionID, CONST.PAGINATION_END_ID]]}],
+            },
+        });
+
+        it('writes the pages after the items they list', async () => {
+            // Given a subscriber that records which report actions are stored when the pages change
+            let storedActions: unknown;
+            let actionsWhenPagesChanged: unknown;
+            const actionsConnection = Onyx.connectWithoutView({
+                key: actionsKey,
+                callback: (value) => {
+                    storedActions = value;
+                },
+            });
+            const pagesConnection = Onyx.connectWithoutView({
+                key: pagesKey,
+                callback: (pages) => {
+                    if (!pages) {
+                        return;
+                    }
+                    actionsWhenPagesChanged = storedActions;
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When a paginated read response is applied
+            await OnyxUpdates.apply(paginatedReadResponse(0));
+            await waitForBatchedUpdates();
+            actionsConnection.unsubscribe();
+            pagesConnection.unsubscribe();
+
+            // Then the pages are written after the items, so a list never reads a page whose items aren't stored yet
+            expect(actionsWhenPagesChanged).toStrictEqual(reportActions);
+        });
+
+        it('skips the pages together with the items of an already-applied response', async () => {
+            // Given the client already applied update 100
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
+            await waitForBatchedUpdates();
+
+            // When a paginated read response that is already covered arrives
+            await OnyxUpdates.apply(paginatedReadResponse(100));
+            await waitForBatchedUpdates();
+
+            // Then neither the items nor the pages are written, because pages without their items would hide a gap in the list,
+            // while the request's own finallyData still clears its loading state
+            expect(await getOnyxValue(actionsKey)).toBeUndefined();
+            expect(await getOnyxValue(pagesKey)).toBeUndefined();
+            expect(await getOnyxValue(loadingKey)).toStrictEqual({isLoadingNewerReportActions: false});
+        });
+    });
+
     it('advances lastUpdateID only after the updates are successfully applied', async () => {
         // Given the client is caught up to update 10
         await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);

@@ -83,6 +83,7 @@ function SpendRuleMerchantsBase({policyID, action, merchants, getEditMerchantRou
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ADD_MERCHANT}
                         title={translate('workspace.rules.spendRules.addMerchant')}
                         icon={expensifyIcons.Plus}
                         onPress={addMerchant}
@@ -124,7 +125,7 @@ function SpendRuleMerchantsBase({policyID, action, merchants, getEditMerchantRou
                     isAlertVisible={false}
                     onSubmit={saveAndGoBack}
                     enabledWhenOffline
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_MERCHANTS_SAVE}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -63,6 +63,7 @@ function DeleteGroupRow({domainAccountID, groupID}: DeleteGroupRowProps) {
 
     return groupID !== defaultSecurityGroupID ? (
         <MenuItemAction
+            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.DELETE_GROUP}
             icon={icons.Trashcan}
             title={translate('domain.groups.deleteGroup')}
             onPress={() => {
