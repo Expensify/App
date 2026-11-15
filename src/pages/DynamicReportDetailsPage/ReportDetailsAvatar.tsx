@@ -114,6 +114,7 @@ function ReportDetailsAvatarContent({report}: ReportDetailsAvatarContentProps) {
 
     return (
         <AvatarWithImagePicker
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.AVATAR}
             source={groupChatAvatarSource}
             avatar={groupChatAvatar}
             isUsingDefaultAvatar={!report.avatarUrl}

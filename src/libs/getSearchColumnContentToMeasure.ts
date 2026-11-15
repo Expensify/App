@@ -17,10 +17,12 @@ import type {MeasurableFont} from './measureTextWidth/types';
 import {getCompanyCardDescription} from './CardUtils';
 import {getCategoryGLCode, getDecodedLeafCategoryName, isCategoryMissing} from './CategoryUtils';
 import getBase62ReportID from './getBase62ReportID';
+import measureTextWidth from './measureTextWidth';
 import {getTagGLCode, getVendorDisplayName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {getPolicyName, getReportStatusTranslation} from './ReportUtils';
 import {
+    getTransactionPolicyID,
     isTransactionCategoryGroupListItemType,
     isTransactionDayGroupListItemType,
     isTransactionListItemType,
@@ -49,12 +51,10 @@ type SearchColumnMeasurementContext = {
 
     /** Every policy's tag lists, so a transaction's tag GL code can be looked up by its policy. */
     policyTags?: OnyxCollection<PolicyTagLists>;
-};
 
-/** The policy a transaction belongs to, which is where its category and tag GL codes are defined. */
-function getTransactionPolicyID(item: TransactionListItemType): string | undefined {
-    return [item.policyID, item.report?.policyID, item.policy?.id].find((policyID): policyID is string => !!policyID);
-}
+    /** The policy unreported expenses fall back to, since they have no report policy of their own. */
+    fallbackPolicyID?: string;
+};
 
 /** A run of text rendered in a Search table cell, described well enough to measure how wide it renders. */
 type SearchColumnContent = {
@@ -256,13 +256,15 @@ function getTransactionColumnContentToMeasure(
             // width of the fallback it actually shows rather than at nothing.
             return [{text: getPolicyName({report: item.report, unavailableTranslation: translate('workspace.common.unavailable')})}];
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
-            return [{text: isTimeRequest(item) || isPerDiemRequest(item) ? '' : (getTaxName(item.policy, item) ?? item.taxValue ?? '')}];
+            return [{text: isTimeRequest(item) || isPerDiemRequest(item) ? '' : (getTaxName(translate, item.policy, item) ?? item.taxValue ?? '')}];
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             return [{text: getExchangeRate(item, item.report?.currency ?? item.policy?.outputCurrency, true)}];
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
-            return [{text: getCategoryGLCode(context.policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getTransactionPolicyID(item)}`], item.category)}];
+            return [
+                {text: getCategoryGLCode(context.policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getTransactionPolicyID(item, context.fallbackPolicyID)}`], item.category)},
+            ];
         case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
-            return [{text: getTagGLCode(context.policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getTransactionPolicyID(item)}`], item.tag)}];
+            return [{text: getTagGLCode(context.policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getTransactionPolicyID(item, context.fallbackPolicyID)}`], item.tag)}];
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
             return [{text: getCompanyCardDescription(translate, item.cardName, item.cardID, context.nonPersonalAndWorkspaceCards, item.feedCountry)}];
         default:
@@ -392,6 +394,24 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: SearchL
     return getGroupNameColumnContentToMeasure(column, item, translate) ?? [];
 }
 
+/**
+ * How wide a heading's label renders, or `null` when the platform can't measure text. `labelGap` is the gap between the
+ * label's text and its sort arrow.
+ *
+ * Uses the bold weight and reserves the sort arrow even when unsorted, so sorting a column never changes the result.
+ */
+function measureSearchHeaderLabelWidth(text: string, labelGap: number): number | null {
+    const textWidth = measureTextWidth(text, {fontSize: textVariants.microStrong.fontSize, fontWeight: '700'});
+    return textWidth === null ? null : textWidth + labelGap + variables.iconSizeExtraSmall;
+}
+
 export default getSearchColumnContentToMeasure;
-export {DYNAMICALLY_SIZED_SEARCH_COLUMNS, HUGGED_SEARCH_COLUMNS, SEARCH_COLUMN_HEADER_TRANSLATION_KEYS, getSearchColumnEditButtonReserve, getSearchColumnExtraWidth};
+export {
+    DYNAMICALLY_SIZED_SEARCH_COLUMNS,
+    HUGGED_SEARCH_COLUMNS,
+    SEARCH_COLUMN_HEADER_TRANSLATION_KEYS,
+    getSearchColumnEditButtonReserve,
+    getSearchColumnExtraWidth,
+    measureSearchHeaderLabelWidth,
+};
 export type {SearchColumnMeasurementContext};

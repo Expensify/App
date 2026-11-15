@@ -52,7 +52,7 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import {fontScale, lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -707,6 +707,9 @@ function MenuItem({
                         style={descriptionTextStyles}
                         numberOfLines={numberOfLinesDescription}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: isTitleSelectable}}
+                        // A description on top labels the field, so it stays readable in session recordings even inside a masked container.
+                        // A description below the title can hold user data, like an email, so it keeps the class of its container
+                        fsClass={shouldShowDescriptionOnTop ? CONST.FULLSTORY.CLASS.UNMASK : undefined}
                     >
                         {description}
                     </Text>
@@ -866,7 +869,7 @@ function MenuItem({
                     >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction, session) : onPressAction}
+                                onPress={shouldCheckActionAllowedOnPress && !isAnonymousAction ? callIfAuthenticated(onPressAction, session) : onPressAction}
                                 onMouseDown={(event) => {
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
@@ -917,6 +920,8 @@ function MenuItem({
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
+                                // The label repeats the title, so a masked title also masks the row that carries the label
+                                forwardedFSClass={forwardedFSClass === CONST.FULLSTORY.CLASS.MASK ? forwardedFSClass : undefined}
                                 accessible={shouldBeAccessible}
                                 accessibilityState={accessibilityState ?? (role === CONST.ROLE.TAB ? {selected: focused} : undefined)}
                                 tabIndex={interactive ? tabIndex : -1}

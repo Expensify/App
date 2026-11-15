@@ -115,6 +115,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
 
     return (
         <MenuItem.Root
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.LEAVE}
             onPress={() => {
                 if (getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true).length === 1 && isRootGroupChat) {
                     showLastMemberLeavingModal();

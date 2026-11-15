@@ -1,0 +1,108 @@
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index c102661..99cac83 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -1706,6 +1706,7 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const {
+     maintainVisibleContentPosition: { data: mvcpData, size: mvcpScroll, shouldRestorePosition }
+   } = props;
++  const anchorIdsInView = props.alignItemsAtEnd ? [...idsInView].reverse() : idsInView;
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -1743,11 +1744,11 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+     } else if (scrollTarget !== void 0) {
+       targetId = (_c = scrollingTo == null ? void 0 : scrollingTo.key) != null ? _c : getId(state, scrollTarget);
+     } else if (idsInView.length > 0 && state.didContainersLayout && !dataChanged) {
+-      targetId = idsInView.find((id) => indexByKey.get(id) !== void 0);
++      targetId = anchorIdsInView.find((id) => indexByKey.get(id) !== void 0);
+     }
+     if (dataChanged && idsInView.length > 0 && state.didContainersLayout) {
+-      for (let i = 0; i < idsInView.length; i++) {
+-        const id = idsInView[i];
++      for (let i = 0; i < anchorIdsInView.length; i++) {
++        const id = anchorIdsInView[i];
+         const index = previousIndexByKey.get(id);
+         if (index !== void 0) {
+           const position = positions[index];
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index ff71fd6..a7a89dd 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -1685,6 +1685,7 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const {
+     maintainVisibleContentPosition: { data: mvcpData, size: mvcpScroll, shouldRestorePosition }
+   } = props;
++  const anchorIdsInView = props.alignItemsAtEnd ? [...idsInView].reverse() : idsInView;
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -1722,11 +1723,11 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+     } else if (scrollTarget !== void 0) {
+       targetId = (_c = scrollingTo == null ? void 0 : scrollingTo.key) != null ? _c : getId(state, scrollTarget);
+     } else if (idsInView.length > 0 && state.didContainersLayout && !dataChanged) {
+-      targetId = idsInView.find((id) => indexByKey.get(id) !== void 0);
++      targetId = anchorIdsInView.find((id) => indexByKey.get(id) !== void 0);
+     }
+     if (dataChanged && idsInView.length > 0 && state.didContainersLayout) {
+-      for (let i = 0; i < idsInView.length; i++) {
+-        const id = idsInView[i];
++      for (let i = 0; i < anchorIdsInView.length; i++) {
++        const id = anchorIdsInView[i];
+         const index = previousIndexByKey.get(id);
+         if (index !== void 0) {
+           const position = positions[index];
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index c102661..99cac83 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -1706,6 +1706,7 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const {
+     maintainVisibleContentPosition: { data: mvcpData, size: mvcpScroll, shouldRestorePosition }
+   } = props;
++  const anchorIdsInView = props.alignItemsAtEnd ? [...idsInView].reverse() : idsInView;
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -1743,11 +1744,11 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+     } else if (scrollTarget !== void 0) {
+       targetId = (_c = scrollingTo == null ? void 0 : scrollingTo.key) != null ? _c : getId(state, scrollTarget);
+     } else if (idsInView.length > 0 && state.didContainersLayout && !dataChanged) {
+-      targetId = idsInView.find((id) => indexByKey.get(id) !== void 0);
++      targetId = anchorIdsInView.find((id) => indexByKey.get(id) !== void 0);
+     }
+     if (dataChanged && idsInView.length > 0 && state.didContainersLayout) {
+-      for (let i = 0; i < idsInView.length; i++) {
+-        const id = idsInView[i];
++      for (let i = 0; i < anchorIdsInView.length; i++) {
++        const id = anchorIdsInView[i];
+         const index = previousIndexByKey.get(id);
+         if (index !== void 0) {
+           const position = positions[index];
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index ff71fd6..a7a89dd 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -1685,6 +1685,7 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const {
+     maintainVisibleContentPosition: { data: mvcpData, size: mvcpScroll, shouldRestorePosition }
+   } = props;
++  const anchorIdsInView = props.alignItemsAtEnd ? [...idsInView].reverse() : idsInView;
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -1722,11 +1723,11 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+     } else if (scrollTarget !== void 0) {
+       targetId = (_c = scrollingTo == null ? void 0 : scrollingTo.key) != null ? _c : getId(state, scrollTarget);
+     } else if (idsInView.length > 0 && state.didContainersLayout && !dataChanged) {
+-      targetId = idsInView.find((id) => indexByKey.get(id) !== void 0);
++      targetId = anchorIdsInView.find((id) => indexByKey.get(id) !== void 0);
+     }
+     if (dataChanged && idsInView.length > 0 && state.didContainersLayout) {
+-      for (let i = 0; i < idsInView.length; i++) {
+-        const id = idsInView[i];
++      for (let i = 0; i < anchorIdsInView.length; i++) {
++        const id = anchorIdsInView[i];
+         const index = previousIndexByKey.get(id);
+         if (index !== void 0) {
+           const position = positions[index];

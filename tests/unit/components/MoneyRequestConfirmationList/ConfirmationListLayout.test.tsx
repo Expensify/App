@@ -88,17 +88,17 @@ describe('ConfirmationListLayout', () => {
             return null;
         }
         function FooterField() {
-            const {transactionID, isScanRequest} = useConfirmationFields();
+            const {transactionID, isDistanceRequest} = useConfirmationFields();
             useEffect(() => {
                 mountOrder.push('field');
             }, []);
-            return <Text>{`${transactionID}:${String(isScanRequest)}`}</Text>;
+            return <Text>{`${transactionID}:${String(isDistanceRequest)}`}</Text>;
         }
 
-        // When the layout renders them, with a scan flag set by the variant
+        // When the layout renders them, with a distance flag set by the variant
         renderLayout({
             listFooterContent: <FooterField />,
-            fieldFlags: {isScanRequest: true},
+            fieldFlags: {isDistanceRequest: true},
             children: <Controller />,
         });
 

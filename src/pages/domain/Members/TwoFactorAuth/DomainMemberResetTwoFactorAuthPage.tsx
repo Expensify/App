@@ -8,6 +8,7 @@ import BaseDomainRequireTwoFactorAuthPage from '@pages/domain/BaseDomainRequireT
 
 import {resetDomainMemberTwoFactorAuth} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -22,6 +23,7 @@ function DomainMemberResetTwoFactorAuthPage({route}: DomainMemberTwoFactorAuthPa
 
     return (
         <BaseDomainRequireTwoFactorAuthPage
+            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.RESET_TWO_FACTOR_AUTH_SUBMIT}
             domainAccountID={domainAccountID}
             onSubmit={(code: string) => {
                 if (!personalDetails?.login) {

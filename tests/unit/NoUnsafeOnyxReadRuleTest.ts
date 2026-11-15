@@ -1096,6 +1096,20 @@ describe('no-unsafe-onyx-read value uses of the Onyx object', () => {
         ],
         invalid: [
             {
+                // Given the Onyx module name contains a Unicode escape
+                // When a module-level read uses that import
+                // Then the decoded module is still analyzed
+                code: String.raw`import Onyx from 'react-native-\u006fnyx'; const session = Onyx.get(ONYXKEYS.SESSION);`,
+                errors: MODULE_SCOPE_ERRORS,
+            },
+            {
+                // Given the Onyx module name contains a Unicode escape
+                // When its default export is re-exported
+                // Then the value use is still reported
+                code: String.raw`export {default as Store} from 'react-native-\u006fnyx';`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
                 // Given the Onyx object spread into a local object in src/libs
                 // When a read goes through that copy
                 // Then the copy hides the read from both Onyx rules, so the spread is reported

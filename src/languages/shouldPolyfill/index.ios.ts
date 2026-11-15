@@ -3,6 +3,8 @@ import type {Locale} from '@src/CONST/LOCALES';
 import {shouldPolyfill as listFormatNeedsLocale} from '@formatjs/intl-listformat/should-polyfill';
 import {shouldPolyfill as pluralRulesNeedsLocale} from '@formatjs/intl-pluralrules/should-polyfill';
 
+import shouldPolyfillDateTimeFormatRange from './shouldPolyfillDateTimeFormatRange';
+
 /**
  * These guards run after the polyfills are installed and answer "does `locale`'s data still need to be
  * loaded?". `polyfill-force` guarantees the constructors exist, so a presence check like
@@ -31,4 +33,4 @@ function shouldPolyfillPluralRules(locale: Locale): boolean {
     return !!pluralRulesNeedsLocale(locale);
 }
 
-export {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules};
+export {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules, shouldPolyfillDateTimeFormatRange};
