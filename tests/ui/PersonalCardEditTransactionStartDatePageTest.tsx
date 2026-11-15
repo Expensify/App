@@ -1,6 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import DatePicker from '@components/DatePicker';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -111,5 +112,73 @@ describe('PersonalCardEditTransactionStartDatePage', () => {
         // Then keep the date rather than clearing it with an incorrect initial selection
         expect(updateAssignedCardTransactionStartDate).not.toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalled();
+    });
+
+    it('preserves a custom date that arrives after the page mounts', async () => {
+        // Given a deep link opened before the card is available
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When Onyx supplies the saved custom date after the first render
+        await Onyx.set(ONYXKEYS.CARD_LIST, {[CARD_ID]: {cardID: Number(CARD_ID), scrapeMinDate: CUSTOM_DATE}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the saved date is displayed and an unchanged save cannot clear it
+        expect(screen.getByDisplayValue(CUSTOM_DATE)).toBeOnTheScreen();
+        fireEvent.press(screen.getByText('Save'));
+        expect(updateAssignedCardTransactionStartDate).not.toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalled();
+    });
+
+    it('cannot save before the target card is available', async () => {
+        // Given a page waiting for its card data
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When Save is pressed before the card arrives
+        fireEvent.press(screen.getByText('Save'));
+
+        // Then no date can be written for an unloaded card
+        expect(screen.getByText('Save')).toBeDisabled();
+        expect(updateAssignedCardTransactionStartDate).not.toHaveBeenCalled();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('preserves a typed custom date when the saved card date changes', async () => {
+        // Given a user editing a saved custom date
+        await Onyx.set(ONYXKEYS.CARD_LIST, {[CARD_ID]: {cardID: Number(CARD_ID), scrapeMinDate: CUSTOM_DATE}});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        const editedDate = '2026-10-03';
+        fireEvent(screen.UNSAFE_getByType(DatePicker), 'inputChange', editedDate);
+        await waitForBatchedUpdatesWithAct();
+
+        // When a refreshed card date arrives during the edit
+        const updatedDate = '2026-10-02';
+        await Onyx.merge(ONYXKEYS.CARD_LIST, {[CARD_ID]: {scrapeMinDate: updatedDate}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Save uses the user's date rather than replacing it with the refreshed value
+        expect(screen.getByDisplayValue(editedDate)).toBeOnTheScreen();
+        fireEvent.press(screen.getByText('Save'));
+        expect(updateAssignedCardTransactionStartDate).toHaveBeenCalledWith(CARD_ID, editedDate, updatedDate);
+    });
+
+    it('preserves an explicit selection when the saved card date changes', async () => {
+        // Given a user who deliberately chooses to clear a saved custom date
+        await Onyx.set(ONYXKEYS.CARD_LIST, {[CARD_ID]: {cardID: Number(CARD_ID), scrapeMinDate: CUSTOM_DATE}});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('From the beginning'));
+        await waitForBatchedUpdatesWithAct();
+
+        // When a card update arrives while the user is editing
+        const updatedDate = '2026-10-02';
+        await Onyx.merge(ONYXKEYS.CARD_LIST, {[CARD_ID]: {scrapeMinDate: updatedDate}});
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
+
+        // Then the explicit selection wins over the refreshed saved date
+        expect(updateAssignedCardTransactionStartDate).toHaveBeenCalledWith(CARD_ID, '', updatedDate);
     });
 });
