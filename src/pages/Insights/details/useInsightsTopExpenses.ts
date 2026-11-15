@@ -17,7 +17,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import {useEffect, useEffectEvent} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 const TOP_EXPENSES_STATE = {
     READY: 'ready',
@@ -41,11 +42,13 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
     const session = useSession();
     const queryJSON = query ? buildTopExpensesQueryJSON(query) : undefined;
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
 
     const retry = () => {
         if (!queryJSON || isOffline) {
@@ -54,11 +57,19 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
         search({queryJSON, searchKey: undefined, offset: 0, isLoading: false});
     };
 
-    const onQueryOrNetworkChange = useEffectEvent(retry);
+    const onRefreshKeyChange = useEffectEvent(retry);
 
+    // An expense edit moves the spend signature and can change which expenses match, so the list is fetched again.
+    // A change made while an expense is open on top waits until the user is back on the list.
+    const refreshKey = [queryJSON?.hash, isOffline, spendDataSignature?.expenses ?? 0].join('|');
+    const lastRefreshKeyRef = useRef<string | undefined>(undefined);
     useEffect(() => {
-        onQueryOrNetworkChange();
-    }, [queryJSON?.hash, isOffline]);
+        if (!isFocused || refreshKey === lastRefreshKeyRef.current) {
+            return;
+        }
+        lastRefreshKeyRef.current = refreshKey;
+        onRefreshKeyChange();
+    }, [refreshKey, isFocused]);
 
     const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
     const hasErrors = Object.keys(snapshot?.errors ?? {}).length > 0;
