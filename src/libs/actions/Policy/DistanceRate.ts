@@ -23,7 +23,12 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
-import {buildOnyxDataForGovernmentRateAutoUpdate, buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
+import {
+    buildOnyxDataForGovernmentRateAutoUpdate,
+    buildOnyxDataForPolicyDistanceRateUpdates,
+    getAutoUpdateGovernmentRateCountry,
+    getCurrentGovernmentRateID,
+} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -448,14 +453,16 @@ function deletePolicyDistanceRates(
     rateIDsToDelete: string[],
     transactionIDsAffected: string[],
     transactionViolations: OnyxCollection<TransactionViolation[]>,
-    shouldAutoUpdateGovernmentDistanceRates?: boolean,
+    policy?: OnyxEntry<Policy>,
 ) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Partial<Rate>> = {};
     const failureRates: Record<string, Partial<Rate>> = {};
 
-    // Auto-update keeps the workspace's government rates complete, so deleting any of them opts the workspace out of it
-    const shouldTurnOffAutoUpdate = !!shouldAutoUpdateGovernmentDistanceRates && rateIDsToDelete.some((rateID) => !!currentRates[rateID]?.attributes?.governmentRate);
+    // Auto-update would add the current government rate straight back, so deleting it opts the workspace out of auto-update
+    const autoUpdateCountry = policy?.shouldAutoUpdateGovernmentDistanceRates ? getAutoUpdateGovernmentRateCountry(policy) : undefined;
+    const currentGovernmentRateID = autoUpdateCountry ? getCurrentGovernmentRateID(customUnit, autoUpdateCountry) : undefined;
+    const shouldTurnOffAutoUpdate = !!currentGovernmentRateID && rateIDsToDelete.includes(currentGovernmentRateID);
 
     for (const rateID of rateIDsToDelete) {
         optimisticRates[rateID] = {

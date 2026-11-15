@@ -144,6 +144,7 @@ describe('DistanceRate', () => {
     describe('deletePolicyDistanceRates with auto-update on', () => {
         const customUnitID = '5A55C2B68DDCB';
         const governmentRateID = '7255CA72C7E7B';
+        const previousGovernmentRateID = '7255CA72C7E7C';
         const customRateID = '7255CA72C7E72';
 
         const customUnit: CustomUnit = {
@@ -159,6 +160,14 @@ describe('DistanceRate', () => {
                     currency: 'USD',
                     enabled: true,
                     attributes: {governmentRate: {sourceRateID: 'US_2025-01-01', rate: 70, startDate: '2025-01-01'}},
+                },
+                [previousGovernmentRateID]: {
+                    customUnitRateID: previousGovernmentRateID,
+                    name: '2024 United States',
+                    rate: 67,
+                    currency: 'USD',
+                    enabled: true,
+                    attributes: {governmentRate: {sourceRateID: 'US_2024-01-01', rate: 67, startDate: '2024-01-01', endDate: '2024-12-31'}},
                 },
                 [customRateID]: {customUnitRateID: customRateID, name: 'Custom', rate: 50, currency: 'USD', enabled: true},
             },
@@ -176,16 +185,16 @@ describe('DistanceRate', () => {
             return Onyx.clear();
         });
 
-        it('should turn off auto-update when a government rate is deleted', async () => {
+        it('should turn off auto-update when the current government rate is deleted', async () => {
             // Given a workspace that auto-updates its government rates
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
-            // When the admin deletes one of its government rates
+            // When the admin deletes the government rate in effect today
             pause();
-            deletePolicyDistanceRates(policy.id, customUnit, [governmentRateID], [], undefined, policy.shouldAutoUpdateGovernmentDistanceRates);
+            deletePolicyDistanceRates(policy.id, customUnit, [governmentRateID], [], undefined, policy);
             await waitForBatchedUpdates();
 
-            // Then auto-update turns off, since the workspace no longer has the complete set of government rates
+            // Then auto-update turns off, since leaving it on would add that rate straight back
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
             expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
             expect(onyxPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -197,10 +206,25 @@ describe('DistanceRate', () => {
 
             // When the admin deletes a rate they created themselves
             pause();
-            deletePolicyDistanceRates(policy.id, customUnit, [customRateID], [], undefined, policy.shouldAutoUpdateGovernmentDistanceRates);
+            deletePolicyDistanceRates(policy.id, customUnit, [customRateID], [], undefined, policy);
             await waitForBatchedUpdates();
 
             // Then auto-update stays on, since every government rate is still there
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
+            expect(onyxPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
+        });
+
+        it('should keep auto-update on when an older government rate is deleted', async () => {
+            // Given a workspace that auto-updates its government rates
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When the admin deletes last year's government rate
+            pause();
+            deletePolicyDistanceRates(policy.id, customUnit, [previousGovernmentRateID], [], undefined, policy);
+            await waitForBatchedUpdates();
+
+            // Then auto-update stays on, since the government rate in effect today is still there
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
             expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
             expect(onyxPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
