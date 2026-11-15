@@ -175,8 +175,88 @@ describe('SplitRouter', () => {
                 // When adaptation inserts the sidebar behind the central screen
                 const result = scopedRouter.getRehydratedState({stale: true, routes: [{name: central}]}, config);
 
-                // Then the synthesized sidebar recovers its scope without copying the nested params hint
+                // Then both the synthesized sidebar and existing central screen recover only their scope
                 expect(result.routes.find((route) => route.name === sidebar)?.params).toEqual(scope);
+                expect(result.routes.find((route) => route.name === central)?.params).toEqual(scope);
+            });
+
+            it.each([undefined, {}, {policyID: undefined, domainAccountID: undefined}])('backfills both existing panes with missing scope: %s', (params) => {
+                // Given both panes survived without any defined scope values
+                const scopedRouter = SplitRouter({
+                    sidebarScreen: sidebar,
+                    defaultCentralScreen: central,
+                    parentRoute: {key: `${navigator}-empty-panes`, name: navigator, params: scope},
+                });
+
+                // When the existing routes rehydrate rather than being synthesized
+                const result = scopedRouter.getRehydratedState(
+                    {
+                        stale: true,
+                        routes: [
+                            {name: sidebar, params},
+                            {name: central, params},
+                        ],
+                    },
+                    config,
+                );
+
+                // Then neither pane remains unscoped, even when the missing IDs were explicit undefined entries
+                expect(result.routes.map((route) => route.params)).toEqual([scope, scope]);
+            });
+
+            it('recovers an empty central screen from the existing sidebar scope', () => {
+                // Given the sidebar has newer scope than the parent, while the central screen lost its params
+                const scopedRouter = SplitRouter({
+                    sidebarScreen: sidebar,
+                    defaultCentralScreen: central,
+                    parentRoute: {key: `${navigator}-empty-central`, name: navigator, params: {policyID: 'old-workspace', domainAccountID: 67890}},
+                });
+
+                // When the existing central screen is rehydrated
+                const result = scopedRouter.getRehydratedState({stale: true, routes: [{name: sidebar, params: scope}, {name: central}]}, config);
+
+                // Then recovering the central pane does not switch away from the sidebar's current workspace or domain
+                expect(result.routes.map((route) => route.params)).toEqual([scope, scope]);
+            });
+
+            it.each([false, true])('filters sidebar params when synthesizing a central screen (undefined scope: %s)', (hasUndefinedScope) => {
+                // Given a sidebar carrying hints and a back link that are not params of the central screen
+                const scopedRouter = SplitRouter({
+                    sidebarScreen: sidebar,
+                    defaultCentralScreen: central,
+                    parentRoute: {key: `${navigator}-filtered-sidebar`, name: navigator, params: scope},
+                });
+                const sidebarParams = {
+                    ...(hasUndefinedScope ? {policyID: undefined, domainAccountID: undefined} : scope),
+                    backTo: 'inbox',
+                    screen: central,
+                    params: {unrelated: true},
+                };
+
+                // When wide layout synthesizes the central screen from that sidebar
+                const result = scopedRouter.getRehydratedState({stale: true, routes: [{name: sidebar, params: sidebarParams}]}, config);
+
+                // Then sidebar-only params never leak into the central screen or erase valid parent scope
+                expect(result.routes.find((route) => route.name === central)?.params).toEqual(isNarrowLayout ? undefined : scope);
+            });
+
+            it('does not let undefined nested params erase defined sibling scope', () => {
+                // Given a parent with valid sibling scope but an incomplete nested navigation hint
+                const scopedRouter = SplitRouter({
+                    sidebarScreen: sidebar,
+                    defaultCentralScreen: central,
+                    parentRoute: {
+                        key: `${navigator}-undefined-nested-scope`,
+                        name: navigator,
+                        params: {...scope, screen: central, params: {policyID: undefined, domainAccountID: undefined}},
+                    },
+                });
+
+                // When both existing panes need their scope restored
+                const result = scopedRouter.getRehydratedState({stale: true, routes: [{name: sidebar}, {name: central}]}, config);
+
+                // Then undefined hints are ignored rather than overwriting the usable workspace or domain identity
+                expect(result.routes.map((route) => route.params)).toEqual([scope, scope]);
             });
 
             it('uses the central screen scope when an existing empty sidebar has a stale parent scope', () => {
