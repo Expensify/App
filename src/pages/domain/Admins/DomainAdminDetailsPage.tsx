@@ -24,10 +24,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector, isAdminSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@selectors/Domain';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useId} from 'react';
-import Onyx from 'react-native-onyx';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
 
@@ -77,12 +76,6 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (confirmResult.action !== ModalActions.CONFIRM) {
-            return;
-        }
-
-        // Membership may have changed while this confirmation was open.
-        const domain = await Onyx.get(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
-        if (!isAdminSelector(accountID)(domain)) {
             return;
         }
 

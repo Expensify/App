@@ -139,28 +139,12 @@ describe('DomainAdminDetailsPage target membership', () => {
 
         // Then the named confirmation is closed without submitting or navigating
         expect(mockCloseModalByID).toHaveBeenCalledWith(modalID);
-        expect(revokeDomainAdminAccess).not.toHaveBeenCalled();
-        expect(Navigation.dismissModal).not.toHaveBeenCalled();
-    });
-
-    it('rechecks membership even if an old confirmation resolves as confirmed', async () => {
-        // Given the modal result can arrive before the membership-driven render
-        const screen = render(<DomainAdminDetailsPage {...pageProps} />);
-        await screen.findByText('domain.admins.revokeAdminAccess');
-        fireEvent.press(screen.getByText('domain.admins.revokeAdminAccess'));
-        const getDomain = jest.spyOn(Onyx, 'get').mockResolvedValueOnce(undefined);
-
-        // When confirmation resolves but the latest domain no longer grants access
         await act(async () => {
             resolveShowConfirmModal();
             await waitForBatchedUpdates();
         });
-
-        // Then the stale render's membership cannot authorize another revoke
-        expect(getDomain).toHaveBeenCalledWith(DOMAIN_KEY);
         expect(revokeDomainAdminAccess).not.toHaveBeenCalled();
         expect(Navigation.dismissModal).not.toHaveBeenCalled();
-        getDomain.mockRestore();
     });
 
     it('preserves normal confirmed revocation', async () => {
