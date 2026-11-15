@@ -50,31 +50,42 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
 };
 
 /**
- * Checks whether an image contains Slack's metadata identifying it as an emoji.
+ * Identifies emoji images using explicit metadata or known emoji asset formats.
  *
  * @param image The image element to inspect.
- * @returns `true` when Slack's emoji metadata is present; otherwise, `false`.
+ * @returns Whether the image has enough emoji-specific information to use its text.
  */
 function isEmojiImage(image: HTMLImageElement): boolean {
     const dataset = image.dataset;
 
-    return dataset.stringifyEmoji !== undefined || dataset.stringifyType === 'emoji';
+    if (dataset.stringifyEmoji !== undefined || dataset.stringifyType === 'emoji' || dataset.emoji !== undefined || dataset.type === 'emoji') {
+        return true;
+    }
+
+    // Some sources omit data-* fields, so alt text alone must not identify an image as an emoji.
+    const source = image.getAttribute('src') ?? '';
+    const patterns = CONST.REGEX.EMOJI_IMAGE_SOURCE;
+    const isTeamsEmoji = image.getAttribute('itemtype') === CONST.TEAMS_EMOJI_ITEM_TYPE && !!image.getAttribute('itemid') && patterns.TEAMS.test(source);
+    const discourseName = patterns.DISCOURSE.exec(source)?.[1];
+    const isDiscourseEmoji = !!discourseName && image.classList.contains('emoji') && image.alt === `:${discourseName}:` && image.title === image.alt;
+
+    return isTeamsEmoji || isDiscourseEmoji || patterns.META.test(source) || patterns.YOUTUBE.test(source);
 }
 
 /**
- * Returns the text that should replace an image identified by Slack's emoji metadata.
+ * Returns the source's emoji text without translating names or converting between shortcodes and Unicode.
  *
  * @param image Image element being pasted.
- * @returns The shortcode or legacy alt text, or an empty string when the image should remain unchanged.
+ * @returns The emoji metadata value or alt text, or an empty string when the image should remain unchanged.
  */
 function getEmojiReplacementText(image: HTMLImageElement): string {
     if (!isEmojiImage(image)) {
         return '';
     }
 
-    // Slack's data-* metadata identifies the emoji and supplies its shortcode, with alt text as the legacy fallback.
-    const shortcode = image.dataset.stringifyEmoji;
-    return shortcode?.length ? shortcode : image.alt;
+    // Slack, Gmail, and Discord supply the emoji text in data-* fields; other recognized formats use alt.
+    const dataset = image.dataset;
+    return dataset.stringifyEmoji || dataset.emoji || (dataset.type === 'emoji' ? dataset.name : '') || image.alt;
 }
 
 /**

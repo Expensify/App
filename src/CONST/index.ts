@@ -3400,6 +3400,9 @@ const CONST = {
 
     EMOJI_SPACER: 'SPACER',
 
+    // Teams uses this schema URL to mark copied emoji images.
+    TEAMS_EMOJI_ITEM_TYPE: 'http://schema.skype.com/Emoji',
+
     // This is the number of columns in each row of the picker.
     // Because of how flatList implements these rows, each row is an index rather than each element
     // For this reason to make headers work, we need to have the header be the only rendered element in its row
@@ -6568,6 +6571,17 @@ const CONST = {
         EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
 
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
+
+        EMOJI_IMAGE_SOURCE: {
+            // Facebook and Instagram share this standard emoji asset format.
+            META: /^https:\/\/(?:static\.xx\.fbcdn\.net|static\.cdninstagram\.com)\/images\/emoji\.php\/v\d+\/[a-z\d]+\/\d+\/\d+\/[a-f\d]+(?:_[a-f\d]+)*\.png(?:\?[^\s#]*)?$/i,
+            // YouTube standard emoji assets use a different path from custom channel emojis.
+            YOUTUBE: /^https:\/\/www\.youtube\.com\/s\/gaming\/emoji\/[a-f\d]+\/emoji_u[a-f\d]+(?:_[a-f\d]+)*\.png(?:\?[^\s#]*)?$/i,
+            // Teams pairs these emoticon assets with its emoji itemtype attribute.
+            TEAMS: /^https:\/\/tflteams\.public\.onecdn\.static\.microsoft\/evergreen-assets\/personal-expressions\/v\d+\/assets\/emoticons\/[a-z\d_]+\/default\/\d+_f(?:_s[2-6])?\.png(?:\?[^\s#]*)?$/i,
+            // Discourse base emoji filenames identify the shortcode in alt and title.
+            DISCOURSE: /^https:\/\/emoji\.discourse-cdn\.com\/twitter\/([a-z\d_+-]+)\.png(?:\?[^\s#]*)?$/i,
+        },
 
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
 

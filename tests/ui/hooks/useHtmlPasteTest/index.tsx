@@ -2,6 +2,8 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useHtmlPaste from '@hooks/useHtmlPaste';
 
+import Parser from '@libs/Parser';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
@@ -16,6 +18,45 @@ import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWi
 type UseHtmlPasteReturn = {
     handlePastePlainText?: (event: ClipboardEvent) => void;
 };
+
+// Reduced tags from the captured desktop pastes, without private message content.
+const emojiImageCases = [
+    {
+        source: 'Gmail',
+        html: '<img data-emoji="😅" class="an1" alt="😅" src="https://fonts.gstatic.com/s/e/notoemoji/17.0/1f605/32.png">',
+        replacement: '😅',
+    },
+    {
+        source: 'Discord message selection',
+        html: '<img class="emoji" data-type="emoji" data-name=":smile:" alt="😄" src="https://discord.com/assets/58a76b2430663605.svg">',
+        replacement: ':smile:',
+    },
+    {
+        source: 'Facebook and Messenger',
+        html: '<img alt="🤓" src="https://static.xx.fbcdn.net/images/emoji.php/v9/t52/2/16/1f913.png">',
+        replacement: '🤓',
+    },
+    {
+        source: 'Instagram direct messages',
+        html: '<img alt="😄" src="https://static.cdninstagram.com/images/emoji.php/v9/t71/2/16/1f604.png">',
+        replacement: '😄',
+    },
+    {
+        source: 'Teams',
+        html: '<img itemtype="http://schema.skype.com/Emoji" itemid="1f440_eyes" alt="👀" src="https://tflteams.public.onecdn.static.microsoft/evergreen-assets/personal-expressions/v2/assets/emoticons/1f440_eyes/default/30_f.png?v=v10">',
+        replacement: '👀',
+    },
+    {
+        source: 'YouTube comments',
+        html: '<img class="ytAttributedStringImageElement" alt="💪" src="https://www.youtube.com/s/gaming/emoji/7ff574f2/emoji_u1f4aa.png">',
+        replacement: '💪',
+    },
+    {
+        source: 'Discourse message selection',
+        html: '<img src="https://emoji.discourse-cdn.com/twitter/grinning_face_with_smiling_eyes.png?v=16" title=":grinning_face_with_smiling_eyes:" class="emoji" alt=":grinning_face_with_smiling_eyes:">',
+        replacement: ':grinning_face_with_smiling_eyes:',
+    },
+];
 
 jest.mock('@src/hooks/useHtmlPaste', (): typeof useHtmlPaste => {
     return jest.requireActual('@hooks/useHtmlPaste/index.ts');
@@ -224,6 +265,151 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         expect(textInputRef.current?.textContent).toBe(':tada: :thankyou_pink::smile: *Bold* _Italic_ [Link](https://example.com) `:smile:`\n```\n:tada:\n```');
     });
 
+    it.each(emojiImageCases)('uses the emoji text supplied by $source without losing surrounding formatting', async ({html, replacement}) => {
+        // Given captured emoji HTML includes formatting that must not be traded for a plain-text paste.
+        const event = createMockClipboardEvent(
+            'Hello Bold Italic Link :smile:',
+            `<p>Hello ${html} <b>Bold</b> <i>Italic</i> <a href="https://example.com">Link</a> <code>:smile:</code></p><pre>:tada:</pre>`,
+        );
+        mockWindowSelection('');
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the HTML is pasted, its emoji must survive even though text/plain omits it, as in the Teams capture.
+        act(() => document.dispatchEvent(event));
+
+        // Then the source text replaces the image while the existing parser retains formatting and code content.
+        expect(textInputElement.textContent).toBe(`Hello ${replacement} *Bold* _Italic_ [Link](https://example.com) \`:smile:\`\n\`\`\`\n:tada:\n\`\`\``);
+    });
+
+    it.each([
+        ['Gmail value instead of conflicting alt', '<img data-emoji="😅" alt="😄" src="https://example.com/asset.png">', '😅'],
+        ['Discord shortcode instead of conflicting alt', '<img data-type="emoji" data-name=":tada:" alt="😄">', ':tada:'],
+        ['Discord name not supported by the App', '<img data-type="emoji" data-name=":source_specific_name:" alt="😄">', ':source_specific_name:'],
+        ['Gmail empty metadata fallback', '<img data-emoji="" alt="😅">', '😅'],
+        ['Discord missing name fallback', '<img data-type="emoji" alt="😄">', '😄'],
+    ])('uses explicit emoji metadata for %s', async (_name, html, replacement) => {
+        // Given explicit emoji fields identify the image independently of its URL or the App's supported names.
+        const event = createMockClipboardEvent('', html);
+        mockWindowSelection('');
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When that image is pasted through the same path used for Slack metadata.
+        act(() => document.dispatchEvent(event));
+
+        // Then its supplied text is used without name translation or shortcode conversion.
+        expect(textInputElement.textContent).toBe(replacement);
+    });
+
+    it.each(['grinning_face_with_smiling_eyes', 'kissing_face', 'source_specific_name'])('keeps the Discourse shortcode %s unchanged', async (name) => {
+        // Given a Discourse image and literal text use the same name, whether or not the App recognizes it.
+        const html = `<p>:${name}: <img class="emoji" src="https://emoji.discourse-cdn.com/twitter/${name}.png?v=16" title=":${name}:" alt=":${name}:"></p>`;
+        const event = createMockClipboardEvent('', html);
+        mockWindowSelection('');
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When only the image tag is replaced before Markdown parsing.
+        act(() => document.dispatchEvent(event));
+
+        // Then neither shortcode is renamed; supporting the source's names is not this hook's responsibility.
+        expect(textInputElement.textContent).toBe(`:${name}: :${name}:`);
+    });
+
+    it.each(['❤', '❤️', '👩🏽‍💻', '🇮🇳', '1️⃣'])('keeps the supplied Unicode sequence %s unchanged', async (emoji) => {
+        // Given data-emoji already contains the text, selectors, joiners, and existing tones need no conversion.
+        const event = createMockClipboardEvent('', `<img data-emoji="${emoji}" alt="${emoji}">`);
+        mockWindowSelection('');
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the image is replaced using its metadata rather than decoding a filename.
+        act(() => document.dispatchEvent(event));
+
+        // Then the complete original sequence is retained instead of reconstructed or normalized.
+        expect(textInputElement.textContent).toBe(emoji);
+    });
+
+    it.each([
+        ['ordinary photo with emoji alt', '<img src="https://example.com/photo.png" alt="😄">'],
+        ['unrelated dataset field', '<img data-name=":smile:" src="https://example.com/photo.png" alt="😄">'],
+        ['Discord asset without emoji metadata', '<img src="https://discord.com/assets/58a76b2430663605.svg" alt="😄">'],
+        ['Gmail asset without emoji metadata', '<img src="https://fonts.gstatic.com/s/e/notoemoji/17.0/1f605/32.png" alt="😅">'],
+        ['YouTube custom image', '<img src="https://yt3.ggpht.com/custom-emoji" alt="🎉">'],
+        ['misleading hostname', '<img src="https://static.xx.fbcdn.net.example.com/images/emoji.php/v9/t52/2/16/1f913.png" alt="🤓">'],
+        ['ordinary Meta image', '<img src="https://static.xx.fbcdn.net/photo.png" alt="🤓">'],
+        [
+            'Teams asset without emoji type',
+            '<img itemid="1f440_eyes" src="https://tflteams.public.onecdn.static.microsoft/evergreen-assets/personal-expressions/v2/assets/emoticons/1f440_eyes/default/30_f.png?v=v10" alt="👀">',
+        ],
+        ['Teams type on an unrelated image', '<img itemtype="http://schema.skype.com/Emoji" itemid="eyes" src="https://example.com/photo.png" alt="👀">'],
+        ['Discourse class on an unrelated image', '<img class="emoji" src="https://example.com/photo.png" title=":smile:" alt=":smile:">'],
+        ['mismatched Discourse name', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/smile.png" title=":tada:" alt=":tada:">'],
+        ['Discourse image without title', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/smile.png" alt=":smile:">'],
+        ['deferred Discourse tone notation', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/clap/6.png?v=16" title=":clap:t6:" alt=":clap:t6:">'],
+    ])('leaves existing image handling unchanged for %s', async (_name, html) => {
+        // Given an image has no recognized emoji metadata or complete matching image attributes.
+        const expected = Parser.htmlToMarkdown(html);
+        const event = createMockClipboardEvent('unrelated plain text', html);
+        mockWindowSelection('');
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When it passes through the emoji recognition used for the captured applications.
+        act(() => document.dispatchEvent(event));
+
+        // Then alt text alone cannot change the existing treatment of an ordinary or unrecognized image.
+        expect(textInputElement.textContent).toBe(expected);
+    });
+
+    it('preserves adjacent emojis, spaces, and line breaks across repeated pastes', async () => {
+        // Given adjacent YouTube emoji images have no spaces between them, but surrounding text does.
+        const image = '<img alt="🎉" src="https://www.youtube.com/s/gaming/emoji/7ff574f2/emoji_u1f389.png">';
+        const html = `<p>Start ${image}${image} ${image}<br>End</p>`;
+        mockWindowSelection('');
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the same content is pasted twice at the advancing caret.
+        act(() => document.dispatchEvent(createMockClipboardEvent('', html)));
+        act(() => document.dispatchEvent(createMockClipboardEvent('', html)));
+
+        // Then image replacement adds no padding and uses no stale positions from the previous paste.
+        expect(textInputElement.textContent).toBe('Start 🎉🎉 🎉\nEndStart 🎉🎉 🎉\nEnd');
+    });
+
+    it('preserves ordinary images and original formatting around mixed emoji formats', async () => {
+        // Given ordinary images surround Slack and Gmail emojis beside existing non-breaking-space formatting.
+        const html =
+            '<img src="https://example.com/before.png" alt="Before"> <img data-stringify-emoji=":tada:" src="https://a.slack-edge.com/tada.png"> <img data-emoji="😄" alt="😄"> <b>Bold<span class="Apple-converted-space">\u00A0</span></b><i>Italic</i> <img src="https://example.com/after.png" alt="After">';
+        mockWindowSelection('');
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When both emoji images are replaced using the existing source positions.
+        act(() => document.dispatchEvent(createMockClipboardEvent('', html)));
+
+        // Then ordinary images and formatting boundaries retain their existing parser output.
+        expect(textInputElement.textContent).toBe('![Before](https://example.com/before.png) :tada: 😄 *Bold*_Italic_ ![After](https://example.com/after.png)');
+    });
+
+    it.each([
+        ['Discord Copy Text', '**Bold** 😄🎉\n:smile:'],
+        ['Discourse Copy Text', ':grinning_face_with_smiling_eyes: :source_specific_name:'],
+    ])('keeps %s on the existing plain-text path', async (_source, text) => {
+        // Given a source's Copy button supplies plain text with no image tags to recover.
+        mockWindowSelection('');
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the copy-button value is pasted without HTML.
+        act(() => document.dispatchEvent(createMockClipboardEvent(text)));
+
+        // Then the hook adds neither name translation nor shortcode-to-Unicode conversion.
+        expect(textInputElement.textContent).toBe(text);
+    });
+
     it('preserves the original Safari formatting HTML when there are no emoji images', async () => {
         // Given Safari HTML has nested formatting and non-breaking spaces but no emoji images, so the emoji handling must leave it alone.
         const html =
@@ -407,6 +593,26 @@ describe('useHtmlPaste DOM insertion boundaries', () => {
     afterEach(() => {
         jest.restoreAllMocks();
         document.body.replaceChildren();
+    });
+
+    it('uses the same source text in non-Composer fields without converting shortcodes', async () => {
+        // Given another input shares this hook but must not gain a separate emoji conversion pipeline.
+        const input = Object.assign(document.createElement('textarea'), {isFocused: () => true});
+        window.getSelection()?.removeAllRanges();
+        jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(() => 1);
+        renderHook(() => useHtmlPaste({current: input}, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+        const html =
+            '<p><img data-emoji="😄" alt="😄"> <img data-type="emoji" data-name=":smile:" alt="😄"> <img class="emoji" src="https://emoji.discourse-cdn.com/twitter/kissing_face.png" title=":kissing_face:" alt=":kissing_face:"> :tada:</p>';
+        const event = Object.assign(new Event('paste', {bubbles: true, cancelable: true}), {
+            clipboardData: createMock<DataTransfer>({types: ['text/html'], getData: () => html}),
+        });
+
+        // When images with Unicode and shortcode metadata are pasted alongside a literal shortcode.
+        act(() => document.dispatchEvent(event));
+
+        // Then source Unicode stays Unicode and every shortcode keeps its original spelling.
+        expect(input.value).toBe('😄 :smile: :kissing_face: :tada:');
     });
 
     it.each(['input', 'textarea'] as const)('uses %s setRangeText with the existing length arithmetic and focusin dispatch', (tagName) => {
