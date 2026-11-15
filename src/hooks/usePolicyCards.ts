@@ -1,14 +1,15 @@
-import {getPreferredPolicyFromExpensifyCardSettings} from '@libs/CardUtils';
-import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
+import {getFundIdFromSettingsKey, getLinkedPolicyIDsFromExpensifyCardSettings, getPreferredPolicyFromExpensifyCardSettings, isPolicyIDInLinkedExpensifyCardPolicyList} from '@libs/CardUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card} from '@src/types/onyx';
+import type {Card, ExpensifyCardSettings} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCardsLists from './useCardsLists';
-import useExpensifyCardFeedsForFeedSelector from './useExpensifyCardFeedsForFeedSelector';
 import useLoadSearchCardData from './useLoadSearchCardData';
+import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
 type PolicyCards = {
@@ -18,29 +19,6 @@ type PolicyCards = {
     /** Whether the cards are still on their way, which is not the same as the workspace having none */
     isLoadingCards: boolean;
 };
-
-/**
- * Every Expensify Card feed a rule on this workspace can match on, by the three routes a workspace reaches a feed:
- * `linkedPolicyIDs`, the OldDot-only `preferredPolicy`, and a domain fund that backs the workspace account directly.
- *
- * `getActiveExpensifyCardFeedID` walks the same three in precedence order to settle on one feed. All three are
- * kept here instead, because a workspace can be linked to several feeds at once and a card from any of them is
- * one the rule can match.
- */
-function getPolicyExpensifyCardFeeds(
-    policyID: string | undefined,
-    primaryFeeds: ExpensifyCardFeedEntry[],
-    allFeeds: ExpensifyCardFeedEntry[],
-    workspaceAccountID: number,
-): ExpensifyCardFeedEntry[] {
-    const linkedFundIDs = new Set(primaryFeeds.map((feed) => feed.fundID));
-    return allFeeds.filter(
-        (feed) =>
-            linkedFundIDs.has(feed.fundID) ||
-            (!!workspaceAccountID && feed.fundID === workspaceAccountID) ||
-            (!!policyID && getPreferredPolicyFromExpensifyCardSettings(feed.settings)?.toUpperCase() === policyID.toUpperCase()),
-    );
-}
 
 /**
  * The cards a rule on this workspace can match on, across its Expensify Card and company card feeds.
@@ -60,16 +38,41 @@ function usePolicyCards(policyID: string | undefined): PolicyCards {
     const [cardsLists] = useCardsLists();
     const {cardFeedsByPolicy} = useCardFeedsForDisplay();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
+
+    // Every fund holding an Expensify Card feed this workspace reaches, by the three routes a workspace is tied to
+    // one: `linkedPolicyIDs`, the OldDot-only `preferredPolicy`, and a fund that backs the workspace account
+    // directly. `useDefaultFundID` walks the same three in precedence order to settle on a single fund, which is
+    // too narrow here, because a workspace can be linked to several feeds at once and a card from any of them is
+    // one the rule can match.
+    const getPolicyExpensifyCardFundIDs = (cardSettings: OnyxCollection<ExpensifyCardSettings>) =>
+        Object.entries(cardSettings ?? {})
+            .filter(([key, settings]) => {
+                if (!settings || settings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return false;
+                }
+                if (!!workspaceAccountID && getFundIdFromSettingsKey(key) === workspaceAccountID) {
+                    return true;
+                }
+                if (!policyID) {
+                    return false;
+                }
+                return (
+                    getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase() ||
+                    isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(settings), policyID)
+                );
+            })
+            .map(([key]) => getFundIdFromSettingsKey(key));
+
     // `cardFeedsByPolicy` is built from the domain member NVP, which holds company card feeds only, so the
     // workspace's Expensify Card feeds have to be resolved from the card settings collection separately.
-    const {primaryFeeds, allFeeds: expensifyCardFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
+    const [expensifyCardFundIDs] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {selector: getPolicyExpensifyCardFundIDs});
 
     const policyFeedKeys = new Set<string>();
     for (const feed of (policyID ? cardFeedsByPolicy[policyID] : undefined) ?? []) {
         policyFeedKeys.add(feed.id);
     }
-    for (const feed of getPolicyExpensifyCardFeeds(policyID, primaryFeeds, expensifyCardFeeds, workspaceAccountID)) {
-        policyFeedKeys.add(`${feed.fundID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    for (const fundID of expensifyCardFundIDs ?? []) {
+        policyFeedKeys.add(`${fundID}_${CONST.EXPENSIFY_CARD.BANK}`);
     }
 
     const cards: Card[] = [];
