@@ -189,16 +189,6 @@ function useSearchAutoRefetch({
             const existingSearchResultIDsSet = new Set(currentSearchResultIDs);
             const hasAGenuinelyNewID = (isChat ? reportActionsIDs : addedTransactionIDs).some((id) => !existingSearchResultIDsSet.has(id));
 
-            // With an RHP over Search, only an entry the user just created there needs a refetch right away. Opening a report
-            // also writes transactions the results lack (split originals, expenses of reports on pages not loaded yet), and
-            // refetching from offset 0 replaces the snapshot, dropping the pages the report navigation arrows loaded. Defer
-            // everything else until Search is focused again.
-            const hasCreatedNewID = isChat ? hasAGenuinelyNewID : createdTransactionIDs.some((id) => !existingSearchResultIDsSet.has(id));
-            if (!isFocused && !hasCreatedNewID) {
-                hasPendingSearchRef.current = true;
-                return;
-            }
-
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
             if (
@@ -214,6 +204,16 @@ function useSearchAutoRefetch({
                 if (!hasDeletedID) {
                     return;
                 }
+            }
+
+            // With an RHP over Search, only an entry the user just created there needs a refetch right away. Opening a report
+            // also writes transactions the results lack (split originals, expenses of reports on pages not loaded yet), and
+            // refetching from offset 0 replaces the snapshot, dropping the pages the report navigation arrows loaded. Defer
+            // everything else until Search is focused again.
+            const hasCreatedNewID = isChat ? hasAGenuinelyNewID : createdTransactionIDs.some((id) => !existingSearchResultIDsSet.has(id));
+            if (!isFocused && !hasCreatedNewID) {
+                hasPendingSearchRef.current = true;
+                return;
             }
 
             // Trigger the search

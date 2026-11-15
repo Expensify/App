@@ -766,6 +766,42 @@ describe('useSearchAutoRefetch', () => {
             expect(search).toHaveBeenCalledTimes(1);
         });
 
+        it('should not defer a refetch when opening a report only loads a transaction the results already show', () => {
+            // Given Search showing two transactions while Onyx holds only the first, with a report opened in the RHP over it
+            const transaction = createMock<Transaction>({transactionID: '1'});
+            const initialProps = createMock<UseSearchAutoRefetch>({
+                ...baseProps,
+                searchResults: {
+                    ...baseProps.searchResults,
+                    data: {
+                        transactions_1: {transactionID: '1'},
+                        transactions_2: {transactionID: '2'},
+                    },
+                },
+                transactions: {transactions_1: transaction},
+                previousTransactions: {transactions_1: transaction},
+            });
+
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps,
+            });
+            jest.mocked(search).mockClear();
+
+            // When OpenReport writes the second transaction, which the results already show
+            const loadedTransactions = {transactions_1: transaction, transactions_2: createMock<Transaction>({transactionID: '2'})};
+            const loadedProps = createMock<UseSearchAutoRefetch>({...initialProps, transactions: loadedTransactions});
+            rerender(loadedProps);
+
+            // When `usePrevious` catches up and the RHP is closed, focusing Search again
+            const settledProps = createMock<UseSearchAutoRefetch>({...loadedProps, previousTransactions: loadedTransactions});
+            rerender(settledProps);
+            mockUseIsFocused.mockReturnValue(true);
+            rerender({...settledProps});
+
+            // Then no refetch runs, because nothing changed that the results don't already hold
+            expect(search).not.toHaveBeenCalled();
+        });
+
         it('should refetch right away when an expense is created from the RHP', () => {
             // Given Search showing a transaction, with an RHP over it
             const transaction = createMock<Transaction>({transactionID: '1'});

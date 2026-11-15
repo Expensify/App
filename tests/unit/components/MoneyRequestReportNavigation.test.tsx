@@ -273,6 +273,19 @@ describe('MoneyRequestReportNavigation', () => {
             expect(saveLastSearchParams).not.toHaveBeenCalled();
         });
 
+        it('waits for the page being loaded before requesting the next dropped page', () => {
+            // Given Next loaded page 3, a refetch replaced the snapshot with the first page, and page 2 is already being loaded again without a loading state
+            jest.mocked(search).mockClear();
+            renderNavigationOnFirstPage(
+                '40',
+                {offset: CONST.SEARCH.RESULTS_PAGE_SIZE * 2, hasMoreResults: false},
+                {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING},
+            );
+
+            // Then page 3 isn't requested yet, because the snapshot offset is only optimistic and concurrent pages would land in any order
+            expect(search).not.toHaveBeenCalled();
+        });
+
         it('moves the params back to the first page when loading the dropped page fails', async () => {
             // Given Next loaded page 2 (the last one), Pay refetched the first page, and loading page 2 again fails
             jest.mocked(restoreLastSearchParams).mockClear();

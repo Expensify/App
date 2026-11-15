@@ -177,7 +177,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             return;
         }
 
-        if (!isSearchLoading && snapshotOffset !== undefined && (lastSearchQuery.offset ?? 0) > snapshotOffset) {
+        if (!isSnapshotPending && snapshotOffset !== undefined && (lastSearchQuery.offset ?? 0) > snapshotOffset) {
             const searchParamsBeforeRefetch = lastSearchQuery;
             const queryJSON = lastSearchQuery.queryJSON;
             search({
