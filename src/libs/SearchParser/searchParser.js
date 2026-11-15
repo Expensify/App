@@ -5702,6 +5702,7 @@ function peg$parse(input, options) {
     approver: "groupApprover",
     violation: null,
     "paid-by": null,
+    "workflow-stage": null,
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {

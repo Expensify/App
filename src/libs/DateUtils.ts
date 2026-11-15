@@ -1159,6 +1159,19 @@ function formatToMonthDayWithOptionalYearInUTC(datetime: string, dateFnsLocale: 
 }
 
 /**
+ * Formats an instant already converted to the viewer's timezone (see `getLocalDateFromDatetime`) as an abbreviated month
+ * and day, adding the year only when it differs from the viewer's current year.
+ *
+ * @returns Jun 20, or Jun 20, 2025 for a past year
+ */
+function formatLocalDateToMonthDayWithOptionalYear(localDate: Date, currentLocalYear: number, dateFnsLocale: DateFnsLocale | undefined): string {
+    if (localDate.getFullYear() !== currentLocalYear) {
+        return format(localDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale});
+    }
+    return formatToMonthDay(localDate, dateFnsLocale);
+}
+
+/**
  * Returns a boolean value indicating whether the card has expired.
  * @param expiryMonth month when card expires (starts from 1 so can be any number between 1 and 12)
  * @param expiryYear year when card expires
@@ -1631,6 +1644,7 @@ const DateUtils = {
     doesDateBelongToAPastYear,
     formatToMonthDay,
     formatToMonthDayWithOptionalYearInUTC,
+    formatLocalDateToMonthDayWithOptionalYear,
     isCardExpired,
     getDifferenceInDaysFromNow,
     isValidDateString,
