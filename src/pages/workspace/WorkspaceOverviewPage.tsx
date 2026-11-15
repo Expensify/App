@@ -277,6 +277,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     // Taking the primary flag off the primary office makes the company address the primary one
     const setCompanyAddressAsPrimary = () => {
+        if (!routePolicyID) {
+            return;
+        }
         showConfirmModal({
             title: translate('common.companyAddress'),
             prompt: translate('workspace.officeLocations.setCompanyAddressAsPrimaryConfirmation'),
@@ -406,7 +409,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             showLockedAccountModal();
             return;
         }
-        clearInviteDraft(route.params?.policyID);
+        if (!routePolicyID) {
+            return;
+        }
+        clearInviteDraft(routePolicyID);
         Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE.path));
     };
 
@@ -849,10 +855,24 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     key={officeID}
                                     pendingAction={officeLocation.pendingAction}
                                     errors={officeLocation.errors}
-                                    onClose={() => clearOfficeLocationErrors(routePolicyID, officeID, officeLocation.pendingAction)}
+                                    onClose={() => {
+                                        if (!routePolicyID) {
+                                            return;
+                                        }
+                                        clearOfficeLocationErrors(routePolicyID, officeID, officeLocation.pendingAction);
+                                    }}
                                 >
                                     <MenuItemSectionRoot
-                                        onPress={isEditable ? () => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT.getRoute(routePolicyID, officeID)) : undefined}
+                                        onPress={
+                                            isEditable
+                                                ? () => {
+                                                      if (!routePolicyID) {
+                                                          return;
+                                                      }
+                                                      Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT.getRoute(routePolicyID, officeID));
+                                                  }
+                                                : undefined
+                                        }
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.OFFICE_LOCATION}
                                     >
                                         <MenuItem.Row>
@@ -876,7 +896,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         })}
                         {!readOnly && (
                             <MenuItemSectionRoot
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.getRoute(routePolicyID))}
+                                onPress={() => {
+                                    if (!routePolicyID) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.getRoute(routePolicyID));
+                                }}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.ADD_OFFICE_LOCATION}
                             >
                                 <MenuItem.Row>
@@ -987,7 +1012,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
                                     style={shouldShowRulesDocumentSubSection && styles.mt4}
-                                    onPress={readOnly ? undefined : callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params?.policyID)), session)}
+                                    onPress={
+                                        readOnly
+                                            ? undefined
+                                            : callIfAuthenticated(() => {
+                                                  if (!routePolicyID) {
+                                                      return;
+                                                  }
+                                                  Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(routePolicyID));
+                                              }, session)
+                                    }
                                 >
                                     <MenuItem.Row>
                                         <MenuItemField.Content name={translate('workspace.rules.customRules.policyText')}>
