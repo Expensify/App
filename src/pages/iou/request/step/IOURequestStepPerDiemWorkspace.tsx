@@ -64,12 +64,10 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         }
 
         const perDiemUnit = getPerDiemCustomUnit(policy);
-        if (!perDiemUnit && policy?.id) {
-            fetchPerDiemRates(policy.id);
-        }
-
-        const canDestinationResolvePolicy = !!perDiemUnit || (!!targetReport.policyID && targetReport.policyID !== CONST.POLICY.ID_FAKE);
-        if (!canDestinationResolvePolicy) {
+        if (!perDiemUnit?.rates) {
+            if (policy?.id) {
+                fetchPerDiemRates(policy.id);
+            }
             setPendingPolicyID(policy?.id);
             return;
         }
@@ -98,7 +96,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     };
 
     useEffect(() => {
-        if (!pendingPolicyID || !getPerDiemCustomUnit(pendingPolicy)) {
+        if (!pendingPolicyID || !getPerDiemCustomUnit(pendingPolicy)?.rates) {
             return;
         }
         const frame = requestAnimationFrame(() => selectWorkspace(pendingPolicy));
