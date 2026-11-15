@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -397,12 +397,10 @@ function CreateDistanceRatePage({
                                             {translate('workspace.distanceRates.rate')}
                                         </Text>
                                         <InputWrapper
-                                            InputComponent={AmountForm}
+                                            InputComponent={AmountFormInline}
                                             inputID={INPUT_IDS.RATE}
                                             decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                                             currency={currency}
-                                            isCurrencyPressable={false}
-                                            displayAsTextInput
                                             label={customAmountLabel}
                                         />
                                     </>
@@ -447,12 +445,10 @@ function CreateDistanceRatePage({
                                 />
                                 <View style={styles.mt4}>
                                     <InputWrapper
-                                        InputComponent={AmountForm}
+                                        InputComponent={AmountFormInline}
                                         inputID={INPUT_IDS.RATE}
                                         decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                                         currency={currency}
-                                        isCurrencyPressable={false}
-                                        displayAsTextInput
                                         label={customAmountLabel}
                                     />
                                 </View>

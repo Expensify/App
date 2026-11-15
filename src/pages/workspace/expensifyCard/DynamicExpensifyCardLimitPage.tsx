@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormKeypad from '@components/AmountFormAdapters/AmountFormKeypad';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -159,7 +159,7 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
                     shouldShowLoadingImmediatelyOnPress={false}
                 >
                     <InputWrapper
-                        InputComponent={AmountForm}
+                        InputComponent={AmountFormKeypad}
                         defaultValue={convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, 0)}
                         isCurrencyPressable={false}
                         currency={currency}

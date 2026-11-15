@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -70,14 +70,12 @@ function SpendRuleMaxAmountBase({policyID, maxAmount, currencyCode, onMaxAmountC
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
-                            displayAsTextInput
                             ref={inputCallbackRef}
                             label={translate('iou.amount')}
-                            InputComponent={AmountForm}
+                            InputComponent={AmountFormInline}
                             inputID={INPUT_IDS.MAX_AMOUNT}
                             currency={currencyCode}
                             defaultValue={maxAmount}
-                            isCurrencyPressable={false}
                         />
                     </View>
                 </FormProvider>

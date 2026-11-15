@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -104,13 +104,11 @@ function RulesItemizedReceiptRequiredAmountPage({
                     <View style={styles.mb4}>
                         <InputWrapper
                             label={translate('iou.amount')}
-                            InputComponent={AmountForm}
+                            InputComponent={AmountFormInline}
                             inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT}
                             currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
                             defaultValue={defaultValue}
-                            isCurrencyPressable={false}
                             ref={inputCallbackRef}
-                            displayAsTextInput
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountDescription')}</Text>
                     </View>

@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormKeypad from '@components/AmountFormAdapters/AmountFormKeypad';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -94,7 +94,7 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
                     addBottomSafeAreaPadding
                 >
                     <InputWrapperWithRef
-                        InputComponent={AmountForm}
+                        InputComponent={AmountFormKeypad}
                         inputID={INPUT_IDS.RATE}
                         decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                         defaultValue={currentRateValue}
