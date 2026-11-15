@@ -131,7 +131,6 @@ type UnofferedOnboardingAccountingConnection =
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
-    // Still behind the ZOHO_BOOKS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
     // Still behind the DIGITS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
@@ -1525,9 +1524,9 @@ const CONST = {
         VENDOR_MATCHING: 'vendorMatching',
         INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
-        ZOHO_BOOKS: 'zohoBooks',
         DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
+        SAGE_ACCOUNTING: 'sageAccounting',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
@@ -1545,11 +1544,9 @@ const CONST = {
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         PINNABLE_TABLE_COLUMNS: 'pinnableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
-        RESIZABLE_RHP: 'resizableRHP',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
-        CATEGORY_VISIBILITY: 'categoryVisibility',
         RECEIPT_TRANSLATION: 'receiptTranslation',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
@@ -1893,7 +1890,7 @@ const CONST = {
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES:
-        'https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#are-there-certain-industries-or-businesses-for-which-expensify-cannot-process-automatic-in-app-payments',
+        'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account#which-industries-does-expensify-not-support-for-direct-payments',
     TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
@@ -2470,6 +2467,24 @@ const CONST = {
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
             MAX_SYSTEM_MESSAGE_COLLAPSE_TIME: 24 * 60 * 60 * 1000,
+        },
+        // Matches the backend's WORKFLOW_ACTIONS list
+        get WORKFLOW_ACTIONS() {
+            return [
+                this.ACTIONS.TYPE.SUBMITTED,
+                this.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                this.ACTIONS.TYPE.APPROVED,
+                this.ACTIONS.TYPE.UNAPPROVED,
+                this.ACTIONS.TYPE.REJECTED,
+                this.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                this.ACTIONS.TYPE.RETRACTED,
+                this.ACTIONS.TYPE.CLOSED,
+                this.ACTIONS.TYPE.REOPENED,
+                this.ACTIONS.TYPE.FORWARDED,
+                this.ACTIONS.TYPE.TAKE_CONTROL,
+                this.ACTIONS.TYPE.REROUTE,
+                this.ACTIONS.TYPE.REASSIGN_APPROVER,
+            ] as const;
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
@@ -3555,6 +3570,7 @@ const CONST = {
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
         HEIC: 'image/heic',
+        HEIF: 'image/heif',
     },
 
     IMAGE_CACHE_FILE_TYPES: {
@@ -5196,6 +5212,12 @@ const CONST = {
         RULE_CONDITIONS: {
             MATCHES: 'matches',
         },
+
+        // Expensify Classic stores this in an employee's forwardsTo or overLimitForwardsTo when it sends reports to nobody
+        EMPLOYEE_NO_ONE: 'no one',
+
+        // Approval limit, in cents, up to which Expensify Classic admins mean every report to go to the over-limit approver
+        EVERY_REPORT_OVER_LIMIT_APPROVAL_LIMIT: 100,
         FIELDS: {
             TAG: 'tag',
             CATEGORY: 'category',
@@ -5205,13 +5227,10 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
+            TAGS: 'tags',
             MERCHANTS: 'merchants',
+            MULTIPLE_CONDITIONS: 'multipleConditions',
             MERCHANT_TYPES: 'merchantTypes',
-        },
-        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
-        EXPENSE_DEFAULT_RULE_TYPE: {
-            MERCHANT: 'merchant',
-            CATEGORY: 'category',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
@@ -5591,6 +5610,7 @@ const CONST = {
                 ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
                 EXACT_ONLINE: 'exactOnline',
+                SAGE_ACCOUNTING: 'sageAccounting',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5632,6 +5652,7 @@ const CONST = {
                 zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
                 exactOnline: 'Exact Online',
+                sageAccounting: 'Sage Accounting',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -5661,6 +5682,10 @@ const CONST = {
                     this.NAME.ZOHO_BOOKS,
                     this.NAME.BUSINESS_CENTRAL,
                 ] as const;
+            },
+            // Integrations that aren't available yet, so the Connections page offers their waitlist instead of connecting
+            get WAITLIST_CONNECTION_NAMES() {
+                return [this.NAME.SAGE_ACCOUNTING] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
@@ -8200,10 +8225,24 @@ const CONST = {
             EVERYTHING_MOBILE: 'everythingMobile',
             TRAVEL_EXPENSE: 'travelExpense',
         },
+        SWITCH_RESULT: {
+            SAVED: 'saved',
+            FAILED: 'failed',
+        },
     },
 
     CACHE_API_KEYS: {
         ATTACHMENTS: 'attachments',
+    },
+
+    // Tells expensify.com whether to serve New Expensify or Expensify Classic. The server writes the same cookie, so the name, values and lifetime must match.
+    EXPERIENCE_COOKIE: {
+        NAME: 'experience',
+        VALUES: {
+            NEW: 'new',
+            CLASSIC: 'classic',
+        },
+        MAX_AGE_SECONDS: 365 * 24 * 60 * 60,
     },
 
     SESSION_STORAGE_KEYS: {
@@ -8428,6 +8467,7 @@ const CONST = {
             // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
             VIOLATION: 'violation',
             PAID_BY: 'paid-by',
+            WORKFLOW_STAGE: 'workflow-stage',
         },
         WORKFLOW_STAGES: {
             CREATED_SUBMITTED: 'created-submitted',
@@ -8796,6 +8836,10 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                WORKFLOW_STAGE: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8860,6 +8904,7 @@ const CONST = {
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 VIOLATION: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 PAID_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                WORKFLOW_STAGE: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -9314,7 +9359,9 @@ const CONST = {
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
+            LESS_THAN_OR_EQUAL_TO: 'LessThanOrEqualTo',
             GREATER_THAN: 'GreaterThan',
+            GREATER_THAN_OR_EQUAL_TO: 'GreaterThanOrEqualTo',
             EQUAL_TO: 'EqualTo',
         },
         DATE_PRESETS: {
@@ -9838,6 +9885,11 @@ const CONST = {
             UPDATE: 'update',
             REMOVE: 'remove',
         },
+        /** Which reports an approver after the first one gets */
+        APPROVER_CONDITION: {
+            ALWAYS: 'always',
+            OVER_AMOUNT: 'overAmount',
+        },
     },
 
     RULES: {
@@ -9859,6 +9911,7 @@ const CONST = {
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
+                AMOUNT: 'amount',
                 BILLABLE: 'billable',
                 CATEGORY: 'category',
                 COMMENT: 'comment',
@@ -9953,6 +10006,7 @@ const CONST = {
         HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
+        HAS_UK_FUEL_RATE_TAX_ERROR: 'hasUKFuelRateTaxError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
         HAS_REIMBURSEMENT_EXPORT_ERROR: 'hasReimbursementExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
@@ -10344,6 +10398,9 @@ const CONST = {
         /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
         DRAG_SLOP: 3,
 
+        /** How far, in px, one arrow key press on a focused handle moves its edge. */
+        KEYBOARD_STEP: 8,
+
         /** Width of the strip straddling a pane's edge that picks up a drag, as wide as the RHP floating card's gutter. */
         PANE_HIT_WIDTH: 12,
 
@@ -10414,9 +10471,6 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
-
-            /** How far, in px, one arrow key press on a focused column edge moves it. */
-            KEYBOARD_STEP: 8,
 
             /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
             GRIP_HEIGHT_RATIO: 0.4,
@@ -10530,6 +10584,7 @@ const CONST = {
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
             WORKFLOW_EFFICIENCY: 'workflowEfficiency',
+            AVERAGE_PROCESSING_TIME: 'averageProcessingTime',
             LONGEST_TO_SUBMIT: 'longestToSubmit',
             SLOWEST_TO_APPROVE: 'slowestToApprove',
             MOST_TIME_TO_PAY: 'mostTimeToPay',

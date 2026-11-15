@@ -160,6 +160,7 @@ import type {
     AutoReportingOffset,
     CompanyAddress,
     CreatableWorkspaceType,
+    CustomUnit,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
     PolicyReportField,
@@ -5943,6 +5944,67 @@ function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, isVendor
     }
 }
 
+/** Clears a failed dismissal first; otherwise dismisses the warning without changing any rate's tax mapping. */
+function dismissUKFuelRateTaxError(policyID: string, customUnit: CustomUnit) {
+    const field = 'isUKFuelRateTaxErrorDismissed';
+    const customUnitID = customUnit.customUnitID;
+    // The warning and request failure share an X. Let admins clear the failure without resubmitting it.
+    if (Object.keys(customUnit.errorFields?.[field] ?? {}).length > 0) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            customUnits: {[customUnitID]: {errorFields: {[field]: null}}},
+        });
+        return;
+    }
+    const attributes = {...customUnit.attributes, isUKFuelRateTaxErrorDismissed: true};
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            attributes: {isUKFuelRateTaxErrorDismissed: true},
+                            pendingFields: {[field]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {[field]: null},
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {customUnits: {[customUnitID]: {pendingFields: {[field]: null}}}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            attributes: {isUKFuelRateTaxErrorDismissed: customUnit.attributes?.isUKFuelRateTaxErrorDismissed ?? null},
+                            pendingFields: {[field]: null},
+                            errorFields: {[field]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                        },
+                    },
+                },
+            },
+        ],
+    };
+    API.write(
+        WRITE_COMMANDS.DISMISS_UK_FUEL_RATE_TAX_ERROR,
+        {
+            policyID,
+            customUnit: JSON.stringify({customUnitName: customUnit.name, customUnitID, attributes}),
+        },
+        onyxData,
+    );
+}
+
 function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes, currentAttributes: Attributes | undefined) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -8548,6 +8610,7 @@ export {
     enablePolicyTimeTracking,
     changePolicyUberBillingAccount,
     enableDistanceRequestTax,
+    dismissUKFuelRateTaxError,
     enablePolicyInvoicing,
     openPolicyMoreFeaturesPage,
     openPolicyProfilePage,

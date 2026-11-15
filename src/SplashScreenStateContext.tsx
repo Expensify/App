@@ -28,6 +28,8 @@ const SplashScreenActionsContext = React.createContext<SplashScreenActionsContex
 });
 
 function loadPostSplashScreenModules() {
+    // The GroupIB SDK sets up on the main thread, so starting it earlier holds up the first screen on iOS.
+    import('./setup/fraudProtection');
     import('./libs/actions/replaceOptimisticReportWithActualReport');
     import('./libs/actions/replaceOptimisticAgentWithActualAgent');
     loadUnreadIndicatorUpdater();
