@@ -54,6 +54,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getTaxByID, getVendorRuleDisplayValue, hasVendorFeature} from '@libs/PolicyUtils';
+import {getAmountFilterDisplayValue} from '@libs/SearchAmountFilterUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -369,7 +370,7 @@ function ExpenseDefaultRulePageBase({
         if (!amountToMatch) {
             return undefined;
         }
-        const formattedAmount = convertToDisplayString(Number(amountToMatch), policy?.outputCurrency);
+        const formattedAmount = getAmountFilterDisplayValue(amountToMatch, (value, currencyCode) => convertToDisplayString(value, currencyCode ?? policy?.outputCurrency));
         if (amountMatchType === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
             return translate('search.filters.amount.greaterThan', formattedAmount);
         }

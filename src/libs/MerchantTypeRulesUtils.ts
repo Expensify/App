@@ -31,6 +31,7 @@ import {
 } from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isTagInPolicy} from './PolicyUtils';
+import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
 
@@ -365,7 +366,7 @@ function getOtherConditionText(
         if (values.length !== 1 || !amount) {
             return '';
         }
-        const formattedAmount = convertToDisplayString(Number(amount), policy?.outputCurrency);
+        const formattedAmount = getAmountFilterDisplayValue(amount, (value, currencyCode) => convertToDisplayString(value, currencyCode ?? policy?.outputCurrency));
         if (operator === SYNTAX_OPERATORS.GREATER_THAN) {
             return translate('workspace.rules.expenseDefaultsTable.amountIs', toSentenceContinuation(translate('search.filters.amount.greaterThan', formattedAmount)));
         }

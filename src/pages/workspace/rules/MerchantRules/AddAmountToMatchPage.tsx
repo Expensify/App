@@ -1,32 +1,26 @@
-import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
+import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterInput';
 
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
-import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {formatAmountFilterValue, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
-import React from 'react';
-import {View} from 'react-native';
+import React, {useState} from 'react';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
@@ -40,15 +34,15 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
     const {isEditing, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {inputCallbackRef} = useAutoFocusInput();
-    const {getCurrencyDecimals} = useCurrencyListActions();
     const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
-    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    // The rule stores whole cents and the input works in whole currency, so the two are converted at this boundary.
-    const defaultValue = form?.amountToMatch ? convertToFrontendAmountAsString(Number(form.amountToMatch), getCurrencyDecimals(currency)) : '';
+    const savedValue = getAmountFilterInputValue(form?.amountToMatch);
+    const [amount, setAmount] = useState(savedValue.amount);
+    // An operand saved without a comparison currency matches in whatever currency the expense carries, so a saved
+    // rule keeps that as Any rather than being silently pinned to the workspace currency when it is reopened.
+    const [currency, setCurrency] = useState(form?.amountToMatch ? (savedValue.currency ?? '') : (policy?.outputCurrency ?? CONST.CURRENCY.USD));
     const amountMatchType = form?.amountMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
 
     const getAmountMatchTypeLabel = () => {
@@ -63,11 +57,8 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
 
     const goBack = () => Navigation.goBack(backToRoute);
 
-    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
-        const amount = values[MERCHANT_RULE_INPUT_IDS.AMOUNT_TO_MATCH]?.trim();
-        // Keyed off the input rather than the converted amount, so a rule can match on $0 rather than losing the
-        // condition to a zero that reads as an empty field.
-        updateDraftMerchantRule({amountToMatch: amount ? String(convertToBackendAmount(Number(amount))) : ''});
+    const onSubmit = () => {
+        updateDraftMerchantRule({amountToMatch: formatAmountFilterValue(amount, currency || undefined)});
         goBack();
     };
 
@@ -90,18 +81,16 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
                 enabledWhenOffline
                 submitButtonStyles={[styles.ph5]}
             >
-                <View style={[styles.mb5, styles.ph5]}>
-                    <InputWrapper
-                        InputComponent={AmountForm}
-                        inputID={MERCHANT_RULE_INPUT_IDS.AMOUNT_TO_MATCH}
-                        label={translate('iou.amount')}
-                        currency={currency}
-                        defaultValue={defaultValue}
-                        isCurrencyPressable={false}
-                        ref={inputCallbackRef}
-                        displayAsTextInput
-                    />
-                </View>
+                <AmountFilterInput
+                    baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                    containerStyles={[styles.mb5, styles.ph5]}
+                    amount={amount}
+                    currency={currency}
+                    label={translate('iou.amount')}
+                    onAmountChange={setAmount}
+                    onCurrencyChange={setCurrency}
+                    autoFocus
+                />
                 <MenuItemField
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_AMOUNT_MATCH_TYPE}
                     name={translate('workspace.rules.merchantRules.matchType')}
