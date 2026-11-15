@@ -9,7 +9,7 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import {close} from '@libs/actions/Modal';
 import {queueBulkLeavePolicy} from '@libs/actions/Policy/Policy';
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
-import {getBulkActionSkippedWarning, getBulkLeaveWorkspacesConsequences} from '@libs/WorkspacesSettingsUtils';
+import {getBulkLeaveWorkspacesConsequences} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,14 +56,7 @@ function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}
             const userLogin = currentUserPersonalDetails.login ?? '';
             const getPolicy = (row: WorkspaceRowData) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${row.policyID}`];
             const rowsToLeave = selectedRows.filter((row) => policyIDs.includes(row.policyID));
-            // Owners and archived workspaces are skipped for that reason, so only the rest are blocked by being the payer.
-            const payerRows = selectedRows.filter(
-                (row) =>
-                    !policyIDs.includes(row.policyID) &&
-                    !row.isArchived &&
-                    row.ownerAccountID !== currentUserPersonalDetails.accountID &&
-                    getPolicy(row)?.achAccount?.reimburser === userLogin,
-            );
+            const skippedRows = selectedRows.filter((row) => !policyIDs.includes(row.policyID));
 
             const consequences = getBulkLeaveWorkspacesConsequences(
                 rowsToLeave.map((row) => ({
@@ -77,16 +70,12 @@ function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}
                 userLogin,
                 translate,
             );
-            const skippedWarning = getBulkActionSkippedWarning(policyIDs.length, selectedRows.length, translate);
-            const notes = [skippedWarning, payerRows.length > 0 ? translate('common.leaveWorkspacesReimburser') : undefined].filter((note) => note !== undefined);
-
             showConfirmModal({
-                title: translate('workspace.common.leaveWorkspacesTitle', {count: policyIDs.length}),
+                title: translate('workspace.common.leaveWorkspacesTitle', {count: selectedRows.length}),
                 prompt: (
                     <BulkActionConfirmationPrompt
                         message={translate('common.leaveWorkspacesConfirmation')}
                         consequences={consequences}
-                        notes={notes}
                     />
                 ),
                 confirmText: translate('common.leave'),
@@ -94,14 +83,32 @@ function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 shouldEnablePromptScroll: true,
             }).then((result) => {
-                if (result.action === ModalActions.CONFIRM) {
-                    queueBulkLeavePolicy(
-                        userLogin,
-                        rowsToLeave.map((row) => ({id: row.policyID, pendingAction: row.pendingAction})),
-                    );
-                    onConfirm();
+                if (result.action !== ModalActions.CONFIRM) {
+                    onDismiss();
+                    return;
                 }
-                onDismiss();
+                queueBulkLeavePolicy(
+                    userLogin,
+                    rowsToLeave.map((row) => ({id: row.policyID, pendingAction: row.pendingAction})),
+                );
+                onConfirm();
+                if (skippedRows.length === 0) {
+                    onDismiss();
+                    return;
+                }
+                showConfirmModal({
+                    title: translate('workspace.common.leftWorkspacesTitle', rowsToLeave.length, selectedRows.length),
+                    prompt: (
+                        <BulkActionConfirmationPrompt
+                            message={translate('common.leaveWorkspacesFailed')}
+                            consequences={skippedRows.map((row) => row.title)}
+                        />
+                    ),
+                    confirmText: translate('common.buttonConfirm'),
+                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                    shouldShowCancelButton: false,
+                    shouldEnablePromptScroll: true,
+                }).then(() => onDismiss());
             });
         });
     });

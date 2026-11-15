@@ -15,7 +15,7 @@ type BulkActionConfirmationPromptProps = {
     /** The question the user is confirming */
     message: string;
 
-    /** What the action changes, listed under the message */
+    /** Points listed under the message as bullets */
     consequences?: string[];
 
     /** Notes about the selected workspaces the action leaves out */
