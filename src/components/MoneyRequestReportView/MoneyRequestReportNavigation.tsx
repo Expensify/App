@@ -11,7 +11,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 
 import Navigation from '@navigation/Navigation';
 
-import {saveLastSearchParams} from '@userActions/ReportNavigation';
+import {restoreLastSearchParams, saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 
 import CONST from '@src/CONST';
@@ -179,8 +179,9 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
 
         if (!isSearchLoading && snapshotOffset !== undefined && (lastSearchQuery.offset ?? 0) > snapshotOffset) {
             const searchParamsBeforeRefetch = lastSearchQuery;
+            const queryJSON = lastSearchQuery.queryJSON;
             search({
-                queryJSON: lastSearchQuery.queryJSON,
+                queryJSON,
                 offset: snapshotOffset + CONST.SEARCH.RESULTS_PAGE_SIZE,
                 shouldCalculateTotals: false,
                 searchKey: lastSearchQuery.searchKey,
@@ -191,13 +192,16 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
                 if (jsonCode === CONST.JSON_CODE.SUCCESS) {
                     return;
                 }
-                saveLastSearchParams({
-                    ...searchParamsBeforeRefetch,
-                    offset: snapshotOffset,
-                    hasMoreResults: true,
-                    previousLengthOfResults: effectiveAllReports.length,
-                    allowPostSearchRecount: false,
-                });
+                restoreLastSearchParams(
+                    {
+                        ...searchParamsBeforeRefetch,
+                        offset: snapshotOffset,
+                        hasMoreResults: true,
+                        previousLengthOfResults: effectiveAllReports.length,
+                        allowPostSearchRecount: false,
+                    },
+                    {hash: queryJSON.hash, offset: searchParamsBeforeRefetch.offset ?? 0},
+                );
             });
             return;
         }
@@ -293,7 +297,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
                         return;
                     }
                     // The request already moved the saved offset to the page that failed, so put it back for Next to request that page again.
-                    saveLastSearchParams(searchParamsBeforeRequest);
+                    restoreLastSearchParams(searchParamsBeforeRequest, {hash: queryJSON.hash, offset: newOffset});
                 });
             });
         }

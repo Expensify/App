@@ -7,7 +7,7 @@ import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports'
 
 import Navigation from '@navigation/Navigation';
 
-import {saveLastSearchParams} from '@userActions/ReportNavigation';
+import {restoreLastSearchParams, saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 
 import CONST from '@src/CONST';
@@ -43,7 +43,7 @@ jest.mock('@hooks/useSearchSections', () => ({
 }));
 
 jest.mock('@userActions/Search', () => ({search: jest.fn()}));
-jest.mock('@userActions/ReportNavigation', () => ({saveLastSearchParams: jest.fn()}));
+jest.mock('@userActions/ReportNavigation', () => ({saveLastSearchParams: jest.fn(), restoreLastSearchParams: jest.fn()}));
 jest.mock('@navigation/Navigation', () => ({setParams: jest.fn()}));
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
@@ -232,17 +232,17 @@ describe('MoneyRequestReportNavigation', () => {
             // Given the first page of 50 reports is loaded, more results exist, and report 40 is open
             const lastSearchQuery = renderNavigationOnFirstPage('40', {offset: 0, hasMoreResults: true}, {offset: 0, hasMoreResults: true});
             jest.mocked(search).mockReturnValueOnce(Promise.resolve(jsonCode));
-            jest.mocked(saveLastSearchParams).mockClear();
+            jest.mocked(restoreLastSearchParams).mockClear();
 
             // When the user presses Next and the page 2 request settles
             mockOnNext?.();
             await Promise.resolve();
 
-            // Then a failed request leaves the offset where Next can request page 2 again, and a successful one is left alone
+            // Then a failed request puts the offset back where Next can request page 2 again, but only while the params still point at page 2 of this search, and a successful one is left alone
             if (shouldRestore) {
-                expect(saveLastSearchParams).toHaveBeenCalledWith(lastSearchQuery);
+                expect(restoreLastSearchParams).toHaveBeenCalledWith(lastSearchQuery, {hash: lastSearchQuery.queryJSON.hash, offset: CONST.SEARCH.RESULTS_PAGE_SIZE});
             } else {
-                expect(saveLastSearchParams).not.toHaveBeenCalled();
+                expect(restoreLastSearchParams).not.toHaveBeenCalled();
             }
         });
 
@@ -275,21 +275,24 @@ describe('MoneyRequestReportNavigation', () => {
 
         it('moves the params back to the first page when loading the dropped page fails', async () => {
             // Given Next loaded page 2 (the last one), Pay refetched the first page, and loading page 2 again fails
-            jest.mocked(saveLastSearchParams).mockClear();
+            jest.mocked(restoreLastSearchParams).mockClear();
             jest.mocked(search).mockReturnValueOnce(Promise.resolve(undefined));
             const lastSearchQuery = renderNavigationOnFirstPage('40', {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: false}, {offset: 0, hasMoreResults: true});
 
             // When the request settles
             await Promise.resolve();
 
-            // Then the params follow the snapshot back to the first page, so Next requests page 2 itself instead of stopping at report 50
-            expect(saveLastSearchParams).toHaveBeenCalledWith({
-                ...lastSearchQuery,
-                offset: 0,
-                hasMoreResults: true,
-                previousLengthOfResults: CONST.SEARCH.RESULTS_PAGE_SIZE,
-                allowPostSearchRecount: false,
-            });
+            // Then the params follow the snapshot back to the first page, so Next requests page 2 itself instead of stopping at report 50, but only while they still point at page 2 of this search
+            expect(restoreLastSearchParams).toHaveBeenCalledWith(
+                {
+                    ...lastSearchQuery,
+                    offset: 0,
+                    hasMoreResults: true,
+                    previousLengthOfResults: CONST.SEARCH.RESULTS_PAGE_SIZE,
+                    allowPostSearchRecount: false,
+                },
+                {hash: lastSearchQuery.queryJSON.hash, offset: CONST.SEARCH.RESULTS_PAGE_SIZE},
+            );
         });
 
         it('takes hasMoreResults from the first page that replaced a stale snapshot', () => {
