@@ -42,6 +42,7 @@ function BusinessCentralPrerequisitesPage({route}: BusinessCentralPrerequisitesP
         {
             title: translate('workspace.businessCentral.followSteps'),
             key: 'workspace.businessCentral.followSteps',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.PREREQUISITES_FOLLOW_STEPS,
             icon: icons.Task,
             iconRight: icons.NewWindow,
             shouldShowRightIcon: true,

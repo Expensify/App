@@ -180,12 +180,12 @@ describe('AddVendorPage', () => {
     });
 
     /**
-     * The "Set vendor to" row in MerchantRulePageBase is assembled from these already-exported helpers
+     * The "Set vendor to" row in ExpenseDefaultRulePageBase is assembled from these already-exported helpers
      * (see the `isVendorFeatureEnabled` / `vendorFieldLabel` / `vendorDisplayName` derivations). Asserting
      * them here pins the row's decision logic; the row's render/JSX wiring and navigation are exercised by
      * the Playwright click-through.
      */
-    describe('vendor rule row derivation (MerchantRulePageBase)', () => {
+    describe('vendor rule row derivation (ExpenseDefaultRulePageBase)', () => {
         const qboPolicy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
         const intacctPolicy = buildIntacctPolicy([{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]);
         const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});

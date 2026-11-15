@@ -115,22 +115,26 @@ function usePaymentOptions({
                 text: hasActivatedWallet || hasPersonalBankAccount ? translate('iou.settleWallet', '') : translate('iou.settlePersonal', ''),
                 icon: hasActivatedWallet || hasPersonalBankAccount ? icons.Wallet : icons.User,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PERSONAL,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
                 text: translate('iou.settleBusiness', formattedAmount),
                 icon: icons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
+                sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.BUSINESS,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere', formattedAmount),
                 icon: icons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PAY_ELSEWHERE,
             },
         };
         const approveButtonOption = {
             text: translate('iou.approve', {formattedAmount}),
             icon: icons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+            sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
         const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency);
@@ -170,6 +174,7 @@ function usePaymentOptions({
                         text: formattedPaymentMethod?.title ?? '',
                         description: formattedPaymentMethod?.description ?? '',
                         icon: formattedPaymentMethod?.icon,
+                        sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.INVOICE_OPTION.BANK_ACCOUNT,
                         onSelected: () =>
                             onPress({
                                 paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
@@ -186,6 +191,7 @@ function usePaymentOptions({
             const addBankAccountItem = {
                 text: translate('bankAccount.addBankAccount'),
                 icon: icons.Bank,
+                sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.INVOICE_OPTION.ADD_BANK_ACCOUNT,
                 onSelected: () => {
                     const bankAccountRoute = getBankAccountRoute(chatReport, areInvoicesEnabled);
                     Navigation.navigate(bankAccountRoute);
@@ -198,12 +204,14 @@ function usePaymentOptions({
                     icon: icons.User,
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
+                    sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.INVOICE_INDIVIDUAL,
                     subMenuItems: [
                         ...(showPayViaExpensifyOptions ? getPaymentSubItems(false) : []),
                         {
                             text: translate('iou.payElsewhere', ''),
                             icon: icons.Cash,
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                            sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.INVOICE_OPTION.PAY_ELSEWHERE,
                             onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}),
                         },
                         ...(showPayViaExpensifyOptions ? [addBankAccountItem] : []),
@@ -216,6 +224,7 @@ function usePaymentOptions({
                 icon: icons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
+                sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.INVOICE_BUSINESS,
                 subMenuItems: [
                     ...(showPayViaExpensifyOptions ? getPaymentSubItems(true) : []),
                     ...(showPayViaExpensifyOptions ? [addBankAccountItem] : []),
@@ -223,6 +232,7 @@ function usePaymentOptions({
                         text: translate('iou.payElsewhere', ''),
                         icon: icons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.INVOICE_OPTION.PAY_ELSEWHERE,
                         onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness: true}),
                     },
                 ],

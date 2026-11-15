@@ -18,11 +18,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import lodashClamp from 'lodash/clamp';
 import React, {useEffect} from 'react';
 
+import type RHPResizeHandleProps from './types';
+
 /**
  * Drags the single RHP card's left edge. A sibling of the card rather than a child, because the card clips its overflow,
  * and rendered after the overlay so it wins hit-testing over the scrim that closes the RHP.
  */
-function RHPResizeHandle() {
+function RHPResizeHandle({ref}: RHPResizeHandleProps) {
     const styles = useThemeStyles();
     const {width, bounds} = useSingleRHPWidth();
     const [storedWidth] = useOnyx(ONYXKEYS.SINGLE_RHP_WIDTH);
@@ -59,6 +61,7 @@ function RHPResizeHandle() {
             defaultWidth={variables.rhpWidth}
             liveWidth={singleRHPWidthVariable}
             style={styles.rhpResizeHandle(width)}
+            ref={ref}
         />
     );
 }
