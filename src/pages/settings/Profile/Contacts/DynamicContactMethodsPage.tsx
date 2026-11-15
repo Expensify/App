@@ -17,6 +17,10 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, getContactMethodsOptions} from '@libs/UserUtils';
 
+import FontUtils from '@styles/utils/FontUtils';
+
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -76,16 +80,25 @@ function DynamicContactMethodsPage() {
                                 pendingAction={option.pendingAction}
                                 key={option.partnerUserID}
                             >
-                                <MenuItem
+                                <MenuItem.Root
                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_ROW}
-                                    title={option.menuItemTitle}
-                                    description={option.description}
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID)))}
-                                    brickRoadIndicator={option.indicator}
-                                    shouldShowBasicTitle
-                                    shouldShowRightIcon
-                                    disabled={!!option.pendingAction}
-                                />
+                                    onPress={callIfAuthenticated(
+                                        () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID))),
+                                        session,
+                                    )}
+                                    isDisabled={!!option.pendingAction}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title style={FontUtils.fontFamily.platform.EXP_NEUE}>{option.menuItemTitle}</MenuItem.Title>
+                                            {!!option.description && <MenuItem.Description>{option.description}</MenuItem.Description>}
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            {!!option.indicator && <MenuItem.BrickRoadIndicator status={option.indicator} />}
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItem.Root>
                             </OfflineWithFeedback>
                         ),
                 )}
