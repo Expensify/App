@@ -257,7 +257,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const getBulkActionOptions = (): Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> => [
+    const bulkActionOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [
         {
             icon: expensifyIcons.Trashcan,
             text: translate('workspace.perDiem.deleteRates', {count: selectedSubRateKeys.length}),
@@ -290,7 +290,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     shouldAlwaysShowDropdownMenu
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedSubRateKeys.length})}
-                    options={getBulkActionOptions()}
+                    options={bulkActionOptions}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     isDisabled={!selectedSubRateKeys.length}
@@ -407,7 +407,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     onRowSelectionChange={setSelectedSubRateKeys}
                     headerComponent={hasVisibleSubRates ? subtitleContent : undefined}
                     emptyState={emptyState}
-                    bulkActionOptions={canWritePerDiem ? getBulkActionOptions() : undefined}
+                    bulkActionOptions={canWritePerDiem ? bulkActionOptions : undefined}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

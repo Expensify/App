@@ -21,7 +21,7 @@ const {setupHadTabNavigation, resetForTests: resetHadTabNavigation} = require<{
     setupHadTabNavigation: () => void;
     resetForTests: () => void;
 }>('../../src/libs/hadTabNavigation.ts');
-const {isProgrammaticFocus} = require<{isProgrammaticFocus: (element: Element | null) => boolean}>('../../src/libs/programmaticFocus.ts');
+const {isFocusRingSuppressed} = require<{isFocusRingSuppressed: (element: Element | null) => boolean}>('../../src/libs/suppressFocusRing.ts');
 
 function createButton(label: string) {
     const button = document.createElement('button');
@@ -207,8 +207,8 @@ describe('useBulkActionBarFocus', () => {
         // When Escape clears the selection, which is what would otherwise make the checkbox match `:focus-visible`
         act(() => result.current.suppressStrayFocusRing());
 
-        // Then the checkbox is marked as holding programmatic focus, so the ring stays off
-        expect(isProgrammaticFocus(checkbox)).toBe(true);
+        // Then the checkbox is marked as hiding its ring, which also keeps the browser's own outline off it
+        expect(isFocusRingSuppressed(checkbox)).toBe(true);
     });
 
     it('leaves the focus ring alone on a checkbox the keyboard reached', () => {
@@ -226,6 +226,25 @@ describe('useBulkActionBarFocus', () => {
         act(() => result.current.suppressStrayFocusRing());
 
         // Then nothing is suppressed, because a keyboard user has to keep seeing where focus is
-        expect(isProgrammaticFocus(checkbox)).toBe(false);
+        expect(isFocusRingSuppressed(checkbox)).toBe(false);
+    });
+    it('lets the checkbox show its ring again once focus moves on', () => {
+        // Given a select all checkbox clicked with the mouse, whose ring the cleared selection hid
+        const checkbox = createButton('Select all');
+        const elsewhere = createButton('Settings');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+
+        const {result} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        act(() => document.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true})));
+        focus(checkbox);
+        act(() => result.current.suppressStrayFocusRing());
+
+        // When focus leaves the checkbox for something else
+        focus(elsewhere);
+
+        // Then the checkbox is back to showing a ring on its next visit, rather than staying silent forever
+        expect(isFocusRingSuppressed(checkbox)).toBe(false);
     });
 });

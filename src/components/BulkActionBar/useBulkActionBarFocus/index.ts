@@ -2,8 +2,8 @@ import getHadTabNavigation from '@libs/hadTabNavigation';
 import isHTMLElement from '@libs/isHTMLElement';
 import {pickLauncher} from '@libs/LauncherStack';
 import {nominateTriggerFallback} from '@libs/NavigationFocusReturn';
-import markProgrammaticFocus from '@libs/programmaticFocus';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
+import suppressFocusRing from '@libs/suppressFocusRing';
 
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
@@ -138,7 +138,7 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByScreen)
             return;
         }
 
-        markProgrammaticFocus(active);
+        suppressFocusRing(active);
     };
 
     return {suppressStrayFocusRing, isFocusInsideBar};
