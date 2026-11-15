@@ -63,6 +63,7 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
                     </View>
                     {shouldDisplayShowMoreButton && (
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.COPYABLE_TEXT_FIELD.SHOW_MORE_TOGGLE}
                             size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => setExpanded((current) => !current)}
                         >

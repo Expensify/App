@@ -1,6 +1,8 @@
 import type {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
+import type {SearchChartCountDimension} from '@components/Search/types';
 
 import type {SkParagraph} from '@shopify/react-native-skia';
+import type {ReactNode} from 'react';
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
 
 /** One plotted dataset: a line, or one bar of every group. */
@@ -43,7 +45,7 @@ type ChartDataPoint = {
     /** Color of each series' bar at the point, keyed by the series' key. Left out, `color` for the first series and each other series' own color. */
     seriesColors?: Partial<Record<string, string>>;
 
-    /** Number of expenses in this point */
+    /** Number of expenses or reports in this point, whichever the chart's `countDimension` names */
     count?: number;
 
     /** The money each series' expenses total at this point, written out. Set when the plotted value isn't money, so the tooltip can name the spend behind it. */
@@ -74,7 +76,16 @@ type ChartProps = {
     /** Formats every plotted value the chart writes out. Left out, values are numbers carrying the chart's unit. */
     formatValue?: ChartValueFormatter;
 
+    /** What each point's `count` counts, which names it in the tooltip. Defaults to expenses. */
+    countDimension?: SearchChartCountDimension;
+
     isLoading?: boolean;
+
+    /** Called with the data point of a tooltip opened by a touch tap when that tooltip is pressed */
+    onTooltipPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** Shown at the end of a tooltip opened by a touch tap */
+    tooltipFooter?: ReactNode;
 };
 
 type CartesianChartProps = ChartProps & {

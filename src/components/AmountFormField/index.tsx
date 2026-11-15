@@ -5,8 +5,9 @@ import AmountFormFieldInput from './primitives/AmountFormFieldInput';
 import AmountFormFieldSignFlipButton from './primitives/AmountFormFieldSignFlipButton';
 
 /**
- * AmountFormField – a composable field for editing amount values in forms.
- * For standard Onyx Form integration, use `AmountForm` instead.
+ * AmountFormField – a composable field for editing amount values.
+ * For FormProvider integration, use the `AmountForm` adapter with `displayAsTextInput` instead.
+ * See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md (section 7).
  *
  * The root component owns the canonical value, the selection, validation, and
  * the input callbacks through a root-instantiated edit controller. Compose the
@@ -20,18 +21,15 @@ import AmountFormFieldSignFlipButton from './primitives/AmountFormFieldSignFlipB
  *   value={amount}
  *   onInputChange={setAmount}
  *   decimals={2}
- *   allowNegative
- *   errorText={error}
  * >
  *   <AmountFormField.Input
  *     prefixCharacter="$"
  *     label="Amount"
- *   />
+ *   >
+ *     <AmountFormField.CurrencyPickerButton currency={currency} onPress={openCurrencyPicker} />
+ *   </AmountFormField.Input>
  * </AmountFormField>
  * ```
- *
- * The `useAmountFormFieldState` and `useAmountFormFieldActions` hooks are also exported
- * for custom composed primitives.
  */
 const AmountFormField = Object.assign(AmountFormFieldComponent, {
     /** Opens the currency selector. */

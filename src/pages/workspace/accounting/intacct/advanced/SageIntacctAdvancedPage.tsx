@@ -27,7 +27,7 @@ import {
     updateSageIntacctSyncReimbursementAccountID,
 } from '@userActions/connections/SageIntacct';
 import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -60,6 +60,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         {
             label: translate('workspace.sageIntacct.inviteEmployees'),
             description: translate('workspace.sageIntacct.inviteEmployeesDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.INVITE_EMPLOYEES_SWITCH,
             isActive: !!importEmployees,
             onToggle: (enabled: boolean) => {
                 if (!policyID) {
@@ -78,6 +79,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         {
             label: translate('workspace.sageIntacct.syncReimbursedReports'),
             description: translate('workspace.sageIntacct.syncReimbursedReportsDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.SYNC_REIMBURSED_REPORTS_SWITCH,
             isActive: !!sync?.syncReimbursedReports,
             onToggle: (enabled: boolean) => {
                 if (!policyID) {
@@ -113,7 +115,8 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.pendingFields)}>
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path)), false, session)}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path)), session)}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.AUTO_SYNC}
                 >
                     <MenuItemField.Row
                         name={translate('workspace.accounting.autoSync')}
@@ -136,6 +139,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     subtitle={section.description}
                     shouldPlaceSubtitleBelowSwitch
                     switchAccessibilityLabel={section.label}
+                    switchSentryLabel={section.switchSentryLabel}
                     isActive={section.isActive}
                     onToggle={section.onToggle}
                     wrapperStyle={[styles.ph5, styles.pv3]}
@@ -153,6 +157,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}
                 >
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.PAYMENT_ACCOUNT}
                         name={translate('workspace.sageIntacct.paymentAccount')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}
                         value={getReimbursedAccountName(data?.bankAccounts ?? [], sync?.reimbursementAccountID)}
@@ -168,6 +173,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                         pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.FX_EXPENSE_ACCOUNT}
                             name={translate('workspace.sageIntacct.fxExpenseAccount')}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT.getRoute(policyID))}
                             value={data?.expenseAccounts?.find((account) => account.id === config?.fxExpenseAccount)?.name}

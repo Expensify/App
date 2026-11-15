@@ -39,7 +39,8 @@ export default function useChartLabelFormats({
     const {numberFormat} = useLocalize();
 
     const displayUnit = typeof unit === 'string' ? unit : unit?.value;
-    const unitToDisplay = fontManager && !canFontRenderText(displayUnit, fontManager) ? (unit as UnitWithFallback)?.fallback : displayUnit;
+    const fallbackUnit = typeof unit === 'string' ? undefined : unit?.fallback;
+    const unitToDisplay = fontManager && !canFontRenderText(displayUnit, fontManager) ? fallbackUnit : displayUnit;
     const withUnit = (formatted: string) => {
         if (!unitToDisplay) {
             return formatted;

@@ -112,6 +112,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     return (
         <ScrollView style={styles.mv3}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.DEBUG.REPORT_ACTIONS_CREATE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION_CREATE.getRoute(reportID))}

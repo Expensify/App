@@ -239,6 +239,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
             </OfflineWithFeedback>
             <Text style={[styles.textMicroSupporting, styles.mt1, styles.mb5]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AI_PROMPT_SAVE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={handleSave}
                 isLoading={isSaving && isUserInitiatedSave}

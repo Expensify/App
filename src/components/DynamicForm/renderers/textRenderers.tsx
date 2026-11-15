@@ -5,6 +5,7 @@ import DynamicFormOnFileTextInput from '@components/DynamicForm/components/Dynam
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import hasProvidedAnswer from '@components/DynamicForm/utils/hasProvidedAnswer';
 import InputWrapper from '@components/Form/InputWrapper';
+import FSClassView from '@components/FSClassView';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
 import TextInput from '@components/TextInput';
@@ -105,9 +106,9 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
     amount: (field, {values, translate, styles, currency}, inputProps) => {
         const chosenCurrency = field.currencyKey ? values[field.currencyKey] : undefined;
         const amountCurrency = typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency;
-        // AmountForm takes no FullStory class, so the mask goes on a View around it
+        // AmountForm takes no FullStory class, so the mask goes on an FSClassView around it, which its input follows
         const amountInput = (
-            <View fsClass={inputProps.forwardedFSClass}>
+            <FSClassView forwardedFSClass={inputProps.forwardedFSClass}>
                 <InputWrapper
                     InputComponent={AmountForm}
                     {...inputProps}
@@ -116,7 +117,7 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                     displayAsTextInput
                     isCurrencyPressable={false}
                 />
-            </View>
+            </FSClassView>
         );
         if (!field.currencyKey) {
             return {isMenuRow: false, input: amountInput};

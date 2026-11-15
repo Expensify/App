@@ -84,6 +84,7 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
                 <FullscreenLoadingIndicator onGoBack={goBackToCompanyCards} />
             ) : (
                 <CompanyCardTransactionStartDateForm
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_TRANSACTION_START_DATE_SAVE}
                     testID="WorkspaceCompanyCardsBulkEditTransactionStartDatePage"
                     description={translate('workspace.companyCards.bulkEditStartDateDescription')}
                     initialDateOption={initialDateOption}

@@ -14,6 +14,7 @@ import {
     isPolicyExpenseChat,
     isReportTransactionThread,
     isSelfDM,
+    isSupportTicket,
     isTaskReport,
 } from '@libs/ReportUtils';
 
@@ -86,6 +87,10 @@ function getSendMessageSourceBase({report, conciergeReportID, isInSidePanel}: Om
 
     if (isConciergeChatReport(report, conciergeReportID)) {
         return SEND_MESSAGE_SOURCE.CONCIERGE;
+    }
+    // A support ticket has its own report type and no chatType, so every chat check below misses it.
+    if (isSupportTicket(report)) {
+        return SEND_MESSAGE_SOURCE.SUPPORT_TICKET;
     }
     if (isChatThread(report)) {
         return SEND_MESSAGE_SOURCE.REPORT_THREAD;

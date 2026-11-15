@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import type {Option} from '@libs/searchOptions';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -28,9 +28,12 @@ type CountryPickerProps = {
 
     /** Row title */
     label?: string;
+
+    /** The row cannot be opened for now, such as offline, and shows as dimmed */
+    disabled?: boolean;
 };
 
-function CountryPicker({value, errorText, onInputChange = () => {}, label}: CountryPickerProps) {
+function CountryPicker({value, errorText, onInputChange = () => {}, label, disabled = false}: CountryPickerProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -46,7 +49,11 @@ function CountryPicker({value, errorText, onInputChange = () => {}, label}: Coun
 
     return (
         <>
-            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}>
+            <MenuItem.Root
+                onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}
+                isDisabled={disabled}
+                sentryLabel={CONST.SENTRY_LABEL.COUNTRY_PICKER.OPEN}
+            >
                 <MenuItemField.Row
                     name={label ?? translate('common.country')}
                     value={value ? translate(`allCountries.${value}` as TranslationPaths) : undefined}

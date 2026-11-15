@@ -59,12 +59,14 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
     getDistanceInMeters,
     getRateID,
     getTag,
     getTagForDisplay,
     getTaxName,
+    isCardTransactionReimbursableEditable,
     isDistanceRequest,
     isManagedCardTransaction,
     isManualDistanceRequest,
@@ -73,7 +75,7 @@ import {
     isTimeRequest,
 } from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,6 +83,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {policyTypeSelector} from '@selectors/Policy';
 import {authTokenTypeSelector} from '@selectors/Session';
@@ -91,17 +94,19 @@ type DynamicSplitExpenseEditPageProps = PlatformStackScreenProps<RightModalNavig
 
 type SplitToggleRowProps = {
     label: string;
+    sentryLabel: SentryLabel;
     isOn: boolean;
     onToggle: (value: boolean) => void;
 };
 
-function SplitToggleRow({label, isOn, onToggle}: SplitToggleRowProps) {
+function SplitToggleRow({label, sentryLabel, isOn, onToggle}: SplitToggleRowProps) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}>
             <Text>{label}</Text>
             <Switch
                 accessibilityLabel={label}
+                sentryLabel={sentryLabel}
                 isOn={isOn}
                 onToggle={onToggle}
             />
@@ -255,7 +260,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const shouldShowTaxDisabledAlert = !isTaxEnabled && !!splitExpenseDraftTransaction?.taxCode && !isSplitPerDiemRequest && !isSplitTimeRequest;
     const shouldShowTax = isTaxEnabled || shouldShowTaxDisabledAlert;
     const taxRatesDescription = effectivePolicy?.taxRates?.name;
-    const taxRateTitle = getTaxName(effectivePolicy, splitExpenseDraftTransaction);
+    const taxRateTitle = getTaxName(translate, effectivePolicy, splitExpenseDraftTransaction);
 
     const showTaxDisabledAlert = () => {
         showConfirmModal({
@@ -273,10 +278,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!splitExpenseDraftTransactionDetails?.billable || isBillableEnabledOnPolicy(effectivePolicy));
     const currentReimbursable = splitExpenseDraftTransaction?.reimbursable ?? transaction?.reimbursable;
+    // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
     const shouldShowReimbursable =
         (isPolicyExpenseChat || (isExpenseUnreported && !!effectivePolicy)) &&
-        canShowReimbursableToggleForPolicy(effectivePolicy, currentReimbursable) &&
-        !isManagedCardTransaction(transaction);
+        (isManagedCardTransaction(transaction) || canShowReimbursableToggleForPolicy(effectivePolicy, currentReimbursable)) &&
+        isCardTransactionReimbursableEditable(transaction);
 
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
@@ -336,6 +342,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const distanceRequestFields = isDistance ? (
         <>
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_DISTANCE_FIELD}
                 name={translate('common.distance')}
                 value={distanceToDisplay}
                 onPress={() => {
@@ -374,52 +381,49 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                 }}
             />
             <MenuItem.Root
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_RATE_FIELD}
                 onPress={
                     isRateInteractive
-                        ? callFunctionIfActionIsAllowed(
-                              () => {
-                                  const rateRoute = createDynamicRoute(
-                                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
-                                          CONST.IOU.ACTION.EDIT,
-                                          CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                          CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                          reportID,
+                        ? callIfAuthenticated(() => {
+                              const rateRoute = createDynamicRoute(
+                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                                      CONST.IOU.ACTION.EDIT,
+                                      CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                      CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                      reportID,
+                                  ),
+                              );
+
+                              // SelfDM split whose source workspace is gone and user has no other paid workspace:
+                              // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
+                              // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
+                              // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
+                              // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
+                              if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
+                                  Navigation.navigate(
+                                      createDynamicRoute(
+                                          DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                              action: CONST.IOU.ACTION.EDIT,
+                                              iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                              transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                              reportID,
+                                              upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                          }),
                                       ),
                                   );
+                                  return;
+                              }
 
-                                  // SelfDM split whose source workspace is gone and user has no other paid workspace:
-                                  // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
-                                  // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
-                                  // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
-                                  // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
-                                  if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
-                                      Navigation.navigate(
-                                          createDynamicRoute(
-                                              DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                                  action: CONST.IOU.ACTION.EDIT,
-                                                  iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                                  transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                                  reportID,
-                                                  upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                                              }),
-                                          ),
-                                      );
-                                      return;
-                                  }
+                              // SelfDM split with paid workspaces but none is default/active paid (e.g. personal
+                              // is the active policy): open the workspace selector first — same UX as the parent
+                              // self-DM expense's Rate field in MoneyRequestView and the Category branch below.
+                              if (!effectivePolicy && shouldSelectPolicy) {
+                                  Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(rateRoute));
+                                  return;
+                              }
 
-                                  // SelfDM split with paid workspaces but none is default/active paid (e.g. personal
-                                  // is the active policy): open the workspace selector first — same UX as the parent
-                                  // self-DM expense's Rate field in MoneyRequestView and the Category branch below.
-                                  if (!effectivePolicy && shouldSelectPolicy) {
-                                      Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(rateRoute));
-                                      return;
-                                  }
-
-                                  Navigation.navigate(rateRoute);
-                              },
-                              false,
-                              session,
-                          )
+                              Navigation.navigate(rateRoute);
+                          }, session)
                         : undefined
                 }
             >
@@ -450,6 +454,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                     />
                     <ScrollView>
                         <MenuItemFieldHTML
+                            sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_DESCRIPTION_FIELD}
                             key={translate('common.description')}
                             name={translate('common.description')}
                             value={currentDescription}
@@ -471,6 +476,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         {distanceRequestFields}
                         {shouldShowCategory && (
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_CATEGORY_FIELD}
                                 key={translate('common.category')}
                                 name={translate('common.category')}
                                 value={categoryValue}
@@ -503,6 +509,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                         Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryRoute));
                                         return;
                                     }
+                                    startOpenCategoryPickerSpan();
                                     Navigation.navigate(categoryRoute);
                                 }}
                             >
@@ -522,6 +529,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
                                 return (
                                     <HighlightableMenuItemWithTopDescription
+                                        sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_TAG_FIELD}
                                         shouldShowRightIcon
                                         key={name}
                                         highlighted={!getTagForDisplay(splitExpenseDraftTransaction, index) && !prevShouldShow}
@@ -550,6 +558,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 );
                             })}
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_DATE_FIELD}
                             key={translate('common.date')}
                             name={translate('common.date')}
                             value={splitExpenseDraftTransactionDetails?.created}
@@ -564,6 +573,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         />
                         {shouldShowTax && (
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_TAX_FIELD}
                                 key={translate('common.tax')}
                                 name={taxRatesDescription ?? translate('common.tax')}
                                 value={taxRateTitle}
@@ -584,6 +594,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         {shouldShowReimbursable && (
                             <SplitToggleRow
                                 label={translate('common.reimbursable')}
+                                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.REIMBURSABLE_SWITCH}
                                 isOn={splitExpenseDraftTransaction?.reimbursable ?? true}
                                 onToggle={(value) => updateSplitExpenseDraftField({reimbursable: value})}
                             />
@@ -591,6 +602,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         {shouldShowBillable && (
                             <SplitToggleRow
                                 label={translate('common.billable')}
+                                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.BILLABLE_SWITCH}
                                 isOn={splitExpenseDraftTransaction?.billable ?? false}
                                 onToggle={(value) => updateSplitExpenseDraftField({billable: value})}
                             />
