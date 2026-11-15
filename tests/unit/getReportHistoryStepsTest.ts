@@ -420,4 +420,29 @@ describe('getReportHistorySteps', () => {
         // Then the history credits Concierge, like the report conversation does
         expect(steps).toEqual([[translateLocal('reportHistoryPage.submitted'), CONST.ACCOUNT_ID.CONCIERGE]]);
     });
+
+    it.each([
+        [true, 'reportHistoryPage.receivedPayment'],
+        [false, 'reportHistoryPage.paid'],
+    ] as const)('labels a pay action with isSubmitterMarkedPaymentReceived %s as %s', (isSubmitterMarkedPaymentReceived, translationKey) => {
+        // Given a pay action from the submitter confirming they received payment, or from the payer marking the report paid
+        const payAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.IOU, OWNER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                html: 'paid',
+                text: 'paid',
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                isSubmitterMarkedPaymentReceived,
+            },
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([payAction]);
+
+        // Then the history uses the same wording as the report conversation
+        expect(steps).toEqual([[translateLocal(translationKey), OWNER_ACCOUNT_ID]]);
+    });
 });

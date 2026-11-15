@@ -70,7 +70,14 @@ import {
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getSearchColumnResizingID, isReportEntry, savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, normalizeDatePresetsInQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getFooterSelectionFromQuery,
+    isGroupBySupportedBySearch,
+    normalizeDatePresetsInQuery,
+    serializeQueryJSONForBackend,
+} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -270,6 +277,8 @@ type HandleActionButtonPressParams = {
     currentSearchKey?: SearchKey;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
+    isAccountLocked?: boolean;
+    onAccountLocked?: () => void;
     personalPolicyID: string | undefined;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
@@ -319,6 +328,8 @@ function handleActionButtonPress({
     currentSearchKey,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
+    isAccountLocked,
+    onAccountLocked,
     personalPolicyID,
     ownerBillingGracePeriodEnd,
     onPendingCardTransactionsBlock,
@@ -405,6 +416,10 @@ function handleActionButtonPress({
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             if (isDelegateAccessRestricted) {
                 onDelegateAccessRestricted?.();
+                return;
+            }
+            if (isAccountLocked) {
+                onAccountLocked?.();
                 return;
             }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
@@ -1331,7 +1346,11 @@ function handlePreventSearchAPI(hash: number | undefined) {
  * Builds the backend-facing query from a client queryJSON: strips client-only fields and rewrites client-side-sorted
  * columns to a backend-supported date sort.
  */
-function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
+function getBackendQueryJSON(searchQueryJSON: Readonly<SearchQueryJSON>) {
+    // The Search command rejects Insights-only group-bys as invalid, so they're left out
+    const queryJSON = isGroupBySupportedBySearch(searchQueryJSON.groupBy)
+        ? searchQueryJSON
+        : {...searchQueryJSON, groupBy: undefined, inputQuery: buildSearchQueryString({...searchQueryJSON, groupBy: undefined})};
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {

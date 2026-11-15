@@ -393,6 +393,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (duplicateTargetPolicy && shouldRestrictUserBillableActions(duplicateTargetPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     onDuplicateReset?.();

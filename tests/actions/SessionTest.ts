@@ -11,6 +11,7 @@ import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
+import {clearExperienceCookie} from '@libs/ExperienceCookie';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -69,6 +70,12 @@ jest.mock('@libs/openExternalLink', () => ({
 }));
 
 jest.mock('@libs/getPlatform', () => jest.fn());
+
+// Mocked to check that the sign in redirect clears the experience cookie
+jest.mock('@libs/ExperienceCookie', () => ({
+    writeExperienceCookie: jest.fn(),
+    clearExperienceCookie: jest.fn(),
+}));
 
 const mockedGetPlatform = jest.mocked(getPlatform);
 
@@ -1505,6 +1512,56 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(await getOnyxValue(ONYXKEYS.LAST_VISITED_PATH)).toBeUndefined();
+        });
+    });
+
+    describe('experience cookie on the sign in redirect', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+            jest.mocked(clearExperienceCookie).mockClear();
+        });
+
+        test('clears the experience cookie when the user signs out', async () => {
+            // Given a signed in user
+            await TestHelper.signInWithTestUser();
+
+            // When the session ends
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
+            await waitForBatchedUpdates();
+
+            // Then the cookie is cleared, so the next user isn't served the signed out user's product
+            expect(clearExperienceCookie).toHaveBeenCalledTimes(1);
+        });
+
+        test.each<[string, Partial<Session>]>([
+            ['Supportal', {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT}],
+            ['Supportal with a used support token', {isSupportAuthTokenUsed: true}],
+            ['Copilot', {authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE}],
+        ])('keeps the experience cookie when a %s session ends', async (_, session) => {
+            // Given an agent session. Onyx.clear empties SESSION before the redirect finishes, so this also checks the session type is read first.
+            await TestHelper.signInWithTestUser();
+            await Onyx.merge(ONYXKEYS.SESSION, session);
+            await waitForBatchedUpdates();
+
+            // When the session ends
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
+            await waitForBatchedUpdates();
+
+            // Then the agent's own cookie in this browser is left alone
+            expect(clearExperienceCookie).not.toHaveBeenCalled();
+        });
+
+        test('keeps the experience cookie when an agent starts a Supportal session', async () => {
+            // Given an agent signed in to their own account
+            await TestHelper.signInWithTestUser();
+
+            // When they open Supportal, which signs them out and stashes their session to come back to it
+            signOutAndRedirectToSignIn(false, true, false, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            await waitForBatchedUpdates();
+
+            // Then their own cookie is left alone, because their session continues after Supportal
+            expect(await getOnyxValue(ONYXKEYS.STASHED_SESSION)).toEqual(expect.objectContaining({email: 'test@user.com'}));
+            expect(clearExperienceCookie).not.toHaveBeenCalled();
         });
     });
 
