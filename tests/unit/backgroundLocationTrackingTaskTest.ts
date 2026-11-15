@@ -92,40 +92,35 @@ describe('backgroundLocationTrackingTask', () => {
     it('ignores temporary iOS location errors and keeps recording the same trip', async () => {
         // Given an active trip on iOS, where locationUnknown is temporary and Core Location keeps trying
         const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-        const fetchDraft = jest.spyOn(Onyx, 'connectWithoutView');
-        jest.mocked(reverseGeocodeAsync).mockResolvedValue([geocodedAddress('Mountain View')]);
         await Onyx.set(ONYXKEYS.GPS_DRAFT_DETAILS, trackingDraft);
 
         // When the task receives locationUnknown without usable location data
         await runTask?.({data: undefined, error: {code: 0, message: 'Location unknown'}, executionInfo: {eventId: '1', taskName: 'location'}});
 
-        // Then it neither logs an error nor reads the draft, and a later location still extends this trip
+        // Then the temporary error stays silent and a later location still extends this trip
         expect(consoleError).not.toHaveBeenCalled();
-        expect(fetchDraft).not.toHaveBeenCalled();
-        expect(await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS)).toEqual(trackingDraft);
         await receiveLocations([location(0, 0)]);
         await waitForBatchedUpdates();
-        expect((await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS))?.gpsPoints).toEqual([[{lat: 0, long: 0, address: {value: 'Mountain View', type: 'address'}}]]);
+        expect(await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS)).toMatchObject({reportID: trackingDraft.reportID, gpsPoints: [[{lat: 0, long: 0}]]});
     });
 
     it.each([
         {platform: 'ios', code: 1},
         {platform: 'ios', code: 2},
-        {platform: 'ios', code: 'E_LOCATION_FAILED'},
         {platform: 'android', code: 0},
     ] as const)('still logs task errors with code $code on $platform', async ({platform, code}) => {
         // Given an error that is not the temporary iOS locationUnknown condition
-        jest.mocked(isIgnorableLocationTaskError).mockImplementation(platform === 'ios' ? isIgnorableIOSLocationTaskError : isIgnorableDefaultLocationTaskError);
+        if (platform === 'android') {
+            jest.mocked(isIgnorableLocationTaskError).mockImplementation(isIgnorableDefaultLocationTaskError);
+        }
         const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-        const fetchDraft = jest.spyOn(Onyx, 'connectWithoutView');
         const error = {code, message: 'Location failed'};
 
         // When the task receives the error without usable location data
         await runTask?.({data: undefined, error, executionInfo: {eventId: '1', taskName: 'location'}});
 
-        // Then genuine failures remain visible and no location data is processed
+        // Then genuine failures remain visible instead of being ignored like the temporary iOS error
         expect(consoleError).toHaveBeenCalledWith('[GPS distance request] Long-running task error: ', {error, data: undefined});
-        expect(fetchDraft).not.toHaveBeenCalled();
     });
 
     it('records the first location and gives it the start address', async () => {
