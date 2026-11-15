@@ -43,7 +43,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const isAccountLoading = account?.isLoading;
     const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [hasCancelledSwitch, setHasCancelledSwitch] = useState(false);
 
@@ -114,7 +114,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
             showConfirmModal({
                 title: translate('deeplinkWrapper.switchAccount.title'),
-                prompt: translate('deeplinkWrapper.switchAccount.prompt', {newEmail: linkEmail, currentEmail: sessionEmail ?? ''}),
+                prompt: translate('deeplinkWrapper.switchAccount.prompt', {newEmail: formatPhoneNumber(linkEmail), currentEmail: formatPhoneNumber(sessionEmail ?? '')}),
                 confirmText: translate('deeplinkWrapper.switchAccount.confirm'),
                 cancelText: translate('deeplinkWrapper.switchAccount.staySignedIn'),
             }).then((result) => {
