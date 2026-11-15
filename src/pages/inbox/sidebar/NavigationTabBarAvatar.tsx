@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -36,6 +37,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     return (
         <PressableWithFeedback
             onPress={onPress}
+            linkRoute={ROUTES.SETTINGS}
             accessibilityLabel={getTabAccessibilityLabel(`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}`, !!status, translate)}
             role={CONST.ROLE.TAB}
             wrapperStyle={shouldUseNarrowLayout ? styles.navigationTabBarSlot : styles.flex1}

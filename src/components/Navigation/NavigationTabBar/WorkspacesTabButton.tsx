@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
@@ -36,6 +37,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
         return (
             <PressableWithFeedback
                 onPress={navigateToWorkspaces}
+                linkRoute={ROUTES.WORKSPACES_LIST.route}
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesTabIndicatorStatus, translate)}
                 accessibilityState={workspacesAccessibilityState}
@@ -59,6 +61,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     return (
         <PressableWithFeedback
             onPress={navigateToWorkspaces}
+            linkRoute={ROUTES.WORKSPACES_LIST.route}
             role={CONST.ROLE.TAB}
             accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesTabIndicatorStatus, translate)}
             accessibilityState={workspacesAccessibilityState}

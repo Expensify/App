@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import mergeRefs from '@libs/mergeRefs';
+import {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusReturn';
 
 import CONST from '@src/CONST';
@@ -50,6 +51,7 @@ function GenericPressable({
     dataSet,
     forwardedFSClass,
     accessibilityState,
+    linkRoute,
     ...rest
 }: PressableProps) {
     const styles = useThemeStyles();
@@ -149,7 +151,26 @@ function GenericPressable({
         onPressHandler(event);
     };
 
-    const pressOnce = (event: GestureResponderEvent) => singleExecution(onPressHandler)(event);
+    const pressOnce = (event?: GestureResponderEvent) => singleExecution(onPressHandler)(event);
+
+    // The browser follows the href unless the click is prevented, so only Cmd or Ctrl clicks on an enabled link reach it and open a new tab.
+    const pressLink = (event?: GestureResponderEvent) => {
+        if (!isDisabled && isModifiedMousePress(event)) {
+            return;
+        }
+        event?.preventDefault();
+        if (isDisabled) {
+            return;
+        }
+        pressOnce(event);
+    };
+
+    const getPressHandler = () => {
+        if (linkRoute) {
+            return pressLink;
+        }
+        return !isDisabled ? pressOnce : undefined;
+    };
 
     const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut ?? {};
     useKeyboardShortcut({shortcutKey, descriptionKey, modifiers} as ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>, onKeyboardShortcutPressHandler, {
@@ -184,7 +205,7 @@ function GenericPressable({
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={composedRef}
             disabled={fullDisabled || undefined}
-            onPress={!isDisabled ? pressOnce : undefined}
+            onPress={getPressHandler()}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
@@ -215,6 +236,7 @@ function GenericPressable({
             onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
             fsClass={forwardedFSClass}
+            href={linkRoute && !fullDisabled ? `/${linkRoute}` : undefined}
             {...rest}
             onHoverOut={(event) => {
                 if (event?.type === 'pointerenter' || event?.type === 'mouseenter') {

@@ -8,6 +8,7 @@ import useAccountTabNavigation from '@components/Navigation/NavigationTabBar/use
 import useHomeTabNavigation from '@components/Navigation/NavigationTabBar/useHomeTabNavigation';
 import useInsightsTabNavigation from '@components/Navigation/NavigationTabBar/useInsightsTabNavigation';
 import useSearchTabNavigation from '@components/Navigation/NavigationTabBar/useSearchTabNavigation';
+import useStoredSearchTabRoute from '@components/Navigation/NavigationTabBar/useStoredSearchTabRoute';
 import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useWideInboxNavigation';
 import {
     COLLAPSE_SURFACE,
@@ -38,6 +39,7 @@ import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButto
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import type {NativeSyntheticEvent, TargetedEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -75,6 +77,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
     const navigateToInbox = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
     const navigateToSearch = useSearchTabNavigation(selectedTab === NAVIGATION_TABS.SEARCH);
+    const searchTabRoute = useStoredSearchTabRoute();
     const navigateToInsights = useInsightsTabNavigation(selectedTab === NAVIGATION_TABS.INSIGHTS);
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
 
@@ -208,6 +211,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 isSelected={isHomeSelected}
                                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                                                 onPress={navigateToHome}
+                                                linkRoute={ROUTES.HOME}
                                             />
                                             <FlatNavItem
                                                 isCollapsed={isVisuallyCollapsed}
@@ -218,6 +222,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 accessibilityLabel={getTabAccessibilityLabel(translate('common.inbox'), !!inboxStatus, translate)}
                                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                                                 onPress={navigateToInbox}
+                                                linkRoute={ROUTES.INBOX}
                                             />
                                             <FlatNavDivider />
                                             <FlatNavItem
@@ -227,6 +232,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                                                 onPress={navigateToSearch}
+                                                linkRoute={searchTabRoute}
                                                 onHoverIn={() => setIsSearchTabHovered(true)}
                                                 onHoverOut={() => setIsSearchTabHovered(false)}
                                             />
@@ -237,6 +243,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
                                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
                                                 onPress={navigateToInsights}
+                                                linkRoute={ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)}
                                             />
                                             <FlatNavDivider />
                                             <FlatNavItem
@@ -248,6 +255,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesStatus, translate)}
                                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                                                 onPress={navigateToWorkspaces}
+                                                linkRoute={ROUTES.WORKSPACES_LIST.route}
                                             />
                                         </ScrollView>
                                     </View>
@@ -274,6 +282,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             accessibilityLabel={getTabAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus, translate)}
                                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
                                             onPress={navigateToAccount}
+                                            linkRoute={ROUTES.SETTINGS}
                                         />
                                     </View>
                                 </View>
