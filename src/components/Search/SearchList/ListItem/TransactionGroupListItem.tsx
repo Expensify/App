@@ -505,6 +505,10 @@ function TransactionGroupListItemImpl({
                     />
                 );
             })(),
+            // Only Insights charts group by these, so Search never lists their groups
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: null,
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: null,
+            [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: null,
         };
 
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {

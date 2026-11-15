@@ -131,7 +131,6 @@ type UnofferedOnboardingAccountingConnection =
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
-    // Still behind the ZOHO_BOOKS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
     // Still behind the DIGITS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
@@ -632,14 +631,20 @@ const CONST = {
 
     MERCHANT_NAME_MAX_BYTES: 255,
 
-    /** The subset of EDIT_REQUEST_FIELD a merchant rule can govern, whose edit shows the "Create a rule" callout */
+    /**
+     * The fields a merchant rule can govern, whose edit shows the "Create a rule" callout.
+     *
+     * Named the way the server names them in its `suggestNewRuleCreation` verdict, since that verdict is read by
+     * these keys. A description is `comment` there and a tax rate is `tax`, so the names cannot be taken from
+     * EDIT_REQUEST_FIELD.
+     */
     MERCHANT_RULE_SUGGESTION_FIELDS: {
-        CATEGORY: editRequestFields.CATEGORY,
-        TAG: editRequestFields.TAG,
-        TAX: editRequestFields.TAX_RATE,
-        DESCRIPTION: editRequestFields.DESCRIPTION,
-        BILLABLE: editRequestFields.BILLABLE,
-        REIMBURSABLE: editRequestFields.REIMBURSABLE,
+        CATEGORY: 'category',
+        TAG: 'tag',
+        TAX: 'tax',
+        DESCRIPTION: 'comment',
+        BILLABLE: 'billable',
+        REIMBURSABLE: 'reimbursable',
     },
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
@@ -650,6 +655,9 @@ const CONST = {
 
     GENERATED_RULE: {
         PROMPT_MAX_LENGTH: 6000,
+
+        // The slowest answers in the eval take about 13 seconds. After this time, the agent rule saves without an answer.
+        AGENT_RULE_CHECK_TIMEOUT_MS: 20000,
         STATE: {
             RULE: 'rule',
             UNSUPPORTED: 'unsupported',
@@ -834,7 +842,9 @@ const CONST = {
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         ORDINAL_DAY_OF_MONTH: 'do',
-        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
+        // `PPP` is date-fns' long localized date. In en-US it already carries the ordinal day this constant is named
+        // for, so English output is unchanged, while other languages stop being forced into the US component order.
+        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'PPP',
         SECONDS_PER_DAY: 24 * 60 * 60,
         MONTH_DAYS,
     },
@@ -1514,9 +1524,9 @@ const CONST = {
         VENDOR_MATCHING: 'vendorMatching',
         INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
-        ZOHO_BOOKS: 'zohoBooks',
         DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
+        SAGE_ACCOUNTING: 'sageAccounting',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
@@ -1528,18 +1538,20 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_AI: 'insightsAI',
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
+        INSIGHTS_EFFICIENCY: 'insightsEfficiency',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
-        ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        PINNABLE_TABLE_COLUMNS: 'pinnableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
-        RESIZABLE_RHP: 'resizableRHP',
+        RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
-        CATEGORY_VISIBILITY: 'categoryVisibility',
+        RECEIPT_TRANSLATION: 'receiptTranslation',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
+        MILEAGE_UI: 'mileageUI',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1860,7 +1872,7 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     QA_NEW_EXPENSIFY_URL: 'https://qa.new.exops.io',
-    PR_TESTING_NEW_EXPENSIFY_URL: `https://${CI.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
+    ADHOC_NEW_EXPENSIFY_URL: `https://${CI.PULL_REQUEST_NUMBER}.adhoc.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     CHASE_ACCOUNT_NUMBER_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account',
     WHATS_NEW_URL: `${USE_EXPENSIFY_URL}/blog?category=Product%20Updates`,
@@ -1878,7 +1890,7 @@ const CONST = {
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES:
-        'https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#are-there-certain-industries-or-businesses-for-which-expensify-cannot-process-automatic-in-app-payments',
+        'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account#which-industries-does-expensify-not-support-for-direct-payments',
     TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
@@ -2006,6 +2018,31 @@ const CONST = {
 
         // Elements with this data attribute pause the hover zoom while the pointer is over them
         HOVER_ZOOM_EXCLUDED_ELEMENT: 'receipt-hover-zoom-excluded',
+
+        TRANSLATION_SCAN_DURATION: 1000,
+        TRANSLATION_SCAN_LINE_HEIGHT: 8,
+        TRANSLATION_SCAN_TINT_OPACITY: 0.2,
+        TRANSLATION_ROW_TYPE: {
+            HEADING: 'heading',
+            TEXT: 'text',
+            LABEL_VALUE: 'labelValue',
+            ITEM: 'item',
+            TOTAL: 'total',
+            DIVIDER: 'divider',
+        },
+        TRANSLATION_ROW_ALIGN: {
+            LEFT: 'left',
+            CENTER: 'center',
+        },
+        TRANSLATION_STATE: {
+            TRANSLATED: 'translated',
+            UNREADABLE: 'unreadable',
+            ALREADY_IN_LANGUAGE: 'alreadyInLanguage',
+        },
+        TRANSLATION_REQUEST_STATE: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+        },
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -2095,6 +2132,7 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SUBMIT: 'submit',
             APPROVE: 'approve',
+            APPROVE_WITH_VIOLATIONS: 'approveWithViolations',
             PAY: 'pay',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
         },
@@ -2309,6 +2347,7 @@ const CONST = {
                     SET_AUTO_REIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
+                    SET_CATEGORY_VISIBILITY: 'POLICYCHANGELOG_SET_CATEGORY_VISIBILITY',
                     SHARED_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_SHARED_BUDGET_NOTIFICATION',
                     UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
                     UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
@@ -2428,6 +2467,24 @@ const CONST = {
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
             MAX_SYSTEM_MESSAGE_COLLAPSE_TIME: 24 * 60 * 60 * 1000,
+        },
+        // Matches the backend's WORKFLOW_ACTIONS list
+        get WORKFLOW_ACTIONS() {
+            return [
+                this.ACTIONS.TYPE.SUBMITTED,
+                this.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                this.ACTIONS.TYPE.APPROVED,
+                this.ACTIONS.TYPE.UNAPPROVED,
+                this.ACTIONS.TYPE.REJECTED,
+                this.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                this.ACTIONS.TYPE.RETRACTED,
+                this.ACTIONS.TYPE.CLOSED,
+                this.ACTIONS.TYPE.REOPENED,
+                this.ACTIONS.TYPE.FORWARDED,
+                this.ACTIONS.TYPE.TAKE_CONTROL,
+                this.ACTIONS.TYPE.REROUTE,
+                this.ACTIONS.TYPE.REASSIGN_APPROVER,
+            ] as const;
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
@@ -2596,6 +2653,10 @@ const CONST = {
             DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR: 'dynamicExternalWorkflowSubmitError',
             DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
             DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE: 'dynamicExternalWorkflowOffline',
+        },
+        AUTO_EXPORT_MESSAGE_KEY: {
+            EXPORTS_AFTER_FINAL_APPROVAL: 'exportsAfterFinalApproval',
+            REIMBURSABLE_EXPORTS_WHEN_PAID: 'outOfPocketExportsWhenPaid',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
@@ -2833,6 +2894,8 @@ const CONST = {
         SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',
         SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD: 'ManualNavigateToReportsContentLoad',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
+        /** From the idle Spend tab preload until its first content is on screen, the background cost the preload adds. */
+        SPAN_PRELOAD_SEARCH_TAB: 'ManualPreloadSearchTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
@@ -3507,6 +3570,7 @@ const CONST = {
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
         HEIC: 'image/heic',
+        HEIF: 'image/heif',
     },
 
     IMAGE_CACHE_FILE_TYPES: {
@@ -5148,6 +5212,12 @@ const CONST = {
         RULE_CONDITIONS: {
             MATCHES: 'matches',
         },
+
+        // Expensify Classic stores this in an employee's forwardsTo or overLimitForwardsTo when it sends reports to nobody
+        EMPLOYEE_NO_ONE: 'no one',
+
+        // Approval limit, in cents, up to which Expensify Classic admins mean every report to go to the over-limit approver
+        EVERY_REPORT_OVER_LIMIT_APPROVAL_LIMIT: 100,
         FIELDS: {
             TAG: 'tag',
             CATEGORY: 'category',
@@ -5157,13 +5227,10 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
+            TAGS: 'tags',
             MERCHANTS: 'merchants',
+            MULTIPLE_CONDITIONS: 'multipleConditions',
             MERCHANT_TYPES: 'merchantTypes',
-        },
-        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
-        EXPENSE_DEFAULT_RULE_TYPE: {
-            MERCHANT: 'merchant',
-            CATEGORY: 'category',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
@@ -5366,6 +5433,15 @@ const CONST = {
             IS_RECRUITING_ENABLED: 'isRecruitingEnabled',
             IS_MCP_ENABLED: 'isMCPEnabled',
         },
+        CATEGORY_VISIBILITY: {
+            // Change log lists with this many entries or more show a count instead, with the full list at the top of the thread
+            MAX_LISTED_ITEMS: 10,
+            REASON: {
+                SET_BY_ADMIN: 'setByAdmin',
+                CATEGORIES_DELETED: 'categoriesDeleted',
+                CATEGORIES_DISABLED: 'categoriesDisabled',
+            },
+        },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
             BENEFITS: 'Benefits',
@@ -5460,6 +5536,7 @@ const CONST = {
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
+            REIMBURSEMENT_COUNTRIES: 'reimbursementCountries',
             GENERAL_SETTINGS: 'generalSettings',
             TIME_ZONE: 'timeZone',
         },
@@ -5534,6 +5611,7 @@ const CONST = {
                 ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
                 EXACT_ONLINE: 'exactOnline',
+                SAGE_ACCOUNTING: 'sageAccounting',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5575,6 +5653,7 @@ const CONST = {
                 zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
                 exactOnline: 'Exact Online',
+                sageAccounting: 'Sage Accounting',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -5604,6 +5683,10 @@ const CONST = {
                     this.NAME.ZOHO_BOOKS,
                     this.NAME.BUSINESS_CENTRAL,
                 ] as const;
+            },
+            // Integrations that aren't available yet, so the Connections page offers their waitlist instead of connecting
+            get WAITLIST_CONNECTION_NAMES() {
+                return [this.NAME.SAGE_ACCOUNTING] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
@@ -5640,6 +5723,7 @@ const CONST = {
                 netsuite:
                     'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
                 businessCentral: 'https://help.expensify.com/new-expensify/hubs/connections/',
+                digits: 'https://help.expensify.com/new-expensify/hubs/connections/',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -5812,6 +5896,7 @@ const CONST = {
         'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
         Certinia: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
         MERGE_EXPENSES: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Merging-expenses',
+        WORKSPACE_ROLES_AND_PERMISSIONS: 'https://help.expensify.com/articles/new-expensify/workspaces/Understand-Workspace-Roles-and-Permissions',
     },
 
     CUSTOM_UNITS: {
@@ -7402,6 +7487,7 @@ const CONST = {
     },
     EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
     EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT: 56,
+    /** @deprecated Position symbol declaratively via JSX order in KeypadAmountEditor or prefixCharacter in AmountFormField.Input. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
     TEXT_INPUT_SYMBOL_POSITION: {
         PREFIX: 'prefix',
         SUFFIX: 'suffix',
@@ -8140,10 +8226,24 @@ const CONST = {
             EVERYTHING_MOBILE: 'everythingMobile',
             TRAVEL_EXPENSE: 'travelExpense',
         },
+        SWITCH_RESULT: {
+            SAVED: 'saved',
+            FAILED: 'failed',
+        },
     },
 
     CACHE_API_KEYS: {
         ATTACHMENTS: 'attachments',
+    },
+
+    // Tells expensify.com whether to serve New Expensify or Expensify Classic. The server writes the same cookie, so the name, values and lifetime must match.
+    EXPERIENCE_COOKIE: {
+        NAME: 'experience',
+        VALUES: {
+            NEW: 'new',
+            CLASSIC: 'classic',
+        },
+        MAX_AGE_SECONDS: 365 * 24 * 60 * 60,
     },
 
     SESSION_STORAGE_KEYS: {
@@ -8301,6 +8401,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
             UNDELETE: 'undelete',
+            CHANGE_WORKSPACE: 'changeWorkspace',
         },
         BULK_DUPLICATE_LIMIT: 50,
         TRANSACTION_TYPE: {
@@ -8349,6 +8450,7 @@ const CONST = {
         SORT_BY_COLUMNS: {
             CATEGORY_GL_CODE: 'glcode',
             TAG_GL_CODE: 'tagglcode',
+            AVERAGE_TIME: 'groupaverageduration',
         },
         GROUP_BY: {
             FROM: 'from',
@@ -8363,6 +8465,15 @@ const CONST = {
             YEAR: 'year',
             QUARTER: 'quarter',
             APPROVER: 'approver',
+            // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
+            VIOLATION: 'violation',
+            PAID_BY: 'paid-by',
+            WORKFLOW_STAGE: 'workflow-stage',
+        },
+        WORKFLOW_STAGES: {
+            CREATED_SUBMITTED: 'created-submitted',
+            SUBMITTED_APPROVED: 'submitted-approved',
+            APPROVED_PAID: 'approved-paid',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -8717,6 +8828,19 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                // Search never lists violation groups, so they get only the columns every group has
+                VIOLATION: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                PAID_BY: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                WORKFLOW_STAGE: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8779,6 +8903,9 @@ const CONST = {
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                VIOLATION: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                PAID_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                WORKFLOW_STAGE: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -8832,6 +8959,11 @@ const CONST = {
         get TRIP_FILTER_STATUSES() {
             // Approval statuses only show as badges, so the Status filter keeps to where the trip is in time
             return [this.TRIP_STATUS.UPCOMING, this.TRIP_STATUS.DONE, this.TRIP_STATUS.CANCELED] as const;
+        },
+        TABLE_COLUMN_ALIGNMENT: {
+            START: 'start',
+            CENTER: 'center',
+            END: 'end',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -8971,6 +9103,10 @@ const CONST = {
             AMOUNT: 'amount',
             COUNT: 'count',
         },
+        CHART_COUNT_DIMENSION: {
+            EXPENSE: 'expense',
+            REPORT: 'report',
+        },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
             STATUS: 'status',
@@ -9003,6 +9139,7 @@ const CONST = {
             APPROVED: 'approved',
             ANY_APPROVAL: 'anyApproval',
             PAID: 'paid',
+            WORKFLOW_STAGE: 'workflowStage',
             EXPORTED: 'exported',
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawalType',
@@ -9223,7 +9360,9 @@ const CONST = {
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
+            LESS_THAN_OR_EQUAL_TO: 'LessThanOrEqualTo',
             GREATER_THAN: 'GreaterThan',
+            GREATER_THAN_OR_EQUAL_TO: 'GreaterThanOrEqualTo',
             EQUAL_TO: 'EqualTo',
         },
         DATE_PRESETS: {
@@ -9492,6 +9631,14 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CAMPFIRE}.description` as const,
                 icon: 'CampfireSquare',
             },
+            [this.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                id: this.POLICY.CONNECTIONS.NAME.DIGITS,
+                alias: 'digits',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.digits,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DIGITS}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DIGITS}.description` as const,
+                icon: 'DigitsSquare',
+            },
             [this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 id: this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
                 alias: 'businessCentral',
@@ -9739,6 +9886,11 @@ const CONST = {
             UPDATE: 'update',
             REMOVE: 'remove',
         },
+        /** Which reports an approver after the first one gets */
+        APPROVER_CONDITION: {
+            ALWAYS: 'always',
+            OVER_AMOUNT: 'overAmount',
+        },
     },
 
     RULES: {
@@ -9760,6 +9912,7 @@ const CONST = {
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
+                AMOUNT: 'amount',
                 BILLABLE: 'billable',
                 CATEGORY: 'category',
                 COMMENT: 'comment',
@@ -9854,6 +10007,7 @@ const CONST = {
         HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
+        HAS_UK_FUEL_RATE_TAX_ERROR: 'hasUKFuelRateTaxError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
         HAS_REIMBURSEMENT_EXPORT_ERROR: 'hasReimbursementExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
@@ -10050,6 +10204,7 @@ const CONST = {
     INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
+    NEW_WORKSPACE_ROLES_BANNER: 'newWorkspaceRolesBanner',
     WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: 'wiseGlobalReimbursementsWalletBanner',
     WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER: 'wiseGlobalReimbursementsWorkspaceBanner',
     SMART_BANNER_HEIGHT: 152,
@@ -10243,21 +10398,24 @@ const CONST = {
 
         /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
         DRAG_SLOP: 3,
+
+        /** How far, in px, one arrow key press on a focused handle moves its edge. */
+        KEYBOARD_STEP: 8,
+
+        /** Width of the strip straddling a pane's edge that picks up a drag, as wide as the RHP floating card's gutter. */
+        PANE_HIT_WIDTH: 12,
+
+        /** How close, in px, a pane drag has to come to the default width to snap onto it. */
+        PANE_SNAP_THRESHOLD: 20,
+
+        /** Width of a pane's line while its edge is pressed or dragged. */
+        PANE_ACTIVE_INDICATOR_WIDTH: 3,
+
+        /** Width of a pane's line while a drag is held on the default width. */
+        PANE_SNAPPED_INDICATOR_WIDTH: 5,
     },
 
     RHP_RESIZE: {
-        /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
-        HANDLE_HIT_WIDTH: 12,
-
-        /** How close, in px, a drag has to come to the default width to snap onto it. */
-        SNAP_THRESHOLD: 20,
-
-        /** Width of the line while the edge is pressed or dragged. */
-        ACTIVE_INDICATOR_WIDTH: 3,
-
-        /** Width of the line while a drag is held on the default width. */
-        SNAPPED_INDICATOR_WIDTH: 5,
-
         /** Narrowest the single RHP can be dragged, in px. */
         MIN_WIDTH: 380,
 
@@ -10314,9 +10472,6 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
-
-            /** How far, in px, one arrow key press on a focused column edge moves it. */
-            KEYBOARD_STEP: 8,
 
             /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
             GRIP_HEIGHT_RATIO: 0.4,
@@ -10412,10 +10567,12 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+            EFFICIENCY: 'efficiency',
             COMPLIANCE: 'compliance',
         },
         SEARCH_KEY: {
             SPEND: 'insightsSpend',
+            EFFICIENCY: 'insightsEfficiency',
             COMPLIANCE: 'insightsCompliance',
         },
         GRAPH: {
@@ -10424,6 +10581,35 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            TOP_VIOLATIONS: 'topViolations',
+            VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
+            VIOLATIONS_BY_APPROVER: 'violationsByApprover',
+            WORKFLOW_EFFICIENCY: 'workflowEfficiency',
+            AVERAGE_PROCESSING_TIME: 'averageProcessingTime',
+            LONGEST_TO_SUBMIT: 'longestToSubmit',
+            SLOWEST_TO_APPROVE: 'slowestToApprove',
+            MOST_TIME_TO_PAY: 'mostTimeToPay',
+        },
+        AI_INSIGHT: {
+            SIGNAL: {
+                SPIKE: 'spike',
+                TREND: 'trend',
+                RECORD: 'record',
+                THRESHOLD: 'threshold',
+                CONCENTRATION: 'concentration',
+            },
+            CHIP_TYPE: {
+                CHANGE: 'change',
+                NEUTRAL: 'neutral',
+            },
+            CHIP_DIRECTION: {
+                INCREASE: 'increase',
+                DECREASE: 'decrease',
+            },
+            CHIP_UNIT: {
+                PERCENT: 'percent',
+                AMOUNT: 'amount',
+            },
         },
     },
 

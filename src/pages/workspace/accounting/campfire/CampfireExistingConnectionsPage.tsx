@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -37,6 +37,7 @@ function CampfireExistingConnectionsPage({route}: CampfireExistingConnectionsPag
         return {
             title: policy.name,
             key: policy.id,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.COPY_EXISTING_CONNECTION,
             avatarID: policy.id,
             icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
             iconType: CONST.ICON_TYPE_WORKSPACE,
@@ -62,11 +63,10 @@ function CampfireExistingConnectionsPage({route}: CampfireExistingConnectionsPag
             />
             <ScrollView style={[styles.flex1]}>
                 <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)}</Text>
-                <MenuItem
+                <MenuItemNavigation
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CREATE_NEW_CONNECTION}
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}
-                    iconStyles={styles.br2}
-                    shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_SETUP.getRoute(policyID))}
                 />
                 <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>

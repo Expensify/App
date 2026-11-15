@@ -14,9 +14,9 @@ jest.mock('@react-navigation/native', () => ({
     useIsFocused: jest.fn(() => true),
 }));
 
-const renderController = (value = '123') => {
+const renderController = (value = '123', options: Partial<Parameters<typeof useAmountEditingController>[0]> = {}) => {
     const onInputChange = jest.fn();
-    const hook = renderHook(() => useAmountEditingController({value, onInputChange}));
+    const hook = renderHook(() => useAmountEditingController({value, onInputChange, ...options}));
     return {...hook, onInputChange};
 };
 
@@ -119,6 +119,40 @@ describe('useAmountEditingController', () => {
             // Then there is nothing before the caret to delete, so the value is unchanged
             expect(onInputChange).not.toHaveBeenCalled();
             expect(result.current.formattedNumber).toBe('123');
+        });
+    });
+
+    describe('updateNumber', () => {
+        it('updates number and moves caret to end without notifying onInputChange', () => {
+            // Given a controller initialized with value "10"
+            const {result, onInputChange} = renderController('10');
+
+            // When updateNumber is called imperatively with a new value
+            act(() => {
+                result.current.updateNumber('25');
+            });
+
+            // Then the value is updated synchronously and caret is moved to the end without notifying onInputChange
+            expect(result.current.getNumber()).toBe('25');
+            expect(result.current.value).toBe('25');
+            expect(result.current.formattedNumber).toBe('25');
+            expect(result.current.selection).toEqual({start: 2, end: 2});
+            expect(onInputChange).not.toHaveBeenCalled();
+        });
+
+        it('bypasses validation limits (decimals, maxLength and allowNegative)', () => {
+            // Given a controller configured with 2 decimals and no negative input
+            const {result} = renderController('10.00', {decimals: 2, maxLength: 5, allowNegative: false});
+
+            // When updateNumber is called imperatively with a negative value having more decimals and digits than allowed
+            act(() => {
+                result.current.updateNumber('-123456.789');
+            });
+
+            // Then the canonical value is applied directly without being constrained by validation rules
+            expect(result.current.getNumber()).toBe('-123456.789');
+            expect(result.current.value).toBe('-123456.789');
+            expect(result.current.selection).toEqual({start: 11, end: 11});
         });
     });
 });

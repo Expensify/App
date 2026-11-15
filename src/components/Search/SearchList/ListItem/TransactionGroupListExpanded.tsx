@@ -155,8 +155,7 @@ function TransactionGroupListExpandedImpl({
     }
 
     const getTransactionPolicyID = (transaction: TransactionListItemType) =>
-        [transaction.policyID, transaction.policy?.id, transaction.report?.policyID].find(Boolean) ??
-        (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? policyForMovingExpensesID : undefined);
+        [transaction.report?.policyID, transaction.policy?.id].find(Boolean) ?? (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? policyForMovingExpensesID : undefined);
 
     const getPolicyCategoriesForTransaction = (transaction: TransactionListItemType) =>
         policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(getTransactionPolicyID(transaction))}`];
@@ -448,6 +447,7 @@ function TransactionGroupListExpandedImpl({
             {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
                 <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
                     <LinkButton
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_SHOW_MORE_BUTTON}
                         onPress={onShowMoreButtonPress}
                         isNested
                         size={CONST.BUTTON_SIZE.MEDIUM}

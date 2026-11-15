@@ -117,6 +117,7 @@ import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
+import WorkspaceNewRolesBanner from './members/WorkspaceNewRolesBanner';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
@@ -570,36 +571,39 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const getHeaderContent = () => (
-        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
-            <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
-                    {translate('workspace.people.workspaceMembersCount', memberCount)}
-                    {shouldShowHRSyncLink && '. '}
-                    {shouldShowHRSyncLink && (
-                        <TextLink
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE))}
-                        >
-                            {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
-                        </TextLink>
+        <>
+            <WorkspaceNewRolesBanner policy={policy} />
+            <View style={shouldUseNarrowLayout ? [styles.workspaceSectionMobile, styles.pr5] : styles.workspaceSection}>
+                <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
+                    <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
+                        {translate('workspace.people.workspaceMembersCount', memberCount)}
+                        {shouldShowHRSyncLink && '. '}
+                        {shouldShowHRSyncLink && (
+                            <TextLink
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE))}
+                            >
+                                {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
+                            </TextLink>
+                        )}
+                    </Text>
+                    {shouldShowHRSyncLink && isHRSyncInProgress && (
+                        <ActivityIndicator
+                            size="small"
+                            style={styles.ml2}
+                        />
                     )}
-                </Text>
-                {shouldShowHRSyncLink && isHRSyncInProgress && (
-                    <ActivityIndicator
-                        size="small"
-                        style={styles.ml2}
+                </View>
+                {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
+                    <MessagesRow
+                        type="success"
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        messages={{0: translate('workspace.people.addedWithPrimary')}}
+                        containerStyles={[styles.pb5, styles.ph5]}
+                        onDismiss={() => dismissAddedWithPrimaryLoginMessages(policyID)}
                     />
                 )}
             </View>
-            {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
-                <MessagesRow
-                    type="success"
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate('workspace.people.addedWithPrimary')}}
-                    containerStyles={[styles.pb5, styles.ph5]}
-                    onDismiss={() => dismissAddedWithPrimaryLoginMessages(policyID)}
-                />
-            )}
-        </View>
+        </>
     );
 
     const editSelectedEmployees = (bulkEditRoute: Route) => {
@@ -626,6 +630,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.changeRole'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_ROLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_CHANGE_ROLE,
                 icon: icons.UserPencil,
                 shouldSkipFocusRestore: true,
                 onSelected: () => {
@@ -639,6 +644,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.changeOfficeLocation'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_OFFICE_LOCATION,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_CHANGE_OFFICE_LOCATION,
                 icon: icons.Location,
                 onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION.getRoute(policyID)),
             });
@@ -652,6 +658,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.changeWorkArrangement'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_WORK_ARRANGEMENT,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_CHANGE_WORK_ARRANGEMENT,
                 icon: icons.Building,
                 onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.getRoute(policyID)),
             });
@@ -661,6 +668,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_REMOVE,
                 icon: icons.RemoveMembers,
                 shouldSkipFocusRestore: true,
                 onSelected: askForConfirmationToRemove,
@@ -700,6 +708,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID));
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_MENU_IMPORT_SPREADSHEET,
             },
             {
                 icon: icons.Download,
@@ -714,6 +723,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     });
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_MENU_DOWNLOAD_CSV,
             },
         ];
         const hrProvider = getConnectedHRProvider(policy);
@@ -732,6 +742,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     close(() => syncConnection(policy, hrProvider.connectionName));
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.SYNC_WITH_HR,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_MENU_SYNC_WITH_HR,
                 disabled: isHRSyncInProgress,
             });
         }
@@ -803,7 +814,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     let tableHeaderComponent: React.ReactElement | undefined;
     if (data.length > 0) {
         tableHeaderComponent = shouldUseNarrowLayout ? (
-            <View style={[styles.pr5]}>{getHeaderContent()}</View>
+            getHeaderContent()
         ) : (
             <>
                 {!!headerMessage && (
