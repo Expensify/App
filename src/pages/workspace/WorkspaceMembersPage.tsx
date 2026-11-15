@@ -162,7 +162,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
     const [isLeaveFlowActive, setIsLeaveFlowActive] = useState(false);
     const {isBetaEnabled} = usePermissions();
-    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID, isLoadingPreferredPolicy} = usePreferredPolicy();
     const [membersSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {selector: (selection) => selection?.accountIDs.length});
 
     // A bulk office location or work arrangement change clears the members it was given once it is applied, which
@@ -256,8 +256,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const currentUserLogin = currentUserPersonalDetails.login;
     const canEditWorkspaceSettings = canEditWorkspaceSettingsUtil(policy, currentUserLogin);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    // A domain can mandate membership in its preferred workspace, so wait until that restriction is known before allowing departure.
     const canLeave =
-        !!policy && !isArchivedPolicy(policy) && !isPolicyOwner(policy, currentUserPersonalDetails.accountID) && (policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy);
+        !!policy &&
+        !isLoadingPreferredPolicy &&
+        !isArchivedPolicy(policy) &&
+        !isPolicyOwner(policy, currentUserPersonalDetails.accountID) &&
+        (policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy);
 
     // Group policies (Collect/Control + Submit) allow member management.
     const canManageMembers = isGroupPolicy(policy);

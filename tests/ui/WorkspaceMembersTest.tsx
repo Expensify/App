@@ -286,6 +286,37 @@ describe('WorkspaceMembers', () => {
             unmount();
         });
 
+        it.each([false, true])('withholds Leave until preferred-policy settings load, then applies restriction %s', async (isRestrictedToPreferredPolicy) => {
+            // Given unresolved settings that cannot yet determine whether this workspace is mandatory
+            const preferredPolicySettings = {
+                isLoadingPreferredPolicy: true,
+                isRestrictedToPreferredPolicy: false,
+                preferredPolicyID: policy.id,
+            };
+            jest.spyOn(usePreferredPolicyModule, 'default').mockImplementation(() => createMock<ReturnType<typeof usePreferredPolicyModule.default>>(preferredPolicySettings));
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await screen.findByText(TestHelper.translateLocal('common.more')));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByText(TestHelper.translateLocal('common.leaveWorkspace'))).not.toBeOnTheScreen();
+
+            // When the settings finish loading and the page rerenders with the resolved restriction
+            preferredPolicySettings.isLoadingPreferredPolicy = false;
+            preferredPolicySettings.isRestrictedToPreferredPolicy = isRestrictedToPreferredPolicy;
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {name: 'Loaded workspace'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only an unrestricted member gains the departure action
+            if (isRestrictedToPreferredPolicy) {
+                expect(screen.queryByText(TestHelper.translateLocal('common.leaveWorkspace'))).not.toBeOnTheScreen();
+            } else {
+                expect(await screen.findByText(TestHelper.translateLocal('common.leaveWorkspace'))).toBeOnTheScreen();
+            }
+            unmount();
+        });
+
         it('does not offer Leave on the mandatory preferred workspace', async () => {
             // Given a member whose domain requires this workspace
             jest.spyOn(usePreferredPolicyModule, 'default').mockReturnValue(

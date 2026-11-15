@@ -45,6 +45,15 @@ function LeaveWorkspaceFlow({policyID, onDismiss, onLeave}: LeaveWorkspaceFlowPr
 
     const isLoadingData = isLoadingOnyxValue(policyResult);
 
+    // The global confirmation can outlive this flow, but its parent callbacks must not run after unmount.
+    const isMountedRef = useRef(false);
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
     // Closes the row popover (if still open) and shows the confirmation modal once the policy entry has loaded.
     const hasStartedRef = useRef(false);
     useEffect(() => {
@@ -63,7 +72,12 @@ function LeaveWorkspaceFlow({policyID, onDismiss, onLeave}: LeaveWorkspaceFlowPr
                     confirmText: translate('common.buttonConfirm'),
                     buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                     shouldShowCancelButton: false,
-                }).then(() => onDismiss());
+                }).then(() => {
+                    if (!isMountedRef.current) {
+                        return;
+                    }
+                    onDismiss();
+                });
                 return;
             }
 
@@ -76,9 +90,13 @@ function LeaveWorkspaceFlow({policyID, onDismiss, onLeave}: LeaveWorkspaceFlowPr
             }).then((result) => {
                 if (result.action === ModalActions.CONFIRM && policy) {
                     leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', policy);
-                    onLeave?.();
+                    if (isMountedRef.current) {
+                        onLeave?.();
+                    }
                 }
-                onDismiss();
+                if (isMountedRef.current) {
+                    onDismiss();
+                }
             });
         });
     });
