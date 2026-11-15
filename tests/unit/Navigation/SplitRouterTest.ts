@@ -73,6 +73,20 @@ describe('SplitRouter', () => {
             expect(split?.params).toEqual(scope);
         });
 
+        it.each([undefined, {}, {unrelated: true}])('omits parent split params when identifying params are absent: %s', (params) => {
+            // Given a workspace or domain settings route without its identifying param
+            const route = {name: rhp, params};
+
+            // When its background split navigator is built
+            const result = getMatchingFullScreenRoute(route);
+            const workspaceNavigator = result?.state?.routes.find((tab) => tab.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
+            const split = workspaceNavigator?.state?.routes.find((child) => child.name === navigator);
+
+            // Then the split exists but has no empty params object that could affect route equality
+            expect(split).toBeDefined();
+            expect(split?.params).toBeUndefined();
+        });
+
         describe.each([false, true])('on narrow layout: %s', (isNarrowLayout) => {
             beforeEach(() => {
                 mockGetIsNarrowLayout.mockReturnValue(isNarrowLayout);

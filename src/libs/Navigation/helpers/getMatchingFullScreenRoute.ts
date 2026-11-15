@@ -23,6 +23,7 @@ import {getSearchParamFromPath} from '@libs/Url';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
 
@@ -160,6 +161,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
 
     if (RHP_TO_WORKSPACE[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_WORKSPACE[route.name]);
+        const splitNavigatorParams = pick(route.params, ['policyID']);
 
         const workspaceSplitRoute = getInitialSplitNavigatorState(
             {
@@ -170,7 +172,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
                 name: RHP_TO_WORKSPACE[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
-            pick(route.params, ['policyID']),
+            isEmptyObject(splitNavigatorParams) ? undefined : splitNavigatorParams,
         );
 
         return getTabNavigatorState({
@@ -194,6 +196,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
 
     if (RHP_TO_DOMAIN[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_DOMAIN[route.name]);
+        const splitNavigatorParams = pick(route.params, ['domainAccountID']);
 
         const domainSplitRoute = getInitialSplitNavigatorState(
             {
@@ -204,7 +207,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
                 name: RHP_TO_DOMAIN[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
-            pick(route.params, ['domainAccountID']),
+            isEmptyObject(splitNavigatorParams) ? undefined : splitNavigatorParams,
         );
 
         return getTabNavigatorState({
