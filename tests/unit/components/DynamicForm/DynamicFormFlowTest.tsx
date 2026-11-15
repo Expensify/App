@@ -582,6 +582,29 @@ describe('DynamicFormFlow', () => {
         expect(onSubmit).not.toHaveBeenCalled();
     });
 
+    it('stays on the confirmation page and has it show the errors when Confirm is pressed with an unanswered field', async () => {
+        // Given a flow with a confirmation page, whose SSN was lost when the app restarted
+        const {subPageOptions, onSubmit, rerenderFlow} = await renderFlow({
+            draft: {firstName: 'Jane', legalType: 'PRIVATE'},
+            hasConfirmation: true,
+            currentPageName: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+            pageIndex: 3,
+        });
+
+        // When the user presses Confirm
+        act(() => {
+            subPageOptions.onFinished();
+        });
+        await rerenderFlow();
+
+        // Then the user stays where the rows say what is missing, and nothing is submitted
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(mockResetToPage).not.toHaveBeenCalled();
+        expect(onSubmit).not.toHaveBeenCalled();
+        const pageProps = mockCurrentPage.mock.lastCall?.[0];
+        expect(hasDynamicFormProps(pageProps) && pageProps.shouldShowFieldErrors).toBe(true);
+    });
+
     it('resets to the incomplete page when routes are replaced, since there is no stack to go back in', async () => {
         // Given the same lost SSN on a flow that replaces its routes
         const {subPageOptions} = await renderFlow({draft: {firstName: 'Jane', legalType: 'PRIVATE'}, shouldReplaceRoute: true});

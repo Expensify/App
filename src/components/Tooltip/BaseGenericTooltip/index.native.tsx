@@ -151,9 +151,15 @@ function BaseGenericTooltip({
 
     return (
         <Portal hostName={shouldTeleportPortalToModalLayer ? 'modal' : undefined}>
-            {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
+            {shouldUseOverlay && (
+                <TransparentOverlay
+                    onPress={onHideTooltip}
+                    sentryLabel={CONST.SENTRY_LABEL.TOOLTIP.OVERLAY}
+                />
+            )}
             {isEducationTooltip ? (
                 <AnimatedPressableWithoutFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.TOOLTIP.EDUCATION_TOOLTIP}
                     style={[rootWrapperStyle, animationStyle]}
                     ref={rootWrapper}
                     onPress={onTooltipPress}

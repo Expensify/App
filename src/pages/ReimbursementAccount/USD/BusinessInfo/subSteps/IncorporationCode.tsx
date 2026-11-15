@@ -46,6 +46,10 @@ function IncorporationCode({onNext, isEditing}: SubPageProps) {
 
     return (
         <FormProvider
+            // FormProvider only reads defaultValue on the input's first render. A fresh useOnyx connection can return
+            // undefined while a merge on REIMBURSEMENT_ACCOUNT is pending, so remount the form once the account arrives
+            // to seed the saved industry code.
+            key={reimbursementAccount ? 'loaded' : 'empty'}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
@@ -59,7 +63,7 @@ function IncorporationCode({onNext, isEditing}: SubPageProps) {
                 InputComponent={IndustryCodeSelector}
                 inputID={COMPANY_INCORPORATION_CODE_KEY}
                 shouldSaveDraft={!isEditing}
-                defaultValue={isEditing ? reimbursementAccount?.achData?.industryCode : ''}
+                defaultValue={reimbursementAccount?.achData?.industryCode ?? ''}
             />
         </FormProvider>
     );

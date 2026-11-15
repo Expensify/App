@@ -14,6 +14,7 @@ import type {ReactNode} from 'react';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {makeMutable} from 'react-native-reanimated';
 
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -201,7 +202,15 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
 
 // Built via a function so the value isn't an inline literal the context-split lint rule would flag; these are all refs/accessors with no re-render concern.
 function buildActionListContextValue() {
-    return {scrollOffsetRef: mockScrollOffsetRef, getScrollOffset: () => mockScrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+    return {
+        scrollOffsetRef: mockScrollOffsetRef,
+        scrollMetricsSV: makeMutable({offset: 0, distanceToOldestEnd: 0, distanceToNewestEnd: 0, viewportHeight: 0}),
+        syncScrollSharedValues: () => {},
+        collapsedHeaderHeightSV: makeMutable(0),
+        getScrollOffset: () => mockScrollOffsetRef.current,
+        registerListRef: () => {},
+        getListRef: () => null,
+    };
 }
 
 function wrapper({children}: {children: ReactNode}) {
@@ -496,6 +505,26 @@ describe('useReportActionsScroll', () => {
                 result.current.flushPendingScrollToBottom();
             });
 
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+            expect(mockSetIsScrollToBottomEnabled).toHaveBeenCalledWith(false);
+            expect(mockCompleteLiveTailPrune).toHaveBeenCalledTimes(1);
+        });
+
+        it('clears the stale linked-message offset and hides the pill when flushing', async () => {
+            // Given a live-tail jump with the offset and pill left over from a linked message
+            mockIsScrollToBottomEnabled = true;
+            mockScrollOffsetRef.current = CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 1;
+            mockIsFloatingMessageCounterVisible = true;
+            const {result} = await renderScroll();
+
+            // When the list flushes the jump without emitting another scroll event
+            act(() => {
+                result.current.flushPendingScrollToBottom();
+            });
+
+            // Then later content size changes cannot restore the pill from the historical offset
+            expect(mockScrollOffsetRef.current).toBe(0);
+            expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockSetIsScrollToBottomEnabled).toHaveBeenCalledWith(false);
             expect(mockCompleteLiveTailPrune).toHaveBeenCalledTimes(1);

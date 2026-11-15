@@ -34,6 +34,7 @@ import {
 
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
+import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import {optimisticReportLastData} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -421,6 +422,7 @@ type CleanUpMoneyRequestParams = {
     isOffline: boolean;
     isSingleTransactionView?: boolean;
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    parentHierarchicalReports: OnyxCollection<ReportHierarchyInfo>;
     chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
@@ -439,6 +441,7 @@ function cleanUpMoneyRequest({
     isOffline,
     isSingleTransactionView = false,
     policy,
+    parentHierarchicalReports,
     chatReportActions,
 }: CleanUpMoneyRequestParams) {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
@@ -630,7 +633,7 @@ function cleanUpMoneyRequest({
     }
 
     if (!shouldDeleteIOUReport) {
-        clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline});
+        clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline, reports: parentHierarchicalReports});
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
@@ -638,7 +641,7 @@ function cleanUpMoneyRequest({
         Navigation.goBack(urlToNavigateBack, {
             afterTransition: () => {
                 if (shouldDeleteIOUReport) {
-                    clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline});
+                    clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline, reports: parentHierarchicalReports});
                 }
                 Onyx.update(onyxUpdates);
             },

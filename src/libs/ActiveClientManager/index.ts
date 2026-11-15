@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-import type {Init, IsClientTheLeader, IsReady, OnBecomeLeader} from './types';
+import type {GetLogTab, Init, IsClientTheLeader, IsReady, OnBecomeLeader} from './types';
 
 const LEADER_LOCK_NAME = 'activeClientLeader';
 
@@ -205,4 +205,6 @@ const init: Init = () => {
     });
 };
 
-export {init, isClientTheLeader, isReady, onBecomeLeader};
+const getLogTab: GetLogTab = () => ({clientID, isLeader: isClientTheLeader()});
+
+export {getLogTab, init, isClientTheLeader, isReady, onBecomeLeader};

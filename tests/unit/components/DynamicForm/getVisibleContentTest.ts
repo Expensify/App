@@ -1,8 +1,15 @@
+import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import {getVisibleContent} from '@components/DynamicForm/utils/getVisibleFields';
 
-import type {DynamicFormField, DynamicFormHeading} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormHeading, DynamicFormLink} from '@src/types/onyx';
 
 const email: DynamicFormField = {key: 'email', type: 'text', required: true};
+
+const dataProtection: DynamicFormLink = {
+    key: 'dataProtection',
+    url: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
+    textKey: 'addPersonalBankAccount.howDoWeProtectYourData',
+};
 
 describe('getVisibleContent', () => {
     it('keeps a heading when the heading after it is hidden by its own condition', () => {
@@ -50,5 +57,66 @@ describe('getVisibleContent', () => {
 
         // Then companyNumber stays hidden, because the question it depends on is hidden
         expect(visibleContent).toEqual([]);
+    });
+
+    it('keeps a link that comes after the last field', () => {
+        // Given a link placed after the page's fields, where a heading would be dropped for titling nothing
+        const content = [email, dataProtection];
+
+        // When the content is checked
+        const visibleContent = getVisibleContent(content, {});
+
+        // Then the link stays, since it points somewhere rather than titling the fields after it
+        expect(visibleContent).toEqual([email, dataProtection]);
+    });
+
+    it('drops a link that would open a page outside Expensify or has no text', () => {
+        // Given links the App should not show: one to another site, one over plain http, one with no wording
+        const otherSite: DynamicFormLink = {...dataProtection, key: 'otherSite', url: 'https://example.com/expensify.com'};
+        const lookalike: DynamicFormLink = {...dataProtection, key: 'lookalike', url: 'https://help.expensify.com.example.com/'};
+        const insecure: DynamicFormLink = {...dataProtection, key: 'insecure', url: 'http://help.expensify.com/'};
+        const withoutText: DynamicFormLink = {key: 'withoutText', url: dataProtection.url};
+
+        // When the content is checked
+        const visibleContent = getVisibleContent([email, otherSite, lookalike, insecure, withoutText], {});
+
+        // Then only the field is left, since the schema comes from the server and a link opens outside the form
+        expect(visibleContent).toEqual([email]);
+    });
+
+    it('hides a link while its condition is not met', () => {
+        // Given a link shown only for business recipients
+        const businessLink: DynamicFormLink = {...dataProtection, showWhen: {key: 'legalType', equals: ['BUSINESS']}};
+
+        // When the content is checked for a private recipient
+        const visibleContent = getVisibleContent([email, businessLink], {legalType: 'PRIVATE'});
+
+        // Then the link is hidden, as a heading or field with the same condition would be
+        expect(visibleContent).toEqual([email]);
+    });
+
+    it('does not count a link as a field', () => {
+        // Given a page with a field and a link
+        const content = [email, dataProtection];
+
+        // When the page's fields are collected for validation, answers and the confirmation page
+        const fields = getContentFields(content);
+
+        // Then the link is left out, since it has no answer to check or submit
+        expect(fields).toEqual([email]);
+    });
+
+    it('keeps a link under the heading it follows, and keeps it when that heading is dropped', () => {
+        // Given a heading with a link under it, before the heading's field, and a second block whose field is hidden
+        const bankDetails: DynamicFormHeading = {key: 'bankDetails', title: 'Bank details'};
+        const business: DynamicFormHeading = {key: 'business', title: 'Business'};
+        const businessLink: DynamicFormLink = {...dataProtection, key: 'businessLink'};
+        const companyName: DynamicFormField = {key: 'companyName', type: 'text', required: true, showWhen: {key: 'legalType', equals: ['BUSINESS']}};
+
+        // When the content is checked for a private recipient
+        const visibleContent = getVisibleContent([bankDetails, dataProtection, email, business, businessLink, companyName], {legalType: 'PRIVATE'});
+
+        // Then the first link stays between its heading and the field, and the second link still shows once its heading titles nothing
+        expect(visibleContent).toEqual([bankDetails, dataProtection, email, businessLink]);
     });
 });

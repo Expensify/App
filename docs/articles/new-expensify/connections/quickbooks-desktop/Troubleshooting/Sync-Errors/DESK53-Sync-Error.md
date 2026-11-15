@@ -65,9 +65,9 @@ Follow the steps below to restore automatic login permissions.
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click the three-dot icon next to the QuickBooks Desktop connection.
-5. Click **Sync now**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Desktop.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 If permissions are configured correctly, the sync should complete successfully.
 

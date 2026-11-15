@@ -22,6 +22,8 @@ function ActivateCard({card}: ActivateCardProps) {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.ACTIVATE_CARD}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.ACTIVATE_CARD}
             icon={ExpensifyCardIcon}
             title={translate('homePage.timeSensitiveSection.activateCard.title')}
             subtitle={translate('homePage.timeSensitiveSection.activateCard.subtitle')}

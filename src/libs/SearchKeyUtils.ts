@@ -41,9 +41,18 @@ function getSearchKeyForDataType(type: SearchDataTypes | undefined): SearchKey |
     return type ? DATA_TYPE_TO_SEARCH_KEY[type] : undefined;
 }
 
+/**
+ * One stored layout per search, kept across filter changes. Includes the data type, since a saved search can be edited
+ * to another type with other columns. Queries matching no search share their data type's layout.
+ */
+function getSearchColumnResizingID(type: SearchDataTypes, searchKey: SearchKey | undefined): string {
+    const dataTypeResizingID = `${CONST.TABLES.COLUMN_RESIZING_IDS.SEARCH_PREFIX}:${type}`;
+    return searchKey ? `${dataTypeResizingID}:${searchKey}` : dataTypeResizingID;
+}
+
 function isReportEntry(key: string): key is ReportKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
 }
 
-export {getSearchKeyForDataType, isExistingSearchKey, isReportEntry, savedSearchIDToSearchKey, searchKeyToSavedSearchID, TODO_SEARCH_KEYS};
+export {getSearchColumnResizingID, getSearchKeyForDataType, isExistingSearchKey, isReportEntry, savedSearchIDToSearchKey, searchKeyToSavedSearchID, TODO_SEARCH_KEYS};
 export type {ReportKey, SearchKey};

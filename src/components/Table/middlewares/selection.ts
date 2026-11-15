@@ -7,10 +7,8 @@ import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
 import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 
-import type {Dispatch, SetStateAction} from 'react';
-
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 
 import type {MiddlewareHookResult} from './types';
 
@@ -59,15 +57,9 @@ type SelectionMethods = {
 
     /** Clear all of the currently selected rows in the table */
     clearSelection: () => void;
-
-    /** Set whether or not the mobile selection modal is visible */
-    setMobileSelectionModalRowKey: Dispatch<SetStateAction<string | null>>;
 };
 
-type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>> & {
-    /** Whether or not the mobile selection modal is visible */
-    mobileSelectionModalRowKey: string | null;
-};
+type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
 
 export default function useSelection<DataType extends TableData>({
     data,
@@ -89,10 +81,6 @@ export default function useSelection<DataType extends TableData>({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
     const isFocused = useIsFocused();
-
-    // When a user long-presses a row on mobile, store the key of the row that will be selected if
-    // the user confirms the selection
-    const [mobileSelectionModalRowKey, setMobileSelectionModalRowKey] = useState<string | null>(null);
 
     const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
     const selectedKeySet = new Set(selectedKeys);
@@ -226,13 +214,11 @@ export default function useSelection<DataType extends TableData>({
 
     return {
         middleware,
-        mobileSelectionModalRowKey,
         methods: {
             handleSelectAll,
             handleMultipleRowSelection,
             handleSingleRowSelection,
             clearSelection,
-            setMobileSelectionModalRowKey,
         },
     };
 }

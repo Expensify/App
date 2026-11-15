@@ -69,6 +69,7 @@ function BaseAnchorForCommentsOnly({
 
     return (
         <PressableWithSecondaryInteraction
+            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.LINK}
             inline
             suppressHighlighting
             style={[styles.cursorDefault, !!flattenStyle.fontSize && StyleUtils.getFontSizeStyle(flattenStyle.fontSize)]}

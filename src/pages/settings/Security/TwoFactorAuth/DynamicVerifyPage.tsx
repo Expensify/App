@@ -151,6 +151,7 @@ function DynamicVerifyPage() {
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.VERIFY_NEXT}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}

@@ -292,9 +292,16 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
+        // The onboarding navigator is registered for these sessions too, so keep them out of it here
+        const isPromotionalUISuppressed = context.isSupportalSession || isActingAsDelegateSelector(account);
+        const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
+        if (isPromotionalUISuppressed && (isNavigatingToOnboardingFlow(action) || isNavigatingWithReplace)) {
+            Log.info('[OnboardingGuard] Redirecting copilot or supportal session away from onboarding route to home');
+            return {type: 'REDIRECT', route: ROUTES.HOME};
+        }
+
         const skipOnboardingConfig = CONFIG.SKIP_ONBOARDING;
         const isLoading = context.isLoading;
-        const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
 
         const shouldSkipOnboarding =
             skipOnboardingConfig ||
@@ -306,9 +313,8 @@ const OnboardingGuard: NavigationGuard = {
             isSingleEntry ||
             isFirstTimeHybridAppTransition ||
             isNavigatingWithReplace ||
-            context.isSupportalSession ||
             // Copilots should not be pushed through onboarding on behalf of the account they are accessing
-            isActingAsDelegateSelector(account);
+            isPromotionalUISuppressed;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};

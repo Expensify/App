@@ -171,8 +171,8 @@ To create a Tax Group:
 
 ## How to connect Expensify to NetSuite using OAuth 2.0
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **Connect** next to **NetSuite**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**
+2. Select **NetSuite**
 3. Click **Next** through the NetSuite setup steps
 4. Enter your **NetSuite Account ID**
 5. Click **Connect**
@@ -254,8 +254,8 @@ Tokens link to a user-role combination, not just a user. Use the same user and r
 
 ## How to connect Expensify to NetSuite using access tokens
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **Connect** next to **NetSuite**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**
+2. Select **NetSuite**
 3. Click **Next** through the NetSuite setup steps
 4. Enter your **NetSuite Account ID**, **Token ID**, and **Token Secret**
 5. Click **Confirm**
