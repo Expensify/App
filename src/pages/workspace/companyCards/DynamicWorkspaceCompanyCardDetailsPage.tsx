@@ -64,7 +64,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
@@ -110,8 +109,8 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const {canWrite: canWriteCompanyCards} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
-    const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
-    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [allBankCards] = useCardsList(feedName);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [cardFeeds] = useCardFeeds(policyID);
 
     const [isUnassigning, setIsUnassigning] = useState(false);
@@ -190,8 +189,8 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
-    // Don't show NotFoundPage if the card is being unassigned or data is still loading.
-    if ((!card && !isUnassigning && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigning)) {
+    // Don't show NotFoundPage while this page is unassigning the card.
+    if (!isUnassigning && (!card || isCardBeingUnassigned)) {
         return <NotFoundPage />;
     }
 

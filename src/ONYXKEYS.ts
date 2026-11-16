@@ -551,6 +551,12 @@ const ONYXKEYS = {
     /** Set while a `GetRules` request is in flight, so screens can wait for it instead of reading an empty collection */
     RAM_ONLY_IS_LOADING_RULES: 'isLoadingRules',
 
+    /**
+     * Set when a `GetRules` request fails, which tells a failed fetch apart from one still to send.
+     * Readers stop waiting on it, while the next screen that needs the collection asks for it again.
+     */
+    RAM_ONLY_HAS_RULES_FETCH_FAILED: 'hasRulesFetchFailed',
+
     /** Set while search filter card data is loading, so callers can wait instead of reading a partial list */
     RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA: 'isLoadingSearchFiltersCardData',
 
@@ -981,9 +987,6 @@ const ONYXKEYS = {
     /** Dragged table column widths, keyed by `columnResizingID` then column key. Per device, since ideal widths depend on window size. */
     TABLE_COLUMN_WIDTHS: 'tableColumnWidths',
 
-    /** Stores whether the user views single-expense reports in the expense view or the table view */
-    NVP_SINGLE_EXPENSE_REPORT_VIEW: 'nvp_expensify_singleExpenseReportView',
-
     /** Width the user dragged the single RHP to. Per device, since the ideal width depends on window size. */
     SINGLE_RHP_WIDTH: 'singleRHPWidth',
 
@@ -1117,7 +1120,7 @@ const ONYXKEYS = {
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         MERGE_TRANSACTION: 'mergeTransaction_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
-        CODING_RULE_MATCHING_TRANSACTION: 'codingRuleMatchingTransactions_',
+        RULE_MATCHING_TRANSACTION: 'ruleMatchingTransactions_',
         // Manual expense tab selector
         SELECTED_TAB: 'selectedTab_',
 
@@ -1796,7 +1799,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
     [ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS]: OnyxTypes.DomainHighlightItems;
-    [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
+    [ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION]: OnyxTypes.RuleMatchingTransaction;
     [ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION]: OnyxTypes.MerchantRuleSuggestionConfirmation;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
     [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
@@ -1959,6 +1962,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED]: boolean;
     [ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_RULES]: boolean;
+    [ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
@@ -2133,7 +2137,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_LAYOUT_OPTION]: string;
     [ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS]: string[];
     [ONYXKEYS.TABLE_COLUMN_WIDTHS]: OnyxTypes.TableColumnWidths;
-    [ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW]: ValueOf<typeof CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW>;
     [ONYXKEYS.SINGLE_RHP_WIDTH]: number;
     [ONYXKEYS.SIDE_PANEL_WIDTH]: number;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;

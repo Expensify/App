@@ -1158,7 +1158,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
-            const messageText = getReportActionMessageText(reportAction);
+            const messageText = getReportActionMessageText(reportAction, reportIDToName);
 
             const isAttachment = isReportActionAttachment(reportAction);
             if (!isAttachment) {
@@ -1453,8 +1453,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
                     Clipboard.setString(translate('iou.retracted'));
                 } else if (isOldDotReportAction(reportAction)) {
-                    const oldDotActionMessage = getMessageOfOldDotReportAction(translate, reportAction);
-                    Clipboard.setString(oldDotActionMessage);
+                    setClipboardMessage(getMessageOfOldDotReportAction(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION) {
                     const originalMessage = getOriginalMessage(reportAction) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage'];
                     Clipboard.setString(getDismissedViolationMessageText(translate, originalMessage));
