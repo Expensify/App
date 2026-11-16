@@ -10786,7 +10786,7 @@ ${reportName}`,
         resetFilters: 'Restablecer filtros',
         searchResults: {
             tooManyKeywords: `Tu búsqueda tiene demasiadas palabras clave. Usa ${CONST.SEARCH.MAX_KEYWORD_TOKENS} o menos e inténtalo de nuevo.`,
-            unsupportedGrouping: 'Elige una agrupación compatible. Para buscar informes de gastos, usa type:expense-report.',
+            unsupportedGrouping: 'Esta búsqueda no se puede agrupar de esa manera. Quita group-by e inténtalo de nuevo.',
             invalidReportID: 'Introduce un ID de informe válido. Para buscar gastos sin reportar, usa status:unreported.',
             unsupportedFilter: 'El filtro "is:" no es compatible con esta búsqueda. Para buscar gastos sin reportar, usa status:unreported.',
             emptyResults: {

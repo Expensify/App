@@ -1298,10 +1298,10 @@ function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>): TranslationP
     }
 
     const type = queryJSON.type.toLowerCase();
-    if (queryJSON.groupBy) {
+    // Auth only groups expense, invoice and trip searches. Insights-only group-bys are skipped because the Search
+    // action drops them from the request, so Auth never sees them.
+    if (queryJSON.groupBy && isGroupBySupportedBySearch(queryJSON.groupBy)) {
         const groupBy = typeof queryJSON.groupBy === 'string' ? queryJSON.groupBy.toLowerCase() : undefined;
-        // Auth only groups expense, invoice and trip searches. Insights-only group-bys pass this check because
-        // the Search action drops them from the request and lists those expenses ungrouped.
         if (!groupBy || !VALID_GROUP_BYS.has(groupBy) || !SEARCH_TYPES_SUPPORTING_GROUP_BY.has(type)) {
             return 'search.searchResults.unsupportedGrouping';
         }

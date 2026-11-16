@@ -11071,7 +11071,7 @@ ${reportName}`,
         resetFilters: 'Επαναφορά φίλτρων',
         searchResults: {
             tooManyKeywords: `Η αναζήτησή σου έχει πάρα πολλές λέξεις-κλειδιά. Χρησιμοποίησε έως ${CONST.SEARCH.MAX_KEYWORD_TOKENS} λέξεις-κλειδιά και δοκίμασε ξανά.`,
-            unsupportedGrouping: 'Επίλεξε μια υποστηριζόμενη ομαδοποίηση. Για να βρεις αναφορές εξόδων, χρησιμοποίησε type:expense-report.',
+            unsupportedGrouping: 'Αυτή η αναζήτηση δεν μπορεί να ομαδοποιηθεί έτσι. Αφαίρεσε το group-by και δοκίμασε ξανά.',
             invalidReportID: 'Εισήγαγε ένα έγκυρο αναγνωριστικό αναφοράς. Για να βρεις μη αναφερόμενα έξοδα, χρησιμοποίησε status:unreported.',
             unsupportedFilter: 'Το φίλτρο "is:" δεν υποστηρίζεται για αυτήν την αναζήτηση. Για να βρεις μη αναφερόμενα έξοδα, χρησιμοποίησε status:unreported.',
             emptyResults: {

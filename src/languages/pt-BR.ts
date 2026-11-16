@@ -10789,7 +10789,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         resetFilters: 'Redefinir filtros',
         searchResults: {
             tooManyKeywords: `Sua pesquisa tem palavras-chave demais. Use no máximo ${CONST.SEARCH.MAX_KEYWORD_TOKENS} palavras-chave e tente novamente.`,
-            unsupportedGrouping: 'Escolha um agrupamento compatível. Para encontrar relatórios de despesas, use type:expense-report.',
+            unsupportedGrouping: 'Esta pesquisa não pode ser agrupada dessa forma. Remova group-by e tente novamente.',
             invalidReportID: 'Insira um ID de relatório válido. Para encontrar despesas não relatadas, use status:unreported.',
             unsupportedFilter: 'O filtro "is:" não é compatível com esta pesquisa. Para encontrar despesas não relatadas, use status:unreported.',
             emptyResults: {

@@ -11170,7 +11170,7 @@ const translations = {
         resetFilters: 'Reset filters',
         searchResults: {
             tooManyKeywords: `Your search has too many keywords. Use ${CONST.SEARCH.MAX_KEYWORD_TOKENS} or fewer keywords and try again.`,
-            unsupportedGrouping: 'Choose a supported grouping. To find expense reports, use type:expense-report.',
+            unsupportedGrouping: "This search can't be grouped that way. Remove group-by and try again.",
             invalidReportID: 'Enter a valid report ID. To find unreported expenses, use status:unreported.',
             unsupportedFilter: `The "is:" filter isn't supported for this search. To find unreported expenses, use status:unreported.`,
             emptyResults: {

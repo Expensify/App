@@ -10634,7 +10634,7 @@ ${reportName}`,
         resetFilters: 'フィルターをリセット',
         searchResults: {
             tooManyKeywords: `検索キーワードが多すぎます。キーワードを${CONST.SEARCH.MAX_KEYWORD_TOKENS}個以下にして、もう一度お試しください。`,
-            unsupportedGrouping: '対応しているグループ化を選択してください。経費レポートを検索するには、type:expense-report を使用してください。',
+            unsupportedGrouping: 'この検索はその方法でグループ化できません。group-by を削除して、もう一度お試しください。',
             invalidReportID: '有効なレポートIDを入力してください。未報告の経費を検索するには、status:unreported を使用してください。',
             unsupportedFilter: 'この検索では "is:" フィルターは使用できません。未報告の経費を検索するには、status:unreported を使用してください。',
             emptyResults: {

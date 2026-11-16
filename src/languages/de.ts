@@ -10859,7 +10859,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         resetFilters: 'Filter zurücksetzen',
         searchResults: {
             tooManyKeywords: `Deine Suche enthält zu viele Suchbegriffe. Verwende höchstens ${CONST.SEARCH.MAX_KEYWORD_TOKENS} Suchbegriffe und versuche es erneut.`,
-            unsupportedGrouping: 'Wähle eine unterstützte Gruppierung. Um Spesenabrechnungen zu finden, verwende type:expense-report.',
+            unsupportedGrouping: 'Diese Suche kann nicht so gruppiert werden. Entferne group-by und versuche es erneut.',
             invalidReportID: 'Gib eine gültige Berichts-ID ein. Um nicht gemeldete Ausgaben zu finden, verwende status:unreported.',
             unsupportedFilter: 'Der Filter "is:" wird für diese Suche nicht unterstützt. Um nicht gemeldete Ausgaben zu finden, verwende status:unreported.',
             emptyResults: {

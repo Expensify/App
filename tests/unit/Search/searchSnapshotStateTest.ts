@@ -256,6 +256,7 @@ describe('search snapshot terminal state', () => {
         'type:expense status:unreported',
         'type:EXPENSE groupBy:category',
         'type:expense groupBy:approver',
+        'type:expense-report group-by:violation',
         'type:CHAT is:unread',
     ])('sends supported query %s to the server', async (inputQuery) => {
         // Given a supported query, including the keyword boundary and suggested alternatives

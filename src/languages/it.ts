@@ -10811,7 +10811,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         resetFilters: 'Reimposta filtri',
         searchResults: {
             tooManyKeywords: `La ricerca contiene troppe parole chiave. Usa al massimo ${CONST.SEARCH.MAX_KEYWORD_TOKENS} parole chiave e riprova.`,
-            unsupportedGrouping: 'Scegli un raggruppamento supportato. Per trovare le note spese, usa type:expense-report.',
+            unsupportedGrouping: 'Questa ricerca non può essere raggruppata in questo modo. Rimuovi group-by e riprova.',
             invalidReportID: 'Inserisci un ID report valido. Per trovare le spese non rendicontate, usa status:unreported.',
             unsupportedFilter: 'Il filtro "is:" non è supportato per questa ricerca. Per trovare le spese non rendicontate, usa status:unreported.',
             emptyResults: {
