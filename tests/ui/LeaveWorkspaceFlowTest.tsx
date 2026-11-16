@@ -39,12 +39,13 @@ const POLICY_ID = 'test-policy-id';
 const USER_EMAIL = 'user@example.com';
 const USER_ACCOUNT_ID = 1;
 
-const renderAction = (onDismiss = jest.fn()) =>
+const renderAction = (onDismiss = jest.fn(), onLeave = jest.fn()) =>
     render(
         <LocaleContextProvider>
             <LeaveWorkspaceFlow
                 policyID={POLICY_ID}
                 onDismiss={onDismiss}
+                onLeave={onLeave}
             />
         </LocaleContextProvider>,
     );
@@ -62,6 +63,64 @@ describe('LeaveWorkspaceFlow', () => {
         await act(async () => {
             await Onyx.clear();
         });
+    });
+
+    it.each([
+        [ModalActions.CONFIRM, false],
+        [ModalActions.CLOSE, false],
+        [ModalActions.CONFIRM, true],
+    ])('ignores parent callbacks after unmount for action %s and reimburser %s', async (action, isReimburser) => {
+        // Given a pending global prompt that survives its parent flow
+        let resolveConfirmation!: (result: {action: typeof action}) => void;
+        mockShowConfirmModal.mockReturnValue(
+            new Promise((resolve) => {
+                resolveConfirmation = resolve;
+            }),
+        );
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            id: POLICY_ID,
+            name: 'Test',
+            achAccount: isReimburser ? {reimburser: USER_EMAIL} : undefined,
+        });
+        const onDismiss = jest.fn();
+        const onLeave = jest.fn();
+        const {unmount} = renderAction(onDismiss, onLeave);
+        await waitForBatchedUpdatesWithAct();
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+
+        // When the flow unmounts before the prompt is answered
+        unmount();
+        await act(async () => resolveConfirmation({action}));
+
+        // Then no stale navigation or parent state update occurs
+        expect(onLeave).not.toHaveBeenCalled();
+        expect(onDismiss).not.toHaveBeenCalled();
+    });
+
+    it('preserves pending callbacks through rerenders', async () => {
+        // Given an open leave confirmation
+        let resolveConfirmation!: (result: {action: typeof ModalActions.CONFIRM}) => void;
+        mockShowConfirmModal.mockReturnValue(
+            new Promise((resolve) => {
+                resolveConfirmation = resolve;
+            }),
+        );
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: 'Test'});
+        const onDismiss = jest.fn();
+        const onLeave = jest.fn();
+        renderAction(onDismiss, onLeave);
+        await waitForBatchedUpdatesWithAct();
+
+        // When policy data changes before the member confirms
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {name: 'Updated'});
+        });
+        await act(async () => resolveConfirmation({action: ModalActions.CONFIRM}));
+
+        // Then rerendering has not cancelled the active flow or started another prompt
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(onLeave).toHaveBeenCalledTimes(1);
+        expect(onDismiss).toHaveBeenCalledTimes(1);
     });
 
     it('renders null', async () => {

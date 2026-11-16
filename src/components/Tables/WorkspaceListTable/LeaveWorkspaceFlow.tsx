@@ -24,14 +24,17 @@ type LeaveWorkspaceFlowProps = {
 
     /** Called when the flow is finished or abandoned, so the parent can unmount this component */
     onDismiss: () => void;
+
+    /** Called after initiating departure, but not when cancelled or blocked by the reimburser restriction. */
+    onLeave?: () => void;
 };
 
 /**
- * Self-contained "leave workspace" flow, mounted only after the user picks Leave in the row menu.
+ * Self-contained "leave workspace" flow, mounted after the user selects Leave workspace from the workspace list, Members, or member details.
  * The full policy entry needed to build the confirmation prompt is subscribed to only for the
  * lifetime of the flow, so the workspaces list rows don't re-render on every policy change.
  */
-function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
+function LeaveWorkspaceFlow({policyID, onDismiss, onLeave}: LeaveWorkspaceFlowProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -41,6 +44,15 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
     const isApproverOfOutstandingReports = useIsApproverOfOutstandingPolicyReports(policyID);
 
     const isLoadingData = isLoadingOnyxValue(policyResult);
+
+    // The global confirmation can outlive this flow, but its parent callbacks must not run after unmount.
+    const isMountedRef = useRef(false);
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     // Closes the row popover (if still open) and shows the confirmation modal once the policy entry has loaded.
     const hasStartedRef = useRef(false);
@@ -60,7 +72,12 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
                     confirmText: translate('common.buttonConfirm'),
                     buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                     shouldShowCancelButton: false,
-                }).then(() => onDismiss());
+                }).then(() => {
+                    if (!isMountedRef.current) {
+                        return;
+                    }
+                    onDismiss();
+                });
                 return;
             }
 
@@ -73,8 +90,13 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
             }).then((result) => {
                 if (result.action === ModalActions.CONFIRM && policy) {
                     leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', policy);
+                    if (isMountedRef.current) {
+                        onLeave?.();
+                    }
                 }
-                onDismiss();
+                if (isMountedRef.current) {
+                    onDismiss();
+                }
             });
         });
     });

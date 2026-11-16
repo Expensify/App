@@ -13,6 +13,12 @@ import {isArchivedPolicy, isControlPolicy, isGroupPolicy, isSubmitPolicy} from '
 type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
 type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
+type WorkspaceLeaveRestrictions = {
+    isLoadingPreferredPolicy: boolean;
+    isRestrictedToPreferredPolicy: boolean;
+    preferredPolicyID: string | undefined;
+};
+
 /**
  * Checks if the current user is an admin of the policy.
  *
@@ -38,6 +44,15 @@ const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, login?: string, shoul
  * on that.
  */
 const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>, accountID: number | undefined): boolean => !!accountID && policy?.ownerAccountID === accountID;
+
+/** A domain can mandate membership in its preferred workspace, so wait for restrictions before allowing departure. */
+function canLeaveWorkspace(
+    policy: OnyxInputOrEntry<Policy>,
+    accountID: number | undefined,
+    {isLoadingPreferredPolicy, isRestrictedToPreferredPolicy, preferredPolicyID}: WorkspaceLeaveRestrictions,
+): boolean {
+    return !!policy && !isLoadingPreferredPolicy && !isArchivedPolicy(policy) && !isPolicyOwner(policy, accountID) && (policy.id !== preferredPolicyID || !isRestrictedToPreferredPolicy);
+}
 
 /**
  * Whether a room member's own policy role protects them from being removed from a policy expense chat.
@@ -403,6 +418,7 @@ function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: stri
 export {
     isPolicyAdmin,
     isPolicyOwner,
+    canLeaveWorkspace,
     POLICY_ROLE_RANKING,
     isRoomMemberProtectedByPolicyRole,
     isControlPolicyOnlyRole,
