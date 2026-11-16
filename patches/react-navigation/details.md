@@ -38,8 +38,8 @@
 
 - Reason: `getStateFromPath` runs the regex of every route that shares the URL's first segment, and 446 of the 634 routes in `ROUTES.ts` start with `workspaces/`, so the first workspace page of a session compiles hundreds of regexes on web. This patch skips a route when any of its static segments doesn't match the URL.
 - Upstream PR/issue: TBD
-- E/App issue: TBD
-- PR Introducing Patch: TBD
+- E/App issue: https://github.com/Expensify/App/issues/107027
+- PR Introducing Patch: https://github.com/Expensify/App/pull/107026
 
 ### [@react-navigation+native+7.4.1+001+initial.patch](@react-navigation+native+7.4.1+001+initial.patch)
 
