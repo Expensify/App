@@ -6,9 +6,11 @@ import {openLink as openLinkUtil} from '@userActions/Link';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
+import type {DistributedOmit} from 'type-fest';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
@@ -32,7 +34,8 @@ type PressProps = {
 };
 
 type TextLinkProps = (LinkProps | PressProps) &
-    TextProps & {
+    DistributedOmit<TextProps, 'sentryLabel'> &
+    WithRequiredSentryLabel & {
         style?: StyleProp<TextStyle>;
         onMouseDown?: MouseEventHandler;
         suppressDefaultStyle?: boolean;

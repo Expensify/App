@@ -9289,10 +9289,10 @@ describe('ReportActionsUtils', () => {
                 const adminsMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
                 const threadMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action, undefined, true);
 
-                // Then #admins shows a count so the entry stays short, and the thread names every category
+                // Then #admins shows a count so the entry stays short, and the thread repeats that message and then names every category
                 expect(adminsMessage).toBe('changed Cathy Parker to only see 14 categories');
                 expect(threadMessage).toBe(
-                    `Categories: ${MANY_CATEGORY_NAMES.slice(0, -1)
+                    `changed Cathy Parker to only see 14 categories\nCategories: ${MANY_CATEGORY_NAMES.slice(0, -1)
                         .map((name) => `"${name}"`)
                         .join(', ')}, and "Category 14"`,
                 );
@@ -9311,10 +9311,10 @@ describe('ReportActionsUtils', () => {
                 const adminsMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
                 const threadMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action, undefined, true);
 
-                // Then #admins shows a count, and the thread names every member
+                // Then #admins shows a count, and the thread repeats that message and then names every member
                 expect(adminsMessage).toBe('set 12 members to only see the "Fees" category');
                 expect(threadMessage).toBe(
-                    `Members: ${MANY_ACCOUNT_IDS.slice(0, -1)
+                    `set 12 members to only see the "Fees" category\nMembers: ${MANY_ACCOUNT_IDS.slice(0, -1)
                         .map((accountID) => `Member ${accountID}`)
                         .join(', ')}, and Member 111`,
                 );
