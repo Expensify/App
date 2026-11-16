@@ -68,13 +68,11 @@ function getRankingTableChange(count: number, previousCount: number | undefined)
     return {type: count > previousCount ? RANKING_TABLE_CHANGE.INCREASE : RANKING_TABLE_CHANGE.DECREASE, percent};
 }
 
-/** Builds a ranking table's rows */
 function buildRankingTableRows({data, comparison, isComparingPreviousPeriod}: BuildRankingTableRowsParams): RankingTable {
     const maxCount = Math.max(0, ...data.map((item) => item.count ?? 0));
     const getWidthPercent = (count: number) => (maxCount > 0 ? Math.min((count / maxCount) * 100, 100) : 0);
 
     const comparedRows = isComparingPreviousPeriod && comparison && !isChartAverage(comparison) ? comparison.data : undefined;
-    // A group missing from the previous period counted nothing then
     const previousCounts = comparedRows ? new Map(comparedRows.map((item) => [item.keyForList, item.count ?? 0])) : undefined;
 
     const rows = data.map((item): RankingTableRow => {
