@@ -370,10 +370,6 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         ['YouTube custom image', '<img src="https://yt3.ggpht.com/custom-emoji" alt="🎉">'],
         ['misleading hostname', '<img src="https://static.xx.fbcdn.net.example.com/images/emoji.php/v9/t52/2/16/1f913.png" alt="🤓">'],
         ['ordinary Meta image', '<img src="https://static.xx.fbcdn.net/photo.png" alt="🤓">'],
-        [
-            'Teams asset without emoji type',
-            '<img itemid="1f440_eyes" src="https://tflteams.public.onecdn.static.microsoft/evergreen-assets/personal-expressions/v2/assets/emoticons/1f440_eyes/default/30_f.png?v=v10" alt="👀">',
-        ],
         ['Teams type on an unrelated image', '<img itemtype="http://schema.skype.com/Emoji" itemid="eyes" src="https://example.com/photo.png" alt="👀">'],
         ['Discourse class on an unrelated image', '<img class="emoji" src="https://example.com/photo.png" title=":smile:" alt=":smile:">'],
         ['mismatched Discourse name', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/smile.png" title=":tada:" alt=":tada:">'],
