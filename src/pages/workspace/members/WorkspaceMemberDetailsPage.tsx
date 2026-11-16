@@ -194,12 +194,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(shouldShowCategoryVisibility ? policyID : undefined);
     let categoryVisibilityTitle = '';
-    if (!isLoadingCompletePolicyCategories && policyCategoriesVisibility) {
+    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategoriesVisibility);
+    if (!isLoadingCompletePolicyCategories && policyCategoriesVisibility && enabledCategoriesCount) {
         const visibleCategoriesCount = getMemberVisibleCategoryNames(policyCategoriesVisibility, accountID).length;
         categoryVisibilityTitle =
-            visibleCategoriesCount === getEnabledCategoriesCount(policyCategoriesVisibility)
-                ? translate('workspace.people.allCategories')
-                : translate('workspace.people.categoriesCount', {count: visibleCategoriesCount});
+            visibleCategoriesCount === enabledCategoriesCount ? translate('workspace.people.allCategories') : translate('workspace.people.categoriesCount', {count: visibleCategoriesCount});
     }
     const canEditCategoryVisibility = canWriteMembers && canWriteCategories && !!memberPersonalDetails?.accountID;
     const {isAccountLocked} = useLockedAccountState();
