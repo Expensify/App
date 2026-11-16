@@ -86,7 +86,7 @@ import variables from '@styles/variables';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {clearPolicyMemberCategoryVisibilityError} from '@userActions/Policy/Category';
 import {clearWorkspaceOwnerChangeFlow, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
-import {callIfAuthenticated, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

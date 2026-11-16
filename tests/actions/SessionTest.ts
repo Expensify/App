@@ -1671,7 +1671,7 @@ describe('Session', () => {
             await TestHelper.signInWithTestUser();
 
             // When they open Supportal, which signs them out and stashes their session to come back to it
-            signOutAndRedirectToSignIn(false, true, false, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, true, false, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             await waitForBatchedUpdates();
 
             // Then their own cookie is left alone, because their session continues after Supportal
