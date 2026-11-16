@@ -126,7 +126,12 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
         }
 
         settledKeyboardHeightRef.current = keyboardHeight;
+        let isCancelled = false;
         containerRef.current?.getNativeScrollRef()?.measure((_x, _y, _width, measuredHeight) => {
+            if (isCancelled) {
+                return;
+            }
+
             const settledHeight = Math.max(measuredHeight, variables.componentSizeLarge);
             const baselineHeight = keyboardBaselineHeightRef.current;
             // A slot that did not move is not resized by the keyboard, so the keyboard estimate stays the only way to keep the input above it.
@@ -144,6 +149,10 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
             availableHeightRef.current = settledHeight;
             startMeasurement('clamp', settledHeight);
         });
+
+        return () => {
+            isCancelled = true;
+        };
     }, [isIOS, keyboardHeight, startMeasurement]);
 
     useLayoutEffect(() => {
