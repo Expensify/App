@@ -184,6 +184,10 @@ function DynamicIOURequestStepDestination({
         }
     };
 
+    const handleUpdateDestination = (destination: ListItem & {currency: string}) => {
+        updateDestination(destination);
+    };
+
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
@@ -295,7 +299,7 @@ function DynamicIOURequestStepDestination({
                         ref={destinationSelectionListRef}
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
-                        onSubmit={updateDestination}
+                        onSubmit={handleUpdateDestination}
                     />
                 )}
             </StepScreenWrapper>

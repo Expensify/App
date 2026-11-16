@@ -107,9 +107,7 @@ jest.mock('@components/SelectionList', () => {
                 <RN.Text
                     key={item.keyForList}
                     testID={`room-option-${item.value}`}
-                    onPress={() => {
-                        onSelectRow(item);
-                    }}
+                    onPress={() => onSelectRow(item)}
                 >
                     {item.text}
                 </RN.Text>

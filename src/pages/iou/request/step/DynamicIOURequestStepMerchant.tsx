@@ -176,6 +176,10 @@ function DynamicIOURequestStepMerchant({
         armNavigateBack();
     };
 
+    const handleUpdateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
+        updateMerchant(value);
+    };
+
     useDiscardChangesConfirmation({
         onCancel: () => {
             focusComposerWithDelay(inputRef.current)(true);
@@ -200,7 +204,7 @@ function DynamicIOURequestStepMerchant({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
-                onSubmit={updateMerchant}
+                onSubmit={handleUpdateMerchant}
                 validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline

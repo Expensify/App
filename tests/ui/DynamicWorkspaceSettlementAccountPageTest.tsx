@@ -86,9 +86,7 @@ jest.mock('@components/SelectionList', () => {
                     key={item.keyForList}
                     testID={`settlement-account-${item.value}`}
                     accessibilityState={{selected: item.isSelected}}
-                    onPress={() => {
-                        onSelectRow(item);
-                    }}
+                    onPress={() => onSelectRow(item)}
                 >
                     {item.leftElement}
                     <RN.Text>{item.text}</RN.Text>

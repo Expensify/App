@@ -27,9 +27,7 @@ jest.mock('@components/Form/FormWrapper', () => {
             <reactNative.View>
                 <reactNative.Pressable
                     testID="submit"
-                    onPress={() => {
-                        onSubmit();
-                    }}
+                    onPress={onSubmit}
                 />
                 <reactNative.Text testID="form-errors">{JSON.stringify(errors)}</reactNative.Text>
                 {children}

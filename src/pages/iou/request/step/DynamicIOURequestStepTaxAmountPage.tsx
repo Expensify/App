@@ -169,6 +169,10 @@ function DynamicIOURequestStepTaxAmountPage({
         navigateBack();
     };
 
+    const handleUpdateTaxAmount = (currentAmount: CurrentMoney) => {
+        updateTaxAmount(currentAmount);
+    };
+
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.taxAmount')}
@@ -187,7 +191,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 }}
                 // onCurrencyButtonPress is intentionally left empty as currency selection is not allowed on this page
                 onCurrencyButtonPress={() => {}}
-                onSubmitButtonPress={updateTaxAmount}
+                onSubmitButtonPress={handleUpdateTaxAmount}
                 isCurrencyPressable={false}
                 chatReportID={reportID}
             />

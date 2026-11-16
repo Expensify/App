@@ -27,7 +27,7 @@ import {View} from 'react-native';
 type GenericFeaturesViewProps = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    onUpgrade: () => void | Promise<void>;
+    onUpgrade: () => void;
     upgradeSentryLabel: SentryLabel;
     formattedPrice: string;
     policyID?: string;

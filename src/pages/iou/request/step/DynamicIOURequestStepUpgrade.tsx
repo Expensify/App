@@ -78,7 +78,6 @@ function DynamicIOURequestStepUpgrade({
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    // The Concierge chat is read with Onyx.get in the handlers, which needs this ID as a same-file subscription (see ONYX-1)
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isTrack = iouType === CONST.IOU.TYPE.TRACK;
@@ -272,6 +271,10 @@ function DynamicIOURequestStepUpgrade({
         }
     };
 
+    const finishUpgrade = () => {
+        afterUpgradeAcknowledged();
+    };
+
     const participant = transaction?.participants?.[0];
     const adminParticipant =
         isDistanceRateUpgrade && participant?.accountID
@@ -340,6 +343,10 @@ function DynamicIOURequestStepUpgrade({
         policyDataRef.current = policyData;
     };
 
+    const upgradeWorkspace = () => {
+        onUpgrade();
+    };
+
     const onWorkspaceConfirmationSubmit = async (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const {introSelected, onboardingPurposeSelected, isSelfTourViewed, conciergeChat} = await getWorkspaceCreationOnyxData();
         const policyData = Policy.createWorkspace({
@@ -367,6 +374,10 @@ function DynamicIOURequestStepUpgrade({
         setIsUpgraded(true);
     };
 
+    const createConfirmedWorkspace = (params: WorkspaceConfirmationSubmitFunctionParams) => {
+        onWorkspaceConfirmationSubmit(params);
+    };
+
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator
@@ -384,7 +395,7 @@ function DynamicIOURequestStepUpgrade({
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     {!!isUpgraded && (
                         <UpgradeConfirmation
-                            afterUpgradeAcknowledged={afterUpgradeAcknowledged}
+                            afterUpgradeAcknowledged={finishUpgrade}
                             confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_CONFIRMATION_GOT_IT}
                             policyName={createdPolicyName}
                             isCategorizing={isCategorizing}
@@ -395,7 +406,7 @@ function DynamicIOURequestStepUpgrade({
                     {!isUpgraded && (
                         <UpgradeIntro
                             feature={feature}
-                            onUpgrade={onUpgrade}
+                            onUpgrade={upgradeWorkspace}
                             upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_UPGRADE}
                             buttonDisabled={isOffline}
                             loading={false}
@@ -409,7 +420,7 @@ function DynamicIOURequestStepUpgrade({
             {!isUpgraded && showConfirmationForm && (
                 <WorkspaceConfirmationForm
                     policyOwnerEmail={session?.email ?? ''}
-                    onSubmit={onWorkspaceConfirmationSubmit}
+                    onSubmit={createConfirmedWorkspace}
                     onBackButtonPress={() => setShowConfirmationForm(false)}
                     addBottomSafeAreaPadding={false}
                 />

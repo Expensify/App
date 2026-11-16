@@ -168,6 +168,10 @@ function DynamicIOURequestStepWaypoint({
         goBack();
     };
 
+    const submitWaypoint = (values: FormOnyxValues<'waypointForm'>) => {
+        submit(values);
+    };
+
     const selectWaypoint = async (values: Waypoint) => {
         const allRecentWaypoints = await Onyx.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
         const waypoint = {
@@ -187,6 +191,10 @@ function DynamicIOURequestStepWaypoint({
             isSplitDraftTransaction: shouldPassSplitDraft,
         });
         goBack();
+    };
+
+    const handleSelectWaypoint = (values: Waypoint) => {
+        selectWaypoint(values);
     };
 
     const onScroll = () => {
@@ -225,7 +233,7 @@ function DynamicIOURequestStepWaypoint({
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
-                    onSubmit={submit}
+                    onSubmit={submitWaypoint}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
@@ -261,7 +269,7 @@ function DynamicIOURequestStepWaypoint({
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
-                            onPress={selectWaypoint}
+                            onPress={handleSelectWaypoint}
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             renamedInputKeys={{
                                 address: `waypoint${pageIndex}`,

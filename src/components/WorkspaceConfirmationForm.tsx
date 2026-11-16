@@ -63,7 +63,7 @@ type WorkspaceConfirmationFormProps = {
      */
     policyOwnerEmail?: string;
 
-    onSubmit: (params: WorkspaceConfirmationSubmitFunctionParams) => void | Promise<void>;
+    onSubmit: (params: WorkspaceConfirmationSubmitFunctionParams) => void;
 
     /** Go back function */
     onBackButtonPress?: () => void;
