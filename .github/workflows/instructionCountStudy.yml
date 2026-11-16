@@ -26,7 +26,7 @@ env:
 jobs:
   instruction-count-study:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    timeout-minutes: 90
+    timeout-minutes: 150
     strategy:
       fail-fast: false
       matrix:
@@ -54,11 +54,11 @@ jobs:
           # Allow unprivileged counting if the kernel has counters at all.
           sudo sysctl -w kernel.perf_event_paranoid=-1 || true
 
-      - name: Install build tools and valgrind
+      - name: Install build tools
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends cmake ninja-build libicu-dev valgrind build-essential python3
+          sudo apt-get install -y --no-install-recommends cmake ninja-build libicu-dev build-essential python3
 
       - name: Build the Hermes CLI the app ships
         shell: bash
@@ -110,10 +110,16 @@ jobs:
         shell: bash
         run: node tests/perf-local/icount/run.mjs "$RUNNER_TEMP/study" "$RUNNER_TEMP/study/results/perf.csv" perf 10 hermes,node
 
-      - name: Count with valgrind (Hermes)
+      # Existing tests/perf-local files, unchanged, on Hermes: the same code is run several times, so every difference is noise.
+      - name: Count existing perf-local tests on Hermes
         if: ${{ !cancelled() }}
         shell: bash
-        run: node tests/perf-local/icount/run.mjs "$RUNNER_TEMP/study" "$RUNNER_TEMP/study/results/valgrind.csv" valgrind 5 hermes
+        run: node tests/perf-local/icount/runPerfLocalOnHermes.mjs "$RUNNER_TEMP/study" perf 5 tests/perf-local/*.perf-local.ts
+
+      - name: Probe single native calls
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: node tests/perf-local/icount/probeNativeCalls.mjs "$RUNNER_TEMP/study" perf 6 | tee "$RUNNER_TEMP/study/results/native-call-probes.md"
 
       - name: Summarise
         if: ${{ !cancelled() }}
@@ -124,9 +130,15 @@ jobs:
             echo '```'
             cat "$RUNNER_TEMP/study/results/runner.txt"
             echo '```'
-            node tests/perf-local/icount/analyze.mjs "$RUNNER_TEMP/study/results/perf.csv" "$RUNNER_TEMP/study/results/valgrind.csv"
+            echo "#### Sort benchmark, before and after the known change"
+            node tests/perf-local/icount/analyze.mjs "$RUNNER_TEMP/study/results/perf.csv"
+            echo
+            echo "#### Existing perf-local tests, same code"
+            node tests/perf-local/icount/analyzeExistingTests.mjs "$RUNNER_TEMP/study/results/existing-tests.csv" "$RUNNER_TEMP/study/results/existing-tests.log"
+            echo
+            echo "#### Single native calls, same code"
+            cat "$RUNNER_TEMP/study/results/native-call-probes.md"
           } | tee "$RUNNER_TEMP/study/results/summary.md" >> "$GITHUB_STEP_SUMMARY"
-          cat "$RUNNER_TEMP/study/results/summary.md"
 
       - name: Upload results
         if: ${{ !cancelled() }}
