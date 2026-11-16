@@ -99,21 +99,23 @@ function AncestorReportActionItem({
 
     const {isBetaEnabled} = usePermissions();
 
+    const ancestorReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+    const isConciergeFeedbackThread = !!ancestorReportNameValuePairs?.conciergeFeedbackForReportActionID;
     const authorAccountID = reportAction.actorAccountID;
     const [isAuthorCustomAgent = false] = usePersonalDetail(authorAccountID, (personalDetail) => !!personalDetail?.isCustomAgent);
 
     // An agent account can be opened through Copilot, and the agent must not rate its own replies
-    const canAuthorCollectFeedback = authorAccountID === CONST.ACCOUNT_ID.CONCIERGE || (isAuthorCustomAgent && authorAccountID !== currentUserAccountID);
+    const canAuthorCollectFeedback = !isConciergeFeedbackThread && (authorAccountID === CONST.ACCOUNT_ID.CONCIERGE || (isAuthorCustomAgent && authorAccountID !== currentUserAccountID));
 
     // The message shown above a thread belongs to the parent report, so its own actions decide whether it is the author's newest answer.
-    // The thread's feedback marker is deliberately left out of that decision: the marker outlives the reaction, so consulting it would keep the prompt
+    // The viewed thread's feedback marker is deliberately left out of that decision: the marker outlives the reaction, so consulting it would keep the prompt
     // away here after the user takes their thumbs down back, while the same message offers it again in the chat.
     const [latestConciergeFeedbackActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {
         selector: getLatestFeedbackActionIDByAuthorSelector(canAuthorCollectFeedback ? authorAccountID : undefined),
     });
 
     const shouldDisplayThreadDivider = !isTripPreview(reportAction);
-    const isAncestorReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
+    const isAncestorReportArchived = isArchivedReport(ancestorReportNameValuePairs);
     const canOpenAncestorReport = canCurrentUserOpenReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), hasGuidesEmails, isAncestorReportArchived);
 
     const {isOffline} = useNetwork();
