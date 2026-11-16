@@ -524,7 +524,7 @@ function ParticipantSearchResults({
         addSingleParticipant(option);
     };
 
-    const handleSelectRow = (option: Participant) => {
+    const selectParticipant = (option: Participant) => {
         onSelectRow(option);
     };
 
@@ -589,7 +589,7 @@ function ParticipantSearchResults({
             ListItem={InviteMemberListItem}
             textInputOptions={textInputOptions}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onSelectRow={handleSelectRow}
+            onSelectRow={selectParticipant}
             shouldSingleExecuteRowSelect
             customListHeaderContent={importContactsButtonComponent}
             customHeaderContent={

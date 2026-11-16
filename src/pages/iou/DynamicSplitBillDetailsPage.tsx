@@ -165,7 +165,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         dismissModalAndOpenReportInInboxTab(reportID, undefined, chatReportTransactions.length > 0);
     };
 
-    const handleConfirm = () => {
+    const confirmSplitBill = () => {
         onConfirm();
     };
 
@@ -213,7 +213,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                 reportID={reportID}
                                 reportActionID={reportAction?.reportActionID}
                                 transaction={isEditingSplitBill && draftTransaction ? draftTransaction : transaction}
-                                onConfirm={handleConfirm}
+                                onConfirm={confirmSplitBill}
                                 isPolicyExpenseChat={isPolicyExpenseChat(report)}
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}

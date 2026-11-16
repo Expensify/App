@@ -83,7 +83,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
         }
     };
 
-    const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+    const rejectExpense = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         onSubmit(values);
     };
 
@@ -103,7 +103,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     return (
         <RejectReasonFormView
-            onSubmit={handleSubmit}
+            onSubmit={rejectExpense}
             validate={validate}
             backTo={backTo}
         />

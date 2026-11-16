@@ -257,7 +257,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         handleCreateReport();
     };
 
-    const handleCreateReportPress = () => {
+    const startCreateReport = () => {
         createReport();
     };
 
@@ -272,7 +272,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             selectReport={handleSelectReport}
             removeFromReport={handleRemoveFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}
-            createReport={canCreateReport ? handleCreateReportPress : undefined}
+            createReport={canCreateReport ? startCreateReport : undefined}
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
             transactionPolicyID={targetExpensePolicyID}
