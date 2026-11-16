@@ -330,7 +330,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const arePoliciesLoaded = policies !== undefined;
     // Checked against the next filters, because a workspace change can turn the upsell on or off
-    const {filters, savedFilters, defaultFilters, isResolved, setFilters} = useInsightsFilters(
+    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(
         dashboardID,
         (next) => arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, getPoliciesInScope(policies, next.policyIDs), next.policyIDs, login),
     );
@@ -348,7 +348,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
     const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
     const upgradeablePolicyIDs = shouldUpsell ? getUpgradeablePolicyIDsInScope(policiesInScope, login) : [];
-    const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, savedFilters) : undefined;
+    const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
     const hash = query?.hash;
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;

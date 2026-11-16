@@ -89,17 +89,12 @@ function isRunningTotalAvailable(date: InsightsFilters['date']): boolean {
     return getInsightsGroupByOptions(date).length > 0;
 }
 
-/** Swaps a saved grouping the date range no longer offers for the dashboard's default when the range offers it, like Week on This month becoming Running total; otherwise keeps it for `getFittingGroupBy` to fit. */
-function getGroupByForDateRange(groupBy: InsightsGroupBy, date: InsightsFilters['date'], defaultGroupBy: InsightsGroupBy): InsightsGroupBy {
-    if (groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY) {
-        return groupBy;
+/** Whether the charts show a Running total: when it's picked, or in place of a picked bucket the date range doesn't offer. The picked bucket stays saved, so it comes back on a range that offers it. */
+function isShowingRunningTotal(filters: InsightsFilters): boolean {
+    if (!isRunningTotalAvailable(filters.date)) {
+        return false;
     }
-    const options = getInsightsGroupByOptions(date);
-    if (options.includes(groupBy)) {
-        return groupBy;
-    }
-    const isDefaultOffered = defaultGroupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY ? isRunningTotalAvailable(date) : options.includes(defaultGroupBy);
-    return isDefaultOffered ? defaultGroupBy : groupBy;
+    return filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY || !getInsightsGroupByOptions(filters.date).some((option) => option === filters.groupBy);
 }
 
 /** Returns the grouping a running total is plotted at: by day for ranges that offer Day (62 days or less), by month otherwise, or by the finest offered grouping when Month isn't offered either, like Week for This quarter. */
@@ -116,11 +111,11 @@ function getRunningTotalGroupBy(date: InsightsFilters['date']): InsightsTimeGrou
 
 /** Returns the real time bucket the charts are queried with, fitted to the date range. Running total queries a real day/month bucket, so it never reaches the backend as the Running total value. */
 function getQueryGroupBy(filters: InsightsFilters): InsightsTimeGroupBy {
-    if (filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && isRunningTotalAvailable(filters.date)) {
+    if (isShowingRunningTotal(filters)) {
         return getRunningTotalGroupBy(filters.date);
     }
     return getFittingGroupBy(filters.groupBy, getInsightsGroupByOptions(filters.date));
 }
 
-export {getFittingGroupBy, getGroupByForDateRange, getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable};
+export {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable, isShowingRunningTotal};
 export type {InsightsTimeGroupBy};

@@ -186,15 +186,10 @@ type InsightsQuery = {
     supportingCharts: InsightsChartQuery[];
 };
 
-/** Builds one request for the dashboard's headline chart and the given supporting charts, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. `savedFilters` are what the backend saves, when they differ from the displayed `filters`. */
-function buildInsightsJsonQuery(
-    dashboard: InsightsDashboardID,
-    filters: InsightsFilters,
-    supportingChartSpecs: InsightsChartSpec[],
-    savedFilters: InsightsFilters = filters,
-): InsightsQuery | undefined {
+/** Builds one request for the dashboard's headline chart and the given supporting charts, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
+function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, supportingChartSpecs: InsightsChartSpec[]): InsightsQuery | undefined {
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
-    const inputQuery = buildInsightsQueryString(savedFilters);
+    const inputQuery = buildInsightsQueryString(filters);
     const queryJSON = buildDashboardQuery(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
     if (!queryJSON) {
         return undefined;

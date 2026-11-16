@@ -13,15 +13,12 @@ import type {InsightsFilters} from './insightsFilters';
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
 import {parseInsightsFilters} from './insightsFilterParsing';
 import DEFAULT_INSIGHTS_FILTERS from './insightsFilters';
-import {getGroupByForDateRange, getQueryGroupBy} from './insightsGroupByUtils';
+import {getQueryGroupBy} from './insightsGroupByUtils';
 import {buildInsightsQueryString} from './insightsQueries';
 
 type UseInsightsFiltersResult = {
-    /** Page-level filters every chart on the dashboard is narrowed by, with a grouping the date range doesn't offer swapped for the dashboard's default when it fits */
+    /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
-
-    /** Filters as the user stored them, which keep a grouping the date range doesn't offer so it comes back on a range that does */
-    savedFilters: InsightsFilters;
 
     /** Filters the dashboard starts from before any selection is stored, which a control's Reset returns to */
     defaultFilters: InsightsFilters;
@@ -48,22 +45,16 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
     };
     // A stored query leaves Compare out when it's off, so the default Compare mode only applies until the filters are stored
-    const savedFilters: InsightsFilters = {...defaultFilters, compare: storedQuery ? undefined : defaultFilters.compare, ...parseInsightsFilters(storedQuery)};
-    // Only the displayed filters are fitted, so the saved grouping comes back once a range that offers it is picked
-    const fitToDateRange = (dashboardFilters: InsightsFilters): InsightsFilters => ({
-        ...dashboardFilters,
-        groupBy: getGroupByForDateRange(dashboardFilters.groupBy, dashboardFilters.date, defaultFilters.groupBy),
-    });
-    const filters = fitToDateRange(savedFilters);
+    const filters: InsightsFilters = {...defaultFilters, compare: storedQuery ? undefined : defaultFilters.compare, ...parseInsightsFilters(storedQuery)};
 
     // What GetInsights fetches, so two selections that fetch the same thing can be told apart from ones that need a new request. Leaves out the display-only parts: the Compare mode every response already covers, and Running total, which resolves to its bucket here.
     const fetchedQuery = (dashboardFilters: InsightsFilters) => buildInsightsQueryString({...dashboardFilters, groupBy: getQueryGroupBy(dashboardFilters), compare: undefined});
 
     const setFilters = (update: Partial<InsightsFilters>) => {
-        const next = {...savedFilters, ...update};
+        const next = {...filters, ...update};
         const query = buildInsightsQueryString(next);
         // GetInsights persists the filters as a side effect, so a change it won't fetch for (Compare mode, a Running total toggle that keeps the same bucket, or any change the page skips fetching for) is saved on its own instead.
-        if (fetchedQuery(fitToDateRange(next)) === fetchedQuery(filters) || shouldSkipFetch?.(next)) {
+        if (fetchedQuery(next) === fetchedQuery(filters) || shouldSkipFetch?.(next)) {
             saveInsightsFilters(searchKey, query);
             return;
         }
@@ -72,7 +63,6 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
 
     return {
         filters,
-        savedFilters,
         defaultFilters,
         isResolved: activePolicyIDMetadata.status === 'loaded' && activePolicyMetadata.status === 'loaded' && storedQueryMetadata.status === 'loaded',
         setFilters,
