@@ -58,7 +58,7 @@ function DigitsCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
                 keyForList: accountItem.id,
                 isSelected: selectedAccountID === accountItem.id,
             })) ?? [];
-    const {filteredData, textInputOptions} = useSelectionListSearch(data);
+    const {filteredData, textInputOptions} = useSelectionListSearch(data, translate('common.noResultsFound'));
 
     const headerContent = (
         <View>
@@ -96,6 +96,7 @@ function DigitsCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             onSelectRow={selectCreditCardAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={selectedAccountID}
