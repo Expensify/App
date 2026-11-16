@@ -526,7 +526,12 @@ function TableBody(props: TableBodyProps) {
         emptyMessage = translate('common.noResultsFound');
     }
 
-    const isAsyncSearchInFlight = !!(noResultsStateElement?.props as {shouldShowLoadingIndicator?: boolean} | undefined)?.shouldShowLoadingIndicator;
+    const noResultsStateProps = noResultsStateElement?.props;
+    const isAsyncSearchInFlight =
+        typeof noResultsStateProps === 'object' &&
+        noResultsStateProps !== null &&
+        'shouldShowLoadingIndicator' in noResultsStateProps &&
+        noResultsStateProps.shouldShowLoadingIndicator === true;
     useDebouncedAccessibilityAnnouncement(emptyMessage, isEmptyResult && !isAsyncSearchInFlight, activeSearchString);
 
     // Keep the body mounted when a page header or list empty state must remain visible without rows.
