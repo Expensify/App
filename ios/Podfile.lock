@@ -2073,7 +2073,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-document-picker (10.1.3):
+  - react-native-document-picker (12.0.3):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3097,7 +3097,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNPermissions (5.4.0):
+  - RNPermissions (5.6.3):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -4120,7 +4120,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: 0091cf4599c9cc14d79c9f31be887df4d3d3cf59
   react-native-cameraroll: 8fd837cd3e2c96ca378d85eb4340134381797309
   react-native-config: 06c97ec20d877e11bb128d8cdc11329f18494ecb
-  react-native-document-picker: ee9a7692303f36eef1798dcf43f38f51b1382ad1
+  react-native-document-picker: 6cf4f8d1541982a4f836f1927e5766199f169e6c
   react-native-image-picker: 08847883972f3fe37e31896ac2f864286737b4d4
   react-native-key-command: 9a1d8369da3fc9668b6f5389c9d7412189591217
   react-native-keyboard-controller: d07e8ba4e72859601941cc6c508fdd37a635ba04
@@ -4184,7 +4184,7 @@ SPEC CHECKSUMS:
   RNLocalize: 82e7aa2857ce5dcd9e2a0c04f8c34c2ed50821df
   rnmapbox-maps: 1cb6aa142a8ea99d0934a36d83d2acf3f2de45d3
   RNNitroSQLite: 8962a30dc9296f8a62bfcc33f3c2a540b1c44aff
-  RNPermissions: 32bd3b977f28442af0900b102f4458f0f9f9b77c
+  RNPermissions: 5938a67cf02a23f8a7f69c170608ab481b81713d
   RNReactNativeHapticFeedback: 6c8677db48f62a635e6a2065f5d2bd02498d7a73
   RNReanimated: e75c988a6527ec651ea2957b93891ddb64d530d4
   RNScreens: 433b8c24dd1dfeaa3b61f72d55052cb64fd19c5f

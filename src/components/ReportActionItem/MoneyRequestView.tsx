@@ -23,6 +23,7 @@ import UserPills from '@components/UserPills';
 import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import useAttendees from '@hooks/useAttendees';
@@ -180,6 +181,7 @@ import {View} from 'react-native';
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
+import MoneyRequestViewAdditionalFields from './MoneyRequestViewAdditionalFields';
 import AmountInputField from './MoneyRequestViewFields/AmountInputField';
 import DateInputField from './MoneyRequestViewFields/DateInputField';
 import DescriptionInputField from './MoneyRequestViewFields/DescriptionInputField';
@@ -1048,7 +1050,8 @@ function MoneyRequestView({
     // While a receipt is scanning, the amount and merchant show its status, which is not a value to copy.
     const amountCopyValue = isTransactionScanning ? undefined : amountTitle || undefined;
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
-    const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
+    const accountIDToName = useMentionedAccountIDToNameMap(descriptionHTML);
+    const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML, {accountIDToName}) : undefined;
     const merchantCopyValue = isTransactionScanning ? undefined : updatedMerchantTitle || undefined;
     const dateCopyValue = actualTransactionDate;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
@@ -1798,6 +1801,18 @@ function MoneyRequestView({
             ) : (
                 // Without a thread report the view is read-only, so no field opens a list and nothing reads the context.
                 fields
+            )}
+            {!!parentReport && isExpenseReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction && (
+                <MoneyRequestViewAdditionalFields
+                    transaction={transaction}
+                    report={parentReport}
+                    reportActions={parentReportActions}
+                    policy={policy}
+                    policyCategories={policyCategories}
+                    policyTags={reportPolicyTags}
+                    visibleAttendeeCount={shouldShowAttendees ? transactionAttendees.length : 0}
+                    isVendorColumnAvailable={hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))}
+                />
             )}
             {shouldShowTripRoomLink && (
                 <>

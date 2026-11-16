@@ -40,7 +40,7 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const {isOffline} = useNetwork();
 
     const sortedData = useGroupedItems(normalizeInsightsSnapshot(snapshot, queryJSON?.groupBy), queryJSON);
-    const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
+    const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, metric: chart.metric, isOffline});
 
     const compare = filters.compare;
     const isPreviousPeriod = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
@@ -70,7 +70,13 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
                 return current;
             }
 
-            const compared = resolveInsightsChartData({snapshot: previousPeriodSnapshot, queryJSON: previousPeriodQueryJSON, sortedData: comparedSortedData, isOffline});
+            const compared = resolveInsightsChartData({
+                snapshot: previousPeriodSnapshot,
+                queryJSON: previousPeriodQueryJSON,
+                sortedData: comparedSortedData,
+                metric: chart.metric,
+                isOffline,
+            });
             // A compared chart waits for both sets of rows.
             if (BLOCKING_STATES.has(compared.state)) {
                 return {data: current.data, state: compared.state};
