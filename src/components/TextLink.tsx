@@ -33,7 +33,6 @@ type PressProps = {
     onPress: (event: GestureResponderEvent | KeyboardEvent) => void;
 };
 
-// A link always opens something, either `href` or `onPress`, so it always needs a label.
 type TextLinkProps = (LinkProps | PressProps) &
     DistributedOmit<TextProps, 'sentryLabel'> &
     WithRequiredSentryLabel & {

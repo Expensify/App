@@ -23,7 +23,6 @@ import {Platform, Text as RNText, StyleSheet} from 'react-native';
 
 import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';
 
-// Pressable text, such as a link, doesn't go through a pressable component, so it takes the label itself.
 type TextProps = RNTextProps &
     ChildrenProps &
     WithSentryLabelWhenPressable<'onPress' | 'onLongPress'> & {
@@ -102,8 +101,6 @@ function Text({
             // On Android, TalkBack reads style metadata (e.g. color codes) along with text content.
             // Setting accessibilityLabel explicitly causes TalkBack to read only the label, skipping style info.
             accessibilityLabel={typeof children === 'string' && !!children && Platform.OS === 'android' ? children : undefined}
-            // On web, the label becomes `data-sentry-label`. Text isn't a pressable, so it also asks Sentry for the label
-            // alone instead of the CSS path to it. On native, Sentry reads the `sentryLabel` prop of this component.
             dataSet={sentryLabel ? {sentryLabel, sentryLabelExact: true, ...dataSet} : dataSet}
             {...props}
         >

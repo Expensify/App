@@ -20,7 +20,6 @@ import type {ComponentProps} from 'react';
 const mockGetRootState = jest.fn();
 const mockUseSearchQueryContext = jest.fn();
 
-// jest.mock factories can only reach variables whose names start with `mock`.
 const mockSentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
 
 jest.mock('@hooks/useOnyx', () => jest.fn());
