@@ -10,16 +10,13 @@ type LHNTooltipContextValue = {
     firstReportIDWithGBRorRBR: string | undefined;
 };
 
-/** Functions every row calls on press. The value never changes, so reading it never re-renders a row. */
+/** Rows call these on press. The value never changes, so reading it never re-renders a row. */
 type LHNTooltipActionsContextValue = {
-    /** Hides the Concierge product training tooltip */
-    hideConciergeTooltip: () => void;
-
-    /** Reads the LHN screen focus at the time of the call */
+    hideProductTrainingTooltip: () => void;
     getIsScreenFocused: () => boolean;
 };
 
-/** Values that change when the LHN screen gains or loses focus. Only the row that renders the tooltip reads them. */
+/** Changes when the LHN screen gains or loses focus, so only the row that renders the tooltip reads it. */
 type LHNTooltipVisibilityContextValue = {
     isFullscreenVisible: boolean | undefined;
     isScreenFocused: boolean;
@@ -33,7 +30,7 @@ const LHNTooltipContext = createContext<LHNTooltipContextValue>({
 });
 
 const LHNTooltipActionsContext = createContext<LHNTooltipActionsContextValue>({
-    hideConciergeTooltip: () => {},
+    hideProductTrainingTooltip: () => {},
     getIsScreenFocused: () => false,
 });
 

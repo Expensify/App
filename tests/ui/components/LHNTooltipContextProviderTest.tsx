@@ -1,5 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
+import type * as LHNTooltipContextModule from '@components/LHNOptionsList/LHNTooltipContext';
 import {useLHNTooltipActionsContext, useLHNTooltipVisibilityContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import LHNTooltipContextProvider from '@components/LHNOptionsList/LHNTooltipContextProvider';
 
@@ -21,10 +22,15 @@ jest.mock('@hooks/useRootNavigationState', () => ({
     default: () => true,
 }));
 
-const mockHideProductTrainingTooltip = jest.fn();
+const mockHideTooltip = jest.fn();
+const mockOnTooltipHookRender = jest.fn<void, [boolean]>();
 jest.mock('@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip', () => ({
     __esModule: true,
-    default: () => ({hideProductTrainingTooltip: mockHideProductTrainingTooltip}),
+    default: function useMockLHNRowProductTrainingTooltip() {
+        const {useLHNTooltipVisibilityContext: useVisibilityContext} = jest.requireActual<typeof LHNTooltipContextModule>('@components/LHNOptionsList/LHNTooltipContext');
+        mockOnTooltipHookRender(useVisibilityContext().isScreenFocused);
+        return {hideProductTrainingTooltip: mockHideTooltip};
+    },
 }));
 
 const onRowRender = jest.fn<void, [ReturnType<typeof useLHNTooltipActionsContext>]>();
@@ -62,7 +68,8 @@ describe('LHNTooltipContextProvider', () => {
         mockIsFocused = true;
         onRowRender.mockClear();
         onTooltipRowRender.mockClear();
-        mockHideProductTrainingTooltip.mockClear();
+        mockHideTooltip.mockClear();
+        mockOnTooltipHookRender.mockClear();
     });
 
     afterEach(async () => {
@@ -82,7 +89,7 @@ describe('LHNTooltipContextProvider', () => {
         rerenderProvider();
         await waitForBatchedUpdatesWithAct();
 
-        // Then rows keep their render, because every row would otherwise render again on each RHP open, and only the tooltip row sees the new focus
+        // Then rows don't render again, since every RHP open would otherwise re-render each row, and only the tooltip row sees the new focus
         expect(onRowRender).toHaveBeenCalledTimes(rowRendersBeforeBlur);
         expect(onTooltipRowRender.mock.lastCall?.[0].isScreenFocused).toBe(false);
         expect(onRowRender.mock.lastCall?.[0].getIsScreenFocused()).toBe(false);
@@ -94,9 +101,24 @@ describe('LHNTooltipContextProvider', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When a row is pressed and hides the tooltip
-        onRowRender.mock.lastCall?.[0].hideConciergeTooltip();
+        onRowRender.mock.lastCall?.[0].hideProductTrainingTooltip();
 
-        // Then the provider's tooltip hide runs, so pressing a row still dismisses the Concierge tooltip
-        expect(mockHideProductTrainingTooltip).toHaveBeenCalledTimes(1);
+        // Then the provider's hide runs, so pressing a row still dismisses the Concierge tooltip
+        expect(mockHideTooltip).toHaveBeenCalledTimes(1);
+    });
+
+    it('gives the tooltip hook the current screen focus', async () => {
+        // Given the LHN is rendered while its screen is focused
+        const {rerenderProvider} = renderProvider();
+        await waitForBatchedUpdatesWithAct();
+        expect(mockOnTooltipHookRender.mock.lastCall?.[0]).toBe(true);
+
+        // When the screen loses focus
+        mockIsFocused = false;
+        rerenderProvider();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the hook sees the blur, which only happens while the row provider renders under the visibility provider
+        expect(mockOnTooltipHookRender.mock.lastCall?.[0]).toBe(false);
     });
 });

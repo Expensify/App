@@ -19,13 +19,13 @@ type LHNTooltipContextProviderProps = {
 };
 
 type LHNTooltipRowContextProviderProps = LHNTooltipContextProviderProps & {
-    /** Whether the LHN screen is focused. Rows only read it through a getter, so a focus change does not re-render them. */
+    /** Whether the LHN screen is focused. Rows read it through a getter, so a focus change doesn't re-render them. */
     isScreenFocused: boolean;
 };
 
 /**
- * Provides the contexts every row reads. Their values must not change when the LHN screen loses focus (for example when an RHP opens),
- * so focus and the tooltip hide action are exposed as getters backed by refs.
+ * Keeps the row contexts unchanged when the LHN screen loses focus, by exposing focus and the tooltip hide through refs.
+ * It must render under LHNTooltipVisibilityContext.Provider because useLHNRowProductTrainingTooltip reads that context, so merging the two providers would make the hook see the unfocused default.
  */
 function LHNTooltipRowContextProvider({data, isScreenFocused, children}: LHNTooltipRowContextProviderProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -55,7 +55,7 @@ function LHNTooltipRowContextProvider({data, isScreenFocused, children}: LHNTool
     };
 
     const actions = {
-        hideConciergeTooltip: () => hideProductTrainingTooltipRef.current(),
+        hideProductTrainingTooltip: () => hideProductTrainingTooltipRef.current(),
         getIsScreenFocused: () => isScreenFocusedRef.current,
     };
 

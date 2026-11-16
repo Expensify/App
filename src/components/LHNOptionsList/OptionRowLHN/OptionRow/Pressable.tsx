@@ -63,7 +63,7 @@ function Pressable({optionItem, isOptionFocused, selectedStyle, hoveredStyle, on
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {getIsScreenFocused, hideConciergeTooltip} = useLHNTooltipActionsContext();
+    const {getIsScreenFocused, hideProductTrainingTooltip} = useLHNTooltipActionsContext();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
@@ -99,7 +99,7 @@ function Pressable({optionItem, isOptionFocused, selectedStyle, hoveredStyle, on
     const testID = typeof reportID === 'number' ? String(reportID) : reportID;
 
     const onPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
-        hideConciergeTooltip();
+        hideProductTrainingTooltip();
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
             name: 'OptionRowLHN',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
