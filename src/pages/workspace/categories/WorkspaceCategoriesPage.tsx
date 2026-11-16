@@ -92,7 +92,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyData = usePolicyData(policyId);
     const {policyMemberAccountIDs, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyId);
-    const {policy, categories: policyCategories} = policyData;
+    const {policy, categories: policyCategories, hasCategoryData} = policyData;
+    const [haveCategoriesLoaded] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policyId}`, {
+        selector: (loadingState) => !!loadingState?.hasOnceLoaded,
+    });
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.categories');
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
@@ -328,6 +331,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const hasVisibleCategories = categoryRows.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
     const hasEnabledCategories = hasEnabledOptions(policyCategories);
+    // An absent or partial cache cannot establish that the workspace has no enabled categories.
+    const shouldShowAutoCategorizeOff = hasCategoryData && haveCategoriesLoaded && !hasEnabledCategories;
 
     const policyHasAccountingConnections = hasAccountingConnections(policy);
 
@@ -372,11 +377,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             errors: policy?.errorFields?.autoCategorizeNewExpenses,
             onCloseError: () => clearPolicyErrorField(policyId, 'autoCategorizeNewExpenses'),
             switchProps: {
-                isOn: policy?.autoCategorizeNewExpenses ?? true,
+                isOn: !shouldShowAutoCategorizeOff && (policy?.autoCategorizeNewExpenses ?? true),
                 accessibilityLabel: translate('workspace.categories.autoCategorizeNewExpenses'),
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.AUTO_CATEGORIZE_SWITCH,
                 onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value, getReviewWorkspaceSettingsTaskCompletion()),
                 disabled: !policy?.areCategoriesEnabled || !hasEnabledCategories,
+                lockTooltip: shouldShowAutoCategorizeOff ? translate('workspace.categories.enableAtLeastOneCategory') : undefined,
             },
         });
     }

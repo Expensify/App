@@ -17,7 +17,7 @@ import type PolicyData from './types';
  * @param policyID The ID of the policy to retrieve data for.
  * @returns An object containing policy data
  */
-function usePolicyData(policyID?: string): PolicyData {
+function usePolicyData(policyID?: string): PolicyData & {hasCategoryData: boolean} {
     const policy = usePolicy(policyID);
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
 
@@ -54,6 +54,7 @@ function usePolicyData(policyID?: string): PolicyData {
         transactionsAndViolations,
         tags: tags ?? {},
         categories: categories ?? {},
+        hasCategoryData: categories !== undefined,
         vendors: vendors ?? undefined,
         policy: policy as OnyxValueWithOfflineFeedback<Policy>,
         reports: Object.values(reports ?? {}) as Array<OnyxValueWithOfflineFeedback<Report>>,

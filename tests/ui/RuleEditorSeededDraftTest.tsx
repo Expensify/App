@@ -2,7 +2,6 @@ import {act, render, screen} from '@testing-library/react-native';
 
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
-import type PolicyData from '@hooks/usePolicyData/types';
 
 import FlagForReviewRulePageBase from '@pages/workspace/rules/FlagForReviewRules/FlagForReviewRulePageBase';
 import RequireFieldsRulePageBase from '@pages/workspace/rules/RequireFieldsRules/RequireFieldsRulePageBase';
@@ -128,8 +127,7 @@ describe('Rule editors opened with a draft from the describe flow', () => {
         jest.clearAllMocks();
         const policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE), id: POLICY_ID, role: CONST.POLICY.ROLE.ADMIN, areCategoriesEnabled: false};
         mockedUsePolicy.mockReturnValue(policy);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only policy data. The editors read only the policy and its categories.
-        mockedUsePolicyData.mockReturnValue({policy, categories: {}, tags: {}, reports: []} as unknown as PolicyData);
+        mockedUsePolicyData.mockReturnValue({policy, categories: {}, hasCategoryData: true, tags: {}, reports: [], transactionsAndViolations: {}});
     });
 
     afterEach(async () => {

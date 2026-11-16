@@ -10,6 +10,7 @@ import {
     deleteWorkspaceCategories,
     enablePolicyCategories,
     importPolicyCategories,
+    openPolicyCategoriesPage,
     renamePolicyCategory,
     setPolicyCategoryReceiptsAndItemizedReceiptRequired,
     setPolicyMemberCategoryVisibility,
@@ -57,6 +58,42 @@ describe('actions/PolicyCategory', () => {
         mockFetch = TestHelper.getGlobalFetchMock();
         global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    describe('openPolicyCategoriesPage', () => {
+        it('marks the category list complete only after a successful response', async () => {
+            // Given a workspace whose category list has not been fetched
+            const policyID = 'category-loading-policy';
+            const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policyID}` as const;
+            mockFetch.pause();
+
+            // When the page request is still in flight
+            openPolicyCategoriesPage(policyID);
+            await waitForBatchedUpdates();
+
+            // Then an empty cache does not count as a complete category list
+            expect((await OnyxUtils.get(loadingKey))?.hasOnceLoaded).toBeFalsy();
+
+            // When the request succeeds, including a response with no categories
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the page can safely distinguish an empty list from missing data
+            expect((await OnyxUtils.get(loadingKey))?.hasOnceLoaded).toBe(true);
+        });
+
+        it('does not mark a failed category page request as complete', async () => {
+            // Given a category page request that will fail
+            const policyID = 'failed-category-loading-policy';
+            mockFetch.fail();
+
+            // When the failed request finishes
+            openPolicyCategoriesPage(policyID);
+            await waitForBatchedUpdates();
+
+            // Then missing data is still unknown rather than a known-empty list
+            expect((await OnyxUtils.get(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policyID}`))?.hasOnceLoaded).toBeFalsy();
+        });
     });
 
     describe('setWorkspaceRequiresCategory', () => {

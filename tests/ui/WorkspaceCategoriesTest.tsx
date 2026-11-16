@@ -4,11 +4,13 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import Tooltip from '@components/Tooltip';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import * as PolicyCategoryActions from '@libs/actions/Policy/Category';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {PolicyCategories} from '@src/types/onyx';
 
 import {PortalProvider} from '@gorhom/portal';
 import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
@@ -125,6 +128,130 @@ describe('WorkspaceCategories', () => {
             await Onyx.clear();
         });
         jest.restoreAllMocks();
+    });
+
+    describe('Auto-categorize availability', () => {
+        const getAutoCategorizeSwitch = () => screen.getByRole(CONST.ROLE.SWITCH, {name: TestHelper.translateLocal('workspace.categories.autoCategorizeNewExpenses')});
+        const getCategoryTooltips = () =>
+            screen.UNSAFE_queryAllByType(Tooltip).filter((tooltip) => tooltip.props.text === TestHelper.translateLocal('workspace.categories.enableAtLeastOneCategory'));
+
+        beforeEach(() => {
+            // Each test controls when a complete category fetch becomes available.
+            jest.spyOn(PolicyCategoryActions, 'openPolicyCategoriesPage').mockImplementation(() => {});
+        });
+
+        it.each([
+            {savedValue: true, categoryState: 'disabled'},
+            {savedValue: false, categoryState: 'disabled'},
+            {savedValue: undefined, categoryState: 'disabled'},
+            {savedValue: true, categoryState: 'deleted'},
+            {savedValue: false, categoryState: 'deleted'},
+            {savedValue: true, categoryState: 'pending deletion'},
+        ])('preserves the $savedValue preference while the last category is $categoryState', async ({savedValue, categoryState}) => {
+            // Given a fully loaded workspace with an enabled category and a saved or default preference
+            await TestHelper.signInWithTestUser();
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                areCategoriesEnabled: true,
+                requiresCategory: false,
+                autoCategorizeNewExpenses: savedValue,
+                glCodes: true,
+                showCategoryGLCodes: true,
+            };
+            const enabledCategory = {name: FIRST_CATEGORY, enabled: true};
+            const setAutoCategorize = jest.spyOn(PolicyCategoryActions, 'setPolicyAutoCategorizeNewExpenses');
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, {[FIRST_CATEGORY]: enabledCategory});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policy.id}`, {hasOnceLoaded: true});
+            });
+            const {unmount} = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.more')));
+            await waitForBatchedUpdatesWithAct();
+            expect(getAutoCategorizeSwitch()).toHaveProp('accessibilityState', {checked: savedValue ?? true, disabled: false});
+            expect(getCategoryTooltips()).toHaveLength(0);
+
+            // When the last category is disabled, deleted, or marked for optimistic deletion
+            const unavailableCategories: PolicyCategories =
+                categoryState === 'deleted'
+                    ? {}
+                    : {
+                          [FIRST_CATEGORY]: {
+                              ...enabledCategory,
+                              enabled: categoryState === 'pending deletion',
+                              ...(categoryState === 'pending deletion' ? {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} : {}),
+                          },
+                      };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, unavailableCategories);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then Auto-categorize is off and locked without changing the preference or the GL-code toggle
+            expect(getAutoCategorizeSwitch()).toHaveProp('accessibilityState', {checked: false, disabled: true});
+            expect(getCategoryTooltips()).toHaveLength(1);
+            expect(screen.getByRole(CONST.ROLE.SWITCH, {name: TestHelper.translateLocal('workspace.categories.showCategoryGLCodes')})).toHaveProp('accessibilityState', {
+                checked: true,
+                disabled: false,
+            });
+            fireEvent.press(getAutoCategorizeSwitch());
+            expect(setAutoCategorize).not.toHaveBeenCalled();
+            // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- This workspace test has no SearchScopeProvider and verifies the unchanged live policy fixture.
+            expect((await Onyx.get(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`))?.autoCategorizeNewExpenses).toBe(savedValue);
+
+            // When a category is enabled again or the optimistic deletion rolls back
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, {[FIRST_CATEGORY]: enabledCategory});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the saved/default display returns and the menu remains open
+            expect(getAutoCategorizeSwitch()).toHaveProp('accessibilityState', {checked: savedValue ?? true, disabled: false});
+            expect(getCategoryTooltips()).toHaveLength(0);
+            expect(setAutoCategorize).not.toHaveBeenCalled();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it.each([false, true])('does not infer empty categories before a successful fetch (cached enabled category: %s)', async (hasCachedCategory) => {
+            // Given hydrated cache data that may be incomplete and no successful full fetch
+            await TestHelper.signInWithTestUser();
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                areCategoriesEnabled: true,
+                autoCategorizeNewExpenses: true,
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                if (hasCachedCategory) {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, {[FIRST_CATEGORY]: {name: FIRST_CATEGORY, enabled: true}});
+                }
+            });
+            const {unmount} = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.more')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the saved display is preserved and cached enabled categories introduce no new interaction restriction
+            expect(getAutoCategorizeSwitch()).toHaveProp('accessibilityState', {checked: true, disabled: !hasCachedCategory});
+            expect(getCategoryTooltips()).toHaveLength(0);
+
+            // When a complete successful response establishes that the workspace is empty
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, {});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policy.id}`, {hasOnceLoaded: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then an actually empty workspace displays off with the explanation
+            expect(getAutoCategorizeSwitch()).toHaveProp('accessibilityState', {checked: false, disabled: true});
+            expect(getCategoryTooltips()).toHaveLength(1);
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     it('should delete categories through UI interactions', async () => {

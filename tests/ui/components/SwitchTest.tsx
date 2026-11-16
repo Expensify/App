@@ -1,6 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
 import Switch from '@components/Switch';
+import Tooltip from '@components/Tooltip';
 
 import CONST from '@src/CONST';
 
@@ -29,6 +30,32 @@ function renderSwitch(props: Partial<React.ComponentProps<typeof Switch>> = {}) 
 }
 
 describe('Switch', () => {
+    it('anchors the explanation to the lock icon without wrapping the switch', () => {
+        // Given a disabled switch with a reason for being locked
+        const lockTooltip = 'Please enable at least one category.';
+        renderSwitch({disabled: true, lockTooltip});
+
+        // When inspecting the tooltip anchor
+        const tooltip = screen.UNSAFE_getByType(Tooltip);
+
+        // Then only the lock is inside it, not the track or accessible switch
+        expect(tooltip.props.text).toBe(lockTooltip);
+        expect(tooltip.props.shouldRender).toBe(true);
+        expect(tooltip.findAll((node) => node.props.testID === CONST.SWITCH_LOCK_ICON_TEST_ID).length).toBeGreaterThan(0);
+        expect(tooltip.findAll((node) => node.props.role === CONST.ROLE.SWITCH)).toHaveLength(0);
+    });
+
+    it('does not add a tooltip to existing locked switches without an explanation', () => {
+        // Given an existing caller that only disables the switch
+        renderSwitch({disabled: true});
+
+        // When inspecting the optional tooltip
+        const tooltip = screen.UNSAFE_getByType(Tooltip);
+
+        // Then tooltip behavior remains disabled for that caller
+        expect(tooltip.props.shouldRender).toBe(false);
+    });
+
     it('does not announce a locked state when the switch is enabled and shows no lock icon', () => {
         // Given an enabled switch without a lock icon
         renderSwitch();

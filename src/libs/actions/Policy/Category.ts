@@ -163,7 +163,21 @@ function openPolicyCategoriesPage(policyID: string) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
+    API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params, {
+        successData: [
+            {
+                // A successful empty response may omit the collection; retain an explicit empty value without replacing categories.
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policyID}`,
+                value: {hasOnceLoaded: true},
+            },
+        ],
+    });
 }
 
 function getPolicyCategories(policyID: string) {
@@ -187,7 +201,7 @@ function getPolicyCategories(policyID: string) {
         },
     ];
 
-    // `hasOnceLoaded` is only ever written here, so a read that never landed leaves the policy eligible for a retry.
+    // Only successful category reads set `hasOnceLoaded`, so a read that never landed leaves the policy eligible for a retry.
     // The collection existing in Onyx cannot stand in for this: it may hold only the category already on the expense.
     const successData: Array<OnyxUpdate<CategoriesLoadingKey>> = [
         {

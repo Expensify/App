@@ -9,11 +9,13 @@ import CONST from '@src/CONST';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useLayoutEffect, useRef} from 'react';
+import {View} from 'react-native';
 import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import ActivityIndicator from './ActivityIndicator';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import Tooltip from './Tooltip';
 
 type SwitchProps = {
     /** Whether the switch is toggled to the on position */
@@ -34,6 +36,9 @@ type SwitchProps = {
 
     /** Whether to show the lock icon even if the switch is enabled */
     showLockIcon?: boolean;
+
+    /** Shown only when hovering the lock icon, not the rest of the switch. */
+    lockTooltip?: string;
 
     /** Callback to fire when the switch is toggled in disabled state */
     disabledAction?: () => void | Promise<void>;
@@ -61,6 +66,7 @@ function Switch({
     disabled,
     pending = false,
     showLockIcon,
+    lockTooltip,
     disabledAction,
     isNested,
     shouldAnimateOnExternalChange = false,
@@ -161,13 +167,20 @@ function Switch({
                         />
                     ) : (
                         (!!disabled || !!showLockIcon) && (
-                            <Icon
-                                testID={CONST.SWITCH_LOCK_ICON_TEST_ID}
-                                src={expensifyIcons.Lock}
-                                fill={isOn ? theme.text : theme.icon}
-                                width={styles.toggleSwitchLockIcon.width}
-                                height={styles.toggleSwitchLockIcon.height}
-                            />
+                            <Tooltip
+                                text={lockTooltip}
+                                shouldRender={!!lockTooltip}
+                            >
+                                <View>
+                                    <Icon
+                                        testID={CONST.SWITCH_LOCK_ICON_TEST_ID}
+                                        src={expensifyIcons.Lock}
+                                        fill={isOn ? theme.text : theme.icon}
+                                        width={styles.toggleSwitchLockIcon.width}
+                                        height={styles.toggleSwitchLockIcon.height}
+                                    />
+                                </View>
+                            </Tooltip>
                         )
                     )}
                 </Animated.View>
