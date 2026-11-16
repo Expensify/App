@@ -30,7 +30,6 @@ type PersonalCardDetailsHeaderMenuProps = {
     card: Card;
     cardID: string;
     cardholder: PersonalDetails | null | undefined;
-    customCardNames: Record<string, string> | undefined;
     expensifyIcons: Record<string, IconAsset>;
     isCSVImportedPersonalCard: boolean;
     reimbursableSetting: boolean;
@@ -45,7 +44,6 @@ function PersonalCardDetailsHeaderMenu({
     card,
     cardID,
     cardholder,
-    customCardNames,
     expensifyIcons,
     isCSVImportedPersonalCard,
     reimbursableSetting,
@@ -81,9 +79,7 @@ function PersonalCardDetailsHeaderMenu({
                     sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.NAME}
                     name={translate('workspace.moreFeatures.companyCards.cardName')}
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_NAME.path))}
-                    value={
-                        customCardNames?.[cardID] ?? (isCSVImportedPersonalCard ? card?.nameValuePairs?.cardTitle : undefined) ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName)
-                    }
+                    value={card?.nameValuePairs?.cardTitle ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName)}
                 >
                     {!!card?.nameValuePairs?.errorFields?.cardTitle && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                 </MenuItemField>

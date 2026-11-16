@@ -274,12 +274,11 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
  *
  * @param card - The existing CSV imported card the transactions are added to
  * @param savedLayout - The saved column layout for that card, which holds the currency and amount sign settings picked on the first import
- * @param customCardName - The name of the card in the custom card names NVP, if the card was renamed
  */
-function getExistingCardImportSettings(card: Card | undefined, savedLayout: SavedCSVColumnLayoutData | undefined, customCardName: string | undefined): ImportTransactionSettings {
+function getExistingCardImportSettings(card: Card | undefined, savedLayout: SavedCSVColumnLayoutData | undefined): ImportTransactionSettings {
     const settings: ImportTransactionSettings = {};
 
-    const cardDisplayName = customCardName ?? card?.nameValuePairs?.cardTitle ?? card?.cardName ?? savedLayout?.name;
+    const cardDisplayName = card?.nameValuePairs?.cardTitle ?? card?.cardName ?? savedLayout?.name;
     if (cardDisplayName) {
         settings.cardDisplayName = cardDisplayName;
     }
