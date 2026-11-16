@@ -14,16 +14,17 @@ When you write a component that passes `sentryLabel` on to one of these, give it
 - `WithRequiredSentryLabel`: every usage passes a label. Use it for components that always handle a press, such as a button that requires `onPress`, a menu that opens itself, or a link, and for menu, dropdown and tab items.
 - `WithSentryLabelWhenPressable<'onPress' | ...>`: usages that pass one of the listed props must pass a defined label too, and usages without one need none. Use it for components that can render read-only, such as `MenuItem` or `Button` without `onPress`. The listed props don't have to be handlers: `Badge` uses `pressable`. When the label prop has another name, pass it as the second parameter, e.g. `WithSentryLabelWhenPressable<'onCtaPress', 'ctaSentryLabel'>`. To derive another props type from one that uses it, use `DistributedOmit` or `DistributedPick` from type-fest. `Omit` and `Pick` merge the union and silently drop the requirement.
 
-TypeScript only knows the label goes with the handler while both are in the same props object. Once you take them out of the props, pass the label on through [`castToSentryLabel`](../src/libs/castToSentryLabel.ts) next to the handlers:
+TypeScript only knows the label goes with the handler while both are in the same props object. Once you take them out of the props, check the prop that makes the element pressable (the handler, or a flag like `interactive` or `pressable`) and pass the label in that branch. Assign the result to a `const`, so TypeScript keeps the label tied to the check:
 
 ```tsx
-<PressableWithFeedback
-    sentryLabel={castToSentryLabel(sentryLabel)}
-    onPress={pressWithFeedback}
-/>
+const pressProps = onPress ? {onPress, sentryLabel} : {};
+
+return <Text {...pressProps}>{text}</Text>;
 ```
 
-The props already require the label whenever the caller passes a handler, so the cast only tells TypeScript what the props guarantee. It only removes `undefined` from the type, it never turns a string into a label. Pass the handlers on and render the element whether or not the label is defined, so don't write `sentryLabel ? {onPress, sentryLabel} : {}` or `!!onPress && !!sentryLabel && <Button />`. Then, if a cast or untyped data lets a handler through without a label, the press still works and only the label is missing. Pass the handlers to the element directly rather than through a helper function, so React Compiler can still compile the component.
+When the element is rendered only with the handler, the same check narrows the label: `{!!onAddCategory && <Button onPress={onAddCategory} sentryLabel={addCategorySentryLabel} />}`. Check the handler or the flag, never the label, so if a type hole lets a handler through without a label, the element still renders and works and only the label is missing. Two things stop TypeScript from narrowing: a default value on the prop you check (`pressable = false`), and writing the check inline in JSX (`{...(onPress ? {onPress, sentryLabel} : {})}`), which TypeScript merges into one object with optional props. To derive another props type, use `DistributedPick` or `DistributedOmit` (see above).
+
+A few core wrappers can't narrow, because they attach a handler of their own even when the caller passes none (`Button`) or get the label from context (`PressableWithFeedback`, `PressableWithSecondaryInteraction`, `MenuItem`). Only they use [`castToSentryLabel`](../src/libs/castToSentryLabel.ts), which types a label as defined. Lint blocks it everywhere else. The list is `CAST_TO_SENTRY_LABEL_FILES` in `oxlint.config.mts`.
 
 Inputs, such as `TextInput` (`TextInput-Field`), and components that fall back to a default label, such as `RadioButton` and `FormProvider`, keep an optional `sentryLabel` (`WithSentryLabel`). In tests and stories, pass `CONST.SENTRY_LABEL.TEST.LABEL`. Neither sends anything to Sentry, so they share one label instead of copying the production ones. Never use it in app code.
 

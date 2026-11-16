@@ -3,8 +3,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import castToSentryLabel from '@libs/castToSentryLabel';
-
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 
 import CONST from '@src/CONST';
@@ -76,7 +74,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={onCtaPress}
-                        sentryLabel={castToSentryLabel(ctaSentryLabel)}
+                        sentryLabel={ctaSentryLabel}
                     >
                         <Button.Text>{ctaText ?? ''}</Button.Text>
                     </Button>
@@ -85,7 +83,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onCtaPress}
-                    sentryLabel={castToSentryLabel(ctaSentryLabel)}
+                    sentryLabel={ctaSentryLabel}
                 >
                     <Button.Text>{ctaText ?? ''}</Button.Text>
                 </Button>

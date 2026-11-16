@@ -25,7 +25,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import castToSentryLabel from '@libs/castToSentryLabel';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getVendorDisplayName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -56,6 +55,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -78,9 +78,11 @@ import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
 
 type TransactionItemRowWideProps = Omit<
     TransactionItemRowProps,
-    'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox' | 'shouldSkipDeferRBR'
-> &
-    TransactionItemRowWideComputedData &
+    'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox' | 'shouldSkipDeferRBR' | 'checkboxSentryLabel'
+> & {
+    /** A wide row shows its checkbox unless it shows a radio button, so it always needs the label. */
+    checkboxSentryLabel: SentryLabel;
+} & TransactionItemRowWideComputedData &
     TransactionItemRowRBRDeferControlProps;
 
 function searchHasFilterSelector(form: OnyxEntry<SearchAdvancedFiltersForm>) {
@@ -774,7 +776,7 @@ function TransactionItemRowWide({
                             isChecked={isSelected}
                             containerStyle={styles.m0}
                             wrapperStyle={styles.justifyContentCenter}
-                            sentryLabel={castToSentryLabel(checkboxSentryLabel)}
+                            sentryLabel={checkboxSentryLabel}
                         />
                     )}
                     {columns?.map(renderColumn)}

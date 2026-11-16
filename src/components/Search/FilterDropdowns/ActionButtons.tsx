@@ -3,8 +3,6 @@ import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import castToSentryLabel from '@libs/castToSentryLabel';
-
 import CONST from '@src/CONST';
 import type {SentryLabel, WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
@@ -30,7 +28,7 @@ function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, shou
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     style={[styles.flex1]}
                     onPress={onReset}
-                    sentryLabel={castToSentryLabel(resetSentryLabel)}
+                    sentryLabel={resetSentryLabel}
                 >
                     <Button.Text>{translate('common.reset')}</Button.Text>
                 </Button>

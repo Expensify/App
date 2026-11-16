@@ -8,13 +8,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import castToSentryLabel from '@libs/castToSentryLabel';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {isScanning} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+
+import type {DistributedPick} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -28,7 +29,7 @@ import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
 
-type TransactionItemRowNarrowProps = Pick<
+type TransactionItemRowNarrowProps = DistributedPick<
     TransactionItemRowProps,
     | 'transactionItem'
     | 'report'
@@ -63,7 +64,7 @@ function TransactionItemRowNarrow({
     isSelected,
     shouldShowTooltip,
     onCheckboxPress = () => {},
-    shouldShowCheckbox = false,
+    shouldShowCheckbox,
     style,
     dataSet,
     isInSingleTransactionReport = false,
@@ -115,7 +116,7 @@ function TransactionItemRowNarrow({
                             style={styles.mr3}
                             containerStyle={styles.m0}
                             wrapperStyle={styles.justifyContentCenter}
-                            sentryLabel={castToSentryLabel(checkboxSentryLabel)}
+                            sentryLabel={checkboxSentryLabel}
                         />
                     )}
                     <ReceiptCell

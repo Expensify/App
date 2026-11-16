@@ -48,7 +48,7 @@ Flag ONLY when ALL of these are true:
 - The type uses `WithRequiredSentryLabel` or `WithSentryLabelWhenPressable`
 - The file is a test or story
 
-Also flag a component that takes `sentryLabel` and a press handler out of its props, then silences the resulting type error with its own cast, or drops the handler or hides the element when the label is missing, instead of passing the label through `castToSentryLabel` (see "TypeScript only knows the label goes with the handler" in SENTRY_LABEL.md).
+Also flag a component that takes `sentryLabel` and a press handler out of its props, then silences the resulting type error with a cast, or checks the label instead of the prop that makes the element pressable (`sentryLabel ? {onPress, sentryLabel} : {}`, `!!sentryLabel && <Button />`), which drops the handler or hides the element when the label is missing (see "TypeScript only knows the label goes with the handler" in SENTRY_LABEL.md). `castToSentryLabel` is allowed only in the files listed in `CAST_TO_SENTRY_LABEL_FILES` in `oxlint.config.mts`.
 
 **Search Patterns** (hints for reviewers):
 - `sentryLabel?: SentryLabel`

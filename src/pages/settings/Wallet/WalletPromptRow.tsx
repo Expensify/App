@@ -6,8 +6,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import castToSentryLabel from '@libs/castToSentryLabel';
-
 import CONST from '@src/CONST';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
@@ -56,7 +54,7 @@ function WalletPromptRow({message, shouldShowSuccessMessage = true, buttonText, 
                     size={CONST.BUTTON_SIZE.SMALL}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onButtonPress}
-                    sentryLabel={castToSentryLabel(buttonSentryLabel)}
+                    sentryLabel={buttonSentryLabel}
                 >
                     <Button.Text>{buttonText}</Button.Text>
                 </Button>

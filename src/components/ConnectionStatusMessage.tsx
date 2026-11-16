@@ -3,8 +3,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import castToSentryLabel from '@libs/castToSentryLabel';
-
 import CONST from '@src/CONST';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
@@ -95,7 +93,7 @@ function ConnectionStatusMessage({
             onPress={onActionPress}
             isDisabled={isActionDisabled}
             accessibilityLabel={actionAccessibilityLabel}
-            sentryLabel={castToSentryLabel(actionSentryLabel)}
+            sentryLabel={actionSentryLabel}
         >
             <Button.Text>{actionText}</Button.Text>
         </Button>

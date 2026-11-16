@@ -121,6 +121,25 @@ const restrictedHeaderImportPatterns = [
     {group: ['**/HeaderWithBackButton/**'], message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.'},
 ];
 
+// castToSentryLabel tells TypeScript a label is defined, so outside the few wrappers that need it, it would hide a missing
+// label. Those wrappers attach their own handlers or get the label from context, so TypeScript can't narrow it there.
+const CAST_TO_SENTRY_LABEL_FILES = [
+    'src/components/Button/Button.tsx',
+    'src/components/MenuItem/MenuItem.tsx',
+    'src/components/MenuItem/layout/MenuItemRoot.tsx',
+    'src/components/Pressable/PressableWithFeedback.tsx',
+    'src/components/Pressable/PressableWithoutFocus.tsx',
+    'src/components/PressableWithSecondaryInteraction/index.tsx',
+    'src/components/PressableWithSecondaryInteraction/index.native.tsx',
+];
+const castToSentryLabelImportPatterns = [
+    {
+        group: ['**/castToSentryLabel'],
+        message:
+            'castToSentryLabel is only for the core pressable wrappers. Pass the label with the prop that makes the element pressable, so TypeScript can narrow it. See contributingGuides/SENTRY_LABEL.md.',
+    },
+];
+
 // Headless CLI cannot use useTheme; email charts always render with the light theme.
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((entry) => entry.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportPatterns.filter((entry) => !entry.group.includes('@styles/theme/themes/**'));
@@ -472,7 +491,10 @@ export default await buildOxlintConfig({
         {
             files: ['**/*.{ts,tsx}'],
             rules: {
-                'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns]}],
+                'no-restricted-imports': [
+                    'error',
+                    {paths: restrictedImportPaths, patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns, ...castToSentryLabelImportPatterns]},
+                ],
                 // Overrides are last-wins: keep this block above the later ones that turn this rule off
                 // or re-set `no-restricted-imports`.
                 'typescript/no-deprecated': ['error', {allow: ['translateFn']}],
@@ -490,6 +512,10 @@ export default await buildOxlintConfig({
                     },
                 ],
             },
+        },
+        {
+            files: CAST_TO_SENTRY_LABEL_FILES,
+            rules: {'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns]}]},
         },
         {files: ['src/**/*'], rules: {'max-lines': ['error', 4000]}},
         {

@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 
-import castToSentryLabel from '@libs/castToSentryLabel';
 import {getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
@@ -117,7 +116,7 @@ function CategoryPickerModal({
                             role={CONST.ROLE.BUTTON}
                             onPress={onAddCategory}
                             shouldUseAutoHitSlop
-                            sentryLabel={castToSentryLabel(addCategorySentryLabel)}
+                            sentryLabel={addCategorySentryLabel}
                         >
                             <Icon
                                 src={icons.Plus}
