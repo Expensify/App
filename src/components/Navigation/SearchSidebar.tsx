@@ -29,6 +29,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import useShouldUseFlatNavigationBar from './FlatNavigationBar/useShouldUseFlatNavigationBar';
 import {
     useSearchSidebarCollapse,
     useSearchSidebarCollapseFadeStyle,
@@ -49,6 +50,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
     const {isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
     const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
@@ -117,7 +119,8 @@ function SearchSidebar({state}: SearchSidebarProps) {
                             shouldDisplaySearch={false}
                             shouldDisplayHelpButton={false}
                         >
-                            {toggleButton}
+                            {/* The flat navigation bar has its own toggle for the one flag both share. */}
+                            {!shouldUseFlatNavigationBar && toggleButton}
                         </TopBar>
                         <Hoverable onHoverIn={startPeek}>
                             <View style={styles.flex1}>

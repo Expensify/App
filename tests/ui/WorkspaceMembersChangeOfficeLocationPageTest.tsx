@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, waitFor} from '@testing-library/react-native';
 
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
@@ -38,7 +38,7 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) =
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => true})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
-jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn(), isNavigationReady: jest.fn(() => Promise.resolve())}));
 jest.mock('@libs/actions/Policy/DistanceRate', () => ({updateEmployeeOfficeLocation: jest.fn()}));
 jest.mock('@libs/actions/Policy/Member', () => ({clearWorkspaceMembersSelectedForBulkEdit: jest.fn()}));
 jest.mock('@libs/PolicyUtils', () => ({
@@ -161,7 +161,7 @@ describe('WorkspaceMembersChangeOfficeLocationPage', () => {
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
     });
 
-    it('leaves out members picked on another workspace', () => {
+    it('leaves out members picked on another workspace', async () => {
         // Given members picked on another workspace's member list who also belong to this workspace
         jest.mocked(useOnyx).mockReturnValue([{policyID: 'otherPolicy', accountIDs: [member1AccountID, member2AccountID]}, {status: 'loaded'}]);
         renderPage('OFFICE1', 'OFFICE2');
@@ -174,8 +174,35 @@ describe('WorkspaceMembersChangeOfficeLocationPage', () => {
             getConfirmButtonProps()?.onPress?.();
         });
 
-        // Then the page is blocked and nobody is assigned to the office
-        expect(jest.mocked(AccessOrNotFoundWrapper).mock.lastCall?.[0].shouldBeBlocked).toBe(true);
+        // Then the page returns to this workspace's members and nobody is assigned to the office
+        await waitFor(() => expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
         expect(updateEmployeeOfficeLocation).not.toHaveBeenCalled();
+    });
+
+    it('returns to the members instead of showing the not found page when the selection is gone after a refresh', async () => {
+        // Given the in-memory selection was lost because the page was refreshed, while navigation is still starting up
+        jest.mocked(useOnyx).mockReturnValue([undefined, {status: 'loaded'}]);
+        let resolveNavigationReady = () => {};
+        jest.mocked(Navigation.isNavigationReady).mockReturnValueOnce(
+            new Promise<void>((resolve) => {
+                resolveNavigationReady = resolve;
+            }),
+        );
+
+        // When the page opens
+        renderPage('OFFICE1', 'OFFICE2');
+
+        // Then it stays put until navigation is ready, since going back any earlier does nothing
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+
+        // When navigation becomes ready
+        await act(async () => {
+            resolveNavigationReady();
+            await Promise.resolve();
+        });
+
+        // Then it goes back to the members list, like the Change role page, rather than blocking itself
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        expect(jest.mocked(AccessOrNotFoundWrapper).mock.lastCall?.[0].shouldBeBlocked).toBe(false);
     });
 });

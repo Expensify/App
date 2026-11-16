@@ -4,6 +4,8 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type AccountingIntegrationWaitlist from './AccountingIntegrationWaitlist';
+import type AccountingIntegrationWaitlistRequests from './AccountingIntegrationWaitlistRequests';
 import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
 import type AppReview from './AppReview';
@@ -48,7 +50,6 @@ import type {
 import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CloudflareSession from './CloudflareSession';
-import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
@@ -136,6 +137,7 @@ import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
 import type LocallyProcessed3DSChallengeReviews from './LocallyProcessed3DSChallengeReviews';
+import type LocallyProcessedFraudTransactionReviews from './LocallyProcessedFraudTransactionReviews';
 import type LocalPasskeyCredentialsEntry from './LocalPasskeyCredentialsEntry';
 import type {PasskeyCredential, PasskeyTransport} from './LocalPasskeyCredentialsEntry';
 import type LockAccountDetails from './LockAccountDetails';
@@ -213,10 +215,12 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
 import type {AnyRequest} from './Request';
+import type RequestsKeptOnSAMLSignOut from './RequestsKeptOnSAMLSignOut';
 import type Response from './Response';
 import type ReusableDistanceRoute from './ReusableDistanceRoute';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type Rule from './Rule';
+import type RuleMatchingTransaction from './RuleMatchingTransaction';
 import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
@@ -244,6 +248,7 @@ import type Task from './Task';
 import type Transaction from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
+import type TransactionsPendingFraudReview from './TransactionsPendingFraudReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type TravelBillingStatement from './TravelBillingStatement';
@@ -280,9 +285,12 @@ export type {
     AvatarCropResult,
     Account,
     AccountData,
+    AccountingIntegrationWaitlist,
+    AccountingIntegrationWaitlistRequests,
     AssignCard,
     TransactionPending3DSReview,
     TransactionsPending3DSReview,
+    TransactionsPendingFraudReview,
     BankAccount,
     BankAccountList,
     Beta,
@@ -420,6 +428,7 @@ export type {
     ReportLayoutSelection,
     GroupedTransactions,
     AnyRequest,
+    RequestsKeptOnSAMLSignOut,
     Request,
     Response,
     ScreenShareRequest,
@@ -564,10 +573,11 @@ export type {
     DomainSecurityGroup,
     ChronosTimeTracking,
     CloudflareSession,
-    CodingRuleMatchingTransaction,
+    RuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
     LocallyProcessed3DSChallengeReviews,
+    LocallyProcessedFraudTransactionReviews,
     InitiatingBankAccountUnlock,
     AgentNewAvatarDraft,
     Agent,
