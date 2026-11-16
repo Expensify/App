@@ -585,7 +585,7 @@ const WISE_GB_DRAFT: Preset['draftValues'] = {
     accountHolderName: 'Todd Clyde',
     address: '123 Buckingham Palace Road',
     [WISE_GB_ADDRESS_KEYS.city]: 'London',
-    [WISE_GB_ADDRESS_KEYS.zipCode]: '123456',
+    [WISE_GB_ADDRESS_KEYS.zipCode]: 'SW1W 0DH',
     [WISE_GB_ADDRESS_KEYS.country]: 'GB',
 };
 

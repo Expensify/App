@@ -53,7 +53,7 @@ function usePressLoading({isLoading = false, resetOnFocus = true}: UsePressLoadi
         const press = Symbol('press');
         activePressRef.current = press;
         setIsPressed(true);
-        await new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
             setTimeout(resolve, 0);
         });
         try {

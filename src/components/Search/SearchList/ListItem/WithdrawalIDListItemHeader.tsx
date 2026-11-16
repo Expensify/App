@@ -80,11 +80,7 @@ function WithdrawalIDListItemHeader({
     const accountLabel = `${formattedBankName} ${maskedNumber}`;
 
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles, maxIconSize: isLargeScreenWidth ? variables.w28 : undefined});
-    const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
-        withdrawalIDItem.debitPosted,
-        DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-        dateFnsLocale,
-    );
+    const formattedWithdrawalDate = DateUtils.formatToMonthDayWithOptionalYearInUTC(withdrawalIDItem.debitPosted, dateFnsLocale);
     const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = withdrawalIDItem;
 
     const isCashBack = !!withdrawalIDItem.isCashBack;
@@ -221,6 +217,7 @@ function WithdrawalIDListItemHeader({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_SELECT_ALL_CHECKBOX}
                             onPress={() => onCheckboxPress?.(withdrawalIDItem)}
                             isChecked={isSelectAllChecked}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
@@ -268,13 +265,12 @@ function WithdrawalIDListItemHeader({
                                 onPress={onDownArrowClick}
                             />
                         )}
-                        {!onDownArrowClick &&
-                            isCashBack && (
-                                // Reserves the arrow's footprint so the total stays aligned with the settlement rows.
-                                <View style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}>
-                                    <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
-                                </View>
-                            )}
+                        {!onDownArrowClick && isCashBack && (
+                            // Reserves the arrow's footprint so the total stays aligned with the settlement rows.
+                            <View style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}>
+                                <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
+                            </View>
+                        )}
                     </View>
                 )}
             </View>

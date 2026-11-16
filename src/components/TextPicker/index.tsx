@@ -61,6 +61,7 @@ function TextPicker({
     return (
         <View>
             <MenuItemWithTopDescription
+                sentryLabel={CONST.SENTRY_LABEL.TEXT_PICKER.OPEN}
                 ref={ref}
                 shouldShowRightIcon={!disabled}
                 title={value ?? placeholder ?? ''}

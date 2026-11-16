@@ -4,11 +4,10 @@ import NAVIGATORS from '@src/NAVIGATORS';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
 
-import React, {createContext, startTransition, useContext, useRef, useState} from 'react';
+import React, {createContext, startTransition, useContext, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
 
 type CurrentReportIDStateContextType = {
     currentReportID: string | undefined;
-    currentRHPReportID?: string | undefined;
 };
 
 type CurrentReportIDActionsContextType = {
@@ -47,7 +46,50 @@ const defaultCurrentReportIDActionsContext: CurrentReportIDActionsContextType = 
     updateCurrentReportID: () => {},
 };
 
-const CurrentReportIDStateContext = createContext<CurrentReportIDStateContextType>({currentReportID: undefined, currentRHPReportID: undefined});
+const CurrentReportIDStateContext = createContext<CurrentReportIDStateContextType>({currentReportID: undefined});
+
+/**
+ * Kept apart from the current report ID so components that only need that ID, like `ReportScreen` or `useSidebarOrderedReports`,
+ * don't re-render when a report opens or closes in the RHP.
+ */
+const CurrentRHPReportIDContext = createContext<string | undefined>(undefined);
+
+type CurrentReportIDStore = {
+    get: () => string | undefined;
+    set: (reportID: string | undefined) => void;
+    subscribe: (onChange: () => void) => () => void;
+};
+
+function createCurrentReportIDStore(): CurrentReportIDStore {
+    let currentReportID: string | undefined = '';
+    const listeners = new Set<() => void>();
+    return {
+        get: () => currentReportID,
+        set: (reportID) => {
+            if (reportID === currentReportID) {
+                return;
+            }
+            currentReportID = reportID;
+            for (const listener of listeners) {
+                listener();
+            }
+        },
+        subscribe: (onChange) => {
+            listeners.add(onChange);
+            return () => {
+                listeners.delete(onChange);
+            };
+        },
+    };
+}
+
+const defaultCurrentReportIDStore: CurrentReportIDStore = {get: () => undefined, set: () => {}, subscribe: () => () => {}};
+
+/**
+ * Lets a component subscribe to whether one report is the current one. A component reading the current report ID
+ * from context re-renders on every report switch, which would re-render every LHN row when only two of them change.
+ */
+const CurrentReportIDStoreContext = createContext<CurrentReportIDStore>(defaultCurrentReportIDStore);
 
 const CurrentReportIDActionsContext = createContext<CurrentReportIDActionsContextType>(defaultCurrentReportIDActionsContext);
 
@@ -57,6 +99,13 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
     // Tracks the most recently requested reportID synchronously so the dedupe
     // check below stays accurate even while a startTransition is pending.
     const pendingReportIDRef = useRef<string | undefined>('');
+    const [store] = useState(createCurrentReportIDStore);
+
+    // Synced after the commit so the report switch stays a transition, and before paint so the rows update in the same frame.
+    // Store updates can't be transitions, so the rows that subscribe re-render synchronously here. Keep subscribers cheap.
+    useLayoutEffect(() => {
+        store.set(currentReportID);
+    }, [store, currentReportID]);
 
     /**
      * This function is used to update the currentReportID and currentRHPReportID
@@ -101,12 +150,15 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
 
     const stateContextValue: CurrentReportIDStateContextType = {
         currentReportID,
-        currentRHPReportID,
     };
 
     return (
         <CurrentReportIDStateContext.Provider value={stateContextValue}>
-            <CurrentReportIDActionsContext.Provider value={actionsContextValue}>{props.children}</CurrentReportIDActionsContext.Provider>
+            <CurrentRHPReportIDContext.Provider value={currentRHPReportID}>
+                <CurrentReportIDStoreContext.Provider value={store}>
+                    <CurrentReportIDActionsContext.Provider value={actionsContextValue}>{props.children}</CurrentReportIDActionsContext.Provider>
+                </CurrentReportIDStoreContext.Provider>
+            </CurrentRHPReportIDContext.Provider>
         </CurrentReportIDStateContext.Provider>
     );
 }
@@ -115,8 +167,21 @@ function useCurrentReportIDState() {
     return useContext(CurrentReportIDStateContext);
 }
 
+/**
+ * The store is synced in a layout effect, so for one commit after a report switch this disagrees with
+ * `useCurrentReportIDState()`. Don't combine the two in one component.
+ */
+function useIsCurrentReportID(reportID: string) {
+    const store = useContext(CurrentReportIDStoreContext);
+    return useSyncExternalStore(store.subscribe, () => store.get() === reportID);
+}
+
+function useCurrentRHPReportID() {
+    return useContext(CurrentRHPReportIDContext);
+}
+
 function useCurrentReportIDActions() {
     return useContext(CurrentReportIDActionsContext);
 }
 
-export {CurrentReportIDContextProvider, useCurrentReportIDState, useCurrentReportIDActions};
+export {CurrentReportIDContextProvider, useCurrentReportIDState, useCurrentRHPReportID, useIsCurrentReportID, useCurrentReportIDActions};

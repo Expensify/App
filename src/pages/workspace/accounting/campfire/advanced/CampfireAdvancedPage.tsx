@@ -28,7 +28,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,6 +87,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.autoSync')}
                 subtitle={translate('workspace.campfire.autoSyncDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.autoSync')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.AUTO_SYNC_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={autoSync}
@@ -101,11 +102,8 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.ACCOUNTING_METHOD], campfireConfig?.pendingFields)}>
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(
-                            () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXPORT_METHOD.getRoute(policyID)) : undefined),
-                            false,
-                            session,
-                        )}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.ACCOUNTING_METHOD}
+                        onPress={callIfAuthenticated(() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXPORT_METHOD.getRoute(policyID)) : undefined), session)}
                     >
                         <MenuItemField.Row
                             name={translate('workspace.campfire.accountingMethods.label')}
@@ -125,6 +123,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.campfire.syncReimbursedReports')}
                 subtitle={translate('workspace.campfire.syncReimbursedReportsDescription')}
                 switchAccessibilityLabel={translate('workspace.campfire.syncReimbursedReports')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.SYNC_REIMBURSED_REPORTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={syncReimbursedReports}
@@ -139,6 +138,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.BILL_PAYMENT_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.BILL_PAYMENT_ACCOUNT}
                         name={translate('workspace.campfire.billPaymentAccount.label')}
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_BILL_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                         value={billPaymentAccount ? `${billPaymentAccount?.id} ${billPaymentAccount?.name}` : undefined}
@@ -155,6 +155,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.campfire.syncExpensifyCardSettlements')}
                         switchAccessibilityLabel={translate('workspace.campfire.syncExpensifyCardSettlements')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncExpensifyCardSettlements}
@@ -169,6 +170,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.campfire.settlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={settlementsBankAccount ? `${settlementsBankAccount?.id} ${settlementsBankAccount?.name}` : undefined}
@@ -187,6 +189,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.campfire.syncTravelBillingSettlements')}
                         switchAccessibilityLabel={translate('workspace.campfire.syncTravelBillingSettlements')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTravelInvoicingSettlements}
@@ -201,6 +204,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.TRAVEL_BILLING_SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.campfire.travelBillingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={travelBillingSettlementsBankAccount ? `${travelBillingSettlementsBankAccount?.id} ${travelBillingSettlementsBankAccount?.name}` : undefined}
@@ -212,6 +216,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.TRAVEL_BILLING_PAYABLE_ACCOUNT}
                                 name={translate('workspace.campfire.travelBillingPayableAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={travelBillingPayableAccount ? `${travelBillingPayableAccount?.id} ${travelBillingPayableAccount?.name}` : undefined}

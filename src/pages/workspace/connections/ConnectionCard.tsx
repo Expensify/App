@@ -1,6 +1,6 @@
 /**
  * A single integration tile on the Connections page. Connected integrations show their status and a Configure or Fix
- * button, and the rest show a "+" that starts the connection flow.
+ * button, and the rest show a "+" that starts the connection flow. One whose last connect flow failed shows as broken with the reason.
  */
 import ActivityIndicator from '@components/ActivityIndicator';
 import Badge from '@components/Badge';
@@ -39,7 +39,10 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Plus']);
-    const {title, icon, status, offer, onConnect, onConfigure, registerConnectButton, isLoading} = listing;
+    const {title, icon, status, offer, onConnect, onConfigure, registerConnectButton, isLoading, connectError} = listing;
+    // A failed connect flow leaves the integration disconnected, so it keeps its "+" to retry but shows why it failed like a broken connection
+    const isBroken = status ? status.isBroken : !!connectError;
+    const statusMessage = status ? status.message : connectError;
 
     const connectIcon = (
         <View style={[styles.justifyContentCenter, styles.ml3, styles.mr2]}>
@@ -89,7 +92,7 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
                 ref={registerConnectButton}
                 title={title}
                 // The status message renders as an addon, which MenuItem leaves out of its default label
-                accessibilityLabel={[title, status?.message].filter(Boolean).join(', ')}
+                accessibilityLabel={[title, statusMessage].filter(Boolean).join(', ')}
                 titleStyle={[styles.textStrong, styles.flexShrink1]}
                 icon={icon}
                 iconType={CONST.ICON_TYPE_AVATAR}
@@ -98,19 +101,19 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
                 fallbackIcon={icons.Building}
                 // The badge and button leave little room for the status message, so it shows in full on hover once it's cut off
                 descriptionAddon={
-                    status ? (
+                    status || isBroken ? (
                         <>
                             <Badge
-                                text={translate(status?.isBroken ? 'workspace.connections.broken' : 'workspace.connections.active')}
-                                success={!status.isBroken}
-                                error={status.isBroken}
+                                text={translate(isBroken ? 'workspace.connections.broken' : 'workspace.connections.active')}
+                                success={!isBroken}
+                                error={isBroken}
                                 isCondensed
                                 badgeStyles={styles.ml0}
                             />
-                            {!!status.message && (
+                            {!!statusMessage && (
                                 <TextWithTooltip
                                     shouldShowTooltip
-                                    text={status.message}
+                                    text={statusMessage}
                                     numberOfLines={1}
                                     style={[styles.textLabelSupporting, styles.textLineHeightNormal, styles.flex1, styles.ml2]}
                                 />
