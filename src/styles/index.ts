@@ -2168,6 +2168,16 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 10,
         },
 
+        // The right offset clears the floating buttons column: its edge offset, the button width and the gap between buttons.
+        nativeTabBarDebugTabView: {
+            position: 'absolute',
+            bottom: 16,
+            left: 16,
+            right: 16 + variables.componentSizeLarge + 12,
+            borderRadius: variables.componentBorderRadiusLarge,
+            overflow: 'hidden',
+        },
+
         topBarLabel: {
             color: theme.text,
             fontSize: fontScale.h2,

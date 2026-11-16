@@ -42,32 +42,39 @@ function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 's
     // The buttons follow whatever the navigator decided for the bar itself.
     const shouldShowNativeTabBar = !!activeRoute && descriptors[activeRoute.key]?.options.tabBarStyle?.display !== 'none';
 
+    if (!shouldShowNativeTabBar) {
+        return null;
+    }
+
+    // The shadow and the buttons belong to the bar, so they fade with it rather than appearing in place.
+    // They leave faster than they come in, so they stop covering a bar that is still sliding out.
     return (
-        <>
-            {!!isDebugModeEnabled && shouldShowNativeTabBar && <DebugTabView selectedTab={selectedTab} />}
-            {shouldShowNativeTabBar && (
-                // The shadow and the buttons belong to the bar, so they fade with it rather than appearing in place.
-                // They leave faster than they come in, so they stop covering a bar that is still sliding out.
-                <Animated.View
-                    entering={FadeIn.duration(CONST.MODAL.ANIMATION_TIMING.FAB_IN)}
-                    exiting={FadeOut.duration(CONST.MODAL.ANIMATION_TIMING.FAB_OUT)}
-                    style={[StyleSheet.absoluteFill, styles.zIndex10]}
-                    pointerEvents="box-none"
-                >
-                    <NativeTabBarShadow />
+        <Animated.View
+            entering={FadeIn.duration(CONST.MODAL.ANIMATION_TIMING.FAB_IN)}
+            exiting={FadeOut.duration(CONST.MODAL.ANIMATION_TIMING.FAB_OUT)}
+            style={[StyleSheet.absoluteFill, styles.zIndex10]}
+            pointerEvents="box-none"
+        >
+            <NativeTabBarShadow />
+            <View
+                style={styles.nativeTabBarFloatingButtons(getFloatingButtonsBottom(bottomInset))}
+                pointerEvents="box-none"
+            >
+                <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
+                    <NavigationTabBarFloatingActionButton />
+                </View>
+                <FloatingGPSButton />
+                <FloatingCameraButton />
+                {!!isDebugModeEnabled && (
                     <View
-                        style={styles.nativeTabBarFloatingButtons(getFloatingButtonsBottom(bottomInset))}
+                        style={styles.nativeTabBarDebugTabView}
                         pointerEvents="box-none"
                     >
-                        <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
-                            <NavigationTabBarFloatingActionButton />
-                        </View>
-                        <FloatingGPSButton />
-                        <FloatingCameraButton />
+                        <DebugTabView selectedTab={selectedTab} />
                     </View>
-                </Animated.View>
-            )}
-        </>
+                )}
+            </View>
+        </Animated.View>
     );
 }
 
