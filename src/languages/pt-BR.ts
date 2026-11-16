@@ -7056,6 +7056,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             categoryName: 'Nome da categoria',
             requiresCategory: 'Os membros devem categorizar todas as despesas',
             autoCategorizeNewExpenses: 'Categorizar automaticamente novas despesas',
+            enableAtLeastOneCategory: 'Ative pelo menos uma categoria.',
             showCategoryGLCodes: 'Mostrar códigos GL ao categorizar despesas',
             needCategoryForExportToIntegration: (connectionName: string) => `Todas as despesas devem ser categorizadas para serem exportadas para ${connectionName}.`,
             subtitle: 'Tenha uma visão melhor de onde o dinheiro está sendo gasto. Use nossas categorias padrão ou adicione as suas.',
