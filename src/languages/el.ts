@@ -7210,6 +7210,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             categoryName: 'Όνομα κατηγορίας',
             requiresCategory: 'Τα μέλη πρέπει να κατηγοριοποιούν όλες τις δαπάνες',
             autoCategorizeNewExpenses: 'Αυτόματη κατηγοριοποίηση νέων δαπανών',
+            enableAtLeastOneCategory: 'Ενεργοποίησε τουλάχιστον μία κατηγορία.',
             showCategoryGLCodes: 'Εμφάνιση κωδικών GL κατά την κατηγοριοποίηση δαπανών',
             needCategoryForExportToIntegration: (connectionName: string) => `Όλες οι δαπάνες πρέπει να κατηγοριοποιηθούν για να γίνει η εξαγωγή στο ${connectionName}.`,
             subtitle: 'Αποκτήστε μια καλύτερη εικόνα για το πού ξοδεύονται τα χρήματα. Χρησιμοποιήστε τις προεπιλεγμένες κατηγορίες μας ή προσθέστε τις δικές σας.',
@@ -8107,16 +8108,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Προέκυψε σφάλμα με μια σύνδεση που έχει ρυθμιστεί στο Expensify Classic. [Μεταβείτε στο Expensify Classic για να διορθώσετε αυτό το ζήτημα.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Μεταβείτε στο Expensify Classic για να διαχειριστείτε τις ρυθμίσεις σας.',
-            exactOnline: {
-                comingSoon: 'Έρχεται σύντομα',
-                joinWaitlist: 'Εγγραφείτε στη λίστα αναμονής',
-                onWaitlist: 'Είστε σε λίστα αναμονής',
-                waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Έρχεται σύντομα',
                 joinWaitlist: 'Εγγραφείτε στη λίστα αναμονής',
                 onWaitlist: 'Είστε σε λίστα αναμονής',
+                onWaitlistButton: 'Σε λίστα αναμονής',
                 onTheList: 'Είστε στη λίστα!',
                 waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
             },
