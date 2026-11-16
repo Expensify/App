@@ -5606,6 +5606,85 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getWorkspaceUpdateFieldMessage', () => {
+        describe.each([
+            [1, '1st'],
+            [2, '2nd'],
+            [3, '3rd'],
+            [21, '21st'],
+            ['1', '1st'],
+            ['15', '15th'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH, 'Last day of the month'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH, 'Last business day of the month'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH, 'Last Monday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH, 'Last Tuesday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH, 'Last Wednesday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH, 'Last Thursday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH, 'Last Friday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH, 'Last Saturday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH, 'Last Sunday'],
+        ])('monthly offset %s', (offset, displayName) => {
+            it('should display the new date instead of the server message', () => {
+                // Given a valid monthly date change whose server text must not replace the localized message
+                const action = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+                    reportActionID: '1',
+                    created: '',
+                    message: [{type: 'COMMENT', text: 'server message'}],
+                    originalMessage: {
+                        updatedField: CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET,
+                        oldValue: 1,
+                        newValue: offset,
+                    },
+                } as ReportAction;
+
+                // When building the admin log message
+                const result = getWorkspaceUpdateFieldMessage(translateLocal, action);
+
+                // Then both dates remain visible, including named weekday offsets
+                expect(result).toBe(`updated the monthly report submission date to "${displayName}" (previously "1st")`);
+            });
+
+            it('should display the previous date rather than treating it as unset', () => {
+                // Given a change away from a saved monthly offset
+                const action = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+                    reportActionID: '1',
+                    created: '',
+                    originalMessage: {
+                        updatedField: CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET,
+                        oldValue: offset,
+                        newValue: 1,
+                    },
+                } as ReportAction;
+
+                // When building the admin log message
+                const result = getWorkspaceUpdateFieldMessage(translateLocal, action);
+
+                // Then a named previous date keeps the updated wording and is not lost
+                expect(result).toBe(`updated the monthly report submission date to "1st" (previously "${displayName}")`);
+            });
+        });
+
+        it('should use set wording when the previous monthly offset is empty', () => {
+            // Given a workspace without a previous monthly date
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    updatedField: CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET,
+                    oldValue: '',
+                    newValue: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH,
+                },
+            } as ReportAction;
+
+            // When building the admin log message
+            const result = getWorkspaceUpdateFieldMessage(translateLocal, action);
+
+            // Then the new date is translated without inventing a previous date
+            expect(result).toBe('set the monthly report submission date to "Last Friday"');
+        });
+
         it('should return the App message when the workspace timezone changes', () => {
             // Given a timezone update whose server text would otherwise be shown as is
             const action = {
