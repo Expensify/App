@@ -48,7 +48,8 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
     private var session: OrtSession? = null
     private val releaseExecutor = Executors.newSingleThreadExecutor()
     private val lastOwner = AtomicLong(0)
-    private val currentOwner = AtomicLong(0)
+    private val activeOwners = LinkedHashSet<Long>()
+    private var lastFrameOwner = NO_OWNER
     private var sessionOptions: OrtSession.SessionOptions? = null
     private var didFailToLoad = false
     private val input: FloatBuffer =
@@ -78,19 +79,22 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
 
     override fun open(): Double {
         val owner = lastOwner.incrementAndGet()
-        currentOwner.set(owner)
+        synchronized(activeOwners) { activeOwners.add(owner) }
         return owner.toDouble()
     }
 
     override fun release(owner: Double) {
-        if (currentOwner.compareAndSet(owner.toLong(), NO_OWNER)) {
+        val isLastOwner = synchronized(activeOwners) { activeOwners.remove(owner.toLong()) && activeOwners.isEmpty() }
+        if (isLastOwner) {
             releaseExecutor.execute { freeResources() }
         }
     }
 
+    private fun currentOwner(): Long = synchronized(activeOwners) { activeOwners.lastOrNull() ?: NO_OWNER }
+
     @Synchronized
     private fun freeResources() {
-        if (currentOwner.get() != NO_OWNER) {
+        if (currentOwner() != NO_OWNER) {
             return
         }
         session?.close()
@@ -101,6 +105,11 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         integral = IntArray(0)
         chromaU = ByteArray(0)
         chromaV = ByteArray(0)
+        resetTracking()
+        lastFrameOwner = NO_OWNER
+    }
+
+    private fun resetTracking() {
         trackedCorners = null
         pendingCorners = null
         failedAcquisitions = 0
@@ -109,8 +118,13 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
 
     @Synchronized
     override fun detectYuv(frame: YuvFrame): DetectedDocument? {
-        if (frame.owner.toLong() != currentOwner.get()) {
+        val owner = frame.owner.toLong()
+        if (owner == NO_OWNER || owner != currentOwner()) {
             return null
+        }
+        if (owner != lastFrameOwner) {
+            resetTracking()
+            lastFrameOwner = owner
         }
         val session = getSession() ?: return null
         val width = frame.width.toInt()
