@@ -1521,6 +1521,27 @@ function getReviewWorkspaceSettingsTaskCompletionData(taskInformation: Onboardin
 }
 
 /**
+ * Complete the "Review your workspace settings" onboarding task on its own, for a command the backend does not
+ * complete it as a side effect of.
+ *
+ * `CompleteTask` carries the tick here, so the actor is the admin doing the saving rather than Concierge, and the
+ * task survives on its own rather than riding another command's success.
+ */
+function completeReviewWorkspaceSettingsTask(taskInformation: OnboardingTaskInformation, currentUserAccountID: number) {
+    const {taskReport, taskParentReport, isOnboardingTaskParentReportArchived, hasOutstandingChildTask, parentReportAction} = taskInformation;
+    getFinishOnboardingTaskOnyxData(
+        taskReport,
+        taskParentReport,
+        isOnboardingTaskParentReportArchived,
+        currentUserAccountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+        // delegateEmail: matches getReviewWorkspaceSettingsTaskCompletionData, which leaves it to the module-level fallback
+        undefined,
+    );
+}
+
+/**
  * Build the Onyx data that completes an onboarding task.
  *
  * Pass `shouldSendCompleteTaskRequest: false` when the backend already completes the task as a side effect of
@@ -1646,6 +1667,7 @@ export {
     buildTaskData,
     completeTask,
     completeTaskAfterSuccessfulSideEffect,
+    completeReviewWorkspaceSettingsTask,
     getReviewWorkspaceSettingsTaskCompletionData,
     withReviewWorkspaceSettingsTaskData,
     clearOutTaskInfoAndNavigate,
