@@ -21,7 +21,7 @@ import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 type ColumnHeaderMenuTriggerProps = WithRequiredSentryLabel & {
     /** The column's name, which names the trigger for assistive tech even when the heading shows only an icon. */
@@ -40,6 +40,19 @@ type ColumnHeaderMenuTriggerProps = WithRequiredSentryLabel & {
     children: React.ReactNode;
 };
 
+/** The horizontal padding and border a style puts around the label row's content. */
+function getHorizontalInset(style: StyleProp<ViewStyle>): number {
+    const {padding, paddingHorizontal, paddingLeft, paddingRight, paddingStart, paddingEnd, borderWidth, borderLeftWidth, borderRightWidth, borderStartWidth, borderEndWidth} =
+        StyleSheet.flatten(style) ?? {};
+    const toNumber = (value: unknown) => (typeof value === 'number' ? value : 0);
+    return (
+        toNumber(paddingLeft ?? paddingStart ?? paddingHorizontal ?? padding) +
+        toNumber(paddingRight ?? paddingEnd ?? paddingHorizontal ?? padding) +
+        toNumber(borderLeftWidth ?? borderStartWidth ?? borderWidth) +
+        toNumber(borderRightWidth ?? borderEndWidth ?? borderWidth)
+    );
+}
+
 function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, labelRowStyle, sentryLabel, children}: ColumnHeaderMenuTriggerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -57,7 +70,7 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, label
             ? undefined
             : (event: LayoutChangeEvent) => {
                   const caretWidth = variables.iconSizeExtraSmall + styles.mr1.marginRight;
-                  setHasRoomForCaretBeforeLabel(event.nativeEvent.layout.width >= labelWidth + caretWidth);
+                  setHasRoomForCaretBeforeLabel(event.nativeEvent.layout.width >= labelWidth + caretWidth + getHorizontalInset(labelRowStyle));
               };
     const layoutAlignment = alignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END && !hasRoomForCaretBeforeLabel ? CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START : alignment;
     // The caret goes on the side away from the edge the label is pinned to, so revealing it on hover doesn't move the label.
@@ -87,8 +100,8 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, label
                         </View>
                     );
                     const labelRow = (
-                        // Keeps the caret out of the resize handle's hit area.
-                        <View style={isCaretVisible && hasResizeHandle && StyleUtils.getPaddingRight(RESIZE_HANDLE_COLUMN_OVERLAP)}>
+                        // Keeps a caret after the label out of the resize handle's hit area. A caret before the label is already clear of it.
+                        <View style={isCaretVisible && hasResizeHandle && !isCaretBeforeLabel && StyleUtils.getPaddingRight(RESIZE_HANDLE_COLUMN_OVERLAP)}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, isCaretBeforeLabel && styles.justifyContentEnd, labelRowStyle]}>
                                 {isCaretBeforeLabel && caret}
                                 <View style={styles.flexShrink1}>{children}</View>
