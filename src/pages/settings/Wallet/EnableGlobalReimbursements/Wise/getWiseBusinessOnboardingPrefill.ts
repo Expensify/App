@@ -17,8 +17,8 @@ import type {TupleToUnion} from 'type-fest';
 
 import US from './forms/US';
 
-/** The bank account's company details the business page shows or sends to Wise, and the onboarding pages already saved to Wise */
-const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'incorporationType', 'wise'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;
+/** The bank account's company details the business page shows, under the same keys, and the onboarding pages already saved to Wise */
+const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'wise'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;
 
 type WiseBusinessAccountData = Pick<ACHDataReimbursementAccount, TupleToUnion<typeof WISE_BUSINESS_ACCOUNT_KEYS>>;
 
