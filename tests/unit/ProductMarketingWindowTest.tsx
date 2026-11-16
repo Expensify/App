@@ -20,7 +20,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {dismissMarketingWindow} from '@libs/actions/User';
 import openExternalLink from '@libs/openExternalLink';
-import {getActiveProductMarketingAnnouncement} from '@libs/ProductMarketingWindowUtils';
+import {getActiveProductMarketingAnnouncement, getProductMarketingAnnouncementEligibleAt} from '@libs/ProductMarketingWindowUtils';
 
 import colors from '@styles/theme/colors';
 import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
@@ -133,6 +133,8 @@ async function setupOnyxBaseline({initializeOnboarding = true}: {initializeOnboa
     if (initializeOnboarding) {
         await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
     }
+    // Leave the first-sign-in marker unset: with no usable marker the age gate falls back to the existing
+    // behavior, so these baseline cases exercise the other guards without depending on the announcement release date.
     await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'User'),
     });
@@ -1084,5 +1086,81 @@ describe('ProductMarketingWindowManager', () => {
         });
 
         expect(screen.getByText(windowHeading)).toBeTruthy();
+    });
+
+    it('falls back to showing the window when the first sign-in date is unavailable', async () => {
+        await act(async () => {
+            await setupOnyxBaseline();
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_FIRST_SIGN_IN_DATE, null);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(windowHeading)).toBeTruthy();
+    });
+
+    it('hides the window for accounts that signed in less than seven days ago', async () => {
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
+        await act(async () => {
+            await setupOnyxBaseline();
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_FIRST_SIGN_IN_DATE, oneDayAgo);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(windowHeading)).toBeNull();
+        expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+    });
+
+    it('hides the window when the announcement was released before the account first signed in', async () => {
+        await act(async () => {
+            await setupOnyxBaseline();
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_FIRST_SIGN_IN_DATE, '2026-10-02 00:00:00');
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(windowHeading)).toBeNull();
+        expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+    });
+});
+
+describe('getProductMarketingAnnouncementEligibleAt', () => {
+    const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
+    const announcement = getActiveProductMarketingAnnouncement(false);
+    const releasedMs = Date.parse('2026-10-01T00:00:00Z');
+
+    it('returns undefined (fall back) when there is no announcement', () => {
+        expect(getProductMarketingAnnouncementEligibleAt(null, '2020-01-01 00:00:00')).toBeUndefined();
+    });
+
+    it('returns undefined (fall back) when the first sign-in date is missing', () => {
+        expect(getProductMarketingAnnouncementEligibleAt(announcement, undefined)).toBeUndefined();
+    });
+
+    it('returns undefined (fall back) when the first sign-in date is invalid', () => {
+        expect(getProductMarketingAnnouncementEligibleAt(announcement, 'not-a-date')).toBeUndefined();
+    });
+
+    it('returns null (never) for an announcement released before the first sign-in', () => {
+        expect(getProductMarketingAnnouncementEligibleAt(announcement, '2026-10-02 00:00:00')).toBeNull();
+    });
+
+    it('becomes eligible at the release when that is later than seven days after first sign-in', () => {
+        expect(getProductMarketingAnnouncementEligibleAt(announcement, '2026-09-01 00:00:00')).toBe(releasedMs);
+    });
+
+    it('becomes eligible seven days after first sign-in when that is later than the release', () => {
+        expect(getProductMarketingAnnouncementEligibleAt(announcement, '2026-09-28 00:00:00')).toBe(Date.parse('2026-09-28T00:00:00Z') + SEVEN_DAYS_IN_MS);
+    });
+
+    it('treats a release equal to first sign-in as eligible exactly seven days later', () => {
+        expect(getProductMarketingAnnouncementEligibleAt(announcement, '2026-10-01 00:00:00')).toBe(releasedMs + SEVEN_DAYS_IN_MS);
     });
 });

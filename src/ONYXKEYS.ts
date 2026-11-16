@@ -395,6 +395,9 @@ const ONYXKEYS = {
     /** User's first policy creation date */
     NVP_PRIVATE_FIRST_POLICY_CREATED_DATE: 'nvp_private_firstPolicyCreatedDate',
 
+    /** The user's first sign-in date, derived server-side from the earliest platform login NVP */
+    NVP_PRIVATE_FIRST_SIGN_IN_DATE: 'nvp_private_firstSignInDate',
+
     /** If the user should see the team 2025 subscription pricing */
     NVP_PRIVATE_MANUAL_TEAM_2025_PRICING: 'nvp_private_manualTeam2025Pricing',
 
@@ -2064,6 +2067,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
     [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;
+    [ONYXKEYS.NVP_PRIVATE_FIRST_SIGN_IN_DATE]: string;
     [ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING]: string;
     [ONYXKEYS.NVP_PRIVATE_GRANDFATHERED_FREE]: boolean;
     [ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS]: OnyxTypes.LockAccountDetails;
