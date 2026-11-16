@@ -2,12 +2,12 @@
  * Resolves an IOU report's avatars and layout, shared by IOUReportAvatar and the report preview rows in a chat.
  */
 import type {AvatarIcon} from '@components/Avatar/types';
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
+import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';

@@ -43,7 +43,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
     const [delegateDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsSelector(delegateAccountID));
 
     // Match the header's delegate avatar logic: when a delegate exists on the
-    // parent report action, the header (useReportActionAvatars) shows the
+    // parent report action, the header (ChatThreadAvatar, via ReportAvatar) shows the
     // delegate's avatar as primary instead of the report owner's. A Concierge thread is the exception the header
     // already makes: its icon is Concierge rather than whoever asked, so swapping in the copilot would both disagree
     // with the thread header and read as "acted as Concierge".

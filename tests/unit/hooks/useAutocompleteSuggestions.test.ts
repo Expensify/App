@@ -493,6 +493,22 @@ describe('useAutocompleteSuggestions', () => {
         expect(withoutBeta.current.length).toBeGreaterThan(0);
     });
 
+    it('leaves workflow stage out of the group-by suggestions', () => {
+        // Given an expense search typing a group-by, since Search can't group expenses by workflow stage
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, value: ''},
+            ranges: [],
+        });
+
+        // When the suggestions are built
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'group-by:'}));
+
+        // Then the Search group-bys are suggested, without workflow stage
+        const suggestions = result.current.map((suggestion) => suggestion.text);
+        expect(suggestions).toContain(CONST.SEARCH.GROUP_BY.FROM);
+        expect(suggestions).not.toContain(CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE);
+    });
+
     it('returns empty array for date key (presets filter)', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, value: 'to'},

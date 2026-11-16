@@ -3,13 +3,13 @@
  */
 import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
 import type {AvatarIcon} from '@components/Avatar/types';
-import useReportActionPersonalDetails from '@components/ReportActionAvatars/useReportActionPersonalDetails';
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportActionPersonalDetails from '@hooks/useReportActionPersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 
 import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -133,7 +133,7 @@ type UseActionAvatarParams = {
 
 /**
  * Resolves a report action's avatar and the details its header shows, once, for both.
- * IOU and invoice report previews come from their report's avatar hooks. Every other action follows the rules of `useReportActionAvatars`,
+ * IOU and invoice report previews come from their report's avatar hooks. Every other action is resolved here,
  * subscribing only to what its kind of action reads.
  */
 function useActionAvatar({action: passedAction, report, shouldUseRealActor}: UseActionAvatarParams): ActionAvatarData {
@@ -279,8 +279,6 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
         };
     }
 
-    // Every other action follows `useReportActionAvatars` with an action passed in. That hook still renders other surfaces until
-    // https://github.com/Expensify/App/issues/94591 deletes it, so a fix to these rules belongs in both places until then.
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
     // Actions inside an invoice report picture their actor, named by display name.
