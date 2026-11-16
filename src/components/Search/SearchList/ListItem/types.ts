@@ -584,6 +584,12 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         onUndelete?: (transaction: Transaction) => void;
+
+        /** Whether the group is open. The list owns this, so Enter on the focused row can open and close it too. */
+        isExpanded: boolean;
+
+        /** Asks the list to flip whether this group is open. The row only shows the change once isExpanded comes back. */
+        onToggle: () => void;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<

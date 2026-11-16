@@ -51,6 +51,7 @@ import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, Transac
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
 import DayListItemHeader from './DayListItemHeader';
+import getGroupRowActivation from './getGroupRowActivation';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
@@ -399,10 +400,11 @@ function GroupHeader({
             return;
         }
 
-        if (isExpenseReportType) {
+        const {shouldSelect, shouldToggle} = getGroupRowActivation(groupItem, searchType);
+        if (shouldSelect) {
             onSelectRow(withOriginalKey(item), transactionPreviewData, event);
         }
-        if (!isExpenseReportType && !isCashBackWithdrawal) {
+        if (shouldToggle) {
             onToggle();
         }
     };

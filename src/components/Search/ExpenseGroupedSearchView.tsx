@@ -29,6 +29,7 @@ import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
 import BaseSearchList from './SearchList/BaseSearchList';
+import getGroupRowActivation from './SearchList/ListItem/getGroupRowActivation';
 import GroupChildrenContainer from './SearchList/ListItem/GroupChildrenContainer';
 import GroupHeader from './SearchList/ListItem/GroupHeader';
 import shouldCollapseExpandedGroupAfterPendingDelete from './SearchList/ListItem/shouldCollapseExpandedGroupAfterPendingDelete';
@@ -197,6 +198,28 @@ function ExpenseGroupedSearchView({
         scrollToListIndex,
     } = useSearchListViewState({data, listData, isMobileSelectionModeEnabled, onSelectRow});
 
+    // Enter on a focused row has to do what a click on it does. Clicking a group that isn't a report opens or closes it
+    // rather than going to onSelectRow, because there is no report to open for it.
+    const activateFocusedRow = (item: SearchListItem) => {
+        if (!isTransactionGroupListItemType(item)) {
+            handleSelectRow(item);
+            return;
+        }
+        // A click can't reach a group that is pending delete, because its pressable is disabled, so Enter must not open it either.
+        if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+        // A split header row carries a prefixed key, so use the group's own key, as GroupHeader does for clicks.
+        const groupKey = isGroupHeaderItem(item) ? item.groupKeyForList : item.keyForList;
+        const {shouldSelect, shouldToggle} = getGroupRowActivation(item, type);
+        if (shouldSelect) {
+            handleSelectRow({...item, keyForList: groupKey});
+        }
+        if (shouldToggle && groupKey) {
+            onToggleGroup(groupKey);
+        }
+    };
+
     const newTransactionIDByItemKey = buildNewTransactionIDMap(data, newTransactions, groupBy);
 
     // Selection is tracked per child transaction (plus empty groups), so flatten each group's transactions.
@@ -288,7 +311,8 @@ function ExpenseGroupedSearchView({
         }
 
         // Non-split group rows: TransactionGroupListItem renders the whole group (header + children).
-        const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
+        const groupKey = item.keyForList;
+        const newTransactionID = groupKey ? newTransactionIDByItemKey.get(groupKey) : undefined;
         return (
             <AnimatedExitRow
                 shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
@@ -312,6 +336,13 @@ function ExpenseGroupedSearchView({
                     ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     onFocus={onFocus}
+                    isExpanded={!!groupKey && expandedGroups.has(groupKey)}
+                    onToggle={() => {
+                        if (!groupKey) {
+                            return;
+                        }
+                        onToggleGroup(groupKey);
+                    }}
                     newTransactionID={newTransactionID}
                     onUndelete={handleUndelete}
                     isFirstItem={index === firstVisibleIndex}
@@ -355,7 +386,7 @@ function ExpenseGroupedSearchView({
                 selectionTopBar={selectionTopBar}
                 data={listData}
                 renderItem={renderItem}
-                onSelectRow={handleSelectRow}
+                onSelectRow={activateFocusedRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
                 onViewableItemsChanged={onViewableItemsChanged}

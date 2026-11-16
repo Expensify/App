@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -6,6 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScrollOffsetContextProvider from '@components/ScrollOffsetContextProvider';
 import ExpenseGroupedSearchView from '@components/Search/ExpenseGroupedSearchView';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
+import {isGroupHeaderItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
@@ -64,15 +65,33 @@ jest.mock('@libs/getPlatform', () => ({
 
 // Capture the last-item flag each split row receives. That flag is what paints the table's bottom border radius.
 type CapturedRow = {groupKeyForList: string; isLastItem: boolean};
-const capturedHeaders: CapturedRow[] = [];
+const capturedHeaders: Array<CapturedRow & {isExpanded: boolean}> = [];
 const capturedChildren: CapturedRow[] = [];
 jest.mock('@components/Search/SearchList/ListItem/GroupHeader', () => ({
     __esModule: true,
-    default: (props: {item: {groupKeyForList: string}; isLastItem: boolean}) => {
-        capturedHeaders.push({groupKeyForList: props.item.groupKeyForList, isLastItem: props.isLastItem});
+    default: (props: {item: {groupKeyForList: string}; isLastItem: boolean; isExpanded: boolean}) => {
+        capturedHeaders.push({groupKeyForList: props.item.groupKeyForList, isLastItem: props.isLastItem, isExpanded: props.isExpanded});
         return null;
     },
 }));
+
+// The list only calls onSelectRow when Enter is pressed on its focused row. Capture it so a test can press Enter on any row,
+// and keep rendering the real list so the row props above are still captured.
+const mockListProps: {onSelectRow?: (item: SearchListItem) => void; data: SearchListItem[]} = {data: []};
+jest.mock('@components/Search/SearchList/BaseSearchList', () => {
+    const {createElement} = jest.requireActual<typeof React>('react');
+    const ActualBaseSearchList = jest.requireActual<{default: React.ComponentType<{onSelectRow: (item: SearchListItem) => void; data: SearchListItem[]}>}>(
+        '@components/Search/SearchList/BaseSearchList',
+    ).default;
+    return {
+        __esModule: true,
+        default: (props: {onSelectRow: (item: SearchListItem) => void; data: SearchListItem[]}) => {
+            mockListProps.onSelectRow = props.onSelectRow;
+            mockListProps.data = props.data;
+            return createElement(ActualBaseSearchList, props);
+        },
+    };
+});
 jest.mock('@components/Search/SearchList/ListItem/GroupChildrenContainer', () => ({
     __esModule: true,
     default: (props: {item: {groupKeyForList: string}; isLastItem: boolean}) => {
@@ -133,12 +152,13 @@ const STABLE_QUERY_JSON: SearchQueryJSON = {
 
 const STABLE_COLUMNS: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ACTION];
 
-/** Builds group rows, each carrying one child transaction. `isPendingDelete` flags the group row itself. */
-function createMockGroupData(groups: Array<{isPendingDelete?: boolean}>): SearchListItem[] {
+/** Builds group rows, each carrying one child transaction. `isPendingDelete` flags the group row itself, and `isCashBack` makes it a cash back withdrawal. */
+function createMockGroupData(groups: Array<{isPendingDelete?: boolean; isCashBack?: boolean}>): SearchListItem[] {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixtures are intentionally partial group rows
     return groups.map((group, i) => ({
         keyForList: `group-${i}`,
         cardID: i,
+        ...(group.isCashBack ? {groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID, isCashBack: true} : {}),
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
         pendingAction: group.isPendingDelete ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
         transactions: [
@@ -155,12 +175,10 @@ function ThemeProviderWithLight({children}: {children: React.ReactNode}) {
 }
 ThemeProviderWithLight.displayName = 'ThemeProviderWithLight';
 
-function renderView(data: SearchListItem[]) {
+function renderView(data: SearchListItem[], {onSelectRow = () => {}, queryJSON = STABLE_QUERY_JSON}: {onSelectRow?: (item: SearchListItem) => void; queryJSON?: SearchQueryJSON} = {}) {
     function Wrapper() {
-        const onSelectRow = useCallback(() => {}, []);
         const onEndReached = useCallback(() => {}, []);
         const onLayout = useCallback(() => {}, []);
-        const queryJSON = useMemo(() => STABLE_QUERY_JSON, []);
         const columns = useMemo(() => STABLE_COLUMNS, []);
         const contentContainerStyle = useMemo(() => ({}), []);
         const containerStyle = useMemo(() => ({}), []);
@@ -203,6 +221,20 @@ function childrenFlagFor(groupKeyForList: string): boolean | undefined {
     return capturedChildren.findLast((row) => row.groupKeyForList === groupKeyForList)?.isLastItem;
 }
 
+/** Whether a group's header was last rendered as open. */
+function isGroupExpanded(groupKeyForList: string): boolean | undefined {
+    return capturedHeaders.findLast((row) => row.groupKeyForList === groupKeyForList)?.isExpanded;
+}
+
+/** Presses Enter on the header row of a group, the way the list does when that row has keyboard focus. */
+function pressEnterOnHeader(groupKeyForList: string) {
+    const header = mockListProps.data.find((item) => isGroupHeaderItem(item) && item.groupKeyForList === groupKeyForList);
+    if (!header) {
+        throw new Error(`No header row for ${groupKeyForList}`);
+    }
+    act(() => mockListProps.onSelectRow?.(header));
+}
+
 beforeAll(() => Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT]}));
 
 beforeEach(() => {
@@ -212,6 +244,8 @@ beforeEach(() => {
     mockIsOffline.current = false;
     capturedHeaders.length = 0;
     capturedChildren.length = 0;
+    mockListProps.onSelectRow = undefined;
+    mockListProps.data = [];
     Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {});
     Onyx.merge(ONYXKEYS.COLLECTION.POLICY, {});
 });
@@ -248,5 +282,58 @@ describe('ExpenseGroupedSearchView split rendering', () => {
 
         expect(headerFlagFor('group-2')).toBeUndefined();
         expect(headerFlagFor('group-1')).toBe(true);
+    });
+});
+
+describe('ExpenseGroupedSearchView Enter on a focused group header', () => {
+    it('opens and closes a group that is not a report, the same as clicking its header', async () => {
+        // Given a list grouped by card, where clicking a header only opens or closes its group
+        const onSelectRow = jest.fn();
+        renderView(createMockGroupData([{}, {}]), {onSelectRow});
+        await waitForBatchedUpdates();
+        expect(isGroupExpanded('group-0')).toBe(false);
+
+        // When Enter is pressed on the first group's header
+        pressEnterOnHeader('group-0');
+
+        // Then the group opens, and nothing is selected because a card group has no page to open
+        expect(isGroupExpanded('group-0')).toBe(true);
+        expect(isGroupExpanded('group-1')).toBe(false);
+        expect(onSelectRow).not.toHaveBeenCalled();
+
+        // When Enter is pressed on it again
+        pressEnterOnHeader('group-0');
+
+        // Then it closes, like a second click
+        expect(isGroupExpanded('group-0')).toBe(false);
+    });
+
+    it('opens the report when the groups are reports, with the group key the selection tracks rather than the prefixed header key', async () => {
+        // Given a list of expense reports, where clicking a header opens the report
+        const onSelectRow = jest.fn<void, [SearchListItem]>();
+        renderView(createMockGroupData([{}]), {onSelectRow, queryJSON: {...STABLE_QUERY_JSON, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}});
+        await waitForBatchedUpdates();
+
+        // When Enter is pressed on the report's header
+        pressEnterOnHeader('group-0');
+
+        // Then the report is selected under its own key, and the group doesn't open
+        expect(onSelectRow).toHaveBeenCalledTimes(1);
+        expect(onSelectRow.mock.calls.at(0)?.at(0)).toMatchObject({keyForList: 'group-0'});
+        expect(isGroupExpanded('group-0')).toBe(false);
+    });
+
+    it('does nothing on a cash back row, which has no expenses to show and is not clickable', async () => {
+        // Given a withdrawal group that is a cash back credit
+        const onSelectRow = jest.fn();
+        renderView(createMockGroupData([{isCashBack: true}]), {onSelectRow});
+        await waitForBatchedUpdates();
+
+        // When Enter is pressed on its header
+        pressEnterOnHeader('group-0');
+
+        // Then it neither opens nor selects anything
+        expect(isGroupExpanded('group-0')).toBe(false);
+        expect(onSelectRow).not.toHaveBeenCalled();
     });
 });

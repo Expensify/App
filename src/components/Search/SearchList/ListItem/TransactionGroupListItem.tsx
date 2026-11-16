@@ -37,8 +37,7 @@ import type {ReportAction, ReportActions, Transaction, TransactionViolation, Tra
 import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
@@ -64,16 +63,17 @@ import type {
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
 import DayListItemHeader from './DayListItemHeader';
+import getGroupRowActivation from './getGroupRowActivation';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
-import shouldCollapseExpandedGroupAfterPendingDelete from './shouldCollapseExpandedGroupAfterPendingDelete';
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useGroupChildren from './useGroupChildren';
 import useGroupOpenForShiftRange from './useGroupOpenForShiftRange';
+import useGroupTransactionsFetch from './useGroupTransactionsFetch';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
@@ -92,6 +92,8 @@ function TransactionGroupListItemImpl({
     onSelectRow,
     onFocus,
     onLongPressRow,
+    isExpanded,
+    onToggle,
     shouldSyncFocus,
     columns,
     groupBy,
@@ -115,7 +117,6 @@ function TransactionGroupListItemImpl({
     const {currentSearchResults} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const isScreenFocused = useIsFocused();
     const {isOffline} = useNetwork();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
@@ -148,7 +149,16 @@ function TransactionGroupListItemImpl({
     }) as TransactionGroupListItemType;
 
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
-    const [isExpanded, setIsExpanded] = useState(false);
+
+    // The list owns whether the group is open, and it can close it from several places (a click, Enter, or every expense
+    // in it getting deleted). Reset "show more" whenever it closes, so the group reopens at the first page. Also reset it
+    // when the list reuses this row for another group, so that group doesn't start past its first page.
+    const visibleLimitOwner = `${groupItem.keyForList}:${isExpanded}`;
+    const [prevVisibleLimitOwner, setPrevVisibleLimitOwner] = useState(visibleLimitOwner);
+    if (prevVisibleLimitOwner !== visibleLimitOwner) {
+        setPrevVisibleLimitOwner(visibleLimitOwner);
+        setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
+    }
 
     // Expense-report rows are already part of the list, so only group-by views need this.
     useGroupOpenForShiftRange(groupItem.keyForList, isExpanded && !isExpenseReportType);
@@ -161,38 +171,12 @@ function TransactionGroupListItemImpl({
 
     const transactionsWithoutPendingDelete = transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
 
-    if (
-        shouldCollapseExpandedGroupAfterPendingDelete({
-            isExpanded,
-            groupPendingAction: item.pendingAction,
-            loadedChildrenCount: transactions.length,
-            remainingChildrenCount: transactionsWithoutPendingDelete.length,
-        })
-    ) {
-        setIsExpanded(false);
-        setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
-    }
-
     // A group whose children are lazily loaded (it has a transactionsQueryJSON) is not empty, it just hasn't been fetched yet
     const isEmpty = groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
-
-    const refreshTransactions = () => {
-        if (!groupItem.transactionsQueryJSON) {
-            return;
-        }
-
-        search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
-            offset: 0,
-            shouldCalculateTotals: false,
-            isLoading: !!transactionsSnapshot?.search?.isLoading,
-        });
-    };
 
     // Search transactions for pagination (current offset + pageSize)
     const searchTransactions = (pageSize = 0) => {
@@ -231,59 +215,12 @@ function TransactionGroupListItemImpl({
     const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
         useCopyableTextRowPress();
 
-    useEffect(() => {
-        if (!newTransactionID || !isExpanded) {
-            return;
-        }
-        if (!groupItem.transactionsQueryJSON) {
-            return;
-        }
-
-        search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
-            offset: 0,
-            shouldCalculateTotals: false,
-            isLoading: !!transactionsSnapshot?.search?.isLoading,
-        });
-    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
-
-    const wasScreenFocusedRef = useRef(isScreenFocused);
-    useEffect(() => {
-        const didReturnToScreen = wasScreenFocusedRef.current === false && isScreenFocused === true;
-        wasScreenFocusedRef.current = isScreenFocused;
-
-        if (!didReturnToScreen || !isExpanded || isExpenseReportType) {
-            return;
-        }
-
-        // Keep expanded group rows in sync with updated grouped totals after returning from RHP flows.
-        if (!groupItem.transactionsQueryJSON) {
-            return;
-        }
-
-        search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
-            offset: 0,
-            shouldCalculateTotals: false,
-            isLoading: !!transactionsSnapshot?.search?.isLoading,
-        });
-    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
-
-    const handleToggle = () => {
-        setIsExpanded((prev) => {
-            const newExpandedState = !prev;
-
-            if (newExpandedState) {
-                refreshTransactions();
-            } else {
-                setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
-            }
-
-            return newExpandedState;
-        });
-    };
+    useGroupTransactionsFetch({
+        transactionsQueryJSON: groupItem.transactionsQueryJSON,
+        isLoading: !!transactionsSnapshot?.search?.isLoading,
+        isExpanded,
+        newTransactionID,
+    });
 
     const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
 
@@ -292,16 +229,12 @@ function TransactionGroupListItemImpl({
             return;
         }
 
-        // A cash back row has no children to drill into.
-        if (isCashBackWithdrawal) {
-            return;
-        }
-        const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
-        if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
+        const {shouldSelect, shouldToggle} = getGroupRowActivation(groupItem, searchType);
+        if (shouldSelect) {
             onSelectRow(item, transactionPreviewData, event);
         }
-        if (!isExpenseReportType) {
-            handleToggle();
+        if (shouldToggle) {
+            onToggle();
         }
     };
 
@@ -327,10 +260,10 @@ function TransactionGroupListItemImpl({
         }
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
-            // onPress handles handleToggle() for us, so we return early to avoid calling it twice
+            // onPress handles onToggle() for us, so we return early to avoid calling it twice
             return;
         }
-        handleToggle();
+        onToggle();
     };
 
     const getHeader = (hovered: boolean) => {

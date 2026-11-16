@@ -12,7 +12,9 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
+import type {ListItem} from '@components/SelectionList/types';
 
+import {search} from '@libs/actions/Search';
 import registerMiddlewares from '@libs/Middleware/register';
 import type * as SearchKeyUtils from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -24,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as CoreNavigation from '@react-navigation/core';
 
 import * as NativeNavigation from '@react-navigation/native';
-import React, {act} from 'react';
+import React, {act, useState} from 'react';
 import Onyx from 'react-native-onyx';
 
 import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
@@ -330,6 +332,21 @@ const createFakeReport = (numberOfTransactions: number): TransactionReportGroupL
     };
 };
 
+type ExpandableTransactionGroupListItemProps<TItem extends ListItem> = Omit<TransactionGroupListItemProps<TItem>, 'isExpanded' | 'onToggle'>;
+
+/** Holds whether the group is open, the way ExpenseGroupedSearchView does for the rows it renders. */
+function ExpandableTransactionGroupListItem<TItem extends ListItem>(props: ExpandableTransactionGroupListItemProps<TItem>) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    return (
+        <TransactionGroupListItem
+            // eslint-disable-next-line react/jsx-props-no-spreading -- the harness only adds the open state the list would own
+            {...props}
+            isExpanded={isExpanded}
+            onToggle={() => setIsExpanded((prev) => !prev)}
+        />
+    );
+}
+
 describe('TransactionGroupListItem', () => {
     beforeAll(() => {
         Onyx.init({
@@ -351,7 +368,7 @@ describe('TransactionGroupListItem', () => {
     const numberOfTransactions = 21;
     const report = createFakeReport(numberOfTransactions);
 
-    const defaultProps: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
+    const defaultProps: ExpandableTransactionGroupListItemProps<TransactionReportGroupListItemType> = {
         item: report,
         showTooltip: false,
         onSelectRow: mockOnSelectRow,
@@ -370,7 +387,7 @@ describe('TransactionGroupListItem', () => {
     }
 
     const renderTransactionGroupListItem = () => {
-        return render(<TransactionGroupListItem {...defaultProps} />, {wrapper: TestWrapper});
+        return render(<ExpandableTransactionGroupListItem {...defaultProps} />, {wrapper: TestWrapper});
     };
 
     const expand = async () => {
@@ -438,27 +455,42 @@ describe('TransactionGroupListItem', () => {
         expect(screen.getByLabelText('Expand')).toBeTruthy();
     });
 
-    it('should collapse when every loaded transaction is pending delete and the group is not', async () => {
-        const {rerender} = renderTransactionGroupListItem();
+    it(`should go back to ${CONST.TRANSACTION.RESULTS_PAGE_SIZE} transactions when the list closes the group, not only when its Collapse button is pressed`, async () => {
+        // Given a group the list has opened, showing every transaction after "Show more"
+        const onToggle = jest.fn();
+        const {rerender} = render(
+            <TransactionGroupListItem
+                {...defaultProps}
+                isExpanded
+                onToggle={onToggle}
+            />,
+            {wrapper: TestWrapper},
+        );
         await waitForBatchedUpdatesWithAct();
-        await expand();
+        await showMore();
+        expect(getVisibleTransactionRowsCount()).toBe(numberOfTransactions);
 
+        // When the list closes it, as it does once every transaction in it is deleted, and later opens it again
         rerender(
             <TransactionGroupListItem
                 {...defaultProps}
-                item={{
-                    ...report,
-                    transactions: report.transactions.map((transaction) => ({
-                        ...transaction,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    })),
-                }}
+                isExpanded={false}
+                onToggle={onToggle}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        rerender(
+            <TransactionGroupListItem
+                {...defaultProps}
+                isExpanded
+                onToggle={onToggle}
             />,
         );
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByLabelText('Expand')).toBeTruthy();
-        expect(screen.queryByLabelText('Collapse')).toBeNull();
+        // Then it starts from the first page again
+        expect(getVisibleTransactionRowsCount()).toBe(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
+        expect(screen.getByText('Show more')).toBeTruthy();
     });
 
     it(`should show only ${CONST.TRANSACTION.RESULTS_PAGE_SIZE} transactions when collapsed and expanded again`, async () => {
@@ -496,7 +528,7 @@ describe('Empty Report Selection', () => {
         });
     });
 
-    const defaultProps: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
+    const defaultProps: ExpandableTransactionGroupListItemProps<TransactionReportGroupListItemType> = {
         item: mockEmptyReport,
         showTooltip: false,
         onSelectRow: mockOnSelectRow,
@@ -516,7 +548,7 @@ describe('Empty Report Selection', () => {
     }
 
     const renderTransactionGroupListItem = () => {
-        return render(<TransactionGroupListItem {...defaultProps} />, {wrapper: TestWrapper});
+        return render(<ExpandableTransactionGroupListItem {...defaultProps} />, {wrapper: TestWrapper});
     };
 
     it('should render an empty report with checkbox', async () => {
@@ -596,12 +628,12 @@ describe('Empty Report Selection', () => {
         mockOnCheckboxPress.mockClear();
 
         // Render and select a non-empty report
-        const nonEmptyProps: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
+        const nonEmptyProps: ExpandableTransactionGroupListItemProps<TransactionReportGroupListItemType> = {
             ...defaultProps,
             item: mockNonEmptyReport,
         };
 
-        const {unmount: unmountNonEmpty} = render(<TransactionGroupListItem {...nonEmptyProps} />, {wrapper: TestWrapper});
+        const {unmount: unmountNonEmpty} = render(<ExpandableTransactionGroupListItem {...nonEmptyProps} />, {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
 
         const nonEmptyCheckbox = screen.getByRole(CONST.ROLE.CHECKBOX);
@@ -634,12 +666,12 @@ describe('Empty Report Selection', () => {
     });
 
     it('should show expandable content for non-empty reports', async () => {
-        const nonEmptyProps: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
+        const nonEmptyProps: ExpandableTransactionGroupListItemProps<TransactionReportGroupListItemType> = {
             ...defaultProps,
             item: mockNonEmptyReport,
         };
 
-        render(<TransactionGroupListItem {...nonEmptyProps} />, {wrapper: TestWrapper});
+        render(<ExpandableTransactionGroupListItem {...nonEmptyProps} />, {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
 
         // Non-empty reports should have an expand button
@@ -719,7 +751,7 @@ describe('Lazily loaded group selection', () => {
         });
     });
 
-    const defaultProps: TransactionGroupListItemProps<TransactionCategoryGroupListItemType> = {
+    const defaultProps: ExpandableTransactionGroupListItemProps<TransactionCategoryGroupListItemType> = {
         item: mockCategoryGroup,
         showTooltip: false,
         onSelectRow: mockOnSelectRow,
@@ -739,7 +771,7 @@ describe('Lazily loaded group selection', () => {
         );
     }
 
-    const renderCategoryGroup = () => render(<TransactionGroupListItem {...defaultProps} />, {wrapper: TestWrapper});
+    const renderCategoryGroup = () => render(<ExpandableTransactionGroupListItem {...defaultProps} />, {wrapper: TestWrapper});
 
     it('should select the group when tapping the checkbox before the group has been expanded', async () => {
         renderCategoryGroup();
@@ -814,7 +846,7 @@ describe('Withdrawal group rows', () => {
 
     const renderWithdrawalGroup = (isCashBack: boolean) =>
         render(
-            <TransactionGroupListItem
+            <ExpandableTransactionGroupListItem
                 item={buildWithdrawalGroup(isCashBack)}
                 showTooltip={false}
                 onSelectRow={mockOnSelectRow}
@@ -860,6 +892,33 @@ describe('Withdrawal group rows', () => {
 
         // Then the row is selected like any other withdrawal
         expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('fetches a group once when it opens with a new expense in it', async () => {
+        // Given a closed settlement row that an expense was just created in
+        const item = buildWithdrawalGroup(false);
+        const renderRow = (isExpanded: boolean) => (
+            <TransactionGroupListItem
+                item={item}
+                showTooltip={false}
+                onSelectRow={mockOnSelectRow}
+                searchType={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                groupBy={CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID}
+                isExpanded={isExpanded}
+                onToggle={jest.fn()}
+                newTransactionID="newTransaction"
+            />
+        );
+        const {rerender} = render(renderRow(false), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        expect(search).not.toHaveBeenCalled();
+
+        // When the list opens it
+        rerender(renderRow(true));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then its expenses are fetched once, not once for opening and again for the new expense
+        expect(search).toHaveBeenCalledTimes(1);
     });
 
     it('does not announce or tab to a cash back row', async () => {

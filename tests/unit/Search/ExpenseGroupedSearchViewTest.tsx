@@ -84,16 +84,38 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
-// Capture each group row's tap handler so the mobile-selection-mode toggle can be exercised without the heavy real TransactionGroupListItem.
+// Capture each group row's tap handler, its open state and its toggle so they can be exercised without the heavy real TransactionGroupListItem.
 const mockRowSelect: Record<string, () => void> = {};
+const mockRowToggle: Record<string, () => void> = {};
+const mockRowExpanded: Record<string, boolean> = {};
 jest.mock('@components/Search/SearchList/ListItem/TransactionGroupListItem', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
     const {View: RNView} = jest.requireActual<{View: React.ComponentType<{testID?: string}>}>('react-native');
     return {
         __esModule: true,
-        default: (props: {item: SearchListItem; onSelectRow: (item: SearchListItem) => void}) => {
+        default: (props: {item: SearchListItem; onSelectRow: (item: SearchListItem) => void; isExpanded: boolean; onToggle: () => void}) => {
             mockRowSelect[props.item?.keyForList ?? ''] = () => props.onSelectRow?.(props.item);
+            mockRowToggle[props.item?.keyForList ?? ''] = props.onToggle;
+            mockRowExpanded[props.item?.keyForList ?? ''] = props.isExpanded;
             return ReactLocal.createElement(RNView, {testID: `row-${props.item?.keyForList ?? 'unknown'}`});
+        },
+    };
+});
+
+// The list only calls onSelectRow when Enter is pressed on its focused row. Capture it so a test can press Enter on any row,
+// and keep rendering the real list so the rows above still render.
+const mockListProps: {onSelectRow?: (item: SearchListItem) => void; data: SearchListItem[]} = {data: []};
+jest.mock('@components/Search/SearchList/BaseSearchList', () => {
+    const {createElement} = jest.requireActual<typeof React>('react');
+    const ActualBaseSearchList = jest.requireActual<{default: React.ComponentType<{onSelectRow: (item: SearchListItem) => void; data: SearchListItem[]}>}>(
+        '@components/Search/SearchList/BaseSearchList',
+    ).default;
+    return {
+        __esModule: true,
+        default: (props: {onSelectRow: (item: SearchListItem) => void; data: SearchListItem[]}) => {
+            mockListProps.onSelectRow = props.onSelectRow;
+            mockListProps.data = props.data;
+            return createElement(ActualBaseSearchList, props);
         },
     };
 });
@@ -185,6 +207,7 @@ type RenderOverrides = {
     hasLoadedAllTransactions?: boolean;
     onSelectRow?: (item: SearchListItem) => void;
     onRenderCount?: () => void;
+    queryJSON?: SearchQueryJSON;
 };
 
 function renderView(overrides: RenderOverrides = {}) {
@@ -194,7 +217,7 @@ function renderView(overrides: RenderOverrides = {}) {
         const onSelectRow = useCallback((item: SearchListItem) => overrides.onSelectRow?.(item), []);
         const onEndReached = useCallback(() => {}, []);
         const onLayout = useCallback(() => {}, []);
-        const queryJSON = useMemo(() => STABLE_QUERY_JSON, []);
+        const queryJSON = useMemo(() => overrides.queryJSON ?? STABLE_QUERY_JSON, []);
         const columns = useMemo(() => STABLE_COLUMNS, []);
         const contentContainerStyle = useMemo(() => ({}), []);
         const containerStyle = useMemo(() => ({}), []);
@@ -247,6 +270,15 @@ function renderView(overrides: RenderOverrides = {}) {
     };
 }
 
+/** Presses Enter on a group row, the way the list does when that row has keyboard focus. */
+function pressEnterOnRow(keyForList: string) {
+    const row = mockListProps.data.find((item) => item.keyForList === keyForList);
+    if (!row) {
+        throw new Error(`No row for ${keyForList}`);
+    }
+    act(() => mockListProps.onSelectRow?.(row));
+}
+
 beforeAll(() => Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT]}));
 
 beforeEach(() => {
@@ -261,6 +293,14 @@ beforeEach(() => {
     for (const key of Object.keys(mockRowSelect)) {
         delete mockRowSelect[key];
     }
+    for (const key of Object.keys(mockRowToggle)) {
+        delete mockRowToggle[key];
+    }
+    for (const key of Object.keys(mockRowExpanded)) {
+        delete mockRowExpanded[key];
+    }
+    mockListProps.onSelectRow = undefined;
+    mockListProps.data = [];
     Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {});
     Onyx.merge(ONYXKEYS.COLLECTION.POLICY, {});
 });
@@ -397,5 +437,78 @@ describe('ExpenseGroupedSearchView', () => {
         await waitForBatchedUpdates();
 
         expect(screen.getByTestId('row-group-0')).toBeOnTheScreen();
+    });
+});
+
+describe('ExpenseGroupedSearchView open groups on narrow layouts', () => {
+    it('opens and closes a group that is not a report when Enter is pressed on it, the same as clicking it', async () => {
+        // Given a list grouped by card on a narrow layout, where each group renders as one row that opens and closes on click
+        const onSelectRow = jest.fn();
+        renderView({data: createMockGroupData([{transactionCount: 1}, {transactionCount: 1}]), onSelectRow});
+        await waitForBatchedUpdates();
+        expect(mockRowExpanded['group-0']).toBe(false);
+
+        // When Enter is pressed on the first group
+        pressEnterOnRow('group-0');
+
+        // Then it opens, and nothing is selected because a card group has no page to open
+        expect(mockRowExpanded['group-0']).toBe(true);
+        expect(mockRowExpanded['group-1']).toBe(false);
+        expect(onSelectRow).not.toHaveBeenCalled();
+
+        // When Enter is pressed on it again
+        pressEnterOnRow('group-0');
+
+        // Then it closes
+        expect(mockRowExpanded['group-0']).toBe(false);
+    });
+
+    it('opens the report when Enter is pressed on a report group', async () => {
+        // Given a list of expense reports, where clicking a report opens it
+        const onSelectRow = jest.fn<void, [SearchListItem]>();
+        renderView({
+            data: createMockGroupData([{transactionCount: 1}]),
+            onSelectRow,
+            queryJSON: {...STABLE_QUERY_JSON, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        });
+        await waitForBatchedUpdates();
+
+        // When Enter is pressed on it
+        pressEnterOnRow('group-0');
+
+        // Then the report is selected under its own key, and the row doesn't open
+        expect(onSelectRow).toHaveBeenCalledTimes(1);
+        expect(onSelectRow.mock.calls.at(0)?.at(0)).toMatchObject({keyForList: 'group-0'});
+        expect(mockRowExpanded['group-0']).toBe(false);
+    });
+
+    it('does not open a group that is pending delete when Enter is pressed on it, since a click on it is blocked too', async () => {
+        // Given an offline list, where a group whose expenses were all deleted stays in place with pending-delete styling
+        mockIsOffline.current = true;
+        const onSelectRow = jest.fn();
+        renderView({data: createMockGroupData([{transactionCount: 2, isPendingDelete: true}, {transactionCount: 1}]), onSelectRow});
+        await waitForBatchedUpdates();
+
+        // When Enter is pressed on that group
+        pressEnterOnRow('group-0');
+
+        // Then it stays closed and nothing is selected
+        expect(mockRowExpanded['group-0']).toBe(false);
+        expect(onSelectRow).not.toHaveBeenCalled();
+    });
+
+    it('closes an open group once every expense in it is pending delete, since the list now owns whether it is open', async () => {
+        // Given a group the user opened by clicking it
+        const {setData} = renderView({data: createMockGroupData([{transactionCount: 2}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+        act(() => mockRowToggle['group-0']?.());
+        expect(mockRowExpanded['group-0']).toBe(true);
+
+        // When every expense in it is deleted, which leaves the group itself in the list
+        act(() => setData(createMockGroupData([{transactionCount: 2, deletedTransactions: new Set([0, 1])}, {transactionCount: 1}])));
+        await waitForBatchedUpdates();
+
+        // Then it closes, rather than keep showing only deleted expenses
+        expect(mockRowExpanded['group-0']).toBe(false);
     });
 });
