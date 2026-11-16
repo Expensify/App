@@ -107,7 +107,7 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | {report:startdate} | Would output 2010-09-15 assuming that is the date of the earliest expense on the report.|
 | EndDate|  Is the date of the last expense on the report.|
 | {report:enddate} | Would output 2010-09-26 assuming that is the date of the last expense on the report.|
-| Scheduled Submit Dates | The start and end dates of the Scheduled Submit reporting cycle. If the workspace has no reporting cycle because **Scheduled Submit** is disabled or set to **Instantly**, **Daily**, or **Manually**, these use the dates of the earliest and latest expenses on the report instead, like {report:startdate} and {report:enddate}.|
+| Scheduled Submit Dates | The start and end dates of the Scheduled Submit reporting cycle. If **Scheduled Submit** is disabled or set to **Instantly**, **Daily**, or **Manually**, these fall back to the earliest and latest expense dates on the report (same as {report:startdate} and {report:enddate}).|
 | {report:autoReporting:start} | Would output 2010-09-15 assuming that is the start date of the Scheduled Submit reporting cycle.|
 | {report:autoReporting:end} | Would output 2010-09-26 assuming that is the end date of the Scheduled Submit reporting cycle.|
 | Submission Date | Is the date that the report was submitted.|
