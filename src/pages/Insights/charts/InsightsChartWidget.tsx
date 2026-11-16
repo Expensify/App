@@ -33,7 +33,7 @@ import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
-import {doesRangeStartBeforeTracking} from '@pages/Insights/insightsTrackedFrom';
+import {doesRangeStartBeforeTracking, getTrackedFrom} from '@pages/Insights/insightsTrackedFrom';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
@@ -134,6 +134,7 @@ function InsightsChartWidget({
     const canRunningTotal = isRunningTotalAvailable(filters.date);
     const shouldShowRunningTotal = filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && canRunningTotal && view === CONST.SEARCH.VIEW.LINE;
     const today = getInsightsLastDay(asOfDate);
+    const trackedFrom = getTrackedFrom(snapshot);
 
     const downloadCSV = () => {
         if (!queryJSON || state !== INSIGHTS_CHART_STATE.READY) {
@@ -184,7 +185,7 @@ function InsightsChartWidget({
             />
         ) : null;
 
-    const queryJSONForSearch = buildSearchQueryJSON(applyInsightsFilters(chart, filters, undefined, today)) ?? queryJSON;
+    const queryJSONForSearch = buildSearchQueryJSON(applyInsightsFilters(chart, filters, undefined, today, trackedFrom)) ?? queryJSON;
     const openOnSpend = () => {
         if (!queryJSONForSearch) {
             return;
@@ -259,7 +260,7 @@ function InsightsChartWidget({
                             comparison={comparison}
                             shouldShowRunningTotal={shouldShowRunningTotal}
                             chartContainerStyle={cardPaddingHorizontal}
-                            trackedFrom={chart.trackedFrom}
+                            trackedFrom={trackedFrom}
                             today={today}
                             shouldShowSinglePointAsBar
                             shouldShowGroupLabels={isTimeGrouped}
@@ -283,7 +284,7 @@ function InsightsChartWidget({
             </Animated.View>
             {(state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY) && (
                 <>
-                    {!!chart.trackedFrom && doesRangeStartBeforeTracking(filters, chart.trackedFrom) && <InsightsTrackedFromNote trackedFrom={chart.trackedFrom} />}
+                    {isTimeGrouped && !!trackedFrom && doesRangeStartBeforeTracking(filters, trackedFrom) && <InsightsTrackedFromNote trackedFrom={trackedFrom} />}
                     {children}
                 </>
             )}

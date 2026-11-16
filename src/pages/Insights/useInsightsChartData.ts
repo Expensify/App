@@ -17,7 +17,7 @@ import type {InsightsFilters} from './insightsFilters';
 import type {InsightsDashboardChart} from './resolveDashboardState';
 
 import resolveComparisonPeriods from './insightsCompare';
-import {isBucketTracked} from './insightsTrackedFrom';
+import {getTrackedFrom, isBucketTracked} from './insightsTrackedFrom';
 import normalizeInsightsSnapshot from './normalizeInsightsSnapshot';
 
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
@@ -50,7 +50,7 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
         queryJSON && {...queryJSON, limit: undefined},
     );
 
-    const {trackedFrom} = chart;
+    const trackedFrom = getTrackedFrom(snapshot);
     const getDateRange = queryJSON?.groupBy ? CHART_GROUP_BY_CONFIG[queryJSON.groupBy].getDateRange : undefined;
     const keepTrackedBuckets = (items: GroupedItem[]) => (trackedFrom ? items.filter((item) => isBucketTracked(getDateRange?.(item), trackedFrom)) : items);
 

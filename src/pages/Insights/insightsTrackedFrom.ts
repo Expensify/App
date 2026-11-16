@@ -1,12 +1,18 @@
-/** Helpers for charts whose data starts on a fixed day, so the days before it read as untracked rather than empty. */
 import type {ChartBucketRange} from '@components/Search/chartGroupByConfig';
 
 import CONST from '@src/CONST';
+import type {SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import type {InsightsFilters} from './insightsFilters';
 
 import getInsightsDateRange from './getInsightsDateRange';
 import resolveComparisonPeriods from './insightsCompare';
+
+function getTrackedFrom(snapshot: OnyxEntry<SearchResults>): string | undefined {
+    return snapshot?.search?.violationSnapshotStartedAt?.split(' ').at(0) || undefined;
+}
 
 /** Whether a time bucket has any tracked days. A bucket that runs into the first tracked day, like the week of May 31, keeps its data from that day on. */
 function isBucketTracked(range: ChartBucketRange | undefined, trackedFrom: string): boolean {
@@ -26,4 +32,4 @@ function doesRangeStartBeforeTracking(filters: InsightsFilters, trackedFrom: str
     return !!comparisonStart && comparisonStart < trackedFrom;
 }
 
-export {doesRangeStartBeforeTracking, isBucketTracked};
+export {doesRangeStartBeforeTracking, getTrackedFrom, isBucketTracked};
