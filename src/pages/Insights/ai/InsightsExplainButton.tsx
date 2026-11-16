@@ -17,10 +17,13 @@ type InsightsExplainButtonProps = {
 
     /** Dashboard and filters sent with the prompt so Concierge explains the data the user sees */
     insightsScope: InsightsScope;
+
+    /** Whether to show the "Explain" label next to the icon. Defaults to true. */
+    shouldShowText?: boolean;
 };
 
 /** Button that asks Concierge to explain an AI insight or chart, sending along the dashboard filters so the answer covers the data on screen. */
-function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainButtonProps) {
+function InsightsExplainButton({explainPrompt, insightsScope, shouldShowText = true}: InsightsExplainButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -36,6 +39,7 @@ function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainBu
             size={CONST.BUTTON_SIZE.SMALL}
             onPress={() => askConcierge(explainPrompt, {insightsScope})}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.AI_EXPLAIN}
+            accessibilityLabel={translate('insightsPage.explain')}
             style={styles.alignSelfStart}
             innerStyles={styles.bgTransparent}
             hoverStyles={styles.hoveredComponentBG}
@@ -45,7 +49,7 @@ function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainBu
                 fill={theme.icon}
                 hoverFill={theme.icon}
             />
-            <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>
+            {shouldShowText && <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>}
         </Button>
     );
 }

@@ -113,7 +113,6 @@ function InsightsPageControls({filters, defaultFilters, onChange, isPolicyAvaila
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
                 >
                     {controls}
-                    {exportButton}
                 </View>
             </ScrollView>
         );
