@@ -124,8 +124,15 @@ function parseAndLogRoute(state: NavigationState, authenticated: boolean) {
     trackFullstoryPageView(state);
 }
 
+let lastNewDotScreenName: string | undefined;
+
 function setNewDotScreenContext() {
-    Sentry.setContext('NewDot Screen', {name: navigationRef.getCurrentRoute()?.name, timestamp: Date.now() / 1000});
+    const name = navigationRef.getCurrentRoute()?.name;
+    if (name === lastNewDotScreenName) {
+        return;
+    }
+    lastNewDotScreenName = name;
+    Sentry.setContext(CONST.TELEMETRY.CONTEXT_NEWDOT_SCREEN, {name, timestamp: Date.now() / 1000});
 }
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {

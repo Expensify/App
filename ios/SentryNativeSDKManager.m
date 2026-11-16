@@ -46,29 +46,29 @@ static NSString *const unknownTagValue = @"unknown";
 
 // Written on the main thread by the lifecycle and run loop observers, read in beforeSend on Sentry's queue.
 static os_unfair_lock appLifecycleLock = OS_UNFAIR_LOCK_INIT;
-static CFAbsoluteTime lastBecameActiveTime = 0;
-static CFAbsoluteTime lastResignedActiveTime = 0;
-static CFAbsoluteTime lastEnteredBackgroundTime = 0;
+static CFTimeInterval lastBecameActiveTime = 0;
+static CFTimeInterval lastResignedActiveTime = 0;
+static CFTimeInterval lastEnteredBackgroundTime = 0;
 static NSUInteger activationCount = 0;
 
-static void recordLifecycleTime(CFAbsoluteTime *slot) {
+static void recordLifecycleTime(CFTimeInterval *slot) {
     os_unfair_lock_lock(&appLifecycleLock);
-    *slot = CFAbsoluteTimeGetCurrent();
+    *slot = CACurrentMediaTime();
     os_unfair_lock_unlock(&appLifecycleLock);
 }
 
-// Main run loop busy time per wall-clock second. The gap between two run loop activities is busy unless the
+// Main run loop busy time per second. The gap between two run loop activities is busy unless the
 // loop was asleep, which includes the app being suspended.
 #define BUSY_HISTORY_SECONDS 600
 static double busyTimeInSecond[BUSY_HISTORY_SECONDS];
 static long busySecondStamp[BUSY_HISTORY_SECONDS];
-static CFAbsoluteTime lastRunLoopActivityTime = 0;
+static CFTimeInterval lastRunLoopActivityTime = 0;
 static BOOL lastRunLoopActivityWasSleep = YES;
 
-static void addBusyTimeLocked(CFAbsoluteTime from, CFAbsoluteTime to) {
+static void addBusyTimeLocked(CFTimeInterval from, CFTimeInterval to) {
     from = MAX(from, to - BUSY_HISTORY_SECONDS);
     for (long second = (long)floor(from); second <= (long)floor(to); second++) {
-        double overlap = MIN(to, (CFAbsoluteTime)(second + 1)) - MAX(from, (CFAbsoluteTime)second);
+        double overlap = MIN(to, (CFTimeInterval)(second + 1)) - MAX(from, (CFTimeInterval)second);
         if (overlap <= 0) {
             continue;
         }
@@ -82,7 +82,7 @@ static void addBusyTimeLocked(CFAbsoluteTime from, CFAbsoluteTime to) {
 }
 
 static void recordRunLoopActivity(CFRunLoopActivity activity) {
-    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    CFTimeInterval now = CACurrentMediaTime();
     os_unfair_lock_lock(&appLifecycleLock);
     if (!lastRunLoopActivityWasSleep && lastRunLoopActivityTime > 0) {
         addBusyTimeLocked(lastRunLoopActivityTime, now);
@@ -93,13 +93,13 @@ static void recordRunLoopActivity(CFRunLoopActivity activity) {
 }
 
 // Blocked: busy for at least half of [start, end]. The caller holds appLifecycleLock.
-static BOOL mainThreadWasBlockedLocked(CFAbsoluteTime start, CFAbsoluteTime end) {
-    CFAbsoluteTime openBusyStart = !lastRunLoopActivityWasSleep && lastRunLoopActivityTime > 0 ? lastRunLoopActivityTime : 0;
+static BOOL mainThreadWasBlockedLocked(CFTimeInterval start, CFTimeInterval end) {
+    CFTimeInterval openBusyStart = !lastRunLoopActivityWasSleep && lastRunLoopActivityTime > 0 ? lastRunLoopActivityTime : 0;
     // Edge seconds count in proportion to their overlap with the window.
-    CFAbsoluteTime busy = 0;
-    for (long second = (long)floor(MAX(start, end - BUSY_HISTORY_SECONDS + 1)); second <= (long)floor(end); second++) {
+    CFTimeInterval busy = 0;
+    for (long second = (long)floor(MAX(MAX(start, 0), end - BUSY_HISTORY_SECONDS + 1)); second <= (long)floor(end); second++) {
         NSUInteger slot = (NSUInteger)(second % BUSY_HISTORY_SECONDS);
-        double overlap = MIN(end, (CFAbsoluteTime)(second + 1)) - MAX(start, (CFAbsoluteTime)second);
+        double overlap = MIN(end, (CFTimeInterval)(second + 1)) - MAX(start, (CFTimeInterval)second);
         if (busySecondStamp[slot] == second && overlap > 0) {
             busy += busyTimeInSecond[slot] * overlap;
         }
@@ -189,13 +189,13 @@ static void addAppHangContext(SentryEvent *event, SentryException *hang) {
     BOOL isFatal = [hang.type hasPrefix:fatalAppHangTypePrefix];
     if (!isFatal && !isnan(minimumDuration)) {
         // Non-fatal hangs are sent when the hang ends, so the start is roughly now minus the duration.
-        CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
-        CFAbsoluteTime start = now - minimumDuration;
+        CFTimeInterval now = CACurrentMediaTime();
+        CFTimeInterval start = now - minimumDuration;
 
         os_unfair_lock_lock(&appLifecycleLock);
-        CFAbsoluteTime becameActive = lastBecameActiveTime;
-        CFAbsoluteTime resignedActive = lastResignedActiveTime;
-        CFAbsoluteTime enteredBackground = lastEnteredBackgroundTime;
+        CFTimeInterval becameActive = lastBecameActiveTime;
+        CFTimeInterval resignedActive = lastResignedActiveTime;
+        CFTimeInterval enteredBackground = lastEnteredBackgroundTime;
         NSUInteger activations = activationCount;
         // beforeSend runs about a second after the hang ends.
         BOOL blocked = mainThreadWasBlockedLocked(start - 1, now);
@@ -311,7 +311,7 @@ static BOOL initialized = NO;
     NSOperationQueue *mainQueue = [NSOperationQueue mainQueue];
     // Launch code is running, so the main thread counts as busy until the first run loop activity.
     os_unfair_lock_lock(&appLifecycleLock);
-    lastRunLoopActivityTime = CFAbsoluteTimeGetCurrent();
+    lastRunLoopActivityTime = CACurrentMediaTime();
     lastRunLoopActivityWasSleep = NO;
     os_unfair_lock_unlock(&appLifecycleLock);
     CFRunLoopObserverRef runLoopObserver = CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, kCFRunLoopAllActivities, true, LONG_MAX, ^(CFRunLoopObserverRef observer, CFRunLoopActivity activity) {
@@ -323,7 +323,7 @@ static BOOL initialized = NO;
         // Counts launch and returns from the background, not a brief inactive state (system alert, Control Center).
         os_unfair_lock_lock(&appLifecycleLock);
         if (activationCount == 0 || lastEnteredBackgroundTime > lastBecameActiveTime) {
-            lastBecameActiveTime = CFAbsoluteTimeGetCurrent();
+            lastBecameActiveTime = CACurrentMediaTime();
             activationCount++;
         }
         os_unfair_lock_unlock(&appLifecycleLock);
