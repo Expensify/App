@@ -64,7 +64,7 @@ const DONE_REPORT_ID = 'doneReport';
 const OPEN_TRANSACTION_ID = 'openTransaction';
 const DONE_TRANSACTION_ID = 'doneTransaction';
 
-// `reimbursable: false` means the field is NOT disabled on the workspace, which is what makes the row render at all.
+// Explicitly unlock Reimbursable for the baseline permission checks.
 const policy: Policy = {
     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
     id: POLICY_ID,
@@ -199,6 +199,81 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+    });
+
+    it.each([
+        {name: 'missing lock flags', locked: undefined, values: [false, false], visible: true},
+        {name: 'locked fields with expenses differing from the defaults', locked: true, values: [true, true], visible: true},
+        {name: 'locked fields with expenses matching the defaults', locked: true, values: [false, false], visible: false},
+        {name: 'a mixed selection of matching and differing expenses', locked: true, values: [true, false], visible: false},
+    ])('applies individual Reimbursable and Billable visibility rules for $name', async ({locked, values, visible}) => {
+        // Given two cash expenses on the same report, so only the workspace defaults and current values determine visibility
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            ...policy,
+            defaultReimbursable: false,
+            defaultBillable: false,
+            disabledFields: locked === undefined ? {} : {reimbursable: locked, defaultBillable: locked},
+        });
+        const secondTransactionID = 'secondTransaction';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${OPEN_TRANSACTION_ID}`, {reimbursable: values[0], billable: values[0]});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`, {
+            ...buildTransaction(secondTransactionID, OPEN_REPORT_ID),
+            reimbursable: values[1],
+            billable: values[1],
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${OPEN_REPORT_ID}`, {
+            [`action-${secondTransactionID}`]: buildIOUAction(OPEN_REPORT_ID, secondTransactionID),
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID, secondTransactionID]);
+
+        // When Edit multiple evaluates the whole selection
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a field is available only when every selected expense supports individual editing
+        if (visible) {
+            expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+            expect(screen.getByLabelText(/^Billable/)).toBeOnTheScreen();
+        } else {
+            expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(/^Billable/)).not.toBeOnTheScreen();
+        }
+    });
+
+    it.each([
+        {defaultReimbursable: true, reimbursable: false, visible: true},
+        {defaultReimbursable: true, reimbursable: true, visible: false},
+        {defaultReimbursable: false, reimbursable: undefined, visible: true},
+        {defaultReimbursable: undefined, reimbursable: undefined, visible: false},
+    ])('uses default $defaultReimbursable for a locked expense with reimbursable $reimbursable', async ({defaultReimbursable, reimbursable, visible}) => {
+        // Given a locked cash expense, including omitted values that individual editing treats as reimbursable
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, defaultReimbursable, disabledFields: {reimbursable: true}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${OPEN_TRANSACTION_ID}`, {...buildTransaction(OPEN_TRANSACTION_ID, OPEN_REPORT_ID), reimbursable});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When Edit multiple checks whether the expense needs correction
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only expenses that differ from the locked default remain correctable
+        if (visible) {
+            expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+        } else {
+            expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+        }
+    });
+
+    it('keeps Reimbursable hidden when the reported expense policy is missing', async () => {
+        // Given a reported cash expense whose workspace has not loaded, so its rules cannot be checked
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When Edit multiple opens without the workspace data
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then an absent policy is not mistaken for an unlocked workspace
+        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
     });
 
     it('shows Reimbursable for "Do Not Force" company card expenses on an "Always" workspace', async () => {
