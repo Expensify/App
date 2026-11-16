@@ -33,6 +33,7 @@ function useDiscardChangesConfirmation({
     onVisibilityChange,
     onConfirm,
     onTabSwitchDiscard,
+    shouldCloseRHPOnDiscard = false,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const {translate} = useLocalize();
@@ -58,7 +59,8 @@ function useDiscardChangesConfirmation({
             return;
         }
         shouldNavigateBack.current = true;
-        navigationRef.current?.dispatch(getNavigationActionForReplay(blockedNavigationAction.current));
+        const blockedAction = blockedNavigationAction.current;
+        navigationRef.current?.dispatch(shouldCloseRHPOnDiscard ? getNavigationActionForReplay(blockedAction) : blockedAction);
         shouldNavigateBack.current = false;
     };
 
