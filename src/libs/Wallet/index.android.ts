@@ -31,7 +31,13 @@ async function getTokenReferenceIDAwaitingVerification(card: Card): Promise<stri
 
         // getCardStatusBySuffix reads the first token matching the suffix, so pick the same one here
         const tokens = await listTokens();
-        return tokens.find((token) => token.lastDigits === lastFourPAN)?.identifier;
+        const matchingTokens = tokens.filter((token) => token.lastDigits === lastFourPAN);
+
+        // Two cards with the same last four digits on one device can't be told apart by suffix, rare enough to only log it
+        if (matchingTokens.length > 1) {
+            Log.warn(`getTokenReferenceIDAwaitingVerification found ${matchingTokens.length} tokens with the same suffix, resuming the first one`);
+        }
+        return matchingTokens.at(0)?.identifier;
     } catch (error) {
         Log.warn(`getTokenReferenceIDAwaitingVerification error: ${getErrorMessage(error)}`);
         return undefined;

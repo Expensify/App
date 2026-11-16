@@ -23,28 +23,23 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
     const latestRequestIDRef = useRef(0);
+    const latestReadRef = useRef<Promise<void>>(Promise.resolve());
     const refreshWalletStatus = () => {
-        // Reads can resolve out of order (e.g. a focus refresh started before the card was added), so only the newest one is applied
         latestRequestIDRef.current += 1;
         const requestID = latestRequestIDRef.current;
-        const isLatestRequest = () => requestID === latestRequestIDRef.current;
 
-        return isCardInWallet(card)
-            .then((result) => {
-                if (!isLatestRequest()) {
-                    return;
+        const read = isCardInWallet(card)
+            .catch(() => false)
+            .then((result): Promise<void> | undefined => {
+                // Reads can resolve out of order (e.g. a focus refresh started meanwhile), so a stale one waits for the newest
+                if (requestID !== latestRequestIDRef.current) {
+                    return latestReadRef.current;
                 }
                 setIsInWallet(result);
-            })
-            .catch(() => {
-                if (!isLatestRequest()) {
-                    return;
-                }
-                setIsInWallet(false);
-            })
-            .finally(() => {
                 setIsLoading(false);
             });
+        latestReadRef.current = read;
+        return read;
     };
 
     useEffect(() => {
