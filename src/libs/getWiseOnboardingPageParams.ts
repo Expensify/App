@@ -21,10 +21,14 @@ function isSavedFile(file: FileObject): file is WiseSavedFile {
     return typeof (file as Partial<WiseSavedFile>).savedFileKey === 'string';
 }
 
-/** A draft entry for a file the server holds, named after the last part of its key */
+/** The server names a stored file `<accountID>-<bankAccountID>-<YYYYMMDD_HHMMSS>-<unique ID>-<the user's file name>` */
+const SAVED_FILE_NAME_PATTERN = /^\d+-\d+-\d{8}_\d{6}-[0-9a-f]{13}-(.+)$/;
+
+/** A draft entry for a file the server holds, named as the user named it, or after the last part of its key when the key has another shape */
 function toSavedFile(savedFileKey: string): WiseSavedFile {
+    const storedName = savedFileKey.split('/').at(-1) ?? savedFileKey;
     return {
-        name: savedFileKey.split('/').at(-1) ?? savedFileKey,
+        name: SAVED_FILE_NAME_PATTERN.exec(storedName)?.[1] ?? storedName,
         uri: savedFileKey,
         savedFileKey,
     };
