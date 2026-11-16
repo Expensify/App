@@ -1,3 +1,5 @@
+import {emojiNameTable} from '@assets/emojis';
+
 import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
@@ -66,26 +68,53 @@ function isEmojiImage(image: HTMLImageElement): boolean {
     const source = image.getAttribute('src') ?? '';
     const patterns = CONST.REGEX.EMOJI_IMAGE_SOURCE;
     const isTeamsEmoji = image.getAttribute('itemType') === CONST.TEAMS_EMOJI_ITEM_TYPE && !!image.getAttribute('itemid') && patterns.TEAMS.test(source);
-    const discourseName = patterns.DISCOURSE.exec(source)?.[1];
-    const isDiscourseEmoji = !!discourseName && image.classList.contains('emoji') && image.alt === `:${discourseName}:` && image.title === image.alt;
+    const discourseMatch = patterns.DISCOURSE.exec(source);
+    const discourseName = discourseMatch?.[1];
+    const discourseTone = discourseMatch?.[2];
+    const discourseAlt = discourseTone ? `:${discourseName}:t${discourseTone}:` : `:${discourseName}:`;
+    const isDiscourseEmoji = !!discourseName && image.classList.contains('emoji') && image.alt === discourseAlt && image.title === image.alt;
+    console.log('logs', {
+        discourseName,
+        source,
+        image,
+        isDiscourseEmoji,
+    });
 
     return isTeamsEmoji || isDiscourseEmoji || patterns.META.test(source) || patterns.YOUTUBE.test(source);
 }
 
 /**
- * Returns the source's emoji text without translating names or converting between shortcodes and Unicode.
+ * Returns source emoji text, resolving supported Discourse image tones and keeping unsupported shortcodes intact.
  *
  * @param image Image element being pasted.
- * @returns The emoji metadata value or alt text, or an empty string when the image should remain unchanged.
+ * @returns Source text or the resolved Discourse skin-tone variant, or an empty string when the image should remain unchanged.
  */
 function getEmojiReplacementText(image: HTMLImageElement): string {
     if (!isEmojiImage(image)) {
         return '';
     }
 
-    // Slack, Gmail, and Discord supply the emoji text in data-* fields; other recognized formats use alt.
     const dataset = image.dataset;
-    return dataset.stringifyEmoji || dataset.emoji || (dataset.type === 'emoji' ? dataset.name : '') || image.alt;
+    const metadataText = dataset.stringifyEmoji || dataset.emoji;
+    if (metadataText) {
+        return metadataText;
+    }
+
+    // Discord's alt already includes the skin tone; its shortcode may not be recognized by the Composer.
+    if (dataset.type === 'emoji') {
+        return image.alt || dataset.name || '';
+    }
+
+    const discourseMatch = CONST.REGEX.EMOJI_IMAGE_SOURCE.DISCOURSE.exec(image.getAttribute('src') ?? '');
+    const discourseName = discourseMatch?.[1];
+    const discourseTone = discourseMatch?.[2];
+    if (discourseName && discourseTone) {
+        // Discourse numbers tones from 2 (light) to 6 (dark); our variants run from dark to light.
+        // Keep the complete source shortcode when we do not support its name or tone variant.
+        return emojiNameTable[discourseName]?.types?.[6 - Number(discourseTone)] ?? image.alt;
+    }
+
+    return image.alt;
 }
 
 /**

@@ -6665,8 +6665,8 @@ const CONST = {
             YOUTUBE: /^https:\/\/www\.youtube\.com\/s\/gaming\/emoji\/[a-f\d]+\/emoji_u[a-f\d]+(?:_[a-f\d]+)*\.png(?:\?[^\s#]*)?$/i,
             // Teams pairs these emoticon assets with its emoji itemtype attribute.
             TEAMS: /^https:\/\/tflteams\.public\.onecdn\.static\.microsoft\/evergreen-assets\/personal-expressions\/v\d+\/assets\/emoticons\/[a-z\d_]+\/default\/\d+_f(?:_s[2-6])?\.png(?:\?[^\s#]*)?$/i,
-            // Discourse base emoji filenames identify the shortcode in alt and title.
-            DISCOURSE: /^https:\/\/emoji\.discourse-cdn\.com\/twitter\/([a-z\d_+-]+)\.png(?:\?[^\s#]*)?$/i,
+            // Discourse filenames identify the name and optional tone shared by alt and title.
+            DISCOURSE: /^https:\/\/emoji\.discourse-cdn\.com\/twitter\/([a-z\d_+-]+)(?:\/([2-6]))?\.png(?:\?[^\s#]*)?$/i,
         },
 
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,

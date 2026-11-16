@@ -29,7 +29,7 @@ const emojiImageCases = [
     {
         source: 'Discord message selection',
         html: '<img class="emoji" data-type="emoji" data-name=":smile:" alt="😄" src="https://discord.com/assets/58a76b2430663605.svg">',
-        replacement: ':smile:',
+        replacement: '😄',
     },
     {
         source: 'Facebook and Messenger',
@@ -284,11 +284,14 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
     it.each([
         ['Gmail value instead of conflicting alt', '<img data-emoji="😅" alt="😄" src="https://example.com/asset.png">', '😅'],
-        ['Discord shortcode instead of conflicting alt', '<img data-type="emoji" data-name=":tada:" alt="😄">', ':tada:'],
-        ['Discord name not supported by the App', '<img data-type="emoji" data-name=":source_specific_name:" alt="😄">', ':source_specific_name:'],
+        ['Discord alt instead of conflicting shortcode', '<img data-type="emoji" data-name=":tada:" alt="😄">', '😄'],
+        ['Discord alt with an unsupported shortcode', '<img data-type="emoji" data-name=":source_specific_name:" alt="😄">', '😄'],
+        ['Discord dark waving hand', '<img data-type="emoji" data-name=":wave_tone5:" alt="👋🏿">', '👋🏿'],
+        ['Discord dark right-facing fist', '<img data-type="emoji" data-name=":right_facing_fist_tone5:" alt="🤜🏿">', '🤜🏿'],
+        ['Discord empty alt fallback', '<img data-type="emoji" data-name=":smile:" alt="">', ':smile:'],
         ['Gmail empty metadata fallback', '<img data-emoji="" alt="😅">', '😅'],
         ['Discord missing name fallback', '<img data-type="emoji" alt="😄">', '😄'],
-    ])('uses explicit emoji metadata for %s', async (_name, html, replacement) => {
+    ])('uses the expected emoji text for %s', async (_name, html, replacement) => {
         // Given explicit emoji fields identify the image independently of its URL or the App's supported names.
         const event = createMockClipboardEvent('', html);
         mockWindowSelection('');
@@ -298,8 +301,36 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         // When that image is pasted through the same path used for Slack metadata.
         act(() => document.dispatchEvent(event));
 
-        // Then its supplied text is used without name translation or shortcode conversion.
+        // Then Discord uses its complete alt, while other metadata and missing-alt fallbacks retain their values.
         expect(textInputElement.textContent).toBe(replacement);
+    });
+
+    it.each([
+        ['clap', '2', '👏🏻'],
+        ['clap', '3', '👏🏼'],
+        ['clap', '4', '👏🏽'],
+        ['clap', '5', '👏🏾'],
+        ['clap', '6', '👏🏿'],
+        ['rightwards_pushing_hand', '6', '🫸🏿'],
+        ['palms_up_together', '6', '🤲🏿'],
+        ['folded_hands', '2', ':folded_hands:t2:'],
+        ['hand_with_index_finger_and_thumb_crossed', '2', '🫰🏻'],
+        ['sign_of_the_horns', '2', ':sign_of_the_horns:t2:'],
+        ['source_specific_name', '6', ':source_specific_name:t6:'],
+        ['smile', '6', ':smile:t6:'],
+    ])('preserves the Discourse tone or its unsupported shortcode for %s/t%s', async (name, tone, replacement) => {
+        // Given a Discourse image encodes its tone in the URL, alt and title, unlike its unchanged literal shortcode.
+        const alt = `:${name}:t${tone}:`;
+        const html = `<p><b>Before</b> <img class="emoji" src="https://emoji.discourse-cdn.com/twitter/${name}/${tone}.png?v=16" alt="${alt}" title="${alt}"> ${alt} <i>After</i></p>`;
+        mockWindowSelection('');
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the image is pasted beside formatted text and a literal shortcode.
+        act(() => document.dispatchEvent(createMockClipboardEvent('', html)));
+
+        // Then the image becomes a supported toned variant or its full original shortcode, without dropping the tone.
+        expect(textInputElement.textContent).toBe(`*Before* ${replacement} ${alt} _After_`);
     });
 
     it.each(['grinning_face_with_smiling_eyes', 'kissing_face', 'source_specific_name'])('keeps the Discourse shortcode %s unchanged', async (name) => {
@@ -347,7 +378,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         ['Discourse class on an unrelated image', '<img class="emoji" src="https://example.com/photo.png" title=":smile:" alt=":smile:">'],
         ['mismatched Discourse name', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/smile.png" title=":tada:" alt=":tada:">'],
         ['Discourse image without title', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/smile.png" alt=":smile:">'],
-        ['deferred Discourse tone notation', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/clap/6.png?v=16" title=":clap:t6:" alt=":clap:t6:">'],
+        ['mismatched Discourse tone', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/clap/6.png?v=16" title=":clap:t2:" alt=":clap:t2:">'],
+        ['invalid Discourse tone', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/clap/7.png" title=":clap:t7:" alt=":clap:t7:">'],
     ])('leaves existing image handling unchanged for %s', async (_name, html) => {
         // Given an image has no recognized emoji metadata or complete matching image attributes.
         const expected = Parser.htmlToMarkdown(html);
@@ -603,7 +635,7 @@ describe('useHtmlPaste DOM insertion boundaries', () => {
         renderHook(() => useHtmlPaste({current: input}, undefined, true));
         await waitForBatchedUpdatesWithAct();
         const html =
-            '<p><img data-emoji="😄" alt="😄"> <img data-type="emoji" data-name=":smile:" alt="😄"> <img class="emoji" src="https://emoji.discourse-cdn.com/twitter/kissing_face.png" title=":kissing_face:" alt=":kissing_face:"> :tada:</p>';
+            '<p><img data-emoji="😄" alt="😄"> <img data-type="emoji" data-name=":wave_tone5:" alt="👋🏿"> <img class="emoji" src="https://emoji.discourse-cdn.com/twitter/kissing_face.png" title=":kissing_face:" alt=":kissing_face:"> <img class="emoji" src="https://emoji.discourse-cdn.com/twitter/clap/6.png" title=":clap:t6:" alt=":clap:t6:"> :clap:t6: :tada:</p>';
         const event = Object.assign(new Event('paste', {bubbles: true, cancelable: true}), {
             clipboardData: createMock<DataTransfer>({types: ['text/html'], getData: () => html}),
         });
@@ -611,8 +643,8 @@ describe('useHtmlPaste DOM insertion boundaries', () => {
         // When images with Unicode and shortcode metadata are pasted alongside a literal shortcode.
         act(() => document.dispatchEvent(event));
 
-        // Then source Unicode stays Unicode and every shortcode keeps its original spelling.
-        expect(input.value).toBe('😄 :smile: :kissing_face: :tada:');
+        // Then image tones are retained without adding conversion of any literal shortcode in this input.
+        expect(input.value).toBe('😄 👋🏿 :kissing_face: 👏🏿 :clap:t6: :tada:');
     });
 
     it.each(['input', 'textarea'] as const)('uses %s setRangeText with the existing length arithmetic and focusin dispatch', (tagName) => {
