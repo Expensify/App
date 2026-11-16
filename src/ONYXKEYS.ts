@@ -1088,6 +1088,9 @@ const ONYXKEYS = {
         /** Session-scoped loading flags for a user's public profile, keyed by accountID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE: 'personalDetailsLoadingState_',
+        /** Whether a card is in the device wallet (Apple/Google Wallet), keyed by cardID.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_CARD_WALLET_STATUS: 'cardWalletStatus_',
         /** Pagination state for tag filter search, keyed by policyIDs.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION: 'searchTagFiltersPagination_',
@@ -1738,6 +1741,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH]: OnyxTypes.CompanyCardNumberSearch;
     [ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE]: OnyxTypes.ReceiptTranslationState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE]: OnyxTypes.ExpensifyCardLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_CARD_WALLET_STATUS]: OnyxTypes.CardWalletStatus;
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]: OnyxTypes.SearchTagFiltersPaginationState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS]: OnyxTypes.SearchTagFilterItem[];
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_ROW_FOCUS]: boolean;
