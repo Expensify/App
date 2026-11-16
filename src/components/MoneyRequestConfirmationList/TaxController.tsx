@@ -67,7 +67,7 @@ function TaxController({
 
     const previousTransactionCurrency = usePrevious(transaction?.currency);
 
-    const {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits} = useTaxAmount({
+    const {defaultTaxCode, defaultTaxValue, shouldHoldBackDefault, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading} = useTaxAmount({
         transaction,
         policy,
         policyForMovingExpenses,
@@ -80,7 +80,9 @@ function TaxController({
     });
 
     useEffect(() => {
-        if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense) {
+        // Writing the workspace default before the rules arrive would read as a tax the user picked, and
+        // `shouldKeepCurrentTaxSelection` would then hold it in place once the category's rule does land.
+        if (!transactionID || isReadOnly || !shouldShowTax || shouldHoldBackDefault || areRulesLoading) {
             return;
         }
 
@@ -95,14 +97,14 @@ function TaxController({
             taxAmount: transactionTaxAmount ?? null,
         });
         // trigger this useEffect also when policyID changes - the defaultTaxCode may stay the same
-    }, [defaultTaxCode, defaultTaxValue, isMovingTransactionFromTrackExpense, isReadOnly, transactionID, policyID, shouldShowTax, shouldKeepCurrentTaxSelection, transactionTaxAmount]);
+    }, [defaultTaxCode, defaultTaxValue, shouldHoldBackDefault, isReadOnly, transactionID, policyID, shouldShowTax, shouldKeepCurrentTaxSelection, transactionTaxAmount, areRulesLoading]);
 
     useEffect(() => {
-        if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense) {
+        if (!transactionID || isReadOnly || !shouldShowTax || shouldHoldBackDefault || areRulesLoading) {
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly, shouldShowTax, isMovingTransactionFromTrackExpense]);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly, shouldShowTax, shouldHoldBackDefault, areRulesLoading]);
 
     return null;
 }
