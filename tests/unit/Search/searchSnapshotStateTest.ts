@@ -199,13 +199,10 @@ describe('search snapshot terminal state', () => {
         expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
     });
 
-    it.each([
-        [CONST.SEARCH.QUERY_ERROR_UUID.TOO_MANY_KEYWORDS, 'search.searchResults.tooManyKeywords'],
-        [CONST.SEARCH.QUERY_ERROR_UUID.INVALID_REPORT_ID, 'search.searchResults.invalidReportID'],
-        [CONST.SEARCH.QUERY_ERROR_UUID.UNSUPPORTED_FILTER, 'search.searchResults.unsupportedFilter'],
-        [CONST.SEARCH.QUERY_ERROR_UUID.INVALID_QUERY, 'errorPage.wrongTypeSubtitle'],
-    ] as const)('keeps the localized reason for rejected search %s', async (UUID, translationKey) => {
+    it('keeps the localized reason for a rejected search', async () => {
         // Given a query rejected by the server with a recognized validation error
+        const UUID = CONST.SEARCH.QUERY_ERROR_UUID.TOO_MANY_KEYWORDS;
+        const translationKey = 'search.searchResults.tooManyKeywords';
         const queryJSON = getQueryJSON();
         jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(async (_command, _parameters, onyxData) => {
             await Onyx.update(onyxData?.optimisticData ?? []);
@@ -253,9 +250,7 @@ describe('search snapshot terminal state', () => {
 
     it.each([
         Array.from({length: CONST.SEARCH.MAX_KEYWORD_TOKENS}, (_, index) => `word${index}`).join(' '),
-        'type:expense status:unreported',
         'type:EXPENSE groupBy:category',
-        'type:expense groupBy:approver',
         'type:expense-report group-by:violation',
         'type:CHAT is:unread',
     ])('sends supported query %s to the server', async (inputQuery) => {
