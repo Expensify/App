@@ -2073,7 +2073,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-document-picker (10.1.3):
+  - react-native-document-picker (12.0.3):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3000,7 +3000,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.371):
+  - RNLiveMarkdown (0.1.372):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -4120,7 +4120,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: 0091cf4599c9cc14d79c9f31be887df4d3d3cf59
   react-native-cameraroll: 8fd837cd3e2c96ca378d85eb4340134381797309
   react-native-config: 06c97ec20d877e11bb128d8cdc11329f18494ecb
-  react-native-document-picker: ee9a7692303f36eef1798dcf43f38f51b1382ad1
+  react-native-document-picker: 6cf4f8d1541982a4f836f1927e5766199f169e6c
   react-native-image-picker: 08847883972f3fe37e31896ac2f864286737b4d4
   react-native-key-command: 9a1d8369da3fc9668b6f5389c9d7412189591217
   react-native-keyboard-controller: d07e8ba4e72859601941cc6c508fdd37a635ba04
@@ -4180,7 +4180,7 @@ SPEC CHECKSUMS:
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: 85e32defcf23dd3b023356355c5c1dd1d9d51bde
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc
-  RNLiveMarkdown: 5c091b2742b0e26a7085ce2803919ef76198eeb7
+  RNLiveMarkdown: 180bd3f6e7582c2d0383cc3a1cee7808cb63d578
   RNLocalize: 82e7aa2857ce5dcd9e2a0c04f8c34c2ed50821df
   rnmapbox-maps: 1cb6aa142a8ea99d0934a36d83d2acf3f2de45d3
   RNNitroSQLite: 8962a30dc9296f8a62bfcc33f3c2a540b1c44aff
