@@ -38,23 +38,28 @@ const MOCK_EMAIL = 'test@expensify.com';
 const mockGetValidOptions = jest.mocked(getValidOptions);
 const mockGetSearchOptions = jest.mocked(getSearchOptions);
 
-// Holds the Onyx-sourced personal detail options returned by the mocked useFilteredOptions, so individual tests can control them.
-const mockFilteredPersonalDetails: {current: OptionData[]} = {current: []};
+// Keep the options reference stable while inputs are unchanged, matching useFilteredOptions.
+// Tests set personalDetails here; creating a new options object on every render would invalidate the selector's cache.
+const mockFilteredOptions: {reports: OptionData[]; personalDetails: OptionData[]} = {reports: [], personalDetails: []};
+const mockLoadMore = jest.fn();
 
 jest.mock('@hooks/useFilteredOptions', () => ({
     __esModule: true,
     default: () => ({
-        options: {reports: [], personalDetails: mockFilteredPersonalDetails.current},
+        options: mockFilteredOptions,
         isLoading: false,
-        loadMore: jest.fn(),
+        loadMore: mockLoadMore,
         hasMore: false,
         isLoadingMore: false,
     }),
 }));
 
+// Keep the personal details reference stable while its data is unchanged, matching the real provider.
+const mockPersonalDetails = {};
+
 jest.mock('@components/OnyxListItemProvider', () => ({
     ...jest.requireActual<typeof OnyxListItemProvider>('@components/OnyxListItemProvider'),
-    usePersonalDetails: () => ({}),
+    usePersonalDetails: () => mockPersonalDetails,
     useCardList: () => ({}),
     useWorkspaceCardList: () => ({}),
 }));
@@ -562,7 +567,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockFilteredPersonalDetails.current = [];
+        mockFilteredOptions.personalDetails = [];
 
         // getValidOptions is mocked, so the contact de-duplication under test only depends on the inputs passed to the hook.
         mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
@@ -585,7 +590,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
 
     it('drops an imported contact whose login already exists in personal details, keeping the real Onyx account', async () => {
         // EXISTING_CONTACT is alice@expensify.com with the real Onyx accountID 100.
-        mockFilteredPersonalDetails.current = [EXISTING_CONTACT];
+        mockFilteredOptions.personalDetails = [EXISTING_CONTACT];
 
         renderHook(() =>
             useSearchSelectorBase({
@@ -624,7 +629,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
     it('drops a phone contact that resolves to an SMS login already in personal details', async () => {
         // getContactOption already normalizes a device phone number to its SMS-domain login, so both sides carry the same login.
         const smsLogin = '+15551234567@expensify.sms';
-        mockFilteredPersonalDetails.current = [{...EXISTING_CONTACT, login: smsLogin, accountID: 300}];
+        mockFilteredOptions.personalDetails = [{...EXISTING_CONTACT, login: smsLogin, accountID: 300}];
 
         renderHook(() =>
             useSearchSelectorBase({
@@ -641,7 +646,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
     });
 
     it('matches logins case-insensitively so a differently-cased contact is not duplicated', async () => {
-        mockFilteredPersonalDetails.current = [EXISTING_CONTACT];
+        mockFilteredOptions.personalDetails = [EXISTING_CONTACT];
 
         renderHook(() =>
             useSearchSelectorBase({
@@ -659,7 +664,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
 
     it('keeps an imported contact when the only matching Onyx entry is optimistic', async () => {
         // An optimistic personal detail is filtered out by getValidOptions, so it must not suppress the real device contact.
-        mockFilteredPersonalDetails.current = [{...EXISTING_CONTACT, isOptimisticPersonalDetail: true}];
+        mockFilteredOptions.personalDetails = [{...EXISTING_CONTACT, isOptimisticPersonalDetail: true}];
 
         renderHook(() =>
             useSearchSelectorBase({
@@ -676,7 +681,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
     });
 
     it('keeps all imported contacts when none of them are already known', async () => {
-        mockFilteredPersonalDetails.current = [EXISTING_CONTACT];
+        mockFilteredOptions.personalDetails = [EXISTING_CONTACT];
 
         renderHook(() =>
             useSearchSelectorBase({
@@ -698,7 +703,7 @@ describe('useSearchSelector search term trimming', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockFilteredPersonalDetails.current = [];
+        mockFilteredOptions.personalDetails = [];
         mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
         mockGetSearchOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
         await act(async () => {
@@ -767,5 +772,131 @@ describe('useSearchSelector search term trimming', () => {
         await renderWithSearchTerm(CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL, ' +1 (234) 567-8901 ');
 
         expect(mockGetValidOptions.mock.calls.at(-1)?.[7]?.searchString).toBe('+12345678901');
+    });
+});
+
+describe('useSearchSelector memoization', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockFilteredOptions.personalDetails = [];
+        mockGetValidOptions.mockReturnValue({
+            options: {
+                ...EMPTY_OPTIONS,
+                personalDetails: [EXISTING_CONTACT, SECOND_CONTACT],
+            },
+            hasMore: false,
+        });
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet(
+                createMock<OnyxMultiSetInput>({
+                    [ONYXKEYS.SESSION]: {accountID: MOCK_ACCOUNT_ID, email: MOCK_EMAIL},
+                    [ONYXKEYS.BETAS]: [],
+                    [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
+                }),
+            );
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterAll(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+    });
+
+    it('does not recompute the option lists when the parent only passes new callbacks', async () => {
+        // Given a selector in multiple selection mode whose onSelectionChange callback can change between renders
+        const {result, rerender} = renderHook(
+            ({onSelectionChange}: {onSelectionChange: (options: OptionData[]) => void}) =>
+                useSearchSelectorBase({
+                    selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                    searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                    onSelectionChange,
+                }),
+            {initialProps: {onSelectionChange: jest.fn()}},
+        );
+        await waitForBatchedUpdatesWithAct();
+        const getValidOptionsCallCount = mockGetValidOptions.mock.calls.length;
+        const initialAvailableOptions = result.current.availableOptions;
+
+        // When the parent re-renders with a new callback reference and no data change
+        rerender({onSelectionChange: jest.fn()});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then getValidOptions keeps its call count and availableOptions keeps its reference,
+        // because changing only onSelectionChange leaves the option inputs unchanged.
+        expect(mockGetValidOptions).toHaveBeenCalledTimes(getValidOptionsCallCount);
+        expect(result.current.availableOptions).toBe(initialAvailableOptions);
+    });
+
+    it('updates the available options when the selection changes', async () => {
+        // Given a multi-select search selector with nothing selected
+        const {result} = renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When an option is selected
+        act(() => {
+            result.current.toggleSelection(EXISTING_CONTACT);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then availableOptions.personalDetails is recomputed rather than served stale, excluding the selected contact
+        expect(result.current.availableOptions.personalDetails.map((option) => option.login)).not.toContain(EXISTING_CONTACT.login);
+    });
+
+    it('does not cancel pending page load when parent re-renders during the debounce window', async () => {
+        jest.useFakeTimers();
+
+        // Given a search selector with more options to load and a parent that passes inline callbacks
+        mockGetValidOptions.mockReturnValue({
+            options: {
+                ...EMPTY_OPTIONS,
+                personalDetails: [EXISTING_CONTACT, SECOND_CONTACT],
+            },
+            hasMore: true,
+        });
+
+        const {result, rerender} = renderHook(
+            ({onSelectionChange}: {onSelectionChange: (options: OptionData[]) => void}) =>
+                useSearchSelectorBase({
+                    selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                    searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                    onSelectionChange,
+                    maxResultsPerPage: 5,
+                }),
+            {initialProps: {onSelectionChange: jest.fn()}},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When onListEndReached starts the 300 ms debounce and the parent renders again after 150 ms
+        act(() => {
+            result.current.onListEndReached();
+        });
+        act(() => {
+            jest.advanceTimersByTime(150);
+        });
+        rerender({onSelectionChange: jest.fn()});
+        await waitForBatchedUpdatesWithAct();
+
+        // Advance past the remainder of the debounce delay
+        await act(async () => {
+            jest.advanceTimersByTime(200);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the pending page load completes rather than getting cancelled by the re-render, increasing maxElements from 5 to 10
+        expect(mockGetValidOptions.mock.calls.at(-1)?.[7]?.maxElements).toBe(10);
+
+        jest.useRealTimers();
     });
 });

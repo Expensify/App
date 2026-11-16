@@ -63,6 +63,36 @@ function getReportActionByIDSelector(reportActions: OnyxEntry<ReportActions>, re
     return reportActions[reportActionID];
 }
 
+function getBillProcessorAccountIDSelector(reportActions: OnyxEntry<ReportActions>): number | undefined {
+    const createdAction = Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED));
+    return getOriginalMessage(createdAction)?.processor;
+}
+
+function getBillPayHistoryParticipantSelector(reportActions: OnyxEntry<ReportActions>, reportActionID: string) {
+    const action = reportActions?.[reportActionID];
+    const isCreatedAction = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    // The creation action has no participant emails, so the creation row reads the sender from the submission action.
+    const submission = isCreatedAction
+        ? Object.values(reportActions ?? {}).find(
+              (reportAction) =>
+                  (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) &&
+                  !!reportAction.submitterEmail,
+          )
+        : action;
+    const originalMessage =
+        isActionOfType(submission, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(submission, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
+            ? getOriginalMessage(submission)
+            : undefined;
+
+    return {
+        isCreatedAction,
+        senderLogin: submission?.submitterEmail,
+        receiverLogin: originalMessage?.to,
+        receiverAccountID: originalMessage?.submittedTo,
+    };
+}
+
 function getReimbursedExpectedDateSelector(reportActions: OnyxEntry<ReportActions>, paymentCreated: string): string | undefined {
     let latestReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> | undefined;
     for (const reportAction of Object.values(reportActions ?? {})) {
@@ -186,7 +216,22 @@ function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: 
     return parentReportActionWithoutThreadReplies;
 }
 
+/** Keeps only the given reports' actions, so a page reading a few reports isn't woken by every other report's actions. */
+const reportActionsByReportIDsSelector =
+    (reportIDs: string[]) =>
+    (allReportActions: OnyxCollection<ReportActions>): OnyxCollection<ReportActions> => {
+        const result: OnyxCollection<ReportActions> = {};
+        for (const reportID of reportIDs) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+            result[key] = allReportActions?.[key];
+        }
+        return result;
+    };
+
 export {
+    reportActionsByReportIDsSelector,
+    getBillPayHistoryParticipantSelector,
+    getBillProcessorAccountIDSelector,
     getLatestFeedbackActionIDByAuthorSelector,
     getParentReportActionSelector,
     getLastClosedReportAction,

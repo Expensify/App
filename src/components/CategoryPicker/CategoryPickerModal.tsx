@@ -10,15 +10,18 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 
-import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import {getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
-import React, {useState} from 'react';
+import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
+import React, {useLayoutEffect, useState} from 'react';
 
 import CategoryPicker from '.';
 
@@ -41,7 +44,13 @@ type CategoryPickerModalProps = {
     onAddCategory?: () => void;
 
     /** Sentry label for the add button, so each caller's presses are attributed to it */
-    addCategorySentryLabel?: string;
+    addCategorySentryLabel?: SentryLabel;
+
+    /** Receives the searched-for name when the user taps the create row. The row is offered only when this is passed. */
+    onCreateCategory?: (categoryName: string) => void;
+
+    /** The account the expense belongs to, passed only when the current user owns it, so the list shows just the categories they can use */
+    ownerAccountID?: number;
 } & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'shouldShowHeader' | 'children'>;
 
 function CategoryPickerModal({
@@ -52,6 +61,9 @@ function CategoryPickerModal({
     onSelected,
     onAddCategory,
     addCategorySentryLabel,
+    onCreateCategory,
+    ownerAccountID,
+    isVisible,
     onClose,
     ...popoverProps
 }: CategoryPickerModalProps) {
@@ -59,10 +71,20 @@ function CategoryPickerModal({
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: policyCategoriesVisibilitySelector});
     const [renderedRowCount, setRenderedRowCount] = useState<number>();
 
-    const categoriesCount = policyCategories ?? 0;
+    // Counts what the picker lists, so the search input shows only when the owner's own list is long enough.
+    const categoriesCount = getEnabledCategoriesCount(ownerAccountID === undefined || !policyCategories ? policyCategories : getVisibleCategories(policyCategories, ownerAccountID));
+
+    // A layout effect, so the span starts before the picker's own effects run and can end it. The popover only renders
+    // the picker while it's open, so the picker mounts again on every open.
+    useLayoutEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        startOpenCategoryPickerSpan();
+    }, [isVisible]);
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection
@@ -74,9 +96,15 @@ function CategoryPickerModal({
         onClose();
     };
 
+    const createCategory = (categoryName: string) => {
+        onCreateCategory?.(categoryName);
+        onClose();
+    };
+
     return (
         <AnchoredSelectionListPopover
             {...popoverProps}
+            isVisible={isVisible}
             onClose={onClose}
             optionCount={renderedRowCount ?? categoriesCount}
             isSearchable={categoriesCount >= searchInputThreshold}
@@ -109,9 +137,11 @@ function CategoryPickerModal({
                 selectedCategory={selectedCategory}
                 policyID={policyID}
                 onSubmit={handleCategorySelect}
+                onCreateCategory={onCreateCategory ? createCategory : undefined}
                 shouldAutoFocusSearchInput
                 shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
                 searchInputThreshold={searchInputThreshold}
+                ownerAccountID={ownerAccountID}
             />
         </AnchoredSelectionListPopover>
     );

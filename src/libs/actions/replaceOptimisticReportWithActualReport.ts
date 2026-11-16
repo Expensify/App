@@ -100,28 +100,33 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
             // Or we optimistically created a thread report under a comment that already has an associated child chat report.
             // In this case, the API will let us know by returning a preexistingReportID.
             // We should clear out the optimistically created report and re-route the user to the preexisting report.
-            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
             const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
             let callback = () => {
+                // Read at call time, since this callback can run after the draft is saved
+                const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+                // Keep the existing report's server fields (e.g. type) and its own errors, so an optimistic "Report not found" error never lands on it
+                const mergedReport = {
+                    ...existingReport,
+                    ...report,
+                    reportID: preexistingReportID,
+                    preexistingReportID: null,
+                    errors: existingReport?.errors,
+                    errorFields: existingReport?.errorFields,
+                    pendingFields: existingReport?.pendingFields,
+                };
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
 
                 if (!parentReportActionID) {
                     // DMs and group-DMs don't have parent actions, so we only need to merge report data and preserve existing participants
                     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                        ...report,
-                        reportID: preexistingReportID,
-                        preexistingReportID: null,
+                        ...mergedReport,
                         // Replacing the existing report's participants to avoid duplicates
                         participants: existingReport?.participants ?? report.participants,
                     });
                 } else {
                     // Thread reports have parent actions that need their childReportID updated to point to the preexisting thread
-                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                        ...report,
-                        reportID: preexistingReportID,
-                        preexistingReportID: null,
-                    });
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, mergedReport);
                     // Non-optimistic parent actions already exist, so we update their childReportID;
                     // optimistic actions were already cleaned up above
                     const parentReportAction = parentReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID] : null;

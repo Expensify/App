@@ -106,7 +106,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   }
 
   // Cover the UI before the OS captures the app-switcher snapshot, so sensitive data never ends up on disk.
-  // Called by `SceneDelegate`, UIKit doesn't send the app-level active/resign callbacks under the scene lifecycle.
+  // Called by `SceneDelegate` on background/foreground, UIKit doesn't send the app-level callbacks under the scene lifecycle.
   func showPrivacyOverlay() {
     guard privacyOverlay == nil, let window else {
       return

@@ -37,10 +37,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {pendingExpenseActionSelector} from '@selectors/ReportMetaData';
 import React from 'react';
 import {View} from 'react-native';
@@ -56,6 +57,7 @@ type Metadata = {
     action?: {
         name: string;
         callback: () => void;
+        sentryLabel: SentryLabel;
     };
 };
 
@@ -70,6 +72,7 @@ function DebugReportPage({
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -84,9 +87,11 @@ function DebugReportPage({
     const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: guidedSetupAndTourStatusSelector,
     });
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
@@ -101,24 +106,25 @@ function DebugReportPage({
     if (!report) {
         metadata = [];
     } else {
-        const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
+        const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations, policy);
         const hasViolations = !!shouldDisplayViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} =
             DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, currentUserLogin ?? '', currentUserAccountID, pendingExpenseActionMetadata, isReportArchived, transactionViolations) ??
             {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
-            DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+            DebugUtils.getReasonAndReportActionForRBRInLHNRow({
                 report,
                 chatReport,
                 reportActions,
                 transactions,
                 transactionViolations,
                 hasViolations,
-                reportAttributes?.reportErrors ?? {},
+                reportErrors: reportAttributes?.reportErrors ?? {},
                 isOffline,
                 currentUserAccountID,
-                isReportArchived,
-            ) ?? {};
+                policy,
+                isArchivedReport: isReportArchived,
+            }) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN({
@@ -151,6 +157,7 @@ function DebugReportPage({
                     hasGBR && reportActionGBR
                         ? {
                               name: translate('common.view'),
+                              sentryLabel: CONST.SENTRY_LABEL.DEBUG.REPORT_REASON_VIEW.GBR,
                               callback: () =>
                                   Navigation.navigate(
                                       ROUTES.REPORT_WITH_ID.getRoute(
@@ -169,6 +176,7 @@ function DebugReportPage({
                     hasRBR && reportActionRBR
                         ? {
                               name: translate('common.view'),
+                              sentryLabel: CONST.SENTRY_LABEL.DEBUG.REPORT_REASON_VIEW.RBR,
                               callback: () =>
                                   Navigation.navigate(
                                       ROUTES.REPORT_WITH_ID.getRoute(
@@ -198,6 +206,7 @@ function DebugReportPage({
                     currentUserAccountID,
                     introSelected,
                     isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
                     reportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
@@ -219,13 +228,17 @@ function DebugReportPage({
                         </View>
                         {!!message && <Text style={styles.textSupporting}>{message}</Text>}
                         {!!action && (
-                            <Button onPress={action.callback}>
+                            <Button
+                                onPress={action.callback}
+                                sentryLabel={action.sentryLabel}
+                            >
                                 <Button.Text>{action.name}</Button.Text>
                             </Button>
                         )}
                     </View>
                 ))}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.DEBUG.REPORT_VIEW_REPORT}
                     onPress={() => {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                     }}
@@ -235,6 +248,7 @@ function DebugReportPage({
                 </Button>
                 {!!transactionID && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.DEBUG.REPORT_VIEW_TRANSACTION}
                         onPress={() => {
                             Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
                         }}

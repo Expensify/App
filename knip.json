@@ -1,8 +1,5 @@
 {
-    "ignoreIssues": {
-        "src/hooks/usePersonalDetails.ts": ["exports"],
-        "src/libs/PersonalDetailsUtils.ts": ["exports"]
-    },
+    "include": ["nsExports", "nsTypes"],
     "workspaces": {
         ".": {
             "entry": [
@@ -12,6 +9,7 @@
                 "src/HybridAppHandler.tsx",
                 "scripts/**/*.{js,mjs,ts}",
                 "web/proxy.ts",
+                "web/service-worker.ts",
                 "config/rsbuild/**/*.{js,mjs,cjs,ts}",
                 "config/repack/**/*.{js,mjs,ts}",
                 ".github/scripts/**/*.ts",
@@ -20,11 +18,11 @@
                 "tests/globals.d.ts",
                 ".storybook/**/*.{js,ts,tsx}",
                 "config/babel/oxcJestTransformer.js",
-                "eslint.changed.config.mjs",
                 "react-native.config.js",
                 "rock.config.mjs",
                 "rspack.config.mjs",
-                "src/components/HeaderWithBackButtonComposed/index.tsx"
+                "tests/perf-test/**/*.perf-test.{ts,tsx}",
+                "tests/perf-local/**/*.perf-local.ts"
             ],
             "project": [
                 "src/**/*.{js,jsx,ts,tsx}",
@@ -37,19 +35,7 @@
                 ".storybook/**/*.{js,ts,tsx}",
                 ".github/actions/javascript/**/*.ts"
             ],
-            "ignore": [
-                ".github/actions/**/index.js",
-                "tests/perf-test/**",
-                "tests/perf-local/**",
-                "web/snippets/gib.js",
-                "web/cloudflare-worker/**",
-                "src/libs/actions/connections/FinancialForce.ts",
-                "src/libs/actions/connections/ZohoBooks.ts",
-                "src/libs/actions/connections/Digits.ts"
-            ],
-            "eslint": {
-                "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
-            },
+            "ignore": [".github/actions/**/index.js", "web/snippets/gib.js", "web/cloudflare-worker/**"],
             "rsbuild": {
                 "config": ["config/rsbuild/rsbuild.config.ts", ".storybook/rsbuild.config.ts"]
             },
@@ -63,7 +49,11 @@
                 "config": [".storybook/main.ts"]
             }
         },
+        "modules/ExpensifyNitroUtils": {
+            "bun": false
+        },
         "server/victory-chart-renderer": {
+            "bun": false,
             "entry": ["src/bootstrap.tsx", "tests/**/*.test.ts"],
             "project": ["src/**/*.{ts,tsx}", "scripts/**/*.ts", "tests/**/*.{ts,tsx}"]
         }
@@ -80,19 +70,19 @@
         "html-entities",
         "@fullstory/babel-plugin-react-native",
         "@fullstory/babel-plugin-annotate-react",
-        "eslint-config-airbnb-typescript",
         "eslint-plugin-react-hooks",
-        "eslint-config-prettier",
+        "eslint-plugin-jsdoc",
         "eslint-plugin-storybook",
-        "@dword-design/eslint-plugin-import-alias",
-        "bun",
         "shellcheck",
         "patch-package",
-        "diff-so-fancy",
-        "@babel/plugin-proposal-class-properties"
+        "diff-so-fancy"
     ],
-    "ignoreBinaries": ["mkcert", "openssl"],
+    "ignoreBinaries": ["mkcert", "openssl", "xdg-open", "ruby"],
     "ignoreIssues": {
-        "config/oxlint/ruleNames.mjs": ["exports"]
+        "config/oxlint/ruleNames.mjs": ["exports"],
+        "rock.config.mjs": ["unlisted"],
+        "src/libs/SearchParser/searchParser.js": ["exports"],
+        "src/libs/SearchParser/autocompleteParser.js": ["exports"],
+        "src/libs/actions/connections/Digits.ts": ["exports"]
     }
 }

@@ -59,6 +59,9 @@ type AncestorReportActionItemProps = {
     /** Whether the user has viewed the self-guided tour */
     isSelfTourViewed: boolean | undefined;
 
+    /** Whether the user has completed the guided setup (onboarding) flow */
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+
     linkedTransactionRouteError: Errors | undefined;
     parentReportAction: OnyxEntry<ReportAction>;
     shouldUseThreadDividerLine: boolean;
@@ -80,6 +83,7 @@ function AncestorReportActionItem({
     isFirstVisibleReportAction,
     isReportArchived,
     isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
     linkedTransactionRouteError,
     parentReportAction,
     shouldUseThreadDividerLine,
@@ -143,6 +147,7 @@ function AncestorReportActionItem({
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,

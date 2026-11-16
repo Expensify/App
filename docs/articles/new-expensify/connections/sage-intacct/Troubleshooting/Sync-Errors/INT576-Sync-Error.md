@@ -48,8 +48,9 @@ Then:
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Sync Now**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 If Expense Types exist, the sync should complete successfully.
 
@@ -61,7 +62,7 @@ If you do not use the Time and Expenses module:
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
 4. Locate the reimbursable export configuration.
 5. Change the export type from **Expense report** to **Vendor bill**.
 6. Click **Save**.

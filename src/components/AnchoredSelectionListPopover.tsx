@@ -1,6 +1,7 @@
 import useSelectionListPopoverLayout from '@hooks/useSelectionListPopoverLayout';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode} from 'react';
 import type {View} from 'react-native';
@@ -31,7 +32,7 @@ type AnchoredSelectionListPopoverProps = {
     title: string;
 
     /** Sentry label for the header's back button, so each list's presses are attributed to it */
-    backButtonSentryLabel: string;
+    backButtonSentryLabel: SentryLabel;
 
     /** Actions shown at the right end of the header, e.g. an add button */
     headerActions?: ReactNode;
@@ -53,7 +54,7 @@ type AnchoredSelectionListPopoverProps = {
 
     /** The list */
     children: ReactNode;
-} & Pick<PopoverWithMeasuredContentProps, 'isVisible' | 'anchorPosition' | 'anchorAlignment' | 'shouldMeasureAnchorPositionFromTop'>;
+} & Pick<PopoverWithMeasuredContentProps, 'isVisible' | 'anchorPosition' | 'anchorAlignment' | 'shouldMeasureAnchorPositionFromTop' | 'onModalHide'>;
 
 /**
  * The container a field's selection list opens in: a pop-over on a wide layout, a bottom sheet on a narrow one, sized
@@ -63,6 +64,7 @@ type AnchoredSelectionListPopoverProps = {
 function AnchoredSelectionListPopover({
     isVisible,
     onClose,
+    onModalHide,
     anchorPosition,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
@@ -94,6 +96,7 @@ function AnchoredSelectionListPopover({
             anchorRef={anchorRef}
             isVisible={isVisible}
             onClose={onClose}
+            onModalHide={onModalHide}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}

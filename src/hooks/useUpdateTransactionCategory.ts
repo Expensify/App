@@ -4,6 +4,7 @@ import {setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,7 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
+import useRulesPrefetch from './useRulesPrefetch';
 
 type UseUpdateTransactionCategoryParams = {
     /** ID of the expense being written to, and of the draft a not-yet-created expense lives in */
@@ -46,8 +48,11 @@ type UseUpdateTransactionCategoryParams = {
 };
 
 type UseUpdateTransactionCategoryResult = {
-    /** Writes `category` to whichever of the three stores backs the expense being edited */
-    updateCategory: (category: string) => void;
+    /**
+     * Writes `category` to whichever of the three stores backs the expense being edited. Pass `updatedPolicyCategories`
+     * when the category was just created or re-enabled, so violations are computed against it rather than the stale list.
+     */
+    updateCategory: (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => void;
 
     /** Whether the write landed on the money request draft rather than a saved expense, for callers that navigate differently for each. */
     isDraftUpdate: boolean;
@@ -84,14 +89,27 @@ function useUpdateTransactionCategory({
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    // A split's category tax is resolved when the category is written, so the rules have to be on their way before
+    // the user picks one. Nothing recomputes it afterwards, because a split draft gets no server response.
+    useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
     const allTransactionViolations = useAllTransactionViolations(transactionID);
 
     const isSplitUpdate = isEditingSplit && !!transaction;
     const isExistingExpenseUpdate = !isSplitUpdate && isEditing && !!transaction && !!report;
 
-    const updateCategory = (category: string) => {
+    const updateCategory = (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => {
         if (isSplitUpdate) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category}, getCurrencyDecimals, getCurrencySymbol, policy);
+            setDraftSplitTransaction(
+                transaction.transactionID,
+                splitDraftTransaction ?? transaction,
+                {category},
+                getCurrencyDecimals,
+                getCurrencySymbol,
+                policy,
+                undefined,
+                undefined,
+                rules,
+            );
             return;
         }
 
@@ -106,7 +124,7 @@ function useUpdateTransactionCategory({
                 category,
                 policy,
                 policyTagList: policyTags,
-                policyCategories,
+                policyCategories: updatedPolicyCategories ?? policyCategories,
                 policyRecentlyUsedCategories,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -123,7 +141,7 @@ function useUpdateTransactionCategory({
             return;
         }
 
-        setMoneyRequestCategory(transactionID, category, policy, getCurrencyDecimals);
+        setMoneyRequestCategory(transactionID, category, policy);
     };
 
     return {updateCategory, isDraftUpdate: !isSplitUpdate && !isExistingExpenseUpdate};

@@ -15,7 +15,7 @@ type HoldMenuParams = {
 };
 
 type MoneyReportHeaderModalsContextValue = {
-    openHoldMenu: (params: HoldMenuParams) => Promise<void>;
+    openHoldMenu: (params: HoldMenuParams) => void;
     /** Resolves once the PDF download modal has finished hiding, with `CLOSE` if it was dismissed while the PDF was still generating */
     openPDFDownload: () => Promise<ModalStateChangePayload | undefined>;
     openHoldEducational: () => void;
@@ -25,7 +25,7 @@ type MoneyReportHeaderModalsContextValue = {
 };
 
 const defaultValue: MoneyReportHeaderModalsContextValue = {
-    openHoldMenu: () => Promise.resolve(),
+    openHoldMenu: () => {},
     openPDFDownload: () => Promise.resolve(undefined),
     openHoldEducational: () => {},
     openRejectModal: () => {},

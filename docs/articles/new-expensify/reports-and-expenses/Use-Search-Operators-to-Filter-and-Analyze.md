@@ -1,7 +1,7 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses, paid by filter, paid-by, vendor filter, rejected filter, declined, held filter, held expenses]
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses, paid by filter, paid-by, vendor filter, rejected filter, declined, held filter, held expenses, approved violation, any-approval, group-by approver]
 internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
@@ -67,14 +67,15 @@ You can use the following operators to filter expenses:
 
 | **Syntax** | **Description** | **Example** |
 |---|---|---|
-| `merchant:` | Filter by expense merchant name | `merchant:"Delta Air Lines"` |
+| `merchant:` / `merchant=` | Filter by expense merchant name. `merchant:` matches merchant names that contain the value, and `merchant=` matches the exact merchant name only | `merchant="Delta Air Lines"` |
 | `category:` | Filter by expense category label | `category:"Travel"` |
 | `tag:` | Filter by one or multiple tags | `tag:"Client A"` |
 | `vendor:` | Filter by the vendor assigned to an expense. Available only when one of your workspaces uses vendor matching. | `vendor:"Starbucks"` |
-| `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=` | `amount:>100` |
+| `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=`. To compare amounts in a specific currency, include the currency code with the amount in quotes. | `amount>"100 USD"` |
 | `status:` | Filter by expense status (`unreported`, `draft`, `outstanding`, `approved`, `paid`, `done`) | `status:approved` |
 | `date:` | Filter by expense date using relative dates or comparison operators for a date range | `date:this-month` |
-| `has:` | Filter by expenses with an `attachment`, `receipt`, `category`, `tag`, or `submitted-violation` | `has:receipt` |
+| `has:` | Filter by expenses with an `attachment`, `receipt`, `category`, `tag`, `submitted-violation`, or `approved-violation`. Use `approved-violation` to find expenses that still had a violation when they were approved | `has:receipt` |
+| `any-approval:` | Filter expenses with approved violations by the date any approver approved them, using relative dates or comparison operators for a date range | `any-approval:last-month` |
 | `expense-type:` | Filter by expense type (`cash`, `card`, `distance`, `per-diem`) | `expense-type:card` |
 | `receipt-type:` | Filter by receipt type (`ereceipt`, `itemized`) | `receipt-type:itemized` |
 | `reimbursable:` | Filter by whether an expense is reimbursable (`yes` or `no`) | `reimbursable:yes` |
@@ -185,6 +186,7 @@ Use `group-by:` to group results by a specific dimension.
 | **Syntax** | **Description** | **Example** |
 |---|---|---|
 | `group-by:from` | Group results by submitter | `type:expense group-by:from` |
+| `group-by:approver` | Group results by approver. Each group shows the approver, the number of expenses, and the total amount. Expand a group to see that approver's expenses | `type:expense group-by:approver` |
 | `group-by:card` | Group results by card | `type:expense group-by:card` |
 | `group-by:withdrawal-id` | Group results by withdrawal ID | `type:expense group-by:withdrawal-id` |
 | `group-by:merchant` | Group results by merchant | `type:expense group-by:merchant` |
@@ -227,7 +229,7 @@ Here are some common examples:
   `type:expense group-by:from submitted:last-month has:submitted-violation sort-by:group-expenses sort-order:desc view:table limit:10`
 
 - **Spend over time (line chart)**  
-  `type:expense group-by:month date:year-to-date view:line`
+  `type:expense group-by:month date:this-year view:line`
 
 - **Last month category breakdown (pie chart)**  
   `type:expense group-by:category date:last-month view:pie`

@@ -13,6 +13,22 @@ function navigateToCardTransactions(cardID: string) {
     );
 }
 
+/** Builds the Spend search for the card expenses deleted when their cards are unassigned. */
+function getUnsubmittedCardTransactionsRoute(cardIDs: number[]) {
+    if (cardIDs.length === 0) {
+        return undefined;
+    }
+
+    return ROUTES.SEARCH_ROOT.getRoute({
+        query: buildQueryStringFromFilterFormValues({
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED, CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
+            cardID: cardIDs.map(String),
+        }),
+        searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+    });
+}
+
 /**
  * Opens every expense on a card feed, including the ones on cards that are no longer assigned. No withdrawal status
  * filter is applied because, unlike the Expensify Card link, this is not scoped to a balance.
@@ -29,4 +45,4 @@ function navigateToFeedTransactions(feedKey: string) {
 }
 
 export default navigateToCardTransactions;
-export {navigateToFeedTransactions};
+export {getUnsubmittedCardTransactionsRoute, navigateToFeedTransactions};

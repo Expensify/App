@@ -8,6 +8,8 @@ import CONST from '@src/CONST';
 
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
+import {useIsFocused} from '@react-navigation/native';
+
 import createMock from '../utils/createMock';
 
 jest.mock('@react-navigation/native', () => {
@@ -25,6 +27,10 @@ const emptyScrollEventMock = createMock<NativeSyntheticEvent<NativeScrollEvent>>
 });
 
 describe('useReportUnreadMessageScrollTracking', () => {
+    beforeEach(() => {
+        jest.mocked(useIsFocused).mockReturnValue(true);
+    });
+
     describe('on init and without any scrolling', () => {
         const onTrackScrollingMockFn = jest.fn();
 
@@ -77,6 +83,122 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
     describe('when scrolling', () => {
         const onTrackScrollingMockFn = jest.fn();
+
+        it('resumes pill tracking after initial positioning and hides it when returning to the newest messages', () => {
+            // Given initial positioning keeps the pill hidden while the list reports its scroll position.
+            const offsetRef = {current: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 100};
+            const onTrackScrolling = jest.fn();
+            const {result, rerender} = renderHook(
+                ({shouldDisablePillTracking}) =>
+                    useReportUnreadMessageScrollTracking({
+                        reportID,
+                        currentVerticalScrollingOffsetRef: offsetRef,
+                        onUnreadActionVisible: jest.fn(),
+                        onTrackScrolling,
+                        hasNewerActions: false,
+                        unreadMarkerReportActionIndex: -1,
+                        isInverted: false,
+                        shouldDisablePillTracking,
+                    }),
+                {initialProps: {shouldDisablePillTracking: true}},
+            );
+
+            // When a scroll event arrives before positioning finishes.
+            act(() => result.current.trackVerticalScrolling(emptyScrollEventMock));
+
+            // Then the event is forwarded without exposing the latest-messages pill during positioning.
+            expect(onTrackScrolling).toHaveBeenCalledWith(emptyScrollEventMock);
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+
+            // When positioning finishes and the user scrolls through older messages.
+            rerender({shouldDisablePillTracking: false});
+            act(() => result.current.trackVerticalScrolling(emptyScrollEventMock));
+
+            // Then the pill offers a way back to the newest messages.
+            expect(result.current.isFloatingMessageCounterVisible).toBe(true);
+
+            // When the user reaches the newest messages.
+            act(() => {
+                offsetRef.current = 0;
+                result.current.trackVerticalScrolling(emptyScrollEventMock);
+            });
+
+            // Then the pill disappears because there are no newer messages to load.
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+        });
+
+        it.each([false, true])('ignores viewability events behind another screen and resumes after refocus when inverted is %s', (isInverted) => {
+            // Given the unread marker is outside the viewport and the pill is visible.
+            const onUnreadActionVisible = jest.fn();
+            const {result, rerender} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: {current: 0},
+                    onUnreadActionVisible,
+                    onTrackScrolling: jest.fn(),
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: 5,
+                    isInverted,
+                }),
+            );
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: isInverted ? 6 : 4, key: 'older-message', isViewable: true, item: {}}], changed: []});
+            });
+            expect(result.current.isFloatingMessageCounterVisible).toBe(true);
+
+            // When another screen covers the chat and a background layout reports the unread marker as visible.
+            jest.mocked(useIsFocused).mockReturnValue(false);
+            rerender({});
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 5, key: 'unread-message', isViewable: true, item: {}}], changed: []});
+            });
+
+            // Then the hidden chat neither marks the message as read nor hides its pill.
+            expect(onUnreadActionVisible).not.toHaveBeenCalled();
+            expect(result.current.isFloatingMessageCounterVisible).toBe(true);
+
+            // When the user returns and the unread message becomes visible in the chat.
+            jest.mocked(useIsFocused).mockReturnValue(true);
+            rerender({});
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 5, key: 'unread-message', isViewable: true, item: {}}], changed: []});
+            });
+
+            // Then read tracking resumes and the pill disappears.
+            expect(onUnreadActionVisible).toHaveBeenCalledTimes(1);
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+        });
+
+        it.each([false, true])('updates the pill when the unread marker moves into the unchanged viewport and inverted is %s', (isInverted) => {
+            // Given the visible rows have not reached the unread marker.
+            const onUnreadActionVisible = jest.fn();
+            const visibleIndex = isInverted ? 6 : 4;
+            const {result, rerender} = renderHook(
+                ({unreadMarkerReportActionIndex}) =>
+                    useReportUnreadMessageScrollTracking({
+                        reportID,
+                        currentVerticalScrollingOffsetRef: {current: 0},
+                        onUnreadActionVisible,
+                        onTrackScrolling: jest.fn(),
+                        hasNewerActions: false,
+                        unreadMarkerReportActionIndex,
+                        isInverted,
+                    }),
+                {initialProps: {unreadMarkerReportActionIndex: 5}},
+            );
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: visibleIndex, key: 'visible-message', isViewable: true, item: {}}], changed: []});
+            });
+            expect(result.current.isFloatingMessageCounterVisible).toBe(true);
+            expect(onUnreadActionVisible).not.toHaveBeenCalled();
+
+            // When the unread marker changes without another viewability event from the list.
+            rerender({unreadMarkerReportActionIndex: visibleIndex});
+
+            // Then the stored viewport completes read tracking and hides the pill.
+            expect(onUnreadActionVisible).toHaveBeenCalledTimes(1);
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+        });
 
         it('returns floatingMessage visibility as true when scrolling outside of threshold', () => {
             // Given
@@ -227,6 +349,39 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(onUnreadActionVisibleLocalMockFn).toHaveBeenCalledTimes(1);
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
         });
+
+        it('tracks an unread marker in a chronological list', () => {
+            // Given a chronological list whose unread marker sits below the visible rows.
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    unreadMarkerReportActionIndex: 5,
+                    isInverted: false,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                }),
+            );
+
+            // When only older rows are visible.
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 3, key: 'reportActions_3', isViewable: true, item: {}}], changed: []});
+            });
+
+            // Then the pill offers a way to the unread message, which has a higher index in this order.
+            expect(result.current.isFloatingMessageCounterVisible).toBe(true);
+
+            // When the unread message becomes visible.
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 5, key: 'reportActions_5', isViewable: true, item: {}}], changed: []});
+            });
+
+            // Then the pill hides and the message counts as read.
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+            expect(onUnreadActionVisibleMockFn).toHaveBeenCalled();
+        });
     });
 
     describe('latest messages pill in a read chat', () => {
@@ -374,6 +529,31 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
         });
 
+        it('returns isActionBadgeAboveViewport as true for a lower index above a chronological viewport', () => {
+            // Given a chronological list, where older rows have lower indexes, and a badge target at index 1.
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: false,
+                    actionBadgeTargetIndex: 1,
+                }),
+            );
+
+            // When the viewport starts at index 3.
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 3, key: 'reportActions_3', isViewable: true, item: {}}], changed: []});
+            });
+
+            // Then the badge target is above the viewport.
+            expect(result.current.isActionBadgeAboveViewport).toBe(true);
+        });
+
         it('returns isActionBadgeAboveViewport as false when action badge target is visible in viewport', () => {
             const offsetRef = {current: 0};
             const {result} = renderHook(() =>
@@ -495,8 +675,8 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
         });
 
-        it('keeps the action badge hidden when the live range shows the target despite stale viewable items', () => {
-            // Given a live range that contains the target, as after a sent message shifts it from index 2 to 3
+        it.each([true, false])('keeps the action badge hidden despite stale viewable items when inverted is %s', (isInverted) => {
+            // Given a live range containing the target in either list order.
             const offsetRef = {current: 0};
             const {result} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
@@ -506,19 +686,19 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     onTrackScrolling: onTrackScrollingMockFn,
                     hasNewerActions: false,
                     unreadMarkerReportActionIndex: -1,
-                    isInverted: true,
+                    isInverted,
                     actionBadgeTargetIndex: 3,
-                    getVisibleIndexRange: () => ({startIndex: 0, endIndex: 3}),
+                    getVisibleIndexRange: () => ({startIndex: 2, endIndex: 4}),
                 }),
             );
 
-            // When FlashList reports a snapshot taken before the shift, which ends at index 2
+            // When the stale snapshot places the target above the viewport.
             act(() => {
                 result.current.onViewableItemsChanged({
                     viewableItems: [
-                        {index: 0, key: 'reportActions_0', isViewable: true, item: {}},
-                        {index: 1, key: 'reportActions_1', isViewable: true, item: {}},
-                        {index: 2, key: 'reportActions_2', isViewable: true, item: {}},
+                        {index: isInverted ? 0 : 4, key: 'first', isViewable: true, item: {}},
+                        {index: isInverted ? 1 : 5, key: 'middle', isViewable: true, item: {}},
+                        {index: isInverted ? 2 : 6, key: 'last', isViewable: true, item: {}},
                     ],
                     changed: [],
                 });

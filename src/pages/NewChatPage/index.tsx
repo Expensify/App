@@ -393,6 +393,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
             {!!selectedOptions.length && (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.NEXT_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={createGroup}

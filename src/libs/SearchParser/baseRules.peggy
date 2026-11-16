@@ -92,6 +92,7 @@ paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
 withdrawn = "withdrawn"i { return "withdrawn"; }
+workflowStage = "workflowStage"i / "workflow-stage"i { return "workflowStage"; }
 groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 limit = "limit"i { return "limit"; }
 feed = "feed"i { return "feed"; }
@@ -99,6 +100,7 @@ title = "title"i { return "title"; }
 submitterUserID = "submitterUserID"i / "submitter-user-id"i { return "submitterUserID"; }
 submitterPayrollID = "submitterPayrollID"i / "submitter-payroll-id"i { return "submitterPayrollID"; }
 orderDealNumbers = "orderDealNumbers"i / "order-deal-numbers"i { return "orderDealNumbers"; }
+approver = "approver"i { return "approver"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
@@ -155,6 +157,7 @@ columnsValues
   / groupWeek
   / groupYear
   / groupQuarter
+  / groupApprover
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
@@ -194,6 +197,7 @@ groupMonth              = "group-month"i &wordBoundary              { return "gr
 groupWeek               = "group-week"i &wordBoundary               { return "groupweek"; }
 groupYear               = "group-year"i &wordBoundary               { return "groupyear"; }
 groupQuarter            = "group-quarter"i &wordBoundary            { return "groupquarter"; }
+groupApprover           = "group-approver"i &wordBoundary           { return "groupApprover"; }
 
 
 operator "operator"

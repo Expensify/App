@@ -37,10 +37,11 @@ import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {isHiddenForCurrentUser, isOneOnOneChat} from '@libs/ReportUtils';
+import {isHiddenForCurrentUser, isInvoiceReport, isMoneyRequestReport, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithPreservedSort, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     beginSearchRouterQuerySession,
@@ -139,13 +140,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const reportAttributes = useReportAttributes();
 
     // Seed the input on open. When the SearchRouter is opened from the search button on the search page
-    // and `shouldShowSearchQuery` is true, we build a user-readable query string from the current search
-    // query (showing names instead of IDs) along with the substitutions map needed to map those names
+    // and `shouldShowSearchQuery` is true or a saved search is active, we build a user-readable query
+    // from the current search (showing names instead of IDs) along with the substitutions map needed to map those names
     // back to IDs when submitting. Otherwise we fall back to the explicit pending query (e.g. from
     // ExpenseReportSearchHandler). Computed once via a lazy initializer so the query string and its
     // substitutions stay consistent.
     const [[initialQuery, initialSubstitutions]] = useState<[string, SubstitutionMap]>(() => {
-        if (!currentSearchQueryJSON || !isFromSearchPageSearchButton || !searchContext?.shouldShowSearchQuery) {
+        const isSavedSearch = !!searchKeyToSavedSearchID(currentSearchKey);
+        if (!currentSearchQueryJSON || !isFromSearchPageSearchButton || (!searchContext?.shouldShowSearchQuery && !isSavedSearch)) {
             return [pendingInitialQuery, {}];
         }
 
@@ -272,7 +274,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         const reportAction = getReportAction(contextualReport?.parentReportID, contextualReport?.parentReportActionID);
         const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
         if (!reportForContextualSearch) {
-            if (!contextualReport || isHiddenForCurrentUser(contextualReport)) {
+            if (!contextualReport) {
+                return undefined;
+            }
+
+            // Money request and invoice reports are created with a hidden notification preference for their owner, so keep the suggestion for them while the user is viewing them
+            const isHiddenByDefault = isMoneyRequestReport(contextualReport) || isInvoiceReport(contextualReport);
+            if (isHiddenForCurrentUser(contextualReport) && !isHiddenByDefault) {
                 return undefined;
             }
 
@@ -414,9 +422,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const submitSearch = (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
         const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID, getPersonalDetailsByLogin());
-        const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion, policies);
+        let updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion, policies);
         if (!updatedQuery) {
             return;
+        }
+
+        // Readable input omits sorting. Restore it only for edits to the active saved search,
+        // not when selecting a separate search suggestion with its own query.
+        if (isFromSearchPageSearchButton && !shouldSkipAmountConversion && searchKeyToSavedSearchID(currentSearchKey) && currentSearchQueryJSON) {
+            updatedQuery = getQueryWithPreservedSort(updatedQuery, currentSearchQueryJSON, queryWithSubstitutions);
         }
 
         // Reset the search query flag when performing a new search

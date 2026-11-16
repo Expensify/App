@@ -2,6 +2,7 @@ import BankAccountVerificationView from '@components/BankAccountVerificationView
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -29,11 +30,13 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {clearIssueNewCardFormData, configureExpensifyCardsForPolicy, setIssueNewCardStepAndData} from '@userActions/Card';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 import type {BankName} from '@src/types/onyx/Bank';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -46,6 +49,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
@@ -105,18 +109,30 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 
             return (
-                <MenuItem
+                <MenuItem.Root
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.BANK_ACCOUNT_ROW}
                     key={bankAccountID}
-                    title={bankName}
-                    description={`${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`}
-                    onPress={() => handleSelectBankAccount(bankAccountID)}
-                    icon={icon}
-                    iconHeight={iconSize}
-                    iconWidth={iconSize}
-                    iconStyles={iconStyles}
-                    shouldShowRightIcon
-                    displayInDefaultIconColor
-                />
+                    onPress={callIfAuthenticated(() => handleSelectBankAccount(bankAccountID), session)}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <View style={[styles.popoverMenuIcon, iconStyles]}>
+                                <Icon
+                                    src={icon}
+                                    height={iconSize}
+                                    width={iconSize}
+                                />
+                            </View>
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{bankName}</MenuItem.Title>
+                            <MenuItem.Description>{`${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`}</MenuItem.Description>
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             );
         });
     };
@@ -177,6 +193,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                                 <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
                                 {renderBankOptions()}
                                 <MenuItemAction
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ADD_NEW_BANK_ACCOUNT}
                                     icon={icons.Plus}
                                     title={translate('workspace.expensifyCard.addNewBankAccount')}
                                     onPress={handleAddBankAccount}

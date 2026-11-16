@@ -2,7 +2,7 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionList from '@components/SelectionList';
 
-import type {shouldHideExpensifyTeamCardholder} from '@libs/PolicyUtils/members';
+import type {shouldHideExpensifyTeamCardholder} from '@libs/PolicyUtils/expensifyTeam';
 
 import AssigneeStep from '@pages/workspace/expensifyCard/issueNew/AssigneeStep';
 
@@ -16,7 +16,7 @@ import type {PropsWithChildren} from 'react';
 
 import React from 'react';
 
-type PolicyMemberUtils = {shouldHideExpensifyTeamCardholder: typeof shouldHideExpensifyTeamCardholder};
+type ExpensifyTeamUtils = {shouldHideExpensifyTeamCardholder: typeof shouldHideExpensifyTeamCardholder};
 
 const mockUseState = React.useState;
 
@@ -119,7 +119,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
     getIneligibleInvitees: jest.fn(() => []),
     isDeletedPolicyEmployee: jest.fn(() => false),
-    shouldHideExpensifyTeamCardholder: jest.requireActual<PolicyMemberUtils>('@libs/PolicyUtils/members').shouldHideExpensifyTeamCardholder,
+    shouldHideExpensifyTeamCardholder: jest.requireActual<ExpensifyTeamUtils>('@libs/PolicyUtils/expensifyTeam').shouldHideExpensifyTeamCardholder,
 }));
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchValueForPhoneOrEmail: (value: string) => value,

@@ -7115,7 +7115,6 @@ describe('OptionsListUtils', () => {
                 ],
             };
 
-            // Reports must exist before the report actions merge so the one-transaction thread caches resolve the thread ID
             await setReport(expenseReport);
             await setReport(transactionThreadReport);
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
@@ -7133,7 +7132,8 @@ describe('OptionsListUtils', () => {
                 isMoneyRequestReport: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            // When the alternate text is built with the one-transaction thread IDs from the sorted report actions derived value
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({transactionThreadIDs: {[EXPENSE_REPORT_ID]: TRANSACTION_THREAD_REPORT_ID}}));
 
             // Then the actor prefix comes from the transaction thread comment, not from the parent report's IOU action
             expect(result).toBe('Spider-Man: thread comment');
@@ -8378,6 +8378,50 @@ describe('OptionsListUtils', () => {
             // The display name should be derived from the login (formatted phone), not be empty.
             expect(result.text).toBeTruthy();
             expect(result.text).not.toBe('');
+        });
+
+        it('resolves a stale optimistic accountID to the canonical account by login', () => {
+            // Given a draft participant whose optimistic accountID was dropped from personal details after the server
+            // assigned the real account, while its login still maps to that real account
+            const participant: Participant = {
+                accountID: 9999997,
+                login: 'tonystark@expensify.com',
+            };
+
+            // When the participant option is built
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
+
+            // Then it points at the canonical account so the existing chat with them can be found
+            expect(result.accountID).toBe(2);
+            expect(result.keyForList).toBe('2');
+            expect(result.login).toBe('tonystark@expensify.com');
+        });
+
+        it('resolves a stale optimistic accountID for a phone login stored without the SMS domain', async () => {
+            // Given the canonical account for a phone number, whose login carries the SMS domain
+            const canonicalAccountID = 8800001;
+            const canonicalLogin = '+12025550199@expensify.sms';
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [canonicalAccountID]: {accountID: canonicalAccountID, login: canonicalLogin, displayName: canonicalLogin},
+            });
+            await waitForBatchedUpdates();
+
+            // And a draft participant that still holds the dropped optimistic accountID and the phone number as it was
+            // typed into the participant search, without the SMS domain
+            const participant: Participant = {
+                accountID: 9999996,
+                login: '+12025550199',
+            };
+
+            // When the participant option is built
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
+
+            // Then it points at the canonical account so the existing chat with them can be found
+            expect(result.accountID).toBe(canonicalAccountID);
+            expect(result.login).toBe(canonicalLogin);
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[canonicalAccountID]: null});
+            await waitForBatchedUpdates();
         });
 
         it('uses participant.login when no accountID is provided', () => {

@@ -4,7 +4,7 @@ import {getDateRangeForPreset} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 
-import {differenceInCalendarDays, differenceInCalendarMonths, format, parseISO, startOfYear, subDays, subMonths, subYears} from 'date-fns';
+import {differenceInCalendarDays, differenceInCalendarMonths, format, parseISO, subDays, subMonths} from 'date-fns';
 
 import type {InsightsFilters} from './insightsFilters';
 
@@ -37,12 +37,6 @@ function resolveComparisonPeriods(dateFilter: InsightsFilters['date']): ChartCom
     }
     const start = parseISO(primary.start);
     const end = parseISO(primary.end);
-
-    // The year so far compares against the same days of the year before.
-    if ('preset' in dateFilter && dateFilter.preset === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE) {
-        const sameDayLastYear = subYears(end, 1);
-        return {primary, comparison: formatPeriod(startOfYear(sameDayLastYear), sameDayLastYear), monthsApart: 12};
-    }
 
     // Month, quarter, and year presets cover whole months and compare month for month.
     if ('preset' in dateFilter && !DAY_LENGTH_PRESETS.has(dateFilter.preset)) {

@@ -6,6 +6,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useStackedHeaderRowPadding from '@hooks/useStackedHeaderRowPadding';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -84,6 +85,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const styles = useThemeStyles();
+    const stackedRowBottomPadding = useStackedHeaderRowPadding();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {email, accountID} = useCurrentUserPersonalDetails();
@@ -213,7 +215,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 />
             )}
             {!!statusBarProps && (
-                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, stackedRowBottomPadding]}>
                     <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}

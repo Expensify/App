@@ -155,6 +155,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                                 ))}
                                 {selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH && (
                                     <MenuItemWithTopDescription
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.STATEMENT_CLOSE_CUSTOM_DATE}
                                         shouldShowRightIcon
                                         brickRoadIndicator={error ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                         title={selectedCustomDate?.toString()}
@@ -177,6 +178,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                             />
                         )}
                         <FormAlertWithSubmitButton
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.STATEMENT_CLOSE_DATE_SAVE}
                             buttonText={confirmText}
                             onSubmit={submit}
                             enabledWhenOffline={enabledWhenOffline}

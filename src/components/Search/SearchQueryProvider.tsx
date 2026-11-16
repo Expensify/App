@@ -4,8 +4,9 @@ import useLoadSearchCategoryData from '@hooks/useLoadSearchCategoryData';
 import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
-import {buildSearchQueryJSON, buildSearchQueryString, getSearchRootParamsFromRootState} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getQueryWithoutGroupBy, getSearchRootParamsFromRootState} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -59,7 +60,10 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const queryParams = useRootNavigationState((state) => selectSearchQueryParams(state ?? navigation.getState()));
     const {query: queryParam, rawQuery: rawQueryParam} = splitSearchQueryParams(usePreviousDefined(queryParams));
     const definedQueryParam = queryParam ?? buildSearchQueryString();
-    const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
+    const parsedSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
+    // Trip rooms can't be grouped, so a group-by from a saved or typed trip query is dropped
+    const shouldDropGroupBy = useShouldReturnTripRooms(parsedSearchQueryJSON?.type) && !!parsedSearchQueryJSON?.groupBy;
+    const currentSearchQueryJSON = shouldDropGroupBy && parsedSearchQueryJSON ? buildSearchQueryJSON(getQueryWithoutGroupBy(parsedSearchQueryJSON), rawQueryParam) : parsedSearchQueryJSON;
     const shouldLoadCategoryData = currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) ?? false;
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 

@@ -7,7 +7,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import Navigation, {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getSearchKeyForDataType, isExistingSearchKey, savedSearchIDToSearchKey, searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, doesQueryMatchDefaultFilterKeysAndType} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, doesQueryMatchDefaultFilterKeysAndType, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
@@ -72,7 +72,7 @@ function useSearchKeyParam(currentSearchQueryJSON: SearchQueryJSON | undefined, 
             const lastSavedSearchQuery = getLastSearchQuery(searchFilters, savedSearchIDToSearchKey(id));
 
             return (
-                (savedSearchQuery ? buildSearchQueryJSON(savedSearchQuery)?.hash === queryJSON?.hash : false) ||
+                (savedSearchQuery ? buildSearchQueryJSON(normalizeDatePresetsInQuery(savedSearchQuery))?.hash === queryJSON?.hash : false) ||
                 (lastSavedSearchQuery ? buildSearchQueryJSON(lastSavedSearchQuery)?.hash === queryJSON?.hash : false)
             );
         });
@@ -91,7 +91,7 @@ function useSearchKeyParam(currentSearchQueryJSON: SearchQueryJSON | undefined, 
 
         const savedSearchID = searchKeyToSavedSearchID(searchKey);
         const defaultSearchQueryString = savedSearchID ? savedSearches?.[savedSearchID]?.query : suggestedSearches[searchKey]?.searchQuery;
-        return defaultSearchQueryString ? buildSearchQueryJSON(defaultSearchQueryString) : undefined;
+        return defaultSearchQueryString ? buildSearchQueryJSON(normalizeDatePresetsInQuery(defaultSearchQueryString)) : undefined;
     };
 
     // The `searchKey` param is sticky: it survives a `Navigation.setParams({q})`, so tweaking a filter keeps the

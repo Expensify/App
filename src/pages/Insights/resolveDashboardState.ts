@@ -1,3 +1,5 @@
+import type {ChartAverage} from '@components/Search/buildChartSeries';
+
 import {hasGroupWithExpenses} from '@libs/resolveInsightsChartData';
 import {isGroupEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
@@ -19,6 +21,7 @@ const INSIGHTS_DASHBOARD_STATE = {
     OFFLINE: 'offline',
     EMPTY: 'empty',
     NO_EXPENSES: 'noExpenses',
+    UPSELL: 'upsell',
 } as const;
 
 type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
@@ -26,7 +29,7 @@ type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 type InsightsDashboardChart = InsightsChartQuery & {
     snapshot: OnyxEntry<SearchResults>;
     previousPeriodSnapshot?: OnyxEntry<SearchResults>;
-    averageTotal?: number;
+    average?: ChartAverage;
     isDashboardLoaded?: boolean;
 };
 
@@ -36,7 +39,18 @@ function hasDashboardResponse(dashboard: OnyxEntry<InsightsDashboard>): boolean 
 }
 
 /** Resolves the page's state from the dashboard record and the snapshot of every chart on screen. */
-function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[]): InsightsDashboardState {
+function getDashboardState(
+    dashboard: OnyxEntry<InsightsDashboard>,
+    isOffline: boolean,
+    charts: InsightsDashboardChart[],
+    shouldUpsell: boolean,
+    hasLoadedBefore = false,
+): InsightsDashboardState {
+    // Upsell wins over every other state because it is derived from policies already in Onyx, so the user never waits on GetInsights or sees the offline blocker.
+    if (shouldUpsell) {
+        return INSIGHTS_DASHBOARD_STATE.UPSELL;
+    }
+
     const chartStates = charts.map(({snapshot, queryJSON}) => {
         const isLoaded = isSearchDataLoaded(snapshot, queryJSON) && isEmptyObject(snapshot?.errors);
         const data = snapshot?.data;
@@ -48,6 +62,7 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
         return {isLoaded, hasRows: isLoaded && hasGroupWithExpenses(groups)};
     });
     const hasLoadedChart = chartStates.some(({isLoaded}) => isLoaded);
+    const hasChartWithRows = chartStates.some(({hasRows}) => hasRows);
 
     if (isOffline && !hasLoadedChart && dashboard?.hasResults !== false) {
         return INSIGHTS_DASHBOARD_STATE.OFFLINE;
@@ -55,10 +70,11 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return dashboard?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? INSIGHTS_DASHBOARD_STATE.STALE : INSIGHTS_DASHBOARD_STATE.ERROR;
     }
-    if (!hasDashboardResponse(dashboard) && !hasLoadedChart) {
+    // On the first load, waits for GetInsights, whose response may replace the charts with the no-expenses state
+    if (!hasDashboardResponse(dashboard) && !hasChartWithRows && !hasLoadedBefore && !(isOffline && hasLoadedChart)) {
         return INSIGHTS_DASHBOARD_STATE.LOADING;
     }
-    if (chartStates.some(({hasRows}) => hasRows)) {
+    if (hasChartWithRows) {
         return INSIGHTS_DASHBOARD_STATE.READY;
     }
     if (dashboard?.hasResults === false) {

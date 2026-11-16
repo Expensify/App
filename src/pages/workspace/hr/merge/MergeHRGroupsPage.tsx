@@ -160,6 +160,7 @@ function MergeHRGroupsPage({
                         addBottomSafeAreaPadding
                     >
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.HR.MERGE_GROUPS_SAVE}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={handleSave}

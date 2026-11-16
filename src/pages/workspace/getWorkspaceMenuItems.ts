@@ -3,28 +3,26 @@
  */
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
-import {isAnyRecruitingConnected} from '@libs/merge/RecruitingUtils';
+import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {getObjectKeys} from '@libs/ObjectUtils';
 import {
     arePolicyRulesEnabled,
     canMemberRead,
     canPolicyAccessFeature,
-    hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
     hasPolicyRulesError,
     hasVendorFeature,
     isGroupPolicy,
     isMatchingVendorListLoaded,
-    isMCPEnabled,
     isPerDiemEnabled,
     isPolicyAdmin,
     isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
     shouldShowTaxRateError,
+    shouldShowUKFuelRateTaxError,
 } from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 
@@ -53,9 +51,7 @@ type WorkspaceMenuIconMap = Record<
     | 'Users'
     | 'Hashtag'
     | 'Document'
-    | 'Sync'
     | 'Connect'
-    | 'Receipt'
     | 'Briefcase'
     | 'Folder'
     | 'Tag'
@@ -70,8 +66,7 @@ type WorkspaceMenuIconMap = Record<
     | 'InvoiceGeneric'
     | 'Gear'
     | 'Bolt'
-    | 'Bot'
-    | 'UserPlus',
+    | 'Bot',
     IconAsset
 >;
 
@@ -87,6 +82,7 @@ type WorkspaceMenuItem = WithSentryLabel & {
     screenName: WorkspaceTopLevelScreens;
     badgeTranslationKey?: TranslationPaths;
     badgeText?: string;
+    isBadgeSuccess?: boolean;
     highlighted?: boolean;
 
     /** Other names the Search router also matches this item by */
@@ -126,10 +122,8 @@ type GetWorkspaceMenuItemsParams = {
     hasApprovalWorkflowWithNonMemberApprover?: boolean;
     /** Whether the vendor matching beta is enabled. */
     isVendorMatchingBetaEnabled?: boolean;
-    /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
-    isRecruitingBetaEnabled?: boolean;
-    /** Whether the unified Connections beta replaces the Accounting, HR, Recruiting, Receipt partners, and MCP items. */
-    isUnifiedConnectionsBetaEnabled?: boolean;
+    /** Whether the Members row promotes the Approve-only and Guest roles with a badge. */
+    shouldShowNewRolesBadge?: boolean;
     /** Formats the invoice account balance for its menu badge. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
@@ -149,8 +143,7 @@ function getWorkspaceMenuItems({
     shouldShowRBR = false,
     hasApprovalWorkflowWithNonMemberApprover = false,
     isVendorMatchingBetaEnabled = false,
-    isRecruitingBetaEnabled = false,
-    isUnifiedConnectionsBetaEnabled = false,
+    shouldShowNewRolesBadge = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
     const isAgentAccount = currentUserPersonalDetails?.isCustomAgent;
@@ -174,16 +167,11 @@ function getWorkspaceMenuItems({
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress, accountingConnectionNames);
     const hasHRError = shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy));
-    const getHRBrickRoadIndicator = () => {
-        if (hasHRError) {
-            return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        }
-        if (isMergeHRCompleteSetupNeeded(policy)) {
-            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-        }
-    };
+    const hasConnectionFeatureError =
+        !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] ?? {});
     const getConnectionsBrickRoadIndicator = () => {
-        if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError) {
+        if (hasSyncError || shouldShowReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError || hasConnectionFeatureError) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
         if (isMergeHRCompleteSetupNeeded(policy) || isQBORefreshTokenExpiringSoonSelector(policy)) {
@@ -205,19 +193,11 @@ function getWorkspaceMenuItems({
         [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
-        [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy),
-        [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: (policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
-        [CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED]:
-            isRecruitingBetaEnabled &&
-            (policy?.isRecruitingEnabled === true || isAnyRecruitingConnected(policy)) &&
-            canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: arePolicyRulesEnabled(policy, policyCategories),
         [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: isPerDiemEnabled(policy) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED),
-        [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: policy?.receiptPartners?.enabled ?? false,
-        [CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED]: isMCPEnabled(policy),
         [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
         [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isTimeTrackingEnabled(policy),
     };
@@ -239,6 +219,8 @@ function getWorkspaceMenuItems({
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             screenName: SCREENS.WORKSPACE.MEMBERS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MEMBERS,
+            badgeTranslationKey: shouldShowNewRolesBadge ? 'workspace.common.newRoles' : undefined,
+            isBadgeSuccess: shouldShowNewRolesBadge,
         },
         {
             translationKey: 'workspace.common.rooms',
@@ -282,7 +264,7 @@ function getWorkspaceMenuItems({
             });
         }
 
-        if (isUnifiedConnectionsBetaEnabled && canReadMoreFeatures) {
+        if (canReadMoreFeatures) {
             items.push({
                 translationKey: 'workspace.common.connections',
                 searchAliasKeys: ['workspace.common.accounting', 'workspace.common.hr', 'workspace.common.recruiting', 'workspace.common.receiptPartners', 'workspace.common.mcp'],
@@ -292,70 +274,6 @@ function getWorkspaceMenuItems({
                 brickRoadIndicator: getConnectionsBrickRoadIndicator(),
                 screenName: SCREENS.WORKSPACE.CONNECTIONS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.CONNECTIONS,
-            });
-        }
-
-        if (!isUnifiedConnectionsBetaEnabled && policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.ACCOUNTING)) {
-            let accountingBrickRoadIndicator;
-            if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy)) {
-                accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-            } else if (isQBORefreshTokenExpiringSoonSelector(policy)) {
-                accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-            }
-            items.push({
-                translationKey: 'workspace.common.accounting',
-                icon: icons.Sync,
-                getRoute: () => ROUTES.POLICY_ACCOUNTING.getRoute(policyID),
-                brickRoadIndicator: accountingBrickRoadIndicator,
-                screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ACCOUNTING,
-                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
-            });
-        }
-
-        if (!isUnifiedConnectionsBetaEnabled && policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
-            items.push({
-                translationKey: 'workspace.common.hr',
-                icon: icons.Users,
-                getRoute: () => ROUTES.WORKSPACE_HR.getRoute(policyID),
-                brickRoadIndicator: getHRBrickRoadIndicator(),
-                screenName: SCREENS.WORKSPACE.HR,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
-                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-            });
-        }
-
-        if (!isUnifiedConnectionsBetaEnabled && policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED] && canReadMoreFeatures) {
-            items.push({
-                translationKey: 'workspace.common.recruiting',
-                icon: icons.UserPlus,
-                getRoute: () => ROUTES.WORKSPACE_RECRUITING.getRoute(policyID),
-                screenName: SCREENS.WORKSPACE.RECRUITING,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RECRUITING,
-                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
-            });
-        }
-
-        if (!isUnifiedConnectionsBetaEnabled && policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] && canReadMoreFeatures) {
-            items.push({
-                translationKey: 'workspace.common.receiptPartners',
-                icon: icons.Receipt,
-                getRoute: () => ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID),
-                brickRoadIndicator: shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                screenName: SCREENS.WORKSPACE.RECEIPT_PARTNERS,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RECEIPT_PARTNERS,
-                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
-            });
-        }
-
-        if (!isUnifiedConnectionsBetaEnabled && policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED] && canReadMoreFeatures) {
-            items.push({
-                translationKey: 'workspace.common.mcp',
-                icon: icons.Bot,
-                getRoute: () => ROUTES.WORKSPACE_MCP.getRoute(policyID),
-                screenName: SCREENS.WORKSPACE.MCP,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MCP,
-                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED,
             });
         }
 
@@ -405,11 +323,13 @@ function getWorkspaceMenuItems({
         }
 
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.WORKFLOWS)) {
+            const hasWorkflowsError =
+                !isEmptyObject(policy?.errorFields?.reimburser ?? {}) || !isEmptyObject(policy?.errorFields?.reimbursementCountries ?? {}) || hasApprovalWorkflowWithNonMemberApprover;
             items.push({
                 translationKey: 'workspace.common.workflows',
                 icon: icons.Workflows,
                 getRoute: () => ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID),
-                brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) || hasApprovalWorkflowWithNonMemberApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasWorkflowsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.WORKFLOWS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.WORKFLOWS,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
@@ -431,6 +351,7 @@ function getWorkspaceMenuItems({
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES)) {
             items.push({
                 translationKey: 'workspace.common.distanceRates',
+                brickRoadIndicator: shouldShowUKFuelRateTaxError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 icon: icons.Car,
                 getRoute: () => ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID),
                 screenName: SCREENS.WORKSPACE.DISTANCE_RATES,

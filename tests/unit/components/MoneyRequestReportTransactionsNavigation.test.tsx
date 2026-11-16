@@ -27,8 +27,6 @@ type MockOnyxState = {
     snapshot: {data: Record<string, unknown>} | undefined;
     siblingDescriptors: Record<string, unknown> | undefined;
     transactionsCollection: Record<string, unknown>;
-    /** Fetch status of the `transactions_` subscription, which is how the carousel tells "not loaded" from "gone" */
-    transactionsStatus: 'loading' | 'loaded';
     reportActionsCollection: Record<string, unknown>;
     reportsCollection: Record<string, unknown>;
     modal: Record<string, unknown> | undefined;
@@ -40,7 +38,6 @@ const mockState: MockOnyxState = {
     snapshot: undefined,
     siblingDescriptors: undefined,
     transactionsCollection: {},
-    transactionsStatus: 'loaded',
     reportActionsCollection: {},
     reportsCollection: {},
     modal: undefined,
@@ -192,7 +189,6 @@ const resetMockState = () => {
     mockState.snapshot = undefined;
     mockState.siblingDescriptors = undefined;
     mockState.transactionsCollection = {};
-    mockState.transactionsStatus = 'loaded';
     mockState.reportActionsCollection = {};
     mockState.reportsCollection = {};
     mockState.modal = undefined;
@@ -204,8 +200,7 @@ const resetMockState = () => {
 const setupUseOnyx = () => {
     mockUseOnyx.mockImplementation((key: string, options?: {selector?: (data: unknown) => unknown}) => {
         const selector = options?.selector;
-        // Every branch returns the full `[value, metadata]` tuple `useOnyx` returns. Consumers read the metadata
-        // (`useCarouselTransactionIDs` gates on its `status`), so a value-only mock isn't the hook's contract.
+        // Every branch returns the full `[value, metadata]` tuple `useOnyx` returns.
         const loaded = (value: unknown) => [value, {status: 'loaded'}];
         if (key === ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS) {
             return loaded(mockState.transactionIDsList);
@@ -220,7 +215,7 @@ const setupUseOnyx = () => {
             return loaded(mockState.siblingDescriptors);
         }
         if (key === ONYXKEYS.COLLECTION.TRANSACTION) {
-            return [selector ? selector(mockState.transactionsCollection) : undefined, {status: mockState.transactionsStatus}];
+            return loaded(selector ? selector(mockState.transactionsCollection) : undefined);
         }
         if (key === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
             return loaded(selector ? selector(mockState.reportActionsCollection) : undefined);
@@ -674,15 +669,24 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             expect(Navigation.setParams).not.toHaveBeenCalled();
         });
 
-        // A transaction that hasn't loaded yet is not a transaction that is gone: dropping those would shrink the
-        // carousel under the user on a cold open (https://github.com/Expensify/App/issues/99641).
-        it('keeps siblings while the transaction collection is still loading', () => {
-            mockState.transactionsCollection = {};
-            mockState.transactionsStatus = 'loading';
+        // Regression guard for https://github.com/Expensify/App/issues/104307: splitting moves the original expense to the
+        // hidden split report, and its arrow led to a "not here" page.
+        it('drops a sibling that was split', () => {
+            // Given a seeded list whose previous sibling is a split original, moved to the hidden split report
+            mockState.transactionsCollection = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${PREV_ID}`]: {transactionID: PREV_ID, reportID: CONST.REPORT.SPLIT_REPORT_ID},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${NEXT_ID}`]: {transactionID: NEXT_ID, reportID: 'rNext'},
+            };
 
+            // When the navigation renders
             renderNavigation();
 
-            expect(screen.getByText(counterFor(2, 3))).toBeTruthy();
+            // Then the split original isn't counted and its arrow can't open it, since there is no page for it
+            expect(screen.getByText(counterFor(1, 2))).toBeTruthy();
+            expectArrowDisabled('prev-button', true);
+            press('prev-button');
+            expect(Navigation.setParams).not.toHaveBeenCalled();
         });
 
         // The other half of that rule, and the regression guard that matters: a confirmed delete SETs

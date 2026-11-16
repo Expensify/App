@@ -1,5 +1,9 @@
+import type {ApiCommand} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+import {toIndexMap} from '@libs/RuleUtils';
+import {buildApprovalWorkflowRules} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -27,6 +31,14 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
+
+/** Reads a JSON-encoded parameter of the first request sent for `command` */
+function getJSONRequestParameter(command: ApiCommand, parameter: string): unknown {
+    const body = TestHelper.getFetchMockCalls(command).at(0)?.[1]?.body;
+    const value = body instanceof FormData ? body.get(parameter) : null;
+    return typeof value === 'string' ? JSON.parse(value) : undefined;
+}
+
 describe('actions/PolicyMember', () => {
     beforeAll(() => {
         Onyx.init({
@@ -607,6 +619,98 @@ describe('actions/PolicyMember', () => {
                 });
             });
             await mockFetch?.resume?.();
+        });
+
+        it('lets an invited member use every category while some categories are limited to other members', async () => {
+            // Given a workspace where Fuel is limited to one member, Meals to a member being invited back with a stale entry, and Travel is open to everyone
+            const policyID = '1';
+            const existingAccountID = 1111;
+            const newAccountID = 1234;
+            const returningAccountID = 5678;
+            const newEmail = 'new@gmail.com';
+            const returningEmail = 'returning@gmail.com';
+            const policy = createRandomPolicy(Number(policyID));
+            const policyCategories = {
+                Fuel: {name: 'Fuel', enabled: true, visibleTo: {[existingAccountID]: true}},
+                Meals: {name: 'Meals', enabled: true, visibleTo: {[existingAccountID]: true, [returningAccountID]: true}},
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When a new member and a previously restricted member are invited, before the backend responds
+            mockFetch?.pause?.();
+            Member.addMembersToWorkspace(
+                {[newEmail]: newAccountID, [returningEmail]: returningAccountID},
+                {},
+                'Welcome',
+                policy,
+                [existingAccountID],
+                CONST.POLICY.ROLE.USER,
+                currentUser,
+                {},
+                {
+                    policyCategories,
+                },
+            );
+            await waitForBatchedUpdates();
+
+            // Then both are added to every limited category, since a new member has no restriction, and Travel stays open to everyone
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true, [newAccountID]: true, [returningAccountID]: true});
+            expect(categories?.Meals?.visibleTo).toEqual({[existingAccountID]: true, [newAccountID]: true, [returningAccountID]: true});
+            expect(categories?.Travel?.visibleTo).toBeFalsy();
+            await mockFetch?.resume?.();
+        });
+
+        it('removes invited members from limited categories when the invite fails', async () => {
+            // Given a workspace where Fuel is limited to one member
+            const policyID = '1';
+            const existingAccountID = 1111;
+            const newAccountID = 1234;
+            const newEmail = 'new@gmail.com';
+            const policy = createRandomPolicy(Number(policyID));
+            const policyCategories = {Fuel: {name: 'Fuel', enabled: true, visibleTo: {[existingAccountID]: true}}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When inviting a new member fails
+            mockFetch?.fail?.();
+            Member.addMembersToWorkspace({[newEmail]: newAccountID}, {}, 'Welcome', policy, [existingAccountID], CONST.POLICY.ROLE.USER, currentUser, {}, {policyCategories});
+            await waitForBatchedUpdates();
+
+            // Then Fuel is limited to the existing member again, since the new member never joined
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true});
+        });
+
+        it('removes the temporary accountID of an invitee without personal details from limited categories once the invite succeeds', async () => {
+            // Given a workspace where Fuel is limited to one member, and two invitees: one with personal details and one without, who gets a temporary accountID
+            const policyID = '1';
+            const existingAccountID = 1111;
+            const knownAccountID = 1234;
+            const temporaryAccountID = 9999;
+            const knownEmail = 'known@gmail.com';
+            const unknownEmail = 'unknown@gmail.com';
+            const policy = createRandomPolicy(Number(policyID));
+            const policyCategories = {Fuel: {name: 'Fuel', enabled: true, visibleTo: {[existingAccountID]: true}}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When both are invited and the request succeeds
+            Member.addMembersToWorkspace(
+                {[knownEmail]: knownAccountID, [unknownEmail]: temporaryAccountID},
+                getPersonalDetailsOnyxDataForOptimisticUsers([unknownEmail], [temporaryAccountID], TestHelper.formatPhoneNumber),
+                'Welcome',
+                policy,
+                [existingAccountID],
+                CONST.POLICY.ROLE.USER,
+                currentUser,
+                {},
+                {policyCategories},
+            );
+            await waitForBatchedUpdates();
+
+            // Then the temporary accountID is gone, since the backend sends the real one, while the known invitee keeps access
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true, [knownAccountID]: true});
         });
 
         it('uses new personal details onyx data to decide new-member success-data participants instead of the deprecated copy', () => {
@@ -1509,6 +1613,148 @@ describe('actions/PolicyMember', () => {
             // Then it should show the plural member added and updated success message
             expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersAddedAndUpdated');
             expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
+        });
+
+        it('should keep DYNAMIC_EXTERNAL approval mode when importing members with approval fields into a Dynamic External Workflow policy', async () => {
+            // Given a Control workspace that uses a Dynamic External Workflow
+            const policyID = '1';
+            const approverEmail = 'approver@gmail.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                employeeList: {
+                    [approverEmail]: {
+                        email: approverEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            // When importing a member who submits to another member, which would switch a non-DEW Control policy to ADVANCED
+            await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: CONST.POLICY.ROLE.USER, submitsTo: approverEmail}]);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode stays DYNAMIC_EXTERNAL because the backend keeps the policy on DEW
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
+        });
+
+        it('should switch a non-DEW Control policy to ADVANCED approval mode when importing members with approval fields', async () => {
+            // Given a Control workspace on BASIC approvals
+            const policyID = '1';
+            const approverEmail = 'approver@gmail.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [approverEmail]: {
+                        email: approverEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            // When importing a member who submits to another member
+            await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: CONST.POLICY.ROLE.USER, submitsTo: approverEmail}]);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode becomes ADVANCED because custom submitsTo values need advanced approvals
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+        });
+
+        it('moves members into the workflows of their imported approvers once they are imported', async () => {
+            // Given a member who submits to the owner
+            const ownerEmail = 'owner@gmail.com';
+            const userEmail = 'user@gmail.com';
+            const managerEmail = 'manager@gmail.com';
+            const policy = {
+                ...createRandomPolicy(1),
+                owner: ownerEmail,
+                approver: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            };
+
+            // When the spreadsheet lists a manager as their only approver
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: userEmail, role: CONST.POLICY.ROLE.USER, approvers: [{email: managerEmail}]}], false, {});
+            await waitForBatchedUpdates();
+
+            // Then the import leaves their employeeList approval fields alone
+            expect(getJSONRequestParameter(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, 'employees')).toEqual([{email: userEmail, role: CONST.POLICY.ROLE.USER}]);
+
+            // And the approval workflow rules route their reports to the manager
+            const rules = getJSONRequestParameter(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, 'rules');
+            expect(Object.values(rules ?? {})).toContainEqual(
+                expect.objectContaining({
+                    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [userEmail]},
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: managerEmail}]),
+                }),
+            );
+
+            // And the new approvers count as an update
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersUpdated');
+        });
+
+        it('leaves the approval workflow rules alone when the exported approvers are imported back unchanged', async () => {
+            // Given a rule-based default workflow where everyone submits to the owner, and a custom workflow for one member
+            const ownerEmail = 'owner@gmail.com';
+            const userEmail = 'user@gmail.com';
+            const customMemberEmail = 'custom@gmail.com';
+            const managerEmail = 'manager@gmail.com';
+            const policy = {
+                ...createRandomPolicy(1),
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [customMemberEmail]: {email: customMemberEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [managerEmail]: {email: managerEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            };
+            const defaultWorkflowRules = buildApprovalWorkflowRules({
+                members: [ownerEmail, userEmail, managerEmail].map((email) => ({email, displayName: email})),
+                approvers: [{email: ownerEmail, displayName: ownerEmail}],
+                isDefault: true,
+            });
+            const customWorkflowRules = buildApprovalWorkflowRules({
+                members: [{email: customMemberEmail, displayName: customMemberEmail}],
+                approvers: [{email: managerEmail, displayName: managerEmail}],
+                isDefault: false,
+            });
+            const rules = Object.fromEntries(
+                [...defaultWorkflowRules, ...customWorkflowRules].map((rule, index) => [
+                    `${ONYXKEYS.COLLECTION.RULE}${index + 1}`,
+                    {...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policy.id},
+                ]),
+            );
+
+            // When the spreadsheet exported from them is imported back without changes
+            await Member.importPolicyMembers(
+                policy,
+                [
+                    {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, approvers: [{email: ownerEmail}]},
+                    {email: userEmail, role: CONST.POLICY.ROLE.USER, approvers: [{email: ownerEmail}]},
+                    {email: managerEmail, role: CONST.POLICY.ROLE.USER, approvers: [{email: ownerEmail}]},
+                    {email: customMemberEmail, role: CONST.POLICY.ROLE.USER, approvers: [{email: managerEmail}]},
+                ],
+                false,
+                rules,
+            );
+            await waitForBatchedUpdates();
+
+            // Then no rule is rewritten, because rewriting would take everyone out of the default workflow's rules and delete them
+            expect(TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW)).toHaveLength(0);
         });
     });
 

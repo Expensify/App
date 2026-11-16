@@ -3,7 +3,6 @@ name: Verify signed commits
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
 
 jobs:
   verifySignedCommits:

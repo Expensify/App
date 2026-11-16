@@ -1,6 +1,8 @@
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 
 import {isMobile} from '@libs/Browser';
+import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
+import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
@@ -56,8 +58,8 @@ type GetModalStylesOptions = {
     shouldDisplayBelowModals?: boolean;
     isStackedOnRHP?: boolean;
 
-    /** Width of a right docked modal's card, which must match the RHP card it covers. */
-    rightDockedCardWidth?: number;
+    /** Saved width of the resizable single RHP this right docked modal is stacked on. Its card covers the RHP's card, so it follows a drag live. */
+    stackedResizableRHPWidth?: number;
 };
 
 type GetModalStylesStyleUtil = {
@@ -76,7 +78,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         enableEdgeToEdgeBottomSafeAreaPadding = false,
         shouldDisplayBelowModals = false,
         isStackedOnRHP = false,
-        rightDockedCardWidth = variables.rhpWidth,
+        stackedResizableRHPWidth,
     }): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -293,11 +295,21 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 break;
             case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED: {
                 // Border-box card inset on every side. Both terms must match RightModalNavigator's frame or the two cards sit 2px apart and their borders read as one doubled line.
-                const rightDockedBoxWidth = rightDockedCardWidth + 2 * variables.rhpFloatingCardBorderWidth + 2 * variables.rhpFloatingCardMargin;
+                // The box spans the card plus its margin on both sides.
+                const rightDockedBoxExtraWidth = RHP_FLOATING_CARD_INSET + variables.rhpFloatingCardMargin;
+                let rightDockedBoxStyle: ViewStyle;
+                if (isSmallScreenWidth) {
+                    rightDockedBoxStyle = {marginLeft: 0, width: '100%'};
+                } else if (stackedResizableRHPWidth === undefined) {
+                    const rightDockedBoxWidth = variables.rhpWidth + rightDockedBoxExtraWidth;
+                    rightDockedBoxStyle = {marginLeft: windowWidth - rightDockedBoxWidth, width: rightDockedBoxWidth};
+                } else {
+                    // A fixed marginLeft would go stale while the width changes mid-drag, so the auto margin keeps the box flush right.
+                    rightDockedBoxStyle = {marginLeft: 'auto', width: getSingleRHPWidthStyleValue(stackedResizableRHPWidth, rightDockedBoxExtraWidth)};
+                }
                 modalStyle = {
                     ...modalStyle,
-                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - rightDockedBoxWidth,
-                    width: isSmallScreenWidth ? '100%' : rightDockedBoxWidth,
+                    ...rightDockedBoxStyle,
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
                     height: '100%',
