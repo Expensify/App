@@ -251,15 +251,29 @@ describe('NetSuiteTokenInputPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('isMigration=true'));
     });
 
-    it('blocks the wizard for a healthy OAuth connection even when isMigration=true is in the URL', () => {
-        // Given a healthy OAuth connection (no tokenID, no auth error)
+    it('opens the wizard for a healthy OAuth connection and offers the TBA link', () => {
+        // Given a healthy OAuth connection (no tokenID, no auth error), opened from Update credentials
+        mockedIsAuthenticationError.mockReturnValue(false);
+        const policy = buildNetsuitePolicy('', CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2);
+
+        // When the credentials page is rendered
+        renderPage(PAGE_NAME.CREDENTIALS, undefined, policy);
+
+        // Then the page is not blocked, and the admin can switch the connection back to TBA
+        expect(mockCapturedShouldBeBlocked.current).toBe(false);
+        expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
+        expect(screen.getByTestId('token-authentication-link')).toBeOnTheScreen();
+    });
+
+    it('blocks the wizard for a connection that is neither TBA nor OAuth even when isMigration=true is in the URL', () => {
+        // Given a connection with no tokenID, no OAuth auth type and no auth error
         mockedIsAuthenticationError.mockReturnValue(false);
         const policy = buildNetsuitePolicy('');
 
         // When the page is rendered with isMigration=true in the URL
         renderPage(PAGE_NAME.CREDENTIALS, undefined, policy, true);
 
-        // Then the page is blocked — isMigration in the URL must not bypass a healthy OAuth connection
+        // Then the page is blocked, because isMigration in the URL must not bypass the block
         expect(mockCapturedShouldBeBlocked.current).toBe(true);
     });
 });
