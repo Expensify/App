@@ -28,16 +28,20 @@ function useDiscardChangesConfirmation({
     onConfirm,
     onTabSwitchDiscard,
     shouldCloseRHPOnDiscard = false,
+    shouldPromptWhenUnfocused = false,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
     const isDiscardModalOpen = useRef(false);
-    const {routeName, isFocused, hasUnsavedChanges, suppressDiscardPrompt} = useDiscardPromptGate({getHasUnsavedChanges});
+    const {routeName, isFocused, hasUnsavedChanges, shouldPromptFor, suppressDiscardPrompt} = useDiscardPromptGate({
+        getHasUnsavedChanges,
+        shouldPromptWhenUnfocused,
+    });
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
-    // The save suppression stays out of it because `isSavingRef` is a ref: the callback below applies that.
-    const shouldPreventRemove = isFocused && getHasUnsavedChanges();
+    // The other checks (saving, muted, the flow being on screen) read refs and the navigation state, so the callback below runs them.
+    const shouldPreventRemove = (shouldPromptWhenUnfocused || isFocused) && getHasUnsavedChanges();
 
     useRegisterTabSwitchGuard(routeName, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
@@ -79,7 +83,7 @@ function useDiscardChangesConfirmation({
             letThrough();
             return;
         }
-        if (!hasUnsavedChanges()) {
+        if (!hasUnsavedChanges() || !shouldPromptFor(data.action)) {
             letThrough();
             return;
         }

@@ -35,10 +35,14 @@ function useDiscardChangesConfirmation({
     onConfirm,
     onTabSwitchDiscard,
     shouldCloseRHPOnDiscard = false,
+    shouldPromptWhenUnfocused,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
-    const {routeName, hasUnsavedChanges, suppressDiscardPrompt} = useDiscardPromptGate({getHasUnsavedChanges});
+    const {routeName, hasUnsavedChanges, shouldPromptFor, suppressDiscardPrompt} = useDiscardPromptGate({
+        getHasUnsavedChanges,
+        shouldPromptWhenUnfocused,
+    });
 
     useRegisterTabSwitchGuard(routeName, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
@@ -95,7 +99,7 @@ function useDiscardChangesConfirmation({
             return;
         }
 
-        if (!hasUnsavedChanges()) {
+        if (!hasUnsavedChanges() || !shouldPromptFor(e.data.action)) {
             return;
         }
 
