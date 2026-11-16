@@ -32,6 +32,15 @@ import InsightsRankingTableChange, {formatRankingTableChange} from './InsightsRa
 /** Smaller shares would otherwise be displayed as zero. In percentage points. */
 const MIN_WRITTEN_SHARE = 0.1;
 
+/** Each column's position, as the table's accessibility tree numbers them */
+const RANKING_TABLE_COLUMN = {
+    GROUP: 1,
+    SHARE: 2,
+    COUNT: 3,
+    AMOUNT: 4,
+    CHANGE: 5,
+} as const;
+
 type InsightsRankingTableRowProps = {
     row: RankingTableRow;
     groupBy: SearchGroupBy;
@@ -128,13 +137,13 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
                 <>
                     <View
                         style={[styles.flex1, styles.mnw0, cellStyle]}
-                        {...getCellAccessibilityProps(isTableSemanticsEnabled, 1)}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.GROUP)}
                     >
                         <Text style={styles.breakWord}>{label}</Text>
                     </View>
                     <View
                         style={styles.insightsRankingTableShareColumn}
-                        {...getCellAccessibilityProps(isTableSemanticsEnabled, 2)}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.SHARE)}
                     >
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <View style={styles.insightsRankingTableBar(barWidthPercent)} />
@@ -160,20 +169,20 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
                     </View>
                     <View
                         style={[styles.insightsRankingTableNumberColumn, cellStyle]}
-                        {...getCellAccessibilityProps(isTableSemanticsEnabled, 3)}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.COUNT)}
                     >
                         <Text>{numberFormat(item.count)}</Text>
                     </View>
                     <View
                         style={[styles.insightsRankingTableNumberColumn, styles.alignItemsEnd, cellStyle]}
-                        {...getCellAccessibilityProps(isTableSemanticsEnabled, 4)}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.AMOUNT)}
                     >
                         <Text>{formattedAmount}</Text>
                     </View>
                     {!!change && (
                         <View
                             style={[styles.insightsRankingTableChangeColumn, cellStyle]}
-                            {...getCellAccessibilityProps(isTableSemanticsEnabled, 5)}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.CHANGE)}
                         >
                             <InsightsRankingTableChange change={change} />
                         </View>
@@ -185,3 +194,4 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
 }
 
 export default InsightsRankingTableRow;
+export {RANKING_TABLE_COLUMN};

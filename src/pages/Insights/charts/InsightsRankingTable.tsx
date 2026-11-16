@@ -29,7 +29,7 @@ import {View} from 'react-native';
 import buildRankingTableRows from './buildRankingTableRows';
 import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
 import InsightsRankingTableAverageLine from './InsightsRankingTableAverageLine';
-import InsightsRankingTableRow from './InsightsRankingTableRow';
+import InsightsRankingTableRow, {RANKING_TABLE_COLUMN} from './InsightsRankingTableRow';
 
 const AVERAGE_FRACTION_DIGITS = 1;
 
@@ -145,7 +145,7 @@ function InsightsRankingTable({
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowLayout);
     const headerLabelStyle = [styles.tableHeaderContentHeight, styles.pv2];
-    const columnCount = isComparingPreviousPeriod ? 5 : 4;
+    const columnCount = isComparingPreviousPeriod ? RANKING_TABLE_COLUMN.CHANGE : RANKING_TABLE_COLUMN.AMOUNT;
 
     return (
         <View
@@ -158,7 +158,7 @@ function InsightsRankingTable({
             >
                 <View
                     style={[styles.flex1, styles.mnw0]}
-                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 1)}
+                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.GROUP)}
                 >
                     <SortableHeaderLabel
                         text={translate(`search.filters.groupBy.${groupBy}`)}
@@ -169,7 +169,7 @@ function InsightsRankingTable({
                 </View>
                 <View
                     style={styles.insightsRankingTableShareColumn}
-                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 2)}
+                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.SHARE)}
                 >
                     <View style={styles.flex1}>
                         <SortableHeaderLabel
@@ -195,7 +195,7 @@ function InsightsRankingTable({
                 </View>
                 <View
                     style={styles.insightsRankingTableNumberColumn}
-                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, true, true, CONST.SEARCH.SORT_ORDER.DESC, 3)}
+                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, true, true, CONST.SEARCH.SORT_ORDER.DESC, RANKING_TABLE_COLUMN.COUNT)}
                 >
                     <SortableHeaderLabel
                         text={translate(COUNT_COLUMN_TITLE_KEYS[countDimension])}
@@ -206,7 +206,7 @@ function InsightsRankingTable({
                 </View>
                 <View
                     style={[styles.insightsRankingTableNumberColumn, styles.alignItemsEnd]}
-                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 4)}
+                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.AMOUNT)}
                 >
                     <SortableHeaderLabel
                         text={translate('iou.amount')}
@@ -218,7 +218,7 @@ function InsightsRankingTable({
                 {isComparingPreviousPeriod && (
                     <View
                         style={styles.insightsRankingTableChangeColumn}
-                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 5)}
+                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.CHANGE)}
                     >
                         <SortableHeaderLabel
                             text={translate('insightsPage.compare.percentChange')}
