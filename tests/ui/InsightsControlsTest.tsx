@@ -200,7 +200,7 @@ describe('Insights controls', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the filters show but Export does not
-        expect(screen.getByTestId('InsightsCaptureControls')).toBeOnTheScreen();
+        expect(screen.getByText(/Date: /)).toBeOnTheScreen();
         expect(screen.queryByTestId('InsightsExportButton')).toBeNull();
     });
 
