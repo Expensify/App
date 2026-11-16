@@ -59,19 +59,19 @@ function PolicyExpenseChatAvatar({reportID, size, backdropColor, containerStyle,
     const StyleUtils = useStyleUtils();
     const {formatPhoneNumber, translate} = useLocalize();
     const [personalDetailsFromSnapshot] = useAllPersonalDetails();
-    // On Search, the snapshot can hold a member missing from the live list. Like the legacy component, fall back to the live list while the snapshot loads.
+    // On Search, the snapshot can hold a member missing from the live list, so fall back to the live list while the snapshot loads.
     const personalDetails = personalDetailsFromSnapshot ?? use(PersonalDetailsContext);
     const defaultAvatars = useDefaultAvatars();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportAvatarFieldsSelector});
     const workspaceIcon = useReportWorkspaceIcon(report);
 
-    // The unknown account, standing in for a missing workspace or member the same way the legacy component does.
+    // The unknown account, standing in for a missing workspace or member.
     const placeholderIcon: Icon = {id: CONST.DEFAULT_NUMBER_ID, type: CONST.ICON_TYPE_AVATAR, source: defaultAvatars.FallbackAvatar, name: ''};
-    // A chat without a policyID has no workspace to show, so the legacy component falls back to the unknown account instead.
+    // A chat without a policyID has no workspace to show, so it falls back to the unknown account instead.
     const primaryIcon = report?.policyID ? workspaceIcon : placeholderIcon;
     const ownerAccountID = report?.ownerAccountID;
     const ownerDetails = ownerAccountID ? personalDetails?.[ownerAccountID] : undefined;
-    // Built like the legacy member icon: a default avatar seeded from the account ID, named by display name, then login, then "Hidden" while personal details are missing.
+    // Built like every other member icon: a default avatar seeded from the account ID, named by display name, then login, then "Hidden" while personal details are missing.
     const ownerIcon: Icon = ownerAccountID
         ? {
               id: ownerAccountID,
