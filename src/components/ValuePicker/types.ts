@@ -24,6 +24,12 @@ type ValuePickerItem = {
     shouldHideSelectionButton?: boolean;
 
     titleStyles?: StyleProp<TextStyle>;
+
+    /**
+     * Text the search matches instead of the label, already passed through `StringUtils.sanitizeString` so accents
+     * are ignored. A country lists its ISO code here too, so `US` finds United States the way the country selector does.
+     */
+    searchValue?: string;
 };
 
 type ValueSelectorModalProps = {

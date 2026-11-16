@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSearchResults from '@hooks/useSearchResults';
 
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import StringUtils from '@libs/StringUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import CONST from '@src/CONST';
@@ -37,6 +38,7 @@ function ValueSelectionList({
         rightElement: item.rightElement,
         shouldHideSelectionButton: item.shouldHideSelectionButton,
         titleStyles: item.titleStyles,
+        searchValue: item.searchValue,
     }));
     const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : []);
     const options = orderedOptions.map((item) => ({
@@ -44,7 +46,19 @@ function ValueSelectionList({
         isSelected: item.value === selectedItem?.value,
     }));
 
-    const [searchValue, setSearchValue, filteredOptions] = useSearchResults(options, (option, searchInput) => tokenizedSearch([option], searchInput, () => [option.text]).length > 0);
+    const [searchValue, setSearchValue, matchingOptions, searchQuery] = useSearchResults(options, (option, searchInput) => {
+        if (option.searchValue === undefined) {
+            return tokenizedSearch([option], searchInput, () => [option.text]).length > 0;
+        }
+        // A query of only punctuation sanitizes to nothing and matches no option, as in the country selector
+        const sanitizedInput = StringUtils.sanitizeString(searchInput);
+        return !!sanitizedInput && option.searchValue.includes(sanitizedInput);
+    });
+
+    // An option whose own value was typed, such as the country code `US`, goes first, as the country selector lists it
+    const sanitizedQuery = StringUtils.sanitizeString(searchQuery);
+    const isTypedValue = (option: {value: string; searchValue?: string}) => option.searchValue !== undefined && !!sanitizedQuery && option.value.toLowerCase() === sanitizedQuery;
+    const filteredOptions = [...matchingOptions.filter(isTypedValue), ...matchingOptions.filter((option) => !isTypedValue(option))];
 
     // The search input is gated on the unfiltered list length so it doesn't disappear once a query narrows the results.
     const isSearchable = options.length >= CONST.STANDARD_LIST_ITEM_LIMIT;

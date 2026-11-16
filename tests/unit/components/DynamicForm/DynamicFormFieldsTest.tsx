@@ -3,7 +3,6 @@ import {act, render, screen} from '@testing-library/react-native';
 import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import CountryPicker from '@components/CountryPicker';
 import DatePicker from '@components/DatePicker';
 import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
@@ -11,6 +10,7 @@ import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoi
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
+import MultiChoiceDropdownAdapter from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
@@ -20,7 +20,6 @@ import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKe
 import type {FormValue} from '@components/Form/types';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PercentageForm from '@components/PercentageForm';
-import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
 
@@ -142,11 +141,11 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType<never>>
     radio: RadioButtons,
     date: DatePicker,
     boolean: YesNoAdapter,
-    country: CountryPicker,
+    country: DropdownChoiceAdapter,
     currency: CurrencyDropdownAdapter,
     address: AddressSearch,
-    multiselect: PushRowWithModal,
-    countryMultiselect: PushRowWithModal,
+    multiselect: MultiChoiceDropdownAdapter,
+    countryMultiselect: MultiChoiceDropdownAdapter,
     file: FileUploadAdapter,
     amount: AmountForm,
     percent: PercentageForm,
@@ -451,8 +450,8 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([industries, otherQuestion]);
 
-        // Then the push row allows several choices, and the answer is a list of option keys
-        expect(rendered.get('industries')).toMatchObject({canSelectMultiple: true, valueType: 'stringList', optionsList: {RETAIL: 'Retail'}});
+        // Then the dropdown row allows several choices, and the answer is a list of option keys
+        expect(rendered.get('industries')).toMatchObject({InputComponent: MultiChoiceDropdownAdapter, valueType: 'stringList', items: [{value: 'RETAIL', label: 'Retail'}]});
     });
 
     it('keeps the label above an input readable in session recordings while masking the input', () => {

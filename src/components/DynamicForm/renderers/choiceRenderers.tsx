@@ -1,16 +1,15 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import CountryPicker from '@components/CountryPicker';
 import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
+import MultiChoiceDropdownAdapter from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import {getFieldChoices} from '@components/DynamicForm/utils/getFieldOptions';
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import InputWrapper from '@components/Form/InputWrapper';
-import PushRowWithModal from '@components/PushRowWithModal';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
 
@@ -24,10 +23,6 @@ type InlineChoiceOptions = {
     canSelectMultiple: boolean;
     isSearchable: boolean;
 };
-
-function getChoiceOptionsList(choices: Choice[]): Record<string, string> {
-    return Object.fromEntries(choices.map((choice) => [choice.value, choice.label]));
-}
 
 /** A lone choice field is the page itself: its options are listed inline under its question, which a page without its own title shows as its title instead */
 function renderInlineChoice(
@@ -74,17 +69,15 @@ const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselec
         return renderInlineChoice(title, choices, inputProps, {canSelectMultiple: true, isSearchable: choices.length > CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS});
     }
     return {
-        isMenuRow: true,
+        isMenuRow: false,
         input: (
             <InputWrapper
-                InputComponent={PushRowWithModal}
+                InputComponent={MultiChoiceDropdownAdapter}
                 {...inputProps}
                 valueType="stringList"
-                canSelectMultiple
-                optionsList={getChoiceOptionsList(choices)}
-                description={getInputLabel(field, translate)}
-                modalHeaderTitle={title}
-                searchInputTitle={title}
+                label={getInputLabel(field, translate)}
+                title={title}
+                items={choices}
             />
         ),
     };
@@ -142,12 +135,14 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
             return renderInlineChoice(translate('common.country'), getFieldChoices(field, values, translate), inputProps, {canSelectMultiple: false, isSearchable: true});
         }
         return {
-            isMenuRow: true,
+            isMenuRow: false,
             input: (
                 <InputWrapper
-                    InputComponent={CountryPicker}
+                    InputComponent={DropdownChoiceAdapter}
                     {...inputProps}
                     label={label}
+                    title={getFieldLabel(field, translate)}
+                    items={getFieldChoices(field, values, translate)}
                 />
             ),
         };

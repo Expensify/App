@@ -14,6 +14,7 @@ import type DropdownChoiceAdapter from '@components/DynamicForm/adapters/Dropdow
 import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import type InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import type ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
+import type MultiChoiceDropdownAdapter from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
 import type TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import type ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import type YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
@@ -103,6 +104,7 @@ type ValidInputs =
     | typeof InlineSelectionListAdapter
     | typeof DropdownChoiceAdapter
     | typeof CurrencyDropdownAdapter
+    | typeof MultiChoiceDropdownAdapter
     | typeof CurrencyInlineListAdapter
     | typeof YesNoAdapter
     | typeof TabsAdapter

@@ -16,6 +16,7 @@ const SENTRY_LABEL = {
         TABS_ITEM: 'DynamicForm-TabsItem',
         CHOICE_FIELD: 'DynamicForm-ChoiceField',
         CHOICE_FIELD_BACK: 'DynamicForm-ChoiceFieldBack',
+        CHOICE_FIELD_APPLY: 'DynamicForm-ChoiceFieldApply',
     },
     APPROVE_MENU: {
         OPTION: {

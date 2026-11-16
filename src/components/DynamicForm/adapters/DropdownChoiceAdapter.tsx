@@ -1,6 +1,6 @@
 /** Form input for a single choice field, drawn as the expense form's dropdown row */
 import DynamicFormDropdownField from '@components/DynamicForm/components/DynamicFormDropdownField';
-import type {Choice} from '@components/RadioButtons';
+import type {DynamicFormChoice} from '@components/DynamicForm/utils/getFieldOptions';
 import ValuePickerPopover from '@components/ValuePicker/ValuePickerPopover';
 import ValueSelectionList from '@components/ValuePicker/ValueSelectionList';
 
@@ -15,7 +15,7 @@ import React from 'react';
 
 type DropdownChoiceAdapterProps = ForwardedFSClassProps & {
     /** Options, one row each */
-    items: Choice[];
+    items: DynamicFormChoice[];
 
     /** Name of the field, shown in the row and read with its value */
     label: string;

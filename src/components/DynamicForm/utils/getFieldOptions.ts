@@ -2,6 +2,8 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Choice} from '@components/RadioButtons';
 
+import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import type {DynamicFormChoiceField, DynamicFormCountryField, DynamicFormFieldOption, DynamicFormMultiChoiceField} from '@src/types/onyx';
 
@@ -9,6 +11,11 @@ import getLocalizedText from './getLocalizedText';
 import isCountryCode from './isCountryCode';
 
 type DynamicFormOptionField = DynamicFormChoiceField | DynamicFormMultiChoiceField | DynamicFormCountryField;
+
+type DynamicFormChoice = Choice & {
+    /** Text a list's search matches instead of the label. Countries list their ISO code and name, as the country selector searches them. */
+    searchValue?: string;
+};
 
 const COUNTRY_OPTIONS: DynamicFormFieldOption[] = Object.keys(CONST.ALL_COUNTRIES)
     .filter(isCountryCode)
@@ -40,12 +47,18 @@ function getOptionLabel(option: DynamicFormFieldOption, translate: LocalizedTran
     return getLocalizedText(translate, option.labelKey, option.label) ?? option.key;
 }
 
-function getFieldChoices(field: DynamicFormOptionField, values: DynamicFormValues, translate: LocalizedTranslate): Choice[] {
-    return getFieldOptions(field, values).map((option) => ({
-        value: option.key,
-        label: getOptionLabel(option, translate),
-    }));
+function getFieldChoices(field: DynamicFormOptionField, values: DynamicFormValues, translate: LocalizedTranslate): DynamicFormChoice[] {
+    const isCountryField = field.type === 'country' || field.type === 'countryMultiselect';
+    return getFieldOptions(field, values).map((option) => {
+        const label = getOptionLabel(option, translate);
+        return {
+            value: option.key,
+            label,
+            searchValue: isCountryField ? StringUtils.sanitizeString(`${option.key}${label}`) : undefined,
+        };
+    });
 }
 
 export default getFieldOptions;
 export {getFieldChoices, getOptionLabel};
+export type {DynamicFormChoice};
