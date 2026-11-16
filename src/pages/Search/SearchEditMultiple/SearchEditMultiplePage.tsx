@@ -28,10 +28,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {getBackendAmountFromInput} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
+import {canShowReimbursableToggleForPolicy, getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -174,7 +175,7 @@ function SearchEditMultiplePage() {
         if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             return true;
         }
-        return transactionPolicy?.disabledFields?.defaultBillable === false || !!transaction.billable;
+        return isBillableEnabledOnPolicy(transactionPolicy) || !!transaction.billable;
     });
 
     const areSelectedTransactionsReimbursable = selectedTransactionContexts.every(({transaction, report, transactionPolicy}) => {
@@ -188,7 +189,11 @@ function SearchEditMultiplePage() {
         }
 
         // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
-        return !isIOUReport(report) && !isInvoiceReport(report) && (isManagedCardTransaction(transaction) || transactionPolicy?.disabledFields?.reimbursable === false);
+        return (
+            !isIOUReport(report) &&
+            !isInvoiceReport(report) &&
+            (isManagedCardTransaction(transaction) || (!!transactionPolicy && canShowReimbursableToggleForPolicy(transactionPolicy, transaction.reimbursable)))
+        );
     });
 
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, mergedReports);

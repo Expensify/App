@@ -68,7 +68,7 @@ import {
     getLinkedTransactionID,
     getMarkedReimbursedMessage,
     getMccGroupCategoryMessage,
-    getMessageOfOldDotReportAction,
+    getMessageTextOfOldDotReportAction,
     getOriginalMessage,
     getOverLimitForwardsToUpdateMessage,
     getPlaidBalanceFailureMessage,
@@ -704,7 +704,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isOldDotReportAction(parentReportAction)) {
-        return getMessageOfOldDotReportAction(translate, parentReportAction);
+        return getMessageTextOfOldDotReportAction(translate, parentReportAction);
     }
 
     if (isRenamedAction(parentReportAction)) {
