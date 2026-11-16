@@ -6,6 +6,7 @@ import type {getSavedSearchIconName} from '@libs/SearchUIUtils';
 
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
@@ -65,6 +66,9 @@ type FlatNavSavedSearchItem = {
     query: string;
     iconName: FlatNavSavedSearchIconName;
 
+    /** Offline change not yet synced (add, rename or delete), so the row can be greyed out like in the Spend column */
+    pendingAction?: PendingAction | null;
+
     /** Pending delete */
     isDisabled: boolean;
 };
@@ -89,6 +93,36 @@ type ActiveFlatNavItem = {
     itemKey: SearchKey | undefined;
 };
 
+type FlatNavSubnavGroupID = ValueOf<typeof FLAT_NAV.SUBNAV_GROUP>;
+
+/** Static description of a subnav header: which sections list their items under it, and how their rows are labelled there. */
+type FlatNavSubnavGroupDefinition = {
+    id: FlatNavSubnavGroupID;
+
+    /** Translation key of the header label */
+    translationPath: TranslationPaths;
+
+    /** Sections whose items are listed under the header, in render order */
+    sectionIDs: readonly FlatNavSectionID[];
+
+    /** Labels a canned search as it reads under this header, where the section's own wording would not fit */
+    itemTranslationPaths?: Partial<Record<SearchKey, TranslationPaths>>;
+};
+
+/** A header with the searches under it, as the subnav draws them */
+type FlatNavSubnavGroup = {
+    id: FlatNavSubnavGroupID;
+    translationPath: TranslationPaths;
+    items: FlatNavItem[];
+};
+
+/** Heights of the subnav's rows, which are fixed so the marker's position can be worked out without measuring */
+type FlatNavSubnavRowHeights = {
+    header: number;
+    item: number;
+    marker: number;
+};
+
 export type {
     ActiveFlatNavItem,
     FlatNavCannedSearchItem,
@@ -99,4 +133,7 @@ export type {
     FlatNavSection,
     FlatNavSectionDefinition,
     FlatNavSectionID,
+    FlatNavSubnavGroup,
+    FlatNavSubnavGroupDefinition,
+    FlatNavSubnavRowHeights,
 };

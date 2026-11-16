@@ -949,7 +949,7 @@ const staticStyles = (theme: ThemeColors) =>
         flatNavigationBarItem: {
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 12,
+            gap: variables.flatNavigationBarItemGap,
             height: variables.flatNavigationBarItemHeight,
             paddingHorizontal: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
@@ -960,6 +960,49 @@ const staticStyles = (theme: ThemeColors) =>
 
         flatNavigationBarAccountItem: {
             height: variables.flatNavigationBarAccountItemHeight,
+        },
+
+        // The label lines up with the label of the destination row above the subnav.
+        flatNavigationBarSubnavItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: variables.spacing2,
+            height: variables.flatNavigationBarSubnavItemHeight,
+            paddingLeft: variables.flatNavigationBarSubnavIndent,
+            paddingRight: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
+        },
+
+        // Sits at the bottom of its row, which leaves the gap above the group.
+        flatNavigationBarSubnavHeader: {
+            height: variables.flatNavigationBarSubnavHeaderHeight,
+            justifyContent: 'flex-end',
+            paddingBottom: 4,
+            paddingLeft: variables.flatNavigationBarSubnavIndent,
+            paddingRight: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+        },
+
+        // The active row's marker slides along this rule.
+        flatNavigationBarSubnavRule: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: variables.flatNavigationBarSubnavRuleLeft,
+            width: 1,
+            backgroundColor: theme.border,
+        },
+
+        flatNavigationBarSubnavMarker: {
+            position: 'absolute',
+            top: 0,
+            left: variables.flatNavigationBarSubnavRuleLeft - Math.floor(variables.flatNavigationBarSubnavMarkerWidth / 2),
+            width: variables.flatNavigationBarSubnavMarkerWidth,
+            height: variables.flatNavigationBarSubnavMarkerHeight,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.success,
         },
 
         flatNavigationBarDivider: {

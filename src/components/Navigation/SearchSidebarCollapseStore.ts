@@ -195,3 +195,4 @@ export {
     useSearchSidebarCollapseFadeStyle,
     useSearchSidebarToggleButtonStyle,
 };
+export type {CollapseSurface};
