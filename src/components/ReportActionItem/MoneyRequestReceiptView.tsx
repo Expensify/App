@@ -685,6 +685,7 @@ function MoneyRequestReceiptView({
                 >
                     <ReceiptEmptyState
                         disabled={!canEditReceipt}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.RECEIPT_EMPTY_STATE}
                         onPress={() => {
                             if (!transaction?.transactionID || !report?.reportID) {
                                 return;
