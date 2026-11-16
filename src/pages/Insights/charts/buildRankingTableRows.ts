@@ -49,17 +49,17 @@ type BuildRankingTableRowsParams = {
 
     comparison: ChartComparison | undefined;
 
-    /** Whether the page compares against the previous period, which shows a change on every row even when there is nothing to compare against */
+    /** Whether the page compares against the previous period. Every row then shows a change, even when there's no previous-period data, e.g. from before violations were tracked. */
     isComparingPreviousPeriod: boolean;
 };
 
 /** Returns how a group's count changed against the previous period's, rounded to a whole percentage */
 function getRankingTableChange(count: number, previousCount: number | undefined): RankingTableChange {
-    if (!previousCount && count > 0) {
-        return {type: RANKING_TABLE_CHANGE.NEW};
-    }
-    if (!previousCount) {
+    if (previousCount === undefined) {
         return {type: RANKING_TABLE_CHANGE.NONE};
+    }
+    if (previousCount === 0) {
+        return {type: count > 0 ? RANKING_TABLE_CHANGE.NEW : RANKING_TABLE_CHANGE.NONE};
     }
     const percent = Math.round((Math.abs(count - previousCount) / previousCount) * 100);
     if (percent === 0) {

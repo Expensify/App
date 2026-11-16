@@ -64,14 +64,14 @@ describe('buildRankingTableRows', () => {
         ]);
     });
 
-    it('marks expenses as new when no previous-period baseline is available', () => {
-        // Given previous-period comparison is selected without a baseline
+    it('shows no change when the previous period has no data to compare against', () => {
+        // Given the page compares against the previous period, but there's no previous-period data, e.g. from before violations were tracked
         const data = [violationGroup('missingReceipt', 10)];
 
         // When the rows are built
         const {rows} = buildRankingTableRows({data, comparison: undefined, isComparingPreviousPeriod: true});
 
-        // Then a missing baseline is treated like zero previous expenses
-        expect(rows.at(0)?.change).toEqual({type: RANKING_TABLE_CHANGE.NEW});
+        // Then the row shows no change rather than calling the group new, since there's nothing to compare it with
+        expect(rows.at(0)?.change).toEqual({type: RANKING_TABLE_CHANGE.NONE});
     });
 });
