@@ -85,7 +85,7 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
-jest.mock('@hooks/usePaginatedReportActions', () => jest.fn(() => ({reportActions: [], hasNewerActions: false, hasOlderActions: false})));
+jest.mock('@hooks/usePaginatedReportActions', () => jest.fn(() => ({windowActions: [], hasNewerActions: false, hasOlderActions: false})));
 jest.mock('@hooks/useParentReportAction', () => jest.fn(() => null));
 jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn(() => ({})));
 jest.mock('@hooks/useShortMentionsList', () => jest.fn(() => ({availableLoginsList: []})));

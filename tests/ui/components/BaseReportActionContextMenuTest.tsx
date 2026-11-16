@@ -94,7 +94,7 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 
 // Held in a container so individual tests can control what `usePaginatedReportActions` returns for the child report.
 const mockPaginatedReportActions: {reportActions: ReportAction[]} = {reportActions: []};
-jest.mock('@hooks/usePaginatedReportActions', () => () => ({reportActions: mockPaginatedReportActions.reportActions}));
+jest.mock('@hooks/usePaginatedReportActions', () => () => ({windowActions: mockPaginatedReportActions.reportActions}));
 jest.mock('@hooks/useReportIsArchived', () => () => false);
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: true, isSmallScreenWidth: false}));
 jest.mock(

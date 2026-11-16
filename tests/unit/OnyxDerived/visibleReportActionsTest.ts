@@ -116,4 +116,35 @@ describe('visibleReportActions', () => {
         expect(result[reportID]?.[closedActionID]).toBe(true);
         expect(result[unrelatedReportID]).toBe(currentValue[unrelatedReportID]);
     });
+
+    it('returns the previous value when a report write changes no visibility', () => {
+        // Given a chat whose only comment is visible
+        const reportID = 'chatReportID';
+        const commentID = 'commentID';
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const chatReport = {reportID, type: CONST.REPORT.TYPE.CHAT, lastReadTime: '2026-11-11 12:00:00.000'};
+        const allReportActions: OnyxCollection<ReportActions> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
+                [commentID]: {
+                    reportActionID: commentID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-11-11 11:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Hello', text: 'Hello'}],
+                },
+            },
+        };
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {[reportKey]: chatReport}, {}];
+        const currentValue = visibleReportActionsConfig.compute(args, {currentValue: undefined, sourceValues: undefined, triggeredKeys: new Set<OnyxKey>()});
+
+        // When reading the chat writes a new lastReadTime, which changes no action's visibility
+        const readReport = {...chatReport, lastReadTime: '2026-11-11 12:05:00.000'};
+        const result = visibleReportActionsConfig.compute([allReportActions, undefined, {[reportKey]: readReport}, {}], {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: readReport}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+        });
+
+        // Then the derived value is the same object, so Onyx skips the write and notifies no subscriber
+        expect(result).toBe(currentValue);
+    });
 });

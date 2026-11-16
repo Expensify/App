@@ -93,6 +93,8 @@ function ReportActionsListItemRenderer({
      */
     const action: ReportAction = {
         reportActionID: reportAction.reportActionID,
+        // Rows read it to find the expense's report and receipts, so it must survive the projection.
+        reportID: reportAction.reportID,
         message: reportAction.message,
         pendingAction: reportAction.pendingAction,
         actionName: reportAction.actionName,

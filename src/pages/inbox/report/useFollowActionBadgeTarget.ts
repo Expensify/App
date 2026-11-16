@@ -19,7 +19,7 @@ type UseFollowActionBadgeTargetParams = {
     actionBadgeTargetIndex: number;
 
     /** The rendered (inverted) report actions the list is displaying */
-    renderedVisibleReportActions: OnyxTypes.ReportAction[];
+    listData: OnyxTypes.ReportAction[];
 
     /** Maps canonical action IDs to their rendered indices when collapsed runs hide individual actions */
     reportActionIDToDisplayIndex?: ReadonlyMap<string, number>;
@@ -36,7 +36,7 @@ function useFollowActionBadgeTarget({
     reportID,
     actionTargetReportActionID,
     actionBadgeTargetIndex,
-    renderedVisibleReportActions,
+    listData,
     reportActionIDToDisplayIndex,
     scrollToActionBadgeTarget,
 }: UseFollowActionBadgeTargetParams) {
@@ -50,7 +50,7 @@ function useFollowActionBadgeTarget({
     useEffect(() => {
         const prevActionBadgeTargetIndex =
             (prevActionTargetReportActionID ? reportActionIDToDisplayIndex?.get(prevActionTargetReportActionID) : undefined) ??
-            renderedVisibleReportActions.findIndex((action) => action.reportActionID === prevActionTargetReportActionID);
+            listData.findIndex((action) => action.reportActionID === prevActionTargetReportActionID);
         if (!shouldFollowActionBadgeTarget({actionTargetReportActionID, prevActionTargetReportActionID, actionBadgeTargetIndex, prevActionBadgeTargetIndex})) {
             return;
         }

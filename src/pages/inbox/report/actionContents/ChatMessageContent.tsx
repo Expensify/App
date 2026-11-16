@@ -38,7 +38,8 @@ type ChatMessageContentProps = {
     reportID: string | undefined;
     originalReportID?: string;
     displayAsGroup: boolean;
-    draftMessage: string | undefined;
+    /** Whether the user is editing this action */
+    hasDraft: boolean;
     isHidden: boolean;
     updateHiddenState: (isHiddenValue: boolean) => void;
     isOnSearch: boolean;
@@ -51,7 +52,7 @@ function ChatMessageContent({
     reportID,
     originalReportID,
     displayAsGroup,
-    draftMessage,
+    hasDraft,
     isHidden,
     updateHiddenState,
     isOnSearch,
@@ -61,7 +62,7 @@ function ChatMessageContent({
     const styles = useThemeStyles();
 
     const shouldEditInComposer = useShouldEditInComposer();
-    const isEditingInline = !shouldEditInComposer && draftMessage !== undefined;
+    const isEditingInline = !shouldEditInComposer && hasDraft;
 
     const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
     const attachmentContextValue = isOnSearch ? {type: CONST.ATTACHMENT_TYPE.SEARCH} : {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};

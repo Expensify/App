@@ -43,8 +43,8 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const parentReportAction = useParentReportAction(report);
-    const {reportActions} = usePaginatedReportActions(reportID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline);
+    const {windowActions} = usePaginatedReportActions(reportID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, windowActions ?? [], isOffline);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
@@ -63,7 +63,7 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
     const transactionThreadParentReportActionID = transactionThreadReport?.parentReportActionID;
     // Without an ID to match, the scan can only ever miss, so skip it rather than walking every action.
     const transactionThreadParentReportAction = transactionThreadParentReportActionID
-        ? reportActions?.find((action) => action.reportActionID === transactionThreadParentReportActionID)
+        ? windowActions?.find((action) => action.reportActionID === transactionThreadParentReportActionID)
         : undefined;
     const requestParentReportAction = caseID === CASES.MONEY_REPORT ? transactionThreadParentReportAction : parentReportAction;
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);

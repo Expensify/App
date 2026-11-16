@@ -33,7 +33,7 @@ describe('useLoadReportActions', () => {
         reportActions: [
             /* your 4 reportActions array here */
         ],
-        allReportActionIDs: ['8759152536123291182', '2034215190990675144', '186758379215594799'],
+        parentReportActionIDs: ['8759152536123291182', '2034215190990675144', '186758379215594799'],
         transactionThreadReportID: undefined,
         hasOlderActions: true,
         hasNewerActions: false,
@@ -68,7 +68,7 @@ describe('useLoadReportActions', () => {
             const propsWithTransaction = {
                 ...baseProps,
                 transactionThreadReportID: '186758379215594798',
-                allReportActionIDs: ['8759152536123291182'], // Only first action belongs to main report
+                parentReportActionIDs: ['8759152536123291182'], // Only first action belongs to main report
             };
 
             const {result} = renderHook(() => useLoadReportActions(propsWithTransaction));

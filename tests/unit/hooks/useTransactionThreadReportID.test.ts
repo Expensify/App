@@ -128,10 +128,10 @@ describe('useTransactionThreadReportID', () => {
         mockUseReportTransactionsCollection.mockReset();
 
         mockUsePaginatedReportActions.mockReturnValue({
-            reportActions: [],
+            windowActions: [],
             linkedAction: undefined,
             oldestUnreadReportAction: undefined,
-            sortedAllReportActions: undefined,
+            cachedActions: undefined,
             hasOlderActions: false,
             hasNewerActions: false,
             report: undefined,
@@ -155,10 +155,10 @@ describe('useTransactionThreadReportID', () => {
         wireReportOnyx(chatLikeReport, makeDMChatReport(), MONEY_REPORT_ID);
         const iouCreate = makeIOUCreatedAction({childReportID: THREAD_REPORT_ID});
         mockUsePaginatedReportActions.mockReturnValue({
-            reportActions: [iouCreate],
+            windowActions: [iouCreate],
             linkedAction: undefined,
             oldestUnreadReportAction: undefined,
-            sortedAllReportActions: [iouCreate],
+            cachedActions: [iouCreate],
             hasOlderActions: false,
             hasNewerActions: false,
             report: chatLikeReport,
@@ -184,10 +184,10 @@ describe('useTransactionThreadReportID', () => {
         wireReportOnyx(moneyReport, makeDMChatReport(), MONEY_REPORT_ID);
         const iouCreate = makeIOUCreatedAction({childReportID: THREAD_REPORT_ID});
         mockUsePaginatedReportActions.mockReturnValue({
-            reportActions: [iouCreate],
+            windowActions: [iouCreate],
             linkedAction: undefined,
             oldestUnreadReportAction: undefined,
-            sortedAllReportActions: [iouCreate],
+            cachedActions: [iouCreate],
             hasOlderActions: false,
             hasNewerActions: false,
             report: moneyReport,
@@ -214,10 +214,10 @@ describe('useTransactionThreadReportID', () => {
         wireReportOnyx(moneyReport, makeDMChatReport(), MONEY_REPORT_ID);
         const iouCreate = makeIOUCreatedAction({});
         mockUsePaginatedReportActions.mockReturnValue({
-            reportActions: [iouCreate],
+            windowActions: [iouCreate],
             linkedAction: undefined,
             oldestUnreadReportAction: undefined,
-            sortedAllReportActions: [iouCreate],
+            cachedActions: [iouCreate],
             hasOlderActions: false,
             hasNewerActions: false,
             report: moneyReport,
@@ -243,10 +243,10 @@ describe('useTransactionThreadReportID', () => {
         wireReportOnyx(moneyReport, makeDMChatReport(), MONEY_REPORT_ID);
         const iouCreate = makeIOUCreatedAction({childReportID: THREAD_REPORT_ID});
         mockUsePaginatedReportActions.mockReturnValue({
-            reportActions: [iouCreate],
+            windowActions: [iouCreate],
             linkedAction: undefined,
             oldestUnreadReportAction: undefined,
-            sortedAllReportActions: [iouCreate],
+            cachedActions: [iouCreate],
             hasOlderActions: false,
             hasNewerActions: false,
             report: moneyReport,
@@ -271,10 +271,10 @@ describe('useTransactionThreadReportID', () => {
 
         wireReportOnyx(moneyReport, chatReport, MONEY_REPORT_ID);
         mockUsePaginatedReportActions.mockReturnValue({
-            reportActions: [payAction],
+            windowActions: [payAction],
             linkedAction: undefined,
             oldestUnreadReportAction: undefined,
-            sortedAllReportActions: [payAction],
+            cachedActions: [payAction],
             hasOlderActions: false,
             hasNewerActions: false,
             report: moneyReport,

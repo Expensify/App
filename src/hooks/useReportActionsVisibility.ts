@@ -1,6 +1,15 @@
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {isCreatedAction, isCurrentUserPendingAddAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
+import {
+    isCreatedAction,
+    isCurrentUserPendingAddAction,
+    isDeletedParentAction,
+    isIOUActionMatchingTransactionList,
+    isReportActionVisible,
+    shouldHidePayAction,
+} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport} from '@libs/ReportUtils';
+
+import filterHiddenSupportTicketSurveys from '@pages/inbox/report/ReportActionsList/filterHiddenSupportTicketSurveys';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,8 +28,15 @@ import useSidePanelState from './useSidePanelState';
 
 type UseReportActionsVisibilityParams = {
     reportID: string | undefined;
-    reportActions: ReportAction[];
-    allReportActions: ReportAction[];
+
+    /** Every action of the report in the Onyx cache, newest first, including hidden ones. */
+    cachedActions: ReportAction[] | undefined;
+
+    /** The report's own actions in the loaded window, without deleted expenses and hidden report previews. */
+    reportViewActions: ReportAction[];
+
+    /** `reportViewActions` merged with the one-expense thread's actions, plus placeholder rows while the report loads. */
+    combinedActions: ReportAction[];
     canPerformWriteAction: boolean;
     hasOlderActions: boolean;
     loadOlderChats: (force?: boolean) => void;
@@ -28,8 +44,17 @@ type UseReportActionsVisibilityParams = {
 };
 
 type UseReportActionsVisibilityResult = {
-    sortedReportActions: ReportAction[];
-    sortedVisibleReportActions: ReportAction[];
+    /** `combinedActions` the list works with, hidden ones included: limited to the current Concierge session where it applies, without the pay and survey rows the list never shows. */
+    listActions: ReportAction[];
+
+    /** The `listActions` that render as rows. */
+    visibleActions: ReportAction[];
+
+    /**
+     * `visibleActions` plus support surveys the list hides. Only for checking whether the loaded page holds the report's
+     * newest action, because the server counts a hidden survey as the newest visible action.
+     */
+    visibleActionsWithHiddenSurveys: ReportAction[];
     isConciergeSidePanel: boolean;
     isConciergeHiddenHistory: boolean;
     showConciergeSidePanelWelcome: boolean;
@@ -38,35 +63,36 @@ type UseReportActionsVisibilityResult = {
     handleShowPreviousMessages: () => void;
 };
 
+/** Decides which actions of the report the list shows. Every visibility rule of the list lives here. */
 function useReportActionsVisibility({
     reportID,
-    reportActions,
-    allReportActions,
+    cachedActions,
+    reportViewActions,
+    combinedActions,
     canPerformWriteAction,
     hasOlderActions,
     loadOlderChats,
     setConciergeShowFullHistory,
 }: UseReportActionsVisibilityParams): UseReportActionsVisibilityResult {
-    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
-        selector: reportVisibleActionsSelector(reportID),
-    });
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const isReopenedSupportTicket = !!reportNameValuePairs?.reopenedAsReportID;
 
     const isInSidePanel = useIsInSidePanel();
-    const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
-    const isConciergeMainDM = !isInSidePanel && isConciergeChatReport(report, conciergeReportID);
+    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
+    const isConciergeSidePanel = isInSidePanel && isConciergeChat;
+    const isConciergeMainDM = !isInSidePanel && isConciergeChat;
     const isConciergeHiddenHistory = isConciergeSidePanel;
 
     const {sessionStartTime} = useSidePanelState();
 
     const hasUserSentMessage =
         isConciergeHiddenHistory && sessionStartTime
-            ? allReportActions.some(
+            ? reportViewActions.some(
                   (action) =>
                       !isCreatedAction(action) &&
                       action.actorAccountID === currentUserAccountID &&
@@ -74,16 +100,75 @@ function useReportActionsVisibility({
               )
             : false;
 
+    const visibleCombinedActions = useVisibleCombinedActions({reportID, reportViewActions, combinedActions, canPerformWriteAction});
+
+    const {filteredVisibleActions, filteredCombinedActions, showConciergeSidePanelWelcome, showFullHistory, hasPreviousMessages, handleShowPreviousMessages} =
+        useConciergeSidePanelReportActions({
+            report,
+            combinedActions,
+            visibleActions: visibleCombinedActions,
+            isConciergeHiddenHistory,
+            hasUserSentMessage,
+            hasOlderActions,
+            sessionStartTime,
+            currentUserAccountID,
+            greetingText: translate('common.concierge.greeting'),
+            loadOlderChats,
+        });
+
+    // The renderer hides pay actions while the report waits on a bank account. Removing them here keeps the unread
+    // marker, the skeleton decision, and scroll positions in line with the rows the list shows.
+    const isWaitingOnBankAccount = !!report?.isWaitingOnBankAccount;
+    const withoutHiddenPayActions = (actions: ReportAction[]) => (isWaitingOnBankAccount ? actions.filter((action) => !shouldHidePayAction(action, true)) : actions);
+    // Hidden surveys must not become unread targets that have no rendered row.
+    const withoutHiddenSurveys = (actions: ReportAction[]) => filterHiddenSupportTicketSurveys({reportActions: actions, cachedActions, report, isReopenedSupportTicket});
+
+    const visibleActionsWithHiddenSurveys = withoutHiddenPayActions(filteredVisibleActions);
+    const visibleActions = withoutHiddenSurveys(visibleActionsWithHiddenSurveys);
+    const listActions = withoutHiddenSurveys(withoutHiddenPayActions(filteredCombinedActions));
+
+    const showConciergeMainDMHistory = () => {
+        setConciergeShowFullHistory?.(true);
+        loadOlderChats(true);
+    };
+
+    return {
+        listActions,
+        visibleActions,
+        visibleActionsWithHiddenSurveys,
+        isConciergeSidePanel,
+        isConciergeHiddenHistory,
+        showConciergeSidePanelWelcome,
+        showFullHistory,
+        hasPreviousMessages,
+        handleShowPreviousMessages: isConciergeMainDM ? showConciergeMainDMHistory : handleShowPreviousMessages,
+    };
+}
+
+type UseVisibleCombinedActionsParams = Pick<UseReportActionsVisibilityParams, 'reportID' | 'reportViewActions' | 'combinedActions' | 'canPerformWriteAction'>;
+
+/**
+ * The `combinedActions` the current user may see. A hook of its own so React Compiler can keep the result between renders:
+ * it is computed after this hook's subscriptions instead of being passed into the next hook.
+ */
+function useVisibleCombinedActions({reportID, reportViewActions, combinedActions, canPerformWriteAction}: UseVisibleCombinedActionsParams): ReportAction[] {
+    const {isOffline} = useNetwork();
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+        selector: reportVisibleActionsSelector(reportID),
+    });
     const reportTransactions = useReportTransactionsCollection(reportID);
     const [areTransactionsLoaded] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
         selector: (data) => data !== undefined,
     });
+
     // When transactions haven't loaded yet, pass undefined to skip IOU filtering entirely
     // (undefined = "don't filter" in isIOUActionMatchingTransactionList).
     // Once loaded, filter normally — even if transactions is empty (genuinely no transactions).
-    const reportTransactionIDs = areTransactionsLoaded ? getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []).map((transaction) => transaction.transactionID) : undefined;
+    const reportTransactionIDs = areTransactionsLoaded
+        ? new Set(getAllNonDeletedTransactions(reportTransactions, reportViewActions).map((transaction) => transaction.transactionID))
+        : undefined;
 
-    const visibleReportActions = reportActions.filter((reportAction) => {
+    return combinedActions.filter((reportAction) => {
         const passesOfflineCheck = isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors;
 
         if (!passesOfflineCheck) {
@@ -95,42 +180,8 @@ function useReportActionsVisibility({
             return false;
         }
 
-        if (!isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)) {
-            return false;
-        }
-
-        return true;
+        return isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs);
     });
-
-    const {filteredVisibleActions, filteredReportActions, showConciergeSidePanelWelcome, showFullHistory, hasPreviousMessages, handleShowPreviousMessages} =
-        useConciergeSidePanelReportActions({
-            report,
-            reportActions,
-            visibleReportActions,
-            isConciergeHiddenHistory,
-            hasUserSentMessage,
-            hasOlderActions,
-            sessionStartTime,
-            currentUserAccountID,
-            greetingText: translate('common.concierge.greeting'),
-            loadOlderChats,
-        });
-
-    const showConciergeMainDMHistory = () => {
-        setConciergeShowFullHistory?.(true);
-        loadOlderChats(true);
-    };
-
-    return {
-        sortedReportActions: filteredReportActions,
-        sortedVisibleReportActions: filteredVisibleActions,
-        isConciergeSidePanel,
-        isConciergeHiddenHistory,
-        showConciergeSidePanelWelcome,
-        showFullHistory,
-        hasPreviousMessages,
-        handleShowPreviousMessages: isConciergeMainDM ? showConciergeMainDMHistory : handleShowPreviousMessages,
-    };
 }
 
 export default useReportActionsVisibility;

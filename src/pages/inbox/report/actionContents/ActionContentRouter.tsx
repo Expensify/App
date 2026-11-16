@@ -120,7 +120,8 @@ type ActionContentRouterProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    draftMessage: string | undefined;
+    /** Whether the user is editing this action */
+    hasDraft: boolean;
     isWhisper: boolean;
 
     /** Whether the report action is hovered (or context menu / emoji picker active) */
@@ -162,7 +163,7 @@ function ActionContentRouter({
     iouReport,
     reportID,
     displayAsGroup,
-    draftMessage,
+    hasDraft,
     isWhisper,
     hovered,
     isHidden,
@@ -631,7 +632,7 @@ function ActionContentRouter({
             reportID={reportID}
             originalReportID={originalReportID}
             displayAsGroup={displayAsGroup}
-            draftMessage={draftMessage}
+            hasDraft={hasDraft}
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
             isOnSearch={isOnSearch}

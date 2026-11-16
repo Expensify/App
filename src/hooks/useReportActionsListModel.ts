@@ -27,6 +27,14 @@ import useReportIsArchived from './useReportIsArchived';
  * decision and the list render both need, computed once. Side-effect-free (no writes/navigation/telemetry).
  * The guard calls it once and passes `state`/`actions` via `ReportActionsListStateContext` and
  * `ReportActionsListActionsContext` so the content doesn't re-subscribe.
+ *
+ * The actions pass through these arrays, each newest first:
+ * - `cachedActions`: every stored action of the report, hidden ones included.
+ * - `reportViewActions`: the loaded window of `cachedActions`, without deleted expenses and hidden report previews.
+ * - `combinedActions`: `reportViewActions` merged with the one-expense thread's actions, plus placeholder rows while the report loads.
+ * - `listActions`: the `combinedActions` the list works with, hidden ones included. See `useReportActionsVisibility`.
+ * - `visibleActions`: the `listActions` that render as rows.
+ * The list then adds a streamed Concierge reply (`visibleActionsWithDraft`) and collapses system messages (`listData`).
  */
 function useReportActionsListModel(reportID: string, isReportLoadPending: boolean) {
     const {isOffline} = useNetworkWithOfflineStatus();
@@ -36,13 +44,13 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const {
-        reportActions,
-        allReportActions,
-        allReportActionIDs,
+        cachedActions,
+        reportViewActions,
+        reportViewActionIDs,
+        combinedActions,
         persistedReportActionIDs,
         hasOlderActions,
         hasNewerActions,
-        sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReportID,
         transactionThreadReport,
@@ -81,26 +89,35 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
 
     const {loadOlderChats, loadNewerChats, currentReportOldestActionID} = useLoadReportActions({
         reportID,
-        reportActions,
-        allReportActionIDs,
+        reportActions: combinedActions,
+        parentReportActionIDs: reportViewActionIDs,
         transactionThreadReportID,
         hasOlderActions,
         hasNewerActions,
         newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
     });
 
-    const {sortedReportActions, sortedVisibleReportActions, isConciergeHiddenHistory, showConciergeSidePanelWelcome, showFullHistory, hasPreviousMessages, handleShowPreviousMessages} =
-        useReportActionsVisibility({
-            reportID,
-            reportActions,
-            allReportActions,
-            canPerformWriteAction,
-            hasOlderActions,
-            loadOlderChats,
-            setConciergeShowFullHistory,
-        });
+    const {
+        listActions,
+        visibleActions,
+        visibleActionsWithHiddenSurveys,
+        isConciergeHiddenHistory,
+        showConciergeSidePanelWelcome,
+        showFullHistory,
+        hasPreviousMessages,
+        handleShowPreviousMessages,
+    } = useReportActionsVisibility({
+        reportID,
+        cachedActions,
+        reportViewActions,
+        combinedActions,
+        canPerformWriteAction,
+        hasOlderActions,
+        loadOlderChats,
+        setConciergeShowFullHistory,
+    });
 
-    const isMissingReportActions = sortedVisibleReportActions.length === 0;
+    const isMissingReportActions = visibleActions.length === 0;
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
 
     // Readiness signals for the skeleton decision (some also read by the guard's effect hooks). Off the
@@ -120,7 +137,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         hasOnceLoadedReportActions,
         isLoadingInitialReportActions,
         isLoadingApp: isAppLoadPending,
-        reportActionsLength: reportActions.length,
+        combinedActionsLength: combinedActions.length,
         oldestReportActionID: currentReportOldestActionID,
         hasOlderActions,
         hasNewerActions,
@@ -140,14 +157,15 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         report,
         hasOnceLoadedReportActions,
         hasNewerActions,
-        sortedAllReportActions,
+        cachedActions,
         oldestUnreadReportAction,
         transactionThreadReport,
         parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         parentReportAction,
-        sortedReportActions,
-        sortedVisibleReportActions,
+        listActions,
+        visibleActions,
+        visibleActionsWithHiddenSurveys,
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,

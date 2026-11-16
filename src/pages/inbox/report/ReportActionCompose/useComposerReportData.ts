@@ -14,7 +14,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 type ComposerReportData = {
     report: OnyxEntry<Report>;
-    filteredReportActions: ReportAction[];
+
+    /** The report's own actions in the loaded window, without deleted expenses and hidden report previews. */
+    reportViewActions: ReportAction[];
     effectiveTransactionThreadReportID: string | undefined;
 };
 
@@ -22,17 +24,18 @@ function useComposerReportData(reportID: string): ComposerReportData {
     const {isOffline} = useNetwork();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
-    const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const {windowActions} = usePaginatedReportActions(report?.reportID);
     const allReportTransactions = useReportTransactionsCollection(reportID);
-    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
+    // After the last hook, so React Compiler keeps this and everything derived from it between renders.
+    const reportViewActions = getFilteredReportActionsForReportView(windowActions);
+    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportViewActions, isOffline, true);
     const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
-    const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
+    const isSentMoneyReport = reportViewActions.some((action) => isSentMoneyReportAction(action));
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportViewActions, isOffline, reportTransactionIDs);
     const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
 
-    return {report, filteredReportActions, effectiveTransactionThreadReportID};
+    return {report, reportViewActions, effectiveTransactionThreadReportID};
 }
 
 export default useComposerReportData;

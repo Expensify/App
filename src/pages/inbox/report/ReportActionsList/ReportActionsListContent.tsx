@@ -18,7 +18,6 @@ import useUnreadMarker from '@hooks/useUnreadMarker';
 import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {shouldHidePayAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -44,7 +43,6 @@ import React, {useState} from 'react';
 
 import type {ReportActionsListProps} from './types';
 
-import filterHiddenSupportTicketSurveys from './filterHiddenSupportTicketSurveys';
 import ReportActionsListFloatingMessageCounter from './ReportActionsListFloatingMessageCounter';
 import useReportActionsListData from './useReportActionsListData';
 import useReportActionsListRenderItem from './useReportActionsListRenderItem';
@@ -67,19 +65,13 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         hasNewerActions,
         oldestUnreadReportAction,
         transactionThreadReport,
-        sortedAllReportActions,
-        sortedReportActions: unfilteredReportActions,
-        sortedVisibleReportActions: unfilteredVisibleReportActions,
+        listActions,
+        visibleActions,
+        visibleActionsWithHiddenSurveys,
         isConciergeHiddenHistory,
         shouldShowConciergeWelcome,
         isConciergeHistoryExpanded,
     } = useReportActionsListState();
-
-    // Remove rows hidden by the renderer before calculating summary counts, headers, and scroll positions.
-    const paymentFilteredReportActions = report?.isWaitingOnBankAccount ? unfilteredReportActions.filter((action) => !shouldHidePayAction(action, true)) : unfilteredReportActions;
-    const paymentFilteredVisibleReportActions = report?.isWaitingOnBankAccount
-        ? unfilteredVisibleReportActions.filter((action) => !shouldHidePayAction(action, true))
-        : unfilteredVisibleReportActions;
 
     const {handleShowPreviousMessages: onShowPreviousMessages} = useReportActionsListActions();
 
@@ -97,19 +89,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     useRetireMerchantRuleSuggestionOnLeave(reportID);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
-    // Hidden surveys must not become unread targets that have no rendered row.
-    const sortedReportActions = filterHiddenSupportTicketSurveys({
-        reportActions: paymentFilteredReportActions,
-        sortedAllReportActions,
-        report,
-        reportNameValuePairs,
-    });
-    const sortedVisibleReportActions = filterHiddenSupportTicketSurveys({
-        reportActions: paymentFilteredVisibleReportActions,
-        sortedAllReportActions,
-        report,
-        reportNameValuePairs,
-    });
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
 
     const reportAttributesSelector = (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
@@ -132,8 +111,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID,
-        sortedVisibleReportActions,
-        sortedReportActions,
+        visibleActions,
+        listActions,
         oldestUnreadReportActionID: oldestUnreadReportAction?.reportActionID,
         isScrolledOverThreshold: hasScrolledOverThreshold,
         hasOnceLoadedReportActions: !!hasOnceLoadedReportActions,
@@ -144,13 +123,13 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         reportID,
         report,
         transactionThreadReport,
-        sortedVisibleReportActions,
+        visibleActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
         hasNewerActions,
     });
 
     const reportActionsListData = useReportActionsListData({
-        sortedVisibleReportActions,
+        visibleActions,
         sessionStartTime,
         linkedReportActionID,
         unreadMarkerReportActionID,
@@ -160,9 +139,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {listID, listProps, shouldBeAlignedToTop, isFloatingMessageCounterVisible, isActionBadgeAboveViewport, scrollToBottomAndMarkReportAsRead, scrollToActionBadgeTarget} =
         useReportActionsListScroll({
             reportID,
-            // Hidden surveys still prove that the selected page contains the newest action.
-            sortedVisibleReportActions: paymentFilteredVisibleReportActions,
-            renderedVisibleReportActions: listData,
+            visibleActionsWithHiddenSurveys,
+            listData,
             reportActionIDToDisplayIndex,
             hasScrolledOverThreshold,
             markNewestActionAsRead,
@@ -183,7 +161,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         reportNameValuePairs,
         isReportArchived,
         isOffline,
-        sortedReportActions,
+        listActions,
         unreadMarkerReportActionID,
         linkedReportActionID,
         onShowPreviousMessages,
@@ -209,7 +187,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         </>
     );
 
-    const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowOfflineSkeleton = isOffline && !visibleActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     const listFooterComponent =
         isMobilePhoneWeb || shouldShowOfflineSkeleton ? (
