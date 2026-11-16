@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -48,7 +47,6 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
-    const reportTransactionsCollection = useReportTransactionsCollection(reportID);
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -58,7 +56,8 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             return;
         }
 
-        const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
+        const [rules, reportTransactionsAndViolations] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]);
+        const reportTransactionsCollection = reportTransactionsAndViolations?.[reportID]?.transactions ?? {};
         const urlToNavigateBack = rejectMoneyRequest({
             transactionID,
             reportID,

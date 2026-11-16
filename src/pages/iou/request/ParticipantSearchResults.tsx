@@ -504,7 +504,6 @@ function ParticipantSearchResults({
         }
 
         const optionPolicy = optionPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${optionPolicyID}`] : undefined;
-        // Only workspace chats go through the billing gate, so picking a person does not wait for the billing read
         if (option.isPolicyExpenseChat && optionPolicyID && optionPolicy) {
             const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
                 ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,

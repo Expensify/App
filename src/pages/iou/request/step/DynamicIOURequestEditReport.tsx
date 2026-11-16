@@ -223,7 +223,6 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
 
     const createReport = async () => {
         const restrictionPolicy = policyForMovingExpenses;
-        // Without a workspace there is no billing gate, so creating the report does not wait for the billing read
         if (restrictionPolicy) {
             const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
                 ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,

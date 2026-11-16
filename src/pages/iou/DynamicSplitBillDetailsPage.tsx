@@ -16,7 +16,6 @@ import usePermissions from '@hooks/usePermissions';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactions from '@hooks/useReportTransactions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -135,10 +134,16 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const delegateAccountID = useDelegateAccountID();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const chatReportTransactions = useReportTransactions(reportID);
     const onConfirm = async () => {
         setIsConfirmed(true);
-        const [quickAction, introSelected] = await Onyx.multiGet([ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, ONYXKEYS.NVP_INTRO_SELECTED]);
+        const [quickAction, introSelected, reportTransactionsAndViolations] = await Onyx.multiGet([
+            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
+        ]);
+        const chatReportTransactions = Object.values((reportID ? reportTransactionsAndViolations?.[reportID]?.transactions : undefined) ?? {}).filter(
+            (chatReportTransaction) => !!chatReportTransaction,
+        );
         completeSplitBill({
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
