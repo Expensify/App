@@ -507,6 +507,33 @@ describe('insightsQueries', () => {
             expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-10-08`);
         });
 
+        it('keeps the start of a custom date range that runs past today', () => {
+            // Given it's October 8 and the page covers October 1–31, which is written to the same date range field the stop at today replaces
+            const filters: InsightsFilters = {...FILTERS, date: {from: '2026-10-01', to: '2026-10-31'}};
+
+            // When the headline chart's query is built to stop at today
+            const chartQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters, undefined, '2026-10-08');
+
+            // Then it still leaves out expenses dated before October 1, and only takes expenses dated up to and including today
+            expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>=2026-10-01`);
+            expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-10-08`);
+        });
+
+        it('keeps the end of a custom date range that starts before the chart tracks data', () => {
+            // Given a chart whose snapshot has data from June 1, and the page covers May 1 – June 30, which ended before today
+            const chart = getComplianceChart(CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS);
+            expect(chart.dateFilterKey).toBeUndefined();
+            const filters: InsightsFilters = {...FILTERS, date: {from: '2026-05-01', to: '2026-06-30'}};
+
+            // When its query is built to stop at today
+            const chartQuery = applyInsightsFilters(chart, filters, undefined, '2026-10-08', '2026-06-01');
+
+            // Then it starts at June 1, when tracking began, and still leaves out expenses dated after June 30
+            expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>=2026-06-01`);
+            expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-06-30`);
+            expect(chartQuery).not.toContain('2026-05-01');
+        });
+
         it('adds nothing when the date range already ends by today', () => {
             // Given the page covers last month, which ended before today
             const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}};
