@@ -5080,6 +5080,16 @@ function createWorkspaceFromIOUPayment({
                         },
                     ],
                     created: DateUtils.getDBTime(),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
+            value: {
+                [reportPreviewAction.reportActionID]: {
+                    pendingAction: null,
                 },
             },
         });
