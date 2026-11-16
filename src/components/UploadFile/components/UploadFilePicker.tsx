@@ -85,9 +85,10 @@ function UploadFilePicker({
 
         const newFilesToUpload = files.filter((file) => !uploadedFileNames.has(getComparableFileName(file.name)));
 
+        // The error is set before the files go on, so a check of the receiver can replace it
+        setError(newFilesToUpload.length < files.length ? translate('attachmentPicker.fileAlreadyAdded') : '');
         onInputChange(newFilesToUpload);
         upload(newFilesToUpload);
-        setError(newFilesToUpload.length < files.length ? translate('attachmentPicker.fileAlreadyAdded') : '');
     };
 
     return (

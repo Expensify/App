@@ -83,16 +83,30 @@ describe('LabelledFileUploadAdapter', () => {
         expect(screen.getByText('attachmentPicker.fileAlreadyAdded')).toBeOnTheScreen();
     });
 
-    it('counts only the files of the picked button against the file limit', () => {
-        // Given a field that takes one file per button, with the loan agreement uploaded
+    it('counts the files of every button against the file limit', () => {
+        // Given a field that takes two files, with the loan agreement uploaded
         const onInputChange = jest.fn();
-        renderAdapter([{id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [loanFile]}], onInputChange, 1);
+        renderAdapter([{id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [loanFile]}], onInputChange, 2);
 
-        // When the user picks a file under the bank statement button
+        // When the user picks two files under the bank statement button, which holds none yet
+        mockPickedFiles = [statementFile, {name: 'statement-2.pdf', uri: 'file://statement-2.pdf'}];
+        fireEvent.press(screen.getByText('Upload bank statement'));
+
+        // Then nothing is added and the limit is shown, since the limit is on the source's documents as a whole, not on each button
+        expect(onInputChange).not.toHaveBeenCalled();
+        expect(screen.getByText('attachmentPicker.tooManyFiles')).toBeOnTheScreen();
+    });
+
+    it('takes files under a second button while the field stays within the file limit', () => {
+        // Given a field that takes two files, with the loan agreement uploaded
+        const onInputChange = jest.fn();
+        renderAdapter([{id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [loanFile]}], onInputChange, 2);
+
+        // When the user picks one file under the bank statement button
         mockPickedFiles = [statementFile];
         fireEvent.press(screen.getByText('Upload bank statement'));
 
-        // Then the file is added, since the loan agreement does not count against the bank statement button
+        // Then the file is added, since the field holds two files in all
         expect(onInputChange).toHaveBeenCalledWith([
             {id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [loanFile]},
             {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [statementFile]},
