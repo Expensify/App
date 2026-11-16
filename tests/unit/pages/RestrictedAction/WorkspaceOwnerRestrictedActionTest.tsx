@@ -122,14 +122,15 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         mockGetActiveRoute.mockReturnValue('r/123');
     });
 
-    it('dismisses modal before navigating to add payment card on web', () => {
-        // Given the web restricted action screen opened over report 123
+    it.each(['r/123', 'search?q=type:expense'])('opens add payment card over subscription after dismissing the web modal from %s', (activeRoute) => {
+        // Given the restricted screen can open over different pages, neither should determine the card form's background
+        mockGetActiveRoute.mockReturnValue(activeRoute);
         render(<WorkspaceOwnerRestrictedActionWeb />);
 
         // When the owner taps "Add payment card"
         fireEvent.press(screen.getByText('workspace.restrictedAction.addPaymentCard'));
 
-        // Then the modal closes first, and the card form opens over the report so closing it returns there
+        // Then dismissal finishes before the card form opens over Subscription, regardless of the underlying page
         expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).not.toHaveBeenCalled();
 
@@ -139,7 +140,7 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         afterTransition?.();
 
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenCalledWith('r/123/add-payment-card');
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/subscription/add-payment-card');
     });
 
     it('navigates to subscription without closing the RHP so swiping back returns to the restricted screen', () => {
