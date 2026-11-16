@@ -195,6 +195,7 @@ const SENTRY_LABEL = {
         WORKSPACES: 'NavigationTabBar-Workspaces',
         ACCOUNT: 'NavigationTabBar-Account',
         HOME: 'NavigationTabBar-Home',
+        COLLAPSE: 'NavigationTabBar-Collapse',
         FLOATING_ACTION_BUTTON: 'NavigationTabBar-FloatingActionButton',
         FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
         FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
@@ -431,6 +432,7 @@ const SENTRY_LABEL = {
         BACK_BUTTON: 'HeaderView-BackButton',
         CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
         DETAILS_BUTTON: 'HeaderView-DetailsButton',
+        EXPAND_BUTTON: 'HeaderView-ExpandButton',
         JOIN_BUTTON: 'HeaderView-JoinButton',
         NEW_CONCIERGE_CHAT_BUTTON: 'HeaderView-NewConciergeChatButton',
         CHRONOS_TIMER_MENU_START_TIMER: 'HeaderView-ChronosTimerMenuStartTimer',
@@ -1112,6 +1114,7 @@ const SENTRY_LABEL = {
         LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeaderSelectAll',
         SPEND_RULE_LIST_ITEM_CHECKBOX: 'SpendRuleListItem-Checkbox',
         CONFIRM_BUTTON: 'SelectionList-ConfirmButton',
+        SEARCH_INPUT: 'SelectionList-SearchInput',
     },
     CONTEXT_MENU: {
         REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
@@ -1273,6 +1276,7 @@ const SENTRY_LABEL = {
     TRIP_ROOM_PREVIEW: {
         CARD: 'TripRoomPreview-Card',
         RESERVATION: 'TripRoomPreview-Reservation',
+        BOOKING: 'TripRoomPreview-Booking',
         VIEW_BUTTON: 'TripRoomPreview-ViewButton',
     },
     TRIP_DETAILS: {
@@ -2957,6 +2961,7 @@ const SENTRY_LABEL = {
         COPY: 'TwoFactorAuth-Copy',
         COPY_CODES: 'TwoFactorAuth-CopyCodes',
         SECRET_COPY: 'TwoFactorAuth-SecretCopy',
+        RECOVERY_CODE_INPUT: 'TwoFactorAuth-RecoveryCodeInput',
         REQUIRED_OVERLAY_SIGN_OUT_BUTTON: 'TwoFactorAuth-RequiredOverlaySignOutButton',
         REQUIRED_OVERLAY_LEAVE_ACCOUNT_BUTTON: 'TwoFactorAuth-RequiredOverlayLeaveAccountButton',
         REQUIRED_OVERLAY_ENABLE_BUTTON: 'TwoFactorAuth-RequiredOverlayEnableButton',
@@ -3072,6 +3077,8 @@ const SENTRY_LABEL = {
     },
     BANK_ACCOUNT: {
         DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
+        ROUTING_NUMBER_INPUT: 'BankAccount-RoutingNumberInput',
+        ACCOUNT_NUMBER_INPUT: 'BankAccount-AccountNumberInput',
     },
     EARLY_DISCOUNT_BANNER: {
         DISMISS_BUTTON: 'EarlyDiscountBanner-DismissButton',
@@ -3098,6 +3105,7 @@ const SENTRY_LABEL = {
         VALIDATE: 'SignIn-Validate',
         SEND: 'SignIn-Send',
         CONFIRM: 'SignIn-Confirm',
+        RECOVERY_CODE_INPUT: 'SignIn-RecoveryCodeInput',
         FOOTER_LINK: {
             EXPENSE_MANAGEMENT: 'SignIn-FooterLink-ExpenseManagement',
             SPEND_MANAGEMENT: 'SignIn-FooterLink-SpendManagement',
@@ -3134,6 +3142,7 @@ const SENTRY_LABEL = {
     },
     ADD_AGENT_PAGE: {
         AVATAR: 'AddAgentPage-Avatar',
+        INSTRUCTIONS: 'AddAgentPage-Instructions',
     },
     EDIT_AGENT_PAGE: {
         CHAT: 'EditAgentPage-Chat',
@@ -3145,6 +3154,9 @@ const SENTRY_LABEL = {
         VIEW_HISTORY: 'EditAgentPage-ViewHistory',
         AVATAR: 'EditAgentPage-Avatar',
         BOT_AVATAR_SELECTOR: 'EditAgentPage-BotAvatarSelector',
+    },
+    EDIT_AGENT_PROMPT_PAGE: {
+        INSTRUCTIONS: 'EditAgentPromptPage-Instructions',
     },
     SETTINGS_PROFILE: {
         AVATAR: 'SettingsProfile-Avatar',
@@ -3161,6 +3173,7 @@ const SENTRY_LABEL = {
         PHONE_NUMBER: 'SettingsProfile-PhoneNumber',
         ADDRESS: 'SettingsProfile-Address',
         TIMEZONE_AUTOMATIC_SWITCH: 'SettingsProfile-TimezoneAutomaticSwitch',
+        AI_PROMPT: 'SettingsProfile-AIPrompt',
         AI_PROMPT_SAVE: 'SettingsProfile-AIPromptSave',
         AVATAR_EDIT: 'SettingsProfile-AvatarEdit',
         AVATAR_UPLOAD_PHOTO: 'SettingsProfile-AvatarUploadPhoto',

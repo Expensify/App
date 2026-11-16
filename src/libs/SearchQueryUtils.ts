@@ -220,7 +220,7 @@ function isFooterTotal(value: string): value is SearchFooterTotal {
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
 
 /** Group-bys only Insights queries use. The Search command doesn't return data for them yet (see https://github.com/Expensify/App/issues/105303) */
-const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.VIOLATION, CONST.SEARCH.GROUP_BY.PAID_BY]);
+const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.VIOLATION, CONST.SEARCH.GROUP_BY.PAID_BY, CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]);
 
 function isGroupBySupportedBySearch(groupBy: string | undefined): boolean {
     return !groupBy || !INSIGHTS_ONLY_GROUP_BYS.has(groupBy);
