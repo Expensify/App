@@ -211,7 +211,7 @@ describe('SAMLSignInPage', () => {
 
         // Then it signs in once with the token it kept
         expect(signInWithShortLivedAuthToken).toHaveBeenCalledTimes(1);
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
 
         currentStateSpy.mockRestore();
         addEventListenerSpy.mockRestore();
