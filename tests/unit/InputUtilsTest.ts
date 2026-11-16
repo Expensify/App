@@ -8,7 +8,6 @@ import type {TextInput} from 'react-native';
 
 import createMock from '../utils/createMock';
 
-/** The instance a `TextInput` ref receives. `TextInput` itself is a function component under the React Native Strict TypeScript API. */
 type TextInputInstance = ComponentRef<typeof TextInput>;
 
 const {moveSelectionToEnd, scrollToBottom, scrollToRight} = jest.requireActual<typeof InputUtilsModule>('@libs/InputUtils/index.ts');
