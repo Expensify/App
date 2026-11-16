@@ -168,7 +168,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // because the old authToken stored in Onyx may be invalid.
         signInWithShortLivedAuthToken(shortLivedAuthToken, session?.authToken, false, undefined, undefined)
             .then((response) => {
-                if (response?.type !== CONST.ERROR_TYPE.SESSION_MISMATCH) {
+                if (response?.type !== CONST.ERROR_TYPE.ACCOUNT_MISMATCH) {
                     return;
                 }
                 showConfirmModal({
