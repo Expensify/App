@@ -17,6 +17,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -84,6 +85,7 @@ function WorkspacesListPage() {
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Box', 'Copy', 'Exit', 'Export', 'Plus', 'Star', 'Transfer', 'Trashcan']);
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate, formatPhoneNumber} = useLocalize();
     useDocumentTitle(translate('common.workspaces'));
     const {isOffline} = useNetwork();
@@ -514,29 +516,29 @@ function WorkspacesListPage() {
     );
 
     // The wide layout offers the bulk actions in the floating bar over the table instead.
-    const headerButton =
+    const headerComponent =
         shouldUseNarrowLayout && isMobileSelectionModeEnabled ? (
-            <ButtonWithDropdownMenu<WorkspacesBulkActionType>
-                ref={bulkActionsDropdownRef}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('workspace.common.selected', {count: selectedPolicyIDs.length})}
-                size={CONST.BUTTON_SIZE.MEDIUM}
-                onPress={() => null}
-                options={bulkActionOptions}
-                isSplitButton={false}
-                isDisabled={!selectedPolicyIDs.length}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_DROPDOWN}
-            />
+            <View style={styles.pb3}>
+                <ButtonWithDropdownMenu<WorkspacesBulkActionType>
+                    ref={bulkActionsDropdownRef}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('workspace.common.selected', {count: selectedPolicyIDs.length})}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    onPress={() => null}
+                    options={bulkActionOptions}
+                    isSplitButton={false}
+                    isDisabled={!selectedPolicyIDs.length}
+                    style={[styles.w100, pageGutter]}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_DROPDOWN}
+                />
+            </View>
         ) : (
-            newWorkspaceButton
+            <WorkspaceListHeaderContent
+                activeTabKey="workspaces"
+                headerButton={newWorkspaceButton}
+            />
         );
-    const headerComponent = (
-        <WorkspaceListHeaderContent
-            activeTabKey="workspaces"
-            headerButton={headerButton}
-        />
-    );
 
     const exitSelectionMode = () => {
         clearSelection();
@@ -551,7 +553,7 @@ function WorkspacesListPage() {
     return (
         <WorkspaceListLayout
             activeTabKey="workspaces"
-            headerButton={headerButton}
+            headerButton={newWorkspaceButton}
             headerComponent={headerComponent}
             scrollHeaderWithTable
             isSelectionModeEnabled={isMobileSelectionModeEnabled}
