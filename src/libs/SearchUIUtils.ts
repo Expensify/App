@@ -3370,6 +3370,22 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFil
     return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
 }
 
+/**
+ * The transactions search a group opens, built from the same filter the group's export uses. Sections and the active group hashes both build it here,
+ * so a group's cached snapshot matches the search that opens it and its export selects the same expenses.
+ * Insights-only groupings like paid-by get no query, because Search can't group by them yet (see https://github.com/Expensify/App/issues/105303).
+ */
+function getGroupTransactionsQueryJSON(queryJSON: SearchQueryJSON | undefined, groupBy: SearchGroupBy, group: SearchGroup): SearchQueryJSON | undefined {
+    if (!queryJSON) {
+        return undefined;
+    }
+    const entry = getSelectedGroupFilterEntry(groupBy, group);
+    if (!entry) {
+        return undefined;
+    }
+    return entry.kind === 'dateRange' ? getDateGroupTransactionsQueryJSON(queryJSON, entry.dateRange) : buildSpecificGroupQuery(queryJSON, entry.key, entry.value);
+}
+
 function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined): number[] {
     if (!data || !queryJSON?.groupBy) {
         return [];
@@ -3386,69 +3402,7 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
             continue;
         }
 
-        let transactionsQueryJSON: SearchQueryJSON | undefined;
-
-        switch (queryJSON.groupBy) {
-            case CONST.SEARCH.GROUP_BY.FROM: {
-                const memberGroup = group as SearchMemberGroup;
-                if (memberGroup.accountID) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, memberGroup.accountID);
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.CARD: {
-                const cardGroup = group as SearchCardGroup;
-                if (cardGroup.cardID) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, cardGroup.cardID);
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID: {
-                const withdrawalIDGroup = group as SearchWithdrawalIDGroup;
-                if (withdrawalIDGroup.entryID) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, withdrawalIDGroup.entryID);
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.CATEGORY: {
-                const categoryGroup = group as SearchCategoryGroup;
-                if (categoryGroup.category !== undefined) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, getCategoryGroupFilterValue(categoryGroup.category));
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.MERCHANT: {
-                const merchantGroup = group as SearchMerchantGroup;
-                if (merchantGroup.merchant !== undefined) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, getMerchantGroupFilterValue(merchantGroup.merchant));
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.TAG: {
-                const tagGroup = group as SearchTagGroup;
-                if (tagGroup.tag !== undefined) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, getTagGroupFilterValue(tagGroup.tag));
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.DAY:
-            case CONST.SEARCH.GROUP_BY.MONTH:
-            case CONST.SEARCH.GROUP_BY.WEEK:
-            case CONST.SEARCH.GROUP_BY.YEAR:
-            case CONST.SEARCH.GROUP_BY.QUARTER: {
-                transactionsQueryJSON = getDateGroupTransactionsQueryJSON(queryJSON, getGroupDateRange(queryJSON.groupBy, group));
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.APPROVER: {
-                if ('accountID' in group) {
-                    transactionsQueryJSON = buildApproverGroupQuery(queryJSON, group.accountID);
-                }
-                break;
-            }
-            default:
-                break;
-        }
-
+        const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, queryJSON.groupBy, group);
         if (transactionsQueryJSON?.hash !== undefined && transactionsQueryJSON.hash >= 0) {
             searchHashes.add(transactionsQueryJSON.hash);
         }
@@ -3481,10 +3435,6 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
     return {transactionsQueryJSON, start, end};
 }
 
-function buildApproverGroupQuery(queryJSON: SearchQueryJSON, accountID: number): SearchQueryJSON | undefined {
-    return buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, accountID);
-}
-
 /**
  * @private
  * Organizes data into List Sections grouped by a person for display, for the TransactionGroupListItemType of Search Results:
@@ -3501,19 +3451,14 @@ function getMemberSections(
     groupBy: typeof CONST.SEARCH.GROUP_BY.FROM | typeof CONST.SEARCH.GROUP_BY.APPROVER | typeof CONST.SEARCH.GROUP_BY.PAID_BY = CONST.SEARCH.GROUP_BY.FROM,
 ): [Array<TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionPaidByGroupListItemType>, number, boolean] {
     const memberSections: Record<string, TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionPaidByGroupListItemType> = {};
-    const MEMBER_FILTER_KEYS = {
-        [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-        [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
-        [CONST.SEARCH.GROUP_BY.PAID_BY]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
-    } as const;
-    const filterKey = MEMBER_FILTER_KEYS[groupBy];
 
     for (const key in data) {
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
 
             const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? onyxPersonalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
-            const transactionsQueryJSON = queryJSON && memberGroup.accountID ? buildSpecificGroupQuery(queryJSON, filterKey, memberGroup.accountID) : undefined;
+            // Paid-by groups only appear in Insights tables, which don't open groups, so they get no query
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, groupBy, memberGroup);
             const formattedName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
             const section = {
                 transactions: [],
@@ -3588,11 +3533,10 @@ function getCardSections(
         if (isGroupEntry(key)) {
             const cardGroup = data[key] as SearchCardGroup;
             const personalDetails = data.personalDetailsList?.[cardGroup.accountID] ?? emptyPersonalDetails;
-            const transactionsQueryJSON = queryJSON && cardGroup.cardID ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, cardGroup.cardID) : undefined;
-
             if (!cardGroup.cardID) {
                 continue;
             }
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.CARD, cardGroup);
 
             let formattedCardName = customCardNames?.[cardGroup.cardID];
             if (formattedCardName === undefined) {
@@ -3667,12 +3611,10 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
     for (const key in data) {
         if (isGroupEntry(key)) {
             const withdrawalIDGroup = data[key] as SearchWithdrawalIDGroup;
-            const transactionsQueryJSON =
-                queryJSON && withdrawalIDGroup.entryID ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, withdrawalIDGroup.entryID) : undefined;
-
             if (!withdrawalIDGroup.accountNumber) {
                 continue;
             }
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID, withdrawalIDGroup);
 
             withdrawalIDSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
@@ -3704,10 +3646,7 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
         if (isGroupEntry(key)) {
             const categoryGroup = data[key] as SearchCategoryGroup;
 
-            const transactionsQueryJSON =
-                queryJSON && categoryGroup.category !== undefined
-                    ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, getCategoryGroupFilterValue(categoryGroup.category))
-                    : undefined;
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.CATEGORY, categoryGroup);
 
             // Format the category name - decode HTML entities for display, keep empty/none values as-is
             const rawCategory = categoryGroup.category;
@@ -3745,10 +3684,7 @@ function getMerchantSections(
         if (isGroupEntry(key)) {
             const merchantGroup = data[key] as SearchMerchantGroup;
 
-            const transactionsQueryJSON =
-                queryJSON && merchantGroup.merchant !== undefined
-                    ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, getMerchantGroupFilterValue(merchantGroup.merchant))
-                    : undefined;
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.MERCHANT, merchantGroup);
 
             // Format the merchant name - use translated "No merchant" for empty values so it sorts alphabetically
             // Handle all known empty merchant values:
@@ -3790,8 +3726,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
         if (isGroupEntry(key)) {
             const tagGroup = data[key] as SearchTagGroup;
 
-            const transactionsQueryJSON =
-                queryJSON && tagGroup.tag !== undefined ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, getTagGroupFilterValue(tagGroup.tag)) : undefined;
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.TAG, tagGroup);
 
             // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
             const rawTag = tagGroup.tag;
