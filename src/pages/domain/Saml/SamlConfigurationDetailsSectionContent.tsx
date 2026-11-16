@@ -58,6 +58,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
             <FormHelpMessageRowWithRetryButton
                 message={getLatestErrorMessage(samlMetadata)}
                 onRetry={() => getSamlSettings(accountID, domainName)}
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.SAML.RETRY_SETTINGS}
             />
         );
     }

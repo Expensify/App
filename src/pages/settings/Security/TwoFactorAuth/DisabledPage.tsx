@@ -39,6 +39,7 @@ function DisabledPage() {
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DISABLED_CONFIRM}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => quitAndNavigateBack(is2FAEnabled, ROUTES.SETTINGS_SECURITY.getRoute())}

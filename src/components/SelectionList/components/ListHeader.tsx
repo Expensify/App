@@ -70,6 +70,7 @@ function ListHeader<TItem extends ListItem>({
 
     const checkbox = (
         <Checkbox
+            sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.LIST_HEADER_SELECT_ALL}
             testID="selection-list-select-all-checkbox"
             accessibilityLabel={selectAllAccessibilityLabel ?? translate('accessibilityHints.selectAllItems')}
             isChecked={dataDetails.allSelected}

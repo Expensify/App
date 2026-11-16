@@ -106,6 +106,9 @@ type Attributes = {
     unit: Unit;
 
     taxEnabled?: boolean;
+
+    /** Workspace-wide dismissal, including future UK advisory fuel rates. */
+    isUKFuelRateTaxErrorDismissed?: boolean;
 };
 
 /** Policy custom unit */
@@ -4269,6 +4272,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** All the integration connections attached to the policy */
         connections?: Partial<Connections>;
 
+        /** Why a connect flow that left the app (e.g. an OAuth window) failed, keyed by the integration that failed to connect */
+        connectErrors?: Partial<Record<ConnectionName, string | null>>;
+
         /** Report fields attached to the policy */
         fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
 
@@ -4519,7 +4525,6 @@ export type {
     ApprovalRule,
     ExpenseRule,
     CodingRule,
-    CodingRuleFilter,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,

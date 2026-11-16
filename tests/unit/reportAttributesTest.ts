@@ -1,3 +1,4 @@
+import type NetworkState = require('@libs/NetworkState');
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
 import {getOldestPreviewActionID, hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
 
@@ -26,8 +27,13 @@ jest.mock('@libs/ReportUtils', () => ({
     })),
     generateIsEmptyReport: jest.fn(() => false),
     getPendingDeleteMemberAccountIDs: jest.fn(() => []),
+    hasViolations: jest.fn(() => false),
     hasVisibleReportFieldViolations: jest.fn(() => false),
     isArchivedReport: jest.fn(() => false),
+    isOpenReport: jest.fn(() => false),
+    isPolicyAdmin: jest.fn(() => false),
+    isPolicyExpenseChat: jest.fn(() => false),
+    isProcessingReport: jest.fn(() => false),
     isSupportTicket: jest.fn(() => false),
     isValidReport: jest.fn(() => true),
     parseReportRouteParams: jest.fn(() => ({reportID: ''})),
@@ -56,6 +62,14 @@ const basePolicy = createMock<Policy>({
     autoReimbursementLimit: 1000,
     autoReimbursement: {limit: 500},
 });
+const createReportPreviewAction = (reportActionID: string, linkedReportID: string, created: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> => ({
+    reportActionID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+    created,
+    originalMessage: {linkedReportID},
+    message: [{type: 'COMMENT', text: ''}],
+});
+
 describe('hasPolicyRelevantFieldChanged', () => {
     describe('null / undefined edge cases', () => {
         it('returns false when both are null', () => {
@@ -136,22 +150,24 @@ describe('hasPolicyRelevantFieldChanged', () => {
 });
 
 describe('getOldestPreviewActionID', () => {
-    const chatReportID = 'chat1';
-
-    const createReportPreviewAction = (reportActionID: string, linkedReportID: string, created: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> => ({
-        reportActionID,
-        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-        created,
-        originalMessage: {linkedReportID},
-        message: [{type: 'COMMENT', text: ''}],
-    });
-
     it('returns undefined when reportIDs is undefined', () => {
-        expect(getOldestPreviewActionID(chatReportID, undefined, {}, {})).toBeUndefined();
+        expect(getOldestPreviewActionID(undefined, {}, {})).toBeUndefined();
     });
 
     it('returns undefined when reportIDs is empty', () => {
-        expect(getOldestPreviewActionID(chatReportID, [], {}, {})).toBeUndefined();
+        expect(getOldestPreviewActionID([], {}, {})).toBeUndefined();
+    });
+
+    it('returns undefined when the chat has no report actions', () => {
+        // Given a child report whose chat has no report actions loaded
+        const childReport = createRandomReport(1);
+        const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`]: childReport};
+
+        // When the oldest preview action is looked up
+        const targetReportActionID = getOldestPreviewActionID([childReport.reportID], reports, undefined);
+
+        // Then nothing is found, since there is no preview action to point at
+        expect(targetReportActionID).toBeUndefined();
     });
 
     it('returns the reportActionID of the only child report with a matching preview action', () => {
@@ -160,7 +176,7 @@ describe('getOldestPreviewActionID', () => {
         const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`]: childReport};
         const chatReportActions: ReportActions = {[previewAction.reportActionID]: previewAction};
 
-        expect(getOldestPreviewActionID(chatReportID, [childReport.reportID], reports, chatReportActions)).toBe('action1');
+        expect(getOldestPreviewActionID([childReport.reportID], reports, chatReportActions)).toBe('action1');
     });
 
     it('returns the reportActionID of the oldest preview action among multiple matching child reports', () => {
@@ -177,7 +193,7 @@ describe('getOldestPreviewActionID', () => {
             [newerPreviewAction.reportActionID]: newerPreviewAction,
         };
 
-        expect(getOldestPreviewActionID(chatReportID, [childReport2.reportID, childReport1.reportID], reports, chatReportActions)).toBe('olderAction');
+        expect(getOldestPreviewActionID([childReport2.reportID, childReport1.reportID], reports, chatReportActions)).toBe('olderAction');
     });
 
     it('skips child reports that have no matching preview action', () => {
@@ -190,14 +206,14 @@ describe('getOldestPreviewActionID', () => {
         };
         const chatReportActions: ReportActions = {[previewAction.reportActionID]: previewAction};
 
-        expect(getOldestPreviewActionID(chatReportID, [childReportWithoutPreview.reportID, childReportWithPreview.reportID], reports, chatReportActions)).toBe('action1');
+        expect(getOldestPreviewActionID([childReportWithoutPreview.reportID, childReportWithPreview.reportID], reports, chatReportActions)).toBe('action1');
     });
 
     it('returns undefined when no child report has a matching preview action', () => {
         const childReport = createRandomReport(1);
         const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`]: childReport};
 
-        expect(getOldestPreviewActionID(chatReportID, [childReport.reportID], reports, {})).toBeUndefined();
+        expect(getOldestPreviewActionID([childReport.reportID], reports, {})).toBeUndefined();
     });
 
     it('excludes child reports that fail the predicate', () => {
@@ -215,7 +231,7 @@ describe('getOldestPreviewActionID', () => {
         };
         const predicate = (report: Report | undefined) => report?.reportID === includedReport.reportID;
 
-        expect(getOldestPreviewActionID(chatReportID, [excludedReport.reportID, includedReport.reportID], reports, chatReportActions, predicate)).toBe('includedAction');
+        expect(getOldestPreviewActionID([excludedReport.reportID, includedReport.reportID], reports, chatReportActions, predicate)).toBe('includedAction');
     });
 
     it('ignores non-REPORT_PREVIEW actions even when linkedReportID matches', () => {
@@ -230,7 +246,7 @@ describe('getOldestPreviewActionID', () => {
         const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`]: childReport};
         const chatReportActions: ReportActions = {[nonPreviewAction.reportActionID]: nonPreviewAction};
 
-        expect(getOldestPreviewActionID(chatReportID, [childReport.reportID], reports, chatReportActions)).toBeUndefined();
+        expect(getOldestPreviewActionID([childReport.reportID], reports, chatReportActions)).toBeUndefined();
     });
 });
 
@@ -795,6 +811,93 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result?.reports.chat1?.reportName).toBe('Test Report');
     });
 
+    it("doesn't go over every report again when an unrelated chat changes while a settled report keeps its error", () => {
+        // Given a chat whose only child with an error is settled, so the chat's other children are looked up for a violation to fix
+        const {default: SidebarUtils} = jest.requireMock<{default: {getReasonAndReportActionThatHasRedBrickRoad: jest.Mock}}>('@libs/SidebarUtils');
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad.mockImplementation(({report}: {report: Report}) => (report.reportID === 'settled1' ? {reason: 'hasErrors'} : undefined));
+        const settledReport = createMock<Report>({reportID: 'settled1', chatReportID: 'chat1', parentReportID: 'chat1', parentReportActionID: 'preview1', participants: {}});
+        const chatReport = createMock<Report>({reportID: 'chat1', chatReportID: undefined, participants: {}});
+        const otherChat = createMock<Report>({reportID: 'dm1', chatReportID: undefined, participants: {}});
+        const reportsWithSettledError: OnyxCollection<Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}settled1`]: settledReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: chatReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}dm1`]: otherChat,
+        };
+        const reportActions: OnyxCollection<ReportActions> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}chat1`]: {preview1: createReportPreviewAction('preview1', 'settled1', '2024-01-01 12:00:00')},
+        };
+        const firstArgs = buildArgs(undefined, reportsWithSettledError);
+        firstArgs[4] = reportActions;
+        const firstResult = config.compute(firstArgs, {currentValue: undefined, sourceValues: undefined});
+        expect(firstResult?.reports.chat1?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.FIX);
+
+        // When only the unrelated chat changes, with every full read of the reports counted
+        let fullReadCount = 0;
+        const updatedOtherChat = {...otherChat, lastMessageText: 'hi'};
+        const reportsAfterUpdate = new Proxy(
+            {...reportsWithSettledError, [`${ONYXKEYS.COLLECTION.REPORT}dm1`]: updatedOtherChat},
+            {
+                ownKeys: (target) => {
+                    fullReadCount++;
+                    return Reflect.ownKeys(target);
+                },
+            },
+        );
+        const secondArgs = buildArgs(undefined, reportsAfterUpdate);
+        secondArgs[4] = reportActions;
+        const secondResult = config.compute(secondArgs, {
+            currentValue: firstResult,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}dm1`]: updatedOtherChat}},
+        });
+
+        // Then the chat keeps its Fix badge without going over every report, since the list of its child reports is kept from the first run
+        expect(secondResult?.reports.chat1?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.FIX);
+        expect(fullReadCount).toBe(0);
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad.mockImplementation(() => undefined);
+    });
+
+    it('points the chat Fix badge at a report with a violation that moved into the chat after the first run', () => {
+        // Given a chat whose only child with an error is settled, and an open report with a violation that sits in another chat
+        const {default: SidebarUtils} = jest.requireMock<{default: {getReasonAndReportActionThatHasRedBrickRoad: jest.Mock}}>('@libs/SidebarUtils');
+        const {hasViolations, isOpenReport} = jest.requireMock<{hasViolations: jest.Mock; isOpenReport: jest.Mock}>('@libs/ReportUtils');
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad.mockImplementation(({report}: {report: Report}) => (report.reportID === 'settled1' ? {reason: 'hasErrors'} : undefined));
+        isOpenReport.mockImplementation((report: Report) => report?.reportID === 'open1');
+        hasViolations.mockImplementation((reportID: string) => reportID === 'open1');
+        const settledReport = createMock<Report>({reportID: 'settled1', chatReportID: 'chat1', parentReportID: 'chat1', parentReportActionID: 'preview1', participants: {}});
+        const openReport = createMock<Report>({reportID: 'open1', chatReportID: 'chat2', parentReportID: 'chat2', parentReportActionID: 'preview2', participants: {}});
+        const reportsBeforeMove: OnyxCollection<Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}settled1`]: settledReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}open1`]: openReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: createMock<Report>({reportID: 'chat1', chatReportID: undefined, participants: {}}),
+            [`${ONYXKEYS.COLLECTION.REPORT}chat2`]: createMock<Report>({reportID: 'chat2', chatReportID: undefined, participants: {}}),
+        };
+        const reportActions: OnyxCollection<ReportActions> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}chat1`]: {
+                preview1: createReportPreviewAction('preview1', 'settled1', '2024-01-01 12:00:00'),
+                preview3: createReportPreviewAction('preview3', 'open1', '2024-01-01 12:00:00'),
+            },
+        };
+        const firstArgs = buildArgs(undefined, reportsBeforeMove);
+        firstArgs[4] = reportActions;
+        const firstResult = config.compute(firstArgs, {currentValue: undefined, sourceValues: undefined});
+        expect(firstResult?.reports.chat1?.actionTargetReportActionID).toBe('preview1');
+
+        // When the open report moves into the first chat
+        const movedReport = {...openReport, chatReportID: 'chat1', parentReportID: 'chat1', parentReportActionID: 'preview3'};
+        const secondArgs = buildArgs(undefined, {...reportsBeforeMove, [`${ONYXKEYS.COLLECTION.REPORT}open1`]: movedReport});
+        secondArgs[4] = reportActions;
+        const secondResult = config.compute(secondArgs, {
+            currentValue: firstResult,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}open1`]: movedReport}},
+        });
+
+        // Then the Fix badge takes the user to the report they can fix, which only works if the kept list of the chat's reports picked up the move
+        expect(secondResult?.reports.chat1?.actionTargetReportActionID).toBe('preview3');
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad.mockImplementation(() => undefined);
+        isOpenReport.mockImplementation(() => false);
+        hasViolations.mockImplementation(() => false);
+    });
+
     describe('reportMetadata', () => {
         const singleReport: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1};
 
@@ -813,6 +916,31 @@ describe('reportAttributes compute — policy change code flow', () => {
             });
 
             expect(generateReportAttributes).toHaveBeenCalledWith(expect.objectContaining({reportMetadata}));
+        });
+    });
+
+    describe('isOffline', () => {
+        const singleReport: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1};
+
+        it.each([
+            ['online', true, false],
+            ['offline', false, true],
+        ])('forwards the current network state to generateReportAttributes when %s', (_, hasRadio, expectedIsOffline) => {
+            // Given the device network state. NetworkState is required here rather than imported because beforeEach resets the module
+            // registry, so only this instance is the one the freshly required reportAttributes config reads from.
+            jest.requireActual<typeof NetworkState>('@libs/NetworkState').setHasRadio(hasRadio);
+            const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
+            generateReportAttributes.mockClear();
+
+            // When the report attributes are recomputed
+            config.compute(buildArgs(policies, singleReport), {
+                currentValue: undefined,
+                sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
+                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            });
+
+            // Then generateReportAttributes receives isOffline explicitly, so it no longer falls back to the deprecated module-level network subscription
+            expect(generateReportAttributes).toHaveBeenCalledWith(expect.objectContaining({isOffline: expectedIsOffline}));
         });
     });
 

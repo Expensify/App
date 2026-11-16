@@ -372,6 +372,7 @@ function DynamicIOURequestStepUpgrade({
                     {!!isUpgraded && (
                         <UpgradeConfirmation
                             afterUpgradeAcknowledged={afterUpgradeAcknowledged}
+                            confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_CONFIRMATION_GOT_IT}
                             policyName={createdPolicyName}
                             isCategorizing={isCategorizing}
                             isReporting={isReporting}
@@ -382,6 +383,7 @@ function DynamicIOURequestStepUpgrade({
                         <UpgradeIntro
                             feature={feature}
                             onUpgrade={onUpgrade}
+                            upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_UPGRADE}
                             buttonDisabled={isOffline}
                             loading={false}
                             isCategorizing={isCategorizing}
