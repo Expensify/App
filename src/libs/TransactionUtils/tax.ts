@@ -7,22 +7,29 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {getCategoryOnlyExpenseDefaultTaxID, hasCategoryExpenseDefaultTaxRule} from '@libs/ExpenseDefaultRuleUtils';
+import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, isTaxCodeCustomized, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
-import type {ExpenseRule, Unit} from '@src/types/onyx/Policy';
+import type {Policy, Rule, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import getDistanceInMeters from './getDistanceInMeters';
 // This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
 // The functions imported here are pure helpers that aren't called at initialization time.
 // eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest} from './index';
+import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest, isPerDiemRequest, isTimeRequest} from './index';
+
+function getTaxCodeForDisplay(transaction: Transaction, policy: OnyxEntry<Policy>): string {
+    if (isPerDiemRequest(transaction) || isTimeRequest(transaction) || !isTaxCodeCustomized(transaction.taxCode, policy)) {
+        return '';
+    }
+    return getTaxCode(transaction);
+}
 
 /**
  * Calculates tax amount from the given expense amount and tax percentage
@@ -54,29 +61,35 @@ function hasSelectableRateTaxCode(policy: OnyxEntry<Policy>, customUnitRateID: s
 }
 
 /**
- * The tax rate a category rule asks for, or the given default when no rule applies. Disabling a tax rate leaves the rule
- * pointing at it, so a rule the user can no longer pick also falls back rather than saving a rate the expense cannot carry.
+ * The tax rate a category's expense default asks for, or undefined when the category has no rule.
+ *
+ * Disabling a tax rate leaves the rule pointing at it, so a rule the user can no longer pick falls back to the given
+ * default rather than putting a rate on the expense that it cannot carry.
  */
-function getSelectableCategoryTaxCode(policy: OnyxEntry<Policy>, taxRules: ExpenseRule[], category: string, defaultTaxCode: string | undefined): string | undefined {
-    const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, defaultTaxCode);
-    return categoryTaxCode && isSelectableTaxCode(policy, categoryTaxCode) ? categoryTaxCode : defaultTaxCode;
-}
-
-function getTaxExpenseRules(policy: OnyxEntry<Policy>): ExpenseRule[] {
-    return policy?.rules?.expenseRules?.filter((rule) => rule.tax) ?? [];
+function getSelectableCategoryTaxCode(policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>, category: string, defaultTaxCode: string | undefined): string | undefined {
+    const categoryTaxCode = getCategoryOnlyExpenseDefaultTaxID(rules, policy?.id, category);
+    if (!categoryTaxCode) {
+        return undefined;
+    }
+    return isSelectableTaxCode(policy, categoryTaxCode) ? categoryTaxCode : defaultTaxCode;
 }
 
 /**
  * The tax rate a category rule applies to a distance expense, or undefined when no rule can apply.
  */
-function getDistanceCategoryTaxCode(policy: OnyxEntry<Policy>, customUnitRateID: string, category: string, defaultTaxCode: string | undefined): string | undefined {
-    const taxRules = getTaxExpenseRules(policy);
+function getDistanceCategoryTaxCode(
+    policy: OnyxEntry<Policy>,
+    rules: OnyxCollection<Rule>,
+    customUnitRateID: string,
+    category: string,
+    defaultTaxCode: string | undefined,
+): string | undefined {
     // Tax tracking being off for distance rates hides the Tax field, so a value written there would be invisible, and a
     // rate carrying its own tax rate outranks the rule.
-    if (taxRules.length === 0 || !getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled || hasSelectableRateTaxCode(policy, customUnitRateID)) {
+    if (!getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled || hasSelectableRateTaxCode(policy, customUnitRateID)) {
         return undefined;
     }
-    return getSelectableCategoryTaxCode(policy, taxRules, category, defaultTaxCode);
+    return getSelectableCategoryTaxCode(policy, rules, category, defaultTaxCode);
 }
 
 /**
@@ -147,6 +160,7 @@ function getDistanceRateTaxUpdates(
     policy: OnyxEntry<Policy>,
     transaction: OnyxEntry<Transaction>,
     customUnitRateID: string,
+    rules: OnyxCollection<Rule>,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     distanceUnit?: Unit,
     category?: string,
@@ -154,7 +168,7 @@ function getDistanceRateTaxUpdates(
     const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
     // A rate's own tax rate wins over a category rule, because vehicle types coded to the same category can each
     // reclaim at a different rate.
-    const categoryTaxCode = getDistanceCategoryTaxCode(policy, customUnitRateID, category ?? transaction?.category ?? '', defaultTaxCode);
+    const categoryTaxCode = getDistanceCategoryTaxCode(policy, rules, customUnitRateID, category ?? transaction?.category ?? '', defaultTaxCode);
     const taxCode = categoryTaxCode ?? defaultTaxCode;
     const unit = distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit;
     // A commute the workspace excludes from reimbursement is not reclaimable either, so only the rest of the trip is taxed.
@@ -262,52 +276,64 @@ function getTaxRateTitle(
  * Resolves the tax code an expense defaults to once the policy's category tax rules are applied, or undefined when no
  * rule can apply.
  */
-function getCategoryTaxCode(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, currency?: string): string | undefined {
+function getCategoryTaxCode(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>, currency?: string): string | undefined {
     if (isDistanceRequest(transaction)) {
         const customUnitRateID = getRateID(transaction);
-        return getDistanceCategoryTaxCode(policy, customUnitRateID, category, getDefaultTaxCode(policy, transaction, undefined, customUnitRateID));
+        return getDistanceCategoryTaxCode(policy, rules, customUnitRateID, category, getDefaultTaxCode(policy, transaction, undefined, customUnitRateID));
     }
 
-    const taxRules = getTaxExpenseRules(policy);
-    if (taxRules.length === 0) {
-        return undefined;
-    }
-
-    return getSelectableCategoryTaxCode(policy, taxRules, category, getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)));
+    return getSelectableCategoryTaxCode(policy, rules, category, getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)));
 }
 
+/**
+ * The tax a category's rule puts on an expense, as the three fields a transaction stores it in.
+ *
+ * A split draft never gets a server response, so it sends whatever tax it already holds. The rate has to be
+ * resolved here rather than left to the confirmation page, which only writes to the money request draft.
+ */
 function getCategoryTaxDetails(
     category: string,
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
+    rules: OnyxCollection<Rule>,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     currency?: string,
 ) {
+    const unresolvedTaxDetails = {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
+
+    // Both branches fall back to the workspace default, which keeps a category with no rule from carrying the rate
+    // its predecessor set, the way the confirmation page does for every other expense. A policy with no tax rule at
+    // all is left alone, so an expense whose tax was never rule driven keeps whatever it holds.
+    //
     // Distance tax is charged on the taxable portion of the mileage rate rather than the full amount, so reuse the
     // rate-aware calculation instead of taxing the expense amount.
     if (isDistanceRequest(transaction)) {
         const {
             categoryTaxCode: distanceCategoryTaxCode,
+            taxCode,
             taxAmount,
             taxValue,
-        } = getDistanceRateTaxUpdates(policy, transaction, getRateID(transaction), getCurrencyDecimals, undefined, category);
-        if (!distanceCategoryTaxCode) {
-            return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
+        } = getDistanceRateTaxUpdates(policy, transaction, getRateID(transaction), rules, getCurrencyDecimals, undefined, category);
+        // `taxCode` is the rate's own default, which is the fallback the manual branch below applies, and the
+        // amount has already been charged at it.
+        const resolvedTaxCode = distanceCategoryTaxCode ?? (hasCategoryExpenseDefaultTaxRule(rules, policy?.id) ? taxCode : undefined);
+        if (!resolvedTaxCode) {
+            return unresolvedTaxDetails;
         }
-        return {categoryTaxCode: distanceCategoryTaxCode, categoryTaxAmount: taxAmount, categoryTaxValue: taxValue};
+        return {categoryTaxCode: resolvedTaxCode, categoryTaxAmount: taxAmount, categoryTaxValue: taxValue};
     }
 
-    const categoryTaxCode = getCategoryTaxCode(category, transaction, policy, currency);
+    const categoryTaxCode =
+        getCategoryTaxCode(category, transaction, policy, rules, currency) ??
+        (hasCategoryExpenseDefaultTaxRule(rules, policy?.id) ? getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)) : undefined);
     if (!categoryTaxCode) {
-        return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
+        return unresolvedTaxDetails;
     }
 
     const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode);
-    let categoryTaxAmount;
-
-    if (categoryTaxPercentage) {
-        categoryTaxAmount = convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrencyDecimals(getCurrency(transaction))));
-    }
+    const categoryTaxAmount = categoryTaxPercentage
+        ? convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrencyDecimals(getCurrency(transaction))))
+        : undefined;
 
     return {categoryTaxCode, categoryTaxAmount, categoryTaxValue: categoryTaxPercentage};
 }
@@ -320,6 +346,7 @@ export {
     getDefaultTaxCode,
     getDistanceRateTaxUpdates,
     getEnabledTaxRateCount,
+    getTaxCodeForDisplay,
     getTaxName,
     getTaxRateTitle,
     getTaxValue,
