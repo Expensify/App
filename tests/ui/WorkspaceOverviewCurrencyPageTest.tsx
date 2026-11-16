@@ -211,9 +211,9 @@ describe('WorkspaceOverviewCurrencyPage', () => {
         fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.GBP}`));
         await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
 
-        // Then the admin lands on Workflows to change reimbursement, and no currency change reaches the server
+        // Then the admin lands on the Payments tab of Workflows to change reimbursement, and no currency change reaches the server
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.editor.directReimbursementCurrencyTitle'}));
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID));
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID, CONST.TAB.WORKFLOWS.PAYMENTS));
         expect(updateGeneralSettings).not.toHaveBeenCalled();
     });
 

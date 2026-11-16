@@ -61,7 +61,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id));
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id, CONST.TAB.WORKFLOWS.PAYMENTS));
             });
             return;
         }
