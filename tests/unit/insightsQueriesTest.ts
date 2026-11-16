@@ -359,9 +359,9 @@ describe('insightsQueries', () => {
             // When its request is built
             const payload = parsePayload(buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts));
 
-            // Then the backend saves quarter, so a longer range brings it back, while the charts are grouped by week
+            // Then the backend saves quarter, so a longer range brings it back, while the charts show a Running total grouped by day
             expect(payload?.inputQuery).toBe('groupBy:quarter groupCurrency:USD date>=2026-03-01 date<=2026-03-31');
-            expect(payload?.groupBy).toBe(CONST.SEARCH.GROUP_BY.WEEK);
+            expect(payload?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
         });
 
         it('leaves the workspaces out of the query until some are selected', () => {
@@ -589,10 +589,10 @@ describe('insightsQueries', () => {
             // And the page's own date range isn't added on top
             expect(query).not.toContain('2026-10-01');
 
-            // And the expenses are listed as a table grouped by week, the bucket Spend over time plots when the saved Month doesn't fit October
-            expect(queryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.WEEK);
+            // And the expenses are listed as a table grouped by day, the bucket Spend over time plots its Running total at when the saved Month doesn't fit October
+            expect(queryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
             expect(queryJSON?.view).toBe(CONST.SEARCH.VIEW.TABLE);
-            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK);
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY);
             expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
         });
 
