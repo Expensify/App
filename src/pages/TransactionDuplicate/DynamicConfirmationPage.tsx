@@ -236,6 +236,15 @@ function DynamicConfirmationPage() {
                                     handleResolveDuplicates();
                                     return;
                                 }
+                                // Auth rejects merging two imported card expenses. Validate the actual merge payload
+                                // rather than the unfiltered duplicate suggestions, which may contain ineligible items.
+                                const importedCardCount = [transactionsMergeParams.transaction, ...transactionsMergeParams.transactionList].filter(
+                                    TransactionUtils.isFromCreditCardImport,
+                                ).length;
+                                if (importedCardCount > 1) {
+                                    setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
+                                    return;
+                                }
                                 // Auth's MergeTransactions also rejects a merge when the kept expense's report is no
                                 // longer editable, so block it here and explain rather than failing server-side.
                                 if (!TransactionUtils.canMergeDuplicates(iouReport, transactionIDList)) {

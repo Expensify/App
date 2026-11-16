@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsContext} from '@components/CurrentUserPersonalDetailsProvider';
@@ -127,6 +127,25 @@ describe('Confirming the details kept from duplicate expenses', () => {
             });
         });
         await waitForBatchedUpdatesWithAct();
+    });
+
+
+    it('blocks merging two imported credit card expenses', async () => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${KEPT_TRANSACTION_ID}`, {
+                cardNumber: '1111',
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${DUPLICATE_TRANSACTION_ID}`, {
+                cardNumber: '2222',
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await renderPageAs(SUBMITTER_ACCOUNT_ID);
+
+        fireEvent.press(screen.getByText('Confirm'));
+
+        expect(screen.getByText(/You can only merge expenses on draft or outstanding reports/i)).toBeOnTheScreen();
     });
 
     it('tells the submitter that the duplicates they do not keep will be removed', async () => {
