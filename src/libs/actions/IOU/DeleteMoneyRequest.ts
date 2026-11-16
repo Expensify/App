@@ -345,26 +345,42 @@ function prepareToCleanUpMoneyRequest({
     };
 }
 
+type GetNavigationUrlOnMoneyRequestDeleteParams = {
+    /** The ID of the money request being deleted */
+    transactionID: string | undefined;
+
+    /** The report action associated with the money request */
+    reportAction: OnyxTypes.ReportAction | undefined;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    isChatReportArchived: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    currentUserAccountID: number;
+
+    /** Whether we are in the transaction thread report */
+    isSingleTransactionView?: boolean;
+    chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
+};
+
 /**
  * Calculate the URL to navigate to after a money request deletion
- * @param transactionID - The ID of the money request being deleted
- * @param reportAction - The report action associated with the money request
- * @param isSingleTransactionView - whether we are in the transaction thread report
  * @returns The URL to navigate to
  */
-function getNavigationUrlOnMoneyRequestDelete(
-    transactionID: string | undefined,
-    reportAction: OnyxTypes.ReportAction | undefined,
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    iouReportTransactions: OnyxTypes.Transaction[],
-    chatReport: OnyxEntry<OnyxTypes.Report>,
-    isChatReportArchived: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    currentUserAccountID: number,
+function getNavigationUrlOnMoneyRequestDelete({
+    transactionID,
+    reportAction,
+    transactionThreadReport,
+    iouReport,
+    iouReportTransactions,
+    chatReport,
+    isChatReportArchived,
+    getCurrencyDecimals,
+    currentUserAccountID,
     isSingleTransactionView = false,
-    chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>,
-): Route | undefined {
+    chatReportActions,
+}: GetNavigationUrlOnMoneyRequestDeleteParams): Route | undefined {
     if (!transactionID) {
         return undefined;
     }
@@ -461,19 +477,19 @@ function cleanUpMoneyRequest({
             chatReportActions,
         });
 
-    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete({
         transactionID,
         reportAction,
         transactionThreadReport,
         iouReport,
         iouReportTransactions,
         chatReport,
-        isChatIOUReportArchived,
+        isChatReportArchived: isChatIOUReportArchived,
         getCurrencyDecimals,
         currentUserAccountID,
         isSingleTransactionView,
         chatReportActions,
-    );
+    });
     // build Onyx data
 
     // Onyx operations to delete the transaction, update the IOU report action and chat report action
@@ -887,19 +903,19 @@ function deleteMoneyRequest({
         chatReportActions,
     });
 
-    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete({
         transactionID,
         reportAction,
         transactionThreadReport,
         iouReport,
         iouReportTransactions,
         chatReport,
-        isChatIOUReportArchived,
+        isChatReportArchived: isChatIOUReportArchived,
         getCurrencyDecimals,
         currentUserAccountID,
         isSingleTransactionView,
         chatReportActions,
-    );
+    });
 
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function

@@ -88,33 +88,33 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
 
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
-                urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
-                    moneyRequestReport?.reportID,
-                    moneyRequestReport,
-                    iouTransactionID,
-                    requestParentReportAction,
+                urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete({
+                    chatReportID: moneyRequestReport?.reportID,
+                    chatReport: moneyRequestReport,
+                    transactionID: iouTransactionID,
+                    reportAction: requestParentReportAction,
                     iouReport,
                     iouReportTransactions,
                     chatIOUReport,
-                    isChatIOUReportArchived,
+                    isChatReportArchived: isChatIOUReportArchived,
                     getCurrencyDecimals,
                     isSingleTransactionView,
                     currentUserAccountID,
-                );
+                });
             } else {
-                urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
-                    iouTransactionID,
-                    requestParentReportAction,
-                    requestParentReportActionChildReport,
+                urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete({
+                    transactionID: iouTransactionID,
+                    reportAction: requestParentReportAction,
+                    transactionThreadReport: requestParentReportActionChildReport,
                     iouReport,
                     iouReportTransactions,
-                    chatIOUReport,
-                    isChatIOUReportArchived,
+                    chatReport: chatIOUReport,
+                    isChatReportArchived: isChatIOUReportArchived,
                     getCurrencyDecimals,
                     currentUserAccountID,
                     isSingleTransactionView,
-                    chatIOUReportActions,
-                );
+                    chatReportActions: chatIOUReportActions,
+                });
             }
         }
 

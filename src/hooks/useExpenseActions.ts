@@ -582,19 +582,19 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
                             return;
                         }
-                        const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
-                            transaction.transactionID,
-                            requestParentReportAction,
+                        const goBackRoute = getNavigationUrlOnMoneyRequestDelete({
+                            transactionID: transaction.transactionID,
+                            reportAction: requestParentReportAction,
                             transactionThreadReport,
                             iouReport,
                             iouReportTransactions,
-                            chatIOUReport,
-                            isChatIOUReportArchived,
+                            chatReport: chatIOUReport,
+                            isChatReportArchived: isChatIOUReportArchived,
                             getCurrencyDecimals,
-                            accountID,
-                            false,
-                            chatIOUReportActions,
-                        );
+                            currentUserAccountID: accountID,
+                            isSingleTransactionView: false,
+                            chatReportActions: chatIOUReportActions,
+                        });
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
                         setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
                         // The wide RHP close animation was changed, and because of that the expense was deleted right after
