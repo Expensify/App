@@ -20,7 +20,6 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
-/** The mocked input also exposes the props it was rendered with, so tests can read the value the picker passed down. */
 type TextInputMockInstance = ComponentRef<typeof TextInput> & {props: TextInputProps};
 
 // Store mocked inputs by testID so we can access them in tests
