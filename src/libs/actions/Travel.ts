@@ -251,7 +251,7 @@ function approveTravelBookings(decisionParams: TravelBookingDecisionParams, pnrI
         return;
     }
 
-    const params: ApproveTravelBookingsParams = {reportID, pnrIDs};
+    const params: ApproveTravelBookingsParams = {reportID, pnrIDs: JSON.stringify(pnrIDs)};
     API.write(WRITE_COMMANDS.APPROVE_TRAVEL_BOOKINGS, params, buildBookingDecisionOnyxData(decisionParams, pnrIDs, CONST.TRAVEL.BOOKING_APPROVAL.STATUS.APPROVED));
 }
 

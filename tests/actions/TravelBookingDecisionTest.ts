@@ -89,7 +89,7 @@ describe('Travel booking decisions', () => {
         await applyOnyxData('optimisticData');
 
         // Then only that booking is sent, and it shows approved and pending before the server answers
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.APPROVE_TRAVEL_BOOKINGS, {reportID: TRIP_ROOM_ID, pnrIDs: [HOTEL_PNR_ID]}, expect.anything());
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.APPROVE_TRAVEL_BOOKINGS, {reportID: TRIP_ROOM_ID, pnrIDs: JSON.stringify([HOTEL_PNR_ID])}, expect.anything());
         let reportNameValuePairs = await getOnyxValue(reportNameValuePairsKey);
         expect(reportNameValuePairs?.tripData?.bookingApprovalState?.[HOTEL_PNR_ID]).toMatchObject({status: 'approved', pendingAction: 'update'});
 
@@ -165,7 +165,7 @@ describe('Travel booking decisions', () => {
         result.current.approveBookings([HOTEL_PNR_ID, FLIGHT_PNR_ID]);
 
         // Then both bookings are sent and no offline message shows
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.APPROVE_TRAVEL_BOOKINGS, {reportID: TRIP_ROOM_ID, pnrIDs: [HOTEL_PNR_ID, FLIGHT_PNR_ID]}, expect.anything());
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.APPROVE_TRAVEL_BOOKINGS, {reportID: TRIP_ROOM_ID, pnrIDs: JSON.stringify([HOTEL_PNR_ID, FLIGHT_PNR_ID])}, expect.anything());
         expect(mockShowDecisionModal).not.toHaveBeenCalled();
     });
 });
