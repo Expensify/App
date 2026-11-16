@@ -64,6 +64,14 @@ export default createOnyxDerivedValueConfig({
 
         const cardsWithBrokenFeedConnection: Record<string, Card> = {};
         const personalCardsWithBrokenConnection: Record<string, Card> = {};
+        // Kept here, not in a selector, so it is recomputed when CURRENT_DATE changes and a card crosses the threshold.
+        const cardIDsPastBrokenConnectionDismissThreshold: Record<string, true> = {};
+
+        function collectIfPastBrokenConnectionDismissThreshold(card: Card) {
+            if (isBrokenConnectionPastDismissThreshold(card)) {
+                cardIDsPastBrokenConnectionDismissThreshold[card.cardID] = true;
+            }
+        }
 
         function addErrorsForPersonalCard(card: Card) {
             // Once the card has gone without a successful sync past the grace period we stop leading the user to it: the
@@ -73,6 +81,7 @@ export default createOnyxDerivedValueConfig({
             // the connection error even for scrape statuses that check ignores (e.g. 434). `errorFields` entries are left
             // alone: they are written by a user-initiated action that failed (a manual sync, a reimbursable/start-date
             // update), so they stay actionable no matter how old the connection is. The error itself stays on the card.
+            collectIfPastBrokenConnectionDismissThreshold(card);
             const isPastDismissThreshold = isLastScrapePastDismissThreshold(card);
             const hasCardErrors = (!isPastDismissThreshold && !isEmptyObject(card.errors)) || !isEmptyObject(card.errorFields);
             const cardErrors = {
@@ -177,6 +186,7 @@ export default createOnyxDerivedValueConfig({
             if (isFeedConnectionBroken) {
                 cardsWithBrokenFeedConnection[card.cardID] = card;
             }
+            collectIfPastBrokenConnectionDismissThreshold(card);
 
             // Update aggregate states - once true, always stays true
             const cardTypeState = isExpensifyCard ? expensifyCardFeedStates : companyCardFeedsState;
@@ -226,6 +236,7 @@ export default createOnyxDerivedValueConfig({
             // The errors of all card feeds.
             cardFeedErrors,
             cardsWithBrokenFeedConnection,
+            cardIDsPastBrokenConnectionDismissThreshold,
             personalCardsWithBrokenConnection,
 
             // Mappings of whether to show the RBR for each workspace account ID and per feed name with domain ID

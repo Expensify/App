@@ -30,7 +30,7 @@ import {
 } from '@libs/MoneyRequestReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
-import {getTransactionPendingAction} from '@libs/TransactionUtils';
+import {getTransactionPendingAction, isRTERViolationPastBrokenConnectionDismissThreshold} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -38,6 +38,7 @@ import {clearError} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {cardIDsPastBrokenConnectionDismissThresholdSelector} from '@src/selectors/Card';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
 import type {Errors, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
 
@@ -414,6 +415,7 @@ function MoneyRequestReportTransactionItem({
     const [cards = EMPTY_CARDS] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: (cardList) => getReportRowCards(cardList, cardID)});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: (categories) => getReportRowPolicyCategories(categories, category)});
     const [violationPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: createPolicyViolationVisibilitySelector(email ?? '')});
+    const [cardIDsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardIDsPastBrokenConnectionDismissThresholdSelector});
 
     // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
     // component-type swap caused by browser resize.
@@ -433,7 +435,8 @@ function MoneyRequestReportTransactionItem({
     // The search API pre-resolves the card name, local Onyx transactions carry the raw one
     const resolvedCardName = card ? getCardDescription(card, translate) : undefined;
     const transaction = resolvedCardName && resolvedCardName !== rawTransaction.cardName ? {...rawTransaction, cardName: resolvedCardName} : rawTransaction;
-    const violations = getVisibleReportRowViolations(transaction, rawViolations, email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, reportOwnerLogin, violationPolicy);
+    const rowViolations = rawViolations?.filter((violation) => !isRTERViolationPastBrokenConnectionDismissThreshold(violation, cardIDsPastDismissThreshold));
+    const violations = getVisibleReportRowViolations(transaction, rowViolations, email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, reportOwnerLogin, violationPolicy);
 
     // Every prop is passed explicitly so React Compiler can reuse the body element, and skip the body, while nothing this row shows has changed
     const Body = isNarrowLayout ? MoneyRequestReportTransactionItemBody : MoneyRequestReportTransactionItemWithInlineEdit;

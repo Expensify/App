@@ -5,6 +5,7 @@ import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -122,6 +123,10 @@ const hasIssuedExpensifyCardSelector = (cardsList: OnyxEntry<WorkspaceCardsList>
 /** Reduces the card list to a boolean so consumers don't re-render on unrelated card changes. */
 const hasActiveExpensifyCardSelector = (cardList: OnyxEntry<CardList>): boolean => hasActiveExpensifyCard(cardList ?? undefined);
 
+/** IDs of the cards whose connection has been broken past the dismiss threshold. Usually empty, so rows that subscribe rarely re-render. */
+const cardIDsPastBrokenConnectionDismissThresholdSelector = (cardFeedErrors: OnyxEntry<CardFeedErrors>): Record<string, true> =>
+    cardFeedErrors?.cardIDsPastBrokenConnectionDismissThreshold ?? {};
+
 export {
     filterCardsHiddenFromSearch,
     filterOutPersonalCards,
@@ -135,4 +140,5 @@ export {
     companyCardCustomNamesSelector,
     hasIssuedExpensifyCardSelector,
     hasActiveExpensifyCardSelector,
+    cardIDsPastBrokenConnectionDismissThresholdSelector,
 };

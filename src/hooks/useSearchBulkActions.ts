@@ -128,6 +128,7 @@ import {
     isOdometerDistanceRequest,
     isPending,
     isPerDiemRequest,
+    isRTERViolationPastBrokenConnectionDismissThreshold,
     isScanning,
 } from '@libs/TransactionUtils';
 import confirmSubmitViolationsThenProceed from '@libs/Violations/confirmSubmitViolationsThenProceed';
@@ -142,6 +143,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import {cardIDsPastBrokenConnectionDismissThresholdSelector} from '@src/selectors/Card';
 import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
 import type {BillingGraceEndPeriod, ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -733,6 +735,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const isVendorColumnAvailable = useIsVendorColumnAvailable();
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [cardIDsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardIDsPastBrokenConnectionDismissThresholdSelector});
     const {isBetaEnabled} = usePermissions();
     const [personalDetails] = useAllPersonalDetails();
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
@@ -2916,7 +2919,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const violationsCollection: OnyxCollection<TransactionViolations> = {};
                     for (const transaction of reportTransactions) {
                         const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
-                        violationsCollection[violationsKey] = getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, report, reportOwnerLogin, policy) ?? [];
+                        violationsCollection[violationsKey] = (
+                            getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, report, reportOwnerLogin, policy) ?? []
+                        ).filter((violation) => !isRTERViolationPastBrokenConnectionDismissThreshold(violation, cardIDsPastDismissThreshold));
                     }
                     return getReportSubmitViolationSummary(reportTransactions, violationsCollection, report, policy, email ?? '', accountID);
                 };

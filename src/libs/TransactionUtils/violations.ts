@@ -10,6 +10,7 @@ import {isCurrentUserSubmitter, isIOUReport, isOpenExpenseReport, isProcessingRe
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, Policy, Report, Transaction, TransactionViolation, TransactionViolations, ViolationName} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -94,6 +95,31 @@ function isBrokenConnectionViolation(violation: TransactionViolation) {
             violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531 ||
             violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH)
     );
+}
+
+/**
+ * Whether an RTER violation is on a card whose connection has been broken past the dismiss threshold.
+ * Nobody is expected to reconnect that feed, so the violation and its awaiting merge hold are hidden.
+ */
+function isRTERViolationPastBrokenConnectionDismissThreshold(violation: TransactionViolation, cardIDsPastDismissThreshold: Record<string, true> | undefined): boolean {
+    const cardID = violation.data?.cardID;
+    return violation.name === CONST.VIOLATIONS.RTER && !!cardID && !!cardIDsPastDismissThreshold?.[cardID];
+}
+
+/** Drops RTER violations on cards broken past the dismiss threshold, returning the same collection when no card is. */
+function removeRTERViolationsPastBrokenConnectionDismissThreshold(
+    transactionViolations: OnyxCollection<TransactionViolations>,
+    cardIDsPastDismissThreshold: Record<string, true> | undefined,
+): OnyxCollection<TransactionViolations> {
+    if (!transactionViolations || isEmptyObject(cardIDsPastDismissThreshold)) {
+        return transactionViolations;
+    }
+
+    const result: OnyxCollection<TransactionViolations> = {};
+    for (const [key, violations] of Object.entries(transactionViolations)) {
+        result[key] = violations?.filter((violation) => !isRTERViolationPastBrokenConnectionDismissThreshold(violation, cardIDsPastDismissThreshold));
+    }
+    return result;
 }
 
 /**
@@ -639,6 +665,8 @@ export {
     hasViolation,
     hasWarningTypeViolation,
     isBrokenConnectionViolation,
+    isRTERViolationPastBrokenConnectionDismissThreshold,
+    removeRTERViolationsPastBrokenConnectionDismissThreshold,
     isDuplicate,
     isPendingRTERViolation,
     isTransactionSubmittable,

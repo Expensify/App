@@ -13,10 +13,11 @@ import {
     isTripRoom as isTripRoomReportUtils,
 } from '@libs/ReportUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {hasPendingUI, isPending} from '@libs/TransactionUtils';
+import {hasPendingUI, isPending, removeRTERViolationsPastBrokenConnectionDismissThreshold} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {cardIDsPastBrokenConnectionDismissThresholdSelector} from '@src/selectors/Card';
 import {reportActionsLoadingStateSelector, isOptimisticReportSelector} from '@src/selectors/ReportMetaData';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -122,7 +123,10 @@ function MoneyRequestReportPreviewProvider({
     );
 
     const shouldShowLoading = chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !isOptimisticChatReport;
-    const [transactionViolations] = useReportTransactionViolations(transactions);
+    const [rawTransactionViolations] = useReportTransactionViolations(transactions);
+    const [cardIDsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardIDsPastBrokenConnectionDismissThresholdSelector});
+    // Matches the report header, so the preview offers Submit once the only blocker is a feed broken past the threshold.
+    const transactionViolations = removeRTERViolationsPastBrokenConnectionDismissThreshold(rawTransactionViolations, cardIDsPastDismissThreshold);
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
     // so we defer the loading state update to ensure transactions are loaded
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);

@@ -31,6 +31,7 @@ function createDefaultCardFeedErrors(): CardFeedErrors {
     return {
         cardFeedErrors: {},
         cardsWithBrokenFeedConnection: {},
+        cardIDsPastBrokenConnectionDismissThreshold: {},
         personalCardsWithBrokenConnection: {},
         shouldShowRbrForWorkspaceAccountID: {},
         shouldShowRbrForFeedNameWithDomainID: {},

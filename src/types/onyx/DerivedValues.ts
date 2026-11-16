@@ -178,6 +178,9 @@ type CardFeedErrors = {
     cardFeedErrors: CardFeedErrorsObject;
 
     cardsWithBrokenFeedConnection: Record<string, Card>;
+
+    /** IDs of the personal and company cards whose connection has been broken past the dismiss threshold */
+    cardIDsPastBrokenConnectionDismissThreshold: Record<string, true>;
     personalCardsWithBrokenConnection: Record<string, Card>;
     shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
     shouldShowRbrForFeedNameWithDomainID: Record<string, boolean>;
