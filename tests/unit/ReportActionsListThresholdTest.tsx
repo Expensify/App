@@ -22,6 +22,7 @@ import type {RefObject} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {makeMutable} from 'react-native-reanimated';
 
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
@@ -104,7 +105,15 @@ const report = ReportTestUtils.createMockReport({reportID: REPORT_ID, lastVisibl
 // Built via a function so the value isn't an inline literal the context-split lint rule would flag.
 function buildActionListContextValue(initialOffset: number) {
     const scrollOffsetRef: RefObject<number> = {current: initialOffset};
-    return {scrollOffsetRef, getScrollOffset: () => scrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+    return {
+        scrollOffsetRef,
+        scrollMetricsSV: makeMutable({offset: 0, distanceToOldestEnd: 0, distanceToNewestEnd: 0, viewportHeight: 0}),
+        syncScrollSharedValues: () => {},
+        collapsedHeaderHeightSV: makeMutable(0),
+        getScrollOffset: () => scrollOffsetRef.current,
+        registerListRef: () => {},
+        getListRef: () => null,
+    };
 }
 
 async function renderList(initialOffset: number) {

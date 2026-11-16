@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
-import {useActionListReady} from '@pages/inbox/ActionListContext';
+import {INITIAL_SCROLL_METRICS, useActionListContext, useActionListReady} from '@pages/inbox/ActionListContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -29,6 +29,13 @@ function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWel
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const {syncScrollSharedValues} = useActionListContext();
+
+    // This screen replaces the report list, so the header could stay hidden by the list's last scroll with no way
+    // to scroll it back in. Dropping that scroll state shows the header again.
+    useEffect(() => {
+        syncScrollSharedValues(INITIAL_SCROLL_METRICS);
+    }, [syncScrollSharedValues]);
 
     return (
         <ScrollView

@@ -28,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
-import {ActionListContext} from '@pages/inbox/ActionListContext';
+import {ActionListContext, INITIAL_SCROLL_METRICS} from '@pages/inbox/ActionListContext';
 import type ActionListRefType from '@pages/inbox/ActionListTypes';
 import ChatReportActions from '@pages/inbox/ChatReportActions';
 import {useConciergeChatHistoryActions, useConciergeChatHistoryState} from '@pages/inbox/ConciergeChatHistoryContext';
@@ -58,6 +58,7 @@ import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {Platform, StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
+import {makeMutable} from 'react-native-reanimated';
 
 import createMock from '../utils/createMock';
 import {buildSystemAction} from '../utils/ReportTestUtils';
@@ -499,7 +500,15 @@ describe('ReportActionsList (body)', () => {
         // Given a mounted LegendList with measured rows and its own scroll element.
         mockUseNetwork.mockReturnValue({isOffline: false});
         const registerListRef = jest.fn<void, [ActionListRefType]>();
-        const contextValue = {scrollOffsetRef: {current: 0}, getScrollOffset: () => 0, getListRef: () => null, registerListRef};
+        const contextValue = {
+            scrollOffsetRef: {current: 0},
+            scrollMetricsSV: makeMutable(INITIAL_SCROLL_METRICS),
+            syncScrollSharedValues: () => {},
+            collapsedHeaderHeightSV: makeMutable(0),
+            getScrollOffset: () => 0,
+            getListRef: () => null,
+            registerListRef,
+        };
         render(
             // The shared context intentionally combines stable refs with their accessors.
             // eslint-disable-next-line rulesdir/context-provider-split-values
@@ -556,7 +565,15 @@ describe('ReportActionsList (body)', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         const originalState = mockLegendGetState();
         const scrollOffsetRef = {current: 600};
-        const contextValue = {scrollOffsetRef, getScrollOffset: () => scrollOffsetRef.current, getListRef: () => null, registerListRef: jest.fn()};
+        const contextValue = {
+            scrollOffsetRef,
+            scrollMetricsSV: makeMutable(INITIAL_SCROLL_METRICS),
+            syncScrollSharedValues: () => {},
+            collapsedHeaderHeightSV: makeMutable(0),
+            getScrollOffset: () => scrollOffsetRef.current,
+            getListRef: () => null,
+            registerListRef: jest.fn(),
+        };
         render(
             // The shared context intentionally combines stable refs with their accessors.
             // eslint-disable-next-line rulesdir/context-provider-split-values

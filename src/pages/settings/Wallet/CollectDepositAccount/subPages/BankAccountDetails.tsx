@@ -124,6 +124,7 @@ function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsTyp
                                     InputComponent={StatePicker}
                                     inputID={fieldName}
                                     shouldSaveDraft={!isEditing}
+                                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                                 />
                             )}
                             {!!isSearchableAddress && (

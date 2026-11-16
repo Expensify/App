@@ -241,6 +241,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                 value: CONST.REPORT.SUBMISSION_METHOD.SUBMIT,
                 text: translate('common.submit'),
                 icon: expensifyIcons.Send,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SUBMIT_MENU.SUBMIT,
                 onSelected: () => {
                     setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT);
                     handleSubmit();
@@ -250,6 +251,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                 value: CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF,
                 text: translate('common.submitViaPDF'),
                 icon: expensifyIcons.Document,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SUBMIT_MENU.SUBMIT_VIA_PDF,
                 onSelected: () => {
                     setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF);
                     handleSubmit(true);

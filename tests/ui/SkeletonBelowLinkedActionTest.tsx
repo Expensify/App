@@ -1,9 +1,10 @@
 import {act, render, screen} from '@testing-library/react-native';
 
-import {ActionListContext} from '@pages/inbox/ActionListContext';
+import {ActionListContext, INITIAL_SCROLL_METRICS} from '@pages/inbox/ActionListContext';
 import SkeletonBelowLinkedAction from '@pages/inbox/report/ReportActionsList/SkeletonBelowLinkedAction';
 
 import React from 'react';
+import {makeMutable} from 'react-native-reanimated';
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 
@@ -28,6 +29,9 @@ function flushFrames() {
 function buildActionListContextValue() {
     return {
         scrollOffsetRef: {current: 0},
+        scrollMetricsSV: makeMutable(INITIAL_SCROLL_METRICS),
+        syncScrollSharedValues: () => {},
+        collapsedHeaderHeightSV: makeMutable(0),
         getScrollOffset: () => 0,
         registerListRef: () => {},
         getListRef: () => ({

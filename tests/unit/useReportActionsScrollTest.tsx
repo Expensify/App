@@ -15,6 +15,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import {Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
+import {makeMutable} from 'react-native-reanimated';
 
 import createMock from '../utils/createMock';
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
@@ -212,6 +213,9 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
 function buildActionListContextValue() {
     return {
         scrollOffsetRef: mockScrollOffsetRef,
+        scrollMetricsSV: makeMutable({offset: 0, distanceToOldestEnd: 0, distanceToNewestEnd: 0, viewportHeight: 0}),
+        syncScrollSharedValues: () => {},
+        collapsedHeaderHeightSV: makeMutable(0),
         getScrollOffset: () => mockScrollOffsetRef.current,
         registerListRef: () => {},
         getListRef: () => ({

@@ -316,6 +316,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         getStoredTableColumnWidths,
         getTargetColumnWidth,
         columnGap: styles.gap3.gap,
+        hasStoredColumnWidths: !!storedTableColumnWidths,
     });
 
     const tableMethods: TableMethods<ColumnKey, FilterKey> = {
