@@ -3059,22 +3059,15 @@ function trackExpense(params: CreateTrackExpenseParams) {
 }
 
 type GetNavigationUrlAfterTrackExpenseDeleteParams = {
-    /** The ID of the chat report containing the track expense */
     chatReportID: string | undefined;
     chatReport: OnyxEntry<OnyxTypes.Report> | undefined;
-
-    /** The ID of the track expense being deleted */
     transactionID: string | undefined;
-
-    /** The report action associated with the track expense */
     reportAction: OnyxTypes.ReportAction;
     iouReport: OnyxEntry<OnyxTypes.Report>;
     iouReportTransactions: OnyxTypes.Transaction[];
     chatIOUReport: OnyxEntry<OnyxTypes.Report>;
     isChatReportArchived: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-
-    /** Whether we're in single transaction view */
     isSingleTransactionView: boolean | undefined;
     currentUserAccountID: number;
 };

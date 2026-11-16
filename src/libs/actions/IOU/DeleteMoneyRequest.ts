@@ -346,10 +346,7 @@ function prepareToCleanUpMoneyRequest({
 }
 
 type GetNavigationUrlOnMoneyRequestDeleteParams = {
-    /** The ID of the money request being deleted */
     transactionID: string | undefined;
-
-    /** The report action associated with the money request */
     reportAction: OnyxTypes.ReportAction | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -358,8 +355,6 @@ type GetNavigationUrlOnMoneyRequestDeleteParams = {
     isChatReportArchived: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     currentUserAccountID: number;
-
-    /** Whether we are in the transaction thread report */
     isSingleTransactionView?: boolean;
     chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
