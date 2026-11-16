@@ -1,7 +1,7 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [New Expensify, profile, account preferences, notifications, theme, high contrast mode, timezone, personal information, phone number, security code]
+keywords: [New Expensify, profile, account preferences, notifications, theme, high contrast mode, timezone, personal information, phone number, security code, avatar]
 internalScope: Audience is all members. Covers how to update profile, status, pronouns, timezone, theme, notification, and personal information settings in Account. Does not cover security, wallet, or subscription settings.
 ---
 
