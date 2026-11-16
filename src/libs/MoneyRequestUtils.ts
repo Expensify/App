@@ -1,8 +1,8 @@
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, WaypointCollection} from '@src/types/onyx/Transaction';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import type {ManuallyEnteredScanFields} from './TransactionUtils';
@@ -10,7 +10,7 @@ import type {ManuallyEnteredScanFields} from './TransactionUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import replaceAllDigits from './replaceAllDigits';
 import {isExpenseReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
-import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isCreatedMissing, isExpenseUnreported, isPartiallyEnteredScanExpense} from './TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, hasReceiptSource, haveWaypointAddressesChanged, isCreatedMissing, isExpenseUnreported, isPartiallyEnteredScanExpense} from './TransactionUtils';
 import {getMerchantError} from './ValidationUtils';
 
 /**
@@ -238,6 +238,59 @@ function getWaypointsHasUnsavedChanges(
 }
 
 /**
+ * Whether the odometer step holds readings or photos that closing the flow would lose.
+ */
+function hasOdometerDraftUserEdits(comment: Comment | undefined): boolean {
+    const hasReadings = (comment?.odometerStart ?? null) !== null || (comment?.odometerEnd ?? null) !== null;
+    return hasReadings || !!comment?.odometerStartImage || !!comment?.odometerEndImage;
+}
+
+/**
+ * Whether the user entered anything in this draft that closing the flow would lose. Values the app fills in by itself (default
+ * category, tag and tax, billable, the distance amount and merchant, the test and test drive receipts, ...) don't count, so a draft
+ * the user didn't touch has nothing to lose.
+ */
+function hasMoneyRequestDraftUserEdits(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    const comment = transaction.comment;
+    if (transaction.hasUserEdits || transaction.isCreatedSet || !!comment?.comment?.trim() || Object.values(transaction.splitShares ?? {}).some((splitShare) => !!splitShare?.isModified)) {
+        return true;
+    }
+
+    switch (transaction.iouRequestType) {
+        case CONST.IOU.REQUEST_TYPE.DISTANCE:
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_MAP:
+            return doesMoneyRequestDraftHaveUserInput(transaction);
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL:
+            return typeof comment?.customUnit?.quantity === 'number';
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER:
+            return hasOdometerDraftUserEdits(comment);
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_GPS:
+            // The GPS trip is saved separately and is kept after the flow closes.
+            return false;
+        case CONST.IOU.REQUEST_TYPE.PER_DIEM:
+            return !!comment?.customUnit?.customUnitRateID || !!comment?.customUnit?.subRates?.length;
+        case CONST.IOU.REQUEST_TYPE.TIME:
+            return comment?.units?.count !== undefined;
+        default: {
+            const receipt = transaction.receipt;
+            const hasUserReceipt = hasReceiptSource(transaction) && !receipt?.isTestReceipt && !receipt?.isTestDriveReceipt;
+            return hasUserReceipt || !!transaction.isAmountSet || !!transaction.isMerchantSet;
+        }
+    }
+}
+
+/**
+ * Whether any draft of the flow has user input. Multi-scan has one draft per receipt.
+ */
+function haveMoneyRequestDraftsUserEdits(drafts: OnyxCollection<Transaction>): boolean {
+    return Object.values(drafts ?? {}).some((draft) => hasMoneyRequestDraftUserEdits(draft));
+}
+
+/**
  * Determines whether the date field should be shown on the money request confirmation surface.
  * This is the single source of truth shared by the confirmation footer (where the date field is rendered)
  * and the confirmation-step validation (where a missing date is blocked), so the two never drift out of sync.
@@ -310,4 +363,6 @@ export {
     getAmountHasUnsavedChanges,
     getStringFieldHasUnsavedChanges,
     getWaypointsHasUnsavedChanges,
+    hasMoneyRequestDraftUserEdits,
+    haveMoneyRequestDraftsUserEdits,
 };
