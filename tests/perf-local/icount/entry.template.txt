@@ -1,0 +1,26 @@
+// Fixed-work benchmark for instruction counting: no timers, no adaptive batch, one scenario per process.
+import SidebarUtils from '@libs/SidebarUtils';
+import CONST from '@src/CONST';
+import {buildSidebarSortDataset} from '../utils/sidebarSortDataset';
+
+declare const print: ((message: string) => void) | undefined;
+
+const REPORTS = __REPORTS__;
+const ACCENTED = __ACCENTED__;
+const FOCUS = __FOCUS__;
+const ITERATIONS = __ITERATIONS__;
+
+const collator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+const localeCompare = (left: string, right: string) => collator.compare(left, right);
+const log = typeof print === 'function' ? print : (message: string) => console.log(message);
+
+const {reportsToDisplay} = buildSidebarSortDataset(REPORTS, ACCENTED);
+const mode = FOCUS ? CONST.PRIORITY_MODE.GSD : CONST.PRIORITY_MODE.DEFAULT;
+let checksum = 0;
+for (let index = 0; index < ITERATIONS; index++) {
+    checksum += SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplay, mode, localeCompare, {}, {}, undefined).length;
+}
+log(`checksum ${checksum}`);
+if (typeof process === 'object' && typeof process.exit === 'function') {
+    process.exit(0);
+}
