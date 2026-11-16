@@ -1,4 +1,6 @@
+import useExpenseDefaultConditionNames from '@hooks/useExpenseDefaultConditionNames';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import usePolicyCards from '@hooks/usePolicyCards';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
@@ -23,7 +25,9 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
     const {policyID, ruleID} = route.params;
     const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
     const {translate} = useLocalize();
+    const policy = usePolicy(policyID);
     const {cards: policyCards, isLoadingCards} = usePolicyCards(policyID);
+    const {cards: cardNames} = useExpenseDefaultConditionNames(policy);
 
     // Stored as card IDs, which is what the `cardID` filter carries.
     const cardItems: RuleConditionItem[] = policyCards.map((card) => ({
@@ -40,6 +44,7 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
             backToRoute={backToRoute}
             items={cardItems}
             onSave={(cardsToMatch) => updateDraftMerchantRule({cardsToMatch})}
+            getFallbackText={(cardID) => cardNames?.[cardID] ?? cardID}
             isLoading={isLoadingCards}
         />
     );
