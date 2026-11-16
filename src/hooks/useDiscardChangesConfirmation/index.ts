@@ -11,7 +11,6 @@ import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext'
 
 import type {NavigationAction} from '@react-navigation/native';
 
-import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
 import type {DiscardChangesConfirmation} from './types';
@@ -19,6 +18,7 @@ import type UseDiscardChangesConfirmationOptions from './types';
 
 import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
 import runDiscardConfirmation from './runDiscardConfirmation';
+import useDiscardPromptGate from './useDiscardPromptGate';
 
 /**
  * Tracks the `history.go(1)` restore round-trip so its echo popstate isn't mistaken for a fresh back: `awaitingRestore`
@@ -35,19 +35,11 @@ function useDiscardChangesConfirmation({
     onTabSwitchDiscard,
     shouldCloseRHPOnDiscard = false,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
-    const route = useRoute();
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
+    const {routeName, hasUnsavedChanges, suppressDiscardPrompt} = useDiscardPromptGate({getHasUnsavedChanges});
 
-    // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
-    const isFocused = useIsFocused();
-    const isSavingRef = useRef(false);
-    useFocusEffect(() => {
-        isSavingRef.current = false;
-    });
-    const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
-
-    useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
+    useRegisterTabSwitchGuard(routeName, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
@@ -164,10 +156,6 @@ function useDiscardChangesConfirmation({
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
-
-    const suppressDiscardPrompt = (shouldSuppress = true) => {
-        isSavingRef.current = shouldSuppress;
-    };
 
     return {suppressDiscardPrompt};
 }

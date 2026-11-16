@@ -9,7 +9,7 @@ import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext'
 
 import type {NavigationAction} from '@react-navigation/native';
 
-import {useFocusEffect, useIsFocused, usePreventRemove, useRoute} from '@react-navigation/native';
+import {useFocusEffect, usePreventRemove} from '@react-navigation/native';
 import {useRef} from 'react';
 import {BackHandler} from 'react-native';
 
@@ -18,6 +18,7 @@ import type UseDiscardChangesConfirmationOptions from './types';
 
 import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
 import runDiscardConfirmation from './runDiscardConfirmation';
+import useDiscardPromptGate from './useDiscardPromptGate';
 
 function useDiscardChangesConfirmation({
     getHasUnsavedChanges,
@@ -27,26 +28,18 @@ function useDiscardChangesConfirmation({
     onTabSwitchDiscard,
     shouldCloseRHPOnDiscard = false,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
-    const route = useRoute();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
     const isDiscardModalOpen = useRef(false);
     const isReplayingBlockedNavigation = useRef(false);
-
-    // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
-    const isFocused = useIsFocused();
-    const isSavingRef = useRef(false);
-    useFocusEffect(() => {
-        isSavingRef.current = false;
-    });
-    const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
+    const {routeName, isFocused, hasUnsavedChanges, suppressDiscardPrompt} = useDiscardPromptGate({getHasUnsavedChanges});
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
     // The save suppression stays out of it because `isSavingRef` is a ref: the callback below applies that.
     const shouldPreventRemove = isFocused && getHasUnsavedChanges();
 
-    useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
+    useRegisterTabSwitchGuard(routeName, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
     const getActionToReplay = (action: NavigationAction) => (shouldCloseRHPOnDiscard ? getNavigationActionForReplay(action) : action);
 
@@ -105,10 +98,6 @@ function useDiscardChangesConfirmation({
         });
         return () => subscription.remove();
     });
-
-    const suppressDiscardPrompt = (shouldSuppress = true) => {
-        isSavingRef.current = shouldSuppress;
-    };
 
     return {suppressDiscardPrompt};
 }
