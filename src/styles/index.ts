@@ -129,9 +129,13 @@ type WebViewStyle = {
 
 type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
-type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
+// Accepts both an Animated.Value and the card's progress interpolation. Calling .interpolate()
+// on a union of the two is a type error, because their signatures differ.
+type OverlayStylesParams = Pick<Animated.Value, 'interpolate'>;
 
-type OverlayPositionValue = number | Animated.Value | Animated.AnimatedAddition<number> | Animated.AnimatedSubtraction<string | number>;
+// React Native 0.88 drops the <T> from AnimatedAddition and AnimatedSubtraction, so no direct
+// spelling compiles on both 0.86 and 0.88. The return types of Animated.add/subtract do.
+type OverlayPositionValue = number | Animated.Value | ReturnType<typeof Animated.add> | ReturnType<typeof Animated.subtract>;
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
@@ -142,7 +146,17 @@ type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth' | '
 
 type MapDirectionLayerStyle = Pick<LineLayerSpecification, 'layout' | 'paint'>;
 
-type StyleObject = ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFeedbackStyle | MapDirectionStyle | MapDirectionLayerStyle | AnchorPosition | CustomPickerStyle;
+type StyleObject =
+    | ViewStyle
+    | Animated.WithAnimatedValue<ViewStyle>
+    | TextStyle
+    | ImageStyle
+    | WebViewStyle
+    | OfflineFeedbackStyle
+    | MapDirectionStyle
+    | MapDirectionLayerStyle
+    | AnchorPosition
+    | CustomPickerStyle;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type StyleFunction = (...args: any[]) => StyleObject;
 
@@ -6922,11 +6936,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: colors.green800,
         },
 
-        wideRHPExtendedCardInterpolatorStyles: {
-            ...getRHPExtendedCardFrame(theme),
-            width: animatedWideRHPWidth,
-        },
-
         // The floating card is the containing block (translateZ0), so a resizable single RHP's card fills it at whatever width
         // it is dragged to, independent of the box react-navigation measures (singleRHPStackBox).
         singleRHPCardInterpolatorStyles: {
@@ -6944,19 +6953,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         receiptCellLoadingContainer: {
             backgroundColor: theme.activeComponentBG,
-        },
-
-        wideRHPMoneyRequestReceiptViewContainer: {
-            backgroundColor: theme.appBG,
-            width: animatedReceiptPaneRHPWidth,
-            height: '100%',
-            borderRightWidth: 1,
-            borderColor: theme.border,
-        },
-
-        wideRHPDropZoneContainer: {
-            width: animatedReceiptPaneRHPWidth,
-            height: '100%',
         },
 
         wideRHPMoneyRequestReceiptViewScrollViewContainer: {
@@ -7436,11 +7432,11 @@ const dynamicStyles = (theme: ThemeColors) =>
         // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
         // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
         // See https://github.com/Expensify/App/issues/99035
-        getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
+        getSuperWideRHPExtendedCardInterpolatorStyles: (width: ReturnType<typeof Animated.subtract>) =>
             ({
                 ...getRHPExtendedCardFrame(theme),
                 width,
-            }) satisfies ViewStyle,
+            }) satisfies Animated.WithAnimatedValue<ViewStyle>,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
             ({
@@ -7545,7 +7541,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                     outputRange: [0, maxOpacity],
                     extrapolate: 'clamp',
                 }),
-            }) satisfies ViewStyle,
+            }) satisfies Animated.WithAnimatedValue<ViewStyle>,
 
         getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) =>
             ({
@@ -7657,7 +7653,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLabel,
         }),
 
-        tabBackground: (hovered: boolean, isFocused: boolean, isDisabled: boolean, background: string | Animated.AnimatedInterpolation<string>) => {
+        tabBackground: (hovered: boolean, isFocused: boolean, isDisabled: boolean, background: string | Animated.AnimatedInterpolation<string>): ViewStyle => {
             if (isDisabled) {
                 return {backgroundColor: undefined};
             }
@@ -7880,6 +7876,24 @@ const dynamicStyles = (theme: ThemeColors) =>
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects
 const plainStyles = (theme: ThemeColors) =>
     ({
+        // These widths are Animated.Values, which StyleSheet.create's types reject. They are only passed
+        // to Animated components, which ignore what StyleSheet.create prepares, so plain objects behave the same.
+        wideRHPExtendedCardInterpolatorStyles: {
+            ...getRHPExtendedCardFrame(theme),
+            width: animatedWideRHPWidth,
+        } satisfies Animated.WithAnimatedValue<ViewStyle>,
+        wideRHPMoneyRequestReceiptViewContainer: {
+            backgroundColor: theme.appBG,
+            width: animatedReceiptPaneRHPWidth,
+            height: '100%',
+            borderRightWidth: 1,
+            borderColor: theme.border,
+        } satisfies Animated.WithAnimatedValue<ViewStyle>,
+        wideRHPDropZoneContainer: {
+            width: animatedReceiptPaneRHPWidth,
+            height: '100%',
+        } satisfies Animated.WithAnimatedValue<ViewStyle>,
+
         webViewStyles: webViewStyles(theme),
         textInputDesktop: addOutlineWidth(theme, {}, 0),
         noOutline: addOutlineWidth(theme, {}, 0),
