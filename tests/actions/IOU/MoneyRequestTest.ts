@@ -1303,15 +1303,27 @@ describe('MoneyRequest', () => {
         });
 
         it('should navigate to confirmation page for CREATE flow from global menu', async () => {
+            // Given a new odometer draft with prefilled participants but no initialized rate
+            const transaction = {
+                ...fakeTransaction,
+                isFromGlobalCreate: true,
+                isFromFloatingActionButton: true,
+                reportID: fakeReport.reportID,
+                participants: [{accountID: 0, isPolicyExpenseChat: true, reportID: fakeReport.reportID, selected: true}],
+                comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
+            };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             // getPolicyExpenseChat resolves reports via ReportUtils' internal Onyx cache, which isn't populated
             // in this bare unit-test harness, so return the policy expense chat report directly.
             jest.mocked(getPolicyExpenseChat).mockReturnValueOnce(fakeReport);
 
+            // When Next initializes the default recipient for the first time
             handleMoneyRequestStepDistanceNavigation({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
+                transaction,
+                odometerDistance: 100,
                 report: undefined,
                 defaultExpensePolicy: fakePolicy,
                 isAutoReporting: true,
@@ -1322,6 +1334,7 @@ describe('MoneyRequest', () => {
             });
             await waitForBatchedUpdates();
 
+            // Then the default workspace and its rate are assigned rather than skipped because participants exist
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`);
             expect(updatedTransaction).toMatchObject({
                 reportID: fakeReport.reportID,
@@ -1346,14 +1359,61 @@ describe('MoneyRequest', () => {
         });
 
         it.each([
+            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, distance: 62.14, hasOriginReport: false},
+            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, distance: 124.27, hasOriginReport: false},
+            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 100, hasOriginReport: false},
+            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, distance: 62.14, hasOriginReport: true},
+        ])('preserves the selected odometer workspace and latest $distance $unit (origin report: $hasOriginReport)', async ({unit, distance, hasOriginReport}) => {
+            // Given a workspace chosen on confirmation and a stale transaction quantity after editing the readings
+            const selectedReportID = 'selected-workspace-report';
+            const transaction = {
+                ...fakeTransaction,
+                transactionID: baseParams.transactionID,
+                isFromGlobalCreate: true,
+                isFromFloatingActionButton: true,
+                reportID: selectedReportID,
+                participants: [{accountID: 0, isPolicyExpenseChat: true, reportID: selectedReportID, selected: true}],
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                comment: {
+                    odometerStart: 1000,
+                    odometerEnd: 1100,
+                    odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: 'selected-rate', distanceUnit: unit, quantity: 1},
+                },
+            };
+            const latestTransaction = {...transaction, comment: {...transaction.comment, customUnit: {...transaction.comment.customUnit, quantity: distance}}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`, latestTransaction);
+
+            // When Next runs again, the originating route and its participants still point at the default workspace
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                transaction,
+                report: hasOriginReport ? fakeReport : undefined,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                defaultExpensePolicy: fakePolicy,
+                odometerDistance: distance,
+                unit,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the selected recipient, rate, readings and freshly saved distance survive without another conversion
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`)).toEqual(latestTransaction);
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, selectedReportID),
+            );
+        });
+
+        it.each([
             {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 62.14, expectedDistance: 100, isGPS: false},
             {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 124.28, expectedDistance: 200.01, isGPS: false},
             {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, distance: 100, expectedDistance: 62.14, isGPS: false},
             {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 100, expectedDistance: 100, isGPS: false},
             {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 62.14, expectedDistance: 100, isGPS: true},
             {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 100, expectedDistance: 100, isGPS: true},
-        ])('converts $distance $sourceUnit to default $targetUnit (GPS: $isGPS)', async ({sourceUnit, targetUnit, distance, expectedDistance, isGPS}) => {
-            // Given a draft returned from confirmation whose transaction prop has a stale quantity
+        ])('initializes default recipient with $distance $sourceUnit converted to $targetUnit (GPS: $isGPS)', async ({sourceUnit, targetUnit, distance, expectedDistance, isGPS}) => {
+            // Given a draft without a selected recipient whose transaction prop has a stale quantity
             const rateID = 'default-distance-rate';
             const defaultPolicy: Policy = {
                 ...fakePolicy,
@@ -1370,7 +1430,10 @@ describe('MoneyRequest', () => {
             const transaction = {
                 ...fakeTransaction,
                 transactionID: baseParams.transactionID,
+                isFromGlobalCreate: true,
+                isFromFloatingActionButton: true,
                 reportID: 'other-workspace-report',
+                participants: [],
                 iouRequestType: isGPS ? CONST.IOU.REQUEST_TYPE.DISTANCE_GPS : CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
                 comment: {
                     odometerStart: 1000,
@@ -1383,7 +1446,7 @@ describe('MoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`, transaction);
             jest.mocked(getPolicyExpenseChat).mockReturnValueOnce(fakeReport);
 
-            // When Next automatically selects the default workspace again, using the distance just entered rather than the stale quantity
+            // When the first Next selects the default workspace, using the distance just entered rather than the stale quantity
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 transaction,

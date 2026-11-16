@@ -257,6 +257,14 @@ function handleMoneyRequestStepDistanceNavigation({
     const transactionIsFromGlobalCreate = getIsFromGlobalCreate(transaction);
     const transactionLinkedTrackedExpenseReportAction = transaction?.linkedTrackedExpenseReportAction;
 
+    // The start screen still has the original route after returning from confirmation. Use the draft's
+    // workspace instead, but let the first Next initialize its rate even when participants were prefilled.
+    const selectedWorkspace = transaction?.participants?.find((participant) => participant.isPolicyExpenseChat && participant.reportID === transaction.reportID);
+    if (isOdometerDistance && transactionIsFromGlobalCreate && !shouldSkipConfirmation && selectedWorkspace?.reportID && transaction?.comment?.customUnit?.customUnitRateID) {
+        navigateToConfirmationPage(CONST.IOU.TYPE.SUBMIT, transactionID, selectedWorkspace.reportID, backToReport);
+        return;
+    }
+
     // If a reportID exists in the report object, it's because either:
     // - The user started this flow from using the + button in the composer inside a report.
     // - The user started this flow from using the global create menu by selecting the Track expense option.
