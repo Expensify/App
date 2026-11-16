@@ -92,10 +92,10 @@ function SearchColumnsPage() {
         !currentSearchResults?.data &&
         !isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
 
-    const applyChanges = (selectedColumnIds: SearchCustomColumnIds[]) => {
+    const saveColumns = (columnChanges: Partial<SearchAdvancedFiltersForm>) => {
         const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {
             ...searchAdvancedFiltersForm,
-            columns: selectedColumnIds,
+            ...columnChanges,
         };
 
         const currentQueryJSON = getCurrentSearchQueryJSON();
@@ -108,9 +108,14 @@ function SearchColumnsPage() {
         navigateToSearchWithColumns(queryString, currentSearchKey);
     };
 
-    // Resetting drops the columns from the query so the table goes back to deriving them from the data.
+    const applyChanges = (selectedColumnIds: SearchCustomColumnIds[]) => {
+        saveColumns({columns: selectedColumnIds});
+    };
+
+    // Resetting drops the columns from the query so the table goes back to deriving them from the data. The pins go with them,
+    // since the derived columns aren't known here, and a pin left on a column that's no longer shown would come back with it.
     const resetColumns = () => {
-        applyChanges([]);
+        saveColumns({columns: [], leftPinnedColumns: [], rightPinnedColumns: []});
     };
 
     if (isSeedPending) {
