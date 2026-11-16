@@ -89,6 +89,19 @@ function isRunningTotalAvailable(date: InsightsFilters['date']): boolean {
     return getInsightsGroupByOptions(date).length > 0;
 }
 
+/** Swaps a saved grouping the date range no longer offers for the dashboard's default when the range offers it, like Week on This month becoming Running total; otherwise keeps it for `getFittingGroupBy` to fit. */
+function getGroupByForDateRange(groupBy: InsightsGroupBy, date: InsightsFilters['date'], defaultGroupBy: InsightsGroupBy): InsightsGroupBy {
+    if (groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY) {
+        return groupBy;
+    }
+    const options = getInsightsGroupByOptions(date);
+    if (options.includes(groupBy)) {
+        return groupBy;
+    }
+    const isDefaultOffered = defaultGroupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY ? isRunningTotalAvailable(date) : options.includes(defaultGroupBy);
+    return isDefaultOffered ? defaultGroupBy : groupBy;
+}
+
 /** Returns the grouping a running total is plotted at: by day for ranges that offer Day (62 days or less), by month otherwise, or by the finest offered grouping when Month isn't offered either, like Week for This quarter. */
 function getRunningTotalGroupBy(date: InsightsFilters['date']): InsightsTimeGroupBy {
     const options = getInsightsGroupByOptions(date);
@@ -109,5 +122,5 @@ function getQueryGroupBy(filters: InsightsFilters): InsightsTimeGroupBy {
     return getFittingGroupBy(filters.groupBy, getInsightsGroupByOptions(filters.date));
 }
 
-export {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable};
+export {getFittingGroupBy, getGroupByForDateRange, getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable};
 export type {InsightsTimeGroupBy};

@@ -137,7 +137,7 @@ describe('useInsightsFilters', () => {
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
         // Then the saved filters win while the default period remains this month
-        expect(result.current.filters).toEqual(stored);
+        expect(result.current.savedFilters).toEqual(stored);
         expect(result.current.defaultFilters.date).toEqual({preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH});
     });
 
@@ -241,7 +241,7 @@ describe('useInsightsFilters', () => {
 
         // Then quarter stays saved, so it comes back once a range that offers it is picked
         expect(await getStoredQuery()).toBe('groupBy:quarter groupCurrency:USD date:this-month');
-        expect(result.current.filters.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
+        expect(result.current.savedFilters.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
     });
 
     it('keeps the saved grouping on a single day, which only offers day', async () => {
