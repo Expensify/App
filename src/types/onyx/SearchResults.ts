@@ -321,6 +321,15 @@ type SearchViolationGroup = SearchGroupBase & {
     violation: string;
 };
 
+/** Model of workflow stage grouped search result */
+type SearchWorkflowStageGroup = SearchGroupBase & {
+    /** The workflow stage the group's reports spent time in */
+    workflowStage: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>;
+
+    /** Average time the group's reports spent in the stage, in seconds */
+    averageDuration: number | null;
+};
+
 /** Any group entry of a grouped search result */
 type SearchGroup =
     | SearchMemberGroup
@@ -335,7 +344,8 @@ type SearchGroup =
     | SearchYearGroup
     | SearchQuarterGroup
     | SearchApproverGroup
-    | SearchViolationGroup;
+    | SearchViolationGroup
+    | SearchWorkflowStageGroup;
 
 /** Model of an expense in the search results */
 type SearchTransaction = Transaction & {
@@ -401,4 +411,5 @@ export type {
     SearchQuarterGroup,
     SearchApproverGroup,
     SearchViolationGroup,
+    SearchWorkflowStageGroup,
 };

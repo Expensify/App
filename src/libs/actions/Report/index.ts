@@ -2,7 +2,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-import {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
+import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
@@ -17,7 +17,6 @@ import type {
     CreateSupportTicketParams,
     DeleteAppReportParams,
     DeleteCommentParams,
-    ExpandURLPreviewParams,
     ExportReportPDFParams,
     FlagCommentParams,
     GetNewerActionsParams,
@@ -3323,22 +3322,6 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
     );
 }
 
-/**
- * Gets metadata info about links in the provided report action
- */
-function expandURLPreview(reportID: string | undefined, reportActionID: string) {
-    if (!reportID) {
-        return;
-    }
-
-    const parameters: ExpandURLPreviewParams = {
-        reportID,
-        reportActionID,
-    };
-
-    API.read(READ_COMMANDS.EXPAND_URL_PREVIEW, parameters);
-}
-
 /** Marks the new report actions as read
  * @param hasOnceLoadedReportActions Whether the report actions have been loaded at least once.
  * If false, the API call will be skipped to avoid 401 errors from reading reports not yet shared with the user.
@@ -5716,7 +5699,11 @@ function showReportActionNotification(
             derivedMovedFromReportName,
         });
     } else {
-        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber);
+        // Read the same COMMENT part that the notification body is built from
+        const messageParts = Array.isArray(reportAction.message) ? reportAction.message : [reportAction.message];
+        const commentHtml = messageParts.find((part) => part?.type === CONST.REPORT.MESSAGE.TYPE.COMMENT)?.html;
+        const reportIDToName = buildReportIDToNameMap(allReports, getMentionedReportIDs(commentHtml));
+        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber, reportIDToName);
     }
 
     notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID, 'realtime');
@@ -9099,8 +9086,7 @@ function changeReportPolicyAndInviteSubmitter({
         CONST.POLICY.ROLE.USER,
         currentUser,
         reportActionsList,
-        undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        {policyExpenseChatNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
     );
     const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterLogin].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterLogin].reportActionID;
@@ -9565,7 +9551,6 @@ export {
     downloadReportPDF,
     editReportComment,
     explain,
-    expandURLPreview,
     exportReportToCSV,
     exportReportToPDF,
     shareReport,

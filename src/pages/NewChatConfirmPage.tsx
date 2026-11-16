@@ -2,7 +2,8 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -115,15 +116,18 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                     style={styles.w100}
                 />
             </View>
-            <MenuItemWithTopDescription
+            <MenuItem.Root
                 sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.GROUP_NAME_FIELD}
-                title={groupName}
                 onPress={navigateToEditChatName}
-                shouldShowRightIcon
-                shouldCheckActionAllowedOnPress={false}
-                description={translate('newRoomPage.groupName')}
-                wrapperStyle={[styles.ph4]}
-            />
+                style={styles.ph4}
+            >
+                <MenuItemField.Row
+                    name={translate('newRoomPage.groupName')}
+                    value={groupName}
+                >
+                    <MenuItem.Chevron />
+                </MenuItemField.Row>
+            </MenuItem.Root>
         </>
     );
 }
