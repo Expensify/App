@@ -86,12 +86,7 @@ function Waypoints({unit, isInLandscapeMode, action, iouType, transactionID, rep
                 style={styles.pv3}
             >
                 <MenuItem.Row>
-                    <MenuItem.Leading>
-                        <MenuItem.IconNarrow
-                            src={icons.DotIndicatorUnfilled}
-                            isLoading={shouldShowLoadingStartAddress}
-                        />
-                    </MenuItem.Leading>
+                    <MenuItem.Leading>{shouldShowLoadingStartAddress ? <MenuItem.SpinnerNarrow /> : <MenuItem.IconNarrow src={icons.DotIndicatorUnfilled} />}</MenuItem.Leading>
                     <MenuItemField.Content name={translate('gps.start')}>
                         <MenuItem.FieldValue>{shouldShowLoadingStartAddress ? '...' : (firstPoint?.address?.value ?? '')}</MenuItem.FieldValue>
                     </MenuItemField.Content>
@@ -103,12 +98,7 @@ function Waypoints({unit, isInLandscapeMode, action, iouType, transactionID, rep
                 style={styles.pv3}
             >
                 <MenuItem.Row>
-                    <MenuItem.Leading>
-                        <MenuItem.IconNarrow
-                            src={icons.Location}
-                            isLoading={shouldShowLoadingEndAddress}
-                        />
-                    </MenuItem.Leading>
+                    <MenuItem.Leading>{shouldShowLoadingEndAddress ? <MenuItem.SpinnerNarrow /> : <MenuItem.IconNarrow src={icons.Location} />}</MenuItem.Leading>
                     <MenuItemField.Content name={translate('gps.stop')}>
                         <MenuItem.FieldValue>{getEndAddressTitle() ?? ''}</MenuItem.FieldValue>
                     </MenuItemField.Content>

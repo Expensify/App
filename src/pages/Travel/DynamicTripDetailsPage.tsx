@@ -160,12 +160,7 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
                         isDisabled={isModifyTripLoading || isOffline}
                     >
                         <MenuItem.Row>
-                            <MenuItem.Leading>
-                                <MenuItem.Icon
-                                    src={icons.Pencil}
-                                    isLoading={isModifyTripLoading}
-                                />
-                            </MenuItem.Leading>
+                            <MenuItem.Leading>{isModifyTripLoading ? <MenuItem.Spinner /> : <MenuItem.Icon src={icons.Pencil} />}</MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title>{translate('travel.modifyTrip')}</MenuItem.Title>
                             </MenuItem.Content>
@@ -185,12 +180,7 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
                         isDisabled={isTripSupportLoading || isOffline}
                     >
                         <MenuItem.Row>
-                            <MenuItem.Leading>
-                                <MenuItem.Icon
-                                    src={icons.Phone}
-                                    isLoading={isTripSupportLoading}
-                                />
-                            </MenuItem.Leading>
+                            <MenuItem.Leading>{isTripSupportLoading ? <MenuItem.Spinner /> : <MenuItem.Icon src={icons.Phone} />}</MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title>{translate('travel.tripSupport')}</MenuItem.Title>
                             </MenuItem.Content>

@@ -1,9 +1,7 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 
 import getButtonState from '@libs/getButtonState';
 
@@ -12,13 +10,9 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type MenuItemIconProps = {
     src: IconAsset;
-
-    /** Replaces the glyph with a spinner while preserving the icon's slot. Defaults to false. */
-    isLoading?: boolean;
 };
 
 type BaseMenuItemIconProps = MenuItemIconProps & {
@@ -27,19 +21,10 @@ type BaseMenuItemIconProps = MenuItemIconProps & {
 };
 
 /** Base of the icon leaves: a glyph filled from the row's interaction state */
-function BaseMenuItemIcon({src, style, isLoading = false}: BaseMenuItemIconProps) {
+function BaseMenuItemIcon({src, style}: BaseMenuItemIconProps) {
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
     const {isDisabled, isInteractive} = useMenuItemConfig();
     const {isHovered, isPressed} = useMenuItemInteraction();
-
-    if (isLoading) {
-        return (
-            <View style={style}>
-                <ActivityIndicator color={theme.textSupporting} />
-            </View>
-        );
-    }
 
     const iconFill = StyleUtils.getIconFillColor({
         buttonState: getButtonState({isActive: isHovered, isPressed, isDisabled, isInteractive}),

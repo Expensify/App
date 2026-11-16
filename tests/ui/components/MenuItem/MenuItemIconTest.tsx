@@ -20,16 +20,16 @@ function MockIcon() {
     return null;
 }
 const iconLeaves = [
-    {name: 'Icon', Component: MenuItem.Icon, isNarrow: false},
-    {name: 'IconNarrow', Component: MenuItem.IconNarrow, isNarrow: true},
+    {name: 'Icon', Component: MenuItem.Icon, Spinner: MenuItem.Spinner, isNarrow: false},
+    {name: 'IconNarrow', Component: MenuItem.IconNarrow, Spinner: MenuItem.SpinnerNarrow, isNarrow: true},
 ];
 
 function Wrapper({children}: PropsWithChildren) {
     return <LocaleContextProvider>{children}</LocaleContextProvider>;
 }
 
-describe.each(iconLeaves)('MenuItem.$name loading', ({Component, isNarrow}) => {
-    it.each([undefined, false, true])('preserves the icon slot with isLoading=%s', (isLoading) => {
+describe.each(iconLeaves)('MenuItem.$name loading', ({Component, Spinner, isNarrow}) => {
+    it.each([false, true])('preserves the icon slot with isLoading=%s', (isLoading) => {
         // Given each leaf has its own slot width, which must not disappear while loading
         const {result} = renderHook(() => ({styles: useThemeStyles(), theme: useTheme()}));
         const slotStyle = StyleSheet.flatten([result.current.styles.popoverMenuIcon, isNarrow && result.current.styles.wAuto]);
@@ -39,12 +39,7 @@ describe.each(iconLeaves)('MenuItem.$name loading', ({Component, isNarrow}) => {
             <Wrapper>
                 <MenuItem.Root>
                     <MenuItem.Row>
-                        <MenuItem.Leading>
-                            <Component
-                                src={MockIcon}
-                                isLoading={isLoading}
-                            />
-                        </MenuItem.Leading>
+                        <MenuItem.Leading>{isLoading ? <Spinner /> : <Component src={MockIcon} />}</MenuItem.Leading>
                         <MenuItem.Content>
                             <MenuItem.Title>Row title</MenuItem.Title>
                         </MenuItem.Content>
@@ -75,12 +70,7 @@ describe.each(iconLeaves)('MenuItem.$name loading', ({Component, isNarrow}) => {
             <Wrapper>
                 <MenuItem.Root onPress={onPress}>
                     <MenuItem.Row>
-                        <MenuItem.Leading>
-                            <Component
-                                src={MockIcon}
-                                isLoading={isLoading}
-                            />
-                        </MenuItem.Leading>
+                        <MenuItem.Leading>{isLoading ? <Spinner /> : <Component src={MockIcon} />}</MenuItem.Leading>
                         <MenuItem.Content>
                             <MenuItem.Title>Open row</MenuItem.Title>
                         </MenuItem.Content>
