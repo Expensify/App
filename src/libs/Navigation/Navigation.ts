@@ -7,7 +7,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {cancelSkipNextFocusRestore, skipNextFocusRestore} from '@libs/NavigationFocusReturn';
-import {filterObject, shallowCompare} from '@libs/ObjectUtils';
+import {filterObject, isRecord, shallowCompare} from '@libs/ObjectUtils';
 import {holdPendingSearchWriteFlush, releasePendingSearchWriteFlush} from '@libs/pendingSearchWrite';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -43,6 +43,7 @@ import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveRoute from './helpers/getActiveRoute';
 import getActiveTabName from './helpers/getActiveTabName';
 import getFocusedReportParams from './helpers/getFocusedReportParams';
+import getParamsFromRoute from './helpers/getParamsFromRoute';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
 import hasDifferentSplitScope from './helpers/hasDifferentSplitScope';
@@ -610,9 +611,19 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         const destinationStack = destinationTabRoute?.state ?? (destinationTabRoute?.key ? getPreservedNavigatorState(destinationTabRoute.key) : undefined);
         const activeSplit = destinationStack?.routes.at(destinationStack.index ?? -1);
         const splitPayload = destinationStack ? getNestedAction(minimalAction, destinationStack).payload : undefined;
+        // Browser Back can rebuild a tab without live or preserved state. Jumping would restore its last workspace,
+        // so an explicit scope must also replace the root when there is no split to compare it against.
+        const targetSplitName = isRecord(jumpParams) ? jumpParams.screen : undefined;
+        const targetSplitParams = isRecord(jumpParams) && isRecord(jumpParams.params) ? jumpParams.params.params : undefined;
+        const hasUnknownTargetScope =
+            !activeSplit &&
+            typeof targetSplitName === 'string' &&
+            isSplitNavigatorName(targetSplitName) &&
+            isRecord(targetSplitParams) &&
+            getParamsFromRoute(SPLIT_TO_SIDEBAR[targetSplitName]).some((param) => typeof targetSplitParams[param] === 'string' || typeof targetSplitParams[param] === 'number');
         // jumpTo would keep the other workspace's sidebar. Replace at the root because tabs cannot handle REPLACE,
         // and forward navigation would leave the redirect's origin in the back stack.
-        if (activeSplit && splitPayload && isNamedActionPayload(splitPayload) && hasDifferentSplitScope(activeSplit, splitPayload)) {
+        if (hasUnknownTargetScope || (activeSplit && splitPayload && isNamedActionPayload(splitPayload) && hasDifferentSplitScope(activeSplit, splitPayload))) {
             dispatch({...action, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE, target: navigationContainer.getRootState().key});
             return true;
         }
