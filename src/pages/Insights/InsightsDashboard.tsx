@@ -70,7 +70,7 @@ type InsightsDashboardContentProps = {
 
     headlineChart: InsightsDashboardChart;
 
-    /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
+    /** Charts below the headline, left out when no workspace in scope is eligible for them */
     supportingCharts: InsightsDashboardChart[];
 
     /** Page-level filters every chart on the dashboard is narrowed by */
@@ -91,6 +91,20 @@ type InsightsDashboardContentProps = {
     /** Page header rendered at the top of the scroller, so it scrolls away with the charts */
     children?: React.ReactNode;
 };
+
+/** Splits the charts, in order, into sections: a full-width chart on its own, or the charts between two full-width ones, which share a two-column grid */
+function getDashboardSections(charts: InsightsDashboardChart[]): Array<InsightsDashboardChart | InsightsDashboardChart[]> {
+    const sections: Array<InsightsDashboardChart | InsightsDashboardChart[]> = [];
+    for (const chart of charts) {
+        const lastSection = sections.at(-1);
+        if (!chart.chart.isFullWidth && Array.isArray(lastSection)) {
+            lastSection.push(chart);
+        } else {
+            sections.push(chart.chart.isFullWidth ? chart : [chart]);
+        }
+    }
+    return sections;
+}
 
 function InsightsDashboardContent({
     dashboardID,
@@ -237,10 +251,26 @@ function InsightsDashboardContent({
         />
     );
 
-    const gridCharts = supportingCharts.filter(({chart}) => !chart.isFullWidth);
-    const fullWidthCharts = supportingCharts.filter(({chart}) => chart.isFullWidth);
-    // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
-    const columns = shouldUseNarrowLayout ? [gridCharts] : [gridCharts.filter((chart, index) => index % 2 === 0), gridCharts.filter((chart, index) => index % 2 === 1)];
+    const renderGrid = (gridCharts: InsightsDashboardChart[]) => {
+        // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
+        const columns = shouldUseNarrowLayout ? [gridCharts] : [gridCharts.filter((chart, index) => index % 2 === 0), gridCharts.filter((chart, index) => index % 2 === 1)];
+        return (
+            <View
+                key={gridCharts.at(0)?.chart.graphKey}
+                style={styles.insightsChartGrid(shouldUseNarrowLayout)}
+            >
+                {columns.map((columnCharts, columnIndex) => (
+                    <View
+                        // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                        key={columnIndex}
+                        style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
+                    >
+                        {columnCharts.map((chart) => renderChart(chart))}
+                    </View>
+                ))}
+            </View>
+        );
+    };
 
     return (
         <TabRootScrollViewMarker>
@@ -266,20 +296,7 @@ function InsightsDashboardContent({
                         />
                     )}
                     {renderChart(headlineChart, true)}
-                    {gridCharts.length > 0 && (
-                        <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
-                            {columns.map((columnCharts, columnIndex) => (
-                                <View
-                                    // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
-                                    key={columnIndex}
-                                    style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
-                                >
-                                    {columnCharts.map((chart) => renderChart(chart))}
-                                </View>
-                            ))}
-                        </View>
-                    )}
-                    {fullWidthCharts.map((chart) => renderChart(chart))}
+                    {getDashboardSections(supportingCharts).map((section) => (Array.isArray(section) ? renderGrid(section) : renderChart(section)))}
                 </View>
             </ScrollView>
         </TabRootScrollViewMarker>

@@ -27,7 +27,7 @@ type InsightsChartSpec = {
     titleKey: TranslationPaths;
     view: SearchView;
 
-    /** Whether the chart spans the whole width of the grid, below the charts laid out in two columns */
+    /** Whether the chart spans the dashboard's whole width, at its place in the list, instead of sharing the two-column grid */
     isFullWidth?: boolean;
 
     /** What the chart plots for each group, left out by charts plotting the money each group totals */
@@ -49,9 +49,6 @@ type InsightsChartSpec = {
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
 };
-
-/** How many groups a chart drawn as a ranking table lists */
-const RANKING_TABLE_LIMIT = 15;
 
 /** Violations kept at submission or approval */
 const VIOLATION_HAS_VALUES: HasFilterValues = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
@@ -241,7 +238,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                limit: RANKING_TABLE_LIMIT,
+                limit: 15,
             },
         ],
     },
