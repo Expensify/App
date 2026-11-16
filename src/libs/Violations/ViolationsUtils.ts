@@ -60,6 +60,8 @@ import Onyx from 'react-native-onyx';
 
 import type ViolationFixParams from './types';
 
+import {getNonDefaultViolationTranslation, isNonDefaultViolationName} from './getNonDefaultViolationTranslation';
+
 type ViolationTranslationParams = {
     violation: TransactionViolation;
     translate: LocaleContextProps['translate'];
@@ -1247,6 +1249,10 @@ const ViolationsUtils = {
             missingFields = [],
         } = violation.data ?? {};
 
+        if (isNonDefaultViolationName(violation.name)) {
+            return getNonDefaultViolationTranslation(violation.name, translate);
+        }
+
         switch (violation.name) {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
@@ -1332,22 +1338,6 @@ const ViolationsUtils = {
                 return translate('violations.itemizedReceiptRequired', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
             case 'customRules':
                 return translate('violations.customRules', message);
-            case CONST.VIOLATIONS.NONDEFAULT_AMOUNT:
-                return translate('violations.nonDefaultAmount');
-            case CONST.VIOLATIONS.NONDEFAULT_BILLABLE:
-                return translate('violations.nonDefaultBillable');
-            case CONST.VIOLATIONS.NONDEFAULT_CATEGORY:
-                return translate('violations.nonDefaultCategory');
-            case CONST.VIOLATIONS.NONDEFAULT_COMMENT:
-                return translate('violations.nonDefaultComment');
-            case CONST.VIOLATIONS.NONDEFAULT_MERCHANT:
-                return translate('violations.nonDefaultMerchant');
-            case CONST.VIOLATIONS.NONDEFAULT_REIMBURSABLE:
-                return translate('violations.nonDefaultReimbursable');
-            case CONST.VIOLATIONS.NONDEFAULT_TAG:
-                return translate('violations.nonDefaultTag');
-            case CONST.VIOLATIONS.NONDEFAULT_TAX:
-                return translate('violations.nonDefaultTax');
             case 'ruleViolation':
                 return buildRuleViolationMessage(violation.data?.filters, transactionCurrency ?? currency, convertToDisplayString, translate, policyVendors);
             case 'rter': {

@@ -271,6 +271,7 @@ import {
 import getFormattedPostedDate from './TransactionUtils/getFormattedPostedDate';
 import shouldShowTransactionPostedYear from './TransactionUtils/shouldShowTransactionPostedYear';
 import {isInvalidMerchantValue} from './ValidationUtils';
+import {getNonDefaultViolationTranslation, isNonDefaultViolationName} from './Violations/getNonDefaultViolationTranslation';
 
 type ColumnSortMapping<T> = Partial<Record<SearchSortBy, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
@@ -5821,23 +5822,11 @@ function isSubmittedTransactionViolationShortName(name: string): name is Submitt
  * Falls back to the raw identifier when no short-name translation exists.
  */
 function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+    if (isNonDefaultViolationName(violationName)) {
+        return getNonDefaultViolationTranslation(violationName, translate);
+    }
+
     switch (violationName) {
-        case CONST.VIOLATIONS.NONDEFAULT_AMOUNT:
-            return translate('violations.nonDefaultAmount');
-        case CONST.VIOLATIONS.NONDEFAULT_BILLABLE:
-            return translate('violations.nonDefaultBillable');
-        case CONST.VIOLATIONS.NONDEFAULT_CATEGORY:
-            return translate('violations.nonDefaultCategory');
-        case CONST.VIOLATIONS.NONDEFAULT_COMMENT:
-            return translate('violations.nonDefaultComment');
-        case CONST.VIOLATIONS.NONDEFAULT_MERCHANT:
-            return translate('violations.nonDefaultMerchant');
-        case CONST.VIOLATIONS.NONDEFAULT_REIMBURSABLE:
-            return translate('violations.nonDefaultReimbursable');
-        case CONST.VIOLATIONS.NONDEFAULT_TAG:
-            return translate('violations.nonDefaultTag');
-        case CONST.VIOLATIONS.NONDEFAULT_TAX:
-            return translate('violations.nonDefaultTax');
         case CONST.VIOLATIONS.RULE_VIOLATION:
             return translate('violations.shortName.customRules');
         default:
