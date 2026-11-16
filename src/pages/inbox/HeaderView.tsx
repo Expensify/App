@@ -227,6 +227,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         formatPhoneNumber,
         parentReportName: derivedParentReportName,
         isParentReportArchived: isParentReportHeaderDataArchived,
+        currentUserAccountID,
     });
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);

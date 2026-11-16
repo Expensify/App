@@ -1117,6 +1117,7 @@ const SENTRY_LABEL = {
         LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeaderSelectAll',
         SPEND_RULE_LIST_ITEM_CHECKBOX: 'SpendRuleListItem-Checkbox',
         CONFIRM_BUTTON: 'SelectionList-ConfirmButton',
+        SEARCH_INPUT: 'SelectionList-SearchInput',
     },
     CONTEXT_MENU: {
         REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
@@ -3144,6 +3145,7 @@ const SENTRY_LABEL = {
     },
     ADD_AGENT_PAGE: {
         AVATAR: 'AddAgentPage-Avatar',
+        INSTRUCTIONS: 'AddAgentPage-Instructions',
     },
     EDIT_AGENT_PAGE: {
         CHAT: 'EditAgentPage-Chat',
@@ -3155,6 +3157,9 @@ const SENTRY_LABEL = {
         VIEW_HISTORY: 'EditAgentPage-ViewHistory',
         AVATAR: 'EditAgentPage-Avatar',
         BOT_AVATAR_SELECTOR: 'EditAgentPage-BotAvatarSelector',
+    },
+    EDIT_AGENT_PROMPT_PAGE: {
+        INSTRUCTIONS: 'EditAgentPromptPage-Instructions',
     },
     SETTINGS_PROFILE: {
         AVATAR: 'SettingsProfile-Avatar',
@@ -3171,6 +3176,7 @@ const SENTRY_LABEL = {
         PHONE_NUMBER: 'SettingsProfile-PhoneNumber',
         ADDRESS: 'SettingsProfile-Address',
         TIMEZONE_AUTOMATIC_SWITCH: 'SettingsProfile-TimezoneAutomaticSwitch',
+        AI_PROMPT: 'SettingsProfile-AIPrompt',
         AI_PROMPT_SAVE: 'SettingsProfile-AIPromptSave',
         AVATAR_EDIT: 'SettingsProfile-AvatarEdit',
         AVATAR_UPLOAD_PHOTO: 'SettingsProfile-AvatarUploadPhoto',
