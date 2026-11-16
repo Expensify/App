@@ -29,7 +29,6 @@ function WorkspaceOverviewCurrencyGovernmentRateCountryPage({route}: WorkspaceOv
     const {policyID, currencyCode} = route.params;
     const isForcedToChangeCurrency = !!route.params?.isForcedToChangeCurrency;
     const shouldStartExpensifyCardEnrollment = !!route.params?.shouldStartExpensifyCardEnrollment;
-    // The currency page opened on top of another page opens this one on top of itself, see WorkspaceOverviewCurrencyPage
     const isDynamicRoute = route.name === SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY;
     const currencyPagePath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY.path, isDynamicRoute);
     const {translate} = useLocalize();
