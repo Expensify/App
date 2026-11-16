@@ -3075,6 +3075,22 @@ describe('actions/Report', () => {
             expect(requests.at(0)?.data?.reportComment).toBe('hello removed');
         });
 
+        it('keeps the names of users the parked edit mentions by login', async () => {
+            // Given a comment whose attachment is still uploading, and the names of every known user
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            await seedUploadingComment();
+            const accountIDToName = {'1001': 'alice@expensify.com', '1002': 'bob@expensify.com'};
+
+            // When an edit that mentions Alice as @login, the only form a draft has, is parked on the upload
+            const editMentioningAlice = `hello @alice@expensify.com\n\n[file.csv](${localSource})`;
+            Report.editReportComment({reportID}, await getAction(), editMentioningAlice, undefined, '', undefined, 1, undefined, undefined, accountIDToName);
+            await waitForBatchedUpdates();
+
+            // Then only Alice's name is saved with it, so the replay can read her accountID mention in the synced copy back as @login
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.accountIDToName).toEqual({'1001': 'alice@expensify.com'});
+        });
+
         it('leaves a failed upload showing as failed when it drops the parked edit', async () => {
             // Given a comment whose attachment is still uploading, with an edit parked on it
             global.fetch = TestHelper.createGlobalFetchMock();

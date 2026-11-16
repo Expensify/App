@@ -371,6 +371,7 @@ function getOnyxTargetTransactionData({
             policy,
             delegateAccountID,
             currencyContext: {getCurrencyDecimals, getCurrencySymbol},
+            rules,
             shouldBuildOptimisticModifiedExpenseReportAction,
         });
     } else {

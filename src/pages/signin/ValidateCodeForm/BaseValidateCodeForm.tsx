@@ -327,6 +327,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
                             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                            sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.RECOVERY_CODE_INPUT}
                         />
                     ) : (
                         <ValidateCodeInput

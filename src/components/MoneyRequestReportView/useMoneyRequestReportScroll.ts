@@ -15,8 +15,9 @@ import {subscribeToNewActionEvent} from '@userActions/Report/reportActionSubscri
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useEffect, useEffectEvent, useRef} from 'react';
