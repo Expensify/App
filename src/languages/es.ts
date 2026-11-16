@@ -2271,6 +2271,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Esperando a que el pago cancelado termine de procesarse${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) =>
+                `El pago está en espera mientras nuestro socio de pagos completa una revisión.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `¡Ups! Parece que estás enviando este informe a <strong>ti mismo</strong>. Aprobar tus propios informes está <strong>prohibido</strong> por tu espacio de trabajo. Envía este informe a otra persona o contacta con tu administrador para cambiar la persona a la que lo envías.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {

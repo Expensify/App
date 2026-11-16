@@ -2340,6 +2340,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Αναμονή μέχρι να ολοκληρωθεί η επεξεργασία της ακυρωμένης πληρωμής${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) =>
+                `Η πληρωμή έχει τεθεί σε αναμονή όσο ο συνεργάτης μας για τις πληρωμές ολοκληρώνει έναν έλεγχο.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ουπς! Φαίνεται ότι υποβάλλετε σε <strong>εσάς τον/την ίδιο/ίδια</strong>. Η έγκριση των δικών σας αναφορών είναι <strong>απαγορευμένη</strong> από τον χώρο εργασίας σας. Υποβάλετε αυτήν την αναφορά σε κάποιον άλλον ή επικοινωνήστε με τον διαχειριστή σας για να αλλάξετε το άτομο στο οποίο την υποβάλλετε.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {

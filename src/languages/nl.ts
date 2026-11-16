@@ -2280,6 +2280,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Wachten tot de geannuleerde betaling is verwerkt${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) =>
+                `De betaling is gepauzeerd terwijl onze betalingspartner een controle afrondt.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oeps! Het lijkt erop dat je deze indient bij <strong>jezelf</strong>. Het goedkeuren van je eigen rapporten is door je werkruimte <strong>verboden</strong>. Dien dit rapport in bij iemand anders of neem contact op met je beheerder om de persoon te wijzigen bij wie je indient.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {

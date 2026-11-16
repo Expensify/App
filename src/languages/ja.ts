@@ -2264,6 +2264,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `キャンセルされた支払いの処理が完了するまでお待ちください${formattedETA}。`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `お支払いは、決済パートナーによる審査が完了するまで保留されています。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `おっと！ <strong>ご自身</strong>に提出しようとしているようです。ご自身のレポートを承認することは、ワークスペースによって<strong>禁止</strong>されています。別の相手にこのレポートを提出するか、提出先を変更してもらうよう管理者に連絡してください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
