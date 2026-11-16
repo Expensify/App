@@ -23,7 +23,16 @@ import {fetchOutstandingReports} from '@libs/actions/OutstandingReports';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
-import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {
+    canAddTransaction,
+    getIconsForExpenseReport,
+    isIOUReport,
+    isOpenReport,
+    isReportIneligibleForMoveExpenses,
+    isReportOwner,
+    isSelfDM,
+    sortOutstandingReportsBySelected,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
@@ -221,6 +230,22 @@ function IOURequestEditReportCommon({
 
     const reportOwnerLogin = personalDetails?.[resolvedReportOwnerAccountID]?.login;
     const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing, reportOwnerLogin);
+    // The derived transaction map has no per-report keys, so select only eligibility for the currently outstanding destinations.
+    const [ineligibleReportIDs] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
+        selector: (reportTransactionsAndViolations) => {
+            const ineligibleIDs: Record<string, true> = {};
+            for (const report of outstandingReports) {
+                if (!report) {
+                    continue;
+                }
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                if (isReportIneligibleForMoveExpenses(report, policy, reportTransactionsAndViolations?.[report.reportID]?.transactions)) {
+                    ineligibleIDs[report.reportID] = true;
+                }
+            }
+            return ineligibleIDs;
+        },
+    });
 
     // Outstanding reports belong to one owner, so listing them would offer their reports for everyone else's expenses.
     const eligibleReports =
@@ -235,6 +260,9 @@ function IOURequestEditReportCommon({
                           return false;
                       }
                       if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
+                          return false;
+                      }
+                      if (ineligibleReportIDs?.[report.reportID]) {
                           return false;
                       }
                       if (canAddTransaction(report, rules, undefined, true)) {
