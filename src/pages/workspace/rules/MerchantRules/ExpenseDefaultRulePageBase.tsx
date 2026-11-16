@@ -15,6 +15,7 @@ import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useExpenseDefaultConditionNames from '@hooks/useExpenseDefaultConditionNames';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -23,13 +24,11 @@ import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import usePolicyCards from '@hooks/usePolicyCards';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {deleteRule, setRule} from '@libs/actions/Policy/Rules';
@@ -37,7 +36,6 @@ import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
 import {completeReviewWorkspaceSettingsTask} from '@libs/actions/Task';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
-import {getCardDescription} from '@libs/CardUtils';
 import {getTaxRateDisplayName, hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {
@@ -50,6 +48,7 @@ import {
     haveSameConditions,
 } from '@libs/ExpenseDefaultRuleUtils';
 import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
+import {getHasConditionText} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -66,7 +65,7 @@ import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeader
 
 import variables from '@styles/variables';
 
-import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -115,17 +114,15 @@ type SectionType = {
     items: Array<SectionItemType | undefined>;
 };
 
-const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string => {
+/**
+ * Words a yes/no row.
+ *
+ * `unsetTranslationKey` differs between the two halves of the page, because a condition left unset matches either
+ * way, while a default left unset leaves the field alone.
+ */
+const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate, unsetTranslationKey: 'common.dontChange' | 'common.any'): string => {
     if (value === undefined) {
-        return translate('common.dontChange');
-    }
-    return translate(value ? 'common.yes' : 'common.no');
-};
-
-/** A condition left unset matches either way, rather than leaving a field alone the way an unset default does. */
-const getConditionBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string => {
-    if (value === undefined) {
-        return translate('common.any');
+        return translate(unsetTranslationKey);
     }
     return translate(value ? 'common.yes' : 'common.no');
 };
@@ -189,6 +186,7 @@ function ExpenseDefaultRulePageBase({
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const {submitters: submitterNamesByAccountID, cards: cardDescriptionsByID} = useExpenseDefaultConditionNames(policy);
     // The page is on its way out, so the rule it was editing no longer being there is expected rather than an
     // error worth showing.
     const [isClosing, setIsClosing] = useState(false);
@@ -198,8 +196,6 @@ function ExpenseDefaultRulePageBase({
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Calendar', 'Cash', 'CreditCard', 'Folder', 'Paperclip', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
-    const {cards: policyCards} = usePolicyCards(policyID);
-    const cardDescriptionsByID = new Map(policyCards.map((card) => [String(card.cardID), getCardDescription(card, translate)]));
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -313,8 +309,6 @@ function ExpenseDefaultRulePageBase({
         return !!policy?.areTagsEnabled && policyTags.some((tagList) => hasEnabledOptions(tagList.tags));
     };
     const formTags = getTagArrayFromName(form?.tag ?? '');
-    const members = useWorkspaceMembers(policy);
-    const membersByAccountID = new Map(members.map(({accountID: memberAccountID, details}) => [String(memberAccountID), details.displayName ?? details.login ?? String(memberAccountID)]));
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
 
@@ -346,7 +340,7 @@ function ExpenseDefaultRulePageBase({
     const submittersToMatch = form?.submittersToMatch ?? [];
     // A submitter who has left the workspace keeps their account ID, so the row still shows the rule matches on someone.
     const submittersToMatchDisplayName =
-        submittersToMatch.length > 0 ? submittersToMatch.map((submitterAccountID) => membersByAccountID.get(submitterAccountID) ?? submitterAccountID).join(', ') : undefined;
+        submittersToMatch.length > 0 ? submittersToMatch.map((submitterAccountID) => submitterNamesByAccountID?.[submitterAccountID] ?? submitterAccountID).join(', ') : undefined;
     const merchantTypesToMatch = form?.merchantTypesToMatch ?? [];
     const merchantTypesToMatchDisplayName =
         merchantTypesToMatch.length > 0 ? merchantTypesToMatch.map((merchantType) => getMerchantTypeLabel(merchantType, translate)).join(', ') : undefined;
@@ -381,17 +375,14 @@ function ExpenseDefaultRulePageBase({
     };
     const cardsToMatch = form?.cardsToMatch ?? [];
     // A card that has left the workspace keeps its ID, so the row still shows the rule matches on one.
-    const cardsToMatchDisplayName = cardsToMatch.length > 0 ? cardsToMatch.map((cardID) => cardDescriptionsByID.get(cardID) ?? cardID).join(', ') : undefined;
+    const cardsToMatchDisplayName = cardsToMatch.length > 0 ? cardsToMatch.map((cardID) => cardDescriptionsByID?.[cardID] ?? cardID).join(', ') : undefined;
     const hasToMatch = form?.hasToMatch ?? [];
     const hasMatchType = form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
     const getHasToMatchDisplayName = () => {
         if (hasToMatch.length === 0) {
             return undefined;
         }
-        const parts = hasToMatch.map((value) => translate(HAS_VALUE_TRANSLATION_KEYS[value] ?? 'common.other')).join(', ');
-        const matchType =
-            hasMatchType === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? translate('search.filters.filterType.has.negative') : translate('search.filters.filterType.has.positive');
-        return `${matchType} ${parts}`;
+        return getHasConditionText(hasToMatch, hasMatchType, translate);
     };
     const taxRatesToMatch = form?.taxRatesToMatch ?? [];
     // Blank rather than the raw ID once a rate is gone from the workspace.
@@ -601,7 +592,7 @@ function ExpenseDefaultRulePageBase({
                 {
                     key: 'reimbursableToMatch',
                     description: translate('common.reimbursable'),
-                    title: getConditionBooleanTitle(form?.reimbursableToMatch, translate),
+                    title: getBooleanTitle(form?.reimbursableToMatch, translate, 'common.any'),
                     onPress: () =>
                         Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
@@ -610,7 +601,7 @@ function ExpenseDefaultRulePageBase({
                     ? {
                           key: 'billableToMatch',
                           description: translate('common.billable'),
-                          title: getConditionBooleanTitle(form?.billableToMatch, translate),
+                          title: getBooleanTitle(form?.billableToMatch, translate, 'common.any'),
                           onPress: () =>
                               Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_BILLABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_BILLABLE_TO_MATCH.getRoute(policyID, ruleID))),
                           icon: icons.Paycheck,
@@ -741,7 +732,7 @@ function ExpenseDefaultRulePageBase({
                 {
                     key: 'reimbursable',
                     description: translate('common.reimbursable'),
-                    title: getBooleanTitle(form?.reimbursable, translate),
+                    title: getBooleanTitle(form?.reimbursable, translate, 'common.dontChange'),
                     onPress: () =>
                         Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
@@ -750,7 +741,7 @@ function ExpenseDefaultRulePageBase({
                     ? {
                           key: 'billable',
                           description: translate('common.billable'),
-                          title: getBooleanTitle(form?.billable, translate),
+                          title: getBooleanTitle(form?.billable, translate, 'common.dontChange'),
                           onPress: () =>
                               Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_BILLABLE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID, ruleID))),
                           icon: icons.Paycheck,

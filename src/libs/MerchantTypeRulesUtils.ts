@@ -281,6 +281,22 @@ function toSentenceContinuation(phrase: string): string {
 }
 
 /**
+ * Words a has condition, which the rule editor's row and the rules table both show.
+ *
+ * Returns an empty string for an operator that is neither has nor doesn't have, the way the other conditions do.
+ */
+function getHasConditionText(values: string[], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, translate: LocaleContextProps['translate']): string {
+    const parts = values.map((value) => translate(HAS_VALUE_TRANSLATION_KEYS[value] ?? 'common.other')).join(', ');
+    if (operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+        return translate('workspace.rules.expenseDefaultsTable.doesNotHaveValue', parts);
+    }
+    if (operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+        return translate('workspace.rules.expenseDefaultsTable.hasValue', parts);
+    }
+    return '';
+}
+
+/**
  * Words one condition on a field other than merchant, category and tag.
  *
  * Returns an empty string for a field, operator or value this has no wording for, so a rule carrying one still
@@ -382,14 +398,7 @@ function getOtherConditionText(
     }
 
     if (field === CONDITION.HAS) {
-        const parts = values.map((value) => translate(HAS_VALUE_TRANSLATION_KEYS[value] ?? 'common.other')).join(', ');
-        if (operator === SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-            return translate('workspace.rules.expenseDefaultsTable.doesNotHaveValue', parts);
-        }
-        if (operator === SYNTAX_OPERATORS.EQUAL_TO) {
-            return translate('workspace.rules.expenseDefaultsTable.hasValue', parts);
-        }
-        return '';
+        return getHasConditionText(values, operator, translate);
     }
 
     return '';
@@ -513,6 +522,7 @@ function getExpenseDefaultsTableData({
 export {
     getDefaultMccGroupCategory,
     getExpenseDefaultConditionText,
+    getHasConditionText,
     getExpenseDefaultRuleDescription,
     getExpenseDefaultsTableData,
     getMerchantRulesTableData,
