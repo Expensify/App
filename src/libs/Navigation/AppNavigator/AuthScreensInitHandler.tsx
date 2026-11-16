@@ -12,6 +12,7 @@ import useOneTransactionThreadReportID from '@hooks/useOneTransactionThreadRepor
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
+import useRepairExperienceCookie from '@hooks/useRepairExperienceCookie';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useRequestsKeptOnSAMLSignOut from '@hooks/useRequestsKeptOnSAMLSignOut';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -123,6 +124,7 @@ function AuthScreensInitHandler() {
 
     useReconcileHighContrastIntent();
     useRequestsKeptOnSAMLSignOut();
+    useRepairExperienceCookie();
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.

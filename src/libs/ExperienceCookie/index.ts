@@ -10,7 +10,7 @@ import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 
-import type {ClearExperienceCookie, WriteExperienceCookie} from './types';
+import type {ClearExperienceCookie, ExperienceCookieValue, IsSharedProductHost, ReadExperienceCookie, WriteExperienceCookie} from './types';
 
 const WWW_PREFIX = 'www.';
 
@@ -47,7 +47,7 @@ function getSharedProductHost(): string | undefined {
  * New Expensify on its own hosts (new.expensify.com, dev.new.expensify.com) doesn't use the cookie, so the host has to match exactly.
  * The cookie domain check stops a build with a mismatched EXPENSIFY_URL from writing a cookie for a different environment's domain.
  */
-function isSharedProductHost(): boolean {
+const isSharedProductHost: IsSharedProductHost = () => {
     const hostname = window.location.hostname;
     if (hostname !== getSharedProductHost()) {
         return false;
@@ -61,7 +61,7 @@ function isSharedProductHost(): boolean {
         return false;
     }
     return true;
-}
+};
 
 /**
  * Deletes a cookie by expiring it. Without a domain this targets the host-only cookie.
@@ -95,4 +95,18 @@ const clearExperienceCookie: ClearExperienceCookie = () => {
     return true;
 };
 
-export {writeExperienceCookie, clearExperienceCookie};
+function isExperienceCookieValue(value: string | undefined): value is ExperienceCookieValue {
+    return Object.values<string | undefined>(CONST.EXPERIENCE_COOKIE.VALUES).includes(value);
+}
+
+const readExperienceCookie: ReadExperienceCookie = () => {
+    const prefix = `${CONST.EXPERIENCE_COOKIE.NAME}=`;
+    const value = document.cookie
+        .split(';')
+        .map((cookie) => cookie.trim())
+        .find((cookie) => cookie.startsWith(prefix))
+        ?.slice(prefix.length);
+    return isExperienceCookieValue(value) ? value : undefined;
+};
+
+export {writeExperienceCookie, clearExperienceCookie, readExperienceCookie, isSharedProductHost};

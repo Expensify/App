@@ -25,7 +25,7 @@ import Onyx from 'react-native-onyx';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@libs/ExperienceCookie', () => ({writeExperienceCookie: jest.fn(() => true), clearExperienceCookie: jest.fn(() => true)}));
+jest.mock('@libs/ExperienceCookie', () => ({writeExperienceCookie: jest.fn(() => true), clearExperienceCookie: jest.fn(() => true), isSharedProductHost: jest.fn(() => false)}));
 jest.mock('@userActions/Link', () => ({openOldDotLink: jest.fn()}));
 jest.mock('@userActions/ExitSurvey', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/ExitSurvey'), switchToOldDot: jest.fn()}));
 jest.mock('@navigation/Navigation', () => ({__esModule: true, default: {dismissModal: jest.fn()}}));

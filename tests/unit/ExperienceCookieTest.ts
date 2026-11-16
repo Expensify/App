@@ -32,7 +32,7 @@ jest.mock('@libs/Log', () => ({
 }));
 
 // The React Native preset resolves index.native.ts first, so the web implementation is loaded by its file name
-const {writeExperienceCookie, clearExperienceCookie} = jest.requireActual<typeof WebExperienceCookie>('@libs/ExperienceCookie/index.ts');
+const {writeExperienceCookie, clearExperienceCookie, readExperienceCookie, isSharedProductHost} = jest.requireActual<typeof WebExperienceCookie>('@libs/ExperienceCookie/index.ts');
 
 const HOST_ONLY_DELETE = 'experience=; Max-Age=0; Path=/; Secure; SameSite=Lax';
 
@@ -145,5 +145,41 @@ describe('ExperienceCookie', () => {
         expect(didWrite).toBe(false);
         expect(didClear).toBe(false);
         expect(getCookieWrites()).toEqual([]);
+    });
+
+    it('recognizes only the shared product host of the build', () => {
+        // Given a production build
+        mockEnvironment = CONST.ENVIRONMENT.PRODUCTION;
+        mockExpensifyURL = 'https://www.expensify.com/';
+
+        // Then only expensify.com serves both products, while New Expensify's and Classic's own hosts don't
+        arrangeHostname('expensify.com');
+        expect(isSharedProductHost()).toBe(true);
+        arrangeHostname('new.expensify.com');
+        expect(isSharedProductHost()).toBe(false);
+        arrangeHostname('www.expensify.com');
+        expect(isSharedProductHost()).toBe(false);
+    });
+
+    it.each([
+        ['experience=new', CONST.EXPERIENCE_COOKIE.VALUES.NEW],
+        ['other=1; experience=classic; last=2', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC],
+        ['experienced=new', undefined],
+        ['experience=other', undefined],
+        ['', undefined],
+    ])("reads the experience cookie from '%s'", (cookie, expected) => {
+        // Given the cookies the browser sends for this page
+        const cookieGetter = jest.spyOn(Document.prototype, 'cookie', 'get').mockReturnValue(cookie);
+
+        // Then only a known experience value is returned
+        expect(readExperienceCookie()).toBe(expected);
+        cookieGetter.mockRestore();
+    });
+
+    it('never reads a cookie on native', () => {
+        // Given the native implementation, which has no browser cookies
+        // Then there is no cookie and no shared product host
+        expect(NativeExperienceCookie.readExperienceCookie()).toBeUndefined();
+        expect(NativeExperienceCookie.isSharedProductHost()).toBe(false);
     });
 });
