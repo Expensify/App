@@ -33,6 +33,7 @@ function reauthenticate(commandName?: string): Promise<ReauthenticationResult> {
     isAuthenticating = retryReauthenticate(commandName).finally(() => {
         // Reset the isAuthenticating state to allow new reauthentication flows to start fresh
         isAuthenticating = null;
+        reauthThrottle.clear();
     });
 
     return isAuthenticating;
