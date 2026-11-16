@@ -39,11 +39,16 @@ function PressableWithSecondaryInteraction({
 
     // Use Text node for inline mode to prevent content overflow.
     if (inline) {
+        // Text takes a long press only with a label, so the two are passed on together.
+        const longPressProps = rest.sentryLabel ? {onLongPress: onSecondaryInteraction ? executeSecondaryInteraction : undefined, sentryLabel: rest.sentryLabel} : {};
+
         return (
             <Text
-                {...(rest as TextProps)}
+                // The cast hides the press props and the label, since TypeScript can't tie a handler in `rest` to its label.
+                // At runtime `rest` still passes any onPress with its label, and the long press is added only with one.
+                {...(rest as Omit<TextProps, 'onPress' | 'onLongPress' | 'sentryLabel'>)}
+                {...longPressProps}
                 suppressHighlighting={suppressHighlighting}
-                onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             >
                 {children as ReactNode}
             </Text>

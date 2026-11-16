@@ -33,7 +33,16 @@ function NoEligibleMethodsDescription() {
     return (
         <Text style={[styles.textAlignCenter, styles.textSupporting]}>
             {start}
-            {isWeb ? link : <TextLink onPress={goToSettings}>{link}</TextLink>}
+            {isWeb ? (
+                link
+            ) : (
+                <TextLink
+                    onPress={goToSettings}
+                    sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.NO_ELIGIBLE_METHODS_SETTINGS_LINK}
+                >
+                    {link}
+                </TextLink>
+            )}
             {end}
         </Text>
     );
