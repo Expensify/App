@@ -1154,6 +1154,9 @@ type PolicyRulesModifiedFields = {
     /** The value that the description was changed to (display key, mapped from "comment") */
     description?: string;
 
+    /** The amount the rule set, which the backend sends already formatted for display */
+    amount?: string;
+
     billable?: boolean;
     reimbursable?: boolean;
     tax?: {
@@ -1174,6 +1177,9 @@ type PersonalRulesModifiedFields = {
 
     /** The value that the description was changed to (display key, mapped from "comment") */
     description?: string;
+
+    /** The amount the rule set, which the backend sends already formatted for display */
+    amount?: string;
 
     billable?: boolean;
     reimbursable?: boolean;
@@ -1855,6 +1861,10 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED]: OriginalMessageReimbursementDequeued;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: OriginalMessageReimbursementQueued;
     [CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN]: OriginalMessageRemovedFromApprovalChain;
     [CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE]: OriginalMessageDemotedFromWorkspace;
