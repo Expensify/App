@@ -385,8 +385,9 @@ function ExpenseDefaultRulePageBase({
         return getHasConditionText(hasToMatch, hasMatchType, translate);
     };
     const taxRatesToMatch = form?.taxRatesToMatch ?? [];
-    // Blank rather than the raw ID once a rate is gone from the workspace.
-    const taxRatesToMatchDisplayName = taxRatesToMatch.length > 0 ? taxRatesToMatch.map((externalID) => getTaxRateDisplayName(policy, externalID) || externalID).join(', ') : undefined;
+    // A rate the workspace has since dropped reads as the stored key, which is what the search filter shows for
+    // one too. The row still has to name it, since it is the only way to see what the rule matches on.
+    const taxRatesToMatchDisplayName = taxRatesToMatch.length > 0 ? taxRatesToMatch.map((externalID) => getTaxRateDisplayName(policy, externalID)).join(', ') : undefined;
     const amountDisplayName = form?.amount ? convertToDisplayString(Number(form.amount), policy?.outputCurrency) : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     // Blank rather than the raw ID once the rate is gone from the workspace.
