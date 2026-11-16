@@ -46,7 +46,7 @@ function getDayAfter(date: Date): string {
     return format(addDays(date, 1), CONST.DATE.FNS_FORMAT_STRING);
 }
 
-/** Builds the filter that narrows the date range to the days the chart has data for: from `trackedFrom` when the range starts earlier, through `lastDay` when it ends later. */
+/** Builds the filter that narrows the date range to the days the chart has data for: from `trackedFrom` when the range starts earlier, through `lastDay` when it ends later. A custom range keeps the bound that isn't narrowed. */
 function buildDataDaysFormValues(date: InsightsFilters['date'], lastDay: string, trackedFrom: string | undefined): Partial<SearchAdvancedFiltersForm> {
     const {start, end} = getInsightsDateRange(date);
     const from = trackedFrom && (!start || start < trackedFrom) ? trackedFrom : undefined;
@@ -54,7 +54,8 @@ function buildDataDaysFormValues(date: InsightsFilters['date'], lastDay: string,
     if (!from && !to) {
         return {};
     }
-    return {[FILTER_KEYS.DATE_RANGE]: getRangeQueryValue(from, to)};
+    const customRange = 'from' in date ? date : undefined;
+    return {[FILTER_KEYS.DATE_RANGE]: getRangeQueryValue(from ?? customRange?.from, to ?? customRange?.to)};
 }
 
 /** Builds the page's filters in the shape a search query is built from. Leaves the workspaces out when none are selected, which reports on all of them. */
