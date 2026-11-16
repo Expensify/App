@@ -7079,6 +7079,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             categoryName: 'Nazwa kategorii',
             requiresCategory: 'Członkowie muszą kategoryzować wszystkie wydatki',
             autoCategorizeNewExpenses: 'Automatycznie kategoryzuj nowe wydatki',
+            enableAtLeastOneCategory: 'Włącz co najmniej jedną kategorię.',
             showCategoryGLCodes: 'Pokaż kody GL podczas kategoryzowania wydatków',
             needCategoryForExportToIntegration: (connectionName: string) => `Wszystkie wydatki muszą zostać skategoryzowane, aby można je było wyeksportować do ${connectionName}.`,
             subtitle: 'Uzyskaj lepszy wgląd w to, gdzie wydawane są pieniądze. Użyj naszych domyślnych kategorii lub dodaj własne.',

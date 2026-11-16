@@ -7046,6 +7046,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             categoryName: 'Categorienaam',
             requiresCategory: 'Leden moeten alle uitgaven categoriseren',
             autoCategorizeNewExpenses: 'Nieuwe uitgaven automatisch categoriseren',
+            enableAtLeastOneCategory: 'Schakel minstens één categorie in.',
             showCategoryGLCodes: 'Toon GL-codes bij het categoriseren van uitgaven',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle onkosten moeten worden gecategoriseerd om te kunnen exporteren naar ${connectionName}.`,
             subtitle: 'Krijg beter inzicht in waar geld wordt uitgegeven. Gebruik onze standaardcategorieën of voeg je eigen categorieën toe.',

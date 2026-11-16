@@ -6957,6 +6957,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
             autoCategorizeNewExpenses: '新しい経費を自動分類する',
+            enableAtLeastOneCategory: '少なくとも1つのカテゴリを有効にしてください。',
             showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',

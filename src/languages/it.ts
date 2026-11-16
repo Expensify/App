@@ -7053,6 +7053,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
             autoCategorizeNewExpenses: 'Categorizza automaticamente le nuove spese',
+            enableAtLeastOneCategory: 'Abilita almeno una categoria.',
             showCategoryGLCodes: 'Mostra i codici CO.GE. quando classifichi le spese',
             needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
