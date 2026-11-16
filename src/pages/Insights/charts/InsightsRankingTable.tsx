@@ -29,6 +29,7 @@ import {View} from 'react-native';
 
 import buildRankingTableRows from './buildRankingTableRows';
 import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
+import InsightsRankingTableAverageLine from './InsightsRankingTableAverageLine';
 import InsightsRankingTableRow from './InsightsRankingTableRow';
 
 const AVERAGE_FRACTION_DIGITS = 1;
@@ -125,12 +126,11 @@ function InsightsRankingTable({
                         queryJSON={queryJSON}
                         averageWidthPercent={averageWidthPercent}
                         rowIndex={index}
-                        style={(index < rows.length - 1 || average !== undefined) && styles.borderBottom}
                     />
                 ))}
                 {!!formattedAverage && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, cardPadding]}>
-                        <View style={[styles.insightsRankingTableAverageDashedLine, styles.insightsRankingTableAverageLegendMark]} />
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.borderTop, cardPadding]}>
+                        <InsightsRankingTableAverageLine style={styles.insightsRankingTableAverageLegendMark} />
                         <Text
                             variant="label"
                             style={styles.textSupporting}
@@ -179,7 +179,7 @@ function InsightsRankingTable({
                             innerContainerStyle={headerLabelStyle}
                         />
                         {!!formattedAverage && averageWidthPercent !== undefined && (
-                            <View style={[styles.insightsRankingTableAverageLineAnchor(averageWidthPercent), styles.pt2]}>
+                            <View style={[styles.insightsRankingTableAverageLineAnchor(averageWidthPercent, 0, variables.borderTopWidth), styles.pt2]}>
                                 <View style={styles.insightsRankingTableAveragePill}>
                                     <Text
                                         variant="micro"
@@ -188,7 +188,7 @@ function InsightsRankingTable({
                                         {translate('insightsPage.compare.averageValue', formattedAverage)}
                                     </Text>
                                 </View>
-                                <View style={[styles.flex1, styles.insightsRankingTableAverageDashedLine]} />
+                                <InsightsRankingTableAverageLine style={styles.flex1} />
                             </View>
                         )}
                     </View>
@@ -239,7 +239,6 @@ function InsightsRankingTable({
                         queryJSON={queryJSON}
                         averageWidthPercent={averageWidthPercent}
                         rowIndex={index}
-                        style={index < rows.length - 1 && styles.borderBottom}
                     />
                 ))}
             </View>

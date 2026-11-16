@@ -8196,21 +8196,18 @@ const plainStyles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         } satisfies ViewStyle,
 
-        insightsRankingTableAverageLineAnchor: (leftPercent: number, overhang = 0) =>
+        insightsRankingTableAverageLineAnchor: (leftPercent: number, overhangTop = 0, overhangBottom?: number) =>
             ({
                 position: 'absolute',
-                top: -overhang,
-                bottom: -overhang,
+                top: -overhangTop,
+                bottom: -(overhangBottom ?? overhangTop),
                 left: `${leftPercent}%`,
                 width: 0,
                 alignItems: 'center',
             }) satisfies ViewStyle,
 
         insightsRankingTableAverageDashedLine: {
-            width: 0,
-            borderWidth: variables.insightsRankingTableAverageLineWidth / 2,
-            borderStyle: 'dashed',
-            borderColor: colors.green600,
+            width: variables.insightsRankingTableAverageLineWidth,
         } satisfies ViewStyle,
 
         insightsRankingTableAverageLegendMark: {

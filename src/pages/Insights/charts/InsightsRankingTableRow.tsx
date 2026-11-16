@@ -21,13 +21,12 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React from 'react';
 import {View} from 'react-native';
 
 import type {RankingTableRow} from './buildRankingTableRows';
 
+import InsightsRankingTableAverageLine from './InsightsRankingTableAverageLine';
 import InsightsRankingTableChange, {formatRankingTableChange} from './InsightsRankingTableChange';
 
 /** Smaller shares would otherwise be displayed as zero. In percentage points. */
@@ -42,10 +41,9 @@ type InsightsRankingTableRowProps = {
     averageWidthPercent?: number;
     /** Zero-based data row position, excluding the header */
     rowIndex: number;
-    style?: StyleProp<ViewStyle>;
 };
 
-function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, averageWidthPercent, rowIndex, style}: InsightsRankingTableRowProps) {
+function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, averageWidthPercent, rowIndex}: InsightsRankingTableRowProps) {
     const {item, share, barWidthPercent, change} = row;
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -86,7 +84,7 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={accessibilityLabel}
                 sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.TABLE_ROW}
-                style={[cardPaddingHorizontal, styles.tableRowVerticalPaddingCompact, styles.gap3, style]}
+                style={[cardPaddingHorizontal, styles.tableRowVerticalPaddingCompact, styles.gap3, rowIndex > 0 && styles.borderTop]}
                 hoverStyle={styles.hoveredComponentBG}
             >
                 <View style={[styles.flexRow, styles.alignItemsStart, styles.gap3]}>
@@ -108,7 +106,7 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
                     <View style={styles.insightsRankingTableBar(barWidthPercent)} />
                     {averageWidthPercent !== undefined && (
                         <View style={styles.insightsRankingTableAverageLineAnchor(averageWidthPercent, variables.insightsRankingTableAverageMarkerOverhang)}>
-                            <View style={[styles.flex1, styles.insightsRankingTableAverageDashedLine]} />
+                            <InsightsRankingTableAverageLine style={styles.flex1} />
                         </View>
                     )}
                 </View>
@@ -122,7 +120,7 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
             role={isTableSemanticsEnabled ? CONST.ROLE.ROW : CONST.ROLE.BUTTON}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.TABLE_ROW}
-            style={[styles.flexRow, styles.gap5, styles.tableRowHeight, cardPaddingHorizontal, style]}
+            style={[styles.flexRow, styles.gap5, styles.tableRowHeight, cardPaddingHorizontal, rowIndex > 0 && styles.borderTop]}
             hoverStyle={styles.hoveredComponentBG}
             {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex)}
         >
@@ -141,8 +139,8 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <View style={styles.insightsRankingTableBar(barWidthPercent)} />
                             {averageWidthPercent !== undefined && (
-                                <View style={styles.insightsRankingTableAverageLineAnchor(averageWidthPercent)}>
-                                    <View style={[styles.flex1, styles.insightsRankingTableAverageDashedLine]} />
+                                <View style={styles.insightsRankingTableAverageLineAnchor(averageWidthPercent, rowIndex > 0 ? variables.borderTopWidth : 0, 0)}>
+                                    <InsightsRankingTableAverageLine style={styles.flex1} />
                                 </View>
                             )}
                             <Text
@@ -151,7 +149,8 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
                                     styles.textSupporting,
                                     styles.noWrap,
                                     styles.ph2,
-                                    // Covers the average line where the two cross, so the percentage stays readable
+                                    // Positioned and drawn after the average line, so it covers the line where the two cross and stays readable
+                                    styles.pRelative,
                                     averageWidthPercent !== undefined && StyleUtils.getBackgroundColorStyle(hovered ? theme.hoverComponentBG : theme.cardBG),
                                 ]}
                             >

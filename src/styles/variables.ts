@@ -193,7 +193,7 @@ export default {
     insightsRankingTableNumberColumnWidth: 120,
     insightsRankingTableChangeColumnWidth: 96,
     insightsRankingTableAverageLineWidth: 2,
-    insightsRankingTableAverageMarkerOverhang: 4,
+    insightsRankingTableAverageMarkerOverhang: 6,
     minScanTooltipWidth: 320,
     chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
