@@ -6,7 +6,7 @@ type ActivatePhysicalCardPersonalDetails = Omit<SetPersonalDetailsAndShipExpensi
 type SetPersonalDetailsAndActivateExpensifyCardParams = ActivatePhysicalCardPersonalDetails & {
     cardID: number;
     cardLastFourDigits: string;
-    validateCode: string;
+    validateCode?: string;
 };
 
 export default SetPersonalDetailsAndActivateExpensifyCardParams;

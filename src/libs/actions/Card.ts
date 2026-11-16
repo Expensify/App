@@ -240,7 +240,7 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
 /**
  * Saves the details the cardholder confirmed and activates their physical Expensify card, once they enter a magic code
  */
-function setPersonalDetailsAndActivateExpensifyCard(cardLastFourDigits: string, cardID: number, personalDetails: ActivatePhysicalCardPersonalDetails, validateCode: string) {
+function setPersonalDetailsAndActivateExpensifyCard(cardLastFourDigits: string, cardID: number, personalDetails: ActivatePhysicalCardPersonalDetails, validateCode?: string) {
     const parameters: SetPersonalDetailsAndActivateExpensifyCardParams = {
         ...personalDetails,
         cardLastFourDigits,
