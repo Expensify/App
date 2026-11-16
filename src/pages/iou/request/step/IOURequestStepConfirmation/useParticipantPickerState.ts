@@ -5,7 +5,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 
-import {setMoneyRequestParticipants} from '@userActions/IOU/MoneyRequest';
+import {setMoneyRequestCurrency, setMoneyRequestParticipants} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -43,7 +43,7 @@ function useParticipantPickerState({transaction, iouType, action, reportID, repo
     const sourceReport = sourceReportID
         ? getReportOrDraftReport({reportID: sourceReportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {}})
         : undefined;
-    const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
+    const {participants: resolvedDefaultParticipants, defaultPolicy, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
 
     // Don't override the participants the user has already selected, and bail when there is no source report. The shared
@@ -95,7 +95,24 @@ function useParticipantPickerState({transaction, iouType, action, reportID, repo
         } else if (firstDefault?.reportID) {
             setTransactionReport(transaction.transactionID, {reportID: firstDefault.reportID}, true);
         }
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, navigation]);
+
+        // The draft was created before the default workspace was known, so it holds the member's Payment currency.
+        // Use the workspace currency instead, unless an amount was already entered. Only Manual requests take the
+        // workspace currency; distance, per diem, and time requests get theirs from the rate or destination.
+        const defaultCurrency = defaultPolicy?.outputCurrency;
+        if (defaultCurrency && !transaction.isAmountSet && isManualRequest && transaction.currency !== defaultCurrency) {
+            setMoneyRequestCurrency(transaction.transactionID, defaultCurrency);
+        }
+    }, [
+        transaction?.transactionID,
+        transaction?.participants,
+        transaction?.isAmountSet,
+        transaction?.currency,
+        defaultParticipants,
+        defaultPolicy?.outputCurrency,
+        isManualRequest,
+        navigation,
+    ]);
 
     return {
         defaultParticipants,

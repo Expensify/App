@@ -17,7 +17,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode, RefObject} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 
 import {authTokenTypeSelector} from '@selectors/Session';
@@ -67,6 +67,12 @@ type ExpenseFieldRowProps = WithRequiredSentryLabel & {
 
     /** Measured to place the container a dropdown field opens. Sits on the bordered box, not the outer wrapper, so the container lines up with the border. */
     anchorRef?: RefObject<ComponentRef<typeof View> | null>;
+
+    /**
+     * Reports the bordered box's layout, not the outer wrapper's, so whatever anchors to the row lines up with its border.
+     * `EducationalTooltip` passes this to the child it wraps and only shows once it has been called.
+     */
+    onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Whether the row's list is open. Reported to assistive technology. */
     isExpanded?: boolean;
@@ -122,6 +128,7 @@ function ExpenseFieldRow({
     hintText = '',
     onPress,
     anchorRef,
+    onLayout,
     isExpanded,
     isDisabled = false,
     isInteractive = true,
@@ -215,7 +222,16 @@ function ExpenseFieldRow({
 
     return (
         <View style={[styles.mh4, styles.mv2]}>
-            {anchorRef ? <View ref={anchorRef}>{borderedBox}</View> : borderedBox}
+            {anchorRef || onLayout ? (
+                <View
+                    ref={anchorRef}
+                    onLayout={onLayout}
+                >
+                    {borderedBox}
+                </View>
+            ) : (
+                borderedBox
+            )}
             {messages}
         </View>
     );

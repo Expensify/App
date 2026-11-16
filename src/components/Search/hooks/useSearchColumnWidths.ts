@@ -19,15 +19,14 @@ import getSearchColumnContentToMeasure, {
     getSearchColumnEditButtonReserve,
     getSearchColumnExtraWidth,
     HUGGED_SEARCH_COLUMNS,
+    measureSearchHeaderLabelWidth,
     SEARCH_COLUMN_HEADER_TRANSLATION_KEYS,
 } from '@libs/getSearchColumnContentToMeasure';
-import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
+import {canMeasureText} from '@libs/measureTextWidth';
 import createWidestTextMeasurer from '@libs/measureTextWidth/widestTextMeasurer';
 import {getSearchTableRowChromeWidths, getSearchTableRowInsetWidth} from '@libs/SearchUIUtils';
 
-import {textVariants} from '@styles/typography';
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
@@ -52,22 +51,17 @@ type SearchColumnSizing = {
     shouldHug: boolean;
 };
 
-/**
- * Measures how wide a column's header renders, or `null` when the platform can't measure text.
- *
- * Uses the bold weight and reserves the sort arrow even when unsorted, so sorting a column never truncates its heading.
- */
-function measureHeaderLabelWidth(column: SearchColumnType, translate: LocalizedTranslate, sortIconWidth: number): number | null {
+/** Measures how wide a column's header renders, or `null` when the platform can't measure text. */
+function measureHeaderLabelWidth(column: SearchColumnType, translate: LocalizedTranslate, labelGap: number): number | null {
     const translationKey = SEARCH_COLUMN_HEADER_TRANSLATION_KEYS[column];
 
     if (!translationKey) {
         return 0;
     }
 
-    // The heading's own variant, so the measurement follows the typography scale rather than a copy of it.
-    const width = measureTextWidth(translate(translationKey), {fontSize: textVariants.microStrong.fontSize, fontWeight: '700'});
+    const width = measureSearchHeaderLabelWidth(translate(translationKey), labelGap);
 
-    return width === null ? null : Math.ceil(width + sortIconWidth);
+    return width === null ? null : Math.ceil(width);
 }
 
 type UseSearchColumnWidthsParams = {
@@ -196,7 +190,7 @@ function useSearchColumnWidths({
 
     for (const [column, measurer] of measurersByColumn) {
         const widestContentWidth = measurer.getWidestWidth();
-        const headerLabelWidth = measureHeaderLabelWidth(column, translate, variables.iconSizeExtraSmall + styles.gap1.gap);
+        const headerLabelWidth = measureHeaderLabelWidth(column, translate, styles.gap1.gap);
 
         if (widestContentWidth === null || headerLabelWidth === null) {
             return noColumnSizing;

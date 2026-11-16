@@ -7,11 +7,15 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getWiseOnboardingPageParams from '@libs/getWiseOnboardingPageParams';
 import {rand64} from '@libs/NumberUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormPage} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
+
+import {openReimbursementAccountPage} from './BankAccounts';
+import {dismissProductTraining} from './Welcome';
 
 /**
  * Marks the page as unsaved until its own save succeeds, since `errors` is shared by every page and the next page's save clears it. It also covers a save
@@ -104,6 +108,21 @@ function clearWiseOnboardingUnsavedPages() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: null});
 }
 
+/** Reads the business details the Wise onboarding form prefills from, and records which bank account the read is for so the form does not read them again. */
+function openReimbursementAccountPageForWiseIntro(bankAccountID: number) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID, bankAccountID);
+    openReimbursementAccountPage({bankAccountID, shouldPreserveDraft: true});
+}
+
+function clearWiseIntroReadBankAccountID() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID, null);
+}
+
+function dismissWiseGlobalReimbursementsBanners() {
+    dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
+    dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
+}
+
 /** Submits the business to Wise with the answers its pages saved. Auth creates the Wise profile and opens Wise's review in the same request. */
 function submitWiseBusinessOnboarding(params: SubmitWiseBusinessOnboardingParams) {
     const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
@@ -146,4 +165,11 @@ function clearWiseBusinessOnboardingSubmission() {
 }
 
 export default saveWiseOnboardingPage;
-export {clearWiseBusinessOnboardingSubmission, clearWiseOnboardingUnsavedPages, submitWiseBusinessOnboarding};
+export {
+    clearWiseIntroReadBankAccountID,
+    clearWiseBusinessOnboardingSubmission,
+    clearWiseOnboardingUnsavedPages,
+    dismissWiseGlobalReimbursementsBanners,
+    openReimbursementAccountPageForWiseIntro,
+    submitWiseBusinessOnboarding,
+};

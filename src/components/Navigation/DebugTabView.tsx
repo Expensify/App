@@ -74,6 +74,7 @@ function useDebugTabViewHeight(): number {
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
+        case CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR:
             return 'debug.indicatorStatus.theresAWorkspaceWithCustomUnitsErrors';
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAWorkspaceMember';
@@ -116,6 +117,8 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
             return ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(indicatorPolicyID);
+        case CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR:
+            return ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return ROUTES.WORKSPACE_MEMBERS.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
@@ -276,5 +279,5 @@ function DebugTabView({selectedTab}: Props) {
     );
 }
 
-export {getSettingsMessage, useDebugTabViewHeight};
+export {getSettingsMessage, getSettingsRoute, useDebugTabViewHeight};
 export default DebugTabView;

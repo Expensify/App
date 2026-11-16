@@ -24,6 +24,7 @@ import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchApproverGroup,
     SearchViolationGroup,
+    SearchWorkflowStageGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -552,6 +553,17 @@ type TransactionViolationGroupListItemType = TransactionGroupListItemType & {gro
         formattedViolation: string;
     };
 
+type TransactionPaidByGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.PAID_BY} & PersonalDetails &
+    SearchMemberGroup & {
+        /** Final and formatted name of the member who paid the reports, used for displaying and sorting */
+        formattedPaidBy?: string;
+    };
+
+type TransactionWorkflowStageGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE} & SearchWorkflowStageGroup & {
+        /** Stage name translated for display */
+        formattedWorkflowStage: string;
+    };
+
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     SearchListActionProps & {
         /** Whether the item's action is loading */
@@ -626,6 +638,8 @@ type GroupHeaderItemType =
     | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
     | (TransactionApproverGroupListItemType & GroupHeaderListItemType)
     | (TransactionViolationGroupListItemType & GroupHeaderListItemType)
+    | (TransactionPaidByGroupListItemType & GroupHeaderListItemType)
+    | (TransactionWorkflowStageGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -687,6 +701,8 @@ export type {
     TransactionQuarterGroupListItemType,
     TransactionApproverGroupListItemType,
     TransactionViolationGroupListItemType,
+    TransactionPaidByGroupListItemType,
+    TransactionWorkflowStageGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

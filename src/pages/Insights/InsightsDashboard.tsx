@@ -123,6 +123,7 @@ function InsightsDashboardContent({
         fillsVisibleArea: shouldShowStandInView,
     });
 
+    const {countDimension, supportsDrillIn} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
     if (didRequestFail) {
@@ -253,6 +254,8 @@ function InsightsDashboardContent({
                         isDashboardLoaded={headlineChart.isDashboardLoaded}
                         filters={filters}
                         insightsScope={insightsScope}
+                        countDimension={countDimension}
+                        supportsDrillIn={supportsDrillIn}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
                     />
@@ -276,6 +279,8 @@ function InsightsDashboardContent({
                                         isDashboardLoaded={isDashboardLoaded}
                                         filters={filters}
                                         insightsScope={insightsScope}
+                                        countDimension={countDimension}
+                                        supportsDrillIn={supportsDrillIn}
                                         onRetry={onRetry}
                                     />
                                 ))}
@@ -317,7 +322,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         }
         setFilters(update);
     };
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible, queryType} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
     const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login, isDashboardPolicyEligible);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
@@ -333,7 +338,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         if (!query || hash === undefined || isOffline) {
             return;
         }
-        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes);
+        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes, queryType);
     };
 
     const onRequestConditionsChanged = useEffectEvent(() => {

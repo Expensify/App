@@ -15,6 +15,7 @@ import React from 'react';
 
 import type BaseTextInputWithSymbolProps from './types';
 
+/** @deprecated Use AmountFormField or KeypadAmountEditor instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
 function BaseTextInputWithSymbol({
     symbol,
     symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
