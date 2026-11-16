@@ -140,6 +140,29 @@ describe('SearchNavigationUtils', () => {
     });
 
     describe('navigateToFlatNavItem', () => {
+        it('restores Approve without To while preserving the separate Reports query', () => {
+            // Given separate stored refinements for Approve and Reports
+            const lastQuery = 'type:expense-report action:approve status:approved policyID:456';
+            const reportsQuery = `${REPORTS_QUERY} merchant:Starbucks`;
+            const searchFilters: SearchFilters = {
+                [SEARCH_KEYS.APPROVE]: {query: lastQuery, timestamp: FILTER_TIMESTAMP},
+                [SEARCH_KEYS.REPORTS]: {query: reportsQuery, timestamp: FILTER_TIMESTAMP},
+            };
+            const approveItem: FlatNavCannedSearchItem = {
+                ...expensesItem,
+                key: SEARCH_KEYS.APPROVE,
+                searchQuery: 'type:expense-report action:approve to:123',
+            };
+
+            // When returning to Approve through flat navigation
+            navigateToFlatNavItem(approveItem, searchFilters, clearSelectedTransactions);
+
+            // Then the removed default stays removed and Reports keeps its own refinements
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: lastQuery, searchKey: SEARCH_KEYS.APPROVE}));
+            expect(searchFilters[SEARCH_KEYS.REPORTS]).toEqual({query: reportsQuery, timestamp: FILTER_TIMESTAMP});
+        });
+
         it('should open the last query stored for a canned search', () => {
             // Given a last query stored for the expenses search
             const lastQuery = `${EXPENSES_QUERY} merchant:Starbucks`;

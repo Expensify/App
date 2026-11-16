@@ -258,6 +258,24 @@ describe('useSearchKeyParam', () => {
             expect(mockSetParams).not.toHaveBeenCalled();
         });
 
+        it('keeps Approve and Reset defaults for an expected-empty query after removing To', () => {
+            // Given Approve with its original recipient restriction
+            const searchKey = CONST.SEARCH.SEARCH_KEYS.APPROVE;
+            const defaultQuery = getSuggestedSearches()[searchKey].searchQuery;
+            const {result, rerender} = renderSearchKeyParam(defaultQuery, {searchKey});
+            mockSetParams.mockClear();
+
+            // When removing To and selecting approved reports that need approval in an unrelated workspace
+            // The hook does not consume results; this pins query identity, not the rendered empty state.
+            rerender('type:expense-report action:approve status:approved policyID:456');
+
+            // Then an expected-empty query must not fall back to Reports or replace the Reset defaults
+            expect(result.current.currentSearchKey).toBe(searchKey);
+            expect(getRouteSearchKey()).toBe(searchKey);
+            expect(result.current.currentDefaultSearchQueryJSON?.hash).toBe(buildSearchQueryJSON(defaultQuery)?.hash);
+            expect(mockSetParams).not.toHaveBeenCalled();
+        });
+
         it.each(['type:expense-report', 'type:expense-report -action:approve', 'type:expense-report action:pay', 'type:expense action:approve'])(
             'does not retain a stale Approve key for %s',
             (query) => {

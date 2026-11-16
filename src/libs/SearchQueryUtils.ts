@@ -3442,7 +3442,17 @@ function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | und
     return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
 }
 
-/** Checks whether filter edits still belong to an explicitly selected search. */
+function getActionFilters(searchQueryJSON: SearchQueryJSON) {
+    return searchQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION).flatMap((filter) => filter.filters);
+}
+
+/**
+ * Checks whether filter edits still belong to an explicitly selected search.
+ * Submit, Approve, Pay, and Export deliberately use only their type and a single matching positive action,
+ * so defaults like to:, from:, and payer: may be removed through advanced filters, as agreed in https://github.com/Expensify/App/issues/102448.
+ * Removing to: from Approve broadens it beyond the current recipient to all matching reports the user can access.
+ * Every other search keeps the stricter default-filter-keys check.
+ */
 function doesQueryMatchSearchContext(queryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined, searchKey?: SearchKey) {
     if (!searchKey || !TODO_SEARCH_KEYS.has(searchKey)) {
         return doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON);
@@ -3452,10 +3462,8 @@ function doesQueryMatchSearchContext(queryJSON: SearchQueryJSON | undefined, def
         return false;
     }
 
-    // To-do searches keep their identity when defaults such as To are cleared through advanced filters.
-    // Their defining action must still match, so a different or negated action cannot keep a stale tab name.
-    const actionFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION).flatMap((filter) => filter.filters);
-    const defaultActionFilters = defaultQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION).flatMap((filter) => filter.filters);
+    const actionFilters = getActionFilters(queryJSON);
+    const defaultActionFilters = getActionFilters(defaultQueryJSON);
     return (
         actionFilters.length === 1 &&
         defaultActionFilters.length === 1 &&
