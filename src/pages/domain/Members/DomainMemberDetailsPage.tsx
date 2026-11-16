@@ -6,10 +6,12 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
+import useAlertModals from '@hooks/useAlertModals';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDecisionModal from '@hooks/useDecisionModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +24,7 @@ import {
     setTwoFactorAuthExemptEmailForDomain,
 } from '@libs/actions/Domain';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {requestUnlockAccount} from '@libs/actions/User';
+import {clearUnlockAccountError, requestUnlockAccount} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -44,7 +46,7 @@ import type {Domain} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {requiresTwoFactorAuthSelector} from '@selectors/Account';
-import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
+import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, unlockRequestedSelector, vacationDelegateSelector} from '@selectors/Domain';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
@@ -56,9 +58,11 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'CircularArrowBackwards']);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'Hourglass', 'CircularArrowBackwards']);
     const {showConfirmModal} = useConfirmModal();
     const {showDecisionModal} = useDecisionModal();
+    const {showOfflineModal} = useAlertModals();
+    const {isOffline} = useNetwork();
 
     const securityGroupSelector = (domain: OnyxEntry<Domain>) => selectSecurityGroupForAccount(accountID)(domain);
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -85,6 +89,8 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const memberLogin = personalDetails?.login ?? '';
 
     const [isAccountLocked] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: accountLockSelector(accountID)});
+    const [isUnlockRequested] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: unlockRequestedSelector(accountID)});
+    const unlockAccountPendingAction = domainPendingActions?.member?.[accountID]?.unlockAccount;
     const lockDomainError = getLatestError(domainErrors?.memberErrors?.[accountID]?.lockAccountErrors);
     const lockDomainErrorMessage = Object.values(lockDomainError).at(0);
 
@@ -135,7 +141,15 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     );
 
     const showUnlockAccountModal = () => {
-        requestUnlockAccount(accountID);
+        if (isOffline) {
+            showOfflineModal();
+            return;
+        }
+
+        // Reopening the confirmation must not submit another request, including while the first is in flight.
+        if (!isUnlockRequested && !unlockAccountPendingAction) {
+            requestUnlockAccount(accountID, domainAccountID, domainName);
+        }
         showConfirmModal({
             title: translate('lockAccountPage.unlockTitle'),
             prompt: translate('lockAccountPage.unlockDescription'),
@@ -213,13 +227,20 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             )}
 
             {isAccountLocked ? (
-                <MenuItemAction
-                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.UNLOCK_ACCOUNT}
+                <OfflineWithFeedback
                     key="UnlockAccount"
-                    title={translate('lockAccountPage.unlockAccount')}
-                    icon={icons.Unlock}
-                    onPress={showUnlockAccountModal}
-                />
+                    errorRowStyles={styles.mh5}
+                    pendingAction={unlockAccountPendingAction}
+                    errors={getLatestError(domainErrors?.memberErrors?.[accountID]?.unlockAccountErrors)}
+                    onClose={() => clearUnlockAccountError(domainAccountID, accountID)}
+                >
+                    <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.UNLOCK_ACCOUNT}
+                        title={translate(isUnlockRequested ? 'lockAccountPage.pendingUnlockRequest' : 'lockAccountPage.unlockAccount')}
+                        icon={isUnlockRequested ? icons.Hourglass : icons.Unlock}
+                        onPress={showUnlockAccountModal}
+                    />
+                </OfflineWithFeedback>
             ) : (
                 <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.REPORT_SUSPICIOUS_ACTIVITY}

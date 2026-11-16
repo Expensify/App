@@ -26,7 +26,7 @@ import * as UserActions from '../../src/libs/actions/User';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
-import {anyArray, anyObject, anyString, formatPhoneNumber} from '../utils/TestHelper';
+import {anyArray, anyObject, anyString, formatPhoneNumber, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
@@ -1078,7 +1078,7 @@ describe('actions/User', () => {
                 expect(optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toEqual({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                    value: {[userLockKey]: true},
+                    value: {[userLockKey]: true, [`${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}${accountID}`]: false},
                 });
 
                 // Optimistic: sets pending action to UPDATE
@@ -1148,7 +1148,57 @@ describe('actions/User', () => {
             UserActions.requestUnlockAccount(accountID);
             await waitForBatchedUpdates();
 
-            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID});
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID}, {optimisticData: [], successData: [], failureData: []});
+        });
+
+        it('marks a domain unlock as requested only on success and exposes failures for retry', async () => {
+            // Given a locked domain member with no submitted unlock request
+            const accountID = 123456;
+            const domainAccountID = 200;
+            const domainName = 'expensify.com';
+            const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const;
+            const pendingKey = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const;
+            const errorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const;
+
+            // When the admin submits the request
+            UserActions.requestUnlockAccount(accountID, domainAccountID, domainName);
+            await waitForBatchedUpdates();
+            const data = mockAPI.write.mock.calls.at(0)?.[2];
+
+            // Then only the in-flight action is optimistic, not the submitted state
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID, domainAccountID, domainName}, expect.anything());
+            expect(data?.optimisticData).toEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: pendingKey, value: {member: {[accountID]: {unlockAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
+                {onyxMethod: Onyx.METHOD.MERGE, key: errorsKey, value: {memberErrors: {[accountID]: {unlockAccountErrors: null}}}},
+            ]);
+            expect(data?.successData).toEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: domainKey, value: {[`${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}${accountID}`]: true}},
+                {onyxMethod: Onyx.METHOD.MERGE, key: pendingKey, value: {member: {[accountID]: {unlockAccount: null}}}},
+            ]);
+            expect(data?.failureData).toEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: pendingKey, value: {member: {[accountID]: {unlockAccount: null}}}},
+                {onyxMethod: Onyx.METHOD.MERGE, key: errorsKey, value: {memberErrors: {[accountID]: {unlockAccountErrors: anyObject}}}},
+            ]);
+        });
+
+        it('clears only the unlock error when it is dismissed', async () => {
+            // Given an unlock error alongside another member error
+            const accountID = 123;
+            const key = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}200` as const;
+            await Onyx.set(key, {memberErrors: {[accountID]: {unlockAccountErrors: {timestamp1: 'Unlock failed'}, lockAccountErrors: {timestamp2: 'Lock failed'}}}});
+
+            // When the unlock error is dismissed
+            UserActions.clearUnlockAccountError(200, 123);
+            await waitForBatchedUpdates();
+
+            // Then the unrelated error is preserved
+            await getOnyxData({
+                key,
+                callback: (errors) => {
+                    expect(errors?.memberErrors?.[123]?.unlockAccountErrors).toBeFalsy();
+                    expect(errors?.memberErrors?.[123]?.lockAccountErrors).toEqual({timestamp2: 'Lock failed'});
+                },
+            });
         });
     });
 

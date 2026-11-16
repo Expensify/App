@@ -10572,6 +10572,8 @@ const CONST = {
         PRIVATE_VACATION_DELEGATE_PREFIX: 'private_vacationDelegate_',
         /** Onyx prefix for lock account IDs */
         PRIVATE_LOCKED_ACCOUNT_PREFIX: 'private_lockAccountDetails_',
+        /** Local-only marker, cleared on sign-out, for members with a submitted unlock request */
+        PRIVATE_UNLOCK_REQUESTED_PREFIX: 'private_unlockRequested_',
 
         MEMBERS: {
             SECONDARY_ACTIONS: {
