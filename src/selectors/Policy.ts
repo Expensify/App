@@ -7,8 +7,10 @@ import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
     canCreateExpensesOnPolicy,
+    canEditWorkspaceSettings,
     canSendInvoice,
     getActiveAdminWorkspaces,
+    getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
@@ -22,6 +24,7 @@ import {
     isPolicyAdmin,
     isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
+    isGroupPolicy,
     isPolicyProvisionedForTravel,
     isTimeTrackingEnabled,
     shouldShowPolicy,
@@ -161,7 +164,12 @@ const createWorkspaceListPoliciesSelector =
                         ownerAccountID: details.ownerAccountID,
                         ownerEmail: details.ownerEmail,
                         ownerDefaultAvatar:
-                            details.ownerAccountID && details.ownerEmail ? getDefaultAvatarURL({accountID: details.ownerAccountID, accountEmail: details.ownerEmail}) : undefined,
+                            details.ownerAccountID && details.ownerEmail
+                                ? getDefaultAvatarURL({
+                                      accountID: details.ownerAccountID,
+                                      accountEmail: details.ownerEmail,
+                                  })
+                                : undefined,
                         avatar: details.avatar,
                     };
                 }
@@ -213,7 +221,10 @@ type TimeSensitiveAdminPolicies = {
 const createTimeSensitiveAdminPoliciesSelector =
     (currentUserLogin: string | undefined, connectionSyncProgress: OnyxCollection<PolicyConnectionSyncProgress>) =>
     (policies: OnyxCollection<Policy>): TimeSensitiveAdminPolicies => {
-        const result: TimeSensitiveAdminPolicies = {policies: [], brokenConnections: []};
+        const result: TimeSensitiveAdminPolicies = {
+            policies: [],
+            brokenConnections: [],
+        };
 
         for (const policy of getActiveAdminWorkspaces(policies, currentUserLogin)) {
             result.policies.push({
@@ -259,6 +270,14 @@ const createHasAdminPolicyWithXeroConnectionSelector =
         hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
 
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
+
+/**
+ * Whether the user could edit the settings of any active group workspace, which is what the upgrade page gates on once a
+ * workspace is in the route. Admins pass, and so do editors on a Submit workspace, who `getActiveAdminWorkspaces`
+ * leaves out. Personal policies don't count because they can't be upgraded.
+ */
+const canEditAnyWorkspaceSettingsSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string): boolean =>
+    getActivePolicies(policies, currentUserAccountLogin).some((policy) => isGroupPolicy(policy) && canEditWorkspaceSettings(policy, currentUserAccountLogin));
 
 /**
  * Creates a selector for whether the user belongs to any workspace with Travel enabled and provisioned, so subscribers only
@@ -490,8 +509,7 @@ const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): bool
  */
 const homeAndOfficeCommuterExclusionPolicyNameSelector = (policies: OnyxCollection<Policy>): string | undefined =>
     Object.values(policies ?? {}).find(
-        (policy): policy is Policy =>
-            !!policy && policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        (policy): policy is Policy => !!policy && policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !isArchivedOrPendingDeletePolicy(policy),
     )?.name;
 
 function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: ReusablePolicyConnectionName): policy is Policy {
@@ -688,6 +706,7 @@ export {
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    canEditAnyWorkspaceSettingsSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
     createHasTravelEnabledPolicySelector,

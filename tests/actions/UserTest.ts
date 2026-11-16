@@ -79,12 +79,15 @@ describe('actions/User', () => {
         });
     });
 
-    describe('joinExactOnlineWaitlist', () => {
+    describe('joinIntegrationWaitlist', () => {
         afterEach(() => {
             jest.restoreAllMocks();
         });
 
-        it('queues the signup timestamp with a rollback to the absent value', () => {
+        it.each([
+            {integration: CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE, nvpKey: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, field: 'exactOnlineWaitlist'},
+            {integration: CONST.POLICY.CONNECTIONS.NAME.ODOO, nvpKey: ONYXKEYS.NVP_ODOO_WAITLIST, field: 'odooWaitlist'},
+        ] as const)('queues the $integration signup timestamp with a rollback to the absent value', ({integration, nvpKey, field}) => {
             // Given the account has not joined the waitlist
             const signupTimestamp = '2026-10-14 10:00:00.000';
             const errorTimestamp = 1;
@@ -92,36 +95,96 @@ describe('actions/User', () => {
             jest.spyOn(DateUtils, 'getMicroseconds').mockReturnValue(errorTimestamp);
 
             // When the account joins the waitlist
-            UserActions.joinExactOnlineWaitlist();
+            UserActions.joinIntegrationWaitlist(integration);
 
             // Then the queued request and confirmed signup share one timestamp, with the previous value restored on failure
             expect(getDBTime).toHaveBeenCalledTimes(1);
             expect(mockAPI.write).toHaveBeenCalledTimes(1);
             expect(mockAPI.write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_NAME_VALUE_PAIR,
-                {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
+                {name: nvpKey, value: signupTimestamp},
                 {
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.ACCOUNT,
-                            value: {pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, errorFields: {exactOnlineWaitlist: null}},
+                            value: {pendingFields: {[field]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, errorFields: {[field]: null}},
                         },
                     ],
                     successData: [
-                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
-                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.ACCOUNT, value: {pendingFields: {exactOnlineWaitlist: null}}},
+                        {onyxMethod: Onyx.METHOD.MERGE, key: nvpKey, value: signupTimestamp},
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.ACCOUNT, value: {pendingFields: {[field]: null}}},
                     ],
                     failureData: [
-                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: ''},
+                        {onyxMethod: Onyx.METHOD.MERGE, key: nvpKey, value: ''},
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.ACCOUNT,
-                            value: {pendingFields: {exactOnlineWaitlist: null}, errorFields: {exactOnlineWaitlist: {[errorTimestamp]: anyString}}},
+                            value: {pendingFields: {[field]: null}, errorFields: {[field]: {[errorTimestamp]: anyString}}},
                         },
                     ],
                 },
             );
+        });
+    });
+
+    describe('joinAccountingIntegrationWaitlist', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('tracks the signup for the workspace without rewriting the waitlist', () => {
+            // Given the user joins the Sage Accounting waitlist for a workspace
+            const errorTimestamp = 1;
+            jest.spyOn(DateUtils, 'getMicroseconds').mockReturnValue(errorTimestamp);
+
+            // When the request is sent
+            UserActions.joinAccountingIntegrationWaitlist('policy', CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
+
+            // Then only this workspace's signup changes, since the server sends back the whole waitlist and a saved copy could overwrite newer ones
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.JOIN_ACCOUNTING_INTEGRATION_WAITLIST,
+                {policyID: 'policy', connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING},
+                {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+                            value: {policy: {[CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null}}},
+                        },
+                    ],
+                    successData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+                            value: {policy: {[CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING]: null}},
+                        },
+                    ],
+                    failureData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+                            value: {policy: {[CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING]: {pendingAction: null, errors: {[errorTimestamp]: anyString}}}},
+                        },
+                    ],
+                },
+            );
+        });
+
+        it('removes only the failed signup when its error is dismissed', async () => {
+            // Given a failed Sage Accounting signup next to a pending one for the same workspace
+            const errorTimestamp = 1;
+            const pendingSignup = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+            await Onyx.set(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {
+                policy: {[CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING]: {errors: {[errorTimestamp]: 'Signup failed'}}, [CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE]: pendingSignup},
+            });
+
+            // When the user dismisses the error
+            UserActions.clearAccountingIntegrationWaitlistError('policy', CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
+            await waitForBatchedUpdates();
+
+            // Then the failed signup is gone so Join waitlist is offered again, and the other signup stays
+            expect(await getOnyxValue(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS)).toEqual({policy: {[CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE]: pendingSignup}});
         });
     });
 

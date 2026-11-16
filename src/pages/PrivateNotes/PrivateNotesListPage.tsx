@@ -57,6 +57,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
                 value={getAttachmentValue(item)}
             >
                 <MenuItemFieldHTML
+                    sentryLabel={CONST.SENTRY_LABEL.PRIVATE_NOTES.NOTE_ITEM}
                     name={item.title}
                     value={item.note}
                     onPress={item.disabled ? undefined : item.action}

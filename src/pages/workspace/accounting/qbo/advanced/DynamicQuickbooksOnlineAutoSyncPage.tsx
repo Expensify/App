@@ -75,6 +75,7 @@ function DynamicQuickbooksOnlineAutoSyncPage({policy, route}: WithPolicyConnecti
                 {!!config?.autoSync?.enabled && (
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.ACCOUNTING_METHOD}
                             value={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                     ? translate(`workspace.qbo.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)

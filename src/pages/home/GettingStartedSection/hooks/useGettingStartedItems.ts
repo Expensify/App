@@ -25,7 +25,7 @@ import {
     isSubmitPolicy,
     isWorkspaceProvisionedForTravel,
 } from '@libs/PolicyUtils';
-import {generateReportID} from '@libs/ReportUtils';
+import {generateReportID, isMoneyRequestReport, isReportOwner, isSelfDM} from '@libs/ReportUtils';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
@@ -42,8 +42,23 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
+type GettingStartedItemKey =
+    | 'createWorkspace'
+    | 'addFirstReceipt'
+    | 'customizeExpenseCategories'
+    | 'customizeSpendCategories'
+    | 'customizeCategories'
+    | 'linkPersonalCard'
+    | 'linkCompanyCards'
+    | 'issueExpensifyCards'
+    | 'setupTravel'
+    | 'inviteAccountant'
+    | 'connectAccounting'
+    | 'configureApprovals'
+    | 'setupRules';
+
 type GettingStartedItem = {
-    key: string;
+    key: GettingStartedItemKey;
     label: string;
     subText: string;
     isComplete: boolean;
@@ -92,14 +107,42 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [hasIssuedExpensifyCard = false] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: hasIssuedExpensifyCardSelector,
     });
-    const [hasCreatedExpense = false] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => Object.values(transactions ?? {}).some((transaction) => !!transaction && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction)),
+    const [liveExpenseReportIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => {
+            const reportIDs = new Set<string>();
+            for (const transaction of Object.values(transactions ?? {})) {
+                if (transaction?.reportID && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction)) {
+                    reportIDs.add(transaction.reportID);
+                }
+            }
+            return [...reportIDs];
+        },
+    });
+    // Approvers and payers also hold other people's expenses locally, so only expenses on the user's own reports count.
+    const [hasCreatedExpense = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) =>
+            !!liveExpenseReportIDs?.some((reportID) => {
+                if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                    return true;
+                }
+                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                return isReportOwner(report, currentUserAccountID) && (isMoneyRequestReport(report) || isSelfDM(report));
+            }),
     });
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const personalCards = useBankLinkedPersonalCards();
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
+
+    // Completes on any expense the user has, so expenses created before this step existed also count.
+    const addFirstReceiptItem: GettingStartedItem = {
+        key: 'addFirstReceipt',
+        label: translate('homePage.gettingStartedSection.addFirstReceipt'),
+        subText: translate('homePage.gettingStartedSection.addFirstReceiptSubText'),
+        isComplete: hasCreatedExpense,
+        onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN),
+    };
 
     // Hide the whole section as soon as every onboarding to-do is complete, instead of keeping it
     // around for the full Getting Started window.
@@ -168,7 +211,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return emptyResult;
     }
 
-    // The Submit intent has exactly two to-dos and no "Create a workspace" step, because the workspace already exists here.
+    // The Submit intent has no "Create a workspace" step, because the workspace already exists here.
     if (isSubmitIntent) {
         const submitItems: GettingStartedItem[] = [];
 
@@ -183,6 +226,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
                 route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
             });
         }
+
+        submitItems.push(addFirstReceiptItem);
 
         submitItems.push({
             key: 'linkPersonalCard',
@@ -219,13 +264,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             });
         }
 
-        items.push({
-            key: 'createExpense',
-            label: translate('homePage.gettingStartedSection.createExpense'),
-            subText: translate('homePage.gettingStartedSection.createExpenseSubText'),
-            isComplete: hasCreatedExpense,
-            onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs),
-        });
+        items.push(addFirstReceiptItem);
 
         items.push({
             key: 'linkPersonalCard',
@@ -248,6 +287,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
                 route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
             });
         }
+
+        items.push(addFirstReceiptItem);
 
         if (policy.areCompanyCardsEnabled) {
             items.push({
@@ -363,4 +404,4 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 }
 
 export default useGettingStartedItems;
-export type {GettingStartedItem};
+export type {GettingStartedItem, GettingStartedItemKey};

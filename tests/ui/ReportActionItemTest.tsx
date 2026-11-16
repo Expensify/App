@@ -2177,6 +2177,23 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/Chase Visa connection has been broken for 30 days/)).toBeOnTheScreen();
         });
 
+        it('COMPANY_CARD_CONNECTION_BROKEN_30_DAYS action shows the bank name when the feed has no custom name', async () => {
+            // Given a reminder for a feed that had no custom name, so the saved feed name is the bank itself
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
+                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                policyID: 'pol123',
+            });
+
+            // When the reminder is shown
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it names the feed the way the company cards page does, not by the bank
+            expect(screen.getByText(/The Chase connection has been broken for 30 days/)).toBeOnTheScreen();
+            expect(screen.queryByText(/oauth\.chase\.com/)).not.toBeOnTheScreen();
+        });
+
         it('PLAID_BALANCE_FAILURE action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE, {
                 maskedAccountNumber: '***1234',

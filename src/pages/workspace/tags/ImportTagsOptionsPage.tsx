@@ -194,6 +194,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     <Text style={[styles.ph5, styles.pv3, styles.textSupporting, styles.textNormal]}>{translate('workspace.tags.importTagsSupportingText')}</Text>
 
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_OPTION_SINGLE_LEVEL}
                         title={translate('workspace.tags.tagLevel.singleLevel')}
                         icon={expensifyIcons.Tag}
                         onPress={async () => {
@@ -226,6 +227,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         }}
                     />
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_OPTION_MULTI_LEVEL}
                         title={translate('workspace.tags.tagLevel.multiLevel')}
                         // TODO: Update icon to multi-level tag icon once it's provided by design team
                         icon={expensifyIcons.MultiTag}
