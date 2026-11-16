@@ -197,9 +197,11 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
                 containerWidthRef.current = width;
 
                 if (isIOS) {
-                    if (isKeyboardShown && !isKeyboardActive) {
+                    if (isKeyboardShown && !isKeyboardActive && lastExactContainerHeightRef.current !== null) {
                         // On iOS, keyboardWillHide clears the active height before the view finishes animating back to its expanded allocation.
                         // Ignore those intermediate layouts until keyboardDidHide so they cannot become the next keyboard-open baseline.
+                        // A page that opens while the previous page's keyboard is hiding has no other layout yet, and an autofocused input can bring the
+                        // keyboard back before keyboardDidHide, so nothing would measure the slot again. Its first layout is used instead.
                         viewportHeightRef.current = windowHeight;
                         startMeasurement('clamp', previousAvailableHeight, didWidthChange);
                         return;

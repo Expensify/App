@@ -487,6 +487,56 @@ describe('AutoGrowHeightInputContainer', () => {
         await waitFor(() => expect(screen.getByTestId('settled-keyboard-height').props.accessibilityLabel).toBe('776'));
     });
 
+    it('adopts the first iOS layout even while the previous keyboard is still hiding', async () => {
+        platformReplaceProperty.restore();
+        platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'ios');
+
+        let isKeyboardActive = false;
+        let keyboardActiveHeight = 0;
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
+        mockUseKeyboardState.mockImplementation(() => ({
+            isKeyboardShown: true,
+            isKeyboardActive,
+            keyboardHeight: 335,
+            keyboardActiveHeight,
+            isKeyboardAnimatingRef: {current: true},
+        }));
+        mockMeasureContent.mockImplementation((_content, callback) => {
+            callback(renderedMaxAutoGrowHeight === variables.componentSizeLarge ? 76 : renderedMaxAutoGrowHeight + 24);
+        });
+        const renderInput = () => (
+            <AutoGrowHeightInputContainer>
+                {(maxAutoGrowHeight) => {
+                    renderedMaxAutoGrowHeight = maxAutoGrowHeight;
+                    return (
+                        <View
+                            testID="mid-hide-height"
+                            accessibilityLabel={String(maxAutoGrowHeight)}
+                        />
+                    );
+                }}
+            </AutoGrowHeightInputContainer>
+        );
+
+        // Given a page that opens while the previous page's keyboard is hiding, as after saving the workspace name and opening its description
+        const {rerender} = render(renderInput());
+        const container = screen.UNSAFE_getByType(ScrollView);
+
+        // When its first and only layout arrives before the keyboard settles
+        fireEvent(container, 'layout', {nativeEvent: {layout: {height: 489, width: 300}}});
+
+        // Then that layout becomes the slot, because no earlier layout exists to fall back on
+        await waitFor(() => expect(screen.getByTestId('mid-hide-height').props.accessibilityLabel).toBe('465'));
+
+        // When the autofocused input brings the same keyboard back, so keyboardDidHide never fires and the slot does not move again
+        isKeyboardActive = true;
+        keyboardActiveHeight = 335;
+        rerender(renderInput());
+
+        // Then the input keeps that slot instead of staying capped near the default height
+        await waitFor(() => expect(screen.getByTestId('mid-hide-height').props.accessibilityLabel).toBe('465'));
+    });
+
     it('does not reuse an unrelated settled layout for a coincident keyboard delta', async () => {
         platformReplaceProperty.restore();
         platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'ios');
