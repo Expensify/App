@@ -129,10 +129,12 @@ type WebViewStyle = {
 
 type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
-// An Animated.Value or the card's progress interpolation. Only `interpolate` is called, and React Native 0.88 can't call it on a union of the two.
+// Accepts both an Animated.Value and the card's progress interpolation. Calling .interpolate()
+// on a union of the two is a type error, because their signatures differ.
 type OverlayStylesParams = Pick<Animated.Value, 'interpolate'>;
 
-// Typed through Animated.add and Animated.subtract because React Native 0.88 drops the type parameter of AnimatedAddition and AnimatedSubtraction
+// React Native 0.88 drops the <T> from AnimatedAddition and AnimatedSubtraction, so no direct
+// spelling compiles on both 0.86 and 0.88. The return types of Animated.add/subtract do.
 type OverlayPositionValue = number | Animated.Value | ReturnType<typeof Animated.add> | ReturnType<typeof Animated.subtract>;
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
@@ -7874,8 +7876,8 @@ const dynamicStyles = (theme: ThemeColors) =>
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects
 const plainStyles = (theme: ThemeColors) =>
     ({
-        // These animate their width with an Animated.Value, which StyleSheet.create's types reject. Every consumer renders
-        // them through an Animated component, which builds its own style object, so they don't need StyleSheet.create.
+        // These widths are Animated.Values, which StyleSheet.create's types reject. They are only passed
+        // to Animated components, which ignore what StyleSheet.create prepares, so plain objects behave the same.
         wideRHPExtendedCardInterpolatorStyles: {
             ...getRHPExtendedCardFrame(theme),
             width: animatedWideRHPWidth,
