@@ -222,7 +222,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         values: listValues,
         disabledOptions: disabledListValues,
         fieldID,
-        orderWeight: Object.keys(previousFieldList).length + 1,
+        orderWeight: Object.keys(ReportUtils.getReportFieldsWithoutFailedAdds(previousFieldList)).length + 1,
         deletable: false,
         keys: [],
         externalIDs: [],
@@ -235,9 +235,8 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 fieldList: {
-                    [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
                 },
-                errorFields: null,
             },
         },
         ...(policyReportIDs ?? []).map(
@@ -259,10 +258,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 fieldList: {
-                    [fieldKey]: null,
-                },
-                errorFields: {
-                    [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                    [fieldKey]: {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage')},
                 },
             },
         },
@@ -287,9 +283,8 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: {pendingAction: null},
+                        [fieldKey]: {pendingAction: null, errors: null},
                     },
-                    errorFields: null,
                 },
             },
         ],
@@ -323,7 +318,8 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         return;
     }
 
-    const updatedReportFields = Object.fromEntries(Object.entries(allReportFields).filter(([key]) => !resolvedReportFieldKeys.includes(key)));
+    // Fields that failed to be created don't exist on the server, so they're left out of the remaining fields we send
+    const updatedReportFields = Object.fromEntries(Object.entries(ReportUtils.getReportFieldsWithoutFailedAdds(allReportFields)).filter(([key]) => !resolvedReportFieldKeys.includes(key)));
     const optimisticReportFields = resolvedReportFieldKeys.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
         acc[reportFieldKey] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         return acc;
@@ -333,6 +329,13 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         acc[reportFieldKey] = null;
         return acc;
     }, {});
+
+    // Delete failures are timestamp-keyed messages; preserve report-title and other structured errors.
+    const deleteErrorsToClear = Object.fromEntries(
+        Object.entries(policy.errorFields?.fieldList ?? {})
+            .filter(([key, error]) => key !== CONST.POLICY.FIELDS.FIELD_LIST_TITLE && typeof error === 'string')
+            .map(([key]) => [key, null]),
+    );
 
     const failureReportFields = resolvedReportFieldKeys.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
         acc[reportFieldKey] = {pendingAction: null};
@@ -355,7 +358,7 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 value: {
                     fieldList: successReportFields,
-                    errorFields: null,
+                    errorFields: {fieldList: deleteErrorsToClear},
                 },
             },
         ],
@@ -425,9 +428,8 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: {...updatedReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        [fieldKey]: {...updatedReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null},
                     },
-                    errorFields: null,
                 },
             },
         ],
@@ -437,9 +439,8 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: {pendingAction: null},
+                        [fieldKey]: {pendingAction: null, errors: null},
                     },
-                    errorFields: null,
                 },
             },
         ],
@@ -449,10 +450,11 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: {...previousFieldList[fieldKey], pendingAction: null},
-                    },
-                    errorFields: {
-                        [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                        [fieldKey]: {
+                            ...previousFieldList[fieldKey],
+                            pendingAction: null,
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                        },
                     },
                 },
             },
@@ -626,9 +628,37 @@ function removeReportFieldListValue({policy, reportFieldID, valueIndexes}: Remov
     API.write(removeCommand, parameters, onyxData);
 }
 
+/**
+ * Clears a report field's errors. A field that failed to be created is removed from the list.
+ */
+function clearReportFieldErrors(policy: OnyxEntry<Policy>, reportFieldID: string) {
+    if (!policy?.id) {
+        return;
+    }
+
+    const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const reportField = policy.fieldList?.[fieldKey];
+
+    if (ReportUtils.isFailedReportFieldAdd(reportField)) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+            fieldList: {
+                [fieldKey]: null,
+            },
+        });
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+        fieldList: {
+            [fieldKey]: {errors: null},
+        },
+    });
+}
+
 export type {CreateReportFieldParams};
 
 export {
+    clearReportFieldErrors,
     setInitialCreateReportFieldsForm,
     createReportFieldsListValue,
     renameReportFieldsListValue,

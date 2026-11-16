@@ -154,6 +154,53 @@ function getCopyPolicySettingsStep(update: {value?: unknown} | undefined): Pick<
 
 describe('actions/Policy/CopyPolicySettings', () => {
     describe('buildCopyPolicySettingsData', () => {
+        it.each<Part>(['reports', 'invoices'])('does not copy failed fields with %s settings', (part) => {
+            // Given source fields with a failed add and an offline add, plus an unrelated target field
+            const sourceFieldKey = 'expensify_source';
+            const failedFieldKey = 'expensify_failed';
+            const offlineFieldKey = 'expensify_offline';
+            const retainedFieldKey = 'expensify_retained';
+            const errorKey = '1';
+            const target = part === 'invoices' ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
+            const field = {
+                name: 'Source field',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                target,
+                defaultValue: '',
+                values: [],
+                disabledOptions: [],
+                fieldID: 'source',
+                orderWeight: 1,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+            };
+            const offlineField = {...field, fieldID: 'offline', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+            const retainedField = {
+                ...field,
+                fieldID: 'retained',
+                target: target === CONST.REPORT_FIELD_TARGETS.INVOICE ? CONST.REPORT_FIELD_TARGETS.EXPENSE : CONST.REPORT_FIELD_TARGETS.INVOICE,
+            };
+            const sourcePolicy = makeSourcePolicy({
+                fieldList: {
+                    [sourceFieldKey]: field,
+                    [failedFieldKey]: {...field, fieldID: 'failed', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: {[errorKey]: 'Creation failed'}},
+                    [offlineFieldKey]: offlineField,
+                },
+            });
+            const targetPolicy = makeTargetPolicy({fieldList: {[retainedFieldKey]: retainedField}});
+
+            // When copying only the selected field target
+            const {optimisticData, successData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], [part], {}, {}, {});
+            const optimisticPolicy = getOptimisticPolicy(optimisticData);
+
+            // Then failed fields never reach the target, while valid/offline and unselected fields survive
+            expect(optimisticPolicy?.fieldList).toEqual({[sourceFieldKey]: field, [offlineFieldKey]: offlineField, [retainedFieldKey]: retainedField});
+            const successPatch = getMergedPolicyPatch(successData.find((update) => update.key === POLICY_KEY));
+            expect(successPatch?.fieldList).toBeUndefined();
+        });
+
         describe('per-part field patches and pendingFields', () => {
             it.each<[Part, ReadonlyArray<keyof Policy>]>([
                 ['overview', ['address', 'description']],
