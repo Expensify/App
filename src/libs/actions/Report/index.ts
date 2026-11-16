@@ -3327,8 +3327,7 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
  * If false, the API call will be skipped to avoid 401 errors from reading reports not yet shared with the user.
  * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
  * Currently, the unread indicator needs to be reset only when users mark a report as read.
- * @param readTime The time the user saw the report. Defaults to now. A read that runs later than the moment it stands
- * for passes that moment, so actions that arrived in between stay unread.
+ * @param readTime When the user saw the report (defaults to now). A delayed read passes it so newer actions stay unread.
  */
 function readNewestAction(reportID: string | undefined, isReportActionsLoaded: boolean, shouldResetUnreadMarker = false, readTime?: string) {
     if (!reportID) {

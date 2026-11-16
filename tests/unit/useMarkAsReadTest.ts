@@ -29,6 +29,7 @@ let mockIsInPreloadedTab = false;
 let mockNotificationPreference: string = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
 let mockLHNUnreadState = 'unread';
 let mockIsRevealingPreMountedFullscreen = false;
+let mockAuthToken: string | null = 'token';
 const CURRENT_USER_ACCOUNT_ID = 123;
 
 jest.mock('@libs/Visibility', () => ({
@@ -56,6 +57,10 @@ jest.mock('@libs/ReportUtils', () => {
         getReportNotificationPreference: () => mockNotificationPreference,
     };
 });
+
+jest.mock('@libs/Network/NetworkStore', () => ({
+    getAuthToken: () => mockAuthToken,
+}));
 
 jest.mock('@libs/SidebarUtils', () => ({
     getLHNUnreadState: () => mockLHNUnreadState,
@@ -136,6 +141,7 @@ describe('useMarkAsRead', () => {
         mockNotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
         mockLHNUnreadState = 'unread';
         mockIsRevealingPreMountedFullscreen = false;
+        mockAuthToken = 'token';
     });
 
     afterEach(() => {
@@ -235,6 +241,40 @@ describe('useMarkAsRead', () => {
         });
 
         // Then the held read is skipped, so its older reveal time cannot move the read time backwards
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
+
+    it('skips the held reveal read when a mark-as-unread from another tab syncs in before it runs', () => {
+        // Given an unread report revealed from the preloaded Inbox tab, with its read still waiting for idle
+        jest.useFakeTimers();
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderMarkAsRead({isScrolledToEnd: true});
+        mockIsInPreloadedTab = false;
+        rerender(undefined);
+
+        // When another tab marks a message unread, which only reaches this tab as an older synced read time
+        rerender({report: {...REPORT, lastReadTime: '2023-01-01 09:30:00.000'}});
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Then the held read is skipped, so it cannot undo the unread made in the other tab
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
+
+    it('does not mark read when a sign-out unmounts the report before the held reveal read runs', () => {
+        // Given an unread report revealed from the preloaded Inbox tab, with its read still waiting for idle
+        jest.useFakeTimers();
+        mockIsInPreloadedTab = true;
+        const {rerender, unmount} = renderMarkAsRead({isScrolledToEnd: true});
+        mockIsInPreloadedTab = false;
+        rerender(undefined);
+
+        // When the user signs out, which clears the session and then unmounts the report
+        mockAuthToken = null;
+        unmount();
+
+        // Then nothing is read, so a sign-out cannot queue a request or bring back cleared report data
         expect(readNewestAction).not.toHaveBeenCalled();
     });
 

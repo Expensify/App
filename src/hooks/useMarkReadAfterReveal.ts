@@ -1,4 +1,5 @@
 import Navigation from '@libs/Navigation/Navigation';
+import {getAuthToken} from '@libs/Network/NetworkStore';
 import {getDBTimeWithSkew} from '@libs/NetworkState';
 import {Scheduler} from '@libs/Scheduler';
 import type {IdleTask} from '@libs/Scheduler';
@@ -23,15 +24,7 @@ function cancelIdleRead(pendingRead: PendingRead | null) {
     pendingRead.task.cancel();
 }
 
-/**
- * Marks a report read, and holds the read until the main thread is idle when this render reveals the report from the
- * preloaded Inbox tab.
- *
- * Revealing the preloaded tab is the tap that has to paint the sidebar. Marking read in that commit recomputes derived
- * report data and re-sorts the LHN before the sidebar's first layout, so the read waits until the reveal has painted. It
- * keeps the reveal time, so messages that arrive while it waits stay unread, as they would with an immediate read, and it
- * is skipped when something else already moved the report's read time past it.
- */
+/** Holds the read of a report revealed by the Inbox tab tap until idle, so the LHN re-sort it triggers misses that tap's first paint. */
 function useMarkReadAfterReveal(reportID: string, lastReadTime: string | undefined) {
     const isInPreloadedTab = useIsInPreloadedTab();
     const wasInPreloadedTab = usePrevious(isInPreloadedTab);
@@ -42,7 +35,7 @@ function useMarkReadAfterReveal(reportID: string, lastReadTime: string | undefin
         latestLastReadTime.current = lastReadTime;
     }, [lastReadTime]);
 
-    // A mark-as-unread made before the held read runs must not be undone by it.
+    // The held read must not undo a mark-as-unread made while it waits.
     useEffect(() => {
         const subscription = DeviceEventEmitter.addListener(`unreadAction_${reportID}`, () => {
             cancelIdleRead(pendingRead.current);
@@ -51,39 +44,44 @@ function useMarkReadAfterReveal(reportID: string, lastReadTime: string | undefin
         return () => subscription.remove();
     }, [reportID]);
 
-    // Leaving or switching the report before the held read runs still marks it read, as an immediate read would have.
+    // Leaving the report early still marks it read, like an immediate read would.
     useEffect(
         () => () => {
             const pending = pendingRead.current;
             pendingRead.current = null;
             cancelIdleRead(pending);
+            // Sign-out unmounts the report after clearing its data, so no read may be queued then.
+            if (!getAuthToken()) {
+                return;
+            }
             pending?.read();
         },
         [reportID],
     );
 
-    /** Drops a held read, so its older reveal time cannot overwrite a read that runs before it. */
+    /** Called before any other read, so the held read's older time can't overwrite it. */
     const cancelPendingRead = () => {
         cancelIdleRead(pendingRead.current);
         pendingRead.current = null;
     };
 
     const markRead = (isReportActionsLoaded: boolean) => {
-        // A wide submit pre-mount is held by the same preloaded-tab flag, but its reveal is not the Inbox tap, so it reads as before.
+        // A wide submit pre-mount uses the same preloaded flag, but its reveal isn't the Inbox tap.
         if (!isRevealRender || Navigation.getIsRevealingPreMountedFullscreen()) {
             cancelPendingRead();
             readNewestAction(reportID, isReportActionsLoaded);
             return;
         }
 
-        // More than one mark-as-read pass reacts to the same reveal, and one read covers them all.
+        // Both mark-as-read passes react to the same reveal, and one read covers them.
         if (pendingRead.current) {
             return;
         }
         const readTime = getDBTimeWithSkew();
+        const revealLastReadTime = latestLastReadTime.current;
         const read = () => {
-            // A comment, an expense or a manual Mark as read since the reveal already moved the read time past it.
-            if ((latestLastReadTime.current ?? '') >= readTime) {
+            // Any change to the read time since the reveal wins, including an unread synced from another tab.
+            if (latestLastReadTime.current !== revealLastReadTime) {
                 return;
             }
             readNewestAction(reportID, isReportActionsLoaded, false, readTime);
