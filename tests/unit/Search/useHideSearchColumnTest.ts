@@ -156,20 +156,15 @@ describe('useHideSearchColumn', () => {
         ]);
     });
 
-    it('saves the default expense columns with the group columns when a grouped search has no saved columns', () => {
-        // Given a grouped search with no saved columns, so its groups expand to the default expense columns
+    it('saves no expense columns with the group columns when a grouped search has no saved columns', () => {
+        // Given a grouped search with no saved columns, so its expanded groups derive their expense columns from the data
         const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense group-by:from'), GROUP_FROM_SHOWN_COLUMNS));
 
         // When Expenses is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES));
 
-        // Then the default expense columns are saved after the shown group columns, so the Columns page shows them checked
-        // and saving from it doesn't drop them
-        expect(getSavedColumns()).toEqual([
-            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-            CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
-            CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-            ...CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE,
-        ]);
+        // Then only the shown group columns are saved, so expanded groups keep deriving their columns from the data
+        // instead of switching to the static default list
+        expect(getSavedColumns()).toEqual([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]);
     });
 });
