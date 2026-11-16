@@ -1,8 +1,8 @@
-import {getPinnedColumnLayout, getPinnedColumns, setColumnPin} from '@libs/SearchUIUtils';
+import {getPinnedColumnOrder, getPinnedColumns, getPinsOnSavedColumns, setColumnPin} from '@libs/SearchPinnedColumnsUtils';
 
 import CONST from '@src/CONST';
 
-describe('getPinnedColumnLayout', () => {
+describe('getPinnedColumnOrder', () => {
     it('lays out left pins first and right pins last, each in pin order, keeping the rest in place', () => {
         // Given a table with pins on both edges, pinned out of their table order
         const columns = [
@@ -15,24 +15,20 @@ describe('getPinnedColumnLayout', () => {
         ];
 
         // When the table is laid out
-        const layout = getPinnedColumnLayout(columns, {
+        const layout = getPinnedColumnOrder(columns, {
             left: [CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT],
             right: [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.CATEGORY],
         });
 
         // Then the pinned columns move to their edges in the order they were pinned
-        expect(layout).toEqual({
-            columns: [
-                CONST.SEARCH.TABLE_COLUMNS.TAG,
-                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
-                CONST.SEARCH.TABLE_COLUMNS.TYPE,
-                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-                CONST.SEARCH.TABLE_COLUMNS.DATE,
-                CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
-            ],
-            leftPinned: [CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT],
-            rightPinned: [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.CATEGORY],
-        });
+        expect(layout).toEqual([
+            CONST.SEARCH.TABLE_COLUMNS.TAG,
+            CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+            CONST.SEARCH.TABLE_COLUMNS.TYPE,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+        ]);
     });
 
     it('ignores pins on columns the table does not show', () => {
@@ -40,25 +36,21 @@ describe('getPinnedColumnLayout', () => {
         const columns = [CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
 
         // When the table is laid out
-        const layout = getPinnedColumnLayout(columns, {left: [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, CONST.SEARCH.TABLE_COLUMNS.MERCHANT], right: [CONST.SEARCH.TABLE_COLUMNS.TAG]});
+        const layout = getPinnedColumnOrder(columns, {left: [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, CONST.SEARCH.TABLE_COLUMNS.MERCHANT], right: [CONST.SEARCH.TABLE_COLUMNS.TAG]});
 
         // Then only the shown pinned column moves, and no column appears that the table didn't show
-        expect(layout).toEqual({
-            columns: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
-            leftPinned: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT],
-            rightPinned: [],
-        });
+        expect(layout).toEqual([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
     });
 
-    it('returns the same columns array when nothing shown is pinned, so the table keeps its stable reference', () => {
+    it("keeps the table's own order when nothing shown is pinned", () => {
         // Given a table whose only pin is on a hidden column
         const columns = [CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
 
         // When the table is laid out
-        const layout = getPinnedColumnLayout(columns, {left: [CONST.SEARCH.TABLE_COLUMNS.TAG], right: []});
+        const layout = getPinnedColumnOrder(columns, {left: [CONST.SEARCH.TABLE_COLUMNS.TAG], right: []});
 
         // Then the column order is the table's own
-        expect(layout.columns).toBe(columns);
+        expect(layout).toEqual(columns);
     });
 
     it('keeps the action column last, after the right pins', () => {
@@ -66,20 +58,12 @@ describe('getPinnedColumnLayout', () => {
         const columns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ACTION];
 
         // When a column is pinned right, and separately when only a column is pinned left
-        const rightPinnedLayout = getPinnedColumnLayout(columns, {left: [], right: [CONST.SEARCH.TABLE_COLUMNS.DATE]});
-        const leftPinnedLayout = getPinnedColumnLayout(columns, {left: [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], right: []});
+        const rightPinnedLayout = getPinnedColumnOrder(columns, {left: [], right: [CONST.SEARCH.TABLE_COLUMNS.DATE]});
+        const leftPinnedLayout = getPinnedColumnOrder(columns, {left: [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], right: []});
 
-        // Then the action column ends the row either way, and counts as part of the right edge only when that edge has pins
-        expect(rightPinnedLayout).toEqual({
-            columns: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ACTION],
-            leftPinned: [],
-            rightPinned: [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ACTION],
-        });
-        expect(leftPinnedLayout).toEqual({
-            columns: [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.ACTION],
-            leftPinned: [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
-            rightPinned: [],
-        });
+        // Then the action column ends the row either way
+        expect(rightPinnedLayout).toEqual([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ACTION]);
+        expect(leftPinnedLayout).toEqual([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.ACTION]);
     });
 });
 
@@ -122,5 +106,29 @@ describe('setColumnPin', () => {
         expect(withDate).toEqual({left: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.DATE], right: [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]});
         expect(movedMerchant).toEqual({left: [CONST.SEARCH.TABLE_COLUMNS.DATE], right: [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MERCHANT]});
         expect(unpinnedTotal).toEqual({left: [CONST.SEARCH.TABLE_COLUMNS.DATE], right: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]});
+    });
+});
+
+describe('getPinsOnSavedColumns', () => {
+    it('drops pins on columns the query no longer saves', () => {
+        // Given Merchant and Date pinned, and a query that now saves only Merchant and Total
+        const pinnedColumns = {left: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT], right: [CONST.SEARCH.TABLE_COLUMNS.DATE]};
+
+        // When the pins are matched to the saved columns
+        const kept = getPinsOnSavedColumns(pinnedColumns, [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+
+        // Then Date stops being pinned, so adding it back later doesn't pin it again
+        expect(kept).toEqual({left: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT], right: []});
+    });
+
+    it('keeps every pin when the query saves no columns, since the table then shows its defaults', () => {
+        // Given pins on a query that leaves the columns to the table
+        const pinnedColumns = {left: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT], right: [CONST.SEARCH.TABLE_COLUMNS.DATE]};
+
+        // When the pins are matched to no saved columns
+        const kept = getPinsOnSavedColumns(pinnedColumns, undefined);
+
+        // Then the pins stay, because the default columns those pins sit on aren't known here
+        expect(kept).toEqual(pinnedColumns);
     });
 });

@@ -95,6 +95,7 @@ import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parseAmountFilterValue, supportsAmountFilterCurrency} from './SearchAmountFilterUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
+import {getPinnedColumns, getPinsOnSavedColumns} from './SearchPinnedColumnsUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -1577,13 +1578,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         }
     }
 
-    // A column taken off the table stops being pinned, so adding it back later doesn't pin it again by surprise.
-    const shownColumns = columns?.length ? new Set<string>(columns) : undefined;
-    for (const [key, pinnedColumns] of [
-        [CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS, leftPinnedColumns],
-        [CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS, rightPinnedColumns],
+    const pinnedColumns = getPinsOnSavedColumns(getPinnedColumns({leftPinnedColumns, rightPinnedColumns}), columns);
+    for (const [key, pinnedColumnsToSave] of [
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS, pinnedColumns.left],
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS, pinnedColumns.right],
     ] as const) {
-        const pinnedColumnsToSave = [...new Set<string>(pinnedColumns ?? [])].filter((column) => !shownColumns || shownColumns.has(column));
         if (pinnedColumnsToSave.length) {
             filtersString.push(`${key}:${pinnedColumnsToSave.map((value) => sanitizeSearchValue(value)).join(',')}`);
         }
