@@ -348,7 +348,7 @@
     "onchange": "^7.1.0",
     "openai": "^7.0.0",
     "oxc-transform-react": "0.156.0",
-    "oxfmt": "^0.75.0",
+    "oxfmt": "^0.78.0",
     "oxlint": "1.90.0",
     "oxlint-tsgolint": "7.0.2005",
     "patch-package": "^8.1.0-canary.1",
@@ -410,7 +410,7 @@
     "regexpu-core": "6.4.0",
     "serialize-javascript": "7.1.2",
     "adm-zip": "0.6.1",
-    "tinypool": "2.1.2",
+    "tinypool": "2.2.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "eslint-config-expensify": {
