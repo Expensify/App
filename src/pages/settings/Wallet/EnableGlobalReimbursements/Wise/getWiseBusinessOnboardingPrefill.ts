@@ -8,7 +8,6 @@ import {getCountryCode, resolveStateCode} from '@libs/CountryUtils';
 import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
-import CONST from '@src/CONST';
 import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
