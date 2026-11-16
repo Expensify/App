@@ -169,7 +169,6 @@ function InsightsChartWidget({
             <InsightsExplainButton
                 explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
                 insightsScope={insightsScope}
-                shouldShowText={false}
             />
         ) : null;
 

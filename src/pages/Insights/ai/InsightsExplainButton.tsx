@@ -20,12 +20,12 @@ type InsightsExplainButtonProps = {
     /** Dashboard and filters sent with the prompt so Concierge explains the data the user sees */
     insightsScope: InsightsScope;
 
-    /** Whether to show the "Explain" label next to the icon. Defaults to true. */
-    shouldShowText?: boolean;
+    /** Label shown next to the icon. Without one, the button shows a tooltip instead. */
+    children?: React.ReactNode;
 };
 
 /** Button that asks Concierge to explain an AI insight or chart, sending along the dashboard filters so the answer covers the data on screen. */
-function InsightsExplainButton({explainPrompt, insightsScope, shouldShowText = true}: InsightsExplainButtonProps) {
+function InsightsExplainButton({explainPrompt, insightsScope, children}: InsightsExplainButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -38,7 +38,7 @@ function InsightsExplainButton({explainPrompt, insightsScope, shouldShowText = t
 
     return (
         <Tooltip
-            shouldRender={!shouldShowText}
+            shouldRender={!children}
             text={translate('insightsPage.explain')}
         >
             <View style={styles.alignSelfStart}>
@@ -55,7 +55,7 @@ function InsightsExplainButton({explainPrompt, insightsScope, shouldShowText = t
                         fill={theme.icon}
                         hoverFill={theme.icon}
                     />
-                    {shouldShowText && <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>}
+                    {children}
                 </Button>
             </View>
         </Tooltip>
