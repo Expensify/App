@@ -146,6 +146,7 @@ function renderTabView(
     hiddenRouteNames: string[] = [],
     optionsByRouteName: Record<string, Record<string, unknown>> = {},
 ) {
+    navigation.getState.mockReturnValue(state);
     return (
         <ThemeProvider value={DefaultTheme}>
             <NativeTabView
@@ -206,6 +207,22 @@ describe('NativeBottomTabView', () => {
         // Then JS presses and navigates to that route, so JS follows native instead of dropping the selection
         expect(navigation.emit).toHaveBeenCalledWith({type: 'tabPress', target: 'Spend-key'});
         expect(navigation.dispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Spend'}), target: 'tab'}));
+    });
+
+    it('navigates back to the rendered tab when the user taps it after another tap navigated away before JS rendered', () => {
+        // Given the Inbox tab rendered, and a native tap on Spend that navigated before JS rendered again
+        const navigation = buildNavigation();
+        const inboxState = buildTabState('Inbox-key-1');
+        render(renderTabView(inboxState, navigation));
+        selectNatively('Spend');
+        navigation.getState.mockReturnValue({...inboxState, index: 1, history: [{type: 'route', key: 'Spend-key'}]});
+        navigation.dispatch.mockClear();
+
+        // When the user taps Inbox, which native already shows as selected again
+        selectNatively('Inbox');
+
+        // Then JS navigates back to Inbox, since the navigator is on Spend, so the bar and the screen do not end on different tabs
+        expect(navigation.dispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Inbox'}), target: 'tab'}));
     });
 
     it('leaves a focused hidden route when the user taps the tab it is drawn in', () => {

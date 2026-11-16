@@ -3,6 +3,7 @@ import useOnyx from '@hooks/useOnyx';
 import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 
 import HomePage from '@pages/home/HomePage';
 import InsightsPage from '@pages/Insights/InsightsPage';
@@ -23,7 +24,7 @@ import type {NativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import getActiveTabRoute from './NativeTabNavigator/getActiveTabRoute';
-import {getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
+import {getFlatNavTabHostRouteName, getSearchTabRoute, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useIsNativeFlatNavTabBarEnabled from './NativeTabNavigator/useIsNativeFlatNavTabBarEnabled';
@@ -52,26 +53,29 @@ function NativeTabItemPlaceholder() {
 }
 
 type NativeTabNavigatorProps = {
-    /** The section of the search Search shows, given only with the flat nav bar */
-    flatNavSearchSectionID?: FlatNavSectionID;
+    /** Resolves the section of the search Search shows from its search key, given only with the flat nav bar */
+    getFlatNavSearchSectionID?: (searchKey: SearchKey | undefined) => FlatNavSectionID | undefined;
 
     isFlatNavTabBarEnabled?: boolean;
 };
 
-function NativeTabNavigator({flatNavSearchSectionID, isFlatNavTabBarEnabled = false}: NativeTabNavigatorProps) {
+function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled = false}: NativeTabNavigatorProps) {
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator({isFlatNavTabBarEnabled});
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    // The search key is read from the navigator's current state, as the route given here has no nested state, so the bar
+    // selects the new item in the same commit as Search moves.
+    const getSearchSectionID = (navigation: {getState: () => NavigationState}) => getFlatNavSearchSectionID?.(getSearchTabSearchKey(getSearchTabRoute(navigation.getState())));
     // A tab with no label has no bar item and draws no icon. It is drawn inside the item of its flat nav slot, or, with no
     // slot, inside the first item with no item shown as selected.
-    const getScreenOptions = ({route}: {route: {name: NativeTabRouteName}}) =>
+    const getScreenOptions = ({route, navigation}: {route: {name: NativeTabRouteName}; navigation: {getState: () => NavigationState}}) =>
         route.name in tabLabels
             ? {
                   ...screenOptions,
                   ...getTabOptions(route.name),
                   tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
               }
-            : {...screenOptions, ...HIDDEN_TAB_OPTIONS, tabBarItemHostRouteName: getFlatNavTabHostRouteName(route.name, flatNavSearchSectionID)};
+            : {...screenOptions, ...HIDDEN_TAB_OPTIONS, tabBarItemHostRouteName: getFlatNavTabHostRouteName(route.name, getSearchSectionID(navigation))};
 
     return (
         <Tab.Navigator
@@ -133,16 +137,13 @@ function NativeTabNavigator({flatNavSearchSectionID, isFlatNavTabBarEnabled = fa
 function FlatNavNativeTabNavigator() {
     const route = useRoute();
     const getTabState = (parentState: NavigationState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state;
-    const searchKey = useNavigationState((parentState) =>
-        getSearchTabSearchKey(getTabState(parentState)?.routes.find((tabRoute) => tabRoute.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)),
-    );
     const isSearchFocused = useNavigationState((parentState) => getActiveTabRoute(getTabState(parentState))?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    const flatNavSearchSectionID = useNativeFlatNavSearchSection({searchKey, isSearchFocused});
+    const getFlatNavSearchSectionID = useNativeFlatNavSearchSection({isSearchFocused});
 
     return (
         <NativeTabNavigator
             isFlatNavTabBarEnabled
-            flatNavSearchSectionID={flatNavSearchSectionID}
+            getFlatNavSearchSectionID={getFlatNavSearchSectionID}
         />
     );
 }

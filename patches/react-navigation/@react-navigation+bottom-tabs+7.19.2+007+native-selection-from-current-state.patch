@@ -1,0 +1,49 @@
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+@@ -90,6 +90,24 @@
+     });
+   };
+ 
++  // Native can report several selections before JS renders again, so the handlers read the focused route from the
++  // current state rather than from this render. Read from this render, a tap back to its tab after a tap on another tab
++  // is taken for a repeated selection, and JS stays on the other tab, which it then selects in the native bar again.
++  const getCurrentNativeSelection = () => {
++    const currentState = navigation.getState();
++    const currentFocusedRoute = currentState.routes[currentState.index];
++    if (!isRouteHidden(currentFocusedRoute)) {
++      return {
++        routeKey: currentFocusedRoute.key,
++        isSelectionHidden: false
++      };
++    }
++    return {
++      routeKey: getHostRouteKey(currentFocusedRoute) ?? currentFocusedRoute.key,
++      isSelectionHidden: getExplicitHostRouteKey(currentFocusedRoute) === undefined
++    };
++  };
++
+   // Native tabs are the source of truth for the selected tab.
+   // JS sends a requested tab with the native provenance it was based on.
+   // Native replies with the selected tab and its new provenance.
+@@ -117,8 +135,9 @@
+     // While a hidden route is focused, native keeps the tab it is drawn in selected. Native reporting that tab is not a
+     // request to leave the hidden route, but the user tapping it is, unless that tab is the hidden route's explicit host
+     // and shows as selected, where the tap is a repeated selection of the hidden route.
+-    const isUserLeavingHiddenRoute = isFocusedRouteSelectionHidden && actionOrigin === 'user';
+-    if (actionOrigin === 'programmatic-js' || (nativeSelectedRouteKey === route.key && !isUserLeavingHiddenRoute)) {
++    const currentNativeSelection = getCurrentNativeSelection();
++    const isUserLeavingHiddenRoute = currentNativeSelection.isSelectionHidden && actionOrigin === 'user';
++    if (actionOrigin === 'programmatic-js' || (currentNativeSelection.routeKey === route.key && !isUserLeavingHiddenRoute)) {
+       dispatch({
+         type: 'CONFIRM_STATE',
+         confirmed
+@@ -146,7 +165,7 @@
+     }
+     // Android re-sends an unchanged request on a re-render and rejects it as repeated, which reports the tab under a
+     // focused hidden route. Following it would close the hidden route.
+-    if (nativeSelectedRouteKey === route.key) {
++    if (getCurrentNativeSelection().routeKey === route.key) {
+       dispatch({
+         type: 'CONFIRM_STATE',
+         confirmed

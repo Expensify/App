@@ -20,11 +20,11 @@ import SCREENS from '@src/SCREENS';
 import {lastExpensesSearchQuerySelector, lastReportsSearchQuerySelector} from '@src/selectors/SearchFilters';
 
 import {authTokenTypeSelector} from '@selectors/Session';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {NativeTabLayoutProps} from './NativeTabLayout';
 
-import {getSearchTabSearchKey} from './nativeTabItemUtils';
+import {getSearchTabRoute, getSearchTabSearchKey} from './nativeTabItemUtils';
 
 type MoreMenuState = 'closed' | 'open' | 'closing';
 
@@ -41,18 +41,45 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
     const reportsNavigation = getTabNavigation(SCREENS.NATIVE_TAB_ITEM.REPORTS);
     const moreNavigation = getTabNavigation(SCREENS.NATIVE_TAB_ITEM.MORE);
 
+    // A navigation from another tab hands Search its search in the tab route params, which Search takes only in its next
+    // render. A tap made before then would navigate Search directly and be overridden by those params, so it waits.
+    const pendingSearchNavigation = useRef<{isPending: boolean; queuedSearchKey?: SpendTabSearchKey}>({isPending: false});
+    const getCurrentSearchTabRoute = () => getSearchTabRoute(searchNavigation?.getState());
+
     // Focus and the current search are read at the press, not from the last render, so a quick second tap sees the
     // navigation the first one made.
     const openSpendTab = (searchKey: SpendTabSearchKey) => {
+        if (pendingSearchNavigation.current.isPending) {
+            pendingSearchNavigation.current.queuedSearchKey = searchKey;
+            return;
+        }
         const isSearchFocused = !!searchNavigation?.isFocused();
-        const currentSearchKey = getSearchTabSearchKey(searchNavigation?.getState().routes.find((tabRoute) => tabRoute.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR));
         // Search already on this search: the tap is a repeated selection, which the native bar answers by itself.
-        if (isSearchFocused && currentSearchKey === searchKey) {
+        if (isSearchFocused && getSearchTabSearchKey(getCurrentSearchTabRoute()) === searchKey) {
             return;
         }
         const lastSearchQuery = searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? lastReportsSearchQuery : lastExpensesSearchQuery;
+        const searchTabParams = getCurrentSearchTabRoute()?.params;
         openSearchFromTabBar(() => navigateToSpendTab(searchKey, lastSearchQuery, clearSelectedTransactions), isSearchFocused, session);
+        // Only a navigation from another tab replaces the Search tab route params, so only that one leaves Search pending.
+        pendingSearchNavigation.current.isPending = getCurrentSearchTabRoute()?.params !== searchTabParams;
     };
+
+    // The tab navigator reports its new state after Search has taken the params.
+    useEffect(
+        () =>
+            searchNavigation?.addListener('state', () => {
+                const {isPending, queuedSearchKey} = pendingSearchNavigation.current;
+                if (!isPending) {
+                    return;
+                }
+                pendingSearchNavigation.current = {isPending: false};
+                if (queuedSearchKey) {
+                    openSpendTab(queuedSearchKey);
+                }
+            }),
+        [searchNavigation, openSpendTab],
+    );
 
     useEffect(() => {
         const removeListeners = [

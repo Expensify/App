@@ -197,6 +197,13 @@ describe('useNativeFlatNavSearchSection', () => {
             expectedSection: FLAT_NAV.SECTION.REPORTS,
         },
         {
+            description: 'takes the section of the search Search moves to before it shows as shown',
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            isSearchFocused: false,
+            storedSearchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+            expectedSection: FLAT_NAV.SECTION.EXPENSES,
+        },
+        {
             description: 'ignores the stored search once Search is shown',
             searchKey: undefined,
             isSearchFocused: true,
@@ -218,13 +225,15 @@ describe('useNativeFlatNavSearchSection', () => {
         }
         jest.mocked(useNetwork).mockReturnValue({isOffline});
 
-        // When the section of the search the Search tab shows is resolved
-        const {result} = renderHook(() => useNativeFlatNavSearchSection({searchKey, isSearchFocused}));
+        // When the section of the search the Search tab route has is resolved
+        const {result} = renderHook(() => useNativeFlatNavSearchSection({isSearchFocused}));
         await waitForBatchedUpdates();
 
-        // Then it is the section the bar highlights: the stored search only until Search is shown, so Search does not move
-        // to another item when it mounts, and Saved only while the Spend menu shows saved searches
-        expect(result.current).toBe(expectedSection);
+        // Then it is the section the bar highlights: the stored search only while Search has no search key and was not
+        // shown, so Search does not move to another item when it mounts, a search key the route already has even before
+        // Search shows as shown, so the bar does not select the previous item, and Saved only while the Spend menu shows
+        // saved searches
+        expect(result.current(searchKey)).toBe(expectedSection);
     });
 });
 

@@ -105,6 +105,14 @@
 - PR Introducing Patch: [#106500](https://github.com/Expensify/App/pull/106500)
 - PR Updating Patch: N/A
 
+### [@react-navigation+bottom-tabs+7.19.2+007+native-selection-from-current-state.patch](@react-navigation+bottom-tabs+7.19.2+007+native-selection-from-current-state.patch)
+
+- Reason: The native tab selection handlers compared the tab native reported with the tab selected in the last render. When the JS thread is busy, native can report several taps before JS renders again, so a tap back to the tab of that render after a tap on another tab, such as Home, Inbox, Home, was taken for a repeated selection and only confirmed. JS stayed on Inbox and then selected it in the native bar again, so the bar jumped back to a tab the user had left. The handlers now read the focused route from the navigator's current state.
+- Upstream PR/issue: not reported yet. The same comparison exists upstream in `onTabSelected` of `NativeBottomTabView`, without the hidden route parts of patches 003 to 006.
+- E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
+- PR Introducing Patch: [#106500](https://github.com/Expensify/App/pull/106500)
+- PR Updating Patch: N/A
+
 ### Removed patches
 
 - `@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch` was dropped: upstream raised the `createMemoryHistory.go()` fallback timeout from 100ms to 1000ms in 7.3.18 (https://github.com/react-navigation/react-navigation/pull/13217), with the same Firefox rationale as our patch. Original context: [#94571](https://github.com/Expensify/App/issues/94571) / [#95980](https://github.com/Expensify/App/pull/95980), upstream issue https://github.com/react-navigation/react-navigation/issues/11145.

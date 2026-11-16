@@ -40,10 +40,14 @@ const LAST_REPORTS_QUERY = 'type:expense-report status:outstanding';
 
 // The tab press listener of each route, as the tab view's event emitter keeps them
 const pressListeners = new Map<string, () => void>();
+// The state listeners, which the tab navigator calls once it has rendered a new state
+const stateListeners = new Set<() => void>();
 
 // What the navigation reports at the moment of a press, which can be ahead of the last render
 let liveFocusedRouteName: string = SCREENS.HOME;
 let liveSearchKey: string | undefined;
+// The params a navigation from another tab hands the Search tab route
+let liveSearchTabParams: Record<string, unknown> | undefined;
 
 function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state' | 'descriptors'> {
     const routes = ROUTE_NAMES.map((name) => ({key: `${name}-key`, name}));
@@ -55,6 +59,10 @@ function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state
                 createMock<NativeTabLayoutProps['descriptors'][string]>({
                     navigation: createMock<NativeTabLayoutProps['descriptors'][string]['navigation']>({
                         addListener: jest.fn((type: string, listener: () => void) => {
+                            if (type === 'state') {
+                                stateListeners.add(listener);
+                                return () => stateListeners.delete(listener);
+                            }
                             pressListeners.set(route.name, listener);
                             return () => pressListeners.delete(route.name);
                         }),
@@ -64,6 +72,7 @@ function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state
                                 routes: [
                                     {
                                         name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                        params: liveSearchTabParams,
                                         state: {routes: [{name: SCREENS.SEARCH.ROOT, params: {q: 'type:expense', searchKey: liveSearchKey}}]},
                                     },
                                 ],
@@ -110,6 +119,8 @@ describe('FlatNavTabPressListeners', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         pressListeners.clear();
+        stateListeners.clear();
+        liveSearchTabParams = undefined;
         await Onyx.set(ONYXKEYS.SEARCH_FILTERS, {[CONST.SEARCH.SEARCH_KEYS.REPORTS]: {timestamp: '2026-11-10 12:00:00', query: LAST_REPORTS_QUERY}});
     });
 
@@ -156,6 +167,34 @@ describe('FlatNavTabPressListeners', () => {
 
         // Then only the first tap navigates, because the focus is read at the press rather than from the last render
         expect(navigateToSpendTab).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens the search of a tap made before Search takes the search of the previous tap once Search takes it', async () => {
+        // Given Home focused, where pressing Reports hands Search the Reports search in the tab route params, which Search
+        // takes only in its next render
+        await renderListeners(SCREENS.HOME);
+        jest.mocked(navigateToSpendTab).mockImplementationOnce(() => {
+            liveFocusedRouteName = NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
+            liveSearchTabParams = {screen: SCREENS.SEARCH.ROOT, params: {searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS}};
+        });
+
+        // When the user taps Reports and then Expenses before Search takes the Reports search
+        press(SCREENS.NATIVE_TAB_ITEM.REPORTS);
+        press(SCREENS.NATIVE_TAB_ITEM.EXPENSES);
+
+        // Then only Reports navigates for now, since a navigation made now would be overridden by those params
+        expect(jest.mocked(navigateToSpendTab).mock.calls.map(([searchKey]) => searchKey)).toEqual([CONST.SEARCH.SEARCH_KEYS.REPORTS]);
+
+        // When Search takes the Reports search and the tab navigator reports its new state
+        liveSearchKey = CONST.SEARCH.SEARCH_KEYS.REPORTS;
+        act(() => {
+            for (const listener of stateListeners) {
+                listener();
+            }
+        });
+
+        // Then Expenses, the last tap, opens, so the bar ends on the item the user tapped last
+        expect(jest.mocked(navigateToSpendTab).mock.calls.map(([searchKey]) => searchKey)).toEqual([CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
     });
 
     it('mounts the More menu only while it is shown or closing', async () => {
