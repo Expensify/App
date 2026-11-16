@@ -6,7 +6,7 @@ Compound popover-menu primitives. Inspired by Radix DropdownMenu, adapted for Re
 
 - **Uncontrolled.** Visibility lives inside `<Root>`; seed the initial state with `<Root defaultOpen?>`. Triggers open it; item selection (unless its handler calls `event.preventDefault()`), screen blur, or modal-stack cover close it. Observe via `useIsPopoverVisible()`.
 - **Hierarchy enforced at render.** Misuse throws synchronously in dev *and* staging — e.g. `<PopoverMenu.Item> must be rendered inside <PopoverMenu.Content>`.
-- **Triggers publish via context, not `cloneElement`.** `<Trigger>` and `<SecondaryInteractionTrigger>` publish their handler plus shared accessibility metadata into `PressResponderContext` (a project-level primitive at `src/components/Pressable/PressResponder/`) — see the [pressable consumption table](#pressables-that-consume-pressrespondercontext).
+- **Triggers publish via context, not `cloneElement`.** `<Trigger>` and `<SecondaryInteractionTrigger>` publish their handler, its `sentryLabel` and shared accessibility metadata into `PressResponderContext` (a project-level primitive at `src/components/Pressable/PressResponder/`) — see the [pressable consumption table](#pressables-that-consume-pressrespondercontext).
 - **Sub-level: wrapper + hook.** `<Sub.Trigger>` / `useSubTrigger` and `<Sub.BackButton>` / `useSubBackButton` ship both layers — opinionated `MenuItem` for the canonical row, hook for non-`MenuItem` shapes.
 
 ## Usage
@@ -15,12 +15,8 @@ Compound popover-menu primitives. Inspired by Radix DropdownMenu, adapted for Re
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 
 <PopoverMenu.Root>
-    <PopoverMenu.Trigger>
-        <PressableWithFeedback
-            onPress={() => {}}
-            accessibilityLabel="Open menu"
-            sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU_TRIGGER}
-        >
+    <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU_TRIGGER}>
+        <PressableWithFeedback accessibilityLabel="Open menu">
             <Icon />
         </PressableWithFeedback>
     </PopoverMenu.Trigger>
@@ -56,8 +52,8 @@ Owns visibility state. `defaultOpen` seeds the initial open state; there is no `
 
 | Pressable | Consumes |
 |---|---|
-| `<PressableWithFeedback>` | `onPress`, `ref`, `accessibilityState`, `accessibilityHasPopup`, `nativeID`, `accessibilityControls` |
-| `<PressableWithSecondaryInteraction>` | `onSecondaryInteraction` (its inner `<PressableWithFeedback>` independently consumes the remaining props from the same context) |
+| `<PressableWithFeedback>` | `onPress`, `sentryLabel`, `ref`, `accessibilityState`, `accessibilityHasPopup`, `nativeID`, `accessibilityControls` |
+| `<PressableWithSecondaryInteraction>` | `onSecondaryInteraction`, `sentryLabel` (its inner `<PressableWithFeedback>` independently consumes the remaining props from the same context) |
 
 Raw RN `<Pressable>` / `<TouchableOpacity>` do **not** consume the responder — wrap them in one of the above or call `usePressResponderProps` / `useResponderRef` (import them from `@components/Pressable/PressResponder/usePressResponderProps` and `@components/Pressable/PressResponder/useResponderRef`) directly in a custom pressable. Without a consumer, the trigger renders but pressing does nothing (the published `onPress` reaches no descendant).
 

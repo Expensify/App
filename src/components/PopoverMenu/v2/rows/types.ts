@@ -19,6 +19,7 @@ type MenuItemForwardProps = DistributiveOmit<
     | 'disabled'
     | 'pendingAction'
     | 'ref'
+    | 'sentryLabel'
 >;
 
 type LabelMenuItemForwardProps = DistributiveOmit<
@@ -38,6 +39,9 @@ type LabelMenuItemForwardProps = DistributiveOmit<
     | 'isSelected'
     | 'disabled'
     | 'pendingAction'
+    // Label rows are read-only.
+    | 'sentryLabel'
+    | 'onSecondaryInteraction'
 >;
 
 export type {DistributiveOmit, MenuItemForwardProps, LabelMenuItemForwardProps};

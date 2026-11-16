@@ -86,13 +86,18 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
     return (
         // ref is accessed for MenuItem's ref initialization
         menuItems.map(({key, ref, onPress, onSecondaryInteraction, sentryLabel, ...menuItemProps}) => {
-            // MenuItem's label is still optional, so the handlers are passed on with or without one.
-            const pressProps = {
-                sentryLabel,
-                onPress: shouldUseSingleExecution ? singleExecution(onPress) : onPress,
-                onSecondaryInteraction:
-                    onSecondaryInteraction ?? (menuItemProps.link !== undefined ? (event: GestureResponderEvent | MouseEvent) => secondaryInteraction(menuItemProps.link, event) : undefined),
-            };
+            // MenuItemWithLink requires a label on items with onPress or a link, so an item without one has neither.
+            // Destructuring sentryLabel and onPress out of the item drops the type that ties them together, so the label
+            // is checked here for TypeScript to accept the handlers with it.
+            const pressProps = sentryLabel
+                ? {
+                      sentryLabel,
+                      onPress: shouldUseSingleExecution ? singleExecution(onPress) : onPress,
+                      onSecondaryInteraction:
+                          onSecondaryInteraction ??
+                          (menuItemProps.link !== undefined ? (event: GestureResponderEvent | MouseEvent) => secondaryInteraction(menuItemProps.link, event) : undefined),
+                  }
+                : {};
             return (
                 <OfflineWithFeedback
                     key={key ?? menuItemProps.title}

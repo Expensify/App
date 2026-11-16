@@ -24,13 +24,15 @@ type MenuItemExternalLinkProps = {
 function MenuItemExternalLink({link}: MenuItemExternalLinkProps) {
     const {translate} = useLocalize();
 
-    useMenuItemSecondaryInteraction((event, anchor) =>
-        showContextMenu({
-            type: CONST.CONTEXT_MENU_TYPES.LINK,
-            event,
-            selection: link,
-            contextMenuAnchor: anchor,
-        }),
+    useMenuItemSecondaryInteraction(
+        (event, anchor) =>
+            showContextMenu({
+                type: CONST.CONTEXT_MENU_TYPES.LINK,
+                event,
+                selection: link,
+                contextMenuAnchor: anchor,
+            }),
+        CONST.SENTRY_LABEL.MENU_ITEM.EXTERNAL_LINK_CONTEXT_MENU,
     );
 
     // Tell the row the menu is there, so a screen reader says how to reach the URL

@@ -363,9 +363,6 @@ export default function TableRow({
                 id={isAccessibilityHidden ? undefined : (semanticRowID ?? id ?? `table-row-${item.keyForList}`)}
                 aria-hidden={isAccessibilityHidden ? true : undefined}
                 style={tableRowPressableStyles}
-                // `pressProps` already passes the label, but the sentryLabel lint rule only sees a literal attribute, not what a spread contains.
-                // Remove this once the pressables require the label and the lint rule is gone.
-                sentryLabel={sentryLabel}
                 interactive={interactive}
                 shouldAllowTextSelection={shouldAllowTextSelection}
                 disabled={isDisabled}

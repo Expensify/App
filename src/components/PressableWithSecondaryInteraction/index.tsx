@@ -27,7 +27,6 @@ function PressableWithSecondaryInteraction({
     activeOpacity = 1,
     opacityAnimationDuration,
     shouldAllowTextSelection = false,
-    sentryLabel,
     ref,
     ...rest
 }: PressableWithSecondaryInteractionProps) {
@@ -35,12 +34,13 @@ function PressableWithSecondaryInteraction({
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<HTMLDivElement | null>(null);
     // Forward the a11y slot so it reaches the underlying pressable even when the descendant isn't `<PressableWithFeedback>`.
-    const {onSecondaryInteraction, accessibilityState, accessibilityHasPopup, nativeID, accessibilityControls} = usePressResponderProps({
+    const {onSecondaryInteraction, accessibilityState, accessibilityHasPopup, nativeID, accessibilityControls, sentryLabel} = usePressResponderProps({
         onSecondaryInteraction: rawOnSecondaryInteraction,
         accessibilityState: rest.accessibilityState,
         accessibilityHasPopup: rest.accessibilityHasPopup,
         nativeID: rest.nativeID,
         accessibilityControls: rest.accessibilityControls,
+        sentryLabel: rest.sentryLabel,
     });
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
@@ -95,21 +95,24 @@ function PressableWithSecondaryInteraction({
         };
     }, [onSecondaryInteraction, preventDefaultContextMenu, withoutFocusOnSecondaryInteraction]);
 
+    // The long press runs the secondary interaction, which can come from a press responder with its own label, so the
+    // two are passed on together.
+    const longPressProps = sentryLabel ? {onLongPress: onSecondaryInteraction ? executeSecondaryInteraction : undefined, sentryLabel} : {};
+
     const inlineStyle = inline ? styles.dInline : {};
     const selectionStyle = canUseTouchScreen() && !shouldAllowTextSelection ? [styles.userSelectNone, styles.noSelect] : [];
 
     // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
     return (
         <PressableWithFeedback
-            sentryLabel={sentryLabel}
             {...rest}
+            {...longPressProps}
             accessibilityState={accessibilityState}
             accessibilityHasPopup={accessibilityHasPopup}
             nativeID={nativeID}
             accessibilityControls={accessibilityControls}
             shouldAllowTextSelection={shouldAllowTextSelection}
             wrapperStyle={[StyleUtils.combineStyles(selectionStyle, inlineStyle), wrapperStyle]}
-            onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}
             dimAnimationDuration={opacityAnimationDuration}
             ref={mergeRefs(pressableRef, ref) as PressableWithSecondaryInteractionProps['ref']}

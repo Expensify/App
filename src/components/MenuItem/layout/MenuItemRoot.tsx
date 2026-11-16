@@ -22,7 +22,7 @@ import mergeRefs from '@libs/mergeRefs';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
 import type {ComponentRef, PropsWithChildren, Ref} from 'react';
@@ -32,7 +32,7 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type MenuItemRootProps = PropsWithChildren &
-    WithSentryLabel &
+    WithSentryLabelWhenPressable &
     WithTestID &
     ForwardedFSClassProps & {
         /** Function to fire when the row is pressed */
@@ -101,7 +101,11 @@ function MenuItemRoot({
     } = useCopyableTextRowPress({shouldTrackTouchStart: true});
 
     const {accessibilityLabel: rowAccessibilityLabel, accessibilityHint, fsClass: rowFSClass, registries: accessibilityRegistries} = useMenuItemAccessibility(accessibilityLabel);
-    const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
+    const {
+        handler: registeredSecondaryInteraction,
+        sentryLabel: registeredSecondaryInteractionSentryLabel,
+        register: registerSecondaryInteraction,
+    } = useMenuItemSecondaryInteractionRegistry();
 
     useRemoveNonInteractiveClickHandler(pressableRef, isInteractive);
 
@@ -135,12 +139,27 @@ function MenuItemRoot({
           }
         : undefined;
 
+    // The row always attaches its press handlers, so they are passed on only with a label. A read-only row has none of
+    // its own, so it takes the label of the sub-component that handles its long press, e.g. `MenuItem.Copy`.
+    const rowSentryLabel = sentryLabel ?? registeredSecondaryInteractionSentryLabel;
+    const pressProps = rowSentryLabel
+        ? {
+              sentryLabel: rowSentryLabel,
+              onPress: onPressAction,
+              // RN Web prevents the native context menu whenever an onLongPress handler is attached.
+              // Reset on the next pointer start, since press-out can precede the browser's selection menu.
+              onSecondaryInteraction: shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : onSecondaryInteractionAction,
+          }
+        : {};
+    // TypeScript can't match a plain boolean against both the accessibility and the label unions, so it gets a literal type.
+    const accessibleProps = shouldBeAccessible ? {accessible: true as const} : {accessible: false as const};
+
     return (
         <MenuItemConfigContext.Provider value={{isDisabled, isInteractive, shouldAllowTextSelection: shouldEnableTextSelection}}>
             <Hoverable>
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
-                        onPress={onPressAction}
+                        {...pressProps}
                         onMouseDown={(event) => {
                             markMouseDownOnCopyableText(event?.target, shouldEnableTextSelection);
                         }}
@@ -156,9 +175,6 @@ function MenuItemRoot({
                             })
                         }
                         onPressOut={ControlSelection.unblock}
-                        // RN Web prevents the native context menu whenever an onLongPress handler is attached.
-                        // Reset on the next pointer start, since press-out can precede the browser's selection menu.
-                        onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : onSecondaryInteractionAction}
                         activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
                         opacityAnimationDuration={variables.instantAnimationDuration}
                         style={({pressed}) =>
@@ -180,9 +196,8 @@ function MenuItemRoot({
                         accessibilityState={accessibilityState}
                         // Masked leaves report themselves after the first render, so a preset that names the row up front passes its mask here
                         forwardedFSClass={forwardedFSClass === CONST.FULLSTORY.CLASS.MASK ? forwardedFSClass : rowFSClass}
-                        accessible={shouldBeAccessible}
+                        {...accessibleProps}
                         tabIndex={isInteractive ? 0 : -1}
-                        sentryLabel={sentryLabel}
                         testID={testID}
                     >
                         {({pressed}) => (

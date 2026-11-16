@@ -4,7 +4,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type {SentryLabel} from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentProps} from 'react';
 
@@ -15,7 +15,7 @@ import Button from './Button';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 
-type ConnectionStatusMessageProps = {
+type ConnectionStatusMessageProps = WithSentryLabelWhenPressable<'onActionPress', 'actionSentryLabel'> & {
     message?: string;
     actionText?: string;
     onActionPress?: () => void;
@@ -28,8 +28,6 @@ type ConnectionStatusMessageProps = {
      * Accessible name for the action button
      */
     actionAccessibilityLabel?: string;
-
-    actionSentryLabel?: SentryLabel;
 };
 
 function ConnectionStatusMessage({
@@ -56,7 +54,8 @@ function ConnectionStatusMessage({
     if (shouldIncludeHorizontalPadding) {
         statusMessageRowPadding = cardPaddingHorizontal;
     }
-    const shouldShowActionButton = !!actionText && !!onActionPress;
+    // The props type requires actionSentryLabel with onActionPress, checking it only narrows the type.
+    const shouldShowActionButton = !!actionText && !!onActionPress && !!actionSentryLabel;
     const isDangerStatus = statusTone === 'danger';
     const isSuccessStatus = statusTone === 'success';
     let messageTag;

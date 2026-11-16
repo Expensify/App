@@ -59,7 +59,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
@@ -94,7 +94,7 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = ForwardedFSClassProps &
-    WithSentryLabel &
+    WithSentryLabelWhenPressable<'onPress' | 'onSecondaryInteraction'> &
     Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
         ref?: PressableRef | Ref<ComponentRef<typeof View>>;
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
@@ -115,7 +115,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         isBadgeCondensed?: boolean;
 
         isBadgeError?: boolean;
-        onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
         /** Used to apply offline styles to child text components */
         style?: StyleProp<ViewStyle>;
@@ -463,7 +462,6 @@ function MenuItem({
     isBadgeStrong,
     isBadgeCondensed,
     isBadgeError,
-    onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
     style,
@@ -835,6 +833,20 @@ function MenuItem({
     };
     const secondaryInteractionHandler = copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction;
 
+    // The row always attaches its press handlers, so they are passed on only with a label. A copyable row without a
+    // label of its own still opens the copy menu on a long press, so it reports that under the copy label.
+    const pressableSentryLabel = sentryLabel ?? (copyable ? CONST.SENTRY_LABEL.MENU_ITEM.COPY_LONG_PRESS : undefined);
+    const pressProps = pressableSentryLabel
+        ? {
+              sentryLabel: pressableSentryLabel,
+              onPress: shouldCheckActionAllowedOnPress && !isAnonymousAction ? callIfAuthenticated(onPressAction, session) : onPressAction,
+              // Keep the native selection menu available through press-out; reset on the next pointer start.
+              onSecondaryInteraction: shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : secondaryInteractionHandler,
+          }
+        : {};
+    // TypeScript can't match a plain boolean against both the accessibility and the label unions, so it gets a literal type.
+    const accessibleProps = shouldBeAccessible ? {accessible: true as const} : {accessible: false as const};
+
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
     // A known account renders straight from the personal-details context. Only the report-derived avatars need `ReportAvatar`.
@@ -869,7 +881,7 @@ function MenuItem({
                     >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress && !isAnonymousAction ? callIfAuthenticated(onPressAction, session) : onPressAction}
+                                {...pressProps}
                                 onMouseDown={(event) => {
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
@@ -885,8 +897,6 @@ function MenuItem({
                                     })
                                 }
                                 onPressOut={ControlSelection.unblock}
-                                // Keep the native selection menu available through press-out; reset on the next pointer start.
-                                onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : secondaryInteractionHandler}
                                 wrapperStyle={outerWrapperStyle}
                                 activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={variables.instantAnimationDuration}
@@ -922,11 +932,10 @@ function MenuItem({
                                 accessibilityHint={accessibilityHint}
                                 // The label repeats the title, so a masked title also masks the row that carries the label
                                 forwardedFSClass={forwardedFSClass === CONST.FULLSTORY.CLASS.MASK ? forwardedFSClass : undefined}
-                                accessible={shouldBeAccessible}
+                                {...accessibleProps}
                                 accessibilityState={accessibilityState ?? (role === CONST.ROLE.TAB ? {selected: focused} : undefined)}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
-                                sentryLabel={sentryLabel}
                             >
                                 {({pressed}) => (
                                     <View style={[styles.flex1]}>
@@ -1150,8 +1159,6 @@ function MenuItem({
                                                                 success={isBadgeSuccess}
                                                                 isStrong={isBadgeStrong}
                                                                 isCondensed={isBadgeCondensed}
-                                                                onPress={onBadgePress}
-                                                                pressable={!!onBadgePress}
                                                             />
                                                         )}
                                                         {furtherDetailsComponent}
@@ -1173,8 +1180,6 @@ function MenuItem({
                                                         isStrong={isBadgeStrong}
                                                         isCondensed={isBadgeCondensed}
                                                         error={isBadgeError}
-                                                        onPress={onBadgePress}
-                                                        pressable={!!onBadgePress}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -1287,8 +1292,6 @@ function MenuItem({
                                                 success={isBadgeSuccess}
                                                 isStrong={isBadgeStrong}
                                                 isCondensed={isBadgeCondensed}
-                                                onPress={onBadgePress}
-                                                pressable={!!onBadgePress}
                                             />
                                         )}
                                         {!!errorText && (

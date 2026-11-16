@@ -74,7 +74,10 @@ function PressableWithFeedback({
         accessibilityHasPopup: rest.accessibilityHasPopup,
         nativeID: rest.nativeID,
         accessibilityControls: rest.accessibilityControls,
+        sentryLabel: rest.sentryLabel,
     });
+    // A press responder can add a handler and its label. Passing them on only together keeps the label requirement.
+    const pressProps = slot.sentryLabel ? {onPress: slot.onPress, sentryLabel: slot.sentryLabel} : {};
 
     return (
         <OpacityView
@@ -87,8 +90,8 @@ function PressableWithFeedback({
         >
             <GenericPressable
                 {...rest}
+                {...pressProps}
                 ref={mergedRef}
-                onPress={slot.onPress}
                 accessibilityState={slot.accessibilityState}
                 accessibilityHasPopup={slot.accessibilityHasPopup}
                 nativeID={slot.nativeID}

@@ -7,7 +7,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -20,8 +20,9 @@ import type {PressableRef} from './Pressable/GenericPressable/types';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
+// `onPress` is required, so every selection button needs a label. `RadioButton` passes a default one.
 type BaseSelectionButtonProps = Partial<ChildrenProps> &
-    WithSentryLabel & {
+    WithRequiredSentryLabel & {
         /** A function that is called when the button is pressed */
         onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
@@ -152,6 +153,9 @@ function SelectionButton({
         onPress(event);
     };
 
+    // TypeScript can't match an optional boolean against both the accessibility and the label unions, so it gets a literal type.
+    const accessibleProps = accessible === false ? {accessible: false as const} : {accessible: true as const};
+
     return (
         <PressableWithFeedback
             testID={testID}
@@ -188,7 +192,7 @@ function SelectionButton({
             aria-checked={isIndeterminate ? 'mixed' : isChecked}
             accessibilityLabel={accessibilityLabel}
             accessibilityHint={accessibilityHint}
-            accessible={accessible}
+            {...accessibleProps}
             pressDimmingValue={1}
             wrapperStyle={wrapperStyle}
             sentryLabel={sentryLabel}

@@ -118,85 +118,6 @@ const restrictedHeaderImportPatterns = [
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((entry) => entry.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportPatterns.filter((entry) => !entry.group.includes('@styles/theme/themes/**'));
 
-/**
- * Pressables and the components that forward their `sentryLabel` prop to one, so the `no-restricted-syntax` rules below can require the label.
- * The lists come from every JSX component whose props accept `sentryLabel`. Inputs (e.g. TextInput) and wrappers that fall back to a default
- * label (e.g. FormProvider, RadioButton) are left out. Don't add new components here: give them a required `sentryLabel` prop instead, which
- * TypeScript checks at every usage. Once a component's usages all have a label, make its prop required and remove it from these lists.
- * Names of compound components are written with dots, e.g. `MenuItem.Root`.
- */
-const SENTRY_LABEL_PRESSABLES = [
-    'PressableWithoutFeedback',
-    'PressableWithFeedback',
-    'PressableWithDelayToggle',
-    'PressableWithoutFocus',
-    'PressableWithSecondaryInteraction',
-    'AnimatedPressableWithoutFeedback',
-    'AnimatedPressableWithSecondaryInteraction',
-];
-
-/** Wrappers that only need a label when they get a press handler, since without one they can render read-only (e.g. a MenuItem without onPress). */
-const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
-    'AvatarButtonWithIcon',
-    'BaseMiniContextMenuItem',
-    'Button',
-    'ButtonDisabledWhenOffline',
-    'ButtonWithDropdownMenu',
-    'CardDetailsActionButton',
-    'CardSectionButton',
-    'Checkbox',
-    'ConfirmationPage.PrimaryButton',
-    'ConfirmationPage.SecondaryButton',
-    'ConfirmationPageButtonBase',
-    'ConfirmationPagePrimaryButton',
-    'ContextMenuItem',
-    'FeatureTraining.HelpButton',
-    'FocusableMenuItem',
-    'FormAlertWithSubmitButton',
-    'HighlightableMenuItem',
-    'MenuItem',
-    'MenuItem.Root',
-    'MenuItemAction',
-    'MenuItemAvatarNavigation',
-    'MenuItemField',
-    'MenuItemFieldHTML',
-    'MenuItemNavigation',
-    'MenuItemRoot',
-    'MenuItemSectionRoot',
-    'MenuItemWithLabel',
-    'MenuItemWithTopDescription',
-    'PopoverMenu.Item',
-    'PopoverMenu.RadioItem',
-    'RowMenuItem',
-    'SelectionButton',
-    'Table.Row',
-    'TableRow',
-    'TabSelectorItem',
-    'ToggleDistanceUnitButton',
-    'ViewButton',
-];
-
-/** Wrappers that handle the press themselves (e.g. ThreeDotsMenu opens its menu), so they always need a label. */
-const SENTRY_LABEL_SELF_PRESS_WRAPPERS = ['AvatarWithImagePicker', 'BookTravelButton', 'FeatureTraining.ConfirmButton', 'PopoverMenu.Sub.Trigger', 'ThreeDotsMenu'];
-
-/** Builds an esquery selector list matching JSX elements named e.g. `Button` or `MenuItem.Root`. */
-function jsxElementNamesSelector(names: string[]): string {
-    return names
-        .map((name) => {
-            const parts = name.split('.');
-            if (parts.length === 1) {
-                return `[name.name="${name}"]`;
-            }
-            return parts
-                .map((part, index) => {
-                    const path = ['name', ...Array<string>(parts.length - 1 - index).fill('object')].join('.');
-                    return index === 0 ? `[${path}.name="${part}"]` : `[${path}.property.name="${part}"]`;
-                })
-                .join('');
-        })
-        .join(', ');
-}
-
 /** `no-restricted-syntax` entries for all code. */
 const restrictedSyntax = [
     {selector: 'TSEnumDeclaration', message: "Please don't declare enums, use union types instead."},
@@ -222,24 +143,6 @@ const restrictedSyntax = [
     },
     {selector: 'LabeledStatement', message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.'},
     {selector: 'WithStatement', message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.'},
-];
-
-/** `no-restricted-syntax` entries that require a `sentryLabel` on pressables and pressable wrappers. */
-const sentryLabelRestrictedSyntax = [
-    {
-        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESSABLES)}):not(:has(> JSXAttribute[name.name="sentryLabel"]))`,
-        message: 'Pressable components must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
-    },
-    {
-        // Spread props may carry the label, which a selector can't see, so those are skipped.
-        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESS_HANDLER_WRAPPERS)}):has(> JSXAttribute[name.name=/^on(Press|LongPress|SecondaryInteraction|Select|Submit)$/]):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
-        message: 'Button, MenuItem and other pressable wrappers that handle a press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
-    },
-    {
-        // Spread props may carry the label, which a selector can't see, so those are skipped.
-        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_SELF_PRESS_WRAPPERS)}):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
-        message: 'ThreeDotsMenu, DropdownButton and other wrappers that handle their own press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
-    },
 ];
 
 export default defineConfig({
@@ -679,7 +582,7 @@ export default defineConfig({
         'typescript/no-unsafe-call': 'error',
         'typescript/no-unsafe-member-access': 'error',
         'react/jsx-key': 'error',
-        'core/no-restricted-syntax': ['error', ...restrictedSyntax, ...sentryLabelRestrictedSyntax],
+        'core/no-restricted-syntax': ['error', ...restrictedSyntax],
         // ESLint's own rule, not oxlint's: the React Compiler gate spots the "wrap it in useCallback/useMemo"
         // reports by ESLint's wording, which oxlint's version does not use, and it only works on JS plugin rules.
         'hosted/exhaustive-deps': 'error',
@@ -1368,8 +1271,6 @@ export default defineConfig({
             rules: {
                 // The storybook preset turns this off for stories.
                 'react/rules-of-hooks': 'off',
-                // Stories never send anything to Sentry, so they don't need a sentryLabel.
-                'core/no-restricted-syntax': ['error', ...restrictedSyntax],
                 'hosted/await-interactions': 'error',
                 'hosted/context-in-play-function': 'error',
                 'hosted/default-exports': 'error',

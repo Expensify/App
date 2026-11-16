@@ -763,7 +763,8 @@ function TransactionItemRowWide({
                 testID="transaction-item-row"
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>
-                    {!shouldShowRadioButton && (
+                    {/* CheckboxSentryLabelProps requires the label on every wide row, checking it only narrows the type. */}
+                    {!shouldShowRadioButton && !!checkboxSentryLabel && (
                         <Checkbox
                             disabled={isDisabled}
                             onPress={(event) => {

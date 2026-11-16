@@ -4,15 +4,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type {SentryLabel} from '@src/types/utils/SentryLabel';
+import type {SentryLabel, WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
 
-type ActionButtonsProps = {
+type ActionButtonsProps = WithSentryLabelWhenPressable<'onReset', 'resetSentryLabel'> & {
     containerStyle: React.ComponentProps<typeof View>['style'];
-    resetSentryLabel?: SentryLabel;
-    applySentryLabel?: SentryLabel;
+    applySentryLabel: SentryLabel;
     shouldSubmitOnEnter?: boolean;
     onReset?: () => void;
     onApply: () => void;
@@ -24,7 +23,8 @@ function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, shou
 
     return (
         <View style={containerStyle}>
-            {!!onReset && (
+            {/* The props type requires resetSentryLabel with onReset, checking it only narrows the type. */}
+            {!!onReset && !!resetSentryLabel && (
                 <Button
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     style={[styles.flex1]}

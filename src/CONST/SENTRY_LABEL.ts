@@ -1,7 +1,12 @@
 const SENTRY_LABEL = {
     TEXT_INPUT: {
+        FIELD: 'TextInput-Field',
         CLEAR_BUTTON: 'TextInput-ClearButton',
         PASSWORD_VISIBILITY_TOGGLE: 'TextInput-PasswordVisibilityToggle',
+    },
+    MENU_ITEM: {
+        COPY_LONG_PRESS: 'MenuItem-CopyLongPress',
+        EXTERNAL_LINK_CONTEXT_MENU: 'MenuItem-ExternalLinkContextMenu',
     },
     ADD_PAYMENT_METHOD_MENU: {
         PERSONAL_BANK_ACCOUNT: 'AddPaymentMethodMenu-PersonalBankAccount',
@@ -2643,6 +2648,7 @@ const SENTRY_LABEL = {
                 RECRUITING_FILTERS: 'WorkspaceConnections-MergeConfigRow-RecruitingFilters',
                 RECRUITING_APPROVAL_MODE: 'WorkspaceConnections-MergeConfigRow-RecruitingApprovalMode',
             },
+            OFFER_BADGE: 'WorkspaceConnections-OfferBadge',
             UBER_CENTRAL_BILLING_ACCOUNT: 'WorkspaceConnections-UberCentralBillingAccount',
             UBER_MANAGE_INVITES: 'WorkspaceConnections-UberManageInvites',
             UBER_INVITE_READY_CONFIRM: 'WorkspaceConnections-UberInviteReadyConfirm',

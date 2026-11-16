@@ -87,6 +87,20 @@ function Button({
         return runPress(event);
     };
 
+    const longPress = (event: GestureResponderEvent) => {
+        if (isLongPressDisabled) {
+            return;
+        }
+        if (enableHapticFeedback) {
+            HapticFeedback.longPress();
+        }
+        onLongPress(event);
+    };
+
+    // The handlers above always exist, even on a read-only button, so they are passed on only with a label. The props
+    // require one whenever the caller passes `onPress` or `onLongPress`.
+    const pressProps = sentryLabel ? {sentryLabel, onPress: pressWithFeedback, onLongPress: longPress} : {};
+
     let buttonVariantStyles;
     const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
     if (!variant) {
@@ -148,7 +162,6 @@ function Button({
             accessibilityState={accessibilityState}
             hitSlop={hitSlop}
             accessibilityHasPopup={accessibilityHasPopup}
-            sentryLabel={sentryLabel}
             role={CONST.ROLE.BUTTON}
             isNested={isNested}
             disabled={isLoading || isDisabled}
@@ -180,16 +193,7 @@ function Button({
             onBlur={onBlur}
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
-            onPress={pressWithFeedback}
-            onLongPress={(event) => {
-                if (isLongPressDisabled) {
-                    return;
-                }
-                if (enableHapticFeedback) {
-                    HapticFeedback.longPress();
-                }
-                onLongPress(event);
-            }}
+            {...pressProps}
         >
             {blendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
             <ButtonStateContext.Provider value={{isHovered, variant, size, isDisabled, isLoading}}>

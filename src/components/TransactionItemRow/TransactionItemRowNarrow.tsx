@@ -103,7 +103,8 @@ function TransactionItemRowNarrow({
                 testID="transaction-item-row"
             >
                 <View style={[styles.flexRow]}>
-                    {shouldShowCheckbox && (
+                    {/* CheckboxSentryLabelProps requires the label with shouldShowCheckbox, checking it only narrows the type. */}
+                    {shouldShowCheckbox && !!checkboxSentryLabel && (
                         <Checkbox
                             disabled={isDisabled}
                             onPress={(event) => {
