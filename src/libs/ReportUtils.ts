@@ -3001,18 +3001,10 @@ function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: O
 }
 
 /**
- * Returns the passed transactions, falling back to the report's transactions from Onyx when none were passed
- */
-function resolveReportTransactions(iouReportID: string | undefined, transactionsParam?: Transaction[]): Transaction[] {
-    return transactionsParam ?? getReportTransactions(iouReportID);
-}
-
-/**
  * Checks if a report contains only Non-Reimbursable transactions
  */
-function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined, transactionsParam?: Transaction[]): boolean {
-    const transactions = resolveReportTransactions(iouReportID, transactionsParam);
-    if (!transactions || transactions.length === 0) {
+function hasOnlyNonReimbursableTransactions(transactions: Transaction[]): boolean {
+    if (transactions.length === 0) {
         return false;
     }
 
@@ -3025,7 +3017,7 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined, tra
  */
 function isCardOnlyReport(report: OnyxEntry<Report>, transactionsParam?: Transaction[]): boolean {
     if (transactionsParam && transactionsParam.length > 0) {
-        return hasOnlyNonReimbursableTransactions(report?.reportID, transactionsParam);
+        return hasOnlyNonReimbursableTransactions(transactionsParam);
     }
 
     return getReimbursableTotal(report) === 0 && (report?.nonReimbursableTotal ?? 0) !== 0;
@@ -3300,7 +3292,9 @@ function canAddTransaction(
     if (
         isInstantSubmitEnabled(policy) &&
         isSubmitAndClose(policy) &&
-        (hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) ||
+        // TODO: https://github.com/Expensify/App/issues/66512
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        (hasOnlyNonReimbursableTransactions(getReportTransactions(moneyRequestReport?.reportID)) ||
             (!isMovingTransaction && !isOpenExpenseReport(moneyRequestReport) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
     ) {
         return false;
@@ -3548,7 +3542,7 @@ function canIOUBePaid(
     const canShowMarkedAsPaidForZeroReimbursableSpend =
         onlyShowPayElsewhere &&
         (nonReimbursableSpend !== 0 || hasSettledZeroReimbursableSpend(spendBreakdown, iouReport, transactions)) &&
-        !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions));
+        !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(transactions));
 
     if (isIOU && canPay && !iouSettled && reimbursableSpend > 0) {
         return true;
@@ -3667,7 +3661,7 @@ function getBadgeFromIOUReport({
         (isInvoiceReport(iouReport) || canPayElsewhereActor) &&
         canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
     if (canBePaidElsewhere) {
-        return isPayOptional(iouReport) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;
+        return isPayOptional(iouReport, reportTransactions) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;
     }
     if (canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountID, reportTransactions)) {
         return CONST.REPORT.ACTION_BADGE.APPROVE;
@@ -5608,7 +5602,7 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
  * Such a report can only be marked as paid. Fails closed while the report total is not loaded or is pending, or while any expense is still
  * scanning, failed to scan or is a pending card charge, because its real reimbursable spend is not known yet.
  */
-function hasSettledZeroReimbursableSpend(spendBreakdown: SpendBreakdown, report: OnyxInputOrEntry<Report>, transactionsParam?: Transaction[]): boolean {
+function hasSettledZeroReimbursableSpend(spendBreakdown: SpendBreakdown, report: OnyxInputOrEntry<Report>, transactions: Transaction[]): boolean {
     if (!isExpenseReport(report) || spendBreakdown.reimbursableSpend !== 0) {
         return false;
     }
@@ -5616,7 +5610,7 @@ function hasSettledZeroReimbursableSpend(spendBreakdown: SpendBreakdown, report:
     if (!isTotalLoaded || isReportTotalPending(report)) {
         return false;
     }
-    const expenses = resolveReportTransactions(report?.reportID, transactionsParam).filter((transaction) => !isTransactionPendingDelete(transaction));
+    const expenses = transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
     return expenses.length > 0 && !expenses.some((transaction) => isExpenseValueUnsettled(transaction, report ?? undefined, isScanningTransaction));
 }
 
@@ -5624,8 +5618,8 @@ function hasSettledZeroReimbursableSpend(spendBreakdown: SpendBreakdown, report:
  * Whether paying the report is optional because nothing is owed on it: every expense is non-reimbursable, or its reimbursable spend is settled at $0.
  * These reports can still be marked as paid from the report, but aren't surfaced as something to pay (LHN badge, Search row action, Pay to-do).
  */
-function isPayOptional(report: OnyxInputOrEntry<Report>, transactionsParam?: Transaction[]): boolean {
-    return hasOnlyNonReimbursableTransactions(report?.reportID, transactionsParam) || hasSettledZeroReimbursableSpend(getMoneyRequestSpendBreakdown(report), report, transactionsParam);
+function isPayOptional(report: OnyxInputOrEntry<Report>, transactions: Transaction[]): boolean {
+    return hasOnlyNonReimbursableTransactions(transactions) || hasSettledZeroReimbursableSpend(getMoneyRequestSpendBreakdown(report), report, transactions);
 }
 
 /**

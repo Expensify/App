@@ -186,7 +186,7 @@ function canPay(
         isReportFinished &&
         (reimbursableSpend !== 0 ||
             ((nonReimbursableSpend !== 0 || hasSettledZeroReimbursableSpend(spendBreakdown, report, transactions)) &&
-                !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report?.reportID, transactions))))
+                !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(transactions))))
     ) {
         return !didExportFail;
     }
