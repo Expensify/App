@@ -117,7 +117,7 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
         startMeasurement('clamp', availableHeight);
     }, [nativeKeyboardHeight, startMeasurement]);
 
-    // The keyboard-derived slot rarely matches the real allocation: the form already reserves the bottom safe area, and a hardware keyboard shows only a shortcut bar.
+    // The keyboard-derived slot rarely matches the real allocation, because the form already reserves the bottom safe area that the keyboard covers.
     // While it differs, layouts during the animation are ignored, and none arrives after it ends, so the cap would stay wrong.
     // keyboardHeight changes only on keyboardDidShow and keyboardDidHide, once the keyboard has settled, so measure the real slot then.
     useLayoutEffect(() => {

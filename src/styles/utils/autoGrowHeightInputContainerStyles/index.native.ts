@@ -1,8 +1,13 @@
+import variables from '@styles/variables';
+
 import type {ViewStyle} from 'react-native';
 
-// iOS forms keep intrinsic scrolling instead of bounding their content to the viewport, so the slot never needs a minimum height.
+// Inside the form's scroll view, native platforms size a `flex: 1` slot from the input inside it. A tall input would make the form taller, push Save down,
+// and report its own height as the free space, so the cap could never shrink back. Starting the slot at one input row keeps the input out of the form's height.
+// The slot still grows into any free space, and on a screen too short for that row the form scrolls instead of shrinking the input to nothing.
 const getAutoGrowHeightInputContainerStyles = (): ViewStyle => ({
-    flex: 1,
+    flexGrow: 1,
+    height: variables.componentSizeLarge,
 });
 
 export default getAutoGrowHeightInputContainerStyles;
