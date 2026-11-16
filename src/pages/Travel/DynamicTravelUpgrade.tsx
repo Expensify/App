@@ -53,6 +53,7 @@ function DynamicTravelUpgrade() {
                 {isUpgraded ? (
                     <UpgradeConfirmation
                         afterUpgradeAcknowledged={() => Navigation.goBack()}
+                        confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.TRAVEL_CONFIRMATION_GOT_IT}
                         policyName=""
                         isTravelUpgrade
                     />
@@ -60,6 +61,7 @@ function DynamicTravelUpgrade() {
                     <UpgradeIntro
                         feature={feature}
                         onUpgrade={openWorkspaceConfirmation}
+                        upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.TRAVEL_UPGRADE}
                         buttonDisabled={isOffline}
                         loading={false}
                         isCategorizing

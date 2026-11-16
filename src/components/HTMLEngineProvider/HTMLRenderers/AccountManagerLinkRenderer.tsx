@@ -46,7 +46,7 @@ function AccountManagerLinkRenderer({tnode, style}: AccountManagerLinkRendererPr
 
     return (
         <Text
-            style={[style as TextStyle, linkStyle]}
+            style={[style, linkStyle]}
             onPress={navigateToAccountManager}
             onKeyDown={handleKeyDown}
             suppressHighlighting

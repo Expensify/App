@@ -1,4 +1,5 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
+import type {Filter} from '@components/Search/types';
 
 import {getExportLabelsForConnection, getStandardExportTemplateDisplayName, shouldShowConnectionInExportedToFilter} from '@libs/AccountingUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
@@ -46,14 +47,18 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
 /**
  * Hook that prepares all data needed for the exported to search filter.
  * It collects standard export templates and all connected integrations to build the filter options.
- * When currentSearchQueryJSON has policyID, options are scoped to those workspaces so form hydration and autocomplete stay consistent.
+ * Uses the submitted workspace filter unless the caller supplies an override, including an unscoped filter.
  */
-export default function useExportedToFilterOptions(): UseExportedToFilterDataResult {
+export default function useExportedToFilterOptions(policyIDsOverride?: Filter): UseExportedToFilterDataResult {
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: exportedToPoliciesSelector});
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
-    const policiesToUse = getAllPolicyValues(getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID), ONYXKEYS.COLLECTION.POLICY, policies);
+    const policiesToUse = getAllPolicyValues(
+        policyIDsOverride ?? getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID),
+        ONYXKEYS.COLLECTION.POLICY,
+        policies,
+    );
     const combinedExportTemplates = useCombinedExportTemplates(policiesToUse);
 
     const integrationConnectionNamesSet = new Set<string>(CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
@@ -70,7 +75,7 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
     }
 
     // React Compiler stops memoizing a value made before a hook call and passed to a function after it, unless the hook also received it, so the policy IDs are read again here.
-    const policyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+    const policyIDs = policyIDsOverride ?? getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     const connectedIntegrationNames = policyIDs.value?.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
 
     const connectedIntegrationSearchValues = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.flatMap((connectionName) => {

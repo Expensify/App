@@ -53,7 +53,7 @@ const FEBRUARY: GroupedItem = {
 };
 const DATA: GroupedItem[] = [FEBRUARY];
 
-function renderWidget(dashboardID: InsightsDashboardID = CONST.INSIGHTS.DASHBOARD.SPEND) {
+function renderWidget({dashboardID = CONST.INSIGHTS.DASHBOARD.SPEND, supportsDrillIn}: {dashboardID?: InsightsDashboardID; supportsDrillIn?: boolean} = {}) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <InsightsChartWidget
@@ -67,6 +67,7 @@ function renderWidget(dashboardID: InsightsDashboardID = CONST.INSIGHTS.DASHBOAR
                 isDashboardLoaded={undefined}
                 filters={FILTERS}
                 insightsScope={{searchKey: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].searchKey, policyIDs: [], date: FILTERS.date, groupCurrency: FILTERS.groupCurrency}}
+                supportsDrillIn={supportsDrillIn}
                 onRetry={jest.fn()}
             />
         </ComposeProviders>,
@@ -120,6 +121,17 @@ describe('Insights chart CSV action', () => {
             expect(localFileDownload).not.toHaveBeenCalled();
         },
     );
+
+    it('offers only the CSV and keeps points from being pressed on a dashboard without drill-in', async () => {
+        // Given a ready chart on a dashboard whose reports have no view on Spend
+        // When it renders
+        renderWidget({supportsDrillIn: false});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then its menu can still download the data, but neither the menu nor a pressed point can open Spend
+        expect(jest.mocked(WidgetHeaderMenu).mock.lastCall?.[0].menuItems.map((item) => item.text)).toEqual(['Download CSV']);
+        expect(jest.mocked(SearchChartView).mock.lastCall?.[0]).toMatchObject({shouldDrillDownOnPress: false});
+    });
 });
 
 describe('Insights chart press', () => {
@@ -162,7 +174,7 @@ describe('Insights chart press', () => {
     it('keeps the default press on dashboards without a Details panel', async () => {
         // Given a chart on the Compliance dashboard, which has no Details panel
         await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.INSIGHTS_AI]);
-        renderWidget(CONST.INSIGHTS.DASHBOARD.COMPLIANCE);
+        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE});
         await waitForBatchedUpdatesWithAct();
 
         // Then the chart gets no press override, so a press still opens Search filtered to the point

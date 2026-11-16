@@ -153,6 +153,18 @@ describe('conciergeDraftState', () => {
         expect(getFirstMessageText(completedDraft)).toBe(bodyMarkdown);
     });
 
+    it('should keep the room mention in the HTML and convert it to a placeholder in the text', () => {
+        // Given a Concierge reply whose final HTML from the server mentions a room by reportID only
+        const finalRenderedHTML = '<comment>Ask in <mention-report reportID="987654"></mention-report></comment>';
+
+        // When the completed event is applied
+        const draft = applyConciergeDraftEvent(null, createDraftEvent({status: 'completed', bodyMarkdown: 'Ask in #admins', finalRenderedHTML}), REPORT_ID, false);
+
+        // Then the HTML still holds the mention that the draft renders, and the unused text gets a placeholder instead of #Hidden
+        expect(getFirstMessageHTML(draft)).toBe(finalRenderedHTML);
+        expect(getFirstMessageText(draft)).toBe('Ask in #room');
+    });
+
     it('should ignore stale events from the same stream session', () => {
         const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({sequence: 3}), REPORT_ID, false);
         const staleDraft = applyConciergeDraftEvent(
