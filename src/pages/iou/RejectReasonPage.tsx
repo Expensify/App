@@ -83,6 +83,10 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
         }
     };
 
+    const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+        onSubmit(values);
+    };
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT], translate);
 
@@ -99,7 +103,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     return (
         <RejectReasonFormView
-            onSubmit={onSubmit}
+            onSubmit={handleSubmit}
             validate={validate}
             backTo={backTo}
         />

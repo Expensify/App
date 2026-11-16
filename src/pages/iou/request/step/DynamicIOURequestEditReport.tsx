@@ -144,6 +144,10 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         Navigation.dismissToSuperWideRHP();
     };
 
+    const handleSelectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
+        selectReport(item, report);
+    };
+
     const removeFromReport = async () => {
         if (!selectedReport || transactionIDs.length === 0) {
             return;
@@ -184,6 +188,10 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         Navigation.dismissToSuperWideRHP();
     };
 
+    const handleRemoveFromReport = () => {
+        removeFromReport();
+    };
+
     const createReportForPolicy = async (shouldDismissEmptyReportsConfirmation?: boolean) => {
         if (!hasPerDiemTransactions && !hasUnreportedManagedCardTransactions && !policyForMovingExpenses?.id) {
             return;
@@ -212,10 +220,14 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         );
     };
 
+    const handleCreateReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        createReportForPolicy(shouldDismissEmptyReportsConfirmation);
+    };
+
     const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
-        onCreateReport: createReportForPolicy,
+        onCreateReport: handleCreateReportForPolicy,
         shouldBypassConfirmation: true,
     });
 
@@ -245,6 +257,10 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         handleCreateReport();
     };
 
+    const handleCreateReportPress = () => {
+        createReport();
+    };
+
     return (
         <IOURequestEditReportCommon
             backTo={backPath}
@@ -253,10 +269,10 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
             isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
             isDistanceRequest={transactions.some(isDistanceRequestUtil)}
-            selectReport={selectReport}
-            removeFromReport={removeFromReport}
+            selectReport={handleSelectReport}
+            removeFromReport={handleRemoveFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}
-            createReport={canCreateReport ? createReport : undefined}
+            createReport={canCreateReport ? handleCreateReportPress : undefined}
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
             transactionPolicyID={targetExpensePolicyID}

@@ -189,6 +189,10 @@ function DynamicIOURequestStepDate({
         saveAndNavigateBack();
     };
 
+    const handleUpdateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
+        updateDate(value);
+    };
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM> = {};
         if (!values[INPUT_IDS.MONEY_REQUEST_CREATED] || values[INPUT_IDS.MONEY_REQUEST_CREATED] === '') {
@@ -209,7 +213,7 @@ function DynamicIOURequestStepDate({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
-                onSubmit={updateDate}
+                onSubmit={handleUpdateDate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert

@@ -141,6 +141,10 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
         });
     };
 
+    const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
+        submit(values);
+    };
+
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.companyInfo')}
@@ -152,7 +156,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM}
-                onSubmit={submit}
+                onSubmit={handleSubmit}
                 validate={validate}
                 submitButtonText={translate('iou.sendInvoice', formattedAmount)}
                 enabledWhenOffline
