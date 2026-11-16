@@ -25,6 +25,7 @@ import {
     generateReportID,
     getReimbursableTotal,
     getTransactionDetails,
+    isExpenseReport,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
@@ -57,7 +58,6 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 
@@ -709,7 +709,6 @@ function createExpenseByType({
     recentWaypoints,
     isTrackIntentUser,
     formatPhoneNumber,
-    dateFnsLocale,
     participantsPolicyTags,
     policyTags,
     rules,
@@ -727,7 +726,6 @@ function createExpenseByType({
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    dateFnsLocale: DateFnsLocale | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     policyTags: OnyxTypes.PolicyTagLists;
     rules: OnyxCollection<OnyxTypes.Rule>;
@@ -780,7 +778,6 @@ function createExpenseByType({
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
-                dateFnsLocale,
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: transactionDetails?.comment ?? '',
@@ -803,7 +800,6 @@ function createExpenseByType({
 }
 
 type DuplicateExpenseTransactionParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     optimisticChatReportID: string;
     optimisticIOUReportID: string;
@@ -838,7 +834,6 @@ type DuplicateExpenseTransactionParams = {
 };
 
 function duplicateExpenseTransaction({
-    dateFnsLocale,
     transaction,
     optimisticChatReportID,
     optimisticIOUReportID,
@@ -981,7 +976,6 @@ function duplicateExpenseTransaction({
     };
 
     return createExpenseByType({
-        dateFnsLocale,
         transactionType: getTransactionType(transaction),
         params,
         transaction,
@@ -1002,7 +996,6 @@ function duplicateExpenseTransaction({
 }
 
 type DuplicateReportParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     sourceReport: OnyxEntry<OnyxTypes.Report>;
     sourceReportTransactions: OnyxTypes.Transaction[];
     sourceReportName: string;
@@ -1089,7 +1082,6 @@ function buildDuplicateReportCurrencyAmounts(eligibleTransactions: OnyxTypes.Tra
 }
 
 function duplicateReport({
-    dateFnsLocale,
     sourceReport,
     sourceReportTransactions,
     sourceReportName,
@@ -1255,7 +1247,6 @@ function duplicateReport({
         };
 
         const result = createExpenseByType({
-            dateFnsLocale,
             transactionType: getTransactionType(transaction),
             params,
             transaction,
@@ -1285,7 +1276,6 @@ function duplicateReport({
 }
 
 type BulkDuplicateExpensesParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     transactionIDs: string[];
     allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>>;
     sourcePolicyIDMap: Record<string, string | undefined>;
@@ -1315,7 +1305,6 @@ type BulkDuplicateExpensesParams = {
 };
 
 function bulkDuplicateExpenses({
-    dateFnsLocale,
     transactionIDs,
     allTransactions,
     sourcePolicyIDMap,
@@ -1366,6 +1355,8 @@ function bulkDuplicateExpenses({
     // module-level allReports in IOU/index.ts is not yet updated when iteration 2 runs.
     let currentTargetReport = targetReport;
     let optimisticIOUReport: OnyxEntry<OnyxTypes.Report>;
+    // The iouReportID patching only applies to a chat target. An expense report target is the report itself.
+    const isTargetExpenseReport = isExpenseReport(targetReport);
 
     // When instant-submit + submit-and-close is active AND the duplicated
     // expenses are all non-reimbursable (or the policy disables reimbursement
@@ -1374,8 +1365,11 @@ function bulkDuplicateExpenses({
     // iteration will create a new report, so we must never defer auto-submit
     // — otherwise the first expense's report stays in Draft because the
     // server was told to wait for more expenses that will never arrive.
+    // An expense report target isn't split up front: the caller already checked it can
+    // take the copies, so they land on it and auto-submit waits for the last one.
     const allNonReimbursable = transactionsToDuplicate.every((t) => !getReimbursable(t));
     const policyWillSplitReport =
+        !isTargetExpenseReport &&
         isInstantSubmitEnabled(targetPolicy) &&
         isSubmitAndClose(targetPolicy) &&
         (allNonReimbursable || getReimbursementChoice(targetPolicy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
@@ -1400,11 +1394,17 @@ function bulkDuplicateExpenses({
         // optimistic reports (callbacks are deferred).
         let reportWasSplit = false;
         if (optimisticIOUReport && (policyWillSplitReport || !canAddTransaction(optimisticIOUReport, rules))) {
-            optimisticIOUReport = undefined;
+            // An expense report target can stop accepting copies partway through, for example when a copy raises its
+            // total past an approval rule's limit. Keeping its latest optimistic state lets the builder open a new report
+            // in the same workspace chat. Without it, the builder rereads the report from Onyx, which doesn't count the
+            // earlier copies yet, and adds this copy to it with a stale total.
+            if (!isTargetExpenseReport) {
+                optimisticIOUReport = undefined;
+            }
             currentOptimisticIOUReportID = generateReportID();
             currentReportPreviewActionID = NumberUtils.rand64();
             reportWasSplit = true;
-            if (currentTargetReport) {
+            if (currentTargetReport && !isTargetExpenseReport) {
                 currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
             }
         }
@@ -1418,7 +1418,6 @@ function bulkDuplicateExpenses({
 
         const result = duplicateExpenseTransaction({
             isVendorMatchingBetaEnabled,
-            dateFnsLocale,
             transaction: item,
             optimisticChatReportID,
             optimisticIOUReportID: currentOptimisticIOUReportID,
@@ -1458,7 +1457,7 @@ function bulkDuplicateExpenses({
             lastDuplicateTransactionID = result.transactionID;
         }
 
-        if (currentTargetReport && !currentTargetReport.iouReportID) {
+        if (currentTargetReport && !isTargetExpenseReport && !currentTargetReport.iouReportID) {
             currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
         }
     }
@@ -1470,7 +1469,6 @@ function bulkDuplicateExpenses({
 }
 
 type BulkDuplicateReportsParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     selectedReports: SelectedReports[];
     allReports: NonNullable<OnyxCollection<OnyxTypes.Report>>;
     allTransactions: OnyxCollection<OnyxTypes.Transaction>;
@@ -1501,7 +1499,6 @@ type BulkDuplicateReportsParams = {
 };
 
 async function bulkDuplicateReports({
-    dateFnsLocale,
     selectedReports: selectedReportsParam,
     allReports,
     allTransactions,
@@ -1604,7 +1601,6 @@ async function bulkDuplicateReports({
 
         duplicateReport({
             isVendorMatchingBetaEnabled,
-            dateFnsLocale,
             sourceReport: report,
             sourceReportTransactions: reportTransactions,
             sourceReportName: report.reportName ?? '',

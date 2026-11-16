@@ -64,11 +64,14 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('walletPage.confirmYourBankAccount')}</Text>
             <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.textSupporting]}>{translate('bankAccount.letsDoubleCheck')}</Text>
-            <MenuItem.Root onPress={!isBankAccountAdded ? handleModifyAccountNumbers : undefined}>
+            <MenuItem.Root
+                onPress={!isBankAccountAdded ? handleModifyAccountNumbers : undefined}
+                sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.WALLET_CONFIRM_ACCOUNT_NUMBERS}
+            >
                 <MenuItem.Row>
                     <MenuItem.Content>
-                        {!!bankName && <MenuItem.FieldName>{bankName}</MenuItem.FieldName>}
-                        <MenuItem.FieldValue>{`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}</MenuItem.FieldValue>
+                        {!!bankName && <MenuItem.FieldName forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{bankName}</MenuItem.FieldName>}
+                        <MenuItem.FieldValue forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}</MenuItem.FieldValue>
                     </MenuItem.Content>
                     {!isBankAccountAdded && (
                         <MenuItem.Trailing>
@@ -79,22 +82,28 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
             </MenuItem.Root>
             {!isBankAccountAdded && (
                 <>
-                    <MenuItem.Root onPress={() => onMove(BANK_INFO_STEP_INDEXES.LEGAL_NAME)}>
+                    <MenuItem.Root
+                        onPress={() => onMove(BANK_INFO_STEP_INDEXES.LEGAL_NAME)}
+                        sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.WALLET_CONFIRM_LEGAL_NAME}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>{translate('personalInfoStep.legalName')}</MenuItem.FieldName>
-                                <MenuItem.FieldValue>{legalName}</MenuItem.FieldValue>
+                                <MenuItem.FieldValue forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{legalName}</MenuItem.FieldValue>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
                             </MenuItem.Trailing>
                         </MenuItem.Row>
                     </MenuItem.Root>
-                    <MenuItem.Root onPress={() => onMove(BANK_INFO_STEP_INDEXES.ADDRESS)}>
+                    <MenuItem.Root
+                        onPress={() => onMove(BANK_INFO_STEP_INDEXES.ADDRESS)}
+                        sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.WALLET_CONFIRM_ADDRESS}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>{translate('personalInfoStep.address')}</MenuItem.FieldName>
-                                <MenuItem.FieldValue>{address}</MenuItem.FieldValue>
+                                <MenuItem.FieldValue forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{address}</MenuItem.FieldValue>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
@@ -112,6 +121,7 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
                     />
                 )}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.WALLET_CONFIRM_BANK_ACCOUNT}
                     isLoading={isLoading}
                     isDisabled={isLoading || isOffline}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}

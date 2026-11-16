@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React, {useEffect, useState} from 'react';
@@ -39,10 +40,12 @@ function UpgradeConfirmation({addCompanyCard, addPersonalCard}: {addCompanyCard:
             </ConfirmationPage.Content>
             <FixedFooter>
                 <ConfirmationPage.SecondaryButton
+                    sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.UPGRADE_ADD_COMPANY_CARD}
                     text={translate('personalCard.addCompanyCard')}
                     onPress={addCompanyCard}
                 />
                 <ConfirmationPage.PrimaryButton
+                    sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.UPGRADE_ADD_PERSONAL_CARD}
                     text={translate('personalCard.addPersonalCard')}
                     onPress={addPersonalCard}
                 />

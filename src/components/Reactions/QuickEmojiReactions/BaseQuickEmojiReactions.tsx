@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,7 +54,7 @@ function BaseQuickEmojiReactions({
                         <EmojiReactionBubble
                             emojiCodes={[getPreferredEmojiCode(emoji, preferredSkinTone)]}
                             isContextMenu
-                            onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone), false, session)}
+                            onPress={callIfAuthenticated(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone), session)}
                         />
                     </View>
                 </Tooltip>

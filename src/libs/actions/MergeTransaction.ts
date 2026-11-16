@@ -99,6 +99,7 @@ function setupMergeTransactionDataAndNavigate(
     navigationTransactionID: string,
     transactions: Transaction[],
     localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     searchReports?: Report[],
     isSelectingSourceTransaction?: boolean,
@@ -148,6 +149,7 @@ function setupMergeTransactionDataAndNavigate(
             targetTransaction,
             sourceTransaction,
             localeCompare,
+            translate,
             getCurrencyDecimals,
             searchReports,
             targetTransactionPolicy,
@@ -369,6 +371,7 @@ function getOnyxTargetTransactionData({
             policy,
             delegateAccountID,
             currencyContext: {getCurrencyDecimals, getCurrencySymbol},
+            rules,
             shouldBuildOptimisticModifiedExpenseReportAction,
         });
     } else {
