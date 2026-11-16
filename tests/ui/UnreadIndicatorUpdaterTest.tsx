@@ -23,7 +23,7 @@ jest.mock('@libs/UnreadIndicatorUpdater/updateUnread', () => ({
 }));
 
 jest.mock('@hooks/useCurrentReportID', () => ({
-    useCurrentReportIDState: jest.fn(() => ({currentReportID: undefined, currentRHPReportID: undefined})),
+    useCurrentReportIDState: jest.fn(() => ({currentReportID: undefined})),
 }));
 jest.mock('@libs/AppStateMonitor', () => ({
     __esModule: true,
@@ -57,7 +57,7 @@ describe('UnreadIndicatorUpdater', () => {
         await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@test.com'});
         mockUpdateUnread.mockClear();
         mockAddBecameActiveListener.mockClear();
-        mockUseCurrentReportIDState.mockReturnValue({currentReportID: undefined, currentRHPReportID: undefined});
+        mockUseCurrentReportIDState.mockReturnValue({currentReportID: undefined});
     });
 
     it('publishes the unread count from the reports in Onyx', async () => {
@@ -95,7 +95,7 @@ describe('UnreadIndicatorUpdater', () => {
         expect(mockUpdateUnread).toHaveBeenLastCalledWith(0, []);
 
         // When the user navigates to that report
-        mockUseCurrentReportIDState.mockReturnValue({currentReportID: '1', currentRHPReportID: undefined});
+        mockUseCurrentReportIDState.mockReturnValue({currentReportID: '1'});
         rerender(<UnreadIndicatorUpdater />);
         await waitForBatchedUpdatesWithAct();
 
