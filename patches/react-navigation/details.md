@@ -37,7 +37,7 @@
 ### [@react-navigation+core+7.22.1+004+static-segment-route-matching.patch](@react-navigation+core+7.22.1+004+static-segment-route-matching.patch)
 
 - Reason: `getStateFromPath` runs the regex of every route that shares the URL's first segment, and 446 of the 634 routes in `ROUTES.ts` start with `workspaces/`, so the first workspace page of a session compiles hundreds of regexes on web. This patch skips a route when any of its static segments doesn't match the URL.
-- Upstream PR/issue: TBD
+- Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/13348, https://github.com/react-navigation/react-navigation/issues/13347
 - E/App issue: https://github.com/Expensify/App/issues/107027
 - PR Introducing Patch: https://github.com/Expensify/App/pull/107026
 
