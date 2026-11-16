@@ -28,6 +28,7 @@ function PressableWithSecondaryInteraction({
     activeOpacity = 1,
     opacityAnimationDuration,
     shouldAllowTextSelection = false,
+    sentryLabel: rawSentryLabel,
     ref,
     ...rest
 }: PressableWithSecondaryInteractionProps) {
@@ -41,7 +42,7 @@ function PressableWithSecondaryInteraction({
         accessibilityHasPopup: rest.accessibilityHasPopup,
         nativeID: rest.nativeID,
         accessibilityControls: rest.accessibilityControls,
-        sentryLabel: rest.sentryLabel,
+        sentryLabel: rawSentryLabel,
     });
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
@@ -102,16 +103,15 @@ function PressableWithSecondaryInteraction({
     // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
     return (
         <PressableWithFeedback
-            {...rest}
-            // The long press runs the secondary interaction, which can come from a press responder with its own label.
             sentryLabel={castToSentryLabel(sentryLabel)}
-            onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
+            {...rest}
             accessibilityState={accessibilityState}
             accessibilityHasPopup={accessibilityHasPopup}
             nativeID={nativeID}
             accessibilityControls={accessibilityControls}
             shouldAllowTextSelection={shouldAllowTextSelection}
             wrapperStyle={[StyleUtils.combineStyles(selectionStyle, inlineStyle), wrapperStyle]}
+            onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}
             dimAnimationDuration={opacityAnimationDuration}
             ref={mergeRefs(pressableRef, ref) as PressableWithSecondaryInteractionProps['ref']}

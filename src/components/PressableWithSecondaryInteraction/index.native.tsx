@@ -22,6 +22,7 @@ function PressableWithSecondaryInteraction({
     preventDefaultContextMenu,
     withoutFocusOnSecondaryInteraction,
     enableLongPressWithHover,
+    sentryLabel: rawSentryLabel,
     ref,
     ...rest
 }: PressableWithSecondaryInteractionProps) {
@@ -32,7 +33,7 @@ function PressableWithSecondaryInteraction({
         accessibilityHasPopup: rest.accessibilityHasPopup,
         nativeID: rest.nativeID,
         accessibilityControls: rest.accessibilityControls,
-        sentryLabel: rest.sentryLabel,
+        sentryLabel: rawSentryLabel,
     });
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
@@ -44,10 +45,9 @@ function PressableWithSecondaryInteraction({
     if (inline) {
         return (
             <Text
-                // The press props stay out of the cast, since TypeScript can't relate them to the label after it. The
-                // label still travels with them in `rest`.
+                // The cast hides the press props and the label, since TypeScript can't tie a handler in `rest` to its label.
+                // At runtime `rest` still passes any onPress with its label.
                 {...(rest as Omit<TextProps, 'onPress' | 'onLongPress' | 'sentryLabel'>)}
-                // The long press runs the secondary interaction, which can come from a press responder with its own label.
                 sentryLabel={castToSentryLabel(sentryLabel)}
                 onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
                 suppressHighlighting={suppressHighlighting}
@@ -59,13 +59,13 @@ function PressableWithSecondaryInteraction({
 
     return (
         <PressableWithFeedback
+            sentryLabel={castToSentryLabel(sentryLabel)}
             {...rest}
             accessibilityState={accessibilityState}
             accessibilityHasPopup={accessibilityHasPopup}
             nativeID={nativeID}
             accessibilityControls={accessibilityControls}
             ref={ref}
-            sentryLabel={castToSentryLabel(sentryLabel)}
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
             pressDimmingValue={activeOpacity}

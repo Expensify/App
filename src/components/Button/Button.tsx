@@ -88,16 +88,6 @@ function Button({
         return runPress(event);
     };
 
-    const longPress = (event: GestureResponderEvent) => {
-        if (isLongPressDisabled) {
-            return;
-        }
-        if (enableHapticFeedback) {
-            HapticFeedback.longPress();
-        }
-        onLongPress(event);
-    };
-
     let buttonVariantStyles;
     const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
     if (!variant) {
@@ -159,6 +149,7 @@ function Button({
             accessibilityState={accessibilityState}
             hitSlop={hitSlop}
             accessibilityHasPopup={accessibilityHasPopup}
+            sentryLabel={castToSentryLabel(sentryLabel)}
             role={CONST.ROLE.BUTTON}
             isNested={isNested}
             disabled={isLoading || isDisabled}
@@ -190,9 +181,16 @@ function Button({
             onBlur={onBlur}
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
-            sentryLabel={castToSentryLabel(sentryLabel)}
             onPress={pressWithFeedback}
-            onLongPress={longPress}
+            onLongPress={(event) => {
+                if (isLongPressDisabled) {
+                    return;
+                }
+                if (enableHapticFeedback) {
+                    HapticFeedback.longPress();
+                }
+                onLongPress(event);
+            }}
         >
             {blendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
             <ButtonStateContext.Provider value={{isHovered, variant, size, isDisabled, isLoading}}>

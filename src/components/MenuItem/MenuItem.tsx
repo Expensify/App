@@ -837,7 +837,8 @@ function MenuItem({
     // A copyable row without a label of its own still opens the copy menu on a long press, so it reports that under the
     // copy label.
     const pressableSentryLabel = sentryLabel ?? (copyable ? CONST.SENTRY_LABEL.MENU_ITEM.COPY_LONG_PRESS : undefined);
-    // TypeScript can't match a plain boolean against both the accessibility and the label unions, so it gets a literal type.
+    // A plain boolean can't be matched against the props' accessibility union here: TypeScript would have to check both
+    // values against every label combination too, which it gives up on, so the value gets a literal type.
     const accessibleProps = shouldBeAccessible ? {accessible: true as const} : {accessible: false as const};
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
@@ -874,10 +875,7 @@ function MenuItem({
                     >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                sentryLabel={castToSentryLabel(pressableSentryLabel)}
                                 onPress={shouldCheckActionAllowedOnPress && !isAnonymousAction ? callIfAuthenticated(onPressAction, session) : onPressAction}
-                                // Keep the native selection menu available through press-out; reset on the next pointer start.
-                                onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : secondaryInteractionHandler}
                                 onMouseDown={(event) => {
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
@@ -893,6 +891,8 @@ function MenuItem({
                                     })
                                 }
                                 onPressOut={ControlSelection.unblock}
+                                // Keep the native selection menu available through press-out; reset on the next pointer start.
+                                onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : secondaryInteractionHandler}
                                 wrapperStyle={outerWrapperStyle}
                                 activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={variables.instantAnimationDuration}
@@ -932,6 +932,7 @@ function MenuItem({
                                 accessibilityState={accessibilityState ?? (role === CONST.ROLE.TAB ? {selected: focused} : undefined)}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
+                                sentryLabel={castToSentryLabel(pressableSentryLabel)}
                             >
                                 {({pressed}) => (
                                     <View style={[styles.flex1]}>

@@ -4,6 +4,8 @@ import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
+
 import type {SentryLabel, WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -42,8 +44,6 @@ function BasePopup({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    // Built in one object so TypeScript keeps resetSentryLabel tied to onReset, which ActionButtons requires together.
-    const resetProps = onReset ? {onReset, resetSentryLabel} : {};
 
     const shouldDisplayLabel = (showLabel ?? isSmallScreenWidth) && !!label;
 
@@ -63,9 +63,10 @@ function BasePopup({
             {shouldShowActionButtons && (
                 <ActionButtons
                     containerStyle={[styles.flexRow, styles.gap2, styles.ph5, styles.mt2]}
-                    {...resetProps}
+                    onReset={onReset}
                     onApply={onApply}
                     applySentryLabel={applySentryLabel}
+                    resetSentryLabel={castToSentryLabel(resetSentryLabel)}
                     shouldSubmitOnEnter={shouldSubmitOnEnter}
                 />
             )}

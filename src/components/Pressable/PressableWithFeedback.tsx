@@ -90,10 +90,10 @@ function PressableWithFeedback({
         >
             <GenericPressable
                 {...rest}
+                ref={mergedRef}
                 // A press responder can add a handler and its label, so both come from the slot.
                 sentryLabel={castToSentryLabel(slot.sentryLabel)}
                 onPress={slot.onPress}
-                ref={mergedRef}
                 accessibilityState={slot.accessibilityState}
                 accessibilityHasPopup={slot.accessibilityHasPopup}
                 nativeID={slot.nativeID}

@@ -143,7 +143,8 @@ function MenuItemRoot({
     // A read-only row has no label of its own, so it takes the label of the sub-component that handles its long press,
     // e.g. `MenuItem.Copy`.
     const rowSentryLabel = sentryLabel ?? registeredSecondaryInteractionSentryLabel;
-    // TypeScript can't match a plain boolean against both the accessibility and the label unions, so it gets a literal type.
+    // A plain boolean can't be matched against the props' accessibility union here: TypeScript would have to check both
+    // values against every label combination too, which it gives up on, so the value gets a literal type.
     const accessibleProps = shouldBeAccessible ? {accessible: true as const} : {accessible: false as const};
 
     return (
@@ -151,11 +152,7 @@ function MenuItemRoot({
             <Hoverable>
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
-                        sentryLabel={castToSentryLabel(rowSentryLabel)}
                         onPress={onPressAction}
-                        // RN Web prevents the native context menu whenever an onLongPress handler is attached.
-                        // Reset on the next pointer start, since press-out can precede the browser's selection menu.
-                        onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : onSecondaryInteractionAction}
                         onMouseDown={(event) => {
                             markMouseDownOnCopyableText(event?.target, shouldEnableTextSelection);
                         }}
@@ -171,6 +168,9 @@ function MenuItemRoot({
                             })
                         }
                         onPressOut={ControlSelection.unblock}
+                        // RN Web prevents the native context menu whenever an onLongPress handler is attached.
+                        // Reset on the next pointer start, since press-out can precede the browser's selection menu.
+                        onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : onSecondaryInteractionAction}
                         activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
                         opacityAnimationDuration={variables.instantAnimationDuration}
                         style={({pressed}) =>
@@ -194,6 +194,7 @@ function MenuItemRoot({
                         forwardedFSClass={forwardedFSClass === CONST.FULLSTORY.CLASS.MASK ? forwardedFSClass : rowFSClass}
                         {...accessibleProps}
                         tabIndex={isInteractive ? 0 : -1}
+                        sentryLabel={castToSentryLabel(rowSentryLabel)}
                         testID={testID}
                     >
                         {({pressed}) => (
