@@ -467,6 +467,7 @@ function BaseReportActionContextMenu({
                                 originalReportOfUnapprovedTransaction,
                                 memberChangeLogRoomReportName,
                                 rules,
+                                isThreadReportParentAction,
                             };
 
                             if ('renderContent' in contextAction) {
