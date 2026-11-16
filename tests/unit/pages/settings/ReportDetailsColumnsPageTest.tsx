@@ -22,7 +22,6 @@ import {transactionR14932} from '../../../../__mocks__/reportData/transactions';
 
 jest.mock('@components/ColumnsSettingsList', () => jest.fn(() => null));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
-jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: jest.fn(() => false)}}));
 jest.mock('@libs/actions/ReportLayout', () => ({setReportDetailsColumns: jest.fn()}));
@@ -81,51 +80,50 @@ it('filters unsupported saved columns, defaults invalid-only storage, and preser
     expect(Navigation.goBack).toHaveBeenCalledTimes(2);
 });
 
-it('updates additional fields in place in the shared report preference', () => {
-    // Given an account-wide preference with Vendor selected on another workspace and custom fields between the table columns.
-    const savedColumns = [COLUMNS.DATE, COLUMNS.MCC, COLUMNS.VENDOR, COLUMNS.CATEGORY_GL_CODE, COLUMNS.MERCHANT, COLUMNS.TOTAL_AMOUNT];
+it('preselects the report column defaults when opening Customize fields without a saved preference', () => {
+    // Given a user who has never saved a column preference.
+    const defaultColumns = [COLUMNS.RECEIPT, COLUMNS.DATE, COLUMNS.MERCHANT, COLUMNS.CATEGORY, COLUMNS.TAG, COLUMNS.TOTAL_AMOUNT];
 
-    // When the user reorders the extra fields and adds Purchase amount from an expense.
-    const props = renderColumns(savedColumns, 'true');
-    props.onSave([COLUMNS.CATEGORY_GL_CODE, COLUMNS.MCC, COLUMNS.ORIGINAL_AMOUNT]);
+    // When the user opens the picker from the report table and from an expense.
+    const reportPicker = renderColumns(undefined);
+    const expensePicker = renderColumns(undefined, 'true');
 
-    // Then the picker only manages additional fields and keeps the saved layout of the other columns.
-    expect(props.title).toBe('iou.customizeFields');
-    expect(props.resetText).toBe('search.resetFields');
-    expect(props.defaultSelectedColumns).toEqual([]);
-    expect(props.currentColumns).toEqual([COLUMNS.MCC, COLUMNS.CATEGORY_GL_CODE]);
-    expect(props.allColumns).toEqual(expect.arrayContaining([COLUMNS.MCC, COLUMNS.CATEGORY_GL_CODE, COLUMNS.ORIGINAL_AMOUNT]));
-    expect(props.allColumns).not.toContain(COLUMNS.DATE);
-    expect(props.allColumns).not.toContain(COLUMNS.VENDOR);
-    expect(props.requiredColumns.size).toBe(0);
-    expect(setReportDetailsColumns).toHaveBeenCalledWith(
-        [COLUMNS.DATE, COLUMNS.CATEGORY_GL_CODE, COLUMNS.VENDOR, COLUMNS.MCC, COLUMNS.MERCHANT, COLUMNS.TOTAL_AMOUNT, COLUMNS.ORIGINAL_AMOUNT],
-        savedColumns,
-    );
-    expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+    // Then both entry points allow the same choices and show the same checked and required columns.
+    expect(expensePicker.allColumns).toEqual(reportPicker.allColumns);
+    expect(expensePicker.currentColumns).toEqual(defaultColumns);
+    expect(expensePicker.defaultSelectedColumns).toEqual(defaultColumns);
+    expect(expensePicker.requiredColumns).toEqual(new Set([COLUMNS.TOTAL_AMOUNT]));
+    expect(expensePicker.title).toBe('iou.customizeFields');
+    expect(expensePicker.resetText).toBe('search.resetFields');
 });
 
-it('seeds the picker from the containing report and keeps its other default columns', () => {
+it('includes data-driven defaults from the containing report in Customize fields', () => {
     // Given no saved preference and a visible expense on the containing report with an MCC value.
     const expense = {...transactionR14932, reportID: REPORT_ID, mcc: 5812};
+    const transactions = {[expense.transactionID]: expense};
 
-    // When the user clears that automatically selected field.
-    const props = renderColumns(undefined, 'true', {[expense.transactionID]: expense});
-    props.onSave([]);
+    // When the user opens the picker from the expense and saves without edits.
+    const reportPicker = renderColumns(undefined, undefined, transactions);
+    const expensePicker = renderColumns(undefined, 'true', transactions);
+    expensePicker.onSave(expensePicker.currentColumns);
 
-    // Then the initial picker reflects the report and saving omits the field while preserving its other table columns.
-    expect(props.currentColumns).toEqual([COLUMNS.MCC]);
-    expect(setReportDetailsColumns).toHaveBeenCalledWith([COLUMNS.RECEIPT, COLUMNS.DATE, COLUMNS.MERCHANT, COLUMNS.TOTAL_AMOUNT], undefined);
+    // Then MCC is initially selected alongside the report's other columns, without replacing the defaults with a saved preference.
+    expect(expensePicker.currentColumns).toEqual(reportPicker.currentColumns);
+    expect(expensePicker.currentColumns).toEqual(expect.arrayContaining([COLUMNS.RECEIPT, COLUMNS.DATE, COLUMNS.MERCHANT, COLUMNS.MCC, COLUMNS.TOTAL_AMOUNT]));
+    expect(setReportDetailsColumns).not.toHaveBeenCalled();
 });
 
-it('keeps an explicit preference after clearing the last extra field', () => {
-    // Given an older preference whose only other selection is unavailable on this workspace.
-    const savedColumns = [COLUMNS.VENDOR, COLUMNS.MCC];
-    const props = renderColumns(savedColumns, 'true');
+it('saves changes to standard columns and extra fields from Customize fields', () => {
+    // Given a preference that includes both standard columns and an extra field.
+    const savedColumns = [COLUMNS.RECEIPT, COLUMNS.DATE, COLUMNS.MCC, COLUMNS.MERCHANT, COLUMNS.TOTAL_AMOUNT];
+    const expensePicker = renderColumns(savedColumns, 'true');
 
-    // When the user clears the final additional field and saves.
-    props.onSave([]);
+    // When the user deselects Receipt and moves Merchant to the first position before saving.
+    const updatedColumns = [COLUMNS.MERCHANT, COLUMNS.DATE, COLUMNS.MCC, COLUMNS.TOTAL_AMOUNT];
+    expensePicker.onSave(updatedColumns);
 
-    // Then the required table column keeps the view from falling back to its automatically selected fields.
-    expect(setReportDetailsColumns).toHaveBeenCalledWith([COLUMNS.VENDOR, COLUMNS.TOTAL_AMOUNT], savedColumns);
+    // Then the picker reflects the saved order and writes the full updated selection to the shared preference.
+    expect(expensePicker.currentColumns).toEqual(savedColumns);
+    expect(setReportDetailsColumns).toHaveBeenCalledWith(updatedColumns, savedColumns);
+    expect(Navigation.goBack).toHaveBeenCalledTimes(1);
 });

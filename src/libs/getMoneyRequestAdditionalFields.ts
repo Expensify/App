@@ -83,5 +83,4 @@ function getMoneyRequestAdditionalFields(params: AdditionalFieldContext & {colum
 }
 
 export default getMoneyRequestAdditionalFields;
-export {isMoneyRequestAdditionalFieldColumn};
 export type {MoneyRequestAdditionalField};
