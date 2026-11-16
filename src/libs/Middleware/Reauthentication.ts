@@ -137,6 +137,17 @@ function handleExpiredSession<TKey extends OnyxKey>(
             }
 
             if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+                request.reauthRetryCount = (request.reauthRetryCount ?? 0) + 1;
+                if (request.reauthRetryCount > 2) {
+                    Log.hmmm('[Reauthentication] Reauthentication retry limit exceeded for request', {
+                        command: request.command,
+                        retries: request.reauthRetryCount,
+                    });
+                    if (isFromSequentialQueue) {
+                        throw new Error('Exceeded maximum reauthentication retries');
+                    }
+                    return data;
+                }
                 return processWithMiddleware(request, isFromSequentialQueue);
             }
 
