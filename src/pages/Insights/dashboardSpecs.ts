@@ -144,7 +144,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 titleKey: 'insightsPage.averageProcessingTime',
                 view: CONST.SEARCH.VIEW.PIE,
                 groupBy: CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE,
-                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                metric: CONST.SEARCH.CHART_METRIC.DURATION,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             },
